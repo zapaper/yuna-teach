@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SpellingTest {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  language  Language @default(CHINESE)
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  words Word[]
+
+  @@map("spelling_tests")
+}
+
+model Word {
+  id             String  @id @default(cuid())
+  text           String
+  orderIndex     Int
+  enabled        Boolean @default(true)
+  spellingTestId String
+
+  spellingTest SpellingTest @relation(fields: [spellingTestId], references: [id], onDelete: Cascade)
+
+  @@map("words")
+}
+
+enum Language {
+  CHINESE
+  ENGLISH
+}
