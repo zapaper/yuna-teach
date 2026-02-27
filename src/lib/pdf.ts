@@ -35,6 +35,32 @@ export async function renderPdfToImages(
   return images;
 }
 
+/** Check if a data URL image is mostly blank (white/light pixels) */
+export function isImageBlank(dataUrl: string, threshold = 0.97): Promise<boolean> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const sampleHeight = Math.min(img.height, 200);
+      canvas.width = img.width;
+      canvas.height = sampleHeight;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, img.width, sampleHeight, 0, 0, img.width, sampleHeight);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      let lightPixels = 0;
+      const totalPixels = data.length / 4;
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i] > 230 && data[i + 1] > 230 && data[i + 2] > 230) {
+          lightPixels++;
+        }
+      }
+      resolve(lightPixels / totalPixels > threshold);
+    };
+    img.onerror = () => resolve(false);
+    img.src = dataUrl;
+  });
+}
+
 export function cropQuestionFromPage(
   pageDataUrl: string,
   yStartPct: number,

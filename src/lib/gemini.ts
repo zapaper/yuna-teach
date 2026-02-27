@@ -521,6 +521,52 @@ export async function redoQuestionExtraction(
   };
 }
 
+// --- Validate cropped question image ---
+
+const VALIDATE_CROP_PROMPT = `Look at this cropped image from an exam paper. I expect this to be question "{questionNum}".
+
+Check TWO things:
+1. Is the question number "{displayNum}" (or close to it) visible near the TOP of this image?
+2. Does this image contain actual exam question content (not blank/empty)?
+
+Return JSON: { "valid": true/false, "reason": "short explanation" }
+
+- valid = true if the question number is visible near the top AND the image has real content
+- valid = false if the image is blank, or the question number is not visible, or a completely different question is shown`;
+
+export async function validateQuestionCrop(
+  croppedImageBase64: string,
+  questionNum: string
+): Promise<{ valid: boolean; reason: string }> {
+  // Strip P2-/B2- prefix to get the number printed on the page
+  const displayNum = questionNum.replace(/^(P\d+-|B\d+-)/, "").replace(/[a-z]$/i, m => `(${m})`);
+
+  const prompt = VALIDATE_CROP_PROMPT
+    .replaceAll("{questionNum}", questionNum)
+    .replaceAll("{displayNum}", displayNum);
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: croppedImageBase64 } },
+          { text: prompt },
+        ],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) return { valid: false, reason: "Empty AI response" };
+  return JSON.parse(text) as { valid: boolean; reason: string };
+}
+
 const wordInfoCache = new Map<string, WordInfo>();
 
 export async function generateWordInfo(
