@@ -315,14 +315,14 @@ KEY POINT: "24a" starts at the MAIN question number "24.", NOT at "(a)". This is
 ## HANDLING MULTIPLE PAPERS IN ONE PDF
 If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B):
 - Question numbers will RESET back to 1 when a new paper starts
-- You MUST prefix question numbers to keep them unique:
-  - Paper 1 questions: "1", "2", "3a", "3b" (no prefix needed for the first paper)
-  - Paper 2 questions: "P2-1", "P2-2", "P2-3a", "P2-3b"
-  - If labeled as Booklet: "B2-1", "B2-2", "B2-3a"
-- Treat each paper INDEPENDENTLY — extract its questions using the SAME rules above (MCQ first, then written)
-- Each paper has its OWN header instructions — use those to guide extraction for that paper
-- The extraction rules (boundaries, sub-parts, etc.) apply the same way within each paper
-- IMPORTANT: Do NOT confuse questions from different papers. When you see Q1 again after Q30, that is Paper 2's Q1, not a duplicate.
+- The PRINTED question numbers on Paper 2's pages are just "1", "2", "3" etc. — same as Paper 1
+- For EXTRACTION, you look for the printed numbers "1", "2", "3" on the page — the same boundary rules apply
+- Extract Paper 2 questions using the EXACT SAME method as Paper 1: find printed question numbers, use them as boundaries
+- The ONLY difference is the questionNum in your JSON output gets a prefix to stay unique:
+  - Paper 1: "1", "2", "3a", "3b" (no prefix)
+  - Paper 2: "P2-1", "P2-2", "P2-3a", "P2-3b" (prefix in output only)
+- The prefix is ONLY for the JSON output — on the actual page, the question is still printed as "1", "2", etc.
+- Each paper has its OWN header/instructions — read those to know how many questions to expect
 
 ## Validate question sequence WITHIN each paper
 - Within a single paper, questions MUST be sequential: 1, 2, 3...
@@ -333,7 +333,7 @@ If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B
 - Usually at the END of the document
 - Titled "Answer Key", "Answers", or a table mapping question numbers to answers
 - Mark these pages as isAnswerSheet: true
-- Extract all answers, matching the question numbering format (e.g. "1", "22a", "22b")
+- Extract all answers, matching the question numbering format (e.g. "1", "22a", "22b", "P2-1", "P2-3a")
 
 ## OUTPUT FORMAT
 Return a JSON object with:
