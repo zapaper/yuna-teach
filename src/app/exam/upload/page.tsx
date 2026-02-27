@@ -163,154 +163,76 @@ function ExamUploadContent() {
       }
     }
 
-    // --- Validation pass: check each question ---
-    setProcessingStatus("Validating extracted questions...");
-    const badIndices: number[] = [];
-
-    for (let i = 0; i < allQuestions.length; i++) {
-      const q = allQuestions[i];
-
-      // Quick client-side check: is the image blank?
-      const blank = await isImageBlank(q.imageData);
-      if (blank) {
-        badIndices.push(i);
-        continue;
-      }
-
-      // Check if crop is suspiciously small
-      const pageQ = result.pages
-        .flatMap((p: { pageIndex: number; isAnswerSheet: boolean; questions: Array<{ questionNum: string; yStartPct: number; yEndPct: number }> }) => p.questions.map((qq: { questionNum: string; yStartPct: number; yEndPct: number }) => ({ ...qq, pageIndex: p.pageIndex })))
-        .find((pq: { questionNum: string }) => pq.questionNum === q.questionNum);
-      if (pageQ) {
-        const height = pageQ.yEndPct - pageQ.yStartPct;
-        if (height < 3 || pageQ.yStartPct >= pageQ.yEndPct) {
-          badIndices.push(i);
-          continue;
-        }
-      }
-
-      // AI validation: check question number is visible at top
-      setProcessingStatus(`Checking question ${q.questionNum}...`);
-      try {
-        const valRes = await fetch("/api/exam/validate-crop", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: q.imageData,
-            questionNum: q.questionNum,
-          }),
-        });
-        if (valRes.ok) {
-          const valResult = await valRes.json();
-          if (!valResult.valid) {
-            badIndices.push(i);
-          }
-        }
-      } catch {
-        // Skip validation on error, keep the crop
+    // --- Quick client-side checks only (no AI validation) ---
+    // Build a map of original boundaries for size checking
+    const boundaryMap = new Map<string, { yStartPct: number; yEndPct: number }>();
+    for (const page of result.pages) {
+      for (const q of page.questions) {
+        boundaryMap.set(q.questionNum, { yStartPct: q.yStartPct, yEndPct: q.yEndPct });
       }
     }
 
-    // --- Auto-redo bad questions ---
+    const badIndices: number[] = [];
+    const blankChecks = allQuestions.map((q, i) =>
+      isImageBlank(q.imageData).then((blank) => {
+        if (blank) return true;
+        const bounds = boundaryMap.get(q.questionNum);
+        if (bounds) {
+          const height = bounds.yEndPct - bounds.yStartPct;
+          if (height < 3 || bounds.yStartPct >= bounds.yEndPct) return true;
+        }
+        return false;
+      })
+    );
+    const blankResults = await Promise.all(blankChecks);
+    blankResults.forEach((isBad, i) => { if (isBad) badIndices.push(i); });
+
+    // --- Auto-redo bad questions in PARALLEL ---
     if (badIndices.length > 0) {
       setProcessingStatus(
         `Re-extracting ${badIndices.length} question(s)...`
       );
 
-      for (const idx of badIndices) {
+      const redoPromises = badIndices.map((idx) => {
         const q = allQuestions[idx];
-        setProcessingStatus(`Re-extracting question ${q.questionNum}...`);
+        const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
+        const samePageNums = allQuestions
+          .filter((other, i) => i !== idx && other.pageIndex === q.pageIndex)
+          .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
 
-        const redone = await autoRedoQuestion(
-          q,
-          idx,
-          allQuestions,
-          images
-        );
-        if (redone) {
-          allQuestions[idx] = { ...q, imageData: redone };
-        }
-      }
+        return fetch("/api/exam/redo-question", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: images[q.pageIndex],
+            questionNum: printedNum,
+            surroundingQuestions: samePageNums,
+          }),
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .then(async (redoResult) => {
+            if (!redoResult) return;
+            const height = redoResult.yEndPct - redoResult.yStartPct;
+            if (height >= 3 && redoResult.yStartPct < redoResult.yEndPct) {
+              const croppedImage = await cropQuestionFromPage(
+                images[q.pageIndex],
+                redoResult.yStartPct,
+                redoResult.yEndPct
+              );
+              const blank = await isImageBlank(croppedImage);
+              if (!blank) {
+                allQuestions[idx] = { ...q, imageData: croppedImage };
+              }
+            }
+          })
+          .catch(() => { /* keep original */ });
+      });
+
+      await Promise.allSettled(redoPromises);
     }
 
     setQuestions(allQuestions);
     setStep("review");
-  }
-
-  /** Try to redo a question extraction, returns new imageData or null */
-  async function autoRedoQuestion(
-    q: ExtractedQuestion,
-    idx: number,
-    allQuestions: ExtractedQuestion[],
-    images: string[]
-  ): Promise<string | null> {
-    // For P2-/B2- prefixed questions, tell redo the actual printed number
-    const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
-
-    const samePageQuestions = allQuestions
-      .filter((other, i) => i !== idx && other.pageIndex === q.pageIndex)
-      .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
-
-    // Attempt 1: standard redo with printed number
-    try {
-      const res = await fetch("/api/exam/redo-question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: images[q.pageIndex],
-          questionNum: printedNum,
-          surroundingQuestions: samePageQuestions,
-        }),
-      });
-
-      if (res.ok) {
-        const redoResult = await res.json();
-        const height = redoResult.yEndPct - redoResult.yStartPct;
-        if (height >= 3 && redoResult.yStartPct < redoResult.yEndPct) {
-          const croppedImage = await cropQuestionFromPage(
-            images[q.pageIndex],
-            redoResult.yStartPct,
-            redoResult.yEndPct
-          );
-          const blank = await isImageBlank(croppedImage);
-          if (!blank) return croppedImage;
-        }
-      }
-    } catch { /* continue to attempt 2 */ }
-
-    // Attempt 2: try adjacent pages (question might be on previous/next page)
-    for (const offset of [-1, 1]) {
-      const altPage = q.pageIndex + offset;
-      if (altPage < 0 || altPage >= images.length) continue;
-
-      try {
-        const res = await fetch("/api/exam/redo-question", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: images[altPage],
-            questionNum: printedNum,
-            surroundingQuestions: [],
-          }),
-        });
-
-        if (res.ok) {
-          const redoResult = await res.json();
-          const height = redoResult.yEndPct - redoResult.yStartPct;
-          if (height >= 3 && redoResult.yStartPct < redoResult.yEndPct) {
-            const croppedImage = await cropQuestionFromPage(
-              images[altPage],
-              redoResult.yStartPct,
-              redoResult.yEndPct
-            );
-            const blank = await isImageBlank(croppedImage);
-            if (!blank) return croppedImage;
-          }
-        }
-      } catch { /* continue */ }
-    }
-
-    return null;
   }
 
   function handleUpdateQuestion(
