@@ -288,17 +288,24 @@ The cover page or top of the first page contains critical metadata:
 ### Written / Structured Section (usually Section B / Booklet B — comes AFTER MCQ)
 - Fewer questions, each worth more marks
 - For EACH written question, first check: does it have sub-parts (a), (b), (c)?
-  - If YES → SPLIT into separate entries. Boundary rules:
-    - For the FIRST sub-part (a): TOP = the main question number (e.g. "22."), BOTTOM = just above "(b)"
-    - For sub-part (b): TOP = "(b)", BOTTOM = just above "(c)"
-    - For sub-part (c): TOP = "(c)", BOTTOM = just above the NEXT question number (e.g. "23.")
-    - And so on for any further sub-parts
-    - questionNum format: "22a", "22b", "22c"
-  - If NO sub-parts → extract as a single entry from question number to just above next question number
-- Each entry includes its text, AND the answer space/lines
-- Include the "Ans:" line or answer box/space if present — this is part of the question
-- Include any blank lines or working space given for that sub-part
-- IMPORTANT: Some questions or answers contain pictures, diagrams, graphs, tables, or figures — these MUST be included in the crop, do NOT cut them off
+
+#### If question HAS sub-parts — WORKED EXAMPLE:
+Say question 24 has parts (a), (b), (c), and the next question is 25.
+On the page, from top to bottom you see: "24." ... "(a)" ... "(b)" ... "(c)" ... "25."
+
+Extract 3 entries:
+- "24a": yStartPct = top of "24." (the number), yEndPct = top of "(b)" minus 1%
+- "24b": yStartPct = top of "(b)", yEndPct = top of "(c)" minus 1%
+- "24c": yStartPct = top of "(c)", yEndPct = top of "25." minus 1%
+
+KEY POINT: "24a" starts at the MAIN question number "24.", NOT at "(a)". This is because the question stem text between "24." and "(a)" belongs to part (a).
+
+#### If question has NO sub-parts:
+- Single entry from question number to just above next question number
+
+#### For ALL written entries:
+- Include EVERYTHING between the top and bottom boundaries: text, answer spaces, "Ans:" lines, diagrams, pictures, graphs, tables, figures, blank working space
+- NEVER try to guess where "content" ends — always go to the next question/sub-part number
 
 ## STEP 3.5: Validate question sequence
 - Questions MUST run in sequential order: 1, 2, 3... or 1a, 1b, 2a, 2b...
@@ -345,15 +352,16 @@ Return a JSON object with:
 - This naturally includes the stem and all answer options
 
 ### For written questions (THIS IS WHERE ERRORS HAPPEN MOST — BE CAREFUL):
-- If question has sub-parts:
-  - "22a": TOP = main question number "22.", BOTTOM = just above "(b)"
-  - "22b": TOP = "(b)", BOTTOM = just above "(c)" or next question "23."
-  - "22c": TOP = "(c)", BOTTOM = just above next question "23."
-- If question has NO sub-parts:
-  - TOP = question number, BOTTOM = just above next question number
-- DO NOT try to guess where the "content" ends — just go all the way to the next question/sub-part number
-- Written questions often have large answer spaces, diagrams, pictures, graphs, tables, or figures BETWEEN the question text and the next question number — these MUST be included
-- If you cut off at what looks like the "end of text", you will miss diagrams and answer spaces below it
+Example: Question 24 has parts (a), (b), (c). Next question is 25.
+  - "24a": yStartPct = top of "24." (the main number), yEndPct = just above "(b)"
+  - "24b": yStartPct = top of "(b)", yEndPct = just above "(c)"
+  - "24c": yStartPct = top of "(c)", yEndPct = just above "25."
+Note: "24a" starts at "24." NOT at "(a)" — the stem belongs to part (a).
+
+If NO sub-parts: TOP = question number, BOTTOM = just above next question number.
+
+- NEVER guess where content ends — ALWAYS use the next question/sub-part number as the bottom
+- Written questions often have diagrams, pictures, tables, answer boxes BELOW the text — include ALL of it
 
 ### Edge cases:
 - If a question continues from a previous page, start from the very TOP of the page (yStartPct = 0 or 1)
@@ -425,19 +433,23 @@ Context about surrounding questions on this page:
 - Top = question number, Bottom = just above next question number
 - This naturally includes the stem and all answer options
 
-### If "{questionNum}" is a written sub-part (e.g. "22a", "22b"):
-- If sub-part (a) — e.g. "22a":
-  - TOP = the main question number (e.g. "22."), BOTTOM = just above "(b)" label
-- If sub-part (b) — e.g. "22b":
-  - TOP = "(b)" label, BOTTOM = just above "(c)" or next question number
-- And so on for further sub-parts
-- DO NOT try to guess where the "content" ends — go all the way to the next sub-part/question number
-- Include everything: answer spaces, "Ans:" lines, diagrams, pictures, blank working space
+### If "{questionNum}" is sub-part (a) (e.g. "24a"):
+- TOP = the MAIN question number "24." (NOT "(a)") — the stem between "24." and "(a)" belongs to part (a)
+- BOTTOM = just above the "(b)" label
+- Include everything between: stem text, diagrams, pictures, answer space
 
-### If "{questionNum}" is a full written question (e.g. "29", "30"):
+### If "{questionNum}" is sub-part (b) or later (e.g. "24b", "24c"):
+- TOP = the sub-part label "(b)" or "(c)"
+- BOTTOM = just above the next sub-part label or next question number
+- Include everything between: text, diagrams, pictures, answer space
+
+### If "{questionNum}" is a full written question with no sub-parts (e.g. "29", "30"):
 - Top = question number, Bottom = just above the next question number
 - Include everything between: text, diagrams, pictures, graphs, tables, answer boxes, blank lines
-- If the question has sub-parts that are NOT being split, include ALL sub-parts
+
+### For ALL written questions:
+- NEVER guess where content ends — ALWAYS use the next question/sub-part number as the bottom boundary
+- Written questions often have diagrams, pictures, or answer boxes BELOW the text
 
 ## Critical:
 - Written questions often have diagrams, pictures, or large answer spaces BELOW the text — do NOT cut these off
