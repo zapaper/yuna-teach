@@ -282,35 +282,29 @@ The cover page or top of the first page contains critical metadata:
 - Sometimes it says "Booklet A" (MCQ) and "Booklet B" (structured/written) — treat each booklet as a section
 - If there are multiple papers in the PDF, each paper will have its OWN header — read each one
 
-## STEP 3: Extract questions section by section
+## STEP 3: Extract questions — ONE entry per question number
 
-### MCQ Section (usually Section A / Booklet A — comes FIRST)
-- The header tells you how many MCQ questions (e.g. 28 questions at 1 mark each)
-- Each MCQ has a question stem followed by answer options: (A)(B)(C)(D) or (1)(2)(3)(4)
-- Each MCQ is a SEPARATE entry — do NOT merge multiple MCQs together
-- Include BOTH the stem AND all answer options in the crop
+Every question is extracted the SAME way regardless of type (MCQ or written):
+- TOP boundary = the question number (e.g. "1.", "24."), minus 2-3% padding
+- BOTTOM boundary = just above the NEXT question number (e.g. "2.", "25."), minus 1%
+- Each question is ONE entry — do NOT split sub-parts (a), (b), (c) into separate entries
+- If question 24 has parts (a), (b), (c), it is still ONE entry: questionNum = "24"
+- Include EVERYTHING between two consecutive question numbers: stem, sub-parts, answer options, diagrams, pictures, answer spaces, blank lines
 
-### Written / Structured Section (usually Section B / Booklet B — comes AFTER MCQ)
-- Fewer questions, each worth more marks
-- For EACH written question, first check: does it have sub-parts (a), (b), (c)?
+### Sequential extraction rule:
+- Extract questions in order: 1, 2, 3, 4...
+- Use the PREVIOUS question's yEndPct to guide the NEXT question's yStartPct
+  - Q1 yEndPct ≈ Q2 yStartPct (no gaps between questions)
+- This means once you find Q1's boundaries, Q2's top is already known — you just need to find Q2's bottom (= top of Q3)
 
-#### If question HAS sub-parts — WORKED EXAMPLE:
-Say question 24 has parts (a), (b), (c), and the next question is 25.
-On the page, from top to bottom you see: "24." ... "(a)" ... "(b)" ... "(c)" ... "25."
+### MCQ questions:
+- Each MCQ is a SEPARATE entry including stem + all answer options (A/B/C/D or 1/2/3/4)
 
-Extract 3 entries:
-- "24a": yStartPct = top of "24." (the number), yEndPct = top of "(b)" minus 1%
-- "24b": yStartPct = top of "(b)", yEndPct = top of "(c)" minus 1%
-- "24c": yStartPct = top of "(c)", yEndPct = top of "25." minus 1%
-
-KEY POINT: "24a" starts at the MAIN question number "24.", NOT at "(a)". This is because the question stem text between "24." and "(a)" belongs to part (a).
-
-#### If question has NO sub-parts:
-- Single entry from question number to just above next question number
-
-#### For ALL written entries:
-- Include EVERYTHING between the top and bottom boundaries: text, answer spaces, "Ans:" lines, diagrams, pictures, graphs, tables, figures, blank working space
-- NEVER try to guess where "content" ends — always go to the next question/sub-part number
+### Written questions:
+- Keep the ENTIRE question as ONE entry including ALL sub-parts (a), (b), (c) and answer spaces
+- Written questions are larger — typically 15-50% of a page
+- Include answer spaces ("Ans:" lines, answer boxes, blank working space)
+- Include diagrams, pictures, graphs, tables, figures
 
 ## HANDLING MULTIPLE PAPERS IN ONE PDF
 If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B):
@@ -319,8 +313,8 @@ If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B
 - For EXTRACTION, you look for the printed numbers "1", "2", "3" on the page — the same boundary rules apply
 - Extract Paper 2 questions using the EXACT SAME method as Paper 1: find printed question numbers, use them as boundaries
 - The ONLY difference is the questionNum in your JSON output gets a prefix to stay unique:
-  - Paper 1: "1", "2", "3a", "3b" (no prefix)
-  - Paper 2: "P2-1", "P2-2", "P2-3a", "P2-3b" (prefix in output only)
+  - Paper 1: "1", "2", "3" (no prefix)
+  - Paper 2: "P2-1", "P2-2", "P2-3" (prefix in output only)
 - The prefix is ONLY for the JSON output — on the actual page, the question is still printed as "1", "2", etc.
 - Each paper has its OWN header/instructions — read those to know how many questions to expect
 
@@ -333,7 +327,7 @@ If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B
 - Usually at the END of the document
 - Titled "Answer Key", "Answers", or a table mapping question numbers to answers
 - Mark these pages as isAnswerSheet: true
-- Extract all answers, matching the question numbering format (e.g. "1", "22a", "22b", "P2-1", "P2-3a")
+- Extract all answers, matching the question numbering format (e.g. "1", "22", "P2-1", "P2-3")
 
 ## OUTPUT FORMAT
 Return a JSON object with:
@@ -347,48 +341,36 @@ Return a JSON object with:
    - pageIndex: 0-based page number
    - isAnswerSheet: true/false
    - questions: array of questions on this page, each with:
-     - questionNum: e.g. "1", "2", "28", "29a", "29b", "30", "P2-1", "P2-2", "P2-3a"
+     - questionNum: e.g. "1", "2", "28", "29", "30", "P2-1", "P2-2", "P2-3"
      - yStartPct: Y-coordinate where question starts (0=top, 100=bottom)
      - yEndPct: Y-coordinate where question ends
 
 3. "answers": object mapping question numbers to answer text
-   Example: { "1": "B", "2": "A", "29a": "3/4", "P2-1": "12", "P2-2a": "5 cm" }
+   Example: { "1": "B", "2": "A", "29": "3/4", "P2-1": "12", "P2-2": "5 cm" }
 
 ## CRITICAL RULES for yStartPct / yEndPct boundaries:
 
-### The GOLDEN RULE for all questions:
-- yStartPct = find the question number (e.g. "5." or "(a)"), go to its TOP edge, then subtract 2-3% for padding
-- yEndPct = find the NEXT question number (e.g. "6." or "(b)"), go to its TOP edge, then subtract 1% so you stop just above it
-- This means: EVERYTHING between two consecutive question numbers belongs to the first question — text, diagrams, pictures, answer boxes, blank space, ALL of it
+### The ONE rule for ALL questions (MCQ and written alike):
+- yStartPct = top of this question's number (e.g. "5."), minus 2-3% padding
+- yEndPct = top of the NEXT question's number (e.g. "6."), minus 1%
+- EVERYTHING between two consecutive question numbers belongs to the first question
 
-### For MCQ questions:
-- Top = question number, Bottom = just above next question number
-- This naturally includes the stem and all answer options
+### Sequential guidance — use previous coordinates:
+- Extract in order. Once you know Q(n)'s yEndPct, Q(n+1)'s yStartPct ≈ Q(n)'s yEndPct
+- This eliminates gaps and helps you find the next question even if the number is hard to read
+- On a new page: first question starts near the top (after any page header), last question extends to near the bottom (before footer)
 
-### For written questions (THIS IS WHERE ERRORS HAPPEN MOST — BE CAREFUL):
-Example: Question 24 has parts (a), (b), (c). Next question is 25.
-  - "24a": yStartPct = top of "24." (the main number), yEndPct = just above "(b)"
-  - "24b": yStartPct = top of "(b)", yEndPct = just above "(c)"
-  - "24c": yStartPct = top of "(c)", yEndPct = just above "25."
-Note: "24a" starts at "24." NOT at "(a)" — the stem belongs to part (a).
-
-If NO sub-parts: TOP = question number, BOTTOM = just above next question number.
-
-- NEVER guess where content ends — ALWAYS use the next question/sub-part number as the bottom
-- Written questions often have diagrams, pictures, tables, answer boxes BELOW the text — include ALL of it
-
-### When you CANNOT clearly find the boundary:
-- If you cannot find the exact TOP of a question: use the yEndPct of the previous question as the yStartPct (no gaps rule)
-- If you cannot find the exact BOTTOM of a question: find the next question number you CAN see and use its top as your yEndPct
-- If you cannot find the next question at all: extend yEndPct to just before the page footer (90-95%)
-- NEVER output a tiny crop (less than 5% height) for a written question — written questions are usually 15-50% of a page
-- NEVER output coordinates that don't make sense (e.g. yStartPct > yEndPct, or both at 0)
-- When in doubt, crop MORE rather than less — it is better to include extra white space than to cut off content
+### When you CANNOT clearly find a boundary:
+- Cannot find TOP: use yEndPct of the previous question (no gaps rule)
+- Cannot find BOTTOM: find the next question number you CAN see and use its top
+- Cannot find next question at all: extend to just before the page footer (90-95%)
+- NEVER output a tiny crop (less than 5% height) for a written question
+- NEVER output invalid coordinates (yStartPct >= yEndPct)
+- When in doubt, crop MORE — extra white space is better than cutting off content
 
 ### Edge cases:
-- If a question continues from a previous page, start from the very TOP of the page (yStartPct = 0 or 1)
-- If a question is the last on a page, extend yEndPct to just before the footer/page number
-- No gaps — yEndPct of Q(n) ≈ yStartPct of Q(n+1)
+- Question continues from previous page: yStartPct = 0 or 1
+- Last question on page: yEndPct = just before footer/page number
 - Skip page headers (school name repeated at top) and footers (page numbers)
 
 Return ONLY valid JSON.`;
@@ -436,47 +418,22 @@ export async function analyzeExamBatch(
 
 // --- Single question re-extraction ---
 
-const REDO_QUESTION_PROMPT = `You are re-analyzing a specific question from a Singapore primary/secondary school exam paper page.
+const REDO_QUESTION_PROMPT = `Find question "{questionNum}" on this exam paper page and provide precise crop boundaries.
 
-I need you to find question "{questionNum}" on this page and provide precise boundaries for cropping.
+Context: {context}
 
-Context about surrounding questions on this page:
-{context}
+## The ONE rule:
+- yStartPct = top of question "{questionNum}" number on the page, minus 2-3% padding
+- yEndPct = top of the NEXT question number, minus 1%
+- EVERYTHING between two consecutive question numbers belongs to this question
+- Include ALL content: stem, sub-parts (a)(b)(c), answer options, diagrams, pictures, answer spaces, blank lines
 
-## THE GOLDEN RULE for boundaries:
-- yStartPct = find question "{questionNum}" number on the page, go to its TOP edge, subtract 2-3% for padding
-- yEndPct = find the NEXT question number after "{questionNum}", go to its TOP edge, subtract 1% to stop just above it
-- EVERYTHING between two consecutive question numbers belongs to the first question
+## Guidance:
 - yStartPct = 0 means top of page, yEndPct = 100 means bottom of page
-
-## Rules by question type:
-
-### If "{questionNum}" is an MCQ (e.g. "1", "2", "15"):
-- Top = question number, Bottom = just above next question number
-- This naturally includes the stem and all answer options
-
-### If "{questionNum}" is sub-part (a) (e.g. "24a"):
-- TOP = the MAIN question number "24." (NOT "(a)") — the stem between "24." and "(a)" belongs to part (a)
-- BOTTOM = just above the "(b)" label
-- Include everything between: stem text, diagrams, pictures, answer space
-
-### If "{questionNum}" is sub-part (b) or later (e.g. "24b", "24c"):
-- TOP = the sub-part label "(b)" or "(c)"
-- BOTTOM = just above the next sub-part label or next question number
-- Include everything between: text, diagrams, pictures, answer space
-
-### If "{questionNum}" is a full written question with no sub-parts (e.g. "29", "30"):
-- Top = question number, Bottom = just above the next question number
-- Include everything between: text, diagrams, pictures, graphs, tables, answer boxes, blank lines
-
-### For ALL written questions:
-- NEVER guess where content ends — ALWAYS use the next question/sub-part number as the bottom boundary
-- Written questions often have diagrams, pictures, or answer boxes BELOW the text
-
-## Critical:
-- Written questions often have diagrams, pictures, or large answer spaces BELOW the text — do NOT cut these off
-- Better to crop too much than to cut off any part of the question
-- If this is the last question on the page, extend to just before the footer/page number
+- If this is the last question on the page, extend yEndPct to just before the footer (90-95%)
+- Written questions are large (15-50% of page) — do NOT output a tiny crop
+- Better to crop too much than to cut off content
+- NEVER output invalid coordinates (yStartPct >= yEndPct)
 
 Return ONLY valid JSON: { "questionNum": "{questionNum}", "yStartPct": 15.0, "yEndPct": 45.0 }`;
 
