@@ -1,14 +1,24 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import WordReviewList from "@/components/WordReviewList";
 import { ExtractedTest } from "@/types";
 
 type Step = "capture" | "processing" | "review";
 
 export default function ScanPage() {
+  return (
+    <Suspense>
+      <ScanPageContent />
+    </Suspense>
+  );
+}
+
+function ScanPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>("capture");
@@ -152,12 +162,13 @@ export default function ScanPage() {
             subtitle: test.subtitle,
             language: test.language,
             imageData: imageData,
+            userId,
             words,
           }),
         });
       }
 
-      router.push("/");
+      router.push(userId ? `/home/${userId}` : "/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
@@ -169,7 +180,7 @@ export default function ScanPage() {
     <div className="p-6">
       {/* Back button */}
       <button
-        onClick={() => (step === "capture" ? router.push("/") : setStep("capture"))}
+        onClick={() => (step === "capture" ? router.push(userId ? `/home/${userId}` : "/") : setStep("capture"))}
         className="flex items-center gap-1 text-slate-500 mb-4 hover:text-slate-700"
       >
         <svg
@@ -220,7 +231,6 @@ export default function ScanPage() {
               ref={fileInputRef}
               type="file"
               accept="image/*"
-              capture="environment"
               onChange={handleFileSelect}
               className="hidden"
             />

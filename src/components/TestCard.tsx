@@ -6,9 +6,11 @@ import { useState } from "react";
 
 export default function TestCard({
   test,
+  userId,
   onDelete,
 }: {
   test: SpellingTestSummary;
+  userId: string;
   onDelete: (id: string) => void;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -22,7 +24,7 @@ export default function TestCard({
   return (
     <div className="relative">
       <Link
-        href={`/test/${test.id}`}
+        href={`/test/${test.id}?userId=${userId}`}
         className="block rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm transition-all active:scale-[0.98] hover:border-primary-200 hover:shadow-md"
       >
         <div className="flex items-start justify-between">

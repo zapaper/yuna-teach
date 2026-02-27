@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, use } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState, useCallback, useRef, use } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SpellingTestDetail } from "@/types";
 import BeginTestMode from "@/components/BeginTestMode";
 
@@ -17,7 +17,17 @@ export default function TestPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  return (
+    <Suspense>
+      <TestPageContent id={id} />
+    </Suspense>
+  );
+}
+
+function TestPageContent({ id }: { id: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId");
 
   const [test, setTest] = useState<SpellingTestDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +38,7 @@ export default function TestPage({
     word: string;
     info: WordInfo;
   } | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     async function fetchTest() {
@@ -49,6 +60,14 @@ export default function TestPage({
     async (wordText: string) => {
       if (!test || playingWord) return;
 
+      // Create AudioContext immediately on user tap (iOS requirement)
+      // and resume it to unlock audio playback
+      if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
+        audioCtxRef.current = new AudioContext();
+      }
+      await audioCtxRef.current.resume();
+      const ctx = audioCtxRef.current;
+
       setPlayingWord(wordText);
       try {
         // Play the word
@@ -64,10 +83,10 @@ export default function TestPage({
 
         if (wordRes.ok) {
           const wordAudio = await wordRes.arrayBuffer();
-          await playAudioBuffer(wordAudio);
+          await playWithContext(ctx, wordAudio);
         }
 
-        // Fetch word info (pinyin, meaning, example) while pausing
+        // Fetch word info + meaning audio in parallel during the 1.5s pause
         const infoPromise = fetch("/api/tts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -78,9 +97,20 @@ export default function TestPage({
           }),
         }).then((r) => (r.ok ? r.json() : null));
 
-        // 1.5 second pause
-        const [info] = await Promise.all([
+        const meaningAudioPromise = fetch("/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: wordText,
+            language: test.language,
+            type: "meaning",
+          }),
+        }).then((r) => (r.ok ? r.arrayBuffer() : null));
+
+        // 1.5 second pause — all fetches happen during this wait
+        const [info, meaningAudio] = await Promise.all([
           infoPromise,
+          meaningAudioPromise,
           new Promise((r) => setTimeout(r, 1500)),
         ]);
 
@@ -89,20 +119,9 @@ export default function TestPage({
           setCurrentWordInfo({ word: wordText, info: info as WordInfo });
         }
 
-        // Play the meaning + example
-        const meaningRes = await fetch("/api/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: wordText,
-            language: test.language,
-            type: "meaning",
-          }),
-        });
-
-        if (meaningRes.ok) {
-          const meaningAudio = await meaningRes.arrayBuffer();
-          await playAudioBuffer(meaningAudio);
+        // Play the meaning + example immediately (already fetched)
+        if (meaningAudio) {
+          await playWithContext(ctx, meaningAudio);
         }
       } catch (err) {
         console.error("TTS error:", err);
@@ -126,7 +145,7 @@ export default function TestPage({
       <div className="p-6 text-center py-24">
         <p className="text-slate-500">Test not found</p>
         <button
-          onClick={() => router.push("/")}
+          onClick={() => router.push(userId ? `/home/${userId}` : "/")}
           className="mt-4 text-primary-500 underline"
         >
           Go Home
@@ -152,7 +171,7 @@ export default function TestPage({
     <div className="p-6 pb-24">
       {/* Header */}
       <button
-        onClick={() => router.push("/")}
+        onClick={() => router.push(userId ? `/home/${userId}` : "/")}
         className="flex items-center gap-1 text-slate-500 mb-4 hover:text-slate-700"
       >
         <svg
@@ -265,19 +284,18 @@ export default function TestPage({
   );
 }
 
-function playAudioBuffer(buffer: ArrayBuffer): Promise<void> {
+function playWithContext(
+  ctx: AudioContext,
+  buffer: ArrayBuffer
+): Promise<void> {
   return new Promise((resolve, reject) => {
-    const audioContext = new AudioContext();
-    audioContext
+    ctx
       .decodeAudioData(buffer.slice(0))
       .then((audioBuffer) => {
-        const source = audioContext.createBufferSource();
+        const source = ctx.createBufferSource();
         source.buffer = audioBuffer;
-        source.connect(audioContext.destination);
-        source.onended = () => {
-          audioContext.close();
-          resolve();
-        };
+        source.connect(ctx.destination);
+        source.onended = () => resolve();
         source.start(0);
       })
       .catch(reject);

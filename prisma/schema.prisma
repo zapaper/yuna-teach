@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  role      Role     @default(STUDENT)
+  level     Int?     // Primary 1-6, only for students
+  createdAt DateTime @default(now())
+
+  tests SpellingTest[]
+
+  @@map("users")
+}
+
 model SpellingTest {
   id        String   @id @default(cuid())
   title     String
@@ -15,7 +27,9 @@ model SpellingTest {
   imageUrl  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String
 
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   words Word[]
 
   @@map("spelling_tests")
@@ -31,6 +45,11 @@ model Word {
   spellingTest SpellingTest @relation(fields: [spellingTestId], references: [id], onDelete: Cascade)
 
   @@map("words")
+}
+
+enum Role {
+  STUDENT
+  PARENT
 }
 
 enum Language {

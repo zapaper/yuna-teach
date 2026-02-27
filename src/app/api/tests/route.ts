@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const userId = request.nextUrl.searchParams.get("userId");
+
   const tests = await prisma.spellingTest.findMany({
+    where: userId ? { userId } : undefined,
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { words: true } },
@@ -23,7 +26,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { title, subtitle, language, imageData, words } = body;
+  const { title, subtitle, language, imageData, words, userId } = body;
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "userId is required" },
+      { status: 400 }
+    );
+  }
 
   const test = await prisma.spellingTest.create({
     data: {
@@ -31,6 +41,7 @@ export async function POST(request: NextRequest) {
       subtitle: subtitle || null,
       language: language || "CHINESE",
       imageUrl: imageData || null,
+      userId,
       words: {
         create: words.map(
           (w: { text: string; orderIndex: number; enabled?: boolean }) => ({

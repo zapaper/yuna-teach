@@ -1,4 +1,13 @@
 export type Language = "CHINESE" | "ENGLISH";
+export type Role = "STUDENT" | "PARENT";
+
+export interface User {
+  id: string;
+  name: string;
+  role: Role;
+  level: number | null;
+  createdAt: string;
+}
 
 export interface SpellingTestSummary {
   id: string;
