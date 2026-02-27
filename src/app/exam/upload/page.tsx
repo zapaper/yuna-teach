@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useRef } from "react";
+import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { renderPdfToImages, cropQuestionFromPage } from "@/lib/pdf";
 import QuestionReviewList from "@/components/QuestionReviewList";
@@ -53,6 +53,34 @@ function ExamUploadContent() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [redoingIndex, setRedoingIndex] = useState<number | null>(null);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+
+  const AI_PHRASES = [
+    "Reading through the exam paper...",
+    "Identifying question boundaries...",
+    "Checking header instructions...",
+    "Looking for answer sheets...",
+    "Analyzing question structure...",
+    "Detecting sub-parts and segments...",
+    "Almost there, still thinking...",
+    "Mapping out all the questions...",
+    "Extracting question details...",
+    "Hang tight, this takes a moment...",
+    "Scanning for diagrams and figures...",
+    "Cross-checking question count...",
+  ];
+
+  const rotatePhrases = useCallback(() => {
+    if (!aiAnalyzing) return;
+    const idx = Math.floor(Math.random() * AI_PHRASES.length);
+    setProcessingStatus(AI_PHRASES[idx]);
+  }, [aiAnalyzing]);
+
+  useEffect(() => {
+    if (!aiAnalyzing) return;
+    const interval = setInterval(rotatePhrases, 4000);
+    return () => clearInterval(interval);
+  }, [aiAnalyzing, rotatePhrases]);
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -82,21 +110,25 @@ function ExamUploadContent() {
 
   async function processPages(images: string[]) {
     // Single batch call to analyze all pages at once
-    setProcessingStatus(
-      `Analyzing ${images.length} pages with AI...`
-    );
+    setProcessingStatus("Reading through the exam paper...");
+    setAiAnalyzing(true);
 
-    const batchRes = await fetch("/api/exam/analyze-batch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ images }),
-    });
+    let result;
+    try {
+      const batchRes = await fetch("/api/exam/analyze-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images }),
+      });
 
-    if (!batchRes.ok) {
-      throw new Error("Failed to analyze exam paper");
+      if (!batchRes.ok) {
+        throw new Error("Failed to analyze exam paper");
+      }
+
+      result = await batchRes.json();
+    } finally {
+      setAiAnalyzing(false);
     }
-
-    const result = await batchRes.json();
 
     // Set header info
     if (result.header) {
