@@ -215,7 +215,7 @@ function ScanPageContent() {
       {step === "capture" && (
         <div>
           <h1 className="text-xl font-bold text-slate-800 mb-6">
-            Scan Spelling Test
+            Scan Spelling / 听写
           </h1>
 
           {/* File/Camera input */}

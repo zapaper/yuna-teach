@@ -102,7 +102,7 @@ export default function HomePage({
           href={`/scan?userId=${userId}`}
           className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
         >
-          Scan New Test
+          Scan Spelling / 听写
         </Link>
         <Link
           href={`/exam/upload?userId=${userId}`}
