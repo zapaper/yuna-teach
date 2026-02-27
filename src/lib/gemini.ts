@@ -117,6 +117,13 @@ export interface ExamHeaderInfo {
   year: string;
   semester: string;
   title: string;
+  totalMarks?: string;
+  sections?: Array<{
+    name: string;
+    type: string;
+    marks: number;
+    questionCount: number;
+  }>;
 }
 
 export async function analyzeExamHeader(
@@ -252,43 +259,69 @@ export async function extractExamAnswers(
 
 // --- Batch Exam Analysis (all pages in one call) ---
 
-const BATCH_ANALYSIS_PROMPT = `You are analyzing a complete Singapore school exam paper. All pages are provided as images in order.
+const BATCH_ANALYSIS_PROMPT = `You are an expert at analyzing Singapore primary/secondary school exam papers. All pages of the exam are provided as images in order.
 
-Analyze ALL pages and return a single JSON response with:
+## STEP 1: Read the cover page / header instructions carefully
+The first page or top of the first page usually contains critical information:
+- School name, level (P1-P6, Sec 1-4), subject, year, exam type (SA1, SA2, Prelim, CA1, Mid-Year)
+- Total marks and duration
+- Section breakdown, e.g. "Section A: 20 marks (20 MCQ questions)", "Section B: 40 marks (4 structured questions)"
+- USE THIS to know exactly how many questions to expect and their structure
 
-1. "header": Extract from the first page:
-   - school: The school name (e.g. "Anglo-Chinese School (Junior)")
-   - level: The student level (e.g. "P6", "P5")
-   - subject: The subject (e.g. "Mathematics", "Science")
-   - year: The year of the exam (e.g. "2024")
-   - semester: The exam type (e.g. "Prelim", "SA2", "CA1")
-   - title: A short title combining school, level, subject, exam type (e.g. "ACSJ P6 Math Prelim 2024")
+## STEP 2: Understand typical exam paper structure
 
-2. "pages": An array with one entry per page. For each page:
+### Section A — Multiple Choice Questions (MCQ)
+- Usually comes FIRST in the paper
+- The header will tell you how many MCQ questions (e.g. 20 marks = typically 10 or 20 MCQ questions, 1-2 marks each)
+- Each MCQ question has a question stem followed by answer options labeled either:
+  (A), (B), (C), (D) — OR — (1), (2), (3), (4)
+- A single MCQ question includes BOTH the stem AND all its answer options
+- MCQ questions are usually compact — do NOT merge multiple MCQ questions into one
+- Each MCQ is a SEPARATE question entry (e.g. Q1, Q2, Q3... up to Q10 or Q20)
+
+### Section B / C — Structured / Open-ended / Written Questions
+- Comes AFTER the MCQ section
+- Fewer questions but each is larger and worth more marks
+- Questions often have sub-parts: (a), (b), (c) or (i), (ii), (iii)
+- Keep the ENTIRE question together including ALL its sub-parts as ONE entry
+- Only split sub-parts into separate entries if they are on different pages or very long (half a page each)
+- Include ALL content: diagrams, tables, graphs, images, working space indicators
+
+## STEP 3: Detect answer sheets
+- Answer sheets / answer keys are usually at the END of the document
+- They may be titled "Answer Key", "Answers", or show a table of question numbers and answers
+- Mark these pages as isAnswerSheet: true
+- Extract all answers from them
+
+## OUTPUT FORMAT
+Return a JSON object with:
+
+1. "header": Extract from the cover/first page:
+   - school, level, subject, year, semester, title (same as before)
+   - totalMarks: total marks as a string (e.g. "60"), empty string if unknown
+   - sections: array of sections found, e.g. [{"name": "A", "type": "MCQ", "marks": 20, "questionCount": 20}]
+
+2. "pages": array with one entry per page:
    - pageIndex: 0-based page number
-   - isAnswerSheet: true if this page is an answer key/answer sheet
-   - questions: array of questions found on this page, each with:
-     - questionNum: The question number as shown (e.g. "1", "2", "3a", "3b")
-     - yStartPct: Y-coordinate where question starts as percentage of page height (0=top, 100=bottom)
-     - yEndPct: Y-coordinate where question ends as percentage of page height
+   - isAnswerSheet: true/false
+   - questions: array of questions on this page, each with:
+     - questionNum: question number as shown (e.g. "1", "2", "15", "21")
+     - yStartPct: Y-coordinate where question starts (0=top, 100=bottom of page)
+     - yEndPct: Y-coordinate where question ends
 
-3. "answers": An object mapping question numbers to answer text, extracted from any answer sheet pages.
-   Example: { "1": "B", "2a": "3/4" }. Empty object if no answer sheet found.
+3. "answers": object mapping question numbers to answer text from answer sheets
+   Example: { "1": "B", "2": "A", "21a": "3/4" }. Empty object if no answer sheet.
 
-Rules for question detection:
-- Include full question content (text, diagrams, charts, tables)
-- Do NOT include page headers, footers, or page numbers
-- Sub-questions (a, b, c) that are visually distinct should be separate entries
-- Cover pages with only instructions: return empty questions array
-- Add ~1-2% padding above/below each question
-- No overlapping regions
+## CRITICAL RULES for yStartPct / yEndPct:
+- The crop MUST include the COMPLETE question — question number, all text, all diagrams, all answer options
+- For MCQ: include the question stem AND all 4 answer options (A/B/C/D or 1/2/3/4)
+- For structured questions: include everything from the question number down to where the next question starts
+- Add 1-2% padding above and below for clean cropping
+- No gaps between questions — yEndPct of Q(n) should approximately equal yStartPct of Q(n+1)
+- Skip page headers (school name, page numbers) and footers
+- If a question continues from a previous page, crop from the TOP of the page (yStartPct near 0)
 
-Return ONLY valid JSON with this structure:
-{
-  "header": { "school": "", "level": "", "subject": "", "year": "", "semester": "", "title": "" },
-  "pages": [{ "pageIndex": 0, "isAnswerSheet": false, "questions": [{ "questionNum": "1", "yStartPct": 15.0, "yEndPct": 45.0 }] }],
-  "answers": {}
-}`;
+Return ONLY valid JSON.`;
 
 export interface BatchAnalysisResult {
   header: ExamHeaderInfo;
@@ -329,6 +362,66 @@ export async function analyzeExamBatch(
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response");
   return JSON.parse(text) as BatchAnalysisResult;
+}
+
+// --- Single question re-extraction ---
+
+const REDO_QUESTION_PROMPT = `You are re-analyzing a specific question from a Singapore school exam paper page.
+
+I need you to find question "{questionNum}" on this page and provide precise boundaries for cropping.
+
+Context about surrounding questions on this page:
+{context}
+
+Rules:
+- Find question {questionNum} and provide its EXACT boundaries
+- The crop MUST include the COMPLETE question: question number, all text, all diagrams, all answer options
+- If it is an MCQ question, include the stem AND all answer options (A/B/C/D or 1/2/3/4)
+- If it is a structured question with sub-parts (a, b, c), include ALL sub-parts
+- Add 1-2% padding above and below
+- yStartPct = 0 means top of page, yEndPct = 100 means bottom of page
+
+Return ONLY valid JSON: { "questionNum": "{questionNum}", "yStartPct": 15.0, "yEndPct": 45.0 }`;
+
+export async function redoQuestionExtraction(
+  imageBase64: string,
+  questionNum: string,
+  surroundingQuestions: string[]
+): Promise<{ questionNum: string; yStartPct: number; yEndPct: number }> {
+  const context =
+    surroundingQuestions.length > 0
+      ? `Other questions on this page: ${surroundingQuestions.join(", ")}`
+      : "This may be the only question on this page.";
+
+  const prompt = REDO_QUESTION_PROMPT.replaceAll("{questionNum}", questionNum).replace(
+    "{context}",
+    context
+  );
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+          { text: prompt },
+        ],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response");
+  return JSON.parse(text) as {
+    questionNum: string;
+    yStartPct: number;
+    yEndPct: number;
+  };
 }
 
 const wordInfoCache = new Map<string, WordInfo>();

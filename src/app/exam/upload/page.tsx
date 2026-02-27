@@ -52,6 +52,7 @@ function ExamUploadContent() {
   const [processingStatus, setProcessingStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [redoingIndex, setRedoingIndex] = useState<number | null>(null);
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -147,6 +148,54 @@ function ExamUploadContent() {
 
   function handleDeleteQuestion(index: number) {
     setQuestions((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function handleRedoQuestion(index: number) {
+    const q = questions[index];
+    if (!pageImages[q.pageIndex]) return;
+
+    setRedoingIndex(index);
+    setError(null);
+
+    try {
+      // Find other questions on the same page for context
+      const samePageQuestions = questions
+        .filter((other, i) => i !== index && other.pageIndex === q.pageIndex)
+        .map((other) => other.questionNum);
+
+      const res = await fetch("/api/exam/redo-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: pageImages[q.pageIndex],
+          questionNum: q.questionNum,
+          surroundingQuestions: samePageQuestions,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to re-extract question");
+      }
+
+      const result = await res.json();
+
+      // Re-crop with new boundaries
+      const croppedImage = await cropQuestionFromPage(
+        pageImages[q.pageIndex],
+        result.yStartPct,
+        result.yEndPct
+      );
+
+      setQuestions((prev) =>
+        prev.map((existing, i) =>
+          i === index ? { ...existing, imageData: croppedImage } : existing
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Redo failed");
+    } finally {
+      setRedoingIndex(null);
+    }
   }
 
   async function handleSave() {
@@ -362,6 +411,8 @@ function ExamUploadContent() {
             questions={questions}
             onUpdateQuestion={handleUpdateQuestion}
             onDeleteQuestion={handleDeleteQuestion}
+            onRedoQuestion={handleRedoQuestion}
+            redoingIndex={redoingIndex}
           />
 
           <div className="mt-6 pb-6">
