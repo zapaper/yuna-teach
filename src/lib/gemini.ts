@@ -96,6 +96,160 @@ export interface WordInfo {
   example: string;
 }
 
+// --- Exam Paper Analysis ---
+
+const HEADER_ANALYSIS_PROMPT = `You are analyzing the first page of a Singapore school exam paper.
+Extract the following information from this exam paper image:
+1. school: The school name (e.g. "Anglo-Chinese School (Junior)")
+2. level: The student level (e.g. "P6", "P5", "Sec 4")
+3. subject: The subject (e.g. "Mathematics", "Science", "English")
+4. year: The year of the exam (e.g. "2024")
+5. semester: The exam type or semester (e.g. "Prelim", "SA2", "CA1", "Mid-Year")
+6. title: A short descriptive title combining school abbreviation, level, subject, and exam type (e.g. "ACSJ P6 Math Prelim 2024")
+
+If any field cannot be determined, use an empty string.
+Return ONLY valid JSON with these exact fields: school, level, subject, year, semester, title.`;
+
+export interface ExamHeaderInfo {
+  school: string;
+  level: string;
+  subject: string;
+  year: string;
+  semester: string;
+  title: string;
+}
+
+export async function analyzeExamHeader(
+  imageBase64: string
+): Promise<ExamHeaderInfo> {
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+          { text: HEADER_ANALYSIS_PROMPT },
+        ],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response");
+  return JSON.parse(text) as ExamHeaderInfo;
+}
+
+const PAGE_ANALYSIS_PROMPT = `You are analyzing a page from a Singapore school exam paper.
+
+This is page {pageIndex} of the exam. Questions already found on previous pages: {existingQuestions}.
+
+Analyze this page image and identify each question or sub-question visible.
+For each question, provide:
+- questionNum: The question number as shown (e.g. "1", "2", "3a", "3b", "4(i)", "4(ii)")
+- yStartPct: The Y-coordinate where the question starts, as a percentage of total page height (0 = top, 100 = bottom)
+- yEndPct: The Y-coordinate where the question ends, as a percentage of total page height
+
+Important rules:
+- Include the full question content (text, diagrams, images, charts, tables)
+- Do NOT include page headers, footers, or page numbers in the question crops
+- Sub-questions (a, b, c or i, ii, iii) that are visually distinct and substantial should be separate entries
+- If the page is a cover page with instructions only (no questions), return an empty questions array
+- If the page is an answer key/answer sheet section, set isAnswerSheet to true and return empty questions array
+- Ensure yStartPct < yEndPct and no overlapping regions
+- Add ~1-2% padding above and below each question for clean cropping
+- Questions should not overlap - yEndPct of one should roughly equal yStartPct of the next
+
+Return ONLY valid JSON: { "questions": [{ "questionNum": "1", "yStartPct": 15.0, "yEndPct": 45.0 }], "isAnswerSheet": false }`;
+
+export interface PageAnalysis {
+  questions: Array<{
+    questionNum: string;
+    yStartPct: number;
+    yEndPct: number;
+  }>;
+  isAnswerSheet: boolean;
+}
+
+export async function analyzeExamPage(
+  imageBase64: string,
+  pageIndex: number,
+  existingQuestions: string[]
+): Promise<PageAnalysis> {
+  const prompt = PAGE_ANALYSIS_PROMPT.replace(
+    "{pageIndex}",
+    String(pageIndex + 1)
+  ).replace(
+    "{existingQuestions}",
+    existingQuestions.length > 0 ? existingQuestions.join(", ") : "none"
+  );
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+          { text: prompt },
+        ],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response");
+  return JSON.parse(text) as PageAnalysis;
+}
+
+const ANSWER_EXTRACTION_PROMPT = `You are analyzing the answer sheet/answer key section of a Singapore school exam paper.
+
+Extract all answers from this answer sheet image(s). For each question, provide the question number and the answer text.
+
+Rules:
+- Match the question number format exactly as shown (e.g. "1", "2a", "2b", "3(i)")
+- For MCQ answers, just provide the letter (e.g. "A", "B", "C", "D")
+- For short answers, provide the answer text
+- For working/method marks, provide the final answer only
+- If an answer is unclear, provide your best interpretation
+
+Return ONLY valid JSON as an object where keys are question numbers and values are answer strings.
+Example: { "1": "B", "2a": "3/4", "2b": "15 cm" }`;
+
+export async function extractExamAnswers(
+  imagesBase64: string[]
+): Promise<Record<string, string>> {
+  const imageParts = imagesBase64.map((data) => ({
+    inlineData: { mimeType: "image/jpeg" as const, data },
+  }));
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [...imageParts, { text: ANSWER_EXTRACTION_PROMPT }],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response");
+  return JSON.parse(text) as Record<string, string>;
+}
+
 const wordInfoCache = new Map<string, WordInfo>();
 
 export async function generateWordInfo(

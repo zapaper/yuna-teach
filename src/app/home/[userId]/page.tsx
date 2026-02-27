@@ -4,7 +4,8 @@ import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TestCard from "@/components/TestCard";
-import { SpellingTestSummary, User } from "@/types";
+import ExamPaperCard from "@/components/ExamPaperCard";
+import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
 
 export default function HomePage({
   params,
@@ -15,23 +16,27 @@ export default function HomePage({
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
+  const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [usersRes, testsRes] = await Promise.all([
+        const [usersRes, testsRes, examsRes] = await Promise.all([
           fetch("/api/users"),
           fetch(`/api/tests?userId=${userId}`),
+          fetch(`/api/exam?userId=${userId}`),
         ]);
         const usersData = await usersRes.json();
         const testsData = await testsRes.json();
+        const examsData = await examsRes.json();
 
         const foundUser = usersData.users.find(
           (u: User) => u.id === userId
         );
         setUser(foundUser || null);
         setTests(testsData.tests);
+        setExamPapers(examsData.papers);
       } catch (err) {
         console.error("Failed to fetch data:", err);
       } finally {
@@ -47,6 +52,15 @@ export default function HomePage({
       setTests((prev) => prev.filter((t) => t.id !== id));
     } catch (err) {
       console.error("Failed to delete test:", err);
+    }
+  }
+
+  async function handleDeleteExam(id: string) {
+    try {
+      await fetch(`/api/exam/${id}`, { method: "DELETE" });
+      setExamPapers((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Failed to delete exam:", err);
     }
   }
 
@@ -82,13 +96,21 @@ export default function HomePage({
         )}
       </div>
 
-      {/* Scan button */}
-      <Link
-        href={`/scan?userId=${userId}`}
-        className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform mb-8"
-      >
-        Scan New Test
-      </Link>
+      {/* Action buttons */}
+      <div className="space-y-3 mb-8">
+        <Link
+          href={`/scan?userId=${userId}`}
+          className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+        >
+          Scan New Test
+        </Link>
+        <Link
+          href={`/exam/upload?userId=${userId}`}
+          className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+        >
+          Upload Exam Paper
+        </Link>
+      </div>
 
       {/* Test list */}
       <div>
@@ -116,6 +138,34 @@ export default function HomePage({
                 test={test}
                 userId={userId}
                 onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Exam papers list */}
+      <div className="mt-8">
+        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
+          Exam Papers
+        </h2>
+
+        {loading ? null : examPapers.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-4xl mb-3">📄</div>
+            <p className="text-slate-500">No exam papers yet.</p>
+            <p className="text-slate-400 text-sm">
+              Upload a PDF exam paper to get started!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {examPapers.map((paper) => (
+              <ExamPaperCard
+                key={paper.id}
+                paper={paper}
+                userId={userId}
+                onDelete={handleDeleteExam}
               />
             ))}
           </div>

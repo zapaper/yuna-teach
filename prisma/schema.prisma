@@ -14,7 +14,8 @@ model User {
   level     Int?     // Primary 1-6, only for students
   createdAt DateTime @default(now())
 
-  tests SpellingTest[]
+  tests      SpellingTest[]
+  examPapers ExamPaper[]
 
   @@map("users")
 }
@@ -50,6 +51,39 @@ model Word {
 enum Role {
   STUDENT
   PARENT
+}
+
+model ExamPaper {
+  id        String   @id @default(cuid())
+  title     String
+  school    String?
+  level     String?
+  subject   String?
+  year      String?
+  semester  String?
+  pageCount Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  questions ExamQuestion[]
+
+  @@map("exam_papers")
+}
+
+model ExamQuestion {
+  id           String  @id @default(cuid())
+  questionNum  String
+  imageData    String
+  answer       String?
+  pageIndex    Int
+  orderIndex   Int
+  examPaperId  String
+
+  examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
+
+  @@map("exam_questions")
 }
 
 enum Language {

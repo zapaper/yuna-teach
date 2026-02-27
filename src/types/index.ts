@@ -45,3 +45,35 @@ export interface ExtractedTest {
 export interface ExtractResult {
   tests: ExtractedTest[];
 }
+
+export interface ExamPaperSummary {
+  id: string;
+  title: string;
+  school: string | null;
+  level: string | null;
+  subject: string | null;
+  questionCount: number;
+  createdAt: string;
+}
+
+export interface ExamPaperDetail {
+  id: string;
+  title: string;
+  school: string | null;
+  level: string | null;
+  subject: string | null;
+  year: string | null;
+  semester: string | null;
+  pageCount: number;
+  createdAt: string;
+  questions: ExamQuestionItem[];
+}
+
+export interface ExamQuestionItem {
+  id: string;
+  questionNum: string;
+  imageData: string;
+  answer: string | null;
+  pageIndex: number;
+  orderIndex: number;
+}
