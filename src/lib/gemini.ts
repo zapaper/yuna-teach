@@ -267,6 +267,10 @@ Before extracting any questions, scan ALL pages to determine:
 - How many total questions there are and how they are scored
 - How the paper is segmented (e.g. "Booklet A" and "Booklet B", or "Section A" and "Section B")
 - Where the answer sheet / answer key is (usually at the end)
+- Whether the PDF contains MULTIPLE papers (e.g. Paper 1 and Paper 2). Look for:
+  - Question numbers that RESET back to 1
+  - A new cover page or header appearing mid-document
+  - Labels like "Paper 2", "Booklet B", "Part 2"
 
 ## STEP 2: Read header instructions VERY carefully
 The cover page or top of the first page contains critical metadata:
@@ -276,6 +280,7 @@ The cover page or top of the first page contains critical metadata:
   e.g. "Section A: 28 questions x 1 mark = 28 marks", "Section B: 12 questions x 2 marks = 24 marks"
 - This tells you EXACTLY how many questions to find in each section — use this as your guide
 - Sometimes it says "Booklet A" (MCQ) and "Booklet B" (structured/written) — treat each booklet as a section
+- If there are multiple papers in the PDF, each paper will have its OWN header — read each one
 
 ## STEP 3: Extract questions section by section
 
@@ -307,13 +312,22 @@ KEY POINT: "24a" starts at the MAIN question number "24.", NOT at "(a)". This is
 - Include EVERYTHING between the top and bottom boundaries: text, answer spaces, "Ans:" lines, diagrams, pictures, graphs, tables, figures, blank working space
 - NEVER try to guess where "content" ends — always go to the next question/sub-part number
 
-## STEP 3.5: Validate question sequence
-- Questions MUST run in sequential order: 1, 2, 3... or 1a, 1b, 2a, 2b...
-- If you detect question numbers that RESET or jump out of sequence (e.g. after Q30 you see Q1 again), this means:
-  - It is a DIFFERENT paper or booklet (e.g. "Paper 2", "Booklet B")
-  - Prefix ALL question numbers from the new paper/booklet with a label, e.g. "P2-1", "P2-2" or "B2-1", "B2-2"
-  - Add the paper/booklet label to the header sections array
-- If question numbers jump (e.g. 5, 6, 10) — you likely missed questions in between. Go back and look more carefully.
+## HANDLING MULTIPLE PAPERS IN ONE PDF
+If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B):
+- Question numbers will RESET back to 1 when a new paper starts
+- You MUST prefix question numbers to keep them unique:
+  - Paper 1 questions: "1", "2", "3a", "3b" (no prefix needed for the first paper)
+  - Paper 2 questions: "P2-1", "P2-2", "P2-3a", "P2-3b"
+  - If labeled as Booklet: "B2-1", "B2-2", "B2-3a"
+- Treat each paper INDEPENDENTLY — extract its questions using the SAME rules above (MCQ first, then written)
+- Each paper has its OWN header instructions — use those to guide extraction for that paper
+- The extraction rules (boundaries, sub-parts, etc.) apply the same way within each paper
+- IMPORTANT: Do NOT confuse questions from different papers. When you see Q1 again after Q30, that is Paper 2's Q1, not a duplicate.
+
+## Validate question sequence WITHIN each paper
+- Within a single paper, questions MUST be sequential: 1, 2, 3...
+- If numbers jump (e.g. 5, 6, 10) you likely missed questions — look more carefully
+- Each paper's numbering is independent
 
 ## STEP 4: Detect answer sheets
 - Usually at the END of the document
@@ -333,12 +347,12 @@ Return a JSON object with:
    - pageIndex: 0-based page number
    - isAnswerSheet: true/false
    - questions: array of questions on this page, each with:
-     - questionNum: e.g. "1", "2", "28", "29a", "29b", "30"
+     - questionNum: e.g. "1", "2", "28", "29a", "29b", "30", "P2-1", "P2-2", "P2-3a"
      - yStartPct: Y-coordinate where question starts (0=top, 100=bottom)
      - yEndPct: Y-coordinate where question ends
 
 3. "answers": object mapping question numbers to answer text
-   Example: { "1": "B", "2": "A", "29a": "3/4", "29b": "15 cm" }
+   Example: { "1": "B", "2": "A", "29a": "3/4", "P2-1": "12", "P2-2a": "5 cm" }
 
 ## CRITICAL RULES for yStartPct / yEndPct boundaries:
 
