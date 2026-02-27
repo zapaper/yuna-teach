@@ -302,7 +302,9 @@ Every question is extracted the SAME way regardless of type (MCQ or written):
 
 ### Written questions:
 - Keep the ENTIRE question as ONE entry including ALL sub-parts (a), (b), (c) and answer spaces
-- Written questions are larger — typically 15-50% of a page
+- The bottom boundary is the NEXT WHOLE question number — NOT a sub-part label
+- Example: Q24 has (a)(b)(c). Bottom = top of "25.", NOT top of "(a)" or "(b)"
+- Written questions are larger — typically 15-50% of a page. If your crop is small, you are cutting off too early
 - Include answer spaces ("Ans:" lines, answer boxes, blank working space)
 - Include diagrams, pictures, graphs, tables, figures
 
@@ -352,8 +354,14 @@ Return a JSON object with:
 
 ### The ONE rule for ALL questions (MCQ and written alike):
 - yStartPct = top of this question's number (e.g. "5."), minus 2-3% padding
-- yEndPct = top of the NEXT question's number (e.g. "6."), minus 1%
-- EVERYTHING between two consecutive question numbers belongs to the first question
+- yEndPct = top of the NEXT WHOLE question number (e.g. "6."), minus 1%
+- EVERYTHING between two consecutive WHOLE question numbers belongs to the first question
+
+### What counts as a "question number" (boundary marker):
+- YES: "1.", "2.", "3.", "24.", "25." — these are WHOLE question numbers, use as boundaries
+- NO: "(a)", "(b)", "(c)", "(i)", "(ii)" — these are SUB-PARTS within a question, IGNORE them as boundaries
+- For written question 24 with parts (a), (b), (c): the bottom boundary is "25.", NOT "(a)" or "(b)" or "(c)"
+- Sub-part labels are INSIDE the question — they must be INCLUDED in the crop, never used as a cut-off point
 
 ### Sequential guidance — use previous coordinates:
 - Extract in order. Once you know Q(n)'s yEndPct, Q(n+1)'s yStartPct ≈ Q(n)'s yEndPct
@@ -423,15 +431,19 @@ const REDO_QUESTION_PROMPT = `Find question "{questionNum}" on this exam paper p
 Context: {context}
 
 ## The ONE rule:
-- yStartPct = top of question "{questionNum}" number on the page, minus 2-3% padding
-- yEndPct = top of the NEXT question number, minus 1%
-- EVERYTHING between two consecutive question numbers belongs to this question
-- Include ALL content: stem, sub-parts (a)(b)(c), answer options, diagrams, pictures, answer spaces, blank lines
+- yStartPct = top of question "{questionNum}" on the page, minus 2-3% padding
+- yEndPct = top of the NEXT WHOLE question number (e.g. the number AFTER "{questionNum}"), minus 1%
+- EVERYTHING between two consecutive WHOLE question numbers belongs to this question
+
+## IMPORTANT — what is a "question number" vs what is NOT:
+- Question numbers: "1.", "2.", "24.", "25." — use these as boundaries
+- NOT question numbers: "(a)", "(b)", "(c)", "(i)", "(ii)" — these are sub-parts INSIDE a question, IGNORE as boundaries
+- If question {questionNum} has sub-parts (a)(b)(c), include ALL of them — cut at the NEXT whole question number
 
 ## Guidance:
 - yStartPct = 0 means top of page, yEndPct = 100 means bottom of page
 - If this is the last question on the page, extend yEndPct to just before the footer (90-95%)
-- Written questions are large (15-50% of page) — do NOT output a tiny crop
+- Written questions are large (15-50% of page) — if your crop is small, you are cutting off too early
 - Better to crop too much than to cut off content
 - NEVER output invalid coordinates (yStartPct >= yEndPct)
 
