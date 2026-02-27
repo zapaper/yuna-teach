@@ -287,13 +287,26 @@ The cover page or top of the first page contains critical metadata:
 
 ### Written / Structured Section (usually Section B / Booklet B — comes AFTER MCQ)
 - Fewer questions, each worth more marks
-- Questions have sub-parts: (a), (b), (c) or (i), (ii), (iii)
-- SPLIT sub-parts into SEPARATE entries: e.g. Question 22 with parts (a) and (b) becomes "22a" and "22b"
-- Each sub-part entry includes the sub-part label, its text, AND the answer space/lines
+- For EACH written question, first check: does it have sub-parts (a), (b), (c)?
+  - If YES → SPLIT into separate entries. Boundary rules:
+    - For the FIRST sub-part (a): TOP = the main question number (e.g. "22."), BOTTOM = just above "(b)"
+    - For sub-part (b): TOP = "(b)", BOTTOM = just above "(c)"
+    - For sub-part (c): TOP = "(c)", BOTTOM = just above the NEXT question number (e.g. "23.")
+    - And so on for any further sub-parts
+    - questionNum format: "22a", "22b", "22c"
+  - If NO sub-parts → extract as a single entry from question number to just above next question number
+- Each entry includes its text, AND the answer space/lines
 - Include the "Ans:" line or answer box/space if present — this is part of the question
 - Include any blank lines or working space given for that sub-part
 - IMPORTANT: Some questions or answers contain pictures, diagrams, graphs, tables, or figures — these MUST be included in the crop, do NOT cut them off
-- The SIMPLE rule for written questions: TOP = the question/sub-part number, BOTTOM = just above the NEXT question/sub-part number. Everything between those two numbers belongs to this question.
+
+## STEP 3.5: Validate question sequence
+- Questions MUST run in sequential order: 1, 2, 3... or 1a, 1b, 2a, 2b...
+- If you detect question numbers that RESET or jump out of sequence (e.g. after Q30 you see Q1 again), this means:
+  - It is a DIFFERENT paper or booklet (e.g. "Paper 2", "Booklet B")
+  - Prefix ALL question numbers from the new paper/booklet with a label, e.g. "P2-1", "P2-2" or "B2-1", "B2-2"
+  - Add the paper/booklet label to the header sections array
+- If question numbers jump (e.g. 5, 6, 10) — you likely missed questions in between. Go back and look more carefully.
 
 ## STEP 4: Detect answer sheets
 - Usually at the END of the document
@@ -332,9 +345,13 @@ Return a JSON object with:
 - This naturally includes the stem and all answer options
 
 ### For written questions (THIS IS WHERE ERRORS HAPPEN MOST — BE CAREFUL):
-- Top = the question/sub-part number (e.g. "22." or "(a)")
-- Bottom = just above the NEXT question/sub-part number (e.g. "23." or "(b)")
-- DO NOT try to guess where the "content" ends — just go all the way to the next question number
+- If question has sub-parts:
+  - "22a": TOP = main question number "22.", BOTTOM = just above "(b)"
+  - "22b": TOP = "(b)", BOTTOM = just above "(c)" or next question "23."
+  - "22c": TOP = "(c)", BOTTOM = just above next question "23."
+- If question has NO sub-parts:
+  - TOP = question number, BOTTOM = just above next question number
+- DO NOT try to guess where the "content" ends — just go all the way to the next question/sub-part number
 - Written questions often have large answer spaces, diagrams, pictures, graphs, tables, or figures BETWEEN the question text and the next question number — these MUST be included
 - If you cut off at what looks like the "end of text", you will miss diagrams and answer spaces below it
 
@@ -409,8 +426,12 @@ Context about surrounding questions on this page:
 - This naturally includes the stem and all answer options
 
 ### If "{questionNum}" is a written sub-part (e.g. "22a", "22b"):
-- Top = the sub-part label "(a)" or "(b)", Bottom = just above the next sub-part label or next question number
-- DO NOT try to guess where the "content" ends — go all the way to the next number
+- If sub-part (a) — e.g. "22a":
+  - TOP = the main question number (e.g. "22."), BOTTOM = just above "(b)" label
+- If sub-part (b) — e.g. "22b":
+  - TOP = "(b)" label, BOTTOM = just above "(c)" or next question number
+- And so on for further sub-parts
+- DO NOT try to guess where the "content" ends — go all the way to the next sub-part/question number
 - Include everything: answer spaces, "Ans:" lines, diagrams, pictures, blank working space
 
 ### If "{questionNum}" is a full written question (e.g. "29", "30"):
