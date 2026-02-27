@@ -135,9 +135,10 @@ function ExamUploadContent() {
       setHeaderInfo(result.header);
     }
 
-    // Crop questions from each page
+    // Crop questions from each page, collecting ones that look wrong
     setProcessingStatus("Cropping questions...");
     const allQuestions: ExtractedQuestion[] = [];
+    const suspectIndices: number[] = [];
 
     for (const page of result.pages) {
       if (page.isAnswerSheet) continue;
@@ -146,6 +147,16 @@ function ExamUploadContent() {
         setProcessingStatus(
           `Cropping question ${q.questionNum}...`
         );
+
+        const height = q.yEndPct - q.yStartPct;
+        const isMCQ = !q.questionNum.match(/[a-z]/i) || q.questionNum.match(/^(P2-|B2-)?\d+$/);
+        const tooSmall = isMCQ ? height < 3 : height < 5;
+        const invalid = q.yStartPct >= q.yEndPct || q.yStartPct < 0 || q.yEndPct > 100;
+
+        if (invalid || tooSmall) {
+          suspectIndices.push(allQuestions.length);
+        }
+
         const croppedImage = await cropQuestionFromPage(
           images[page.pageIndex],
           q.yStartPct,
@@ -161,6 +172,48 @@ function ExamUploadContent() {
           pageIndex: page.pageIndex,
           orderIndex: allQuestions.length,
         });
+      }
+    }
+
+    // Auto-redo questions with suspicious boundaries
+    if (suspectIndices.length > 0) {
+      setProcessingStatus(
+        `Re-extracting ${suspectIndices.length} question(s) with better focus...`
+      );
+
+      for (const idx of suspectIndices) {
+        const q = allQuestions[idx];
+        setProcessingStatus(
+          `Re-extracting question ${q.questionNum}...`
+        );
+
+        try {
+          const samePageQuestions = allQuestions
+            .filter((other, i) => i !== idx && other.pageIndex === q.pageIndex)
+            .map((other) => other.questionNum);
+
+          const res = await fetch("/api/exam/redo-question", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              image: images[q.pageIndex],
+              questionNum: q.questionNum,
+              surroundingQuestions: samePageQuestions,
+            }),
+          });
+
+          if (res.ok) {
+            const redoResult = await res.json();
+            const croppedImage = await cropQuestionFromPage(
+              images[q.pageIndex],
+              redoResult.yStartPct,
+              redoResult.yEndPct
+            );
+            allQuestions[idx] = { ...q, imageData: croppedImage };
+          }
+        } catch {
+          // Keep original crop if redo fails
+        }
       }
     }
 

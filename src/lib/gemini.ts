@@ -377,6 +377,14 @@ If NO sub-parts: TOP = question number, BOTTOM = just above next question number
 - NEVER guess where content ends — ALWAYS use the next question/sub-part number as the bottom
 - Written questions often have diagrams, pictures, tables, answer boxes BELOW the text — include ALL of it
 
+### When you CANNOT clearly find the boundary:
+- If you cannot find the exact TOP of a question: use the yEndPct of the previous question as the yStartPct (no gaps rule)
+- If you cannot find the exact BOTTOM of a question: find the next question number you CAN see and use its top as your yEndPct
+- If you cannot find the next question at all: extend yEndPct to just before the page footer (90-95%)
+- NEVER output a tiny crop (less than 5% height) for a written question — written questions are usually 15-50% of a page
+- NEVER output coordinates that don't make sense (e.g. yStartPct > yEndPct, or both at 0)
+- When in doubt, crop MORE rather than less — it is better to include extra white space than to cut off content
+
 ### Edge cases:
 - If a question continues from a previous page, start from the very TOP of the page (yStartPct = 0 or 1)
 - If a question is the last on a page, extend yEndPct to just before the footer/page number
