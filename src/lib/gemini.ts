@@ -261,65 +261,75 @@ export async function extractExamAnswers(
 
 const BATCH_ANALYSIS_PROMPT = `You are an expert at analyzing Singapore primary/secondary school exam papers. All pages of the exam are provided as images in order.
 
-## STEP 1: Read the cover page / header instructions carefully
-The first page or top of the first page usually contains critical information:
-- School name, level (P1-P6, Sec 1-4), subject, year, exam type (SA1, SA2, Prelim, CA1, Mid-Year)
+## STEP 1: First pass — Read the ENTIRE paper to understand structure
+Before extracting any questions, scan ALL pages to determine:
+- The header/cover page instructions which tell you the exam structure
+- How many total questions there are and how they are scored
+- How the paper is segmented (e.g. "Booklet A" and "Booklet B", or "Section A" and "Section B")
+- Where the answer sheet / answer key is (usually at the end)
+
+## STEP 2: Read header instructions VERY carefully
+The cover page or top of the first page contains critical metadata:
+- School name, level (P1-P6, Sec 1-4), subject, year, exam type
 - Total marks and duration
-- Section breakdown, e.g. "Section A: 20 marks (20 MCQ questions)", "Section B: 40 marks (4 structured questions)"
-- USE THIS to know exactly how many questions to expect and their structure
+- Section breakdown with EXACT question count and marks per section
+  e.g. "Section A: 28 questions x 1 mark = 28 marks", "Section B: 12 questions x 2 marks = 24 marks"
+- This tells you EXACTLY how many questions to find in each section — use this as your guide
+- Sometimes it says "Booklet A" (MCQ) and "Booklet B" (structured/written) — treat each booklet as a section
 
-## STEP 2: Understand typical exam paper structure
+## STEP 3: Extract questions section by section
 
-### Section A — Multiple Choice Questions (MCQ)
-- Usually comes FIRST in the paper
-- The header will tell you how many MCQ questions (e.g. 20 marks = typically 10 or 20 MCQ questions, 1-2 marks each)
-- Each MCQ question has a question stem followed by answer options labeled either:
-  (A), (B), (C), (D) — OR — (1), (2), (3), (4)
-- A single MCQ question includes BOTH the stem AND all its answer options
-- MCQ questions are usually compact — do NOT merge multiple MCQ questions into one
-- Each MCQ is a SEPARATE question entry (e.g. Q1, Q2, Q3... up to Q10 or Q20)
+### MCQ Section (usually Section A / Booklet A — comes FIRST)
+- The header tells you how many MCQ questions (e.g. 28 questions at 1 mark each)
+- Each MCQ has a question stem followed by answer options: (A)(B)(C)(D) or (1)(2)(3)(4)
+- Each MCQ is a SEPARATE entry — do NOT merge multiple MCQs together
+- Include BOTH the stem AND all answer options in the crop
 
-### Section B / C — Structured / Open-ended / Written Questions
-- Comes AFTER the MCQ section
-- Fewer questions but each is larger and worth more marks
-- Questions often have sub-parts: (a), (b), (c) or (i), (ii), (iii)
-- Keep the ENTIRE question together including ALL its sub-parts as ONE entry
-- Only split sub-parts into separate entries if they are on different pages or very long (half a page each)
-- Include ALL content: diagrams, tables, graphs, images, working space indicators
+### Written / Structured Section (usually Section B / Booklet B — comes AFTER MCQ)
+- Fewer questions, each worth more marks
+- Questions have sub-parts: (a), (b), (c) or (i), (ii), (iii)
+- SPLIT sub-parts into SEPARATE entries: e.g. Question 22 with parts (a) and (b) becomes "22a" and "22b"
+- Each sub-part entry includes the sub-part label, its text, diagrams, AND the answer space/lines
+- Include the "Ans:" line or answer box/space if present — this is part of the question
+- Include any blank lines or working space given for that sub-part
 
-## STEP 3: Detect answer sheets
-- Answer sheets / answer keys are usually at the END of the document
-- They may be titled "Answer Key", "Answers", or show a table of question numbers and answers
+## STEP 4: Detect answer sheets
+- Usually at the END of the document
+- Titled "Answer Key", "Answers", or a table mapping question numbers to answers
 - Mark these pages as isAnswerSheet: true
-- Extract all answers from them
+- Extract all answers, matching the question numbering format (e.g. "1", "22a", "22b")
 
 ## OUTPUT FORMAT
 Return a JSON object with:
 
-1. "header": Extract from the cover/first page:
-   - school, level, subject, year, semester, title (same as before)
-   - totalMarks: total marks as a string (e.g. "60"), empty string if unknown
-   - sections: array of sections found, e.g. [{"name": "A", "type": "MCQ", "marks": 20, "questionCount": 20}]
+1. "header":
+   - school, level, subject, year, semester, title
+   - totalMarks: total marks as string (e.g. "100"), empty string if unknown
+   - sections: array of sections, e.g. [{"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}, {"name": "B", "type": "structured", "marks": 52, "questionCount": 8}]
 
 2. "pages": array with one entry per page:
    - pageIndex: 0-based page number
    - isAnswerSheet: true/false
    - questions: array of questions on this page, each with:
-     - questionNum: question number as shown (e.g. "1", "2", "15", "21")
-     - yStartPct: Y-coordinate where question starts (0=top, 100=bottom of page)
+     - questionNum: e.g. "1", "2", "28", "29a", "29b", "30"
+     - yStartPct: Y-coordinate where question starts (0=top, 100=bottom)
      - yEndPct: Y-coordinate where question ends
 
-3. "answers": object mapping question numbers to answer text from answer sheets
-   Example: { "1": "B", "2": "A", "21a": "3/4" }. Empty object if no answer sheet.
+3. "answers": object mapping question numbers to answer text
+   Example: { "1": "B", "2": "A", "29a": "3/4", "29b": "15 cm" }
 
-## CRITICAL RULES for yStartPct / yEndPct:
-- The crop MUST include the COMPLETE question — question number, all text, all diagrams, all answer options
-- For MCQ: include the question stem AND all 4 answer options (A/B/C/D or 1/2/3/4)
-- For structured questions: include everything from the question number down to where the next question starts
-- Add 1-2% padding above and below for clean cropping
-- No gaps between questions — yEndPct of Q(n) should approximately equal yStartPct of Q(n+1)
-- Skip page headers (school name, page numbers) and footers
-- If a question continues from a previous page, crop from the TOP of the page (yStartPct near 0)
+## CRITICAL RULES for yStartPct / yEndPct boundaries:
+- yStartPct = the TOP of the question number text, MINUS 2-3% padding (white space above)
+- yEndPct = just ABOVE the next question's number, giving 2-3% white space below
+- In other words: start from a bit of white space above the question number, end at a bit of white space below the last line of the question (before the next question number starts)
+- NEVER cut off the question number at the top or the last line / answer space at the bottom
+- For MCQ: crop from question number through all 4 answer options
+- For written questions: crop from question number through the answer space ("Ans:" line, answer box, or blank lines)
+- For written sub-parts (a, b): each sub-part's crop starts from its label "(a)" and ends before the next sub-part label "(b)" or next question
+- If a question continues from a previous page, start from the very TOP of the page (yStartPct = 0 or 1)
+- If a question is the last on a page, extend yEndPct to just before the footer/page number
+- No gaps — yEndPct of Q(n) ≈ yStartPct of Q(n+1)
+- Skip page headers (school name repeated at top) and footers (page numbers)
 
 Return ONLY valid JSON.`;
 
@@ -366,20 +376,38 @@ export async function analyzeExamBatch(
 
 // --- Single question re-extraction ---
 
-const REDO_QUESTION_PROMPT = `You are re-analyzing a specific question from a Singapore school exam paper page.
+const REDO_QUESTION_PROMPT = `You are re-analyzing a specific question from a Singapore primary/secondary school exam paper page.
 
 I need you to find question "{questionNum}" on this page and provide precise boundaries for cropping.
 
 Context about surrounding questions on this page:
 {context}
 
-Rules:
-- Find question {questionNum} and provide its EXACT boundaries
-- The crop MUST include the COMPLETE question: question number, all text, all diagrams, all answer options
-- If it is an MCQ question, include the stem AND all answer options (A/B/C/D or 1/2/3/4)
-- If it is a structured question with sub-parts (a, b, c), include ALL sub-parts
-- Add 1-2% padding above and below
+## How to determine boundaries:
+- yStartPct = the TOP of the question number text, MINUS 2-3% padding (white space above)
+- yEndPct = just ABOVE the next question's number, giving 2-3% white space below
 - yStartPct = 0 means top of page, yEndPct = 100 means bottom of page
+- NEVER cut off the question number at the top or the last line / answer space at the bottom
+
+## Rules by question type:
+
+### If "{questionNum}" is an MCQ (e.g. "1", "2", "15"):
+- Include the question stem AND all answer options (A/B/C/D or 1/2/3/4)
+- Crop from the question number through the last answer option
+
+### If "{questionNum}" is a written sub-part (e.g. "22a", "22b"):
+- This is a sub-part of a larger question
+- Crop from the sub-part label "(a)" or "(b)" to just before the next sub-part or next question
+- Include any answer space: "Ans:" lines, answer boxes, blank working space
+
+### If "{questionNum}" is a full written question (e.g. "29", "30"):
+- Include the question text, any diagrams, and the answer space
+- Include "Ans:" lines, answer boxes, or blank lines provided for the answer
+- If the question has sub-parts that are NOT being split, include ALL sub-parts
+
+## Critical:
+- Add 2-3% white space padding ABOVE and BELOW the question content
+- Better to crop slightly too much than to cut off any part of the question
 
 Return ONLY valid JSON: { "questionNum": "{questionNum}", "yStartPct": 15.0, "yEndPct": 45.0 }`;
 
