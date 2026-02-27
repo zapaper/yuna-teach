@@ -80,105 +80,57 @@ function ExamUploadContent() {
   }
 
   async function processPages(images: string[]) {
+    // Single batch call to analyze all pages at once
+    setProcessingStatus(
+      `Analyzing ${images.length} pages with AI...`
+    );
+
+    const batchRes = await fetch("/api/exam/analyze-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ images }),
+    });
+
+    if (!batchRes.ok) {
+      throw new Error("Failed to analyze exam paper");
+    }
+
+    const result = await batchRes.json();
+
+    // Set header info
+    if (result.header) {
+      setHeaderInfo(result.header);
+    }
+
+    // Crop questions from each page
+    setProcessingStatus("Cropping questions...");
     const allQuestions: ExtractedQuestion[] = [];
-    const existingQuestionNums: string[] = [];
-    const answerSheetPages: string[] = [];
-    let header: HeaderInfo | null = null;
 
-    for (let i = 0; i < images.length; i++) {
-      setProcessingStatus(
-        `Analyzing page ${i + 1} of ${images.length}...`
-      );
+    for (const page of result.pages) {
+      if (page.isAnswerSheet) continue;
 
-      // Analyze header from first page
-      if (i === 0) {
-        try {
-          const headerRes = await fetch("/api/exam/analyze-header", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: images[i] }),
-          });
-          if (headerRes.ok) {
-            header = await headerRes.json();
-          }
-        } catch {
-          // Header extraction is best-effort
-        }
-      }
+      for (const q of page.questions) {
+        setProcessingStatus(
+          `Cropping question ${q.questionNum}...`
+        );
+        const croppedImage = await cropQuestionFromPage(
+          images[page.pageIndex],
+          q.yStartPct,
+          q.yEndPct
+        );
 
-      // Analyze page for questions
-      try {
-        const pageRes = await fetch("/api/exam/analyze-page", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: images[i],
-            pageIndex: i,
-            existingQuestions: existingQuestionNums,
-          }),
+        const answer = result.answers?.[q.questionNum] || "";
+
+        allQuestions.push({
+          questionNum: q.questionNum,
+          imageData: croppedImage,
+          answer,
+          pageIndex: page.pageIndex,
+          orderIndex: allQuestions.length,
         });
-
-        if (!pageRes.ok) continue;
-
-        const analysis = await pageRes.json();
-
-        if (analysis.isAnswerSheet) {
-          answerSheetPages.push(images[i]);
-          continue;
-        }
-
-        // Crop questions from this page
-        for (const q of analysis.questions) {
-          setProcessingStatus(
-            `Cropping question ${q.questionNum} from page ${i + 1}...`
-          );
-          const croppedImage = await cropQuestionFromPage(
-            images[i],
-            q.yStartPct,
-            q.yEndPct
-          );
-
-          allQuestions.push({
-            questionNum: q.questionNum,
-            imageData: croppedImage,
-            answer: "",
-            pageIndex: i,
-            orderIndex: allQuestions.length,
-          });
-          existingQuestionNums.push(q.questionNum);
-        }
-      } catch (err) {
-        console.error(`Error processing page ${i + 1}:`, err);
       }
     }
 
-    // Extract answers from answer sheet pages
-    if (answerSheetPages.length > 0) {
-      setProcessingStatus("Extracting answers from answer sheet...");
-      try {
-        const answersRes = await fetch("/api/exam/extract-answers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ images: answerSheetPages }),
-        });
-
-        if (answersRes.ok) {
-          const { answers } = await answersRes.json();
-          // Match answers to questions
-          for (const q of allQuestions) {
-            if (answers[q.questionNum]) {
-              q.answer = answers[q.questionNum];
-            }
-          }
-        }
-      } catch {
-        // Answer extraction is best-effort
-      }
-    }
-
-    if (header) {
-      setHeaderInfo(header);
-    }
     setQuestions(allQuestions);
     setStep("review");
   }

@@ -250,6 +250,87 @@ export async function extractExamAnswers(
   return JSON.parse(text) as Record<string, string>;
 }
 
+// --- Batch Exam Analysis (all pages in one call) ---
+
+const BATCH_ANALYSIS_PROMPT = `You are analyzing a complete Singapore school exam paper. All pages are provided as images in order.
+
+Analyze ALL pages and return a single JSON response with:
+
+1. "header": Extract from the first page:
+   - school: The school name (e.g. "Anglo-Chinese School (Junior)")
+   - level: The student level (e.g. "P6", "P5")
+   - subject: The subject (e.g. "Mathematics", "Science")
+   - year: The year of the exam (e.g. "2024")
+   - semester: The exam type (e.g. "Prelim", "SA2", "CA1")
+   - title: A short title combining school, level, subject, exam type (e.g. "ACSJ P6 Math Prelim 2024")
+
+2. "pages": An array with one entry per page. For each page:
+   - pageIndex: 0-based page number
+   - isAnswerSheet: true if this page is an answer key/answer sheet
+   - questions: array of questions found on this page, each with:
+     - questionNum: The question number as shown (e.g. "1", "2", "3a", "3b")
+     - yStartPct: Y-coordinate where question starts as percentage of page height (0=top, 100=bottom)
+     - yEndPct: Y-coordinate where question ends as percentage of page height
+
+3. "answers": An object mapping question numbers to answer text, extracted from any answer sheet pages.
+   Example: { "1": "B", "2a": "3/4" }. Empty object if no answer sheet found.
+
+Rules for question detection:
+- Include full question content (text, diagrams, charts, tables)
+- Do NOT include page headers, footers, or page numbers
+- Sub-questions (a, b, c) that are visually distinct should be separate entries
+- Cover pages with only instructions: return empty questions array
+- Add ~1-2% padding above/below each question
+- No overlapping regions
+
+Return ONLY valid JSON with this structure:
+{
+  "header": { "school": "", "level": "", "subject": "", "year": "", "semester": "", "title": "" },
+  "pages": [{ "pageIndex": 0, "isAnswerSheet": false, "questions": [{ "questionNum": "1", "yStartPct": 15.0, "yEndPct": 45.0 }] }],
+  "answers": {}
+}`;
+
+export interface BatchAnalysisResult {
+  header: ExamHeaderInfo;
+  pages: Array<{
+    pageIndex: number;
+    isAnswerSheet: boolean;
+    questions: Array<{
+      questionNum: string;
+      yStartPct: number;
+      yEndPct: number;
+    }>;
+  }>;
+  answers: Record<string, string>;
+}
+
+export async function analyzeExamBatch(
+  imagesBase64: string[]
+): Promise<BatchAnalysisResult> {
+  const imageParts = imagesBase64.map((data, i) => [
+    { inlineData: { mimeType: "image/jpeg" as const, data } },
+    { text: `[Page ${i + 1} of ${imagesBase64.length}]` },
+  ]).flat();
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [...imageParts, { text: BATCH_ANALYSIS_PROMPT }],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response");
+  return JSON.parse(text) as BatchAnalysisResult;
+}
+
 const wordInfoCache = new Map<string, WordInfo>();
 
 export async function generateWordInfo(
