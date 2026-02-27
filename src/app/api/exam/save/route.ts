@@ -48,12 +48,16 @@ export async function POST(request: NextRequest) {
               answer?: string;
               pageIndex: number;
               orderIndex: number;
+              yStartPct?: number;
+              yEndPct?: number;
             }) => ({
               questionNum: q.questionNum,
               imageData: q.imageData,
               answer: q.answer || null,
               pageIndex: q.pageIndex,
               orderIndex: q.orderIndex,
+              yStartPct: q.yStartPct ?? null,
+              yEndPct: q.yEndPct ?? null,
             })
           ),
         },

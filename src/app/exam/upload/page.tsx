@@ -22,6 +22,8 @@ interface ExtractedQuestion {
   answer: string;
   pageIndex: number;
   orderIndex: number;
+  yStartPct: number;
+  yEndPct: number;
 }
 
 export default function ExamUploadPage() {
@@ -159,6 +161,8 @@ function ExamUploadContent() {
           answer,
           pageIndex: page.pageIndex,
           orderIndex: allQuestions.length,
+          yStartPct: q.yStartPct,
+          yEndPct: q.yEndPct,
         });
       }
     }
@@ -221,7 +225,7 @@ function ExamUploadContent() {
               );
               const blank = await isImageBlank(croppedImage);
               if (!blank) {
-                allQuestions[idx] = { ...q, imageData: croppedImage };
+                allQuestions[idx] = { ...q, imageData: croppedImage, yStartPct: redoResult.yStartPct, yEndPct: redoResult.yEndPct };
               }
             }
           })
@@ -288,7 +292,7 @@ function ExamUploadContent() {
 
       setQuestions((prev) =>
         prev.map((existing, i) =>
-          i === index ? { ...existing, imageData: croppedImage } : existing
+          i === index ? { ...existing, imageData: croppedImage, yStartPct: result.yStartPct, yEndPct: result.yEndPct } : existing
         )
       );
     } catch (err) {
