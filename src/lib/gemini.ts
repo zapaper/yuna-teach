@@ -289,9 +289,11 @@ The cover page or top of the first page contains critical metadata:
 - Fewer questions, each worth more marks
 - Questions have sub-parts: (a), (b), (c) or (i), (ii), (iii)
 - SPLIT sub-parts into SEPARATE entries: e.g. Question 22 with parts (a) and (b) becomes "22a" and "22b"
-- Each sub-part entry includes the sub-part label, its text, diagrams, AND the answer space/lines
+- Each sub-part entry includes the sub-part label, its text, AND the answer space/lines
 - Include the "Ans:" line or answer box/space if present — this is part of the question
 - Include any blank lines or working space given for that sub-part
+- IMPORTANT: Some questions or answers contain pictures, diagrams, graphs, tables, or figures — these MUST be included in the crop, do NOT cut them off
+- The SIMPLE rule for written questions: TOP = the question/sub-part number, BOTTOM = just above the NEXT question/sub-part number. Everything between those two numbers belongs to this question.
 
 ## STEP 4: Detect answer sheets
 - Usually at the END of the document
@@ -319,13 +321,24 @@ Return a JSON object with:
    Example: { "1": "B", "2": "A", "29a": "3/4", "29b": "15 cm" }
 
 ## CRITICAL RULES for yStartPct / yEndPct boundaries:
-- yStartPct = the TOP of the question number text, MINUS 2-3% padding (white space above)
-- yEndPct = just ABOVE the next question's number, giving 2-3% white space below
-- In other words: start from a bit of white space above the question number, end at a bit of white space below the last line of the question (before the next question number starts)
-- NEVER cut off the question number at the top or the last line / answer space at the bottom
-- For MCQ: crop from question number through all 4 answer options
-- For written questions: crop from question number through the answer space ("Ans:" line, answer box, or blank lines)
-- For written sub-parts (a, b): each sub-part's crop starts from its label "(a)" and ends before the next sub-part label "(b)" or next question
+
+### The GOLDEN RULE for all questions:
+- yStartPct = find the question number (e.g. "5." or "(a)"), go to its TOP edge, then subtract 2-3% for padding
+- yEndPct = find the NEXT question number (e.g. "6." or "(b)"), go to its TOP edge, then subtract 1% so you stop just above it
+- This means: EVERYTHING between two consecutive question numbers belongs to the first question — text, diagrams, pictures, answer boxes, blank space, ALL of it
+
+### For MCQ questions:
+- Top = question number, Bottom = just above next question number
+- This naturally includes the stem and all answer options
+
+### For written questions (THIS IS WHERE ERRORS HAPPEN MOST — BE CAREFUL):
+- Top = the question/sub-part number (e.g. "22." or "(a)")
+- Bottom = just above the NEXT question/sub-part number (e.g. "23." or "(b)")
+- DO NOT try to guess where the "content" ends — just go all the way to the next question number
+- Written questions often have large answer spaces, diagrams, pictures, graphs, tables, or figures BETWEEN the question text and the next question number — these MUST be included
+- If you cut off at what looks like the "end of text", you will miss diagrams and answer spaces below it
+
+### Edge cases:
 - If a question continues from a previous page, start from the very TOP of the page (yStartPct = 0 or 1)
 - If a question is the last on a page, extend yEndPct to just before the footer/page number
 - No gaps — yEndPct of Q(n) ≈ yStartPct of Q(n+1)
@@ -383,31 +396,32 @@ I need you to find question "{questionNum}" on this page and provide precise bou
 Context about surrounding questions on this page:
 {context}
 
-## How to determine boundaries:
-- yStartPct = the TOP of the question number text, MINUS 2-3% padding (white space above)
-- yEndPct = just ABOVE the next question's number, giving 2-3% white space below
+## THE GOLDEN RULE for boundaries:
+- yStartPct = find question "{questionNum}" number on the page, go to its TOP edge, subtract 2-3% for padding
+- yEndPct = find the NEXT question number after "{questionNum}", go to its TOP edge, subtract 1% to stop just above it
+- EVERYTHING between two consecutive question numbers belongs to the first question
 - yStartPct = 0 means top of page, yEndPct = 100 means bottom of page
-- NEVER cut off the question number at the top or the last line / answer space at the bottom
 
 ## Rules by question type:
 
 ### If "{questionNum}" is an MCQ (e.g. "1", "2", "15"):
-- Include the question stem AND all answer options (A/B/C/D or 1/2/3/4)
-- Crop from the question number through the last answer option
+- Top = question number, Bottom = just above next question number
+- This naturally includes the stem and all answer options
 
 ### If "{questionNum}" is a written sub-part (e.g. "22a", "22b"):
-- This is a sub-part of a larger question
-- Crop from the sub-part label "(a)" or "(b)" to just before the next sub-part or next question
-- Include any answer space: "Ans:" lines, answer boxes, blank working space
+- Top = the sub-part label "(a)" or "(b)", Bottom = just above the next sub-part label or next question number
+- DO NOT try to guess where the "content" ends — go all the way to the next number
+- Include everything: answer spaces, "Ans:" lines, diagrams, pictures, blank working space
 
 ### If "{questionNum}" is a full written question (e.g. "29", "30"):
-- Include the question text, any diagrams, and the answer space
-- Include "Ans:" lines, answer boxes, or blank lines provided for the answer
+- Top = question number, Bottom = just above the next question number
+- Include everything between: text, diagrams, pictures, graphs, tables, answer boxes, blank lines
 - If the question has sub-parts that are NOT being split, include ALL sub-parts
 
 ## Critical:
-- Add 2-3% white space padding ABOVE and BELOW the question content
-- Better to crop slightly too much than to cut off any part of the question
+- Written questions often have diagrams, pictures, or large answer spaces BELOW the text — do NOT cut these off
+- Better to crop too much than to cut off any part of the question
+- If this is the last question on the page, extend to just before the footer/page number
 
 Return ONLY valid JSON: { "questionNum": "{questionNum}", "yStartPct": 15.0, "yEndPct": 45.0 }`;
 
