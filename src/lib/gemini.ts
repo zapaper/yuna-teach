@@ -800,9 +800,9 @@ async function extractQuestionsForBooklet(
     bookletContext
   );
 
-  // First attempt
+  // First attempt — use Pro model for better visual reasoning on question boundaries
   const response = await getAI().models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-pro",
     contents: [
       {
         role: "user",
@@ -871,7 +871,7 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
 `;
 
   const retryResponse = await getAI().models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-pro",
     contents: [
       {
         role: "user",
