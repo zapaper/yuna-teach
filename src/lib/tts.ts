@@ -48,7 +48,7 @@ export async function synthesizeSpeech(
 ): Promise<ArrayBuffer> {
   const voiceId =
     language === "CHINESE"
-      ? "fbe02f8306fc4d3d915e9871722a39d5"
+      ? "4f201abba2574feeae11e5ebf737859e"
       : process.env.FISH_AUDIO_VOICE_EN;
 
   const speechText = options?.expandPunct ? expandPunctuation(text, language) : text;
