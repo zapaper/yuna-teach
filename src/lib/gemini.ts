@@ -342,6 +342,12 @@ If multiple papers exist, define each with:
 - expectedQuestionCount: how many questions expected based on header info
 - sections: breakdown per section
 
+IMPORTANT — Cover pages between papers/booklets:
+- Between Paper 1 and Paper 2 (or Booklet A and Booklet B), there are often 1-2 COVER PAGES with title, instructions, and exam rules but NO actual questions
+- These cover pages should be classified as question pages (isAnswerSheet: false) belonging to the new paper/booklet
+- The actual questions for the new paper/booklet start on a LATER page, not on the cover page
+- Look carefully at each page to see if it has question numbers (1., 2., etc.) or just instructions
+
 ### 4. For each page, note which paper it belongs to (paperLabel)
 
 ## OUTPUT FORMAT
