@@ -20,9 +20,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Batch analysis error:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Batch analysis error:", msg);
     return NextResponse.json(
-      { error: "Failed to analyze exam paper" },
+      { error: `Failed to analyze exam paper: ${msg}` },
       { status: 500 }
     );
   }

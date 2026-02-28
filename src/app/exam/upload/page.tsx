@@ -125,11 +125,11 @@ function ExamUploadContent() {
         body: JSON.stringify({ images }),
       });
 
-      if (!batchRes.ok) {
-        throw new Error("Failed to analyze exam paper");
-      }
-
       result = await batchRes.json();
+
+      if (!batchRes.ok) {
+        throw new Error(result.error || "Failed to analyze exam paper");
+      }
     } finally {
       setAiAnalyzing(false);
     }
