@@ -70,24 +70,18 @@ function TestPageContent({ id }: { id: string }) {
 
       setPlayingWord(wordText);
       try {
-        // Play the word
-        const wordRes = await fetch("/api/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: wordText,
-            language: test.language,
-            type: "word",
+        // Fetch word audio AND word info concurrently
+        const [wordRes, info] = await Promise.all([
+          fetch("/api/tts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              text: wordText,
+              language: test.language,
+              type: "word",
+              expandPunct: true,
+            }),
           }),
-        });
-
-        if (wordRes.ok) {
-          const wordAudio = await wordRes.arrayBuffer();
-          await playWithContext(ctx, wordAudio);
-        }
-
-        // Fetch word info during 1.5s pause
-        const [info] = await Promise.all([
           fetch("/api/tts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -97,20 +91,26 @@ function TestPageContent({ id }: { id: string }) {
               type: "wordinfo",
             }),
           }).then((r) => (r.ok ? r.json() : null)),
-          new Promise((r) => setTimeout(r, 1500)),
         ]);
 
-        // Show word info text
+        // Show word info immediately
         if (info) {
           setCurrentWordInfo({ word: wordText, info: info as WordInfo });
+        }
 
-          // Build speech text from the exact displayed info
+        // Play the word audio
+        if (wordRes.ok) {
+          const wordAudio = await wordRes.arrayBuffer();
+          await playWithContext(ctx, wordAudio);
+        }
+
+        // After word finishes, read the meaning + example
+        if (info) {
           const speechText =
             test.language === "CHINESE"
               ? `${info.meaning}。${info.example}`
               : `${info.meaning}. ${info.example}`;
 
-          // TTS the displayed meaning + example
           const meaningRes = await fetch("/api/tts", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

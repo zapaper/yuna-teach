@@ -24,6 +24,7 @@ export class AudioSequencer {
             text: w.text,
             language: w.language,
             type: "word",
+            expandPunct: true,
           }),
         });
         if (res.ok) {
@@ -88,6 +89,7 @@ export class AudioSequencer {
                 text: word.text,
                 language: word.language,
                 type: "word",
+                expandPunct: true,
               }),
             });
             if (res.ok) {
