@@ -6,6 +6,8 @@ interface ReviewQuestion {
   answer: string;
   pageIndex: number;
   orderIndex: number;
+  boundaryTop?: string;
+  boundaryBottom?: string;
 }
 
 export default function QuestionReviewList({
@@ -105,8 +107,18 @@ export default function QuestionReviewList({
           <img
             src={q.imageData}
             alt={`Question ${q.questionNum}`}
-            className="w-full rounded-xl border border-slate-200 mb-3"
+            className="w-full rounded-xl border border-slate-200 mb-2"
           />
+
+          {(q.boundaryTop || q.boundaryBottom) && (
+            <p className="text-xs text-slate-400 mb-2 font-mono">
+              Top: Q{q.boundaryTop || "?"} | Bottom: {q.boundaryBottom === "not found" ? (
+                <span className="text-amber-500">not found</span>
+              ) : (
+                <>Q{q.boundaryBottom}</>
+              )}
+            </p>
+          )}
 
           <div>
             <label className="text-xs text-slate-400 mb-1 block">Answer</label>

@@ -346,6 +346,8 @@ Return a JSON object with:
      - questionNum: e.g. "1", "2", "28", "29", "30", "P2-1", "P2-2", "P2-3"
      - yStartPct: Y-coordinate where question starts (0=top, 100=bottom)
      - yEndPct: Y-coordinate where question ends
+     - boundaryTop: the question number you detected for the TOP boundary (e.g. "24"), or "not found" if estimated
+     - boundaryBottom: the NEXT question number you used for the BOTTOM boundary (e.g. "25"), or "not found" if the bottom was estimated (e.g. last question on page, extended to footer)
 
 3. "answers": object mapping question numbers to answer text
    Example: { "1": "B", "2": "A", "29": "3/4", "P2-1": "12", "P2-2": "5 cm" }
@@ -392,6 +394,8 @@ export interface BatchAnalysisResult {
       questionNum: string;
       yStartPct: number;
       yEndPct: number;
+      boundaryTop: string;
+      boundaryBottom: string;
     }>;
   }>;
   answers: Record<string, string>;

@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { renderPdfToImages, cropQuestionFromPage, isImageBlank } from "@/lib/pdf";
+import { renderPdfToImages, cropQuestionFromPage } from "@/lib/pdf";
 import QuestionReviewList from "@/components/QuestionReviewList";
 
 type Step = "upload" | "processing" | "review";
@@ -24,6 +24,8 @@ interface ExtractedQuestion {
   orderIndex: number;
   yStartPct: number;
   yEndPct: number;
+  boundaryTop: string;
+  boundaryBottom: string;
 }
 
 export default function ExamUploadPage() {
@@ -163,76 +165,10 @@ function ExamUploadContent() {
           orderIndex: allQuestions.length,
           yStartPct: q.yStartPct,
           yEndPct: q.yEndPct,
+          boundaryTop: q.boundaryTop || q.questionNum,
+          boundaryBottom: q.boundaryBottom || "not found",
         });
       }
-    }
-
-    // --- Quick client-side checks only (no AI validation) ---
-    // Build a map of original boundaries for size checking
-    const boundaryMap = new Map<string, { yStartPct: number; yEndPct: number }>();
-    for (const page of result.pages) {
-      for (const q of page.questions) {
-        boundaryMap.set(q.questionNum, { yStartPct: q.yStartPct, yEndPct: q.yEndPct });
-      }
-    }
-
-    const badIndices: number[] = [];
-    const blankChecks = allQuestions.map((q, i) =>
-      isImageBlank(q.imageData).then((blank) => {
-        if (blank) return true;
-        const bounds = boundaryMap.get(q.questionNum);
-        if (bounds) {
-          const height = bounds.yEndPct - bounds.yStartPct;
-          if (height < 3 || bounds.yStartPct >= bounds.yEndPct) return true;
-        }
-        return false;
-      })
-    );
-    const blankResults = await Promise.all(blankChecks);
-    blankResults.forEach((isBad, i) => { if (isBad) badIndices.push(i); });
-
-    // --- Auto-redo bad questions in PARALLEL ---
-    if (badIndices.length > 0) {
-      setProcessingStatus(
-        `Re-extracting ${badIndices.length} question(s)...`
-      );
-
-      const redoPromises = badIndices.map((idx) => {
-        const q = allQuestions[idx];
-        const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
-        const samePageNums = allQuestions
-          .filter((other, i) => i !== idx && other.pageIndex === q.pageIndex)
-          .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
-
-        return fetch("/api/exam/redo-question", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: images[q.pageIndex],
-            questionNum: printedNum,
-            surroundingQuestions: samePageNums,
-          }),
-        })
-          .then((res) => (res.ok ? res.json() : null))
-          .then(async (redoResult) => {
-            if (!redoResult) return;
-            const height = redoResult.yEndPct - redoResult.yStartPct;
-            if (height >= 3 && redoResult.yStartPct < redoResult.yEndPct) {
-              const croppedImage = await cropQuestionFromPage(
-                images[q.pageIndex],
-                redoResult.yStartPct,
-                redoResult.yEndPct
-              );
-              const blank = await isImageBlank(croppedImage);
-              if (!blank) {
-                allQuestions[idx] = { ...q, imageData: croppedImage, yStartPct: redoResult.yStartPct, yEndPct: redoResult.yEndPct };
-              }
-            }
-          })
-          .catch(() => { /* keep original */ });
-      });
-
-      await Promise.allSettled(redoPromises);
     }
 
     setQuestions(allQuestions);
