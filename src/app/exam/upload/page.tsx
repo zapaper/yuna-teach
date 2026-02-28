@@ -58,7 +58,9 @@ function ExamUploadContent() {
   const [processingStatus, setProcessingStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [redoingIndex, setRedoingIndex] = useState<number | null>(null);
+  const [redoingIndices, setRedoingIndices] = useState<Set<number>>(new Set());
+  const [redoingAnswerIndices, setRedoingAnswerIndices] = useState<Set<number>>(new Set());
+  const [answerKeyPages, setAnswerKeyPages] = useState<number[]>([]);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
   const AI_PHRASES = [
@@ -141,6 +143,12 @@ function ExamUploadContent() {
       setHeaderInfo(result.header);
     }
 
+    // Track answer key pages for redo
+    const answerPages = result.pages
+      .filter((p: { isAnswerSheet: boolean }) => p.isAnswerSheet)
+      .map((p: { pageIndex: number }) => p.pageIndex);
+    setAnswerKeyPages(answerPages);
+
     // Crop questions from each page
     setProcessingStatus("Cropping questions...");
     const allQuestions: ExtractedQuestion[] = [];
@@ -214,11 +222,10 @@ function ExamUploadContent() {
     const q = questions[index];
     if (!pageImages[q.pageIndex]) return;
 
-    setRedoingIndex(index);
+    setRedoingIndices((prev) => new Set(prev).add(index));
     setError(null);
 
     try {
-      // Strip P2-/B2- prefix — the printed page just shows "1", "2", etc.
       const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
       const samePageQuestions = questions
         .filter((other, i) => i !== index && other.pageIndex === q.pageIndex)
@@ -234,13 +241,9 @@ function ExamUploadContent() {
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to re-extract question");
-      }
+      if (!res.ok) throw new Error("Failed to re-extract question");
 
       const result = await res.json();
-
-      // Re-crop with new boundaries
       const croppedImage = await cropQuestionFromPage(
         pageImages[q.pageIndex],
         result.yStartPct,
@@ -255,7 +258,70 @@ function ExamUploadContent() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Redo failed");
     } finally {
-      setRedoingIndex(null);
+      setRedoingIndices((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
+  }
+
+  async function handleRedoAnswer(index: number) {
+    const q = questions[index];
+    if (answerKeyPages.length === 0) return;
+
+    setRedoingAnswerIndices((prev) => new Set(prev).add(index));
+    setError(null);
+
+    try {
+      const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
+
+      // Try each answer key page until we find the answer
+      for (const pageIdx of answerKeyPages) {
+        const res = await fetch("/api/exam/redo-answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: pageImages[pageIdx],
+            questionNum: printedNum,
+          }),
+        });
+
+        if (!res.ok) continue;
+
+        const result = await res.json();
+
+        if (result.type === "text" && result.value) {
+          setQuestions((prev) =>
+            prev.map((existing, i) =>
+              i === index ? { ...existing, answer: result.value, answerImageData: "" } : existing
+            )
+          );
+          return;
+        } else if (result.type === "image" && result.yStartPct != null) {
+          const answerImage = await cropQuestionFromPage(
+            pageImages[pageIdx],
+            result.yStartPct,
+            result.yEndPct
+          );
+          setQuestions((prev) =>
+            prev.map((existing, i) =>
+              i === index ? { ...existing, answer: result.value || "", answerImageData: answerImage } : existing
+            )
+          );
+          return;
+        }
+      }
+
+      setError(`Could not find answer for Q${q.questionNum} on any answer key page`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Redo answer failed");
+    } finally {
+      setRedoingAnswerIndices((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
     }
   }
 
@@ -473,7 +539,9 @@ function ExamUploadContent() {
             onUpdateQuestion={handleUpdateQuestion}
             onDeleteQuestion={handleDeleteQuestion}
             onRedoQuestion={handleRedoQuestion}
-            redoingIndex={redoingIndex}
+            onRedoAnswer={answerKeyPages.length > 0 ? handleRedoAnswer : undefined}
+            redoingIndices={redoingIndices}
+            redoingAnswerIndices={redoingAnswerIndices}
           />
 
           <div className="mt-6 pb-6">

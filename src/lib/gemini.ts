@@ -329,6 +329,12 @@ If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B
 
 Answer keys are usually at the END of the document. They may be titled "Answer Key", "Answers", "Answer Sheet", or simply be a table mapping question numbers to answers.
 
+### How to read answer keys:
+- Question labels may appear as "Q24", "Q24)", "Q1", "24.", "1)", or just "24" — strip the "Q" prefix and any punctuation to get the question number
+- MCQ answer keys are often in TABLE format: question number in one column, answer letter in the adjacent cell
+- Written/structured answer keys show the full working for each question, labeled by question number
+- Some answer keys mix formats: MCQ answers in a table at the top, then worked solutions below
+
 ### For each answer key page:
 - Mark the page as isAnswerSheet: true
 - Identify which paper/section the answers belong to by reading the HEADER on the answer key page:
@@ -563,6 +569,86 @@ export async function redoQuestionExtraction(
     yStartPct: number;
     yEndPct: number;
   };
+}
+
+// --- Single answer re-extraction ---
+
+const REDO_ANSWER_PROMPT = `Find the answer for question "{questionNum}" on this answer key page.
+
+The page is an answer key / answer sheet from a Singapore school exam paper.
+Question labels may appear as "Q{questionNum}", "Q{questionNum})", "{questionNum}.", "{questionNum})", or just "{questionNum}" — possibly inside a table.
+
+## How to find the answer:
+- Look for the question number "{questionNum}" on this page
+- MCQ answers are often in a TABLE: question number in one column, answer letter (A/B/C/D) in the adjacent cell
+- Written answers show workings and/or a final answer below the question number
+- The answer may span multiple lines with mathematical steps
+
+## Classify the answer:
+
+**Type "text"** if:
+- MCQ answer (single letter: A, B, C, D)
+- Short numeric answer (e.g. "3/4", "15 cm", "$2.50")
+- One-line text that can be fully represented as a short string
+
+**Type "image"** if:
+- Worked solution with mathematical steps
+- Contains diagrams, drawings, or pictures
+- Multi-line answer where layout matters
+
+## For "image" type:
+- Provide yStartPct and yEndPct crop boundaries on THIS page
+- Include ALL workings, steps, and the final answer
+- Add 1-2% padding above and below
+
+## For "text" type:
+- Provide the answer text in the "value" field
+
+Return ONLY valid JSON:
+For text: { "type": "text", "value": "B" }
+For image: { "type": "image", "yStartPct": 15.0, "yEndPct": 35.0, "value": "3/4" }
+
+If you CANNOT find question "{questionNum}" on this page, return: { "type": "text", "value": "" }`;
+
+export async function redoAnswerExtraction(
+  imageBase64: string,
+  questionNum: string
+): Promise<AnswerEntry> {
+  const prompt = REDO_ANSWER_PROMPT.replaceAll("{questionNum}", questionNum);
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+          { text: prompt },
+        ],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) return { type: "text", value: "" };
+
+  const result = JSON.parse(text) as { type: string; value: string; yStartPct?: number; yEndPct?: number };
+
+  if (result.type === "image" && result.yStartPct != null && result.yEndPct != null) {
+    return {
+      type: "image",
+      answerPageIndex: 0, // will be set by the caller
+      yStartPct: result.yStartPct,
+      yEndPct: result.yEndPct,
+      value: result.value || "",
+    };
+  }
+
+  return { type: "text", value: result.value || "" };
 }
 
 // --- Validate cropped question image ---
