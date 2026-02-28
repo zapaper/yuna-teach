@@ -341,14 +341,22 @@ If multiple papers exist, define each with:
 - questionPrefix: "" for Paper 1, "P2-" for Paper 2 (used to keep question numbers unique)
 - expectedQuestionCount: how many questions expected based on header info
 - sections: breakdown per section
+- firstQuestionPageIndex: the 0-based page index where the FIRST question (e.g. "1.") of this paper actually appears
+- firstQuestionYStartPct: approximately how far down that page (as %) the first question number is printed
 
-IMPORTANT — Cover pages between papers/booklets:
-- Between Paper 1 and Paper 2 (or Booklet A and Booklet B), there are often 1-2 COVER PAGES with title, instructions, and exam rules but NO actual questions
-- These cover pages should be marked with "isCoverPage": true — they will be EXCLUDED from question extraction
-- A page is a cover page if it has NO question numbers (no "1.", "2.", etc. at the left margin) — only titles, instructions, rules, exam info
-- The actual questions for the new paper/booklet start on a LATER page where you can see "1." or similar at the left margin
-- The FIRST page of the entire exam can also be a cover page if it only has instructions and no questions
-- Look carefully: if a page has instructions at the top BUT questions starting halfway down, it is NOT a cover page — it is a question page
+### CRITICAL — Finding where questions START for each paper:
+- For EACH paper/booklet, you MUST identify the EXACT page and approximate vertical position where Question 1 first appears
+- The first page of a paper often has a HEADER with school name, exam title, instructions ("Answer all questions", "Do not turn over") — questions start BELOW this
+- Between papers, there may be 1-2 COVER PAGES with only title/instructions and NO questions — skip past these
+- Look for the first "1." or "1)" printed at the LEFT MARGIN — that's where questions begin
+- Example: Paper 1 cover page is page 0 (instructions only), questions start on page 1 at ~5% → firstQuestionPageIndex: 1, firstQuestionYStartPct: 5
+- Example: Paper 2 has cover on page 6, instructions on page 7, questions start on page 8 at ~12% → firstQuestionPageIndex: 8, firstQuestionYStartPct: 12
+- Example: Single page with instructions at top, Question 1 starts at 40% → firstQuestionPageIndex: 0, firstQuestionYStartPct: 40
+
+### Cover pages (isCoverPage):
+- Pages that have NO question numbers at all (only titles, instructions, rules) should be marked "isCoverPage": true
+- These will be EXCLUDED from question extraction entirely
+- A page with instructions at the top BUT questions starting partway down is NOT a cover page
 
 ### 4. For each page, note which paper it belongs to (paperLabel)
 
@@ -371,8 +379,18 @@ Return ONLY valid JSON:
     {
       "label": "Paper 1",
       "questionPrefix": "",
-      "expectedQuestionCount": 36,
-      "sections": [{"name": "A", "type": "MCQ", "questionCount": 28}, {"name": "B", "type": "structured", "questionCount": 8}]
+      "expectedQuestionCount": 28,
+      "firstQuestionPageIndex": 1,
+      "firstQuestionYStartPct": 5,
+      "sections": [{"name": "A", "type": "MCQ", "questionCount": 28}]
+    },
+    {
+      "label": "Paper 2",
+      "questionPrefix": "P2-",
+      "expectedQuestionCount": 8,
+      "firstQuestionPageIndex": 8,
+      "firstQuestionYStartPct": 12,
+      "sections": [{"name": "B", "type": "structured", "questionCount": 8}]
     }
   ]
 }
@@ -418,6 +436,12 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - The structure analysis expectedQuestionCount is just an estimate — do NOT force your output to match it
 - If a page has NO question numbers visible at all, return it with an EMPTY questions array — do NOT make up questions
 
+### IMPORTANT — Where questions START for each paper:
+- The structure context tells you EXACTLY which page and vertical position each paper's questions begin
+- For the first question page of each paper: do NOT extract anything ABOVE the indicated firstQuestionYStartPct — that area is header/instructions, not questions
+- On subsequent pages of the same paper: questions typically start near the top (~2-5%)
+- This is the most important guidance — trust the structure analysis about where questions begin
+
 ### Sequential extraction:
 - Extract questions in order as they appear on the pages
 - Use the PREVIOUS question's yEndPct to guide the NEXT question's yStartPct (no gaps)
@@ -442,13 +466,6 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - NEVER output invalid coordinates (yStartPct >= yEndPct)
 - When in doubt, crop MORE — extra white space is better than cutting off content
 - Double-check: can you actually SEE each question number you are outputting? If not, REMOVE it
-
-### Cover pages and header pages:
-- Some pages have a HEADER section at the top (school name, exam title, instructions) followed by questions below
-- These pages ARE question pages — extract the questions that appear BELOW the header/instructions
-- A page with a header + "Question 1" starting halfway down is NOT blank — it has questions!
-- For multi-paper exams, Paper 2 often has its own cover page with instructions, but questions may start on that SAME page or on the NEXT page — check carefully
-- Only skip a page entirely if it has ZERO questions (pure instructions-only cover page with no question numbers visible)
 
 ### Edge cases:
 - Question continues from previous page: yStartPct = 0 or 1
@@ -572,6 +589,8 @@ interface StructureResult {
     label: string;
     questionPrefix: string;
     expectedQuestionCount: number;
+    firstQuestionPageIndex: number;
+    firstQuestionYStartPct: number;
     sections: Array<{ name: string; type: string; questionCount: number }>;
   }>;
 }
@@ -603,13 +622,18 @@ function buildStructureContext(structure: StructureResult): string {
   }
   for (const paper of structure.papers) {
     lines.push(`\n${paper.label} (prefix: "${paper.questionPrefix}", expected ${paper.expectedQuestionCount} questions):`);
+    lines.push(`  - Questions START on page ${paper.firstQuestionPageIndex} at ~${paper.firstQuestionYStartPct}% from top`);
     for (const section of paper.sections) {
       lines.push(`  - Section ${section.name}: ${section.type}, ${section.questionCount} questions`);
     }
   }
-  const questionPages = structure.pages.filter(p => !p.isAnswerSheet);
+  const questionPages = structure.pages.filter(p => !p.isAnswerSheet && !p.isCoverPage);
+  const coverPages = structure.pages.filter(p => p.isCoverPage);
   const answerPages = structure.pages.filter(p => p.isAnswerSheet);
   lines.push(`\nQuestion pages (0-based): ${questionPages.map(p => p.pageIndex).join(", ")}`);
+  if (coverPages.length > 0) {
+    lines.push(`Cover pages (excluded, no questions): ${coverPages.map(p => p.pageIndex).join(", ")}`);
+  }
   lines.push(`\nAnswer pages (0-based):`);
   for (const ap of answerPages) {
     lines.push(`  - Page ${ap.pageIndex}: ${ap.paperLabel || "unknown paper"}`);
@@ -749,8 +773,11 @@ export async function analyzeExamBatch(
   const structure = await analyzeExamStructure(imagesBase64);
 
   console.log("[Exam Pipeline] Structure result:", JSON.stringify({
-    papers: structure.papers.map(p => ({ label: p.label, prefix: p.questionPrefix, expected: p.expectedQuestionCount })),
-    pages: structure.pages.map(p => ({ idx: p.pageIndex, answer: p.isAnswerSheet, paper: p.paperLabel })),
+    papers: structure.papers.map(p => ({
+      label: p.label, prefix: p.questionPrefix, expected: p.expectedQuestionCount,
+      questionsStartPage: p.firstQuestionPageIndex, questionsStartY: p.firstQuestionYStartPct,
+    })),
+    pages: structure.pages.map(p => ({ idx: p.pageIndex, answer: p.isAnswerSheet, cover: p.isCoverPage, paper: p.paperLabel })),
   }));
 
   // --- Partition pages into question pages and answer pages ---
