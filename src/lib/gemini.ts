@@ -479,9 +479,16 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 ### How to read answer keys:
 - Question labels may appear as "Q24", "Q24)", "Q1", "24.", "1)", or just "24"
 - Strip the "Q" prefix and any punctuation to get the question number
-- MCQ answer keys are often in TABLE format: question number in one column, answer letter in adjacent cell
+- MCQ answer keys are often in TABLE format: question number in one column, answer in adjacent cell
 - Written answer keys show full working for each question
 - Some answer keys mix formats: MCQ table at top, worked solutions below
+
+### CRITICAL — MCQ answer format:
+- Copy the MCQ answer EXACTLY as shown in the answer key
+- Singapore exams often use numbered options: (1), (2), (3), (4) instead of A, B, C, D
+- If the answer key says "(3)", output "(3)" — do NOT convert to "C"
+- If the answer key says "C", output "C"
+- NEVER translate between formats — reproduce exactly what is printed
 
 ### CRITICAL — Multi-paper answer separation:
 - The structure context above tells you which answer pages belong to which paper
@@ -496,7 +503,7 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 ### Classify each answer:
 
 **Type "text"** — Use for MOST answers:
-- MCQ answers (single letter: A, B, C, D)
+- MCQ answers — copy EXACTLY as printed: "(3)", "(1)", "C", "A", etc.
 - Short answers ("3/4", "15 cm", "$24.50")
 - Worked solutions that can be fully written as text, e.g. "3/4 × 12 = 9 | 9 + 6 = 15 | Ans: 15 cm"
 - Multi-step answers with sub-parts, e.g. "(a) 24 cm² | (b) 15 cm"
@@ -518,7 +525,8 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 ### For "text" type answers:
 - value: the FULL answer including all working steps. Transcribe EVERY line — do NOT skip or truncate. Use " | " to separate steps. Include sub-part labels if present.
 - Examples:
-  - MCQ: "B"
+  - MCQ (numbered): "(3)"
+  - MCQ (lettered): "B"
   - Short answer: "15 cm"
   - Worked solution: "3/4 × 12 = 9 | 9 + 6 = 15 | Ans: 15 cm"
   - Sub-parts: "(a) 24 cm² | (b) 15 cm"
@@ -528,8 +536,8 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 Return ONLY valid JSON:
 {
   "answers": {
-    "1": {"type": "text", "value": "B"},
-    "2": {"type": "text", "value": "A"},
+    "1": {"type": "text", "value": "(3)"},
+    "2": {"type": "text", "value": "(1)"},
     "29": {"type": "text", "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm"},
     "P2-1": {"type": "text", "value": "(a) Area = 1/2 × 8 × 6 = 24 cm² | (b) Perimeter = 8 + 6 + 10 = 24 cm"},
     "30": {"type": "image", "answerPageIndex": 8, "yStartPct": 45.0, "yEndPct": 55.0, "value": "triangle with height 6cm and base 8cm"}
@@ -892,14 +900,15 @@ Question labels may appear as "Q{questionNum}", "Q{questionNum})", "{questionNum
 
 ## How to find the answer:
 - Look for the question number "{questionNum}" on this page
-- MCQ answers are often in a TABLE: question number in one column, answer letter (A/B/C/D) in the adjacent cell
+- MCQ answers are often in a TABLE: question number in one column, answer in the adjacent cell
 - Written answers show workings and/or a final answer below the question number
 - The answer may span multiple lines with mathematical steps
+- IMPORTANT: Copy MCQ answers EXACTLY as printed — Singapore exams often use (1), (2), (3), (4) instead of A, B, C, D. If it says "(3)", output "(3)" — do NOT convert to "C"
 
 ## Classify the answer:
 
 **Type "text"** — Use for MOST answers (preferred):
-- MCQ answer (single letter: A, B, C, D)
+- MCQ answer — copy EXACTLY as printed: "(3)", "(1)", "C", "A", etc.
 - Short answers, numerical answers
 - Worked solutions that can be written as text: "3/4 × 12 = 9 | Ans: 9"
 - Sub-parts: "(a) 24 cm² | (b) 15 cm"
