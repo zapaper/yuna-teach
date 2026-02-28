@@ -138,23 +138,23 @@ export default function HomePage({
         )}
       </div>
 
-      {/* Action buttons — only for parents */}
-      {isParent && (
-        <div className="space-y-3 mb-8">
-          <Link
-            href={`/scan?userId=${userId}`}
-            className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-          >
-            Scan Spelling / 听写
-          </Link>
+      {/* Action buttons */}
+      <div className="space-y-3 mb-8">
+        <Link
+          href={`/scan?userId=${userId}`}
+          className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+        >
+          Scan Spelling / 听写
+        </Link>
+        {isParent && (
           <Link
             href={`/exam/upload?userId=${userId}`}
             className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
           >
             Upload Exam Paper
           </Link>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Test list */}
       <div>
