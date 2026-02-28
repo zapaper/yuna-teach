@@ -353,10 +353,13 @@ If multiple papers exist, define each with:
 - Example: Paper 2 has cover on page 6, instructions on page 7, questions start on page 8 at ~12% → firstQuestionPageIndex: 8, firstQuestionYStartPct: 12
 - Example: Single page with instructions at top, Question 1 starts at 40% → firstQuestionPageIndex: 0, firstQuestionYStartPct: 40
 
-### Cover pages (isCoverPage):
-- Pages that have NO question numbers at all (only titles, instructions, rules) should be marked "isCoverPage": true
-- These will be EXCLUDED from question extraction entirely
-- A page with instructions at the top BUT questions starting partway down is NOT a cover page
+### Cover pages (isCoverPage) — VERY IMPORTANT:
+- ANY page that has NO question numbers at the left margin should be marked "isCoverPage": true
+- This includes: title pages, instruction pages, "Do not turn over this page" pages, pages with only exam rules
+- Cover pages appear at the START of each paper/booklet AND sometimes BETWEEN papers/booklets
+- For multi-paper exams: Booklet B / Paper 2 almost ALWAYS has 1-2 cover pages before its questions start
+- These cover pages will be EXCLUDED from question extraction — if you miss them, the AI will hallucinate questions on instruction pages
+- A page with instructions at the top BUT questions (with numbers like "1.", "2.") starting partway down is NOT a cover page — it is a question page
 
 ### 4. For each page, note which paper it belongs to (paperLabel)
 
@@ -669,7 +672,60 @@ async function analyzeExamStructure(
   return JSON.parse(text) as StructureResult;
 }
 
-// Stage 2a: Extract question boundaries (question pages only)
+// Validate question extraction result — check for gaps in question sequences
+function validateQuestionExtraction(
+  result: QuestionExtractionResult,
+  structure: StructureResult
+): { valid: boolean; issues: string[] } {
+  const issues: string[] = [];
+
+  for (const paper of structure.papers) {
+    const prefix = paper.questionPrefix;
+    // Collect all question numbers for this paper
+    const nums: number[] = [];
+    for (const page of result.pages) {
+      for (const q of page.questions) {
+        const qNum = q.questionNum;
+        // Strip prefix to get the raw number
+        const raw = prefix ? qNum.replace(prefix, "") : qNum;
+        const n = parseInt(raw, 10);
+        if (!isNaN(n)) nums.push(n);
+      }
+    }
+    nums.sort((a, b) => a - b);
+
+    if (nums.length === 0) {
+      issues.push(`${paper.label}: No questions detected at all (expected ~${paper.expectedQuestionCount})`);
+      continue;
+    }
+
+    // Check for gaps
+    const gaps: number[] = [];
+    for (let i = 1; i < nums.length; i++) {
+      for (let g = nums[i - 1] + 1; g < nums[i]; g++) {
+        gaps.push(g);
+      }
+    }
+    if (gaps.length > 0) {
+      issues.push(`${paper.label}: Missing questions ${gaps.map(g => prefix + g).join(", ")} — detected ${nums[0]}-${nums[nums.length - 1]} but skipped these`);
+    }
+
+    // Check for duplicates
+    const seen = new Set<number>();
+    const dupes: number[] = [];
+    for (const n of nums) {
+      if (seen.has(n)) dupes.push(n);
+      seen.add(n);
+    }
+    if (dupes.length > 0) {
+      issues.push(`${paper.label}: Duplicate questions ${dupes.map(d => prefix + d).join(", ")}`);
+    }
+  }
+
+  return { valid: issues.length === 0, issues };
+}
+
+// Stage 2a: Extract question boundaries (question pages only) — with validation + retry
 async function extractQuestions(
   imagesBase64: string[],
   originalPageIndices: number[],
@@ -685,6 +741,7 @@ async function extractQuestions(
     buildStructureContext(structure)
   );
 
+  // First attempt
   const response = await getAI().models.generateContent({
     model: "gemini-2.5-flash",
     contents: [
@@ -701,7 +758,62 @@ async function extractQuestions(
 
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for question extraction");
-  return JSON.parse(text) as QuestionExtractionResult;
+  const result = JSON.parse(text) as QuestionExtractionResult;
+
+  // Validate
+  const validation = validateQuestionExtraction(result, structure);
+  if (validation.valid) {
+    console.log("[Exam Pipeline] Question extraction validated OK on first attempt");
+    return result;
+  }
+
+  // Retry with feedback about what went wrong
+  console.log("[Exam Pipeline] Question extraction issues found, retrying:", validation.issues);
+
+  const retryFeedback = `
+## IMPORTANT — Your previous extraction had these problems:
+${validation.issues.map(i => `- ${i}`).join("\n")}
+
+Please re-examine the pages carefully and fix these issues:
+- For each MISSING question: look again at the page images — scan the LEFT MARGIN for the missing number. It IS there, you missed it.
+- For each DUPLICATE: remove the incorrect duplicate entry
+- Do NOT skip any question numbers in the sequence — every question from 1 to the last must be found
+- If you genuinely cannot find a question number after careful re-examination, still do NOT invent it — but look VERY carefully first
+`;
+
+  const retryResponse = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [...imageParts, { text: prompt }],
+      },
+      {
+        role: "model",
+        parts: [{ text: text }],
+      },
+      {
+        role: "user",
+        parts: [{ text: retryFeedback }],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const retryText = retryResponse.text;
+  if (!retryText) {
+    console.log("[Exam Pipeline] Retry returned empty, using first attempt");
+    return result;
+  }
+
+  const retryResult = JSON.parse(retryText) as QuestionExtractionResult;
+  const retryValidation = validateQuestionExtraction(retryResult, structure);
+  console.log("[Exam Pipeline] Retry validation:", retryValidation.valid ? "OK" : retryValidation.issues);
+
+  return retryResult;
 }
 
 // Stage 2b: Extract answers with working steps (answer key pages only)
@@ -764,6 +876,17 @@ export interface BatchAnalysisResult {
     }>;
   }>;
   answers: Record<string, AnswerEntry>;
+  _debug?: {
+    papers: Array<{
+      label: string;
+      questionsStartPage: number;
+      questionsStartY: number;
+      expectedQuestions: number;
+    }>;
+    coverPages: number[];
+    questionsPerPage: Array<{ pageIndex: number; questions: string[] }>;
+    validationIssues: string[];
+  };
 }
 
 export async function analyzeExamBatch(
@@ -804,9 +927,13 @@ export async function analyzeExamBatch(
       : { answers: {} } as AnswerExtractionResult,
   ]);
 
+  const finalValidation = validateQuestionExtraction(questionResult, structure);
   console.log("[Exam Pipeline] Question extraction:", JSON.stringify(
     questionResult.pages.map(p => ({ idx: p.pageIndex, questions: p.questions.map(q => q.questionNum) }))
   ));
+  if (!finalValidation.valid) {
+    console.log("[Exam Pipeline] Final validation issues:", finalValidation.issues);
+  }
   console.log("[Exam Pipeline] Answer extraction:", Object.keys(answerResult.answers).join(", "));
 
   // --- Combine into BatchAnalysisResult ---
@@ -869,6 +996,20 @@ export async function analyzeExamBatch(
     header: structure.header,
     pages,
     answers: answerResult.answers,
+    _debug: {
+      papers: structure.papers.map(p => ({
+        label: p.label,
+        questionsStartPage: p.firstQuestionPageIndex,
+        questionsStartY: p.firstQuestionYStartPct,
+        expectedQuestions: p.expectedQuestionCount,
+      })),
+      coverPages: coverPageEntries.map(p => p.pageIndex),
+      questionsPerPage: questionResult.pages.map(p => ({
+        pageIndex: p.pageIndex,
+        questions: p.questions.map(q => q.questionNum),
+      })),
+      validationIssues: finalValidation.issues,
+    },
   };
 }
 

@@ -138,6 +138,11 @@ function ExamUploadContent() {
       setAiAnalyzing(false);
     }
 
+    // Log structure debug info to browser console
+    if (result._debug) {
+      console.log("[Exam Structure]", result._debug);
+    }
+
     // Set header info
     if (result.header) {
       setHeaderInfo(result.header);
