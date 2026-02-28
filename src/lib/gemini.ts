@@ -381,10 +381,12 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 ## Your task: Extract EVERY question's crop boundaries
 
 ### The ONE rule for ALL questions (MCQ and written alike):
-- yStartPct = top of this question's number (e.g. "5."), minus 2-3% padding
-- yEndPct = top of the NEXT WHOLE question number (e.g. "6."), minus 1%
+- yStartPct = top of this question's number (e.g. "5."), minus ~1% padding (just a tiny gap above)
+- yEndPct = top of the NEXT WHOLE question number (e.g. "6."), plus ~1% padding DOWNWARD (include a small gap below the content, do NOT cut upward into the question)
 - EVERYTHING between two consecutive WHOLE question numbers belongs to the first question
 - Each question is ONE entry — do NOT split sub-parts (a), (b), (c) into separate entries
+- TOP padding should be MINIMAL (just 1%) — do NOT extend far above the question number
+- BOTTOM padding should extend DOWNWARD past the last line of content — never cut upward
 
 ### WHERE to find question numbers — LEFT MARGIN ONLY:
 - Question numbers are ALWAYS printed at the LEFT-MOST margin of the page
@@ -469,9 +471,10 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 
 ### CRITICAL REQUIREMENT — Capture working steps, not just final answers:
 - For math/science questions, the WORKING is as important as the final answer
-- Prefer "image" type for ANY answer that has working steps, method marks, or multi-step solutions
-- Only use "text" type for simple MCQ answers (A/B/C/D) or very short one-word/one-number answers with NO working shown
-- When in doubt, use "image" type — it preserves the full worked solution
+- Use "image" type ONLY when the answer contains diagrams, drawings, complex equations, or visual elements that cannot be represented as text
+- Most answers — even multi-step working — can be fully represented as text. If you can transcribe the complete answer accurately as text, use "text" type
+- Use "text" type for: MCQ letters, short answers, numerical answers, and worked solutions that are purely textual (equations, steps, etc.)
+- Only use "image" type when: the answer has diagrams, graphs, drawings, or mathematical notation that CANNOT be typed out
 
 ### How to read answer keys:
 - Question labels may appear as "Q24", "Q24)", "Q1", "24.", "1)", or just "24"
@@ -480,36 +483,46 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 - Written answer keys show full working for each question
 - Some answer keys mix formats: MCQ table at top, worked solutions below
 
-### For multi-paper PDFs:
-- Identify which paper the answers belong to by reading the HEADER on the answer key page
-- "Paper 1" / "Booklet A" → no prefix (questions "1", "2", "3")
-- "Paper 2" / "Booklet B" → use prefix (questions "P2-1", "P2-2", "P2-3")
-- If no header specifies, assume answers for the main (only) paper
+### CRITICAL — Multi-paper answer separation:
+- The structure context above tells you which answer pages belong to which paper
+- Paper 1 answers and Paper 2 answers are on DIFFERENT pages — do NOT mix them
+- For Paper 1 answers: use no prefix (questions "1", "2", "3")
+- For Paper 2 answers: use prefix "P2-" (questions "P2-1", "P2-2", "P2-3")
+- Read the HEADER on each answer key page to confirm which paper it belongs to (e.g. "Paper 1 Answer Key", "Paper 2 Answers")
+- If an answer page header says "Paper 2", ALL answers on that page get the "P2-" prefix
+- NEVER assign a Paper 1 answer to Paper 2 or vice versa
+- If no header specifies, use the paperLabel from the structure context
 
 ### Classify each answer:
 
-**Type "text"** — Use ONLY for:
+**Type "text"** — Use for MOST answers:
 - MCQ answers (single letter: A, B, C, D)
-- Answers that are TRULY just a single short value with NO working shown (rare for non-MCQ)
+- Short answers ("3/4", "15 cm", "$24.50")
+- Worked solutions that can be fully written as text, e.g. "3/4 × 12 = 9 | 9 + 6 = 15 | Ans: 15 cm"
+- Multi-step answers with sub-parts, e.g. "(a) 24 cm² | (b) 15 cm"
+- ANY answer where the complete working can be typed out — use text with " | " separators
 
-**Type "image"** — Use for EVERYTHING ELSE, including:
-- Any answer that shows working steps (e.g. math working, long division, algebra)
-- Short answers like "3/4" or "15 cm" IF the answer key shows the METHOD to get there
-- Answers with diagrams, drawings, graphs
-- Multi-line answers
-- Any answer where the working/method is visible in the answer key
-- When in doubt, ALWAYS prefer "image"
+**Type "image"** — Use ONLY when text cannot capture the answer:
+- Answers with diagrams, drawings, graphs, or geometric constructions
+- Complex mathematical notation that cannot be typed (integrals, matrices, etc.)
+- Answers where spatial layout is essential to understanding
+- Do NOT use "image" just because the answer has multiple steps — use text instead
 
-### For "image" type answers:
+### For "image" type answers (diagrams/drawings ONLY):
 - answerPageIndex: the ORIGINAL 0-based page index (as labeled on the image)
 - yStartPct: Y-coordinate where this answer starts on that page (0=top, 100=bottom)
 - yEndPct: Y-coordinate where this answer ends on that page
-- Include ALL workings, steps, diagrams, and the final answer in the crop
-- Add 1-2% padding above and below
-- value: the FULL working steps as text, including equations, intermediate steps, and the final answer. Transcribe EVERY line in the answer cell/block — do NOT skip or truncate the last line. Use " | " (pipe with spaces) to separate steps on different lines. For example: "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm". If the question has sub-parts (a), (b), (c), include ALL sub-part answers with their labels. If the answer is purely visual (diagram only), use empty string. IMPORTANT: Do NOT use literal newlines inside JSON string values — use " | " as the separator instead.
+- Crop TIGHTLY around the answer content — NO extra padding. Start right at the answer, end right after it.
+- value: text description of the diagram/drawing, or empty string if purely visual. IMPORTANT: Do NOT use literal newlines inside JSON string values — use " | " as the separator instead.
 
 ### For "text" type answers:
-- value: the answer string (e.g. "B", "C")
+- value: the FULL answer including all working steps. Transcribe EVERY line — do NOT skip or truncate. Use " | " to separate steps. Include sub-part labels if present.
+- Examples:
+  - MCQ: "B"
+  - Short answer: "15 cm"
+  - Worked solution: "3/4 × 12 = 9 | 9 + 6 = 15 | Ans: 15 cm"
+  - Sub-parts: "(a) 24 cm² | (b) 15 cm"
+  - IMPORTANT: Do NOT use literal newlines — use " | " as separator
 
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
@@ -517,8 +530,9 @@ Return ONLY valid JSON:
   "answers": {
     "1": {"type": "text", "value": "B"},
     "2": {"type": "text", "value": "A"},
-    "29": {"type": "image", "answerPageIndex": 8, "yStartPct": 10.0, "yEndPct": 30.0, "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm"},
-    "P2-1": {"type": "image", "answerPageIndex": 12, "yStartPct": 5.0, "yEndPct": 25.0, "value": "(a) Area = 1/2 × 8 × 6 = 24 cm² | (b) Perimeter = 8 + 6 + 10 = 24 cm"}
+    "29": {"type": "text", "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm"},
+    "P2-1": {"type": "text", "value": "(a) Area = 1/2 × 8 × 6 = 24 cm² | (b) Perimeter = 8 + 6 + 10 = 24 cm"},
+    "30": {"type": "image", "answerPageIndex": 8, "yStartPct": 45.0, "yEndPct": 55.0, "value": "triangle with height 6cm and base 8cm"}
   }
 }
 
@@ -575,7 +589,10 @@ function buildStructureContext(structure: StructureResult): string {
   const questionPages = structure.pages.filter(p => !p.isAnswerSheet);
   const answerPages = structure.pages.filter(p => p.isAnswerSheet);
   lines.push(`\nQuestion pages (0-based): ${questionPages.map(p => p.pageIndex).join(", ")}`);
-  lines.push(`Answer pages (0-based): ${answerPages.map(p => p.pageIndex).join(", ")}`);
+  lines.push(`\nAnswer pages (0-based):`);
+  for (const ap of answerPages) {
+    lines.push(`  - Page ${ap.pageIndex}: ${ap.paperLabel || "unknown paper"}`);
+  }
   return lines.join("\n");
 }
 
@@ -800,9 +817,10 @@ const REDO_QUESTION_PROMPT = `Find question "{questionNum}" on this exam paper p
 Context: {context}
 
 ## The ONE rule:
-- yStartPct = top of question "{questionNum}" on the page, minus 2-3% padding
-- yEndPct = top of the NEXT WHOLE question number (e.g. the number AFTER "{questionNum}"), minus 1%
+- yStartPct = top of question "{questionNum}" on the page, minus ~1% padding (just a tiny gap above)
+- yEndPct = top of the NEXT WHOLE question number (e.g. the number AFTER "{questionNum}"), plus ~1% padding DOWNWARD
 - EVERYTHING between two consecutive WHOLE question numbers belongs to this question
+- TOP padding should be MINIMAL — do NOT extend far above the question number
 
 ## WHERE to find question numbers — LEFT MARGIN ONLY:
 - Question numbers are ALWAYS at the LEFT-MOST margin of the page
@@ -880,29 +898,28 @@ Question labels may appear as "Q{questionNum}", "Q{questionNum})", "{questionNum
 
 ## Classify the answer:
 
-**Type "text"** — ONLY for:
+**Type "text"** — Use for MOST answers (preferred):
 - MCQ answer (single letter: A, B, C, D)
-- Answers that are truly just a single short value with NO working shown
+- Short answers, numerical answers
+- Worked solutions that can be written as text: "3/4 × 12 = 9 | Ans: 9"
+- Sub-parts: "(a) 24 cm² | (b) 15 cm"
+- Transcribe EVERY line — do NOT skip or truncate. Use " | " to separate steps.
+- IMPORTANT: Do NOT use literal newlines — use " | " as separator.
 
-**Type "image"** — for EVERYTHING ELSE:
-- Worked solution with mathematical steps
-- Contains diagrams, drawings, or pictures
-- Multi-line answer where layout matters
-- Any answer where working/method is visible
-- When in doubt, ALWAYS prefer "image"
+**Type "image"** — ONLY when text cannot capture the answer:
+- Contains diagrams, drawings, graphs, or geometric constructions
+- Complex notation that cannot be typed
+- Do NOT use image just because the answer has multiple steps
 
 ## For "image" type:
 - Provide yStartPct and yEndPct crop boundaries on THIS page
-- Include ALL workings, steps, and the final answer
-- Add 1-2% padding above and below
-- value: the FULL working steps as text, including equations and intermediate steps. Transcribe EVERY line — do NOT skip or truncate the last line. If the question has sub-parts (a), (b), (c), include ALL sub-part answers. Use " | " (pipe with spaces) to separate steps. E.g. "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm". IMPORTANT: Do NOT use literal newlines inside JSON string values — use " | " as the separator.
+- Crop TIGHTLY — NO extra padding
+- value: text description of the visual content
 
-## For "text" type:
-- Provide the answer text in the "value" field
-
-Return ONLY valid JSON:
+## Return format:
 For text: { "type": "text", "value": "B" }
-For image: { "type": "image", "yStartPct": 15.0, "yEndPct": 35.0, "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm" }
+For worked text: { "type": "text", "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm" }
+For image: { "type": "image", "yStartPct": 45.0, "yEndPct": 55.0, "value": "diagram of triangle" }
 
 If you CANNOT find question "{questionNum}" on this page, return: { "type": "text", "value": "" }`;
 
