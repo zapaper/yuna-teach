@@ -450,10 +450,12 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - The structure analysis expectedQuestionCount is just an estimate — do NOT force your output to match it
 - If a page has NO question numbers visible at all, return it with an EMPTY questions array — do NOT make up questions
 
-### Where questions START for each paper/booklet:
-- The structure context tells you which page and approximate vertical position each paper/booklet's questions begin
-- For the first question page of each booklet: questions may start partway down the page (below header/instructions) — use the indicated firstQuestionYStartPct as a guide but verify by finding the actual "1." or first question number at the left margin
-- On subsequent pages of the same booklet: questions typically start near the top (~2-5%)
+### FIRST QUESTION — Verify before proceeding:
+- The structure context tells you the FIRST question number to find (e.g. "1" or "31")
+- BEFORE extracting all questions, locate this first question number at the LEFT MARGIN of the pages
+- If the first page has only a header/instructions and NO question numbers, skip it — look at the NEXT page
+- If you cannot find the expected first question number, do NOT start extracting from a random number — return an empty result instead
+- Once you've confirmed the first question, proceed sequentially through the rest
 
 ### Header pages:
 - Some pages have a HEADER section at the top (school name, exam title, instructions) followed by questions below
@@ -754,20 +756,48 @@ function validateQuestionExtraction(
   return { valid: issues.length === 0, issues };
 }
 
-// Stage 2a: Extract question boundaries (question pages only) — with validation + retry
-async function extractQuestions(
+// Helper: extract sorted question numbers from a QuestionExtractionResult
+function extractQuestionNumbers(result: QuestionExtractionResult, prefix: string): number[] {
+  const nums: number[] = [];
+  for (const page of result.pages) {
+    for (const q of page.questions) {
+      const raw = prefix ? q.questionNum.replace(prefix, "") : q.questionNum;
+      const n = parseInt(raw, 10);
+      if (!isNaN(n)) nums.push(n);
+    }
+  }
+  return nums.sort((a, b) => a - b);
+}
+
+// Build a booklet-specific context string for per-booklet extraction
+function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionNum: number): string {
+  const lines: string[] = [];
+  lines.push(`Booklet: ${paper.label}`);
+  lines.push(`Question prefix for JSON output: "${paper.questionPrefix}"`);
+  lines.push(`Expected questions: ${paper.expectedQuestionCount} (starting from Q${firstQuestionNum})`);
+  lines.push(`First question number to find: ${firstQuestionNum}`);
+  for (const section of paper.sections) {
+    lines.push(`Section ${section.name}: ${section.type}, ${section.questionCount} questions`);
+  }
+  return lines.join("\n");
+}
+
+// Stage 2a: Extract question boundaries for a SINGLE booklet — with validation + retry
+async function extractQuestionsForBooklet(
   imagesBase64: string[],
   originalPageIndices: number[],
-  structure: StructureResult
+  paper: StructureResult["papers"][0],
+  firstQuestionNum: number
 ): Promise<QuestionExtractionResult> {
   const imageParts = imagesBase64.map((data, i) => [
     { inlineData: { mimeType: "image/jpeg" as const, data } },
     { text: `[Page ${originalPageIndices[i]}]` },
   ]).flat();
 
+  const bookletContext = buildBookletContext(paper, firstQuestionNum);
   const prompt = QUESTION_EXTRACTION_PROMPT.replace(
     "{structureContext}",
-    buildStructureContext(structure)
+    bookletContext
   );
 
   // First attempt
@@ -786,28 +816,56 @@ async function extractQuestions(
   });
 
   const text = response.text;
-  if (!text) throw new Error("Gemini returned empty response for question extraction");
+  if (!text) throw new Error(`Gemini returned empty response for question extraction (${paper.label})`);
   const result = JSON.parse(text) as QuestionExtractionResult;
 
-  // Validate
-  const validation = validateQuestionExtraction(result, structure);
-  if (validation.valid) {
-    console.log("[Exam Pipeline] Question extraction validated OK on first attempt");
+  // Validate: check first question is correct
+  const allQNums = extractQuestionNumbers(result, paper.questionPrefix);
+
+  const issues: string[] = [];
+  if (allQNums.length === 0) {
+    issues.push(`No questions detected at all (expected ~${paper.expectedQuestionCount} starting from Q${firstQuestionNum})`);
+  } else {
+    // Check first question
+    if (allQNums[0] !== firstQuestionNum) {
+      issues.push(`First question should be ${firstQuestionNum} but got ${allQNums[0]}`);
+    }
+    // Check for gaps
+    const gaps: number[] = [];
+    for (let i = 1; i < allQNums.length; i++) {
+      for (let g = allQNums[i - 1] + 1; g < allQNums[i]; g++) {
+        gaps.push(g);
+      }
+    }
+    if (gaps.length > 0) {
+      issues.push(`Missing questions: ${gaps.join(", ")}`);
+    }
+    // Check for duplicates
+    const seen = new Set<number>();
+    for (const n of allQNums) {
+      if (seen.has(n)) issues.push(`Duplicate question: ${n}`);
+      seen.add(n);
+    }
+  }
+
+  if (issues.length === 0) {
+    console.log(`[Exam Pipeline] ${paper.label} extraction OK: Q${allQNums[0]}-Q${allQNums[allQNums.length - 1]} (${allQNums.length} questions)`);
     return result;
   }
 
-  // Retry with feedback about what went wrong
-  console.log("[Exam Pipeline] Question extraction issues found, retrying:", validation.issues);
+  // Retry with feedback
+  console.log(`[Exam Pipeline] ${paper.label} issues, retrying:`, issues);
 
   const retryFeedback = `
-## IMPORTANT — Your previous extraction had these problems:
-${validation.issues.map(i => `- ${i}`).join("\n")}
+## Your previous extraction for ${paper.label} had these problems:
+${issues.map(i => `- ${i}`).join("\n")}
 
-Please re-examine the pages carefully and fix these issues:
-- For each MISSING question: look again at the page images — scan the LEFT MARGIN for the missing number. It IS there, you missed it.
-- For each DUPLICATE: remove the incorrect duplicate entry
-- Do NOT skip any question numbers in the sequence — every question from 1 to the last must be found
-- If you genuinely cannot find a question number after careful re-examination, still do NOT invent it — but look VERY carefully first
+Re-examine the pages carefully:
+- The FIRST question on these pages should be "${paper.questionPrefix}${firstQuestionNum}" — find it at the LEFT MARGIN
+- If you cannot find "${firstQuestionNum}." at the left margin of the first page, the first page might be a cover/instruction page — skip it and look at the NEXT page
+- Scan every page carefully for question numbers at the LEFT MARGIN
+- Do NOT skip any question numbers in the sequence
+- Keep ALL boundary coordinates (yStartPct, yEndPct) accurate — do NOT sacrifice crop quality
 
 CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sacrifice boundary quality to fix the gaps. Each question's crop must still be tight and correct.
 `;
@@ -836,13 +894,13 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
 
   const retryText = retryResponse.text;
   if (!retryText) {
-    console.log("[Exam Pipeline] Retry returned empty, using first attempt");
+    console.log(`[Exam Pipeline] ${paper.label} retry empty, using first attempt`);
     return result;
   }
 
   const retryResult = JSON.parse(retryText) as QuestionExtractionResult;
-  const retryValidation = validateQuestionExtraction(retryResult, structure);
-  console.log("[Exam Pipeline] Retry validation:", retryValidation.valid ? "OK" : retryValidation.issues);
+  const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
+  console.log(`[Exam Pipeline] ${paper.label} retry: Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
 
   return retryResult;
 }
@@ -934,29 +992,78 @@ export async function analyzeExamBatch(
     pages: structure.pages.map(p => ({ idx: p.pageIndex, answer: p.isAnswerSheet, cover: p.isCoverPage, paper: p.paperLabel })),
   }));
 
-  // --- Partition pages into question pages and answer pages ---
-  // Filter out cover pages — they have no questions and should NOT be sent to question extraction
-  const questionPageEntries = structure.pages.filter(p => !p.isAnswerSheet && !p.isCoverPage);
+  // --- Partition pages ---
   const coverPageEntries = structure.pages.filter(p => !p.isAnswerSheet && p.isCoverPage);
   const answerPageEntries = structure.pages.filter(p => p.isAnswerSheet);
 
-  console.log("[Exam Pipeline] Cover pages excluded from question extraction:", coverPageEntries.map(p => p.pageIndex));
+  console.log("[Exam Pipeline] Cover pages (0-based):", coverPageEntries.map(p => p.pageIndex));
 
-  const questionImages = questionPageEntries.map(p => imagesBase64[p.pageIndex]);
-  const questionPageIndices = questionPageEntries.map(p => p.pageIndex);
+  // --- Determine per-booklet page ranges using firstQuestionPageIndex ---
+  // Sort papers by firstQuestionPageIndex to determine boundaries
+  const sortedPapers = [...structure.papers].sort((a, b) => a.firstQuestionPageIndex - b.firstQuestionPageIndex);
 
+  // Find the last non-answer page index
+  const allNonAnswerIndices = structure.pages.filter(p => !p.isAnswerSheet).map(p => p.pageIndex);
+  const maxNonAnswerPage = allNonAnswerIndices.length > 0 ? Math.max(...allNonAnswerIndices) : -1;
+
+  // Build per-booklet page lists using firstQuestionPageIndex as boundaries
+  const bookletPageRanges: Array<{
+    paper: StructureResult["papers"][0];
+    pageIndices: number[];
+    firstQuestionNum: number;
+  }> = [];
+
+  // Track cumulative question numbering for booklets sharing a prefix
+  const prefixQuestionCount = new Map<string, number>();
+
+  for (let i = 0; i < sortedPapers.length; i++) {
+    const paper = sortedPapers[i];
+    const startPage = paper.firstQuestionPageIndex;
+    const endPage = i < sortedPapers.length - 1
+      ? sortedPapers[i + 1].firstQuestionPageIndex - 1
+      : maxNonAnswerPage;
+
+    // Collect pages in this range that are not answer sheets
+    // (cover pages in this range are included but the AI should skip them — this handles off-by-1 errors)
+    const pageIndices = structure.pages
+      .filter(p => p.pageIndex >= startPage && p.pageIndex <= endPage && !p.isAnswerSheet)
+      .map(p => p.pageIndex);
+
+    // Determine first question number (continuous numbering within same prefix)
+    const prevCount = prefixQuestionCount.get(paper.questionPrefix) || 0;
+    const firstQuestionNum = prevCount + 1;
+    prefixQuestionCount.set(paper.questionPrefix, prevCount + paper.expectedQuestionCount);
+
+    bookletPageRanges.push({ paper, pageIndices, firstQuestionNum });
+  }
+
+  console.log("[Exam Pipeline] Per-booklet pages:", bookletPageRanges.map(b => ({
+    label: b.paper.label,
+    pages: b.pageIndices.map(i => i + 1), // 1-based for logging
+    firstQ: b.firstQuestionNum,
+  })));
+
+  // --- Stage 2a: Extract questions per booklet (concurrent) + Stage 2b: Answers ---
   const answerImages = answerPageEntries.map(p => imagesBase64[p.pageIndex]);
   const answerPageIndices = answerPageEntries.map(p => p.pageIndex);
 
-  // --- Stage 2a + 2b: Run concurrently ---
-  const [questionResult, answerResult] = await Promise.all([
-    questionImages.length > 0
-      ? extractQuestions(questionImages, questionPageIndices, structure)
-      : { pages: [] } as QuestionExtractionResult,
+  const [bookletResults, answerResult] = await Promise.all([
+    // All booklet extractions run concurrently
+    Promise.all(bookletPageRanges.map(({ paper, pageIndices, firstQuestionNum }) => {
+      if (pageIndices.length === 0) return Promise.resolve({ pages: [] } as QuestionExtractionResult);
+      const images = pageIndices.map(idx => imagesBase64[idx]);
+      return extractQuestionsForBooklet(images, pageIndices, paper, firstQuestionNum);
+    })),
+    // Answer extraction runs concurrently with all booklet extractions
     answerImages.length > 0
       ? extractAnswersWithWorking(answerImages, answerPageIndices, structure)
-      : { answers: {} } as AnswerExtractionResult,
+      : Promise.resolve({ answers: {} } as AnswerExtractionResult),
   ]);
+
+  // Merge all booklet results
+  const questionResult: QuestionExtractionResult = {
+    pages: bookletResults.flatMap(r => r.pages),
+  };
 
   const finalValidation = validateQuestionExtraction(questionResult, structure);
   console.log("[Exam Pipeline] Question extraction:", JSON.stringify(
@@ -988,13 +1095,14 @@ export async function analyzeExamBatch(
     });
   }
 
-  // Add any question pages from structure that Gemini didn't return
-  for (const qEntry of questionPageEntries) {
-    if (!questionPagesReturned.has(qEntry.pageIndex)) {
+  // Add any question pages that Gemini didn't return (pages it skipped)
+  const allBookletPageIndices = new Set(bookletPageRanges.flatMap(b => b.pageIndices));
+  for (const pageIdx of allBookletPageIndices) {
+    if (!questionPagesReturned.has(pageIdx)) {
       pages.push({
-        pageIndex: qEntry.pageIndex,
+        pageIndex: pageIdx,
         isAnswerSheet: false,
-        paperLabel: qEntry.paperLabel,
+        paperLabel: pageLabelMap.get(pageIdx),
         questions: [],
       });
     }
