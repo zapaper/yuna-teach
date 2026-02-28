@@ -671,7 +671,7 @@ async function analyzeExamStructure(
   ]).flat();
 
   const response = await getAI().models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-pro",
     contents: [
       {
         role: "user",
