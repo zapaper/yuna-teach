@@ -39,6 +39,8 @@ function TestPageContent({ id }: { id: string }) {
     info: WordInfo;
   } | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const sourceRef = useRef<AudioBufferSourceNode | null>(null);
 
   useEffect(() => {
     async function fetchTest() {
@@ -58,10 +60,18 @@ function TestPageContent({ id }: { id: string }) {
 
   const playWord = useCallback(
     async (wordText: string) => {
-      if (!test || playingWord) return;
+      if (!test) return;
+
+      // Stop any currently playing word
+      if (abortRef.current) abortRef.current.abort();
+      if (sourceRef.current) {
+        try { sourceRef.current.stop(); } catch { /* already stopped */ }
+      }
+
+      const abort = new AbortController();
+      abortRef.current = abort;
 
       // Create AudioContext immediately on user tap (iOS requirement)
-      // and resume it to unlock audio playback
       if (!audioCtxRef.current || audioCtxRef.current.state === "closed") {
         audioCtxRef.current = new AudioContext();
       }
@@ -93,6 +103,8 @@ function TestPageContent({ id }: { id: string }) {
           }).then((r) => (r.ok ? r.json() : null)),
         ]);
 
+        if (abort.signal.aborted) return;
+
         // Show word info immediately
         if (info) {
           setCurrentWordInfo({ word: wordText, info: info as WordInfo });
@@ -101,8 +113,10 @@ function TestPageContent({ id }: { id: string }) {
         // Play the word audio
         if (wordRes.ok) {
           const wordAudio = await wordRes.arrayBuffer();
-          await playWithContext(ctx, wordAudio);
+          await playWithContext(ctx, wordAudio, sourceRef, abort.signal);
         }
+
+        if (abort.signal.aborted) return;
 
         // After word finishes, read the meaning + example
         if (info) {
@@ -120,18 +134,26 @@ function TestPageContent({ id }: { id: string }) {
               type: "word",
             }),
           });
+
+          if (abort.signal.aborted) return;
+
           if (meaningRes.ok) {
             const meaningAudio = await meaningRes.arrayBuffer();
-            await playWithContext(ctx, meaningAudio);
+            await playWithContext(ctx, meaningAudio, sourceRef, abort.signal);
           }
         }
       } catch (err) {
-        console.error("TTS error:", err);
+        if (!abort.signal.aborted) {
+          console.error("TTS error:", err);
+        }
       } finally {
-        setPlayingWord(null);
+        // Only clear if this is still the active word
+        if (abortRef.current === abort) {
+          setPlayingWord(null);
+        }
       }
     },
-    [test, playingWord]
+    [test]
   );
 
   if (loading) {
@@ -214,12 +236,11 @@ function TestPageContent({ id }: { id: string }) {
           <button
             key={word.id}
             onClick={() => playWord(word.text)}
-            disabled={playingWord !== null}
             className={`rounded-2xl border-2 p-4 text-center font-chinese text-xl transition-all min-h-[72px] flex items-center justify-center ${
               playingWord === word.text
                 ? "border-primary-400 bg-primary-50 scale-95"
                 : "border-slate-100 bg-white shadow-sm hover:border-primary-200 hover:shadow-md active:scale-95"
-            } ${playingWord && playingWord !== word.text ? "opacity-50" : ""}`}
+            }`}
           >
             {word.text}
           </button>
@@ -288,17 +309,33 @@ function TestPageContent({ id }: { id: string }) {
 
 function playWithContext(
   ctx: AudioContext,
-  buffer: ArrayBuffer
+  buffer: ArrayBuffer,
+  sourceRef?: React.MutableRefObject<AudioBufferSourceNode | null>,
+  signal?: AbortSignal
 ): Promise<void> {
+  if (signal?.aborted) return Promise.resolve();
+
   return new Promise((resolve, reject) => {
     ctx
       .decodeAudioData(buffer.slice(0))
       .then((audioBuffer) => {
+        if (signal?.aborted) { resolve(); return; }
+
         const source = ctx.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(ctx.destination);
-        source.onended = () => resolve();
+        if (sourceRef) sourceRef.current = source;
+
+        source.onended = () => {
+          if (sourceRef?.current === source) sourceRef.current = null;
+          resolve();
+        };
         source.start(0);
+
+        signal?.addEventListener("abort", () => {
+          try { source.stop(); } catch { /* already stopped */ }
+          resolve();
+        }, { once: true });
       })
       .catch(reject);
   });
