@@ -686,7 +686,14 @@ async function analyzeExamStructure(
 
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for structure analysis");
-  return JSON.parse(text) as StructureResult;
+  const parsed = JSON.parse(text);
+  if (!Array.isArray(parsed.pages)) {
+    throw new Error(`Structure analysis returned invalid format — missing pages array. Keys: ${Object.keys(parsed).join(", ")}`);
+  }
+  if (!Array.isArray(parsed.papers)) {
+    throw new Error(`Structure analysis returned invalid format — missing papers array. Keys: ${Object.keys(parsed).join(", ")}`);
+  }
+  return parsed as StructureResult;
 }
 
 // Validate question extraction result — check for gaps in question sequences
@@ -817,7 +824,14 @@ async function extractQuestionsForBooklet(
 
   const text = response.text;
   if (!text) throw new Error(`Gemini returned empty response for question extraction (${paper.label})`);
-  const result = JSON.parse(text) as QuestionExtractionResult;
+  const parsed = JSON.parse(text);
+  // Gemini Pro may return the result nested or without pages array — normalize
+  const result: QuestionExtractionResult = {
+    pages: Array.isArray(parsed.pages) ? parsed.pages : [],
+  };
+  if (!Array.isArray(parsed.pages)) {
+    console.log(`[Exam Pipeline] ${paper.label}: Gemini returned unexpected structure, keys: ${Object.keys(parsed).join(", ")}`);
+  }
 
   // Validate: check first question is correct
   const allQNums = extractQuestionNumbers(result, paper.questionPrefix);
@@ -898,7 +912,10 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
     return result;
   }
 
-  const retryResult = JSON.parse(retryText) as QuestionExtractionResult;
+  const retryParsed = JSON.parse(retryText);
+  const retryResult: QuestionExtractionResult = {
+    pages: Array.isArray(retryParsed.pages) ? retryParsed.pages : [],
+  };
   const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
   console.log(`[Exam Pipeline] ${paper.label} retry: Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
 
