@@ -359,11 +359,19 @@ Return a JSON object with:
 - yEndPct = top of the NEXT WHOLE question number (e.g. "6."), minus 1%
 - EVERYTHING between two consecutive WHOLE question numbers belongs to the first question
 
+### WHERE to find question numbers — LEFT MARGIN ONLY:
+- Question numbers are ALWAYS printed at the LEFT-MOST margin of the page (flush left or slightly indented)
+- ONLY look at the left margin to identify question boundaries — NEVER use numbers found in the middle or right side of the page
+- MCQ answer options like "(1)", "(2)", "(3)", "(4)" or "A", "B", "C", "D" appear INDENTED under the question — these are NOT question numbers
+- Numbers in diagrams, tables, answer blanks, or question text are NOT question numbers
+- The pattern is: a number followed by a period or bracket at the very start of a line, e.g. "1.", "2.", "24.", "25)"
+
 ### What counts as a "question number" (boundary marker):
-- YES: "1.", "2.", "3.", "24.", "25." — these are WHOLE question numbers, use as boundaries
+- YES: "1.", "2.", "3.", "24.", "25." — these are WHOLE question numbers AT THE LEFT MARGIN, use as boundaries
 - NO: "(a)", "(b)", "(c)", "(i)", "(ii)" — these are SUB-PARTS within a question, IGNORE them as boundaries
+- NO: "(1)", "(2)", "(3)", "(4)" indented under a question — these are MCQ OPTIONS, not question numbers
 - For written question 24 with parts (a), (b), (c): the bottom boundary is "25.", NOT "(a)" or "(b)" or "(c)"
-- Sub-part labels are INSIDE the question — they must be INCLUDED in the crop, never used as a cut-off point
+- Sub-part labels and MCQ options are INSIDE the question — they must be INCLUDED in the crop, never used as a cut-off point
 
 ### Sequential guidance — use previous coordinates:
 - Extract in order. Once you know Q(n)'s yEndPct, Q(n+1)'s yStartPct ≈ Q(n)'s yEndPct
@@ -439,9 +447,15 @@ Context: {context}
 - yEndPct = top of the NEXT WHOLE question number (e.g. the number AFTER "{questionNum}"), minus 1%
 - EVERYTHING between two consecutive WHOLE question numbers belongs to this question
 
-## IMPORTANT — what is a "question number" vs what is NOT:
-- Question numbers: "1.", "2.", "24.", "25." — use these as boundaries
-- NOT question numbers: "(a)", "(b)", "(c)", "(i)", "(ii)" — these are sub-parts INSIDE a question, IGNORE as boundaries
+## WHERE to find question numbers — LEFT MARGIN ONLY:
+- Question numbers are ALWAYS at the LEFT-MOST margin of the page
+- ONLY look at the left margin — NEVER use numbers from the middle or right of the page
+- MCQ options like "(1)", "(2)", "(3)", "(4)" appear INDENTED — these are NOT question numbers
+
+## What is a "question number" vs what is NOT:
+- Question numbers: "1.", "2.", "24.", "25." at the LEFT MARGIN — use these as boundaries
+- NOT question numbers: "(a)", "(b)", "(c)", "(i)", "(ii)" — sub-parts INSIDE a question, IGNORE as boundaries
+- NOT question numbers: "(1)", "(2)", "(3)", "(4)" indented under a question — MCQ OPTIONS, not boundaries
 - If question {questionNum} has sub-parts (a)(b)(c), include ALL of them — cut at the NEXT whole question number
 
 ## Guidance:
