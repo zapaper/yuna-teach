@@ -38,8 +38,11 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Default: TTS for the word itself
-    const audioBuffer = await synthesizeSpeech(text, language);
+    // Default: TTS for the word itself (slower speed, read punctuation aloud)
+    const audioBuffer = await synthesizeSpeech(text, language, {
+      expandPunct: true,
+      speed: 0.7,
+    });
     return new NextResponse(audioBuffer, {
       status: 200,
       headers: {

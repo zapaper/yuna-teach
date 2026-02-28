@@ -106,8 +106,10 @@ export class AudioSequencer {
         await this.playAudio(buffer);
         if (this.abortController.signal.aborted) break;
 
-        // 2-second pause
-        await this.wait(2000);
+        // Pause between repeats — longer for longer text
+        const textLen = word.text.length;
+        const repeatPause = Math.min(2000 + textLen * 300, 6000);
+        await this.wait(repeatPause);
         if (this.abortController.signal.aborted) break;
 
         // Speak the word (second time)
