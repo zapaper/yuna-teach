@@ -257,45 +257,108 @@ export async function extractExamAnswers(
   return JSON.parse(text) as Record<string, string>;
 }
 
-// --- Batch Exam Analysis (all pages in one call) ---
+// --- 3-Stage Exam Analysis Pipeline ---
 
-const BATCH_ANALYSIS_PROMPT = `You are an expert at analyzing Singapore primary/secondary school exam papers. All pages of the exam are provided as images in order.
+// Stage 1: Structure Analysis — understand exam layout and classify pages
+const STRUCTURE_ANALYSIS_PROMPT = `You are an expert at analyzing Singapore primary/secondary school exam papers. All pages of the exam are provided as images in order. Page indices are 0-based (first page = Page 0).
 
-## STEP 1: First pass — Read the ENTIRE paper to understand structure
-Before extracting any questions, scan ALL pages to determine:
-- The header/cover page instructions which tell you the exam structure
-- How many total questions there are and how they are scored
-- How the paper is segmented (e.g. "Booklet A" and "Booklet B", or "Section A" and "Section B")
-- Where the answer sheet / answer key is (usually at the end)
-- Whether the PDF contains MULTIPLE papers (e.g. Paper 1 and Paper 2). Look for:
-  - Question numbers that RESET back to 1
-  - A new cover page or header appearing mid-document
-  - Labels like "Paper 2", "Booklet B", "Part 2"
+Your task is to understand the STRUCTURE of this exam. Do NOT extract individual question boundaries or answer content — just understand the overall layout.
 
-## STEP 2: Read header instructions VERY carefully
-The cover page or top of the first page contains critical metadata:
-- School name, level (P1-P6, Sec 1-4), subject, year, exam type
-- Total marks and duration
-- Section breakdown with EXACT question count and marks per section
-  e.g. "Section A: 28 questions x 1 mark = 28 marks", "Section B: 12 questions x 2 marks = 24 marks"
-- This tells you EXACTLY how many questions to find in each section — use this as your guide
-- Sometimes it says "Booklet A" (MCQ) and "Booklet B" (structured/written) — treat each booklet as a section
-- If there are multiple papers in the PDF, each paper will have its OWN header — read each one
+## What to determine:
 
-## STEP 3: Extract questions — ONE entry per question number
+### 1. Header information
+Read the cover page or first page header to extract:
+- school: The school name (e.g. "Anglo-Chinese School (Junior)")
+- level: The student level (e.g. "P6", "Sec 4")
+- subject: The subject (e.g. "Mathematics", "Science")
+- year: The year of the exam (e.g. "2024")
+- semester: The exam type (e.g. "Prelim", "SA2", "CA1")
+- title: A short descriptive title (e.g. "ACSJ P6 Math Prelim 2024")
+- totalMarks: total marks as string (e.g. "100"), empty string if unknown
+- sections: array of sections with exact breakdown from the header
+  e.g. "Section A: 28 questions x 1 mark = 28 marks" → {"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}
 
-Every question is extracted the SAME way regardless of type (MCQ or written):
-- TOP boundary = the question number (e.g. "1.", "24."), minus 2-3% padding
-- BOTTOM boundary = just above the NEXT question number (e.g. "2.", "25."), minus 1%
+### 2. Page classification
+For EVERY page, determine whether it is:
+- A question page (isAnswerSheet: false) — contains exam questions for students to attempt
+- An answer sheet / answer key page (isAnswerSheet: true) — contains answers, solutions, or marking scheme
+- Answer keys are usually at the END of the document, titled "Answer Key", "Answers", "Marking Scheme", or contain answer tables
+
+### 3. Multi-paper detection
+Check if the PDF contains MULTIPLE papers (Paper 1 + Paper 2, Booklet A + Booklet B):
+- Look for question numbers that RESET back to 1
+- Look for new cover pages or headers appearing mid-document
+- Look for labels like "Paper 2", "Booklet B", "Part 2"
+If multiple papers exist, define each with:
+- label: e.g. "Paper 1", "Paper 2"
+- questionPrefix: "" for Paper 1, "P2-" for Paper 2 (used to keep question numbers unique)
+- expectedQuestionCount: how many questions expected based on header info
+- sections: breakdown per section
+
+### 4. For each page, note which paper it belongs to (paperLabel)
+
+## OUTPUT FORMAT
+Return ONLY valid JSON:
+{
+  "header": {
+    "school": "...", "level": "...", "subject": "...", "year": "...",
+    "semester": "...", "title": "...", "totalMarks": "...",
+    "sections": [{"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}]
+  },
+  "pages": [
+    {"pageIndex": 0, "isAnswerSheet": false, "paperLabel": "Paper 1"},
+    {"pageIndex": 1, "isAnswerSheet": false, "paperLabel": "Paper 1"},
+    {"pageIndex": 8, "isAnswerSheet": true, "paperLabel": "Paper 1"}
+  ],
+  "papers": [
+    {
+      "label": "Paper 1",
+      "questionPrefix": "",
+      "expectedQuestionCount": 36,
+      "sections": [{"name": "A", "type": "MCQ", "questionCount": 28}, {"name": "B", "type": "structured", "questionCount": 8}]
+    }
+  ]
+}
+
+If there is only one paper, still include it in the "papers" array with questionPrefix "".
+Return ONLY valid JSON.`;
+
+// Stage 2a: Question Extraction — extract question boundaries from question pages only
+const QUESTION_EXTRACTION_PROMPT = `You are an expert at extracting question boundaries from Singapore school exam papers.
+
+You are given ONLY the question pages of the exam (answer sheets have been removed). Each image is labeled with its original page index (0-based).
+
+## Context from structure analysis:
+{structureContext}
+
+## Your task: Extract EVERY question's crop boundaries
+
+### The ONE rule for ALL questions (MCQ and written alike):
+- yStartPct = top of this question's number (e.g. "5."), minus 2-3% padding
+- yEndPct = top of the NEXT WHOLE question number (e.g. "6."), minus 1%
+- EVERYTHING between two consecutive WHOLE question numbers belongs to the first question
 - Each question is ONE entry — do NOT split sub-parts (a), (b), (c) into separate entries
-- If question 24 has parts (a), (b), (c), it is still ONE entry: questionNum = "24"
-- Include EVERYTHING between two consecutive question numbers: stem, sub-parts, answer options, diagrams, pictures, answer spaces, blank lines
 
-### Sequential extraction rule:
+### WHERE to find question numbers — LEFT MARGIN ONLY:
+- Question numbers are ALWAYS printed at the LEFT-MOST margin of the page
+- ONLY look at the left margin — NEVER use numbers from the middle or right of the page
+- MCQ answer options like "(1)", "(2)", "(3)", "(4)" appear INDENTED — these are NOT question numbers
+- The pattern is: a number followed by a period or bracket at the very start of a line
+
+### What counts as a "question number" (boundary marker):
+- YES: "1.", "2.", "3.", "24.", "25." — WHOLE question numbers at the LEFT MARGIN
+- NO: "(a)", "(b)", "(c)", "(i)", "(ii)" — sub-parts, IGNORE as boundaries
+- NO: "(1)", "(2)", "(3)", "(4)" indented under a question — MCQ OPTIONS, not boundaries
+
+### Sequential extraction:
 - Extract questions in order: 1, 2, 3, 4...
-- Use the PREVIOUS question's yEndPct to guide the NEXT question's yStartPct
-  - Q1 yEndPct ≈ Q2 yStartPct (no gaps between questions)
-- This means once you find Q1's boundaries, Q2's top is already known — you just need to find Q2's bottom (= top of Q3)
+- Use the PREVIOUS question's yEndPct to guide the NEXT question's yStartPct (no gaps)
+- On a new page: first question starts near the top (after page header), last question extends to near the bottom (before footer)
+
+### Multiple papers:
+- If the structure analysis identified multiple papers, question numbers RESET at each new paper
+- Use the provided questionPrefix for each paper (e.g. "P2-" for Paper 2) in your JSON output
+- On the actual page, the printed number is "1", "2", etc. — the prefix is ONLY in your JSON output
 
 ### MCQ questions:
 - Each MCQ is a SEPARATE entry including stem + all answer options (A/B/C/D or 1/2/3/4)
@@ -303,148 +366,257 @@ Every question is extracted the SAME way regardless of type (MCQ or written):
 ### Written questions:
 - Keep the ENTIRE question as ONE entry including ALL sub-parts (a), (b), (c) and answer spaces
 - The bottom boundary is the NEXT WHOLE question number — NOT a sub-part label
-- Example: Q24 has (a)(b)(c). Bottom = top of "25.", NOT top of "(a)" or "(b)"
 - Written questions are larger — typically 15-50% of a page. If your crop is small, you are cutting off too early
 - Include answer spaces ("Ans:" lines, answer boxes, blank working space)
 - Include diagrams, pictures, graphs, tables, figures
 
-## HANDLING MULTIPLE PAPERS IN ONE PDF
-If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B):
-- Question numbers will RESET back to 1 when a new paper starts
-- The PRINTED question numbers on Paper 2's pages are just "1", "2", "3" etc. — same as Paper 1
-- For EXTRACTION, you look for the printed numbers "1", "2", "3" on the page — the same boundary rules apply
-- Extract Paper 2 questions using the EXACT SAME method as Paper 1: find printed question numbers, use them as boundaries
-- The ONLY difference is the questionNum in your JSON output gets a prefix to stay unique:
-  - Paper 1: "1", "2", "3" (no prefix)
-  - Paper 2: "P2-1", "P2-2", "P2-3" (prefix in output only)
-- The prefix is ONLY for the JSON output — on the actual page, the question is still printed as "1", "2", etc.
-- Each paper has its OWN header/instructions — read those to know how many questions to expect
-
-## Validate question sequence WITHIN each paper
-- Within a single paper, questions MUST be sequential: 1, 2, 3...
-- If numbers jump (e.g. 5, 6, 10) you likely missed questions — look more carefully
-- Each paper's numbering is independent
-
-## STEP 4: Analyze answer key pages in detail
-
-Answer keys are usually at the END of the document. They may be titled "Answer Key", "Answers", "Answer Sheet", or simply be a table mapping question numbers to answers.
-
-### How to read answer keys:
-- Question labels may appear as "Q24", "Q24)", "Q1", "24.", "1)", or just "24" — strip the "Q" prefix and any punctuation to get the question number
-- MCQ answer keys are often in TABLE format: question number in one column, answer letter in the adjacent cell
-- Written/structured answer keys show the full working for each question, labeled by question number
-- Some answer keys mix formats: MCQ answers in a table at the top, then worked solutions below
-
-### For each answer key page:
-- Mark the page as isAnswerSheet: true
-- Identify which paper/section the answers belong to by reading the HEADER on the answer key page:
-  - "Paper 1 Booklet A" or "Booklet A" → answers map to Paper 1 questions (no prefix)
-  - "Paper 2" or "Booklet B" → answers map to P2-prefixed questions
-  - "Section A Answers" → answers for Section A questions
-  - If no header specifies, assume answers correspond to the main (only) paper
-
-### Classify each answer as "text" or "image":
-
-**Type "text"** — Use for:
-- MCQ answers (single letter: A, B, C, D)
-- Short numeric answers (e.g. "3/4", "15 cm", "$2.50")
-- One-line text answers
-- Any answer that can be fully represented as a short string
-
-**Type "image"** — Use for:
-- Worked solutions showing mathematical steps/working (e.g. long division, algebra steps)
-- Answers containing diagrams, drawings, graphs, or pictures
-- Multi-line structured answers with formatting that would be lost as text
-- Any answer where seeing the original layout matters
-- When in doubt for written/structured answers, use "image"
-
-### For "image" type answers, provide Y-coordinate boundaries:
-- answerPageIndex: the 0-based page index where this answer appears
-- yStartPct: Y-coordinate where this answer starts on that page (0=top, 100=bottom)
-- yEndPct: Y-coordinate where this answer ends on that page
-- Use the same boundary detection rules as for questions: find the answer number labels at the left margin, crop between consecutive numbers
-- Add 1-2% padding above and below
-- Include ALL workings, steps, and the final answer in the crop
-
-## OUTPUT FORMAT
-Return a JSON object with:
-
-1. "header":
-   - school, level, subject, year, semester, title
-   - totalMarks: total marks as string (e.g. "100"), empty string if unknown
-   - sections: array of sections, e.g. [{"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}, {"name": "B", "type": "structured", "marks": 52, "questionCount": 8}]
-
-2. "pages": array with one entry per page:
-   - pageIndex: 0-based page number
-   - isAnswerSheet: true/false
-   - questions: array of questions on this page, each with:
-     - questionNum: e.g. "1", "2", "28", "29", "30", "P2-1", "P2-2", "P2-3"
-     - yStartPct: Y-coordinate where question starts (0=top, 100=bottom)
-     - yEndPct: Y-coordinate where question ends
-     - boundaryTop: the question number you detected for the TOP boundary (e.g. "24"), or "not found" if estimated
-     - boundaryBottom: the NEXT question number you used for the BOTTOM boundary (e.g. "25"), or "not found" if the bottom was estimated (e.g. last question on page, extended to footer)
-
-3. "answers": object mapping question numbers to answer entries. Each entry is one of:
-
-   For text answers (MCQ, short answers):
-   { "type": "text", "value": "B" }
-
-   For image answers (worked solutions, diagrams):
-   { "type": "image", "answerPageIndex": 8, "yStartPct": 15.0, "yEndPct": 35.0, "value": "3/4" }
-   - answerPageIndex: which page (0-based) the answer image appears on
-   - yStartPct/yEndPct: crop boundaries on that page
-   - value: optional text summary of the final answer (e.g. "3/4"), empty string if purely visual
-
-   Example:
-   {
-     "1": { "type": "text", "value": "B" },
-     "2": { "type": "text", "value": "A" },
-     "29": { "type": "image", "answerPageIndex": 12, "yStartPct": 10.0, "yEndPct": 25.0, "value": "3/4" },
-     "30": { "type": "image", "answerPageIndex": 12, "yStartPct": 25.0, "yEndPct": 55.0, "value": "" },
-     "P2-1": { "type": "text", "value": "12" },
-     "P2-5": { "type": "image", "answerPageIndex": 15, "yStartPct": 5.0, "yEndPct": 40.0, "value": "5 cm" }
-   }
-
-## CRITICAL RULES for yStartPct / yEndPct boundaries:
-
-### The ONE rule for ALL questions (MCQ and written alike):
-- yStartPct = top of this question's number (e.g. "5."), minus 2-3% padding
-- yEndPct = top of the NEXT WHOLE question number (e.g. "6."), minus 1%
-- EVERYTHING between two consecutive WHOLE question numbers belongs to the first question
-
-### WHERE to find question numbers — LEFT MARGIN ONLY:
-- Question numbers are ALWAYS printed at the LEFT-MOST margin of the page (flush left or slightly indented)
-- ONLY look at the left margin to identify question boundaries — NEVER use numbers found in the middle or right side of the page
-- MCQ answer options like "(1)", "(2)", "(3)", "(4)" or "A", "B", "C", "D" appear INDENTED under the question — these are NOT question numbers
-- Numbers in diagrams, tables, answer blanks, or question text are NOT question numbers
-- The pattern is: a number followed by a period or bracket at the very start of a line, e.g. "1.", "2.", "24.", "25)"
-
-### What counts as a "question number" (boundary marker):
-- YES: "1.", "2.", "3.", "24.", "25." — these are WHOLE question numbers AT THE LEFT MARGIN, use as boundaries
-- NO: "(a)", "(b)", "(c)", "(i)", "(ii)" — these are SUB-PARTS within a question, IGNORE them as boundaries
-- NO: "(1)", "(2)", "(3)", "(4)" indented under a question — these are MCQ OPTIONS, not question numbers
-- For written question 24 with parts (a), (b), (c): the bottom boundary is "25.", NOT "(a)" or "(b)" or "(c)"
-- Sub-part labels and MCQ options are INSIDE the question — they must be INCLUDED in the crop, never used as a cut-off point
-
-### Sequential guidance — use previous coordinates:
-- Extract in order. Once you know Q(n)'s yEndPct, Q(n+1)'s yStartPct ≈ Q(n)'s yEndPct
-- This eliminates gaps and helps you find the next question even if the number is hard to read
-- On a new page: first question starts near the top (after any page header), last question extends to near the bottom (before footer)
-
-### When you CANNOT clearly find a boundary:
-- Cannot find TOP: use yEndPct of the previous question (no gaps rule)
-- Cannot find BOTTOM: find the next question number you CAN see and use its top
-- Cannot find next question at all: extend to just before the page footer (90-95%)
-- NEVER output a tiny crop (less than 5% height) for a written question
+### Validation:
+- Questions must be sequential within each paper
+- If numbers jump (e.g. 5, 6, 10), look more carefully — you likely missed questions
+- The total extracted questions should match the expected count from the structure analysis
 - NEVER output invalid coordinates (yStartPct >= yEndPct)
 - When in doubt, crop MORE — extra white space is better than cutting off content
 
 ### Edge cases:
 - Question continues from previous page: yStartPct = 0 or 1
-- Last question on page: yEndPct = just before footer/page number
-- Skip page headers (school name repeated at top) and footers (page numbers)
+- Last question on page: yEndPct = just before footer/page number (90-95%)
+- Skip page headers and footers
+
+## OUTPUT FORMAT
+Return ONLY valid JSON:
+{
+  "pages": [
+    {
+      "pageIndex": 2,
+      "questions": [
+        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "boundaryTop": "1", "boundaryBottom": "2"},
+        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "boundaryTop": "2", "boundaryBottom": "3"}
+      ]
+    }
+  ]
+}
 
 Return ONLY valid JSON.`;
+
+// Stage 2b: Answer Extraction — extract answers with full working steps from answer key pages
+const ANSWER_EXTRACTION_PROMPT_V2 = `You are analyzing the answer key / answer sheet pages of a Singapore school exam paper.
+
+You are given ONLY the answer key pages. Each image is labeled with its original page index (0-based).
+
+## Context from structure analysis:
+{structureContext}
+
+## Your task: Extract ALL answers with FULL WORKING STEPS
+
+### CRITICAL REQUIREMENT — Capture working steps, not just final answers:
+- For math/science questions, the WORKING is as important as the final answer
+- Prefer "image" type for ANY answer that has working steps, method marks, or multi-step solutions
+- Only use "text" type for simple MCQ answers (A/B/C/D) or very short one-word/one-number answers with NO working shown
+- When in doubt, use "image" type — it preserves the full worked solution
+
+### How to read answer keys:
+- Question labels may appear as "Q24", "Q24)", "Q1", "24.", "1)", or just "24"
+- Strip the "Q" prefix and any punctuation to get the question number
+- MCQ answer keys are often in TABLE format: question number in one column, answer letter in adjacent cell
+- Written answer keys show full working for each question
+- Some answer keys mix formats: MCQ table at top, worked solutions below
+
+### For multi-paper PDFs:
+- Identify which paper the answers belong to by reading the HEADER on the answer key page
+- "Paper 1" / "Booklet A" → no prefix (questions "1", "2", "3")
+- "Paper 2" / "Booklet B" → use prefix (questions "P2-1", "P2-2", "P2-3")
+- If no header specifies, assume answers for the main (only) paper
+
+### Classify each answer:
+
+**Type "text"** — Use ONLY for:
+- MCQ answers (single letter: A, B, C, D)
+- Answers that are TRULY just a single short value with NO working shown (rare for non-MCQ)
+
+**Type "image"** — Use for EVERYTHING ELSE, including:
+- Any answer that shows working steps (e.g. math working, long division, algebra)
+- Short answers like "3/4" or "15 cm" IF the answer key shows the METHOD to get there
+- Answers with diagrams, drawings, graphs
+- Multi-line answers
+- Any answer where the working/method is visible in the answer key
+- When in doubt, ALWAYS prefer "image"
+
+### For "image" type answers:
+- answerPageIndex: the ORIGINAL 0-based page index (as labeled on the image)
+- yStartPct: Y-coordinate where this answer starts on that page (0=top, 100=bottom)
+- yEndPct: Y-coordinate where this answer ends on that page
+- Include ALL workings, steps, diagrams, and the final answer in the crop
+- Add 1-2% padding above and below
+- value: the FULL working steps as text, including equations, intermediate steps, and the final answer. Transcribe EVERY line in the answer cell/block — do NOT skip or truncate the last line. Use line breaks to separate steps. For example: "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm". If the question has sub-parts (a), (b), (c), include ALL sub-part answers with their labels. If the answer is purely visual (diagram only), use empty string.
+
+### For "text" type answers:
+- value: the answer string (e.g. "B", "C")
+
+## OUTPUT FORMAT
+Return ONLY valid JSON:
+{
+  "answers": {
+    "1": {"type": "text", "value": "B"},
+    "2": {"type": "text", "value": "A"},
+    "29": {"type": "image", "answerPageIndex": 8, "yStartPct": 10.0, "yEndPct": 30.0, "value": "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm"},
+    "P2-1": {"type": "image", "answerPageIndex": 12, "yStartPct": 5.0, "yEndPct": 25.0, "value": "(a) Area = 1/2 × 8 × 6 = 24 cm²\n(b) Perimeter = 8 + 6 + 10 = 24 cm"}
+  }
+}
+
+Return ONLY valid JSON.`;
+
+// --- Intermediate types for the 3-stage pipeline ---
+
+interface StructureResult {
+  header: ExamHeaderInfo;
+  pages: Array<{
+    pageIndex: number;
+    isAnswerSheet: boolean;
+    paperLabel?: string;
+  }>;
+  papers: Array<{
+    label: string;
+    questionPrefix: string;
+    expectedQuestionCount: number;
+    sections: Array<{ name: string; type: string; questionCount: number }>;
+  }>;
+}
+
+interface QuestionExtractionResult {
+  pages: Array<{
+    pageIndex: number;
+    questions: Array<{
+      questionNum: string;
+      yStartPct: number;
+      yEndPct: number;
+      boundaryTop: string;
+      boundaryBottom: string;
+    }>;
+  }>;
+}
+
+interface AnswerExtractionResult {
+  answers: Record<string, AnswerEntry>;
+}
+
+// Helper: serialize structure result into context string for Calls 2a/2b
+function buildStructureContext(structure: StructureResult): string {
+  const lines: string[] = [];
+  lines.push(`Exam: ${structure.header.title}`);
+  lines.push(`Subject: ${structure.header.subject}, Level: ${structure.header.level}`);
+  if (structure.header.totalMarks) {
+    lines.push(`Total marks: ${structure.header.totalMarks}`);
+  }
+  for (const paper of structure.papers) {
+    lines.push(`\n${paper.label} (prefix: "${paper.questionPrefix}", expected ${paper.expectedQuestionCount} questions):`);
+    for (const section of paper.sections) {
+      lines.push(`  - Section ${section.name}: ${section.type}, ${section.questionCount} questions`);
+    }
+  }
+  const questionPages = structure.pages.filter(p => !p.isAnswerSheet);
+  const answerPages = structure.pages.filter(p => p.isAnswerSheet);
+  lines.push(`\nQuestion pages (0-based): ${questionPages.map(p => p.pageIndex).join(", ")}`);
+  lines.push(`Answer pages (0-based): ${answerPages.map(p => p.pageIndex).join(", ")}`);
+  return lines.join("\n");
+}
+
+// Stage 1: Analyze exam structure (all pages)
+async function analyzeExamStructure(
+  imagesBase64: string[]
+): Promise<StructureResult> {
+  const imageParts = imagesBase64.map((data, i) => [
+    { inlineData: { mimeType: "image/jpeg" as const, data } },
+    { text: `[Page ${i}]` },
+  ]).flat();
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [...imageParts, { text: STRUCTURE_ANALYSIS_PROMPT }],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response for structure analysis");
+  return JSON.parse(text) as StructureResult;
+}
+
+// Stage 2a: Extract question boundaries (question pages only)
+async function extractQuestions(
+  imagesBase64: string[],
+  originalPageIndices: number[],
+  structure: StructureResult
+): Promise<QuestionExtractionResult> {
+  const imageParts = imagesBase64.map((data, i) => [
+    { inlineData: { mimeType: "image/jpeg" as const, data } },
+    { text: `[Page ${originalPageIndices[i]}]` },
+  ]).flat();
+
+  const prompt = QUESTION_EXTRACTION_PROMPT.replace(
+    "{structureContext}",
+    buildStructureContext(structure)
+  );
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [...imageParts, { text: prompt }],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response for question extraction");
+  return JSON.parse(text) as QuestionExtractionResult;
+}
+
+// Stage 2b: Extract answers with working steps (answer key pages only)
+async function extractAnswersWithWorking(
+  imagesBase64: string[],
+  originalPageIndices: number[],
+  structure: StructureResult
+): Promise<AnswerExtractionResult> {
+  const imageParts = imagesBase64.map((data, i) => [
+    { inlineData: { mimeType: "image/jpeg" as const, data } },
+    { text: `[Page ${originalPageIndices[i]}]` },
+  ]).flat();
+
+  const prompt = ANSWER_EXTRACTION_PROMPT_V2.replace(
+    "{structureContext}",
+    buildStructureContext(structure)
+  );
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [...imageParts, { text: prompt }],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response for answer extraction");
+  return JSON.parse(text) as AnswerExtractionResult;
+}
 
 export type AnswerEntry =
   | { type: "text"; value: string }
@@ -475,28 +647,58 @@ export interface BatchAnalysisResult {
 export async function analyzeExamBatch(
   imagesBase64: string[]
 ): Promise<BatchAnalysisResult> {
-  const imageParts = imagesBase64.map((data, i) => [
-    { inlineData: { mimeType: "image/jpeg" as const, data } },
-    { text: `[Page ${i + 1} of ${imagesBase64.length}]` },
-  ]).flat();
+  // --- Stage 1: Structure analysis (all pages) ---
+  const structure = await analyzeExamStructure(imagesBase64);
 
-  const response = await getAI().models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: [
-      {
-        role: "user",
-        parts: [...imageParts, { text: BATCH_ANALYSIS_PROMPT }],
-      },
-    ],
-    config: {
-      responseMimeType: "application/json",
-      temperature: 0.1,
-    },
-  });
+  // --- Partition pages into question pages and answer pages ---
+  const questionPageEntries = structure.pages.filter(p => !p.isAnswerSheet);
+  const answerPageEntries = structure.pages.filter(p => p.isAnswerSheet);
 
-  const text = response.text;
-  if (!text) throw new Error("Gemini returned empty response");
-  return JSON.parse(text) as BatchAnalysisResult;
+  const questionImages = questionPageEntries.map(p => imagesBase64[p.pageIndex]);
+  const questionPageIndices = questionPageEntries.map(p => p.pageIndex);
+
+  const answerImages = answerPageEntries.map(p => imagesBase64[p.pageIndex]);
+  const answerPageIndices = answerPageEntries.map(p => p.pageIndex);
+
+  // --- Stage 2a + 2b: Run concurrently ---
+  const [questionResult, answerResult] = await Promise.all([
+    questionImages.length > 0
+      ? extractQuestions(questionImages, questionPageIndices, structure)
+      : { pages: [] } as QuestionExtractionResult,
+    answerImages.length > 0
+      ? extractAnswersWithWorking(answerImages, answerPageIndices, structure)
+      : { answers: {} } as AnswerExtractionResult,
+  ]);
+
+  // --- Combine into BatchAnalysisResult ---
+  const pages: BatchAnalysisResult["pages"] = [];
+
+  // Add question pages with their extracted questions
+  for (const qPage of questionResult.pages) {
+    pages.push({
+      pageIndex: qPage.pageIndex,
+      isAnswerSheet: false,
+      questions: qPage.questions,
+    });
+  }
+
+  // Add answer pages (flagged as answer sheets, no questions)
+  for (const aPage of answerPageEntries) {
+    pages.push({
+      pageIndex: aPage.pageIndex,
+      isAnswerSheet: true,
+      questions: [],
+    });
+  }
+
+  // Sort pages by pageIndex to match original document order
+  pages.sort((a, b) => a.pageIndex - b.pageIndex);
+
+  return {
+    header: structure.header,
+    pages,
+    answers: answerResult.answers,
+  };
 }
 
 // --- Single question re-extraction ---
@@ -574,7 +776,7 @@ export async function redoQuestionExtraction(
 // --- Single answer re-extraction ---
 
 const REDO_ANSWER_PROMPT = `Find the answer for question "{questionNum}" on this answer key page.
-
+{paperContextLine}
 The page is an answer key / answer sheet from a Singapore school exam paper.
 Question labels may appear as "Q{questionNum}", "Q{questionNum})", "{questionNum}.", "{questionNum})", or just "{questionNum}" — possibly inside a table.
 
@@ -586,35 +788,43 @@ Question labels may appear as "Q{questionNum}", "Q{questionNum})", "{questionNum
 
 ## Classify the answer:
 
-**Type "text"** if:
+**Type "text"** — ONLY for:
 - MCQ answer (single letter: A, B, C, D)
-- Short numeric answer (e.g. "3/4", "15 cm", "$2.50")
-- One-line text that can be fully represented as a short string
+- Answers that are truly just a single short value with NO working shown
 
-**Type "image"** if:
+**Type "image"** — for EVERYTHING ELSE:
 - Worked solution with mathematical steps
 - Contains diagrams, drawings, or pictures
 - Multi-line answer where layout matters
+- Any answer where working/method is visible
+- When in doubt, ALWAYS prefer "image"
 
 ## For "image" type:
 - Provide yStartPct and yEndPct crop boundaries on THIS page
 - Include ALL workings, steps, and the final answer
 - Add 1-2% padding above and below
+- value: the FULL working steps as text, including equations and intermediate steps. Transcribe EVERY line — do NOT skip or truncate the last line. If the question has sub-parts (a), (b), (c), include ALL sub-part answers. Use line breaks to separate steps. E.g. "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm"
 
 ## For "text" type:
 - Provide the answer text in the "value" field
 
 Return ONLY valid JSON:
 For text: { "type": "text", "value": "B" }
-For image: { "type": "image", "yStartPct": 15.0, "yEndPct": 35.0, "value": "3/4" }
+For image: { "type": "image", "yStartPct": 15.0, "yEndPct": 35.0, "value": "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm" }
 
 If you CANNOT find question "{questionNum}" on this page, return: { "type": "text", "value": "" }`;
 
 export async function redoAnswerExtraction(
   imageBase64: string,
-  questionNum: string
+  questionNum: string,
+  paperContext: string = ""
 ): Promise<AnswerEntry> {
-  const prompt = REDO_ANSWER_PROMPT.replaceAll("{questionNum}", questionNum);
+  const paperContextLine = paperContext
+    ? `\nIMPORTANT: This answer key page is for "${paperContext}". Only look for question ${questionNum} under the "${paperContext}" section. Do NOT match answers from a different paper or section.`
+    : "";
+  const prompt = REDO_ANSWER_PROMPT
+    .replaceAll("{questionNum}", questionNum)
+    .replace("{paperContextLine}", paperContextLine);
 
   const response = await getAI().models.generateContent({
     model: "gemini-2.5-flash",

@@ -3,7 +3,7 @@ import { redoAnswerExtraction } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {
   try {
-    const { image, questionNum } = await request.json();
+    const { image, questionNum, paperContext } = await request.json();
 
     if (!image || !questionNum) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const base64 = image.replace(/^data:image\/\w+;base64,/, "");
-    const result = await redoAnswerExtraction(base64, questionNum);
+    const result = await redoAnswerExtraction(base64, questionNum, paperContext || "");
 
     return NextResponse.json(result);
   } catch (error) {

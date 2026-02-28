@@ -60,7 +60,7 @@ function ExamUploadContent() {
   const [saving, setSaving] = useState(false);
   const [redoingIndices, setRedoingIndices] = useState<Set<number>>(new Set());
   const [redoingAnswerIndices, setRedoingAnswerIndices] = useState<Set<number>>(new Set());
-  const [answerKeyPages, setAnswerKeyPages] = useState<number[]>([]);
+  const [answerKeyPages, setAnswerKeyPages] = useState<Array<{ pageIndex: number; paperLabel?: string }>>([]);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
   const AI_PHRASES = [
@@ -143,10 +143,13 @@ function ExamUploadContent() {
       setHeaderInfo(result.header);
     }
 
-    // Track answer key pages for redo
+    // Track answer key pages with paper labels for redo
     const answerPages = result.pages
       .filter((p: { isAnswerSheet: boolean }) => p.isAnswerSheet)
-      .map((p: { pageIndex: number }) => p.pageIndex);
+      .map((p: { pageIndex: number; paperLabel?: string }) => ({
+        pageIndex: p.pageIndex,
+        paperLabel: p.paperLabel,
+      }));
     setAnswerKeyPages(answerPages);
 
     // Crop questions from each page
@@ -276,14 +279,34 @@ function ExamUploadContent() {
     try {
       const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
 
-      // Try each answer key page until we find the answer
-      for (const pageIdx of answerKeyPages) {
+      // Determine which paper this question belongs to
+      const prefixMatch = q.questionNum.match(/^(P\d+-|B\d+-)/);
+      const paperPrefix = prefixMatch ? prefixMatch[1] : "";
+      // Map prefix to paper label for filtering answer key pages
+      let paperLabel: string | undefined;
+      if (paperPrefix === "") {
+        paperLabel = answerKeyPages[0]?.paperLabel; // default to first paper
+      } else {
+        // e.g. "P2-" → look for "Paper 2" pages; fall back to searching all
+        const paperNum = paperPrefix.replace(/[^0-9]/g, "");
+        paperLabel = `Paper ${paperNum}`;
+      }
+
+      // Filter answer key pages to the correct paper (fall back to all if no match)
+      const relevantPages = paperLabel
+        ? answerKeyPages.filter((p) => p.paperLabel === paperLabel)
+        : answerKeyPages;
+      const pagesToSearch = relevantPages.length > 0 ? relevantPages : answerKeyPages;
+
+      // Try each relevant answer key page until we find the answer
+      for (const page of pagesToSearch) {
         const res = await fetch("/api/exam/redo-answer", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            image: pageImages[pageIdx],
+            image: pageImages[page.pageIndex],
             questionNum: printedNum,
+            paperContext: paperLabel || "",
           }),
         });
 
@@ -300,7 +323,7 @@ function ExamUploadContent() {
           return;
         } else if (result.type === "image" && result.yStartPct != null) {
           const answerImage = await cropQuestionFromPage(
-            pageImages[pageIdx],
+            pageImages[page.pageIndex],
             result.yStartPct,
             result.yEndPct
           );

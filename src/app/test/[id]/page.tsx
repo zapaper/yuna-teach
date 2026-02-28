@@ -42,6 +42,27 @@ function TestPageContent({ id }: { id: string }) {
   const abortRef = useRef<AbortController | null>(null);
   const sourceRef = useRef<AudioBufferSourceNode | null>(null);
 
+  // Stop any individual word TTS on unmount
+  useEffect(() => {
+    return () => {
+      stopWordAudio();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function stopWordAudio() {
+    if (abortRef.current) abortRef.current.abort();
+    if (sourceRef.current) {
+      try { sourceRef.current.stop(); } catch { /* already stopped */ }
+      sourceRef.current = null;
+    }
+    if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+      audioCtxRef.current.close().catch(() => {});
+      audioCtxRef.current = null;
+    }
+    setPlayingWord(null);
+  }
+
   useEffect(() => {
     async function fetchTest() {
       try {
@@ -191,6 +212,11 @@ function TestPageContent({ id }: { id: string }) {
     );
   }
 
+  function handleBeginTest() {
+    stopWordAudio();
+    setTestMode(true);
+  }
+
   return (
     <div className="p-6 pb-24">
       {/* Header */}
@@ -297,7 +323,7 @@ function TestPageContent({ id }: { id: string }) {
 
       {/* Begin Test button */}
       <button
-        onClick={() => setTestMode(true)}
+        onClick={handleBeginTest}
         disabled={enabledWords.length === 0}
         className="w-full bg-primary-600 text-white rounded-2xl py-4 px-6 text-lg font-semibold shadow-lg active:scale-[0.98] transition-transform disabled:opacity-50"
       >
