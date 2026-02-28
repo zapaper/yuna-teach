@@ -4,10 +4,8 @@ export async function synthesizeSpeech(
   text: string,
   language: "CHINESE" | "ENGLISH"
 ): Promise<ArrayBuffer> {
-  const voiceId =
-    language === "CHINESE"
-      ? process.env.FISH_AUDIO_VOICE_ZH
-      : process.env.FISH_AUDIO_VOICE_EN;
+  // Use the same voice for both languages (bilingual voice)
+  const voiceId = process.env.FISH_AUDIO_VOICE_EN;
 
   const response = await fetch(FISH_AUDIO_API_URL, {
     method: "POST",
