@@ -76,6 +76,7 @@ export interface ExamQuestionItem {
   questionNum: string;
   imageData: string;
   answer: string | null;
+  answerImageData: string | null;
   pageIndex: number;
   orderIndex: number;
 }

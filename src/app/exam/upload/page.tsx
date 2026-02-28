@@ -3,6 +3,7 @@
 import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { renderPdfToImages, cropQuestionFromPage } from "@/lib/pdf";
+import { normalizeAnswer } from "@/lib/gemini";
 import QuestionReviewList from "@/components/QuestionReviewList";
 
 type Step = "upload" | "processing" | "review";
@@ -20,6 +21,7 @@ interface ExtractedQuestion {
   questionNum: string;
   imageData: string;
   answer: string;
+  answerImageData: string;
   pageIndex: number;
   orderIndex: number;
   yStartPct: number;
@@ -155,12 +157,31 @@ function ExamUploadContent() {
           q.yEndPct
         );
 
-        const answer = result.answers?.[q.questionNum] || "";
+        // Handle both text and image answers
+        const rawEntry = result.answers?.[q.questionNum];
+        let answer = "";
+        let answerImageData = "";
+
+        if (rawEntry) {
+          const entry = normalizeAnswer(rawEntry);
+          if (entry.type === "text") {
+            answer = entry.value;
+          } else if (entry.type === "image") {
+            answer = entry.value || "";
+            setProcessingStatus(`Cropping answer for Q${q.questionNum}...`);
+            answerImageData = await cropQuestionFromPage(
+              images[entry.answerPageIndex],
+              entry.yStartPct,
+              entry.yEndPct
+            );
+          }
+        }
 
         allQuestions.push({
           questionNum: q.questionNum,
           imageData: croppedImage,
           answer,
+          answerImageData,
           pageIndex: page.pageIndex,
           orderIndex: allQuestions.length,
           yStartPct: q.yStartPct,
@@ -177,7 +198,7 @@ function ExamUploadContent() {
 
   function handleUpdateQuestion(
     index: number,
-    field: "questionNum" | "answer",
+    field: "questionNum" | "answer" | "answerImageData",
     value: string
   ) {
     setQuestions((prev) =>

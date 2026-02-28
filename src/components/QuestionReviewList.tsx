@@ -4,6 +4,7 @@ interface ReviewQuestion {
   questionNum: string;
   imageData: string;
   answer: string;
+  answerImageData?: string;
   pageIndex: number;
   orderIndex: number;
   boundaryTop?: string;
@@ -20,7 +21,7 @@ export default function QuestionReviewList({
   questions: ReviewQuestion[];
   onUpdateQuestion: (
     index: number,
-    field: "questionNum" | "answer",
+    field: "questionNum" | "answer" | "answerImageData",
     value: string
   ) => void;
   onDeleteQuestion: (index: number) => void;
@@ -122,11 +123,26 @@ export default function QuestionReviewList({
 
           <div>
             <label className="text-xs text-slate-400 mb-1 block">Answer</label>
+            {q.answerImageData && (
+              <div className="mb-2">
+                <img
+                  src={q.answerImageData}
+                  alt={`Answer for Q${q.questionNum}`}
+                  className="w-full rounded-lg border border-green-200"
+                />
+                <button
+                  onClick={() => onUpdateQuestion(idx, "answerImageData", "")}
+                  className="text-xs text-red-400 hover:text-red-600 mt-1"
+                >
+                  Remove answer image
+                </button>
+              </div>
+            )}
             <input
               type="text"
               value={q.answer}
               onChange={(e) => onUpdateQuestion(idx, "answer", e.target.value)}
-              placeholder="No answer extracted"
+              placeholder={q.answerImageData ? "Text summary (optional)" : "No answer extracted"}
               className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-300"
             />
           </div>

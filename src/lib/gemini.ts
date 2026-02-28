@@ -325,11 +325,40 @@ If the PDF contains multiple papers (Paper 1 + Paper 2, or Booklet A + Booklet B
 - If numbers jump (e.g. 5, 6, 10) you likely missed questions — look more carefully
 - Each paper's numbering is independent
 
-## STEP 4: Detect answer sheets
-- Usually at the END of the document
-- Titled "Answer Key", "Answers", or a table mapping question numbers to answers
-- Mark these pages as isAnswerSheet: true
-- Extract all answers, matching the question numbering format (e.g. "1", "22", "P2-1", "P2-3")
+## STEP 4: Analyze answer key pages in detail
+
+Answer keys are usually at the END of the document. They may be titled "Answer Key", "Answers", "Answer Sheet", or simply be a table mapping question numbers to answers.
+
+### For each answer key page:
+- Mark the page as isAnswerSheet: true
+- Identify which paper/section the answers belong to by reading the HEADER on the answer key page:
+  - "Paper 1 Booklet A" or "Booklet A" → answers map to Paper 1 questions (no prefix)
+  - "Paper 2" or "Booklet B" → answers map to P2-prefixed questions
+  - "Section A Answers" → answers for Section A questions
+  - If no header specifies, assume answers correspond to the main (only) paper
+
+### Classify each answer as "text" or "image":
+
+**Type "text"** — Use for:
+- MCQ answers (single letter: A, B, C, D)
+- Short numeric answers (e.g. "3/4", "15 cm", "$2.50")
+- One-line text answers
+- Any answer that can be fully represented as a short string
+
+**Type "image"** — Use for:
+- Worked solutions showing mathematical steps/working (e.g. long division, algebra steps)
+- Answers containing diagrams, drawings, graphs, or pictures
+- Multi-line structured answers with formatting that would be lost as text
+- Any answer where seeing the original layout matters
+- When in doubt for written/structured answers, use "image"
+
+### For "image" type answers, provide Y-coordinate boundaries:
+- answerPageIndex: the 0-based page index where this answer appears
+- yStartPct: Y-coordinate where this answer starts on that page (0=top, 100=bottom)
+- yEndPct: Y-coordinate where this answer ends on that page
+- Use the same boundary detection rules as for questions: find the answer number labels at the left margin, crop between consecutive numbers
+- Add 1-2% padding above and below
+- Include ALL workings, steps, and the final answer in the crop
 
 ## OUTPUT FORMAT
 Return a JSON object with:
@@ -349,8 +378,26 @@ Return a JSON object with:
      - boundaryTop: the question number you detected for the TOP boundary (e.g. "24"), or "not found" if estimated
      - boundaryBottom: the NEXT question number you used for the BOTTOM boundary (e.g. "25"), or "not found" if the bottom was estimated (e.g. last question on page, extended to footer)
 
-3. "answers": object mapping question numbers to answer text
-   Example: { "1": "B", "2": "A", "29": "3/4", "P2-1": "12", "P2-2": "5 cm" }
+3. "answers": object mapping question numbers to answer entries. Each entry is one of:
+
+   For text answers (MCQ, short answers):
+   { "type": "text", "value": "B" }
+
+   For image answers (worked solutions, diagrams):
+   { "type": "image", "answerPageIndex": 8, "yStartPct": 15.0, "yEndPct": 35.0, "value": "3/4" }
+   - answerPageIndex: which page (0-based) the answer image appears on
+   - yStartPct/yEndPct: crop boundaries on that page
+   - value: optional text summary of the final answer (e.g. "3/4"), empty string if purely visual
+
+   Example:
+   {
+     "1": { "type": "text", "value": "B" },
+     "2": { "type": "text", "value": "A" },
+     "29": { "type": "image", "answerPageIndex": 12, "yStartPct": 10.0, "yEndPct": 25.0, "value": "3/4" },
+     "30": { "type": "image", "answerPageIndex": 12, "yStartPct": 25.0, "yEndPct": 55.0, "value": "" },
+     "P2-1": { "type": "text", "value": "12" },
+     "P2-5": { "type": "image", "answerPageIndex": 15, "yStartPct": 5.0, "yEndPct": 40.0, "value": "5 cm" }
+   }
 
 ## CRITICAL RULES for yStartPct / yEndPct boundaries:
 
@@ -393,6 +440,16 @@ Return a JSON object with:
 
 Return ONLY valid JSON.`;
 
+export type AnswerEntry =
+  | { type: "text"; value: string }
+  | { type: "image"; answerPageIndex: number; yStartPct: number; yEndPct: number; value: string };
+
+// Normalize: handle both old format (plain string) and new format (AnswerEntry)
+export function normalizeAnswer(entry: string | AnswerEntry): AnswerEntry {
+  if (typeof entry === "string") return { type: "text", value: entry };
+  return entry;
+}
+
 export interface BatchAnalysisResult {
   header: ExamHeaderInfo;
   pages: Array<{
@@ -406,7 +463,7 @@ export interface BatchAnalysisResult {
       boundaryBottom: string;
     }>;
   }>;
-  answers: Record<string, string>;
+  answers: Record<string, AnswerEntry>;
 }
 
 export async function analyzeExamBatch(

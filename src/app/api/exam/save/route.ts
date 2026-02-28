@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
               questionNum: string;
               imageData: string;
               answer?: string;
+              answerImageData?: string;
               pageIndex: number;
               orderIndex: number;
               yStartPct?: number;
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
               questionNum: q.questionNum,
               imageData: q.imageData,
               answer: q.answer || null,
+              answerImageData: q.answerImageData || null,
               pageIndex: q.pageIndex,
               orderIndex: q.orderIndex,
               yStartPct: q.yStartPct ?? null,

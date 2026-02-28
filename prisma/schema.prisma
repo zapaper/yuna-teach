@@ -76,15 +76,16 @@ model ExamPaper {
 }
 
 model ExamQuestion {
-  id           String  @id @default(cuid())
-  questionNum  String
-  imageData    String
-  answer       String?
-  pageIndex    Int
-  orderIndex   Int
-  yStartPct    Float?
-  yEndPct      Float?
-  examPaperId  String
+  id              String  @id @default(cuid())
+  questionNum     String
+  imageData       String
+  answer          String?
+  answerImageData String?
+  pageIndex       Int
+  orderIndex      Int
+  yStartPct       Float?
+  yEndPct         Float?
+  examPaperId     String
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 
