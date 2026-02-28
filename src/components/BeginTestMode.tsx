@@ -35,6 +35,10 @@ export default function BeginTestMode({
     const sequencer = new AudioSequencer();
     sequencerRef.current = sequencer;
 
+    // Unlock AudioContext immediately — this runs from a user gesture (tap "Begin")
+    // which is required by iOS Safari to allow audio playback
+    sequencer.unlockAudio();
+
     const enabledWords = words
       .filter((w) => w.enabled)
       .map((w) => ({ text: w.text, language }));
