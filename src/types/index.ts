@@ -54,6 +54,8 @@ export interface ExamPaperSummary {
   subject: string | null;
   questionCount: number;
   createdAt: string;
+  assignedToId: string | null;
+  assignedToName: string | null;
 }
 
 export interface ExamPaperDetail {

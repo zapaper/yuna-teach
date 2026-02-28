@@ -21,6 +21,21 @@ export async function GET(
   return NextResponse.json(paper);
 }
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const { assignedToId } = await request.json();
+
+  const paper = await prisma.examPaper.update({
+    where: { id },
+    data: { assignedToId: assignedToId || null },
+  });
+
+  return NextResponse.json({ success: true, assignedToId: paper.assignedToId });
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
