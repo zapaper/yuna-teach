@@ -331,34 +331,34 @@ For EVERY page, determine whether it is:
 
 IMPORTANT: Cover pages / header pages that contain instructions AND questions are QUESTION PAGES (isAnswerSheet: false). A page with a header section (school name, exam title, instructions like "Answer all questions") followed by Question 1 is a question page. Only mark a page as isAnswerSheet: true if it contains ANSWERS/SOLUTIONS, not if it's a cover page with instructions.
 
-### 3. Multi-paper detection
-Check if the PDF contains MULTIPLE papers (Paper 1 + Paper 2, Booklet A + Booklet B):
-- Look for question numbers that RESET back to 1
-- Look for new cover pages or headers appearing mid-document
-- Look for labels like "Paper 2", "Booklet B", "Part 2"
-If multiple papers exist, define each with:
-- label: e.g. "Paper 1", "Paper 2"
-- questionPrefix: "" for Paper 1, "P2-" for Paper 2 (used to keep question numbers unique)
-- expectedQuestionCount: how many questions expected based on header info
-- sections: breakdown per section
-- firstQuestionPageIndex: the 0-based page index where the FIRST question (e.g. "1.") of this paper actually appears
-- firstQuestionYStartPct: approximately how far down that page (as %) the first question number is printed
+### 3. Multi-paper AND multi-booklet detection
+Singapore exams often have this structure:
+- Paper 1 = Booklet A (MCQ, e.g. Q1-30) + Booklet B (short answer, e.g. Q31-44) — SAME paper, continuous question numbering, but TWO separate booklets with a cover page between them
+- Paper 2 = Written/structured questions (e.g. Q1-6) — question numbers RESET to 1
 
-### CRITICAL — Finding where questions START for each paper:
-- For EACH paper/booklet, you MUST identify the EXACT page and approximate vertical position where Question 1 first appears
-- The first page of a paper often has a HEADER with school name, exam title, instructions ("Answer all questions", "Do not turn over") — questions start BELOW this
-- Between papers, there may be 1-2 COVER PAGES with only title/instructions and NO questions — skip past these
-- Look for the first "1." or "1)" printed at the LEFT MARGIN — that's where questions begin
-- Example: Paper 1 cover page is page 0 (instructions only), questions start on page 1 at ~5% → firstQuestionPageIndex: 1, firstQuestionYStartPct: 5
-- Example: Paper 2 has cover on page 6, instructions on page 7, questions start on page 8 at ~12% → firstQuestionPageIndex: 8, firstQuestionYStartPct: 12
-- Example: Single page with instructions at top, Question 1 starts at 40% → firstQuestionPageIndex: 0, firstQuestionYStartPct: 40
+Check for:
+- Question numbers that RESET back to 1 → new paper (needs a questionPrefix like "P2-")
+- Cover pages appearing mid-document (title pages for Booklet B, Paper 2, etc.) → booklet transitions
+- Labels like "Paper 2", "Booklet B", "Part 2", "Section B"
+
+Create a SEPARATE entry in the "papers" array for EACH booklet/section that has its own cover page, even within the same paper:
+- label: e.g. "Paper 1 Booklet A", "Paper 1 Booklet B", "Paper 2"
+- questionPrefix: "" for Paper 1 (both booklets share the same prefix since question numbers are continuous), "P2-" for Paper 2
+- expectedQuestionCount: how many questions in THIS booklet only
+- firstQuestionPageIndex: 0-based page where the FIRST question of this booklet appears
+- firstQuestionYStartPct: how far down that page (%) the first question number is printed
+- sections: breakdown per section
+
+### CRITICAL — Finding where questions START for each booklet:
+- For EACH booklet, identify the EXACT page where its first question number appears at the LEFT MARGIN
+- The cover page has instructions — the NEXT page (or further) has the actual "1." or "31." etc.
+- firstQuestionPageIndex must be the page where you can SEE the first question number, NOT the cover page
 
 ### Cover pages (isCoverPage) — VERY IMPORTANT:
-- ANY page that has NO question numbers at the left margin should be marked "isCoverPage": true
-- This includes: title pages, instruction pages, "Do not turn over this page" pages, pages with only exam rules
-- Cover pages appear at the START of each paper/booklet AND sometimes BETWEEN papers/booklets
-- For multi-paper exams: Booklet B / Paper 2 almost ALWAYS has 1-2 cover pages before its questions start
-- These cover pages will be EXCLUDED from question extraction — if you miss them, the AI will hallucinate questions on instruction pages
+- A cover page has titles, instructions, exam rules but NO question numbers at the left margin
+- Mark these as "isCoverPage": true — they will be EXCLUDED from question extraction
+- Cover pages appear at the START of EACH booklet/paper — there is typically one before Booklet A, one before Booklet B, one before Paper 2
+- CRITICAL: Do NOT confuse a cover page with the LAST page of the previous booklet. A page that has questions near the top (even just 1-2) and blank space or "End of Booklet" text below is still a QUESTION page, NOT a cover page. The cover page of the NEXT booklet is a DIFFERENT page that comes AFTER
 - A page with instructions at the top BUT questions (with numbers like "1.", "2.") starting partway down is NOT a cover page — it is a question page
 
 ### 4. For each page, note which paper it belongs to (paperLabel)
@@ -372,33 +372,44 @@ Return ONLY valid JSON:
     "sections": [{"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}]
   },
   "pages": [
-    {"pageIndex": 0, "isAnswerSheet": false, "isCoverPage": true, "paperLabel": "Paper 1"},
-    {"pageIndex": 1, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 1"},
-    {"pageIndex": 5, "isAnswerSheet": false, "isCoverPage": true, "paperLabel": "Paper 2"},
-    {"pageIndex": 6, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 2"},
-    {"pageIndex": 10, "isAnswerSheet": true, "isCoverPage": false, "paperLabel": "Paper 1"}
+    {"pageIndex": 0, "isAnswerSheet": false, "isCoverPage": true, "paperLabel": "Paper 1 Booklet A"},
+    {"pageIndex": 1, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 1 Booklet A"},
+    {"pageIndex": 8, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 1 Booklet A"},
+    {"pageIndex": 9, "isAnswerSheet": false, "isCoverPage": true, "paperLabel": "Paper 1 Booklet B"},
+    {"pageIndex": 10, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 1 Booklet B"},
+    {"pageIndex": 18, "isAnswerSheet": false, "isCoverPage": true, "paperLabel": "Paper 2"},
+    {"pageIndex": 19, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 2"},
+    {"pageIndex": 25, "isAnswerSheet": true, "isCoverPage": false, "paperLabel": "Paper 1"}
   ],
   "papers": [
     {
-      "label": "Paper 1",
+      "label": "Paper 1 Booklet A",
       "questionPrefix": "",
-      "expectedQuestionCount": 28,
+      "expectedQuestionCount": 30,
       "firstQuestionPageIndex": 1,
       "firstQuestionYStartPct": 5,
-      "sections": [{"name": "A", "type": "MCQ", "questionCount": 28}]
+      "sections": [{"name": "A", "type": "MCQ", "questionCount": 30}]
+    },
+    {
+      "label": "Paper 1 Booklet B",
+      "questionPrefix": "",
+      "expectedQuestionCount": 14,
+      "firstQuestionPageIndex": 10,
+      "firstQuestionYStartPct": 8,
+      "sections": [{"name": "B", "type": "structured", "questionCount": 14}]
     },
     {
       "label": "Paper 2",
       "questionPrefix": "P2-",
-      "expectedQuestionCount": 8,
-      "firstQuestionPageIndex": 8,
+      "expectedQuestionCount": 6,
+      "firstQuestionPageIndex": 19,
       "firstQuestionYStartPct": 12,
-      "sections": [{"name": "B", "type": "structured", "questionCount": 8}]
+      "sections": [{"name": "", "type": "structured", "questionCount": 6}]
     }
   ]
 }
 
-If there is only one paper, still include it in the "papers" array with questionPrefix "".
+If there is only one paper with no booklets, still include it in the "papers" array with questionPrefix "".
 Return ONLY valid JSON.`;
 
 // Stage 2a: Question Extraction — extract question boundaries from question pages only
@@ -439,11 +450,15 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - The structure analysis expectedQuestionCount is just an estimate — do NOT force your output to match it
 - If a page has NO question numbers visible at all, return it with an EMPTY questions array — do NOT make up questions
 
-### IMPORTANT — Where questions START for each paper:
-- The structure context tells you EXACTLY which page and vertical position each paper's questions begin
-- For the first question page of each paper: do NOT extract anything ABOVE the indicated firstQuestionYStartPct — that area is header/instructions, not questions
-- On subsequent pages of the same paper: questions typically start near the top (~2-5%)
-- This is the most important guidance — trust the structure analysis about where questions begin
+### Where questions START for each paper/booklet:
+- The structure context tells you which page and approximate vertical position each paper/booklet's questions begin
+- For the first question page of each booklet: questions may start partway down the page (below header/instructions) — use the indicated firstQuestionYStartPct as a guide but verify by finding the actual "1." or first question number at the left margin
+- On subsequent pages of the same booklet: questions typically start near the top (~2-5%)
+
+### Header pages:
+- Some pages have a HEADER section at the top (school name, exam title, instructions) followed by questions below
+- These pages ARE question pages — extract the questions that appear BELOW the header/instructions
+- The header area should NOT be treated as a question
 
 ### Sequential extraction:
 - Extract questions in order as they appear on the pages
@@ -679,14 +694,28 @@ function validateQuestionExtraction(
 ): { valid: boolean; issues: string[] } {
   const issues: string[] = [];
 
+  // Group papers by prefix (booklets within same paper share a prefix)
+  const prefixGroups = new Map<string, { labels: string[]; totalExpected: number }>();
   for (const paper of structure.papers) {
-    const prefix = paper.questionPrefix;
-    // Collect all question numbers for this paper
+    const existing = prefixGroups.get(paper.questionPrefix);
+    if (existing) {
+      existing.labels.push(paper.label);
+      existing.totalExpected += paper.expectedQuestionCount;
+    } else {
+      prefixGroups.set(paper.questionPrefix, {
+        labels: [paper.label],
+        totalExpected: paper.expectedQuestionCount,
+      });
+    }
+  }
+
+  for (const [prefix, group] of prefixGroups) {
+    const groupLabel = group.labels.join(" + ");
+    // Collect all question numbers for this prefix
     const nums: number[] = [];
     for (const page of result.pages) {
       for (const q of page.questions) {
         const qNum = q.questionNum;
-        // Strip prefix to get the raw number
         const raw = prefix ? qNum.replace(prefix, "") : qNum;
         const n = parseInt(raw, 10);
         if (!isNaN(n)) nums.push(n);
@@ -695,7 +724,7 @@ function validateQuestionExtraction(
     nums.sort((a, b) => a - b);
 
     if (nums.length === 0) {
-      issues.push(`${paper.label}: No questions detected at all (expected ~${paper.expectedQuestionCount})`);
+      issues.push(`${groupLabel}: No questions detected at all (expected ~${group.totalExpected})`);
       continue;
     }
 
@@ -707,7 +736,7 @@ function validateQuestionExtraction(
       }
     }
     if (gaps.length > 0) {
-      issues.push(`${paper.label}: Missing questions ${gaps.map(g => prefix + g).join(", ")} — detected ${nums[0]}-${nums[nums.length - 1]} but skipped these`);
+      issues.push(`${groupLabel}: Missing questions ${gaps.map(g => prefix + g).join(", ")} — detected ${nums[0]}-${nums[nums.length - 1]} but skipped these`);
     }
 
     // Check for duplicates
@@ -718,7 +747,7 @@ function validateQuestionExtraction(
       seen.add(n);
     }
     if (dupes.length > 0) {
-      issues.push(`${paper.label}: Duplicate questions ${dupes.map(d => prefix + d).join(", ")}`);
+      issues.push(`${groupLabel}: Duplicate questions ${dupes.map(d => prefix + d).join(", ")}`);
     }
   }
 
@@ -779,6 +808,8 @@ Please re-examine the pages carefully and fix these issues:
 - For each DUPLICATE: remove the incorrect duplicate entry
 - Do NOT skip any question numbers in the sequence — every question from 1 to the last must be found
 - If you genuinely cannot find a question number after careful re-examination, still do NOT invent it — but look VERY carefully first
+
+CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sacrifice boundary quality to fix the gaps. Each question's crop must still be tight and correct.
 `;
 
   const retryResponse = await getAI().models.generateContent({
@@ -884,7 +915,7 @@ export interface BatchAnalysisResult {
       expectedQuestions: number;
     }>;
     coverPages: number[];
-    questionsPerPage: Array<{ pageIndex: number; questions: string[] }>;
+    questionsPerPage: Array<{ page: number; questions: string[] }>;
     validationIssues: string[];
   };
 }
@@ -999,13 +1030,13 @@ export async function analyzeExamBatch(
     _debug: {
       papers: structure.papers.map(p => ({
         label: p.label,
-        questionsStartPage: p.firstQuestionPageIndex,
+        questionsStartPage: p.firstQuestionPageIndex + 1, // 1-based for easy PDF comparison
         questionsStartY: p.firstQuestionYStartPct,
         expectedQuestions: p.expectedQuestionCount,
       })),
-      coverPages: coverPageEntries.map(p => p.pageIndex),
+      coverPages: coverPageEntries.map(p => p.pageIndex + 1), // 1-based
       questionsPerPage: questionResult.pages.map(p => ({
-        pageIndex: p.pageIndex,
+        page: p.pageIndex + 1, // 1-based
         questions: p.questions.map(q => q.questionNum),
       })),
       validationIssues: finalValidation.issues,
