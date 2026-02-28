@@ -344,9 +344,11 @@ If multiple papers exist, define each with:
 
 IMPORTANT — Cover pages between papers/booklets:
 - Between Paper 1 and Paper 2 (or Booklet A and Booklet B), there are often 1-2 COVER PAGES with title, instructions, and exam rules but NO actual questions
-- These cover pages should be classified as question pages (isAnswerSheet: false) belonging to the new paper/booklet
-- The actual questions for the new paper/booklet start on a LATER page, not on the cover page
-- Look carefully at each page to see if it has question numbers (1., 2., etc.) or just instructions
+- These cover pages should be marked with "isCoverPage": true — they will be EXCLUDED from question extraction
+- A page is a cover page if it has NO question numbers (no "1.", "2.", etc. at the left margin) — only titles, instructions, rules, exam info
+- The actual questions for the new paper/booklet start on a LATER page where you can see "1." or similar at the left margin
+- The FIRST page of the entire exam can also be a cover page if it only has instructions and no questions
+- Look carefully: if a page has instructions at the top BUT questions starting halfway down, it is NOT a cover page — it is a question page
 
 ### 4. For each page, note which paper it belongs to (paperLabel)
 
@@ -359,9 +361,11 @@ Return ONLY valid JSON:
     "sections": [{"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}]
   },
   "pages": [
-    {"pageIndex": 0, "isAnswerSheet": false, "paperLabel": "Paper 1"},
-    {"pageIndex": 1, "isAnswerSheet": false, "paperLabel": "Paper 1"},
-    {"pageIndex": 8, "isAnswerSheet": true, "paperLabel": "Paper 1"}
+    {"pageIndex": 0, "isAnswerSheet": false, "isCoverPage": true, "paperLabel": "Paper 1"},
+    {"pageIndex": 1, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 1"},
+    {"pageIndex": 5, "isAnswerSheet": false, "isCoverPage": true, "paperLabel": "Paper 2"},
+    {"pageIndex": 6, "isAnswerSheet": false, "isCoverPage": false, "paperLabel": "Paper 2"},
+    {"pageIndex": 10, "isAnswerSheet": true, "isCoverPage": false, "paperLabel": "Paper 1"}
   ],
   "papers": [
     {
@@ -406,11 +410,13 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - NO: "(1)", "(2)", "(3)", "(4)" indented under a question — MCQ OPTIONS, not boundaries
 
 ### CRITICAL — Only report what you can SEE:
-- ONLY output a question number if you can clearly SEE that number printed at the LEFT MARGIN of the page
+- ONLY output a question number if you can clearly SEE that number printed at the LEFT MARGIN of the page image
+- Before outputting ANY question, ask yourself: "Can I point to where this number is printed on the page?" — if the answer is NO, do NOT output it
 - NEVER invent or guess question numbers — if you cannot see "15." on any page, do NOT output question 15
 - NEVER duplicate a question number — each question number must appear EXACTLY once across all pages
 - It is BETTER to output fewer questions than to hallucinate questions that don't exist
 - The structure analysis expectedQuestionCount is just an estimate — do NOT force your output to match it
+- If a page has NO question numbers visible at all, return it with an EMPTY questions array — do NOT make up questions
 
 ### Sequential extraction:
 - Extract questions in order as they appear on the pages
@@ -559,6 +565,7 @@ interface StructureResult {
   pages: Array<{
     pageIndex: number;
     isAnswerSheet: boolean;
+    isCoverPage?: boolean;
     paperLabel?: string;
   }>;
   papers: Array<{
@@ -747,8 +754,12 @@ export async function analyzeExamBatch(
   }));
 
   // --- Partition pages into question pages and answer pages ---
-  const questionPageEntries = structure.pages.filter(p => !p.isAnswerSheet);
+  // Filter out cover pages — they have no questions and should NOT be sent to question extraction
+  const questionPageEntries = structure.pages.filter(p => !p.isAnswerSheet && !p.isCoverPage);
+  const coverPageEntries = structure.pages.filter(p => !p.isAnswerSheet && p.isCoverPage);
   const answerPageEntries = structure.pages.filter(p => p.isAnswerSheet);
+
+  console.log("[Exam Pipeline] Cover pages excluded from question extraction:", coverPageEntries.map(p => p.pageIndex));
 
   const questionImages = questionPageEntries.map(p => imagesBase64[p.pageIndex]);
   const questionPageIndices = questionPageEntries.map(p => p.pageIndex);
@@ -792,7 +803,7 @@ export async function analyzeExamBatch(
     });
   }
 
-  // Add any question pages from structure that Gemini didn't return (e.g. cover pages)
+  // Add any question pages from structure that Gemini didn't return
   for (const qEntry of questionPageEntries) {
     if (!questionPagesReturned.has(qEntry.pageIndex)) {
       pages.push({
@@ -802,6 +813,16 @@ export async function analyzeExamBatch(
         questions: [],
       });
     }
+  }
+
+  // Add cover pages (with empty questions — they were excluded from extraction)
+  for (const coverPage of coverPageEntries) {
+    pages.push({
+      pageIndex: coverPage.pageIndex,
+      isAnswerSheet: false,
+      paperLabel: coverPage.paperLabel,
+      questions: [],
+    });
   }
 
   // Add answer pages (flagged as answer sheets, no questions)
