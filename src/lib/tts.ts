@@ -46,8 +46,10 @@ export async function synthesizeSpeech(
   language: "CHINESE" | "ENGLISH",
   options?: { expandPunct?: boolean; speed?: number }
 ): Promise<ArrayBuffer> {
-  // Use the same voice for both languages (bilingual voice)
-  const voiceId = process.env.FISH_AUDIO_VOICE_EN;
+  const voiceId =
+    language === "CHINESE"
+      ? "fbe02f8306fc4d3d915e9871722a39d5"
+      : process.env.FISH_AUDIO_VOICE_EN;
 
   const speechText = options?.expandPunct ? expandPunctuation(text, language) : text;
   const speed = options?.speed ?? 0.9;
