@@ -257,6 +257,51 @@ export async function extractExamAnswers(
   return JSON.parse(text) as Record<string, string>;
 }
 
+// Sanitize JSON strings that may contain unescaped newlines within string values
+function sanitizeJsonString(raw: string): string {
+  // Replace literal newlines inside JSON string values with " | "
+  // Strategy: walk through the string, track whether we're inside a JSON string literal,
+  // and replace any unescaped newlines found inside strings
+  let result = "";
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+
+    if (escaped) {
+      result += ch;
+      escaped = false;
+      continue;
+    }
+
+    if (ch === "\\") {
+      result += ch;
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      result += ch;
+      continue;
+    }
+
+    if (inString && (ch === "\n" || ch === "\r")) {
+      // Replace literal newline inside a JSON string with " | "
+      if (ch === "\r" && raw[i + 1] === "\n") {
+        i++; // skip the \n in \r\n
+      }
+      result += " | ";
+      continue;
+    }
+
+    result += ch;
+  }
+
+  return result;
+}
+
 // --- 3-Stage Exam Analysis Pipeline ---
 
 // Stage 1: Structure Analysis — understand exam layout and classify pages
@@ -283,6 +328,8 @@ For EVERY page, determine whether it is:
 - A question page (isAnswerSheet: false) — contains exam questions for students to attempt
 - An answer sheet / answer key page (isAnswerSheet: true) — contains answers, solutions, or marking scheme
 - Answer keys are usually at the END of the document, titled "Answer Key", "Answers", "Marking Scheme", or contain answer tables
+
+IMPORTANT: Cover pages / header pages that contain instructions AND questions are QUESTION PAGES (isAnswerSheet: false). A page with a header section (school name, exam title, instructions like "Answer all questions") followed by Question 1 is a question page. Only mark a page as isAnswerSheet: true if it contains ANSWERS/SOLUTIONS, not if it's a cover page with instructions.
 
 ### 3. Multi-paper detection
 Check if the PDF contains MULTIPLE papers (Paper 1 + Paper 2, Booklet A + Booklet B):
@@ -350,8 +397,15 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - NO: "(a)", "(b)", "(c)", "(i)", "(ii)" — sub-parts, IGNORE as boundaries
 - NO: "(1)", "(2)", "(3)", "(4)" indented under a question — MCQ OPTIONS, not boundaries
 
+### CRITICAL — Only report what you can SEE:
+- ONLY output a question number if you can clearly SEE that number printed at the LEFT MARGIN of the page
+- NEVER invent or guess question numbers — if you cannot see "15." on any page, do NOT output question 15
+- NEVER duplicate a question number — each question number must appear EXACTLY once across all pages
+- It is BETTER to output fewer questions than to hallucinate questions that don't exist
+- The structure analysis expectedQuestionCount is just an estimate — do NOT force your output to match it
+
 ### Sequential extraction:
-- Extract questions in order: 1, 2, 3, 4...
+- Extract questions in order as they appear on the pages
 - Use the PREVIOUS question's yEndPct to guide the NEXT question's yStartPct (no gaps)
 - On a new page: first question starts near the top (after page header), last question extends to near the bottom (before footer)
 
@@ -371,16 +425,21 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - Include diagrams, pictures, graphs, tables, figures
 
 ### Validation:
-- Questions must be sequential within each paper
-- If numbers jump (e.g. 5, 6, 10), look more carefully — you likely missed questions
-- The total extracted questions should match the expected count from the structure analysis
 - NEVER output invalid coordinates (yStartPct >= yEndPct)
 - When in doubt, crop MORE — extra white space is better than cutting off content
+- Double-check: can you actually SEE each question number you are outputting? If not, REMOVE it
+
+### Cover pages and header pages:
+- Some pages have a HEADER section at the top (school name, exam title, instructions) followed by questions below
+- These pages ARE question pages — extract the questions that appear BELOW the header/instructions
+- A page with a header + "Question 1" starting halfway down is NOT blank — it has questions!
+- For multi-paper exams, Paper 2 often has its own cover page with instructions, but questions may start on that SAME page or on the NEXT page — check carefully
+- Only skip a page entirely if it has ZERO questions (pure instructions-only cover page with no question numbers visible)
 
 ### Edge cases:
 - Question continues from previous page: yStartPct = 0 or 1
 - Last question on page: yEndPct = just before footer/page number (90-95%)
-- Skip page headers and footers
+- Skip page headers and footers (but still extract questions below them)
 
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
@@ -447,7 +506,7 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 - yEndPct: Y-coordinate where this answer ends on that page
 - Include ALL workings, steps, diagrams, and the final answer in the crop
 - Add 1-2% padding above and below
-- value: the FULL working steps as text, including equations, intermediate steps, and the final answer. Transcribe EVERY line in the answer cell/block — do NOT skip or truncate the last line. Use line breaks to separate steps. For example: "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm". If the question has sub-parts (a), (b), (c), include ALL sub-part answers with their labels. If the answer is purely visual (diagram only), use empty string.
+- value: the FULL working steps as text, including equations, intermediate steps, and the final answer. Transcribe EVERY line in the answer cell/block — do NOT skip or truncate the last line. Use " | " (pipe with spaces) to separate steps on different lines. For example: "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm". If the question has sub-parts (a), (b), (c), include ALL sub-part answers with their labels. If the answer is purely visual (diagram only), use empty string. IMPORTANT: Do NOT use literal newlines inside JSON string values — use " | " as the separator instead.
 
 ### For "text" type answers:
 - value: the answer string (e.g. "B", "C")
@@ -458,8 +517,8 @@ Return ONLY valid JSON:
   "answers": {
     "1": {"type": "text", "value": "B"},
     "2": {"type": "text", "value": "A"},
-    "29": {"type": "image", "answerPageIndex": 8, "yStartPct": 10.0, "yEndPct": 30.0, "value": "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm"},
-    "P2-1": {"type": "image", "answerPageIndex": 12, "yStartPct": 5.0, "yEndPct": 25.0, "value": "(a) Area = 1/2 × 8 × 6 = 24 cm²\n(b) Perimeter = 8 + 6 + 10 = 24 cm"}
+    "29": {"type": "image", "answerPageIndex": 8, "yStartPct": 10.0, "yEndPct": 30.0, "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm"},
+    "P2-1": {"type": "image", "answerPageIndex": 12, "yStartPct": 5.0, "yEndPct": 25.0, "value": "(a) Area = 1/2 × 8 × 6 = 24 cm² | (b) Perimeter = 8 + 6 + 10 = 24 cm"}
   }
 }
 
@@ -615,7 +674,7 @@ async function extractAnswersWithWorking(
 
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for answer extraction");
-  return JSON.parse(text) as AnswerExtractionResult;
+  return JSON.parse(sanitizeJsonString(text)) as AnswerExtractionResult;
 }
 
 export type AnswerEntry =
@@ -633,6 +692,7 @@ export interface BatchAnalysisResult {
   pages: Array<{
     pageIndex: number;
     isAnswerSheet: boolean;
+    paperLabel?: string;
     questions: Array<{
       questionNum: string;
       yStartPct: number;
@@ -649,6 +709,11 @@ export async function analyzeExamBatch(
 ): Promise<BatchAnalysisResult> {
   // --- Stage 1: Structure analysis (all pages) ---
   const structure = await analyzeExamStructure(imagesBase64);
+
+  console.log("[Exam Pipeline] Structure result:", JSON.stringify({
+    papers: structure.papers.map(p => ({ label: p.label, prefix: p.questionPrefix, expected: p.expectedQuestionCount })),
+    pages: structure.pages.map(p => ({ idx: p.pageIndex, answer: p.isAnswerSheet, paper: p.paperLabel })),
+  }));
 
   // --- Partition pages into question pages and answer pages ---
   const questionPageEntries = structure.pages.filter(p => !p.isAnswerSheet);
@@ -670,16 +735,42 @@ export async function analyzeExamBatch(
       : { answers: {} } as AnswerExtractionResult,
   ]);
 
+  console.log("[Exam Pipeline] Question extraction:", JSON.stringify(
+    questionResult.pages.map(p => ({ idx: p.pageIndex, questions: p.questions.map(q => q.questionNum) }))
+  ));
+  console.log("[Exam Pipeline] Answer extraction:", Object.keys(answerResult.answers).join(", "));
+
   // --- Combine into BatchAnalysisResult ---
   const pages: BatchAnalysisResult["pages"] = [];
 
+  // Build a lookup from pageIndex → paperLabel from structure
+  const pageLabelMap = new Map<number, string | undefined>();
+  for (const p of structure.pages) {
+    pageLabelMap.set(p.pageIndex, p.paperLabel);
+  }
+
   // Add question pages with their extracted questions
+  const questionPagesReturned = new Set<number>();
   for (const qPage of questionResult.pages) {
+    questionPagesReturned.add(qPage.pageIndex);
     pages.push({
       pageIndex: qPage.pageIndex,
       isAnswerSheet: false,
+      paperLabel: pageLabelMap.get(qPage.pageIndex),
       questions: qPage.questions,
     });
+  }
+
+  // Add any question pages from structure that Gemini didn't return (e.g. cover pages)
+  for (const qEntry of questionPageEntries) {
+    if (!questionPagesReturned.has(qEntry.pageIndex)) {
+      pages.push({
+        pageIndex: qEntry.pageIndex,
+        isAnswerSheet: false,
+        paperLabel: qEntry.paperLabel,
+        questions: [],
+      });
+    }
   }
 
   // Add answer pages (flagged as answer sheets, no questions)
@@ -687,6 +778,7 @@ export async function analyzeExamBatch(
     pages.push({
       pageIndex: aPage.pageIndex,
       isAnswerSheet: true,
+      paperLabel: aPage.paperLabel,
       questions: [],
     });
   }
@@ -803,14 +895,14 @@ Question labels may appear as "Q{questionNum}", "Q{questionNum})", "{questionNum
 - Provide yStartPct and yEndPct crop boundaries on THIS page
 - Include ALL workings, steps, and the final answer
 - Add 1-2% padding above and below
-- value: the FULL working steps as text, including equations and intermediate steps. Transcribe EVERY line — do NOT skip or truncate the last line. If the question has sub-parts (a), (b), (c), include ALL sub-part answers. Use line breaks to separate steps. E.g. "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm"
+- value: the FULL working steps as text, including equations and intermediate steps. Transcribe EVERY line — do NOT skip or truncate the last line. If the question has sub-parts (a), (b), (c), include ALL sub-part answers. Use " | " (pipe with spaces) to separate steps. E.g. "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm". IMPORTANT: Do NOT use literal newlines inside JSON string values — use " | " as the separator.
 
 ## For "text" type:
 - Provide the answer text in the "value" field
 
 Return ONLY valid JSON:
 For text: { "type": "text", "value": "B" }
-For image: { "type": "image", "yStartPct": 15.0, "yEndPct": 35.0, "value": "(a) 3/4 × 12 = 9\n(b) 9 + 6 = 15\nAns: 15 cm" }
+For image: { "type": "image", "yStartPct": 15.0, "yEndPct": 35.0, "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm" }
 
 If you CANNOT find question "{questionNum}" on this page, return: { "type": "text", "value": "" }`;
 
@@ -846,7 +938,7 @@ export async function redoAnswerExtraction(
   const text = response.text;
   if (!text) return { type: "text", value: "" };
 
-  const result = JSON.parse(text) as { type: string; value: string; yStartPct?: number; yEndPct?: number };
+  const result = JSON.parse(sanitizeJsonString(text)) as { type: string; value: string; yStartPct?: number; yEndPct?: number };
 
   if (result.type === "image" && result.yStartPct != null && result.yEndPct != null) {
     return {
