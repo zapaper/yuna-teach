@@ -26,6 +26,8 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [submissionPageCount, setSubmissionPageCount] = useState<number | null>(null);
+  const [viewingPage, setViewingPage] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchAll() {
@@ -43,6 +45,14 @@ function ExamOverviewContent({ id }: { id: string }) {
         setStudents(
           (usersData.users as User[]).filter((u) => u.role === "STUDENT")
         );
+        // Fetch submission info if exam is completed
+        if (paperData.completedAt) {
+          const subRes = await fetch(`/api/exam/${id}/submission`);
+          if (subRes.ok) {
+            const sub = await subRes.json();
+            setSubmissionPageCount(sub.pageCount ?? 0);
+          }
+        }
       } catch {
         // handled by null check below
       } finally {
@@ -288,6 +298,106 @@ function ExamOverviewContent({ id }: { id: string }) {
           )}
         </div>
       </Section>
+
+      {/* Submission */}
+      {paper.completedAt && (
+        <Section title="Submission">
+          <div className="py-2 flex items-center justify-between">
+            <span className="text-sm text-slate-600">Submitted on</span>
+            <span className="text-sm font-semibold text-green-600">
+              {new Date(paper.completedAt).toLocaleDateString("en-SG", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+          {submissionPageCount !== null && submissionPageCount > 0 && (
+            <div className="mt-1 pb-3">
+              <p className="text-xs text-slate-400 mb-2">
+                {submissionPageCount} page{submissionPageCount !== 1 ? "s" : ""} submitted
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {Array.from({ length: submissionPageCount }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setViewingPage(i)}
+                    className="aspect-[3/4] rounded-xl overflow-hidden border-2 border-slate-200 hover:border-primary-400 transition-colors bg-slate-50"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/exam/${id}/submission?page=${i}`}
+                      alt={`Page ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {submissionPageCount === 0 && (
+            <p className="text-xs text-slate-400 py-2">
+              No pages saved with this submission.
+            </p>
+          )}
+        </Section>
+      )}
+
+      {/* Full-page image viewer */}
+      {viewingPage !== null && submissionPageCount !== null && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex flex-col"
+          onClick={() => setViewingPage(null)}
+        >
+          <div className="flex items-center justify-between px-4 py-3 bg-black/60 shrink-0">
+            <span className="text-white text-sm font-medium">
+              Page {viewingPage + 1} / {submissionPageCount}
+            </span>
+            <button className="text-slate-300 hover:text-white p-1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div
+            className="flex-1 overflow-auto flex items-start justify-center p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/exam/${id}/submission?page=${viewingPage}`}
+              alt={`Page ${viewingPage + 1}`}
+              className="max-w-full h-auto rounded-xl shadow-2xl"
+            />
+          </div>
+          <div className="flex items-center justify-center gap-6 py-3 bg-black/60 shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); setViewingPage((p) => Math.max(0, (p ?? 0) - 1)); }}
+              disabled={viewingPage === 0}
+              className="p-2 rounded-xl text-slate-300 hover:text-white disabled:opacity-30"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+            <span className="text-slate-300 text-sm tabular-nums">
+              {viewingPage + 1} / {submissionPageCount}
+            </span>
+            <button
+              onClick={(e) => { e.stopPropagation(); setViewingPage((p) => Math.min((submissionPageCount ?? 1) - 1, (p ?? 0) + 1)); }}
+              disabled={viewingPage === submissionPageCount - 1}
+              className="p-2 rounded-xl text-slate-300 hover:text-white disabled:opacity-30"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Start practice button */}
       {paper.assignedToId && (

@@ -14,7 +14,6 @@ import { ExamPaperDetail } from "@/types";
 import QuestionCard from "@/components/QuestionCard";
 import { renderPdfToImages } from "@/lib/pdf";
 
-// Custom pen cursor — tip hotspot at bottom-left (2, 22)
 const PEN_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' fill='%232563eb' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 2 22, crosshair`;
 
 export default function ExamPracticePage({
@@ -37,6 +36,7 @@ type DrawTool = "scroll" | "pen" | "eraser";
 interface DrawablePageHandle {
   undo: () => void;
   clear: () => void;
+  exportComposite: () => Promise<Blob>;
 }
 
 // ─── Main content ─────────────────────────────────────────────────────────────
@@ -53,6 +53,9 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [view, setView] = useState<"paper" | "questions">("paper");
   const [tool, setTool] = useState<DrawTool>("scroll");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [submitStatus, setSubmitStatus] = useState<
+    "idle" | "saving" | "submitting" | "saved" | "submitted"
+  >("idle");
 
   const pageHandles = useRef<(DrawablePageHandle | null)[]>([]);
   const lastDrawnPage = useRef<number | null>(null);
@@ -64,6 +67,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         if (!res.ok) throw new Error("Not found");
         const data: ExamPaperDetail = await res.json();
         setPaper(data);
+        if (data.completedAt) setSubmitStatus("submitted");
         if (data.pdfPath) loadPdf();
       } catch {
         // handled by null check
@@ -88,6 +92,31 @@ function ExamPracticeContent({ id }: { id: string }) {
       console.warn("Could not load PDF:", err);
     } finally {
       setLoadingPdf(false);
+    }
+  }
+
+  async function compositeAndUpload(action: "save" | "submit") {
+    setSubmitStatus(action === "save" ? "saving" : "submitting");
+    try {
+      const form = new FormData();
+      form.append("action", action);
+      for (let i = 0; i < displayPages.length; i++) {
+        const handle = pageHandles.current[i];
+        if (handle) {
+          const blob = await handle.exportComposite();
+          form.append(`page_${i}`, blob, `page_${i}.jpg`);
+        }
+      }
+      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+      setSubmitStatus(action === "save" ? "saved" : "submitted");
+      if (action === "submit") {
+        setPaper((prev) =>
+          prev ? { ...prev, completedAt: new Date().toISOString() } : prev
+        );
+      }
+    } catch (err) {
+      console.error("Submission failed:", err);
+      setSubmitStatus("idle");
     }
   }
 
@@ -122,7 +151,6 @@ function ExamPracticeContent({ id }: { id: string }) {
     );
   }
 
-  // Filter answer pages (1-based in metadata → 0-based indices)
   const answerPageSet = new Set(
     (paper.metadata?.answerPages ?? []).map((p) => p - 1)
   );
@@ -132,9 +160,9 @@ function ExamPracticeContent({ id }: { id: string }) {
 
   const hasPdf = displayPages.length > 0;
   const questions = paper.questions;
+  const isBusy = submitStatus === "saving" || submitStatus === "submitting";
 
   return (
-    // Full-height, no max-width — we break out of the layout's max-w-lg for the PDF view
     <div className="min-h-screen bg-white">
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-3">
@@ -182,7 +210,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         )}
       </div>
 
-      {/* ── PDF loading indicator ── */}
+      {/* ── PDF loading ── */}
       {loadingPdf && (
         <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border-b border-blue-100 text-xs text-blue-600">
           <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-200 border-t-blue-500 shrink-0" />
@@ -192,16 +220,30 @@ function ExamPracticeContent({ id }: { id: string }) {
 
       {/* ── Paper drawing view ── */}
       {hasPdf && view === "paper" && (
-        // Break out of the layout's max-w-lg to fill the full viewport width
-        <div
-          style={{
-            width: "100vw",
-            marginLeft: "calc(50% - 50vw)",
-          }}
-        >
+        <div style={{ width: "100vw", marginLeft: "calc(50% - 50vw)" }}>
+          {/* Submitted banner */}
+          {submitStatus === "submitted" && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border-b border-green-200 text-xs text-green-700">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Submitted{paper.completedAt ? ` on ${new Date(paper.completedAt).toLocaleDateString()}` : ""}
+            </div>
+          )}
+          {submitStatus === "saved" && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border-b border-blue-100 text-xs text-blue-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Draft saved
+            </div>
+          )}
+
           {/* Drawing toolbar */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
-            <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll / read">
+            <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 8L22 12L18 16M2 12H22" />
@@ -209,12 +251,8 @@ function ExamPracticeContent({ id }: { id: string }) {
               Scroll
             </ToolButton>
 
-            <ToolButton
-              active={tool === "pen"}
-              onClick={() => setTool("pen")}
-              title="Draw in blue ink"
-              activeClass="bg-blue-100 text-blue-700 border-blue-300"
-            >
+            <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} title="Pen"
+              activeClass="bg-blue-100 text-blue-700 border-blue-300">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -222,41 +260,34 @@ function ExamPracticeContent({ id }: { id: string }) {
               Pen
             </ToolButton>
 
-            <ToolButton active={tool === "eraser"} onClick={() => setTool("eraser")} title="Erase ink">
+            <ToolButton active={tool === "eraser"} onClick={() => setTool("eraser")} title="Eraser">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
-                <path d="M22 21H7M5 11l9 9" />
+                <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21M22 21H7M5 11l9 9" />
               </svg>
               Eraser
             </ToolButton>
 
-            <div className="w-px h-5 bg-slate-200 mx-1" />
+            <div className="w-px h-5 bg-slate-200 mx-0.5" />
 
-            <button
-              onClick={handleUndo}
-              title="Undo last stroke"
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors"
-            >
+            <button onClick={handleUndo} title="Undo"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 7v6h6" />
-                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+                <path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
               </svg>
               Undo
             </button>
 
             <div className="flex-1" />
 
-            <button
-              onClick={clearAllInk}
-              className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
-            >
-              Clear all
+            <button onClick={clearAllInk}
+              className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+              Clear
             </button>
           </div>
 
-          {/* PDF pages with canvas overlays */}
+          {/* PDF pages */}
           <div className="divide-y divide-slate-100">
             {displayPages.map(({ src }, displayIndex) => (
               <DrawablePage
@@ -267,6 +298,29 @@ function ExamPracticeContent({ id }: { id: string }) {
                 onStrokeStart={() => { lastDrawnPage.current = displayIndex; }}
               />
             ))}
+          </div>
+
+          {/* ── Submit bar ── */}
+          <div className="sticky bottom-0 z-10 bg-white border-t border-slate-200 px-4 py-3 flex items-center gap-3"
+            style={{ width: "100vw" }}>
+            <button
+              onClick={() => compositeAndUpload("save")}
+              disabled={isBusy}
+              className="flex-1 py-2.5 rounded-xl border-2 border-slate-300 text-slate-600 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            >
+              {submitStatus === "saving" ? "Saving…" : "Save draft"}
+            </button>
+            <button
+              onClick={() => compositeAndUpload("submit")}
+              disabled={isBusy}
+              className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors"
+            >
+              {submitStatus === "submitting"
+                ? "Submitting…"
+                : submitStatus === "submitted"
+                ? "Resubmit"
+                : "Submit exam"}
+            </button>
           </div>
         </div>
       )}
@@ -328,6 +382,7 @@ const DrawablePage = forwardRef<
   { imageUrl: string; tool: DrawTool; onStrokeStart: () => void }
 >(function DrawablePage({ imageUrl, tool, onStrokeStart }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
@@ -343,6 +398,29 @@ const DrawablePage = forwardRef<
       if (!canvas) return;
       canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
       history.current = [];
+    },
+    exportComposite(): Promise<Blob> {
+      return new Promise((resolve, reject) => {
+        const inkCanvas = canvasRef.current;
+        const imgEl = imgRef.current;
+        if (!inkCanvas || !imgEl || !imgEl.complete) {
+          reject(new Error("Not ready"));
+          return;
+        }
+        const composite = document.createElement("canvas");
+        composite.width = inkCanvas.width || imgEl.naturalWidth;
+        composite.height = inkCanvas.height || imgEl.naturalHeight;
+        const ctx = composite.getContext("2d")!;
+        // Draw PDF page then ink on top
+        ctx.drawImage(imgEl, 0, 0, composite.width, composite.height);
+        if (inkCanvas.width > 0) ctx.drawImage(inkCanvas, 0, 0);
+        composite.toBlob(
+          (blob) =>
+            blob ? resolve(blob) : reject(new Error("Export failed")),
+          "image/jpeg",
+          0.88
+        );
+      });
     },
   }));
 
@@ -428,9 +506,9 @@ const DrawablePage = forwardRef<
         WebkitUserSelect: "none",
       }}
     >
-      {/* img is purely display — pointer events always disabled */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        ref={imgRef}
         src={imageUrl}
         alt="Exam page"
         className="w-full h-auto block"
@@ -444,7 +522,12 @@ const DrawablePage = forwardRef<
         style={{
           pointerEvents: drawing ? "auto" : "none",
           touchAction: "none",
-          cursor: tool === "pen" ? PEN_CURSOR : tool === "eraser" ? "cell" : "default",
+          cursor:
+            tool === "pen"
+              ? PEN_CURSOR
+              : tool === "eraser"
+              ? "cell"
+              : "default",
         }}
         onMouseDown={(e) => { e.preventDefault(); onStart(e.clientX, e.clientY); }}
         onMouseMove={(e) => onMove(e.clientX, e.clientY)}
