@@ -778,6 +778,26 @@ function extractQuestionNumbers(result: QuestionExtractionResult, prefix: string
   return nums.sort((a, b) => a - b);
 }
 
+// Remap Gemini's returned pageIndex values back to original PDF page indices.
+// Gemini Pro returns sequential 0-based indices (0, 1, 2...) for the images it
+// received, ignoring the [Page N] labels. We map them back using originalPageIndices.
+function remapPageIndices(
+  result: QuestionExtractionResult,
+  originalPageIndices: number[]
+): QuestionExtractionResult {
+  const origSet = new Set(originalPageIndices);
+  return {
+    ...result,
+    pages: result.pages.map(page => {
+      // If Gemini used the label correctly the index is already an original index
+      if (origSet.has(page.pageIndex)) return page;
+      // Otherwise treat as sequential position into originalPageIndices
+      const remapped = originalPageIndices[page.pageIndex] ?? page.pageIndex;
+      return { ...page, pageIndex: remapped };
+    }),
+  };
+}
+
 // Build a booklet-specific context string for per-booklet extraction
 function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionNum: number): string {
   const lines: string[] = [];
@@ -835,7 +855,10 @@ async function extractQuestionsForBooklet(
     console.log(`[Exam Pipeline] ${paper.label}: unexpected structure, keys: ${Object.keys(parsed).join(", ")}, raw: ${text.slice(0, 500)}`);
     pages = [];
   }
-  const result: QuestionExtractionResult = { pages, _rawSnippet: text.slice(0, 400) };
+  const result: QuestionExtractionResult = {
+    ...remapPageIndices({ pages }, originalPageIndices),
+    _rawSnippet: text.slice(0, 400),
+  };
 
   // Validate: check first question is correct
   const allQNums = extractQuestionNumbers(result, paper.questionPrefix);
@@ -920,7 +943,10 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
   let retryPages = retryParsed.pages ?? retryParsed.result?.pages ?? retryParsed.data?.pages;
   if (!Array.isArray(retryPages) && Array.isArray(retryParsed)) retryPages = retryParsed;
   if (!Array.isArray(retryPages)) retryPages = [];
-  const retryResult: QuestionExtractionResult = { pages: retryPages, _rawSnippet: retryText.slice(0, 400) };
+  const retryResult: QuestionExtractionResult = {
+    ...remapPageIndices({ pages: retryPages }, originalPageIndices),
+    _rawSnippet: retryText.slice(0, 400),
+  };
   const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
   console.log(`[Exam Pipeline] ${paper.label} retry: Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
 
