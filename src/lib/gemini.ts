@@ -465,10 +465,13 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - These pages ARE question pages — extract the questions that appear BELOW the header/instructions
 - The header area should NOT be treated as a question
 
-### Sequential extraction:
-- Extract questions in order as they appear on the pages
-- Use the PREVIOUS question's yEndPct to guide the NEXT question's yStartPct (no gaps)
-- On a new page: first question starts near the top (after page header), last question extends to near the bottom (before footer)
+### Sequential extraction — use previous bottom as next top:
+- Extract questions strictly in order, page by page, top to bottom
+- Question N+1's yStartPct = Question N's yEndPct — they must be contiguous, no gap
+- SAME PAGE: each new question starts exactly where the previous ended
+- PAGE BOUNDARY: if Question N is the last on its page, yEndPct = ~95% (extend to near-bottom of that page). Question N+1 on the NEXT page starts at ~2-5% from the top
+- If a question's content continues from the previous page with no question number at top, yStartPct = 0 or 1
+- Never leave unexplained gaps — blank space between questions belongs to the preceding question's crop
 
 ### Multiple papers:
 - If the structure analysis identified multiple papers, question numbers RESET at each new paper
@@ -490,10 +493,8 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - When in doubt, crop MORE — extra white space is better than cutting off content
 - Double-check: can you actually SEE each question number you are outputting? If not, REMOVE it
 
-### Edge cases:
-- Question continues from previous page: yStartPct = 0 or 1
-- Last question on page: yEndPct = just before footer/page number (90-95%)
-- Skip page headers and footers (but still extract questions below them)
+### Other rules:
+- Skip page headers and footers in crops (but still extract questions below them)
 
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
