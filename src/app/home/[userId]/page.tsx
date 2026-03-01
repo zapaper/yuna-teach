@@ -15,7 +15,6 @@ export default function HomePage({
   const { userId } = use(params);
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [students, setStudents] = useState<User[]>([]);
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,9 +30,6 @@ export default function HomePage({
           (u: User) => u.id === userId
         );
         setUser(foundUser || null);
-        setStudents(
-          usersData.users.filter((u: User) => u.role === "STUDENT")
-        );
 
         // Phase 2: fetch data with role-aware filtering
         const role = foundUser?.role || "STUDENT";
@@ -70,37 +66,6 @@ export default function HomePage({
       setExamPapers((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Failed to delete exam:", err);
-    }
-  }
-
-  async function handleAssignExam(
-    paperId: string,
-    studentId: string | null
-  ) {
-    try {
-      const res = await fetch(`/api/exam/${paperId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assignedToId: studentId }),
-      });
-      if (!res.ok) throw new Error("Failed to assign");
-
-      const assignedStudent = studentId
-        ? students.find((s) => s.id === studentId)
-        : null;
-      setExamPapers((prev) =>
-        prev.map((p) =>
-          p.id === paperId
-            ? {
-                ...p,
-                assignedToId: studentId,
-                assignedToName: assignedStudent?.name ?? null,
-              }
-            : p
-        )
-      );
-    } catch (err) {
-      console.error("Failed to assign exam:", err);
     }
   }
 
@@ -213,8 +178,6 @@ export default function HomePage({
                 userId={userId}
                 userRole={user?.role}
                 onDelete={isParent ? handleDeleteExam : undefined}
-                students={isParent ? students : undefined}
-                onAssign={isParent ? handleAssignExam : undefined}
               />
             ))}
           </div>

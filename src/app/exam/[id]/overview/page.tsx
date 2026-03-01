@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ExamPaperDetail } from "@/types";
+import { ExamPaperDetail, User } from "@/types";
 
 export default function ExamOverviewPage({
   params,
@@ -23,22 +23,60 @@ function ExamOverviewContent({ id }: { id: string }) {
   const userId = searchParams.get("userId") ?? "";
 
   const [paper, setPaper] = useState<ExamPaperDetail | null>(null);
+  const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
-    async function fetchPaper() {
+    async function fetchAll() {
       try {
-        const res = await fetch(`/api/exam/${id}?summary=true`);
-        if (!res.ok) throw new Error("Not found");
-        setPaper(await res.json());
+        const [paperRes, usersRes] = await Promise.all([
+          fetch(`/api/exam/${id}?summary=true`),
+          fetch("/api/users"),
+        ]);
+        if (!paperRes.ok) throw new Error("Not found");
+        const [paperData, usersData] = await Promise.all([
+          paperRes.json(),
+          usersRes.json(),
+        ]);
+        setPaper(paperData);
+        setStudents(
+          (usersData.users as User[]).filter((u) => u.role === "STUDENT")
+        );
       } catch {
         // handled by null check below
       } finally {
         setLoading(false);
       }
     }
-    fetchPaper();
+    fetchAll();
   }, [id]);
+
+  async function handleAssign(studentId: string | null) {
+    if (!paper) return;
+    setAssigning(true);
+    try {
+      await fetch(`/api/exam/${paper.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignedToId: studentId }),
+      });
+      const student = studentId
+        ? students.find((s) => s.id === studentId)
+        : null;
+      setPaper((prev) =>
+        prev
+          ? {
+              ...prev,
+              assignedToId: studentId,
+              assignedToName: student?.name ?? null,
+            }
+          : prev
+      );
+    } finally {
+      setAssigning(false);
+    }
+  }
 
   const backPath = userId ? `/home/${userId}` : "/";
 
@@ -170,8 +208,9 @@ function ExamOverviewContent({ id }: { id: string }) {
         </button>
       </Section>
 
-      {/* Assignment Info */}
+      {/* Assignment */}
       <Section title="Assignment">
+        {/* Current assignment status */}
         {paper.assignedToName ? (
           <>
             <InfoRow label="Assigned to" value={paper.assignedToName} />
@@ -200,6 +239,54 @@ function ExamOverviewContent({ id }: { id: string }) {
             Not yet assigned to any student.
           </p>
         )}
+
+        {/* Assign / change student */}
+        <div className="mt-3 pt-3 border-t border-slate-100">
+          <p className="text-xs font-medium text-slate-500 mb-2">
+            {paper.assignedToName ? "Change assignment" : "Assign to student"}
+          </p>
+          {students.length === 0 ? (
+            <p className="text-xs text-slate-400">
+              No student profiles found.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {students.map((student) => (
+                <button
+                  key={student.id}
+                  onClick={() => handleAssign(student.id)}
+                  disabled={assigning}
+                  className={`w-full text-left rounded-xl py-2.5 px-3 border-2 transition-colors disabled:opacity-50 ${
+                    paper.assignedToId === student.id
+                      ? "border-blue-400 bg-blue-50 text-blue-700"
+                      : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  }`}
+                >
+                  <span className="font-medium text-sm">{student.name}</span>
+                  {student.level && (
+                    <span className="text-xs text-slate-400 ml-2">
+                      P{student.level}
+                    </span>
+                  )}
+                  {paper.assignedToId === student.id && (
+                    <span className="text-xs text-blue-500 ml-2">
+                      ✓ current
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+          {paper.assignedToId && (
+            <button
+              onClick={() => handleAssign(null)}
+              disabled={assigning}
+              className="mt-2 w-full py-2 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              Unassign
+            </button>
+          )}
+        </div>
       </Section>
 
       {/* Start practice button */}

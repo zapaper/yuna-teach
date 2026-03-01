@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExamPaperSummary, User } from "@/types";
+import { ExamPaperSummary } from "@/types";
 import { useState } from "react";
 
 export default function ExamPaperCard({
@@ -9,18 +9,13 @@ export default function ExamPaperCard({
   userId,
   userRole,
   onDelete,
-  students,
-  onAssign,
 }: {
   paper: ExamPaperSummary;
   userId: string;
   userRole?: "PARENT" | "STUDENT";
   onDelete?: (id: string) => void;
-  students?: User[];
-  onAssign?: (paperId: string, studentId: string | null) => void;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showAssign, setShowAssign] = useState(false);
 
   // Parents go to overview; students go directly to practice
   const examHref =
@@ -67,35 +62,6 @@ export default function ExamPaperCard({
           </div>
         </div>
       </Link>
-
-      {/* Assign button — only for parents */}
-      {students && onAssign && (
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            setShowAssign(true);
-          }}
-          className="absolute top-3 right-14 p-2 rounded-full text-slate-300 hover:text-blue-500 hover:bg-blue-50 transition-colors z-10"
-          aria-label="Assign exam paper"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <line x1="19" y1="8" x2="19" y2="14" />
-            <line x1="22" y1="11" x2="16" y2="11" />
-          </svg>
-        </button>
-      )}
 
       {/* Delete button — only for parents/owners */}
       {onDelete && (
@@ -150,68 +116,6 @@ export default function ExamPaperCard({
               >
                 Delete
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Assign to student modal */}
-      {showAssign && students && onAssign && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <h3 className="font-semibold text-lg mb-4">Assign to Student</h3>
-            {students.length === 0 ? (
-              <p className="text-slate-500 text-sm mb-4">
-                No students found. Add a student profile first.
-              </p>
-            ) : (
-              <div className="space-y-2 mb-4">
-                {students.map((student) => (
-                  <button
-                    key={student.id}
-                    onClick={() => {
-                      onAssign(paper.id, student.id);
-                      setShowAssign(false);
-                    }}
-                    className={`w-full text-left rounded-xl py-3 px-4 border-2 transition-colors ${
-                      paper.assignedToId === student.id
-                        ? "border-blue-400 bg-blue-50 text-blue-700"
-                        : "border-slate-200 text-slate-600 hover:border-slate-300"
-                    }`}
-                  >
-                    <span className="font-medium">{student.name}</span>
-                    {student.level && (
-                      <span className="text-xs text-slate-400 ml-2">
-                        P{student.level}
-                      </span>
-                    )}
-                    {paper.assignedToId === student.id && (
-                      <span className="text-xs text-blue-500 ml-2">
-                        (current)
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowAssign(false)}
-                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              {paper.assignedToId && (
-                <button
-                  onClick={() => {
-                    onAssign(paper.id, null);
-                    setShowAssign(false);
-                  }}
-                  className="flex-1 py-2.5 px-4 rounded-xl border border-red-200 text-red-600 font-medium hover:bg-red-50"
-                >
-                  Unassign
-                </button>
-              )}
             </div>
           </div>
         </div>
