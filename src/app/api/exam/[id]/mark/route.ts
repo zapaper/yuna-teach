@@ -73,19 +73,24 @@ export async function POST(
     return NextResponse.json({ status: "remarking" });
   }
 
-  if (paper.markingStatus === "in_progress") {
-    return NextResponse.json({ status: "in_progress" });
-  }
-
   // Full paper mark — set status then fire and forget
-  await prisma.examPaper.update({
-    where: { id },
-    data: { markingStatus: "pending" },
-  });
-
+  // (allow re-triggering even if previously in_progress, to recover from stuck jobs)
   markExamPaper(id).catch((err) =>
     console.error(`Background marking for ${id} failed:`, err)
   );
 
   return NextResponse.json({ status: "in_progress" });
+}
+
+// DELETE /api/exam/[id]/mark — reset marking status so parent can re-trigger
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  await prisma.examPaper.update({
+    where: { id },
+    data: { markingStatus: null },
+  });
+  return NextResponse.json({ success: true });
 }

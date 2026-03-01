@@ -359,9 +359,23 @@ function ExamOverviewContent({ id }: { id: string }) {
                   {isSubmitted && (
                     <>
                       {marking && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-600">
-                          <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
-                          Marking…
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-600">
+                            <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
+                            Marking…
+                          </div>
+                          <button
+                            onClick={async () => {
+                              stopPolling();
+                              setMarking(false);
+                              await fetch(`/api/exam/${id}/mark`, { method: "DELETE" });
+                              setPaper((p) => p ? { ...p, markingStatus: null } : p);
+                            }}
+                            className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1"
+                            title="Cancel marking"
+                          >
+                            ✕
+                          </button>
                         </div>
                       )}
                       {!marking && isMarkingFailed && (
