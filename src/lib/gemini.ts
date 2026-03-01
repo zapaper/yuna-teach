@@ -1088,15 +1088,20 @@ export async function analyzeExamBatch(
 
   for (let i = 0; i < sortedPapers.length; i++) {
     const paper = sortedPapers[i];
-    const startPage = paper.firstQuestionPageIndex;
+    // If firstQuestionPageIndex itself is a cover page (structure analysis off-by-1),
+    // advance to the next non-cover page
+    const coverSet = new Set(coverPageEntries.map(p => p.pageIndex));
+    let startPage = paper.firstQuestionPageIndex;
+    while (coverSet.has(startPage) && startPage <= maxNonAnswerPage) startPage++;
+
     const endPage = i < sortedPapers.length - 1
       ? sortedPapers[i + 1].firstQuestionPageIndex - 1
       : maxNonAnswerPage;
 
-    // Collect pages in this range that are not answer sheets
-    // (cover pages in this range are included but the AI should skip them — this handles off-by-1 errors)
+    // Collect question pages in this range — exclude answer sheets AND cover pages
+    // Cover pages must never be sent to question extraction (the AI hallucinates questions on them)
     const pageIndices = structure.pages
-      .filter(p => p.pageIndex >= startPage && p.pageIndex <= endPage && !p.isAnswerSheet)
+      .filter(p => p.pageIndex >= startPage && p.pageIndex <= endPage && !p.isAnswerSheet && !p.isCoverPage)
       .map(p => p.pageIndex);
 
     // Determine first question number (continuous numbering within same prefix)
