@@ -1147,6 +1147,8 @@ export interface BatchAnalysisResult {
       expectedQuestions: number;
     }>;
     coverPages: number[];
+    answerPages: number[];
+    answersDetected: string[];
     questionsPerPage: Array<{ page: number; questions: string[] }>;
     validationIssues: string[];
     rawResponses: Record<string, string>; // booklet label → first 400 chars of Gemini response
@@ -1226,6 +1228,11 @@ export async function analyzeExamBatch(
   // --- Stage 2a: Extract questions per booklet (concurrent) + Stage 2b: Answers ---
   const answerImages = answerPageEntries.map(p => imagesBase64[p.pageIndex]);
   const answerPageIndices = answerPageEntries.map(p => p.pageIndex);
+
+  console.log("[Exam Pipeline] Answer pages detected (0-based):", answerPageIndices, "| count:", answerImages.length);
+  if (answerImages.length === 0) {
+    console.log("[Exam Pipeline] WARNING: no answer pages detected — check structure analysis");
+  }
 
   const [bookletResults, answerResult] = await Promise.all([
     // All booklet extractions run concurrently
@@ -1323,6 +1330,8 @@ export async function analyzeExamBatch(
         expectedQuestions: p.expectedQuestionCount,
       })),
       coverPages: coverPageEntries.map(p => p.pageIndex + 1), // 1-based
+      answerPages: answerPageEntries.map(p => p.pageIndex + 1), // 1-based
+      answersDetected: Object.keys(answerResult.answers),
       questionsPerPage: questionResult.pages.map(p => ({
         page: p.pageIndex + 1, // 1-based
         questions: p.questions.map(q => q.questionNum),
