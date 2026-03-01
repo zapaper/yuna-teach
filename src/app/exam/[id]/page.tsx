@@ -1,10 +1,20 @@
 "use client";
 
-import { Suspense, useEffect, useState, use, useRef } from "react";
+import {
+  Suspense,
+  useEffect,
+  useState,
+  use,
+  useRef,
+  useImperativeHandle,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail } from "@/types";
 import QuestionCard from "@/components/QuestionCard";
 import { renderPdfToImages } from "@/lib/pdf";
+
+// Custom pen cursor (tip hotspot at bottom-left)
+const PEN_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' fill='%232563eb' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 2 22, crosshair`;
 
 export default function ExamPracticePage({
   params,
@@ -19,9 +29,14 @@ export default function ExamPracticePage({
   );
 }
 
-// ─── Tool type ────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type DrawTool = "scroll" | "pen" | "eraser";
+
+interface DrawablePageHandle {
+  undo: () => void;
+  clear: () => void;
+}
 
 // ─── Main content ─────────────────────────────────────────────────────────────
 
@@ -38,8 +53,10 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [tool, setTool] = useState<DrawTool>("scroll");
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // one canvas ref per PDF page
-  const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
+  // refs to each DrawablePage's imperative handle
+  const pageHandles = useRef<(DrawablePageHandle | null)[]>([]);
+  // which page index was last drawn on
+  const lastDrawnPage = useRef<number | null>(null);
 
   useEffect(() => {
     async function fetchPaper() {
@@ -48,9 +65,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         if (!res.ok) throw new Error("Not found");
         const data: ExamPaperDetail = await res.json();
         setPaper(data);
-        if (data.pdfPath) {
-          loadPdf();
-        }
+        if (data.pdfPath) loadPdf();
       } catch {
         // handled by null check
       } finally {
@@ -69,7 +84,7 @@ function ExamPracticeContent({ id }: { id: string }) {
       const file = new File([blob], "exam.pdf", { type: "application/pdf" });
       const images = await renderPdfToImages(file);
       setPageImages(images);
-      canvasRefs.current = new Array(images.length).fill(null);
+      pageHandles.current = new Array(images.length).fill(null);
     } catch (err) {
       console.warn("Could not load PDF:", err);
     } finally {
@@ -77,13 +92,14 @@ function ExamPracticeContent({ id }: { id: string }) {
     }
   }
 
+  function handleUndo() {
+    if (lastDrawnPage.current !== null) {
+      pageHandles.current[lastDrawnPage.current]?.undo();
+    }
+  }
+
   function clearAllInk() {
-    canvasRefs.current.forEach((canvas) => {
-      if (canvas) {
-        const ctx = canvas.getContext("2d");
-        ctx?.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    });
+    pageHandles.current.forEach((h) => h?.clear());
   }
 
   const backPath = userId ? `/home/${userId}` : "/";
@@ -110,7 +126,15 @@ function ExamPracticeContent({ id }: { id: string }) {
     );
   }
 
-  const hasPdf = pageImages.length > 0;
+  // Filter out answer pages (1-based in metadata → 0-based indices)
+  const answerPageSet = new Set(
+    (paper.metadata?.answerPages ?? []).map((p) => p - 1)
+  );
+  const displayPages = pageImages
+    .map((src, i) => ({ src, originalIndex: i }))
+    .filter(({ originalIndex }) => !answerPageSet.has(originalIndex));
+
+  const hasPdf = displayPages.length > 0;
   const questions = paper.questions;
 
   return (
@@ -154,7 +178,7 @@ function ExamPracticeContent({ id }: { id: string }) {
           </div>
         </div>
 
-        {/* Tab toggle (only if PDF loaded) */}
+        {/* Tab toggle (only if PDF available) */}
         {hasPdf && (
           <div className="flex rounded-xl border border-slate-200 overflow-hidden shrink-0 text-xs font-medium">
             <button
@@ -190,7 +214,7 @@ function ExamPracticeContent({ id }: { id: string }) {
       )}
 
       {/* ── Paper view ── */}
-      {(!hasPdf || view === "paper") && hasPdf && (
+      {hasPdf && view === "paper" && (
         <>
           {/* Drawing toolbar */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
@@ -201,8 +225,8 @@ function ExamPracticeContent({ id }: { id: string }) {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -210,11 +234,11 @@ function ExamPracticeContent({ id }: { id: string }) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <path d="M18 8L22 12L18 16" />
-                <path d="M2 12H22" />
+                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20" />
               </svg>
               Scroll
             </ToolButton>
+
             <ToolButton
               active={tool === "pen"}
               onClick={() => setTool("pen")}
@@ -223,8 +247,8 @@ function ExamPracticeContent({ id }: { id: string }) {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -236,6 +260,7 @@ function ExamPracticeContent({ id }: { id: string }) {
               </svg>
               Pen
             </ToolButton>
+
             <ToolButton
               active={tool === "eraser"}
               onClick={() => setTool("eraser")}
@@ -243,8 +268,8 @@ function ExamPracticeContent({ id }: { id: string }) {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
+                width="15"
+                height="15"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -259,26 +284,53 @@ function ExamPracticeContent({ id }: { id: string }) {
               Eraser
             </ToolButton>
 
+            <div className="w-px h-5 bg-slate-200 mx-1" />
+
+            {/* Undo */}
+            <button
+              onClick={handleUndo}
+              title="Undo last stroke"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 7v6h6" />
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+              </svg>
+              Undo
+            </button>
+
             <div className="flex-1" />
 
             <button
               onClick={clearAllInk}
               className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
-              title="Clear all ink"
             >
               Clear all
             </button>
           </div>
 
-          {/* PDF pages with drawing canvas */}
+          {/* PDF pages */}
           <div className="divide-y divide-slate-100">
-            {pageImages.map((src, i) => (
+            {displayPages.map(({ src }, displayIndex) => (
               <DrawablePage
-                key={i}
+                key={displayIndex}
+                ref={(el) => {
+                  pageHandles.current[displayIndex] = el;
+                }}
                 imageUrl={src}
                 tool={tool}
-                onCanvasReady={(el) => {
-                  canvasRefs.current[i] = el;
+                onStrokeStart={() => {
+                  lastDrawnPage.current = displayIndex;
                 }}
               />
             ))}
@@ -286,7 +338,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         </>
       )}
 
-      {/* ── Question cards view (or fallback when no PDF) ── */}
+      {/* ── Question cards ── */}
       {(view === "questions" || !hasPdf) && !loadingPdf && (
         <div className="p-4 pb-24">
           {questions.length === 0 ? (
@@ -304,13 +356,6 @@ function ExamPracticeContent({ id }: { id: string }) {
               }
             />
           )}
-        </div>
-      )}
-
-      {/* ── No PDF, loading done, show message ── */}
-      {!hasPdf && !loadingPdf && !paper.pdfPath && questions.length === 0 && (
-        <div className="text-center py-12 text-slate-400 text-sm">
-          No content available for this exam.
         </div>
       )}
     </div>
@@ -352,21 +397,34 @@ function ToolButton({
 function DrawablePage({
   imageUrl,
   tool,
-  onCanvasReady,
+  onStrokeStart,
+  ref,
 }: {
   imageUrl: string;
   tool: DrawTool;
-  onCanvasReady: (el: HTMLCanvasElement | null) => void;
+  onStrokeStart: () => void;
+  ref?: React.Ref<DrawablePageHandle>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  // Undo history: snapshots of canvas ImageData before each stroke
+  const history = useRef<ImageData[]>([]);
 
-  // Expose canvas element to parent
-  useEffect(() => {
-    onCanvasReady(canvasRef.current);
-    return () => onCanvasReady(null);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useImperativeHandle(ref, () => ({
+    undo() {
+      const canvas = canvasRef.current;
+      if (!canvas || history.current.length === 0) return;
+      const ctx = canvas.getContext("2d")!;
+      ctx.putImageData(history.current.pop()!, 0, 0);
+    },
+    clear() {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+      history.current = [];
+    },
+  }));
 
   function initCanvas(img: HTMLImageElement) {
     const canvas = canvasRef.current;
@@ -375,7 +433,7 @@ function DrawablePage({
     canvas.height = img.naturalHeight;
   }
 
-  function getPos(clientX: number, clientY: number): { x: number; y: number } {
+  function getPos(clientX: number, clientY: number) {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
     return {
@@ -384,26 +442,36 @@ function DrawablePage({
     };
   }
 
+  function saveSnapshot() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    history.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    if (history.current.length > 30) history.current.shift();
+  }
+
   function applyStyle(ctx: CanvasRenderingContext2D) {
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     if (tool === "eraser") {
       ctx.globalCompositeOperation = "destination-out";
       ctx.strokeStyle = "rgba(0,0,0,1)";
       ctx.lineWidth = 24;
     } else {
       ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = "rgba(37, 99, 235, 0.85)";
+      ctx.strokeStyle = "rgba(37,99,235,0.85)";
       ctx.lineWidth = 3;
     }
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
   }
 
   function onStart(clientX: number, clientY: number) {
     if (tool === "scroll") return;
+    saveSnapshot();
+    onStrokeStart();
     isDrawing.current = true;
     const pos = getPos(clientX, clientY);
     lastPos.current = pos;
-    // Draw dot at start point
+    // dot at touch point
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     applyStyle(ctx);
@@ -414,8 +482,7 @@ function DrawablePage({
 
   function onMove(clientX: number, clientY: number) {
     if (!isDrawing.current || !lastPos.current || tool === "scroll") return;
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     const pos = getPos(clientX, clientY);
     applyStyle(ctx);
@@ -433,8 +500,18 @@ function DrawablePage({
 
   const drawing = tool !== "scroll";
 
+  const canvasCursor =
+    tool === "pen"
+      ? PEN_CURSOR
+      : tool === "eraser"
+      ? "cell"
+      : "default";
+
   return (
-    <div className="relative" style={{ touchAction: drawing ? "none" : "auto" }}>
+    <div
+      className="relative"
+      style={{ touchAction: drawing ? "none" : "auto" }}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageUrl}
@@ -449,7 +526,7 @@ function DrawablePage({
         style={{
           pointerEvents: drawing ? "auto" : "none",
           touchAction: "none",
-          cursor: tool === "pen" ? "crosshair" : tool === "eraser" ? "cell" : "default",
+          cursor: canvasCursor,
         }}
         onMouseDown={(e) => onStart(e.clientX, e.clientY)}
         onMouseMove={(e) => onMove(e.clientX, e.clientY)}
