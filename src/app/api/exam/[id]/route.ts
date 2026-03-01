@@ -45,6 +45,8 @@ export async function PATCH(
   if ("completedAt" in body)
     data.completedAt = body.completedAt ? new Date(body.completedAt) : null;
   if ("totalMarks" in body) data.totalMarks = body.totalMarks || null;
+  if ("timeSpentSeconds" in body && typeof body.timeSpentSeconds === "number")
+    data.timeSpentSeconds = body.timeSpentSeconds;
 
   const paper = await prisma.examPaper.update({ where: { id }, data });
 

@@ -228,11 +228,27 @@ function ExamOverviewContent({ id }: { id: string }) {
               label="Status"
               value={
                 paper.completedAt
-                  ? `Completed on ${new Date(paper.completedAt).toLocaleDateString()}`
+                  ? `Submitted on ${new Date(paper.completedAt).toLocaleDateString()}`
                   : "In progress"
               }
               highlight={paper.completedAt ? "green" : "amber"}
             />
+            {(paper.timeSpentSeconds ?? 0) > 0 && (
+              <InfoRow
+                label="Time spent"
+                value={(() => {
+                  const s = paper.timeSpentSeconds ?? 0;
+                  const h = Math.floor(s / 3600);
+                  const m = Math.floor((s % 3600) / 60);
+                  const sec = s % 60;
+                  return h > 0
+                    ? `${h}h ${m}m ${sec}s`
+                    : m > 0
+                    ? `${m}m ${sec}s`
+                    : `${sec}s`;
+                })()}
+              />
+            )}
             {paper.score !== null && paper.score !== undefined && (
               <InfoRow
                 label="Score"

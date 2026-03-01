@@ -90,6 +90,7 @@ export interface ExamPaperDetail {
   assignedToName: string | null;
   score: number | null;
   completedAt: string | null;
+  timeSpentSeconds: number;
   questions: ExamQuestionItem[];
 }
 

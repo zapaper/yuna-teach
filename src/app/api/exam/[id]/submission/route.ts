@@ -41,12 +41,16 @@ export async function GET(
     if (isNaN(n)) {
       return NextResponse.json({ error: "Invalid page" }, { status: 400 });
     }
-    const filePath = path.join(dir, `page_${n}.jpg`);
+    const type = request.nextUrl.searchParams.get("type");
+    const isInk = type === "ink";
+    const filePath = isInk
+      ? path.join(dir, `page_${n}_ink.png`)
+      : path.join(dir, `page_${n}.jpg`);
     try {
       const buffer = await fs.readFile(filePath);
       return new NextResponse(buffer, {
         headers: {
-          "Content-Type": "image/jpeg",
+          "Content-Type": isInk ? "image/png" : "image/jpeg",
           "Cache-Control": "private, no-cache",
         },
       });
@@ -90,7 +94,14 @@ export async function POST(
 
   let pageCount = 0;
   for (const [key, value] of formData.entries()) {
-    if (key.startsWith("page_") && value instanceof File) {
+    if (!(value instanceof File)) continue;
+    if (key.startsWith("page_") && key.endsWith("_ink")) {
+      // Ink-only PNG (for reload)
+      const n = key.slice(5, -4); // "page_0_ink" → "0"
+      const buffer = Buffer.from(await value.arrayBuffer());
+      await fs.writeFile(path.join(dir, `page_${n}_ink.png`), buffer);
+    } else if (key.startsWith("page_")) {
+      // Composite JPEG (for parent viewing)
       const n = key.slice(5); // "page_0" → "0"
       const buffer = Buffer.from(await value.arrayBuffer());
       await fs.writeFile(path.join(dir, `page_${n}.jpg`), buffer);

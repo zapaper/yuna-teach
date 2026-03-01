@@ -16,6 +16,15 @@ import { renderPdfToImages } from "@/lib/pdf";
 
 const PEN_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' fill='%232563eb' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 2 22, crosshair`;
 
+function formatTime(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mm = String(m).padStart(2, "0");
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
 export default function ExamPracticePage({
   params,
 }: {
@@ -37,6 +46,8 @@ interface DrawablePageHandle {
   undo: () => void;
   clear: () => void;
   exportComposite: () => Promise<Blob>;
+  exportInk: () => Promise<Blob>;
+  loadInk: (blob: Blob) => void;
 }
 
 // ─── Main content ─────────────────────────────────────────────────────────────
@@ -49,16 +60,50 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [paper, setPaper] = useState<ExamPaperDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [pageImages, setPageImages] = useState<string[]>([]);
+  const [inkBlobs, setInkBlobs] = useState<(Blob | null)[]>([]);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [view, setView] = useState<"paper" | "questions">("paper");
   const [tool, setTool] = useState<DrawTool>("scroll");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submitStatus, setSubmitStatus] = useState<
-    "idle" | "saving" | "submitting" | "saved" | "submitted"
+    "idle" | "saving" | "submitting" | "submitted"
   >("idle");
+
+  // ── Timer ──
+  const [displaySeconds, setDisplaySeconds] = useState(0);
+  const baseSeconds = useRef(0);       // timeSpentSeconds from DB
+  const sessionStart = useRef<number | null>(null);
 
   const pageHandles = useRef<(DrawablePageHandle | null)[]>([]);
   const lastDrawnPage = useRef<number | null>(null);
+
+  // Start timer once paper loads
+  useEffect(() => {
+    if (!paper) return;
+    baseSeconds.current = paper.timeSpentSeconds ?? 0;
+    setDisplaySeconds(baseSeconds.current);
+    sessionStart.current = Date.now();
+
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - sessionStart.current!) / 1000);
+      setDisplaySeconds(baseSeconds.current + elapsed);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [paper?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function getCurrentTime() {
+    if (!sessionStart.current) return baseSeconds.current;
+    return baseSeconds.current + Math.floor((Date.now() - sessionStart.current) / 1000);
+  }
+
+  async function saveTimeToServer() {
+    await fetch(`/api/exam/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ timeSpentSeconds: getCurrentTime() }),
+    });
+  }
 
   useEffect(() => {
     async function fetchPaper() {
@@ -68,7 +113,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         const data: ExamPaperDetail = await res.json();
         setPaper(data);
         if (data.completedAt) setSubmitStatus("submitted");
-        if (data.pdfPath) loadPdf();
+        if (data.pdfPath) loadPdf(!!data.completedAt);
       } catch {
         // handled by null check
       } finally {
@@ -78,7 +123,7 @@ function ExamPracticeContent({ id }: { id: string }) {
     fetchPaper();
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function loadPdf() {
+  async function loadPdf(hasSubmission: boolean) {
     setLoadingPdf(true);
     try {
       const res = await fetch(`/api/exam/${id}/pdf`);
@@ -88,6 +133,24 @@ function ExamPracticeContent({ id }: { id: string }) {
       const images = await renderPdfToImages(file);
       setPageImages(images);
       pageHandles.current = new Array(images.length).fill(null);
+
+      // Load previously saved ink (if any submission exists)
+      if (hasSubmission) {
+        const subRes = await fetch(`/api/exam/${id}/submission`);
+        if (subRes.ok) {
+          const sub = await subRes.json();
+          if (sub.pageCount > 0) {
+            const blobs = await Promise.all(
+              Array.from({ length: sub.pageCount }, (_, i) =>
+                fetch(`/api/exam/${id}/submission?page=${i}&type=ink`)
+                  .then((r) => (r.ok ? r.blob() : null))
+                  .catch(() => null)
+              )
+            );
+            setInkBlobs(blobs);
+          }
+        }
+      }
     } catch (err) {
       console.warn("Could not load PDF:", err);
     } finally {
@@ -96,28 +159,47 @@ function ExamPracticeContent({ id }: { id: string }) {
   }
 
   async function compositeAndUpload(action: "save" | "submit") {
-    setSubmitStatus(action === "save" ? "saving" : "submitting");
+    setSubmitStatus(action === "submit" ? "submitting" : "saving");
     try {
       const form = new FormData();
       form.append("action", action);
       for (let i = 0; i < displayPages.length; i++) {
         const handle = pageHandles.current[i];
         if (handle) {
-          const blob = await handle.exportComposite();
-          form.append(`page_${i}`, blob, `page_${i}.jpg`);
+          const [composite, ink] = await Promise.all([
+            handle.exportComposite(),
+            handle.exportInk(),
+          ]);
+          form.append(`page_${i}`, composite, `page_${i}.jpg`);
+          form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
         }
       }
-      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
-      setSubmitStatus(action === "save" ? "saved" : "submitted");
+      await Promise.all([
+        fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
+        saveTimeToServer(),
+      ]);
       if (action === "submit") {
         setPaper((prev) =>
           prev ? { ...prev, completedAt: new Date().toISOString() } : prev
         );
+        setSubmitStatus("submitted");
+      } else {
+        setSubmitStatus("idle");
       }
     } catch (err) {
       console.error("Submission failed:", err);
       setSubmitStatus("idle");
     }
+  }
+
+  async function handleSaveAndExit() {
+    await compositeAndUpload("save");
+    router.push(backPath);
+  }
+
+  async function handleSubmit() {
+    await compositeAndUpload("submit");
+    router.push(backPath);
   }
 
   function handleUndo() {
@@ -165,7 +247,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   return (
     <div className="min-h-screen bg-white">
       {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
         <button
           onClick={() => router.push(backPath)}
           className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 shrink-0"
@@ -178,32 +260,37 @@ function ExamPracticeContent({ id }: { id: string }) {
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-800 truncate">{paper.title}</p>
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5">
             {paper.subject && (
-              <span className="text-[10px] font-medium px-1.5 py-0 rounded-full bg-purple-100 text-purple-700">
+              <span className="text-[10px] font-medium px-1.5 rounded-full bg-purple-100 text-purple-700">
                 {paper.subject}
               </span>
             )}
             {paper.level && (
-              <span className="text-[10px] font-medium px-1.5 py-0 rounded-full bg-green-100 text-green-700">
+              <span className="text-[10px] font-medium px-1.5 rounded-full bg-green-100 text-green-700">
                 {paper.level}
               </span>
             )}
           </div>
         </div>
 
+        {/* Timer */}
+        <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600 text-xs font-mono font-semibold shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+          </svg>
+          {formatTime(displaySeconds)}
+        </div>
+
         {hasPdf && (
           <div className="flex rounded-xl border border-slate-200 overflow-hidden shrink-0 text-xs font-medium">
-            <button
-              onClick={() => setView("paper")}
-              className={`px-3 py-1.5 ${view === "paper" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-            >
+            <button onClick={() => setView("paper")}
+              className={`px-3 py-1.5 ${view === "paper" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
               Paper
             </button>
-            <button
-              onClick={() => setView("questions")}
-              className={`px-3 py-1.5 ${view === "questions" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
-            >
+            <button onClick={() => setView("questions")}
+              className={`px-3 py-1.5 ${view === "questions" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
               Q&A
             </button>
           </div>
@@ -231,15 +318,6 @@ function ExamPracticeContent({ id }: { id: string }) {
               Submitted{paper.completedAt ? ` on ${new Date(paper.completedAt).toLocaleDateString()}` : ""}
             </div>
           )}
-          {submitStatus === "saved" && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border-b border-blue-100 text-xs text-blue-600">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-              Draft saved
-            </div>
-          )}
 
           {/* Drawing toolbar */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
@@ -250,7 +328,6 @@ function ExamPracticeContent({ id }: { id: string }) {
               </svg>
               Scroll
             </ToolButton>
-
             <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} title="Pen"
               activeClass="bg-blue-100 text-blue-700 border-blue-300">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
@@ -259,7 +336,6 @@ function ExamPracticeContent({ id }: { id: string }) {
               </svg>
               Pen
             </ToolButton>
-
             <ToolButton active={tool === "eraser"} onClick={() => setTool("eraser")} title="Eraser">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -267,9 +343,7 @@ function ExamPracticeContent({ id }: { id: string }) {
               </svg>
               Eraser
             </ToolButton>
-
             <div className="w-px h-5 bg-slate-200 mx-0.5" />
-
             <button onClick={handleUndo} title="Undo"
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
@@ -278,9 +352,7 @@ function ExamPracticeContent({ id }: { id: string }) {
               </svg>
               Undo
             </button>
-
             <div className="flex-1" />
-
             <button onClick={clearAllInk}
               className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
               Clear
@@ -295,23 +367,26 @@ function ExamPracticeContent({ id }: { id: string }) {
                 ref={(el) => { pageHandles.current[displayIndex] = el; }}
                 imageUrl={src}
                 tool={tool}
+                inkBlob={inkBlobs[displayIndex] ?? undefined}
                 onStrokeStart={() => { lastDrawnPage.current = displayIndex; }}
               />
             ))}
           </div>
 
-          {/* ── Submit bar ── */}
-          <div className="sticky bottom-0 z-10 bg-white border-t border-slate-200 px-4 py-3 flex items-center gap-3"
-            style={{ width: "100vw" }}>
+          {/* ── Bottom action bar ── */}
+          <div
+            className="sticky bottom-0 z-10 bg-white border-t border-slate-200 px-4 py-3 flex items-center gap-3"
+            style={{ width: "100vw" }}
+          >
             <button
-              onClick={() => compositeAndUpload("save")}
+              onClick={handleSaveAndExit}
               disabled={isBusy}
               className="flex-1 py-2.5 rounded-xl border-2 border-slate-300 text-slate-600 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
             >
-              {submitStatus === "saving" ? "Saving…" : "Save draft"}
+              {submitStatus === "saving" ? "Saving…" : "Save & exit"}
             </button>
             <button
-              onClick={() => compositeAndUpload("submit")}
+              onClick={handleSubmit}
               disabled={isBusy}
               className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors"
             >
@@ -350,26 +425,18 @@ function ExamPracticeContent({ id }: { id: string }) {
 // ─── Tool button ──────────────────────────────────────────────────────────────
 
 function ToolButton({
-  active,
-  onClick,
-  title,
+  active, onClick, title,
   activeClass = "bg-primary-100 text-primary-700 border-primary-300",
   children,
 }: {
-  active: boolean;
-  onClick: () => void;
-  title: string;
-  activeClass?: string;
-  children: React.ReactNode;
+  active: boolean; onClick: () => void; title: string;
+  activeClass?: string; children: React.ReactNode;
 }) {
   return (
-    <button
-      onClick={onClick}
-      title={title}
+    <button onClick={onClick} title={title}
       className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-colors ${
         active ? activeClass : "border-slate-200 text-slate-500 hover:bg-slate-50"
-      }`}
-    >
+      }`}>
       {children}
     </button>
   );
@@ -379,13 +446,14 @@ function ToolButton({
 
 const DrawablePage = forwardRef<
   DrawablePageHandle,
-  { imageUrl: string; tool: DrawTool; onStrokeStart: () => void }
->(function DrawablePage({ imageUrl, tool, onStrokeStart }, ref) {
+  { imageUrl: string; tool: DrawTool; inkBlob?: Blob; onStrokeStart: () => void }
+>(function DrawablePage({ imageUrl, tool, inkBlob, onStrokeStart }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
+  const inkApplied = useRef(false);
 
   useImperativeHandle(ref, () => ({
     undo() {
@@ -403,33 +471,65 @@ const DrawablePage = forwardRef<
       return new Promise((resolve, reject) => {
         const inkCanvas = canvasRef.current;
         const imgEl = imgRef.current;
-        if (!inkCanvas || !imgEl || !imgEl.complete) {
-          reject(new Error("Not ready"));
-          return;
-        }
+        if (!inkCanvas || !imgEl || !imgEl.complete) { reject(new Error("Not ready")); return; }
         const composite = document.createElement("canvas");
         composite.width = inkCanvas.width || imgEl.naturalWidth;
         composite.height = inkCanvas.height || imgEl.naturalHeight;
         const ctx = composite.getContext("2d")!;
-        // Draw PDF page then ink on top
         ctx.drawImage(imgEl, 0, 0, composite.width, composite.height);
         if (inkCanvas.width > 0) ctx.drawImage(inkCanvas, 0, 0);
         composite.toBlob(
-          (blob) =>
-            blob ? resolve(blob) : reject(new Error("Export failed")),
-          "image/jpeg",
-          0.88
+          (blob) => blob ? resolve(blob) : reject(new Error("Export failed")),
+          "image/jpeg", 0.88
         );
       });
     },
+    exportInk(): Promise<Blob> {
+      return new Promise((resolve, reject) => {
+        const canvas = canvasRef.current;
+        if (!canvas) { reject(new Error("Not ready")); return; }
+        canvas.toBlob(
+          (blob) => blob ? resolve(blob) : reject(new Error("Export failed")),
+          "image/png"
+        );
+      });
+    },
+    loadInk(blob: Blob) {
+      applyInkBlob(blob);
+    },
   }));
 
-  function initCanvas(img: HTMLImageElement) {
+  function applyInkBlob(blob: Blob) {
+    const canvas = canvasRef.current;
+    if (!canvas || canvas.width === 0) return; // not initialized yet
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+
+  function initCanvas(imgEl: HTMLImageElement) {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
+    canvas.width = imgEl.naturalWidth;
+    canvas.height = imgEl.naturalHeight;
+    // Apply pending ink blob if not yet applied
+    if (inkBlob && !inkApplied.current) {
+      inkApplied.current = true;
+      applyInkBlob(inkBlob);
+    }
   }
+
+  // Also apply when inkBlob arrives after canvas is already initialized
+  useEffect(() => {
+    if (inkBlob && !inkApplied.current && canvasRef.current?.width) {
+      inkApplied.current = true;
+      applyInkBlob(inkBlob);
+    }
+  }, [inkBlob]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function getPos(clientX: number, clientY: number) {
     const canvas = canvasRef.current!;
@@ -449,8 +549,7 @@ const DrawablePage = forwardRef<
   }
 
   function applyStyle(ctx: CanvasRenderingContext2D) {
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
     if (tool === "eraser") {
       ctx.globalCompositeOperation = "destination-out";
       ctx.strokeStyle = "rgba(0,0,0,1)";
@@ -464,8 +563,7 @@ const DrawablePage = forwardRef<
 
   function onStart(clientX: number, clientY: number) {
     if (tool === "scroll") return;
-    saveSnapshot();
-    onStrokeStart();
+    saveSnapshot(); onStrokeStart();
     isDrawing.current = true;
     const pos = getPos(clientX, clientY);
     lastPos.current = pos;
@@ -483,56 +581,31 @@ const DrawablePage = forwardRef<
     if (!ctx) return;
     const pos = getPos(clientX, clientY);
     applyStyle(ctx);
-    ctx.beginPath();
-    ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y); ctx.stroke();
     lastPos.current = pos;
   }
 
-  function onEnd() {
-    isDrawing.current = false;
-    lastPos.current = null;
-  }
+  function onEnd() { isDrawing.current = false; lastPos.current = null; }
 
   const drawing = tool !== "scroll";
 
   return (
-    <div
-      className="relative"
-      style={{
-        touchAction: drawing ? "none" : "auto",
-        userSelect: "none",
-        WebkitUserSelect: "none",
-      }}
-    >
+    <div className="relative"
+      style={{ touchAction: drawing ? "none" : "auto", userSelect: "none", WebkitUserSelect: "none" }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        ref={imgRef}
-        src={imageUrl}
-        alt="Exam page"
-        className="w-full h-auto block"
+      <img ref={imgRef} src={imageUrl} alt="Exam page" className="w-full h-auto block"
         style={{ pointerEvents: "none", display: "block" }}
-        onLoad={(e) => initCanvas(e.currentTarget)}
-        draggable={false}
-      />
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
+        onLoad={(e) => initCanvas(e.currentTarget)} draggable={false} />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full"
         style={{
           pointerEvents: drawing ? "auto" : "none",
           touchAction: "none",
-          cursor:
-            tool === "pen"
-              ? PEN_CURSOR
-              : tool === "eraser"
-              ? "cell"
-              : "default",
+          cursor: tool === "pen" ? PEN_CURSOR : tool === "eraser" ? "cell" : "default",
         }}
         onMouseDown={(e) => { e.preventDefault(); onStart(e.clientX, e.clientY); }}
         onMouseMove={(e) => onMove(e.clientX, e.clientY)}
-        onMouseUp={onEnd}
-        onMouseLeave={onEnd}
+        onMouseUp={onEnd} onMouseLeave={onEnd}
         onContextMenu={(e) => e.preventDefault()}
         onTouchStart={(e) => { e.preventDefault(); onStart(e.touches[0].clientX, e.touches[0].clientY); }}
         onTouchMove={(e) => { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); }}

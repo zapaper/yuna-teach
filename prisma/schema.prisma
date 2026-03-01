@@ -70,8 +70,9 @@ model ExamPaper {
   updatedAt DateTime @updatedAt
   userId       String
   assignedToId String?
-  score        Float?
-  completedAt  DateTime?
+  score            Float?
+  completedAt      DateTime?
+  timeSpentSeconds Int       @default(0)
 
   user       User           @relation("UploadedPapers", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo User?          @relation("AssignedPapers", fields: [assignedToId], references: [id], onDelete: SetNull)
