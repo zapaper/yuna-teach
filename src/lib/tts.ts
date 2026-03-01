@@ -70,8 +70,10 @@ async function synthesizeSpeechGoogle(
   return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
 }
 
-// Fish Audio TTS — used for English
+// Fish Audio TTS — used for English, and as fallback for Chinese
 const FISH_AUDIO_API_URL = "https://api.fish.audio/v1/tts";
+// Original hardcoded Chinese voice (fallback when Google TTS is unavailable)
+const FISH_AUDIO_VOICE_ZH_DEFAULT = "4f201abba2574feeae11e5ebf737859e";
 
 async function synthesizeSpeechFish(
   text: string,
@@ -80,7 +82,7 @@ async function synthesizeSpeechFish(
 ): Promise<ArrayBuffer> {
   const voiceId =
     language === "CHINESE"
-      ? process.env.FISH_AUDIO_VOICE_ZH
+      ? (process.env.FISH_AUDIO_VOICE_ZH ?? FISH_AUDIO_VOICE_ZH_DEFAULT)
       : process.env.FISH_AUDIO_VOICE_EN;
 
   const response = await fetch(FISH_AUDIO_API_URL, {
@@ -116,9 +118,14 @@ export async function synthesizeSpeech(
   const speed = options?.speed ?? 0.9;
   const speechText = options?.expandPunct ? expandPunctuation(text, language) : text;
 
-  // Chinese: Google Cloud Neural2 (high quality Mandarin)
+  // Chinese: Google Cloud Neural2, with Fish Audio fallback
   if (language === "CHINESE") {
-    return synthesizeSpeechGoogle(speechText, speed);
+    try {
+      return await synthesizeSpeechGoogle(speechText, speed);
+    } catch (err) {
+      console.warn("Google TTS failed, falling back to Fish Audio:", err instanceof Error ? err.message : err);
+      return synthesizeSpeechFish(speechText, language, speed);
+    }
   }
 
   // English: Fish Audio
