@@ -53,7 +53,12 @@ function ExamEditContent({ id }: { id: string }) {
       try {
         const res = await fetch(`/api/exam/${id}`);
         if (!res.ok) throw new Error("Not found");
-        setPaper(await res.json());
+        const data: ExamPaperDetail = await res.json();
+        setPaper(data);
+        // Auto-load PDF from server if stored
+        if (data.pdfPath) {
+          loadPdfFromServer();
+        }
       } catch {
         // handled by null check
       } finally {
@@ -61,7 +66,23 @@ function ExamEditContent({ id }: { id: string }) {
       }
     }
     fetchPaper();
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function loadPdfFromServer() {
+    setLoadingPdf(true);
+    try {
+      const res = await fetch(`/api/exam/${id}/pdf`);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const file = new File([blob], "exam.pdf", { type: "application/pdf" });
+      const images = await renderPdfToImages(file);
+      setPageImages(images);
+    } catch (err) {
+      console.warn("Could not auto-load PDF from server:", err);
+    } finally {
+      setLoadingPdf(false);
+    }
+  }
 
   async function handlePdfLoad(file: File) {
     setLoadingPdf(true);

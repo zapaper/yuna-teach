@@ -57,6 +57,8 @@ function ExamUploadContent() {
     totalMarks: "",
   });
   const [questions, setQuestions] = useState<ExtractedQuestion[]>([]);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [batchMetadata, setBatchMetadata] = useState<object | null>(null);
   const [processingStatus, setProcessingStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -104,6 +106,7 @@ function ExamUploadContent() {
     setError(null);
     setStep("processing");
     setProcessingStatus("Rendering PDF pages...");
+    setPdfFile(file);
 
     try {
       const images = await renderPdfToImages(file);
@@ -140,9 +143,12 @@ function ExamUploadContent() {
       setAiAnalyzing(false);
     }
 
-    // Log structure debug info to browser console
+    // Log structure debug info to browser console and store for saving
     if (result._debug) {
       console.log("[Exam Structure]", result._debug);
+      // Exclude rawResponses (verbose) from what we persist
+      const { rawResponses: _ignored, ...debugToSave } = result._debug;
+      setBatchMetadata(debugToSave);
     }
 
     // Set header info
@@ -371,6 +377,7 @@ function ExamUploadContent() {
           year: headerInfo.year,
           semester: headerInfo.semester,
           totalMarks: headerInfo.totalMarks,
+          metadata: batchMetadata,
           pageCount: pageImages.length,
           userId,
           questions: questions.map((q, i) => ({
@@ -383,6 +390,22 @@ function ExamUploadContent() {
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Failed to save");
+      }
+
+      const saved = await res.json();
+
+      // Upload the original PDF to the server volume (fire-and-forget on error)
+      if (pdfFile && saved?.id) {
+        try {
+          const formData = new FormData();
+          formData.append("pdf", pdfFile);
+          await fetch(`/api/exam/${saved.id}/pdf`, {
+            method: "POST",
+            body: formData,
+          });
+        } catch (pdfErr) {
+          console.warn("PDF upload failed (non-critical):", pdfErr);
+        }
       }
 
       router.push(userId ? `/home/${userId}` : "/");

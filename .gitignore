@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local PDF storage (dev fallback for Railway volume)
+/.data
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

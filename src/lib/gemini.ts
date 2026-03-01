@@ -1352,6 +1352,7 @@ export async function analyzeExamBatch(
     _debug: {
       papers: structure.papers.map(p => ({
         label: p.label,
+        questionPrefix: p.questionPrefix,
         questionsStartPage: p.firstQuestionPageIndex + 1, // 1-based for easy PDF comparison
         questionsStartY: p.firstQuestionYStartPct,
         expectedQuestions: p.expectedQuestionCount,

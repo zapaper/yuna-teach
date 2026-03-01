@@ -58,6 +58,21 @@ export interface ExamPaperSummary {
   assignedToName: string | null;
 }
 
+export interface ExamMetadata {
+  papers: Array<{
+    label: string;
+    questionPrefix: string;
+    questionsStartPage: number; // 1-based PDF page
+    questionsStartY: number;
+    expectedQuestions: number;
+  }>;
+  coverPages: number[];
+  answerPages: number[]; // 1-based PDF page
+  answersDetected: string[];
+  questionsPerPage?: Array<{ page: number; questions: string[] }>;
+  validationIssues?: string[];
+}
+
 export interface ExamPaperDetail {
   id: string;
   title: string;
@@ -67,6 +82,8 @@ export interface ExamPaperDetail {
   year: string | null;
   semester: string | null;
   totalMarks: string | null;
+  metadata: ExamMetadata | null;
+  pdfPath: string | null;
   pageCount: number;
   createdAt: string;
   assignedToId: string | null;

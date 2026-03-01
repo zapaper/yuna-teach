@@ -63,6 +63,8 @@ model ExamPaper {
   year      String?
   semester  String?
   totalMarks String?
+  metadata   Json?
+  pdfPath    String?
   pageCount Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
