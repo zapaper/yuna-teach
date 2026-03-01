@@ -323,7 +323,8 @@ function ExamPracticeContent({ id }: { id: string }) {
           )}
 
           {/* Drawing toolbar */}
-          <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
+          <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2"
+            style={{ userSelect: "none", WebkitUserSelect: "none" }}>
             <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -379,7 +380,7 @@ function ExamPracticeContent({ id }: { id: string }) {
           {/* ── Bottom action bar ── */}
           <div
             className="sticky bottom-0 z-10 bg-white border-t border-slate-200 px-4 py-3 flex items-center gap-3"
-            style={{ width: "100vw" }}
+            style={{ width: "100vw", userSelect: "none", WebkitUserSelect: "none" }}
           >
             <button
               onClick={handleSaveAndExit}
