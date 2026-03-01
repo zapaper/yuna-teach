@@ -77,15 +77,15 @@ function ExamPracticeContent({ id }: { id: string }) {
   const pageHandles = useRef<(DrawablePageHandle | null)[]>([]);
   const lastDrawnPage = useRef<number | null>(null);
 
-  // Start timer once paper loads
+  // Initialise base time once paper loads; sessionStart set later (after PDF renders)
   useEffect(() => {
     if (!paper) return;
     baseSeconds.current = paper.timeSpentSeconds ?? 0;
     setDisplaySeconds(baseSeconds.current);
-    sessionStart.current = Date.now();
 
     const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - sessionStart.current!) / 1000);
+      if (!sessionStart.current) return; // wait until PDF is ready
+      const elapsed = Math.floor((Date.now() - sessionStart.current) / 1000);
       setDisplaySeconds(baseSeconds.current + elapsed);
     }, 1000);
 
@@ -113,7 +113,11 @@ function ExamPracticeContent({ id }: { id: string }) {
         const data: ExamPaperDetail = await res.json();
         setPaper(data);
         if (data.completedAt) setSubmitStatus("submitted");
-        if (data.pdfPath) loadPdf(!!data.completedAt);
+        if (data.pdfPath) {
+          loadPdf(); // timer starts inside loadPdf when done
+        } else {
+          sessionStart.current = Date.now(); // no PDF — start timer immediately
+        }
       } catch {
         // handled by null check
       } finally {
@@ -123,7 +127,7 @@ function ExamPracticeContent({ id }: { id: string }) {
     fetchPaper();
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function loadPdf(hasSubmission: boolean) {
+  async function loadPdf() {
     setLoadingPdf(true);
     try {
       const res = await fetch(`/api/exam/${id}/pdf`);
@@ -134,27 +138,26 @@ function ExamPracticeContent({ id }: { id: string }) {
       setPageImages(images);
       pageHandles.current = new Array(images.length).fill(null);
 
-      // Load previously saved ink (if any submission exists)
-      if (hasSubmission) {
-        const subRes = await fetch(`/api/exam/${id}/submission`);
-        if (subRes.ok) {
-          const sub = await subRes.json();
-          if (sub.pageCount > 0) {
-            const blobs = await Promise.all(
-              Array.from({ length: sub.pageCount }, (_, i) =>
-                fetch(`/api/exam/${id}/submission?page=${i}&type=ink`)
-                  .then((r) => (r.ok ? r.blob() : null))
-                  .catch(() => null)
-              )
-            );
-            setInkBlobs(blobs);
-          }
+      // Always try to load previously saved ink (save & exit or submitted)
+      const subRes = await fetch(`/api/exam/${id}/submission`);
+      if (subRes.ok) {
+        const sub = await subRes.json();
+        if (sub.pageCount > 0) {
+          const blobs = await Promise.all(
+            Array.from({ length: sub.pageCount }, (_, i) =>
+              fetch(`/api/exam/${id}/submission?page=${i}&type=ink`)
+                .then((r) => (r.ok ? r.blob() : null))
+                .catch(() => null)
+            )
+          );
+          setInkBlobs(blobs);
         }
       }
     } catch (err) {
       console.warn("Could not load PDF:", err);
     } finally {
       setLoadingPdf(false);
+      sessionStart.current = Date.now(); // start timer after PDF (and ink) are ready
     }
   }
 
