@@ -103,6 +103,8 @@ export interface ExamQuestionItem {
   answerImageData: string | null;
   pageIndex: number;
   orderIndex: number;
+  yStartPct: number | null;
+  yEndPct: number | null;
   marksAwarded: number | null;
   marksAvailable: number | null;
   markingNotes: string | null;

@@ -13,8 +13,26 @@ export async function PATCH(
   if ("answer" in body) data.answer = body.answer ?? null;
   if ("imageData" in body) data.imageData = body.imageData;
   if ("answerImageData" in body) data.answerImageData = body.answerImageData ?? null;
+  if ("marksAwarded" in body) data.marksAwarded = body.marksAwarded ?? null;
+  if ("markingNotes" in body) data.markingNotes = body.markingNotes ?? null;
 
-  const question = await prisma.examQuestion.update({ where: { id }, data });
+  const question = await prisma.examQuestion.update({
+    where: { id },
+    data,
+    include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
+  });
+
+  // If marks changed, recalculate paper total score
+  if ("marksAwarded" in body) {
+    const total = question.examPaper.questions.reduce(
+      (sum, q) => sum + (q.marksAwarded ?? 0),
+      0
+    );
+    await prisma.examPaper.update({
+      where: { id: question.examPaperId },
+      data: { score: total },
+    });
+  }
 
   return NextResponse.json({ success: true, id: question.id });
 }

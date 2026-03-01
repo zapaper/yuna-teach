@@ -58,6 +58,94 @@ Return ONLY valid JSON (no markdown fences):
   ]
 }`;
 
+// Extract JSON from a Gemini response that may have markdown fences or extra text
+function extractJson(text: string): unknown {
+  // Strip markdown code fences
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const raw = fenced ? fenced[1].trim() : text.trim();
+  // Find the first { ... } block
+  const start = raw.indexOf("{");
+  const end = raw.lastIndexOf("}");
+  if (start === -1 || end === -1) throw new Error("No JSON object found in response");
+  return JSON.parse(raw.slice(start, end + 1));
+}
+
+// Re-mark a single question (e.g. after parent hits "Re-mark")
+export async function remarkSingleQuestion(questionId: string): Promise<void> {
+  const question = await prisma.examQuestion.findUnique({
+    where: { id: questionId },
+    include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
+  });
+  if (!question) throw new Error("Question not found");
+
+  const paper = question.examPaper;
+  const subDir = path.join(SUBMISSIONS_DIR, paper.id);
+
+  // Compute submissionIndexMap the same way as markExamPaper
+  const metadata = paper.metadata as { answerPages?: number[] } | null;
+  const answerPageSet = new Set((metadata?.answerPages ?? []).map((p: number) => p - 1));
+  let submissionIdx = 0;
+  let submissionPage = -1;
+  for (let i = 0; i < paper.pageCount; i++) {
+    if (!answerPageSet.has(i)) {
+      if (i === question.pageIndex) { submissionPage = submissionIdx; break; }
+      submissionIdx++;
+    }
+  }
+  if (submissionPage === -1) throw new Error("Question page not in submission");
+
+  const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
+  const pageBuffer = await fs.readFile(pagePath);
+  const pageBase64 = pageBuffer.toString("base64");
+
+  const yStart = question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown";
+  const yEnd = question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "unknown";
+  const answerDesc = question.answerImageData
+    ? `[diagram — see additional image]`
+    : question.answer ? `"${question.answer}"` : "not provided";
+  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. Expected answer: ${answerDesc}`;
+
+  let answerImagesNote = "";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parts: any[] = [
+    { inlineData: { mimeType: "image/jpeg" as const, data: pageBase64 } },
+  ];
+  if (question.answerImageData) {
+    const sepIdx = question.answerImageData.indexOf(";base64,");
+    if (sepIdx > 5) {
+      answerImagesNote = `Additional image 2: expected answer diagram for Question ${question.questionNum}`;
+      parts.push({ inlineData: { mimeType: question.answerImageData.slice(5, sepIdx), data: question.answerImageData.slice(sepIdx + 8) } });
+    }
+  }
+
+  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+  parts.push({ text: prompt });
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts }],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Empty Gemini response");
+  const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
+  const result = parsed.questions.find((q) => q.questionId === questionId) ?? parsed.questions[0];
+  if (!result) throw new Error("No result for question");
+
+  await prisma.examQuestion.update({
+    where: { id: questionId },
+    data: { marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable, markingNotes: result.notes },
+  });
+
+  // Recalculate paper total score
+  const allMarks = paper.questions.map((q) =>
+    q === question ? (result.marksAwarded ?? 0) : (q.marksAwarded ?? 0)
+  );
+  const total = allMarks.reduce((a, b) => a + b, 0);
+  await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
+}
+
 export async function markExamPaper(paperId: string): Promise<void> {
   await prisma.examPaper.update({
     where: { id: paperId },
@@ -167,7 +255,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
           });
           const text = response.text;
           if (!text) return [];
-          const parsed = JSON.parse(text) as { questions: QuestionMarkResult[] };
+          const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
           return parsed.questions;
         } catch (err) {
           console.warn(`Marking failed for page ${pageIndex}:`, err);

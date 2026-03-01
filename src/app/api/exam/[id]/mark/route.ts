@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { markExamPaper } from "@/lib/marking";
+import { markExamPaper, remarkSingleQuestion } from "@/lib/marking";
 
 // GET /api/exam/[id]/mark
-// Returns { markingStatus, questions: [{ id, questionNum, marksAwarded, marksAvailable, markingNotes }] }
+// Returns marking status + per-question results (with imageData for thumbnails)
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,6 +20,10 @@ export async function GET(
         select: {
           id: true,
           questionNum: true,
+          pageIndex: true,
+          yStartPct: true,
+          yEndPct: true,
+          imageData: true,
           marksAwarded: true,
           marksAvailable: true,
           markingNotes: true,
@@ -36,12 +40,14 @@ export async function GET(
 }
 
 // POST /api/exam/[id]/mark
-// Triggers AI marking. Runs synchronously and returns when done.
+//   No body  → mark the full paper (fire-and-forget, returns immediately)
+//   ?questionId=xxx → re-mark a single question (also fire-and-forget)
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const questionId = request.nextUrl.searchParams.get("questionId");
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
@@ -59,18 +65,27 @@ export async function POST(
     );
   }
 
+  if (questionId) {
+    // Re-mark single question — fire and forget
+    remarkSingleQuestion(questionId).catch((err) =>
+      console.error(`Re-mark question ${questionId} failed:`, err)
+    );
+    return NextResponse.json({ status: "remarking" });
+  }
+
   if (paper.markingStatus === "in_progress") {
     return NextResponse.json({ status: "in_progress" });
   }
 
-  try {
-    await markExamPaper(id);
-    return NextResponse.json({ success: true, status: "complete" });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { error: `Marking failed: ${msg}`, status: "failed" },
-      { status: 500 }
-    );
-  }
+  // Full paper mark — set status then fire and forget
+  await prisma.examPaper.update({
+    where: { id },
+    data: { markingStatus: "pending" },
+  });
+
+  markExamPaper(id).catch((err) =>
+    console.error(`Background marking for ${id} failed:`, err)
+  );
+
+  return NextResponse.json({ status: "in_progress" });
 }
