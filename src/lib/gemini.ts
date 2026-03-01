@@ -626,6 +626,7 @@ interface QuestionExtractionResult {
       boundaryBottom: string;
     }>;
   }>;
+  _rawSnippet?: string; // first 400 chars of Gemini response, for browser debug
 }
 
 interface AnswerExtractionResult {
@@ -834,7 +835,7 @@ async function extractQuestionsForBooklet(
     console.log(`[Exam Pipeline] ${paper.label}: unexpected structure, keys: ${Object.keys(parsed).join(", ")}, raw: ${text.slice(0, 500)}`);
     pages = [];
   }
-  const result: QuestionExtractionResult = { pages };
+  const result: QuestionExtractionResult = { pages, _rawSnippet: text.slice(0, 400) };
 
   // Validate: check first question is correct
   const allQNums = extractQuestionNumbers(result, paper.questionPrefix);
@@ -919,7 +920,7 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
   let retryPages = retryParsed.pages ?? retryParsed.result?.pages ?? retryParsed.data?.pages;
   if (!Array.isArray(retryPages) && Array.isArray(retryParsed)) retryPages = retryParsed;
   if (!Array.isArray(retryPages)) retryPages = [];
-  const retryResult: QuestionExtractionResult = { pages: retryPages };
+  const retryResult: QuestionExtractionResult = { pages: retryPages, _rawSnippet: retryText.slice(0, 400) };
   const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
   console.log(`[Exam Pipeline] ${paper.label} retry: Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
 
@@ -996,6 +997,7 @@ export interface BatchAnalysisResult {
     coverPages: number[];
     questionsPerPage: Array<{ page: number; questions: string[] }>;
     validationIssues: string[];
+    rawResponses: Record<string, string>; // booklet label → first 400 chars of Gemini response
   };
 }
 
@@ -1169,6 +1171,9 @@ export async function analyzeExamBatch(
         questions: p.questions.map(q => q.questionNum),
       })),
       validationIssues: finalValidation.issues,
+      rawResponses: Object.fromEntries(
+        bookletResults.map((r, i) => [bookletPageRanges[i].paper.label, r._rawSnippet ?? "(empty)"])
+      ),
     },
   };
 }
