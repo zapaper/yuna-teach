@@ -430,19 +430,25 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - TOP padding should be MINIMAL (just 1%) — do NOT extend far above the question number
 - BOTTOM padding should extend DOWNWARD past the last line of content — never cut upward
 
-### WHERE to find question numbers — LEFT MARGIN ONLY:
-- Question numbers are ALWAYS printed at the LEFT-MOST edge of the page (within ~5% of the left side)
-- ONLY look at the very left margin — NEVER use numbers that appear inside the question text, inside sentences, in answer boxes, in diagrams, or anywhere else
-- A question number is ISOLATED at the start of a new line at the far left — it does NOT appear mid-sentence
-- MCQ answer options like "(1)", "(2)", "(3)", "(4)" appear INDENTED under the question — these are NOT question numbers
-- Numbers that appear inside a question (e.g. "There are 24 apples..." or "Calculate 3 × 8") are NOT question numbers
+### WHERE to find question numbers — LEFT MARGIN SCAN:
+- Scan ONLY the left-most column of the page (within ~5% of the left edge)
+- Go line by line from top to bottom. At each line, look ONLY at the leftmost characters
+- A question number is a bare integer (or integer + ".") that is the VERY FIRST thing on that line, flush with the left edge, with nothing to its left
+- Numbers inside the question body (mid-sentence, in answer boxes, in diagrams) are NEVER question numbers — they are too far from the left edge
+
+### Troubleshooting — when a left-margin number doesn't fit:
+- If you find a number at the left margin but it is NOT the next expected question number, ask: is it a PAGE NUMBER (usually at bottom or top of page, in footer/header area)? If yes, skip it
+- If the number is "(a)", "(b)", "(i)", "(ii)" — it is a SUB-PART label, not a question boundary, skip it
+- If the number is indented even slightly (MCQ option like "(1)", "(2)") — it is NOT at the true left edge, skip it
+- If the number seems out of sequence (e.g. you expect Q5 but see "12" at left margin) — check: is "12" perhaps a year, a score, or part of a table? If so, skip it
+- Only accept a left-margin number as a question boundary when it fits the expected sequential numbering
 
 ### What counts as a "question number" (boundary marker):
-- YES: "1.", "2.", "3.", "24.", "25." — alone at the FAR LEFT margin, starting a new question
-- NO: "(a)", "(b)", "(c)", "(i)", "(ii)" — sub-parts, IGNORE as boundaries
-- NO: "(1)", "(2)", "(3)", "(4)" indented under a question — MCQ OPTIONS, not boundaries
-- NO: any number that appears mid-sentence or inside the question body
-- RULE: if the number is not the FIRST thing on its line at the left edge, it is NOT a question number
+- YES: "1.", "2.", "3.", "24." — bare integer at the FAR LEFT margin, starting a new question, in sequence
+- NO: "(a)", "(b)", "(i)", "(ii)" — sub-parts
+- NO: "(1)", "(2)", "(3)", "(4)" — MCQ answer options (indented, not flush left)
+- NO: page numbers at the top/bottom of the page (in header/footer area)
+- NO: numbers inside question text or diagrams
 
 ### CRITICAL — Only report what you can SEE:
 - ONLY output a question number if you can clearly SEE that number printed at the LEFT MARGIN of the page image
