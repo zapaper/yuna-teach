@@ -7,6 +7,9 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
+// Timeout for each Gemini call (90 seconds)
+const GEMINI_TIMEOUT_MS = 90_000;
+
 function getAI() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 }
@@ -70,8 +73,19 @@ function extractJson(text: string): unknown {
   return JSON.parse(raw.slice(start, end + 1));
 }
 
+// Wrap a promise with a timeout
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Timeout after ${ms}ms: ${label}`)), ms)
+    ),
+  ]);
+}
+
 // Re-mark a single question (e.g. after parent hits "Re-mark")
 export async function remarkSingleQuestion(questionId: string): Promise<void> {
+  console.log(`[marking] remarkSingleQuestion ${questionId}`);
   const question = await prisma.examQuestion.findUnique({
     where: { id: questionId },
     include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
@@ -121,11 +135,16 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
   parts.push({ text: prompt });
 
-  const response = await getAI().models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: [{ role: "user", parts }],
-    config: { responseMimeType: "application/json", temperature: 0.1 },
-  });
+  console.log(`[marking] Calling Gemini for remark of question ${questionId}`);
+  const response = await withTimeout(
+    getAI().models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts }],
+      config: { responseMimeType: "application/json", temperature: 0.1 },
+    }),
+    GEMINI_TIMEOUT_MS,
+    `remark question ${questionId}`
+  );
 
   const text = response.text;
   if (!text) throw new Error("Empty Gemini response");
@@ -144,9 +163,11 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   );
   const total = allMarks.reduce((a, b) => a + b, 0);
   await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
+  console.log(`[marking] remarkSingleQuestion done, new total=${total}`);
 }
 
 export async function markExamPaper(paperId: string): Promise<void> {
+  console.log(`[marking] Starting markExamPaper for paper ${paperId}`);
   await prisma.examPaper.update({
     where: { id: paperId },
     data: { markingStatus: "in_progress" },
@@ -158,6 +179,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
       include: { questions: { orderBy: { orderIndex: "asc" } } },
     });
     if (!paper) throw new Error("Paper not found");
+    console.log(`[marking] Paper has ${paper.questions.length} questions, pageCount=${paper.pageCount}`);
 
     const subDir = path.join(SUBMISSIONS_DIR, paperId);
 
@@ -180,22 +202,29 @@ export async function markExamPaper(paperId: string): Promise<void> {
       byPage.get(q.pageIndex)!.push(q);
     }
 
+    console.log(`[marking] Marking ${byPage.size} page(s) concurrently`);
+
     // ── Mark all pages CONCURRENTLY ──────────────────────────────────────────
     const pageEntries = [...byPage.entries()];
 
     const pageResults = await Promise.all(
       pageEntries.map(async ([pageIndex, questions]) => {
         const submissionPage = submissionIndexMap.get(pageIndex);
-        if (submissionPage === undefined) return []; // answer page — skip
+        if (submissionPage === undefined) {
+          console.log(`[marking] Page ${pageIndex} is an answer page — skipping`);
+          return []; // answer page — skip
+        }
 
         const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
         let pageBuffer: Buffer;
         try {
           pageBuffer = await fs.readFile(pagePath);
         } catch {
+          console.warn(`[marking] Submission file not found for page ${pageIndex} (submission page ${submissionPage})`);
           return []; // page not submitted
         }
         const pageBase64 = pageBuffer.toString("base64");
+        console.log(`[marking] Calling Gemini for pageIndex=${pageIndex} (${questions.length} questions, file size ${pageBuffer.length} bytes)`);
 
         // Build question descriptions for prompt
         const questionLines = questions
@@ -248,23 +277,32 @@ export async function markExamPaper(paperId: string): Promise<void> {
         parts.push({ text: prompt });
 
         try {
-          const response = await getAI().models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [{ role: "user", parts }],
-            config: { responseMimeType: "application/json", temperature: 0.1 },
-          });
+          const response = await withTimeout(
+            getAI().models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: [{ role: "user", parts }],
+              config: { responseMimeType: "application/json", temperature: 0.1 },
+            }),
+            GEMINI_TIMEOUT_MS,
+            `page ${pageIndex}`
+          );
           const text = response.text;
-          if (!text) return [];
+          if (!text) {
+            console.warn(`[marking] Empty Gemini response for page ${pageIndex}`);
+            return [];
+          }
           const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
+          console.log(`[marking] Page ${pageIndex} done — ${parsed.questions.length} results`);
           return parsed.questions;
         } catch (err) {
-          console.warn(`Marking failed for page ${pageIndex}:`, err);
+          console.warn(`[marking] Failed for page ${pageIndex}:`, err);
           return [];
         }
       })
     );
 
     const allResults = pageResults.flat();
+    console.log(`[marking] All pages done. Total results: ${allResults.length}`);
 
     // ── Batch DB updates in a single transaction ──────────────────────────────
     let totalAwarded = 0;
@@ -287,8 +325,9 @@ export async function markExamPaper(paperId: string): Promise<void> {
         data: { score: totalAwarded, markingStatus: "complete" },
       }),
     ]);
+    console.log(`[marking] Paper ${paperId} marked complete. Score: ${totalAwarded}`);
   } catch (err) {
-    console.error("Marking failed:", err);
+    console.error(`[marking] markExamPaper failed for ${paperId}:`, err);
     await prisma.examPaper.update({
       where: { id: paperId },
       data: { markingStatus: "failed" },

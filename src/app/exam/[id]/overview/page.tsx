@@ -89,12 +89,8 @@ function ExamOverviewContent({ id }: { id: string }) {
             setSubmissionPageCount(sub.pageCount ?? 0);
           }
         }
-        // If marking was in_progress when page loaded, start polling
-        if (
-          paperData.completedAt &&
-          (paperData.markingStatus === "in_progress" ||
-            paperData.markingStatus === "pending")
-        ) {
+        // If marking was already in_progress when page loaded, start polling
+        if (paperData.completedAt && paperData.markingStatus === "in_progress") {
           setMarking(true);
           startPolling();
         }
