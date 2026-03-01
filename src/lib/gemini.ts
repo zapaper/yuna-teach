@@ -702,14 +702,19 @@ async function analyzeExamStructure(
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for structure analysis");
   console.log("[Exam Pipeline] Structure raw response (first 300 chars):", text.slice(0, 300));
-  const parsed = JSON.parse(sanitizeJsonString(text));
+  let parsed: StructureResult;
+  try {
+    parsed = JSON.parse(sanitizeJsonString(text));
+  } catch (parseErr) {
+    throw new Error(`Structure analysis: JSON parse failed (truncated response?). Raw snippet: ${text.slice(0, 300)}. Error: ${parseErr}`);
+  }
   if (!Array.isArray(parsed.pages)) {
     throw new Error(`Structure analysis: missing pages array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 300)}`);
   }
   if (!Array.isArray(parsed.papers)) {
     throw new Error(`Structure analysis: missing papers array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 300)}`);
   }
-  return parsed as StructureResult;
+  return parsed;
 }
 
 // Validate question extraction result — check for gaps in question sequences
@@ -868,13 +873,20 @@ async function extractQuestionsForBooklet(
   const text = response.text;
   if (!text) throw new Error(`Gemini returned empty response for question extraction (${paper.label})`);
   console.log(`[Exam Pipeline] ${paper.label} raw response (first 300 chars):`, text.slice(0, 300));
-  const parsed = JSON.parse(sanitizeJsonString(text));
-  // Normalize: handle top-level array, nested result, or missing pages
-  let pages = parsed.pages ?? parsed.result?.pages ?? parsed.data?.pages;
-  if (!Array.isArray(pages) && Array.isArray(parsed)) pages = parsed;
-  if (!Array.isArray(pages)) {
-    console.log(`[Exam Pipeline] ${paper.label}: unexpected structure, keys: ${Object.keys(parsed).join(", ")}, raw: ${text.slice(0, 500)}`);
-    pages = [];
+  let pages: QuestionExtractionResult["pages"] = [];
+  try {
+    const parsed = JSON.parse(sanitizeJsonString(text));
+    // Normalize: handle top-level array, nested result, or missing pages
+    let rawPages = parsed.pages ?? parsed.result?.pages ?? parsed.data?.pages;
+    if (!Array.isArray(rawPages) && Array.isArray(parsed)) rawPages = parsed;
+    if (!Array.isArray(rawPages)) {
+      console.log(`[Exam Pipeline] ${paper.label}: unexpected structure, keys: ${Object.keys(parsed).join(", ")}, raw: ${text.slice(0, 500)}`);
+      rawPages = [];
+    }
+    pages = rawPages;
+  } catch (parseErr) {
+    console.log(`[Exam Pipeline] ${paper.label}: JSON parse failed (truncated response?), will retry. Error: ${parseErr}`);
+    // pages stays []
   }
   const result: QuestionExtractionResult = {
     ...remapPageIndices({ pages }, originalPageIndices),
@@ -960,10 +972,17 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
     return result;
   }
 
-  const retryParsed = JSON.parse(sanitizeJsonString(retryText));
-  let retryPages = retryParsed.pages ?? retryParsed.result?.pages ?? retryParsed.data?.pages;
-  if (!Array.isArray(retryPages) && Array.isArray(retryParsed)) retryPages = retryParsed;
-  if (!Array.isArray(retryPages)) retryPages = [];
+  let retryPages: QuestionExtractionResult["pages"] = [];
+  try {
+    const retryParsed = JSON.parse(sanitizeJsonString(retryText));
+    let rawRetryPages = retryParsed.pages ?? retryParsed.result?.pages ?? retryParsed.data?.pages;
+    if (!Array.isArray(rawRetryPages) && Array.isArray(retryParsed)) rawRetryPages = retryParsed;
+    if (!Array.isArray(rawRetryPages)) rawRetryPages = [];
+    retryPages = rawRetryPages;
+  } catch (retryParseErr) {
+    console.log(`[Exam Pipeline] ${paper.label}: retry JSON parse failed (truncated response?), using first attempt. Error: ${retryParseErr}`);
+    return result;
+  }
   const retryResult: QuestionExtractionResult = {
     ...remapPageIndices({ pages: retryPages }, originalPageIndices),
     _rawSnippet: retryText.slice(0, 400),
@@ -1005,8 +1024,16 @@ async function extractAnswersWithWorking(
   });
 
   const text = response.text;
-  if (!text) throw new Error("Gemini returned empty response for answer extraction");
-  return JSON.parse(sanitizeJsonString(text)) as AnswerExtractionResult;
+  if (!text) {
+    console.log("[Exam Pipeline] Answer extraction: empty response, returning empty answers");
+    return { answers: {} };
+  }
+  try {
+    return JSON.parse(sanitizeJsonString(text)) as AnswerExtractionResult;
+  } catch (parseErr) {
+    console.log(`[Exam Pipeline] Answer extraction: JSON parse failed (truncated response?). Raw snippet: ${text.slice(0, 300)}. Error: ${parseErr}`);
+    return { answers: {} };
+  }
 }
 
 export type AnswerEntry =
