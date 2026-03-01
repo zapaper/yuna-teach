@@ -1,5 +1,3 @@
-const FISH_AUDIO_API_URL = "https://api.fish.audio/v1/tts";
-
 // Convert punctuation marks into spoken words so TTS reads them aloud
 const PUNCTUATION_MAP_ZH: Record<string, string> = {
   "。": " 句号",
@@ -41,18 +39,49 @@ function expandPunctuation(text: string, language: "CHINESE" | "ENGLISH"): strin
   return result;
 }
 
-export async function synthesizeSpeech(
+// Google Cloud TTS — used for Chinese (Neural2, high quality Mandarin)
+async function synthesizeSpeechGoogle(
+  text: string,
+  speed: number
+): Promise<ArrayBuffer> {
+  const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
+  if (!apiKey) throw new Error("GOOGLE_CLOUD_API_KEY is not set");
+
+  const response = await fetch(
+    `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        input: { text },
+        voice: { languageCode: "zh-CN", name: "zh-CN-Neural2-C" },
+        audioConfig: { audioEncoding: "MP3", speakingRate: speed },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Google TTS failed: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json() as { audioContent: string };
+  const buf = Buffer.from(data.audioContent, "base64");
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+}
+
+// Fish Audio TTS — used for English
+const FISH_AUDIO_API_URL = "https://api.fish.audio/v1/tts";
+
+async function synthesizeSpeechFish(
   text: string,
   language: "CHINESE" | "ENGLISH",
-  options?: { expandPunct?: boolean; speed?: number }
+  speed: number
 ): Promise<ArrayBuffer> {
   const voiceId =
     language === "CHINESE"
-      ? "4f201abba2574feeae11e5ebf737859e"
+      ? process.env.FISH_AUDIO_VOICE_ZH
       : process.env.FISH_AUDIO_VOICE_EN;
-
-  const speechText = options?.expandPunct ? expandPunctuation(text, language) : text;
-  const speed = options?.speed ?? 0.9;
 
   const response = await fetch(FISH_AUDIO_API_URL, {
     method: "POST",
@@ -61,15 +90,13 @@ export async function synthesizeSpeech(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      text: speechText,
+      text,
       reference_id: voiceId,
       format: "mp3",
       mp3_bitrate: 128,
       normalize: true,
       latency: "balanced",
-      prosody: {
-        speed,
-      },
+      prosody: { speed },
     }),
   });
 
@@ -79,4 +106,21 @@ export async function synthesizeSpeech(
   }
 
   return response.arrayBuffer();
+}
+
+export async function synthesizeSpeech(
+  text: string,
+  language: "CHINESE" | "ENGLISH",
+  options?: { expandPunct?: boolean; speed?: number }
+): Promise<ArrayBuffer> {
+  const speed = options?.speed ?? 0.9;
+  const speechText = options?.expandPunct ? expandPunctuation(text, language) : text;
+
+  // Chinese: Google Cloud Neural2 (high quality Mandarin)
+  if (language === "CHINESE") {
+    return synthesizeSpeechGoogle(speechText, speed);
+  }
+
+  // English: Fish Audio
+  return synthesizeSpeechFish(speechText, language, speed);
 }

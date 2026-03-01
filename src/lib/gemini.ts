@@ -603,6 +603,19 @@ You are given ONLY the answer key pages. Each image is labeled with its original
   - Sub-parts: "(a) 24 cm² | (b) 15 cm"
   - IMPORTANT: Do NOT use literal newlines — use " | " as separator
 
+### Sequential scanning — process answers in strict order:
+- Work through question numbers in ASCENDING order: 1, 2, 3, ... then P2-1, P2-2, ...
+- **MCQ tables**: scan row by row. After recording Q(N), the very next row is Q(N+1) — do NOT jump around
+- **Written answers**: after the last line of Q(N)'s working, Q(N+1) begins immediately below it
+- If Q(N+1) seems missing: look at the region immediately below where Q(N) ended — it is almost certainly there
+- Never skip a number. If you found Q5 and Q7 but not Q6, re-examine the gap between them
+
+### CRITICAL — No missing answers:
+- The expected answer keys are listed in the structure context above (one per expected question)
+- You MUST output an entry for EVERY expected question key — no silent gaps
+- If you genuinely cannot read an answer, output {"type": "text", "value": "?"} as a placeholder
+- It is far better to output a "?" placeholder than to silently omit a key
+
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
 {
@@ -685,6 +698,20 @@ function buildStructureContext(structure: StructureResult): string {
     const prefix = labelToPrefix.get(label) ?? "";
     lines.push(`  - Page ${ap.pageIndex}: ${label} — use question prefix "${prefix}" (e.g. answer key "1" → key "${prefix}1")`);
   }
+
+  // Expected answer keys — tell the AI exactly what keys to extract
+  lines.push(`\nExpected answer keys you MUST extract (use these exact key strings in your output):`);
+  // Track cumulative start per prefix group (booklets in same paper share continuous numbering)
+  const prefixStart = new Map<string, number>();
+  for (const paper of structure.papers) {
+    const prefix = paper.questionPrefix;
+    const start = prefixStart.get(prefix) ?? 1;
+    const end = start + paper.expectedQuestionCount - 1;
+    const keys = Array.from({ length: paper.expectedQuestionCount }, (_, i) => `"${prefix}${start + i}"`).join(", ");
+    lines.push(`  - ${paper.label}: ${keys}`);
+    prefixStart.set(prefix, end + 1);
+  }
+
   return lines.join("\n");
 }
 
