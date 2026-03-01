@@ -7,13 +7,14 @@ import {
   use,
   useRef,
   useImperativeHandle,
+  forwardRef,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail } from "@/types";
 import QuestionCard from "@/components/QuestionCard";
 import { renderPdfToImages } from "@/lib/pdf";
 
-// Custom pen cursor (tip hotspot at bottom-left)
+// Custom pen cursor — tip hotspot at bottom-left (2, 22)
 const PEN_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' fill='%232563eb' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 2 22, crosshair`;
 
 export default function ExamPracticePage({
@@ -53,9 +54,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [tool, setTool] = useState<DrawTool>("scroll");
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // refs to each DrawablePage's imperative handle
   const pageHandles = useRef<(DrawablePageHandle | null)[]>([]);
-  // which page index was last drawn on
   const lastDrawnPage = useRef<number | null>(null);
 
   useEffect(() => {
@@ -116,17 +115,14 @@ function ExamPracticeContent({ id }: { id: string }) {
     return (
       <div className="p-6 text-center py-24">
         <p className="text-slate-500">Exam paper not found</p>
-        <button
-          onClick={() => router.push(backPath)}
-          className="mt-4 text-primary-500 underline"
-        >
+        <button onClick={() => router.push(backPath)} className="mt-4 text-primary-500 underline">
           Go Home
         </button>
       </div>
     );
   }
 
-  // Filter out answer pages (1-based in metadata → 0-based indices)
+  // Filter answer pages (1-based in metadata → 0-based indices)
   const answerPageSet = new Set(
     (paper.metadata?.answerPages ?? []).map((p) => p - 1)
   );
@@ -138,32 +134,22 @@ function ExamPracticeContent({ id }: { id: string }) {
   const questions = paper.questions;
 
   return (
+    // Full-height, no max-width — we break out of the layout's max-w-lg for the PDF view
     <div className="min-h-screen bg-white">
-      {/* ── Header ── */}
+      {/* ── Sticky header ── */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-3">
         <button
           onClick={() => router.push(backPath)}
           className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 shrink-0"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m15 18-6-6 6-6" />
           </svg>
         </button>
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 truncate">
-            {paper.title}
-          </p>
+          <p className="text-sm font-semibold text-slate-800 truncate">{paper.title}</p>
           <div className="flex items-center gap-1.5 flex-wrap">
             {paper.subject && (
               <span className="text-[10px] font-medium px-1.5 py-0 rounded-full bg-purple-100 text-purple-700">
@@ -178,26 +164,17 @@ function ExamPracticeContent({ id }: { id: string }) {
           </div>
         </div>
 
-        {/* Tab toggle (only if PDF available) */}
         {hasPdf && (
           <div className="flex rounded-xl border border-slate-200 overflow-hidden shrink-0 text-xs font-medium">
             <button
               onClick={() => setView("paper")}
-              className={`px-3 py-1.5 ${
-                view === "paper"
-                  ? "bg-primary-500 text-white"
-                  : "text-slate-500 hover:bg-slate-50"
-              }`}
+              className={`px-3 py-1.5 ${view === "paper" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
             >
               Paper
             </button>
             <button
               onClick={() => setView("questions")}
-              className={`px-3 py-1.5 ${
-                view === "questions"
-                  ? "bg-primary-500 text-white"
-                  : "text-slate-500 hover:bg-slate-50"
-              }`}
+              className={`px-3 py-1.5 ${view === "questions" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
             >
               Q&A
             </button>
@@ -213,28 +190,21 @@ function ExamPracticeContent({ id }: { id: string }) {
         </div>
       )}
 
-      {/* ── Paper view ── */}
+      {/* ── Paper drawing view ── */}
       {hasPdf && view === "paper" && (
-        <>
+        // Break out of the layout's max-w-lg to fill the full viewport width
+        <div
+          style={{
+            width: "100vw",
+            marginLeft: "calc(50% - 50vw)",
+          }}
+        >
           {/* Drawing toolbar */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
-            <ToolButton
-              active={tool === "scroll"}
-              onClick={() => setTool("scroll")}
-              title="Scroll / read"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3M2 12h20M12 2v20" />
+            <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll / read">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8L22 12L18 16M2 12H22" />
               </svg>
               Scroll
             </ToolButton>
@@ -245,64 +215,31 @@ function ExamPracticeContent({ id }: { id: string }) {
               title="Draw in blue ink"
               activeClass="bg-blue-100 text-blue-700 border-blue-300"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
               </svg>
               Pen
             </ToolButton>
 
-            <ToolButton
-              active={tool === "eraser"}
-              onClick={() => setTool("eraser")}
-              title="Erase ink"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+            <ToolButton active={tool === "eraser"} onClick={() => setTool("eraser")} title="Erase ink">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
-                <path d="M22 21H7" />
-                <path d="m5 11 9 9" />
+                <path d="M22 21H7M5 11l9 9" />
               </svg>
               Eraser
             </ToolButton>
 
             <div className="w-px h-5 bg-slate-200 mx-1" />
 
-            {/* Undo */}
             <button
               onClick={handleUndo}
               title="Undo last stroke"
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M3 7v6h6" />
                 <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
               </svg>
@@ -319,23 +256,19 @@ function ExamPracticeContent({ id }: { id: string }) {
             </button>
           </div>
 
-          {/* PDF pages */}
+          {/* PDF pages with canvas overlays */}
           <div className="divide-y divide-slate-100">
             {displayPages.map(({ src }, displayIndex) => (
               <DrawablePage
                 key={displayIndex}
-                ref={(el) => {
-                  pageHandles.current[displayIndex] = el;
-                }}
+                ref={(el) => { pageHandles.current[displayIndex] = el; }}
                 imageUrl={src}
                 tool={tool}
-                onStrokeStart={() => {
-                  lastDrawnPage.current = displayIndex;
-                }}
+                onStrokeStart={() => { lastDrawnPage.current = displayIndex; }}
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
       {/* ── Question cards ── */}
@@ -351,9 +284,7 @@ function ExamPracticeContent({ id }: { id: string }) {
               current={currentIndex + 1}
               total={questions.length}
               onPrev={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-              onNext={() =>
-                setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))
-              }
+              onNext={() => setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))}
             />
           )}
         </div>
@@ -382,9 +313,7 @@ function ToolButton({
       onClick={onClick}
       title={title}
       className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-colors ${
-        active
-          ? activeClass
-          : "border-slate-200 text-slate-500 hover:bg-slate-50"
+        active ? activeClass : "border-slate-200 text-slate-500 hover:bg-slate-50"
       }`}
     >
       {children}
@@ -394,29 +323,20 @@ function ToolButton({
 
 // ─── Drawable PDF page ────────────────────────────────────────────────────────
 
-function DrawablePage({
-  imageUrl,
-  tool,
-  onStrokeStart,
-  ref,
-}: {
-  imageUrl: string;
-  tool: DrawTool;
-  onStrokeStart: () => void;
-  ref?: React.Ref<DrawablePageHandle>;
-}) {
+const DrawablePage = forwardRef<
+  DrawablePageHandle,
+  { imageUrl: string; tool: DrawTool; onStrokeStart: () => void }
+>(function DrawablePage({ imageUrl, tool, onStrokeStart }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
-  // Undo history: snapshots of canvas ImageData before each stroke
   const history = useRef<ImageData[]>([]);
 
   useImperativeHandle(ref, () => ({
     undo() {
       const canvas = canvasRef.current;
       if (!canvas || history.current.length === 0) return;
-      const ctx = canvas.getContext("2d")!;
-      ctx.putImageData(history.current.pop()!, 0, 0);
+      canvas.getContext("2d")!.putImageData(history.current.pop()!, 0, 0);
     },
     clear() {
       const canvas = canvasRef.current;
@@ -471,7 +391,6 @@ function DrawablePage({
     isDrawing.current = true;
     const pos = getPos(clientX, clientY);
     lastPos.current = pos;
-    // dot at touch point
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     applyStyle(ctx);
@@ -500,23 +419,22 @@ function DrawablePage({
 
   const drawing = tool !== "scroll";
 
-  const canvasCursor =
-    tool === "pen"
-      ? PEN_CURSOR
-      : tool === "eraser"
-      ? "cell"
-      : "default";
-
   return (
     <div
       className="relative"
-      style={{ touchAction: drawing ? "none" : "auto" }}
+      style={{
+        touchAction: drawing ? "none" : "auto",
+        userSelect: "none",
+        WebkitUserSelect: "none",
+      }}
     >
+      {/* img is purely display — pointer events always disabled */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imageUrl}
         alt="Exam page"
         className="w-full h-auto block"
+        style={{ pointerEvents: "none", display: "block" }}
         onLoad={(e) => initCanvas(e.currentTarget)}
         draggable={false}
       />
@@ -526,22 +444,17 @@ function DrawablePage({
         style={{
           pointerEvents: drawing ? "auto" : "none",
           touchAction: "none",
-          cursor: canvasCursor,
+          cursor: tool === "pen" ? PEN_CURSOR : tool === "eraser" ? "cell" : "default",
         }}
-        onMouseDown={(e) => onStart(e.clientX, e.clientY)}
+        onMouseDown={(e) => { e.preventDefault(); onStart(e.clientX, e.clientY); }}
         onMouseMove={(e) => onMove(e.clientX, e.clientY)}
         onMouseUp={onEnd}
         onMouseLeave={onEnd}
-        onTouchStart={(e) => {
-          e.preventDefault();
-          onStart(e.touches[0].clientX, e.touches[0].clientY);
-        }}
-        onTouchMove={(e) => {
-          e.preventDefault();
-          onMove(e.touches[0].clientX, e.touches[0].clientY);
-        }}
+        onContextMenu={(e) => e.preventDefault()}
+        onTouchStart={(e) => { e.preventDefault(); onStart(e.touches[0].clientX, e.touches[0].clientY); }}
+        onTouchMove={(e) => { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); }}
         onTouchEnd={onEnd}
       />
     </div>
   );
-}
+});
