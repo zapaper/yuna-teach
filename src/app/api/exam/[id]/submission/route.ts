@@ -112,7 +112,7 @@ export async function POST(
   if (action === "submit") {
     await prisma.examPaper.update({
       where: { id },
-      data: { completedAt: new Date() },
+      data: { completedAt: new Date(), markingStatus: "pending" },
     });
   }
 

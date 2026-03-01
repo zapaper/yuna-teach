@@ -73,6 +73,7 @@ model ExamPaper {
   score            Float?
   completedAt      DateTime?
   timeSpentSeconds Int       @default(0)
+  markingStatus    String?   // "pending" | "in_progress" | "complete" | "failed"
 
   user       User           @relation("UploadedPapers", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo User?          @relation("AssignedPapers", fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -92,6 +93,9 @@ model ExamQuestion {
   yStartPct       Float?
   yEndPct         Float?
   examPaperId     String
+  marksAwarded    Float?
+  marksAvailable  Float?
+  markingNotes    String?
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 

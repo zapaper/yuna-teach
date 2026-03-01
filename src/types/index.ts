@@ -91,6 +91,7 @@ export interface ExamPaperDetail {
   score: number | null;
   completedAt: string | null;
   timeSpentSeconds: number;
+  markingStatus: string | null;
   questions: ExamQuestionItem[];
 }
 
@@ -102,4 +103,7 @@ export interface ExamQuestionItem {
   answerImageData: string | null;
   pageIndex: number;
   orderIndex: number;
+  marksAwarded: number | null;
+  marksAvailable: number | null;
+  markingNotes: string | null;
 }

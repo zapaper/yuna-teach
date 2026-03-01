@@ -14,7 +14,7 @@ export async function GET(
       questions: {
         orderBy: { orderIndex: "asc" },
         select: summary
-          ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true }
+          ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, marksAwarded: true, marksAvailable: true, markingNotes: true }
           : undefined,
       },
       assignedTo: { select: { id: true, name: true } },

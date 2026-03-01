@@ -28,6 +28,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [assigning, setAssigning] = useState(false);
   const [submissionPageCount, setSubmissionPageCount] = useState<number | null>(null);
   const [viewingPage, setViewingPage] = useState<number | null>(null);
+  const [marking, setMarking] = useState(false);
 
   useEffect(() => {
     async function fetchAll() {
@@ -53,6 +54,11 @@ function ExamOverviewContent({ id }: { id: string }) {
             setSubmissionPageCount(sub.pageCount ?? 0);
           }
         }
+        // Auto-trigger marking if pending
+        if (paperData.completedAt && paperData.markingStatus === "pending") {
+          // Fire without awaiting so fetchAll can complete first
+          setTimeout(() => triggerMarking(), 500);
+        }
       } catch {
         // handled by null check below
       } finally {
@@ -61,6 +67,19 @@ function ExamOverviewContent({ id }: { id: string }) {
     }
     fetchAll();
   }, [id]);
+
+  async function triggerMarking() {
+    if (marking) return;
+    setMarking(true);
+    try {
+      await fetch(`/api/exam/${id}/mark`, { method: "POST" });
+      // Refresh paper to get updated score and question marks
+      const res = await fetch(`/api/exam/${id}?summary=true`);
+      if (res.ok) setPaper(await res.json());
+    } finally {
+      setMarking(false);
+    }
+  }
 
   async function handleAssign(studentId: string | null) {
     if (!paper) return;
@@ -413,6 +432,86 @@ function ExamOverviewContent({ id }: { id: string }) {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Marking Results */}
+      {paper.completedAt && (
+        <Section title="Marking Results">
+          {/* Status row */}
+          {(marking || paper.markingStatus === "in_progress") && (
+            <div className="flex items-center gap-2 py-3 text-sm text-blue-600">
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-blue-500 shrink-0" />
+              AI is marking the paper… this may take a minute.
+            </div>
+          )}
+
+          {paper.markingStatus === "failed" && !marking && (
+            <div className="py-2">
+              <p className="text-sm text-red-500 mb-2">Marking failed. Try again.</p>
+              <button
+                onClick={triggerMarking}
+                className="text-sm px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors"
+              >
+                Retry marking
+              </button>
+            </div>
+          )}
+
+          {!paper.markingStatus && !marking && (
+            <div className="py-2">
+              <button
+                onClick={triggerMarking}
+                className="w-full py-2.5 rounded-xl border-2 border-primary-200 text-primary-600 font-medium text-sm hover:bg-primary-50 transition-colors"
+              >
+                Start AI marking
+              </button>
+            </div>
+          )}
+
+          {paper.markingStatus === "complete" && !marking && (
+            <>
+              {/* Score summary */}
+              <div className="flex items-center justify-between py-3 border-b border-slate-100">
+                <span className="text-sm font-semibold text-slate-600">Total score</span>
+                <span className="text-lg font-bold text-primary-600">
+                  {paper.score ?? 0}
+                  {paper.totalMarks ? ` / ${paper.totalMarks}` : ""}
+                </span>
+              </div>
+
+              {/* Per-question breakdown */}
+              <div className="divide-y divide-slate-50">
+                {paper.questions.map((q) => {
+                  const awarded = q.marksAwarded ?? null;
+                  const available = q.marksAvailable ?? null;
+                  const full = awarded !== null && available !== null && awarded >= available;
+                  const none = awarded !== null && awarded === 0;
+                  return (
+                    <div key={q.id} className="py-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-slate-700">Q{q.questionNum}</span>
+                        <span className={`text-sm font-semibold ${full ? "text-green-600" : none ? "text-red-500" : "text-amber-600"}`}>
+                          {awarded !== null ? awarded : "—"}
+                          {available !== null ? ` / ${available}` : ""}
+                        </span>
+                      </div>
+                      {q.markingNotes && (
+                        <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{q.markingNotes}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={triggerMarking}
+                className="mt-2 w-full py-2 rounded-xl border border-slate-200 text-slate-400 text-xs hover:bg-slate-50 transition-colors"
+              >
+                Re-mark
+              </button>
+            </>
+          )}
+        </Section>
       )}
 
       {/* Start practice button */}
