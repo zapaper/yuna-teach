@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail } from "@/types";
 import QuestionCard from "@/components/QuestionCard";
+import PdfViewer from "@/components/PdfViewer";
 
 export default function ExamPracticePage({
   params,
@@ -26,6 +27,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [paper, setPaper] = useState<ExamPaperDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showPdf, setShowPdf] = useState(false);
 
   useEffect(() => {
     async function fetchPaper() {
@@ -106,6 +108,50 @@ function ExamPracticeContent({ id }: { id: string }) {
           )}
         </div>
       </div>
+
+      {paper.pdfPath && (
+        <div className="mb-4">
+          <button
+            onClick={() => setShowPdf((v) => !v)}
+            className="flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            {showPdf ? "Hide Paper" : "View Paper"}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-transform ${showPdf ? "rotate-180" : ""}`}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          {showPdf && (
+            <div className="mt-3">
+              <PdfViewer pdfUrl={`/api/exam/${id}/pdf`} />
+            </div>
+          )}
+        </div>
+      )}
 
       {questions.length === 0 ? (
         <div className="text-center py-12">
