@@ -431,15 +431,18 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - BOTTOM padding should extend DOWNWARD past the last line of content — never cut upward
 
 ### WHERE to find question numbers — LEFT MARGIN ONLY:
-- Question numbers are ALWAYS printed at the LEFT-MOST margin of the page
-- ONLY look at the left margin — NEVER use numbers from the middle or right of the page
-- MCQ answer options like "(1)", "(2)", "(3)", "(4)" appear INDENTED — these are NOT question numbers
-- The pattern is: a number followed by a period or bracket at the very start of a line
+- Question numbers are ALWAYS printed at the LEFT-MOST edge of the page (within ~5% of the left side)
+- ONLY look at the very left margin — NEVER use numbers that appear inside the question text, inside sentences, in answer boxes, in diagrams, or anywhere else
+- A question number is ISOLATED at the start of a new line at the far left — it does NOT appear mid-sentence
+- MCQ answer options like "(1)", "(2)", "(3)", "(4)" appear INDENTED under the question — these are NOT question numbers
+- Numbers that appear inside a question (e.g. "There are 24 apples..." or "Calculate 3 × 8") are NOT question numbers
 
 ### What counts as a "question number" (boundary marker):
-- YES: "1.", "2.", "3.", "24.", "25." — WHOLE question numbers at the LEFT MARGIN
+- YES: "1.", "2.", "3.", "24.", "25." — alone at the FAR LEFT margin, starting a new question
 - NO: "(a)", "(b)", "(c)", "(i)", "(ii)" — sub-parts, IGNORE as boundaries
 - NO: "(1)", "(2)", "(3)", "(4)" indented under a question — MCQ OPTIONS, not boundaries
+- NO: any number that appears mid-sentence or inside the question body
+- RULE: if the number is not the FIRST thing on its line at the left edge, it is NOT a question number
 
 ### CRITICAL — Only report what you can SEE:
 - ONLY output a question number if you can clearly SEE that number printed at the LEFT MARGIN of the page image
@@ -655,9 +658,13 @@ function buildStructureContext(structure: StructureResult): string {
   if (coverPages.length > 0) {
     lines.push(`Cover pages (excluded, no questions): ${coverPages.map(p => p.pageIndex).join(", ")}`);
   }
+  // Build a map from paperLabel → questionPrefix for answer pages
+  const labelToPrefix = new Map(structure.papers.map(p => [p.label, p.questionPrefix]));
   lines.push(`\nAnswer pages (0-based):`);
   for (const ap of answerPages) {
-    lines.push(`  - Page ${ap.pageIndex}: ${ap.paperLabel || "unknown paper"}`);
+    const label = ap.paperLabel || "unknown paper";
+    const prefix = labelToPrefix.get(label) ?? "";
+    lines.push(`  - Page ${ap.pageIndex}: ${label} — use question prefix "${prefix}" (e.g. answer key "1" → key "${prefix}1")`);
   }
   return lines.join("\n");
 }
@@ -722,14 +729,21 @@ function validateQuestionExtraction(
 
   for (const [prefix, group] of prefixGroups) {
     const groupLabel = group.labels.join(" + ");
-    // Collect all question numbers for this prefix
+    // Collect all question numbers for this prefix — only match exact prefix
     const nums: number[] = [];
     for (const page of result.pages) {
       for (const q of page.questions) {
         const qNum = q.questionNum;
-        const raw = prefix ? qNum.replace(prefix, "") : qNum;
-        const n = parseInt(raw, 10);
-        if (!isNaN(n)) nums.push(n);
+        if (prefix) {
+          // Only count questions that start with this exact prefix (e.g. "P2-1")
+          if (!qNum.startsWith(prefix)) continue;
+          const n = parseInt(qNum.slice(prefix.length), 10);
+          if (!isNaN(n)) nums.push(n);
+        } else {
+          // Only count plain numeric questions (no prefix), e.g. "1", "2", "31"
+          const n = parseInt(qNum, 10);
+          if (!isNaN(n) && String(n) === qNum) nums.push(n);
+        }
       }
     }
     nums.sort((a, b) => a - b);
