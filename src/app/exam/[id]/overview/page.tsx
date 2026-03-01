@@ -336,110 +336,104 @@ function ExamOverviewContent({ id }: { id: string }) {
 
       {/* Assignment */}
       <Section title="Assignment">
-        {paper.assignedToName ? (
-          <>
-            {/* Student + marking status in one row */}
-            <div className="flex items-center justify-between py-2.5">
-              <div>
-                <span className="text-sm font-semibold text-slate-800">{paper.assignedToName}</span>
-                {paper.completedAt ? (
-                  <span className="ml-2 text-xs text-green-600 font-medium">
-                    Submitted {new Date(paper.completedAt).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
-                  </span>
-                ) : (
-                  <span className="ml-2 text-xs text-amber-600 font-medium">In progress</span>
-                )}
-              </div>
-
-              {/* Marking action */}
-              {paper.completedAt && (
-                <>
-                  {marking && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-600">
-                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
-                      Marking…
-                    </div>
-                  )}
-                  {!marking && isMarkingFailed && (
-                    <button onClick={triggerMarking}
-                      className="px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 hover:bg-red-100 transition-colors">
-                      Retry mark
-                    </button>
-                  )}
-                  {!marking && !isMarked && !isMarkingFailed && (
-                    <button onClick={triggerMarking}
-                      className="px-3 py-1.5 rounded-xl bg-primary-50 border-2 border-primary-300 text-xs font-semibold text-primary-700 hover:bg-primary-100 transition-colors">
-                      Mark paper
-                    </button>
-                  )}
-                  {!marking && isMarked && (
-                    <button
-                      onClick={() => { openMarkingDetail(); }}
-                      disabled={detailLoading}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-50 border border-green-300 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50"
-                    >
-                      {detailLoading
-                        ? <><div className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500" />Loading…</>
-                        : <>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M20 6 9 17l-5-5" />
-                          </svg>
-                          Marked: {paper.score ?? 0}{paper.totalMarks ? `/${paper.totalMarks}` : ""}
-                        </>}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-
-            {(paper.timeSpentSeconds ?? 0) > 0 && (
-              <InfoRow label="Time spent" value={(() => {
-                const s = paper.timeSpentSeconds ?? 0;
-                const h = Math.floor(s / 3600);
-                const m = Math.floor((s % 3600) / 60);
-                const sec = s % 60;
-                return h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`;
-              })()} />
-            )}
-          </>
+        {students.length === 0 ? (
+          <p className="text-xs text-slate-400 py-2">No student profiles found.</p>
         ) : (
-          <p className="text-sm text-slate-400 py-2">Not yet assigned to any student.</p>
+          <div className="divide-y divide-slate-50">
+            {students.map((student) => {
+              const isAssigned = paper.assignedToId === student.id;
+              const isSubmitted = isAssigned && !!paper.completedAt;
+              return (
+                <div key={student.id} className="flex items-center gap-2 py-2.5">
+                  {/* Student info */}
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold text-sm text-slate-800">{student.name}</span>
+                    {student.level && <span className="text-xs text-slate-400 ml-1.5">P{student.level}</span>}
+                    {isSubmitted && (
+                      <span className="ml-2 text-xs text-green-600 font-medium">
+                        Submitted {new Date(paper.completedAt!).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+                      </span>
+                    )}
+                    {isAssigned && !paper.completedAt && (
+                      <span className="ml-2 text-xs text-amber-600 font-medium">In progress</span>
+                    )}
+                  </div>
+
+                  {/* Marking button — only for assigned + submitted */}
+                  {isSubmitted && (
+                    <>
+                      {marking && (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-600">
+                          <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
+                          Marking…
+                        </div>
+                      )}
+                      {!marking && isMarkingFailed && (
+                        <button onClick={triggerMarking}
+                          className="px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600 hover:bg-red-100 transition-colors">
+                          Retry mark
+                        </button>
+                      )}
+                      {!marking && !isMarked && !isMarkingFailed && (
+                        <button onClick={triggerMarking}
+                          className="px-2.5 py-1 rounded-lg bg-primary-50 border-2 border-primary-300 text-xs font-semibold text-primary-700 hover:bg-primary-100 transition-colors">
+                          Mark paper
+                        </button>
+                      )}
+                      {!marking && isMarked && (
+                        <button onClick={() => openMarkingDetail()} disabled={detailLoading}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-green-50 border border-green-300 text-xs font-semibold text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50">
+                          {detailLoading
+                            ? <><div className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500" />Loading…</>
+                            : <><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 6 9 17l-5-5" />
+                              </svg>
+                              {paper.score ?? 0}{paper.totalMarks ? `/${paper.totalMarks}` : ""}</>}
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  {/* Assign / Assigned */}
+                  {isAssigned ? (
+                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 whitespace-nowrap">
+                      Assigned
+                    </span>
+                  ) : (
+                    <button onClick={() => handleAssign(student.id)} disabled={assigning}
+                      className="text-xs font-medium text-slate-600 border border-slate-200 rounded-lg px-2.5 py-1 hover:bg-slate-50 disabled:opacity-50 transition-colors whitespace-nowrap">
+                      Assign
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
 
-        {/* Assign / change student */}
-        <div className="mt-3 pt-3 border-t border-slate-100">
-          <p className="text-xs font-medium text-slate-500 mb-2">
-            {paper.assignedToName ? "Change assignment" : "Assign to student"}
-          </p>
-          {students.length === 0 ? (
-            <p className="text-xs text-slate-400">No student profiles found.</p>
-          ) : (
-            <div className="space-y-2">
-              {students.map((student) => (
-                <button key={student.id} onClick={() => handleAssign(student.id)}
-                  disabled={assigning}
-                  className={`w-full text-left rounded-xl py-2.5 px-3 border-2 transition-colors disabled:opacity-50 ${
-                    paper.assignedToId === student.id
-                      ? "border-blue-400 bg-blue-50 text-blue-700"
-                      : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                  }`}>
-                  <span className="font-medium text-sm">{student.name}</span>
-                  {student.level && <span className="text-xs text-slate-400 ml-2">P{student.level}</span>}
-                  {paper.assignedToId === student.id && (
-                    <span className="text-xs text-blue-500 ml-2">✓ current</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-          {paper.assignedToId && (
+        {/* Time spent */}
+        {paper.assignedToId && (paper.timeSpentSeconds ?? 0) > 0 && (
+          <div className="border-t border-slate-100 pt-1">
+            <InfoRow label="Time spent" value={(() => {
+              const s = paper.timeSpentSeconds ?? 0;
+              const h = Math.floor(s / 3600);
+              const m = Math.floor((s % 3600) / 60);
+              const sec = s % 60;
+              return h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`;
+            })()} />
+          </div>
+        )}
+
+        {/* Unassign */}
+        {paper.assignedToId && (
+          <div className="border-t border-slate-100 pt-2">
             <button onClick={() => handleAssign(null)} disabled={assigning}
-              className="mt-2 w-full py-2 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors">
+              className="w-full py-2 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors">
               Unassign
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </Section>
 
       {/* Open practice */}
