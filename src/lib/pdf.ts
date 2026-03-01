@@ -69,10 +69,11 @@ export function cropQuestionFromPage(
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      // Add 2% padding top and bottom for leeway
-      const pad = Math.round(0.02 * img.height);
-      const yStart = Math.max(0, Math.floor((yStartPct / 100) * img.height) - pad);
-      const yEnd = Math.min(img.height, Math.ceil((yEndPct / 100) * img.height) + pad);
+      // 5% top padding ensures the question number is never clipped; 2% bottom
+      const topPad = Math.round(0.05 * img.height);
+      const botPad = Math.round(0.02 * img.height);
+      const yStart = Math.max(0, Math.floor((yStartPct / 100) * img.height) - topPad);
+      const yEnd = Math.min(img.height, Math.ceil((yEndPct / 100) * img.height) + botPad);
       const cropHeight = yEnd - yStart;
 
       const canvas = document.createElement("canvas");

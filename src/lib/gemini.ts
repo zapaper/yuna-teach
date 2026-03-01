@@ -423,7 +423,7 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 ## Your task: Extract EVERY question's crop boundaries
 
 ### The ONE rule for ALL questions (MCQ and written alike):
-- yStartPct = top of this question's number (e.g. "5."), minus ~1% padding (just a tiny gap above)
+- yStartPct = ~2-3% ABOVE the top of this question's number (e.g. "5.") — the question number itself MUST be fully inside the crop, never at the very edge
 - yEndPct = top of the NEXT WHOLE question number (e.g. "6."), plus ~1% padding DOWNWARD (include a small gap below the content, do NOT cut upward into the question)
 - EVERYTHING between two consecutive WHOLE question numbers belongs to the first question
 - Each question is ONE entry — do NOT split sub-parts (a), (b), (c) into separate entries
