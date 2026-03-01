@@ -7,8 +7,8 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
-// Timeout for each Gemini call (90 seconds)
-const GEMINI_TIMEOUT_MS = 90_000;
+// Timeout for each Gemini call (3 minutes — some pages with many diagram answers are slow)
+const GEMINI_TIMEOUT_MS = 180_000;
 
 function getAI() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });

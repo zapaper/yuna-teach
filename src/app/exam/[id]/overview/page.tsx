@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState, use } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail, ExamQuestionItem, User } from "@/types";
 
@@ -65,6 +66,10 @@ function ExamOverviewContent({ id }: { id: string }) {
   // Lightbox for question image pop-up
   const [lightboxQ, setLightboxQ] = useState<MarkingQuestion | null>(null);
   const [submissionPageCount, setSubmissionPageCount] = useState(0);
+
+  // Portal mount guard (portals require document to exist)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     async function fetchAll() {
@@ -265,7 +270,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   const isMarked = paper.markingStatus === "complete";
   const isMarkingFailed = paper.markingStatus === "failed";
 
-  return (
+  const pageContent = (
     <div className="p-6 pb-24 max-w-2xl mx-auto">
       {/* Back */}
       <button
@@ -456,155 +461,164 @@ function ExamOverviewContent({ id }: { id: string }) {
         </button>
       )}
 
-      {/* ── Marking detail overlay ─────────────────────────────────────────── */}
-      {markingDetail && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col">
-          {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
-            <button onClick={() => setMarkingDetail(null)}
-              className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </button>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-800">{paper.title}</p>
-              <p className="text-xs text-slate-400">Marking Results · {paper.assignedToName}</p>
-            </div>
-            {/* Total score */}
-            <div className="text-right">
-              <p className="text-xl font-bold text-primary-600">
-                {markingDetail.score ?? 0}
-                {paper.totalMarks ? <span className="text-sm font-normal text-slate-400"> / {paper.totalMarks}</span> : ""}
-              </p>
-            </div>
-          </div>
+    </div>
+  );
 
-          {/* Per-question list */}
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-            {markingDetail.questions.map((q) => {
-              const awarded = q.marksAwarded ?? null;
-              const available = q.marksAvailable ?? null;
-              const full = awarded !== null && available !== null && awarded >= available;
-              const none = awarded !== null && awarded === 0;
-              const submissionPage = getSubmissionPage(q.pageIndex);
-              const isRemarking = remarkingId === q.id;
-              const isManual = manualId === q.id;
+  // ── Portals — rendered into document.body to avoid React reconciliation issues ──
+  const markingDetailPortal = mounted && markingDetail && createPortal(
+    <div className="fixed inset-0 z-50 bg-white flex flex-col">
+      {/* Header */}
+      <div className="sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
+        <button onClick={() => setMarkingDetail(null)}
+          className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+        </button>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-slate-800">{paper.title}</p>
+          <p className="text-xs text-slate-400">Marking Results · {paper.assignedToName}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-xl font-bold text-primary-600">
+            {markingDetail.score ?? 0}
+            {paper.totalMarks ? <span className="text-sm font-normal text-slate-400"> / {paper.totalMarks}</span> : ""}
+          </p>
+        </div>
+      </div>
 
-              return (
-                <div key={q.id} className="px-4 py-3">
-                  <div className="flex items-start gap-3">
-                    {/* Question thumbnail */}
-                    <button
-                      onClick={() => setLightboxQ(q)}
-                      className="shrink-0 w-16 rounded-lg overflow-hidden border border-slate-200 hover:border-primary-400 transition-colors bg-slate-50"
-                      title="View question image"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/api/exam/${id}/submission?page=${submissionPage}`} alt={`Q${q.questionNum}`}
-                        className="w-full h-auto block"
-                        style={q.yStartPct != null && q.yEndPct != null ? {
-                          objectFit: "cover",
-                          objectPosition: `50% ${(q.yStartPct + q.yEndPct) / 2}%`,
-                          aspectRatio: `1 / ${((q.yEndPct - q.yStartPct) / 100) * 1.5}`,
-                        } : {}}
-                      />
-                    </button>
+      {/* Per-question list */}
+      <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+        {markingDetail.questions.map((q) => {
+          const awarded = q.marksAwarded ?? null;
+          const available = q.marksAvailable ?? null;
+          const full = awarded !== null && available !== null && awarded >= available;
+          const none = awarded !== null && awarded === 0;
+          const submissionPage = getSubmissionPage(q.pageIndex);
+          const isRemarking = remarkingId === q.id;
+          const isManual = manualId === q.id;
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-sm font-semibold text-slate-700">Q{q.questionNum}</span>
-                        <span className={`text-sm font-bold ${full ? "text-green-600" : none ? "text-red-500" : "text-amber-600"}`}>
-                          {awarded !== null ? awarded : "—"}{available !== null ? ` / ${available}` : ""}
-                        </span>
-                      </div>
-                      {q.markingNotes && (
-                        <p className="text-xs text-slate-500 leading-relaxed mb-2">{q.markingNotes}</p>
-                      )}
+          return (
+            <div key={q.id} className="px-4 py-3">
+              <div className="flex items-start gap-3">
+                {/* Question thumbnail */}
+                <button
+                  onClick={() => setLightboxQ(q)}
+                  className="shrink-0 w-16 rounded-lg overflow-hidden border border-slate-200 hover:border-primary-400 transition-colors bg-slate-50"
+                  title="View question image"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/api/exam/${id}/submission?page=${submissionPage}`} alt={`Q${q.questionNum}`}
+                    className="w-full h-auto block"
+                    style={q.yStartPct != null && q.yEndPct != null ? {
+                      objectFit: "cover",
+                      objectPosition: `50% ${(q.yStartPct + q.yEndPct) / 2}%`,
+                      aspectRatio: `1 / ${((q.yEndPct - q.yStartPct) / 100) * 1.5}`,
+                    } : {}}
+                  />
+                </button>
 
-                      {/* Actions */}
-                      {isManual ? (
-                        <div className="flex items-center gap-2 mt-1">
-                          <input type="number" value={manualValue} onChange={(e) => setManualValue(e.target.value)}
-                            placeholder="Marks" min="0" step="0.5"
-                            className="w-20 px-2 py-1 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-primary-400" />
-                          <button onClick={() => saveManualMark(q.id)}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600">
-                            Save
-                          </button>
-                          <button onClick={() => setManualId(null)}
-                            className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
-                            Cancel
-                          </button>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-sm font-semibold text-slate-700">Q{q.questionNum}</span>
+                    <span className={`text-sm font-bold ${full ? "text-green-600" : none ? "text-red-500" : "text-amber-600"}`}>
+                      {awarded !== null ? awarded : "—"}{available !== null ? ` / ${available}` : ""}
+                    </span>
+                  </div>
+                  {q.markingNotes && (
+                    <p className="text-xs text-slate-500 leading-relaxed mb-2">{q.markingNotes}</p>
+                  )}
+
+                  {/* Actions */}
+                  {isManual ? (
+                    <div className="flex items-center gap-2 mt-1">
+                      <input type="number" value={manualValue} onChange={(e) => setManualValue(e.target.value)}
+                        placeholder="Marks" min="0" step="0.5"
+                        className="w-20 px-2 py-1 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-primary-400" />
+                      <button onClick={() => saveManualMark(q.id)}
+                        className="text-xs px-2.5 py-1 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600">
+                        Save
+                      </button>
+                      <button onClick={() => setManualId(null)}
+                        className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 mt-1">
+                      {isRemarking ? (
+                        <div className="flex items-center gap-1 text-xs text-blue-500">
+                          <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
+                          Re-marking…
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 mt-1">
-                          {isRemarking ? (
-                            <div className="flex items-center gap-1 text-xs text-blue-500">
-                              <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
-                              Re-marking…
-                            </div>
-                          ) : (
-                            <button onClick={() => remarkQuestion(q.id)}
-                              className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-                              Re-mark
-                            </button>
-                          )}
-                          <button onClick={() => { setManualId(q.id); setManualValue(String(q.marksAwarded ?? "")); }}
-                            className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-                            Manual
-                          </button>
-                        </div>
+                        <button onClick={() => remarkQuestion(q.id)}
+                          className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                          Re-mark
+                        </button>
                       )}
+                      <button onClick={() => { setManualId(q.id); setManualValue(String(q.marksAwarded ?? "")); }}
+                        className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                        Manual
+                      </button>
                     </div>
-                  </div>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Footer */}
-          <div className="border-t border-slate-100 px-4 py-3">
-            <button onClick={() => { triggerMarking(); setMarkingDetail(null); }}
-              className="w-full py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
-              Re-mark all questions
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Question image lightbox ────────────────────────────────────────── */}
-      {lightboxQ && (
-        <div className="fixed inset-0 z-[60] bg-black/90 flex flex-col"
-          onClick={() => setLightboxQ(null)}>
-          <div className="flex items-center justify-between px-4 py-3 bg-black/60 shrink-0">
-            <span className="text-white text-sm font-medium">Q{lightboxQ.questionNum}</span>
-            <button className="text-slate-300 hover:text-white p-1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 6 6 18M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex-1 overflow-auto flex items-start justify-center p-4"
-            onClick={(e) => e.stopPropagation()}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`/api/exam/${id}/submission?page=${getSubmissionPage(lightboxQ.pageIndex)}`}
-              alt={`Q${lightboxQ.questionNum}`}
-              className="max-w-full h-auto rounded-xl shadow-2xl"
-            />
-          </div>
-          {submissionPageCount > 1 && (
-            <div className="flex items-center justify-center gap-4 py-2 bg-black/60 shrink-0 text-xs text-slate-400">
-              Page {getSubmissionPage(lightboxQ.pageIndex) + 1} of {submissionPageCount}
+              </div>
             </div>
-          )}
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <div className="border-t border-slate-100 px-4 py-3">
+        <button onClick={() => { triggerMarking(); setMarkingDetail(null); }}
+          className="w-full py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
+          Re-mark all questions
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+
+  const lightboxPortal = mounted && lightboxQ && createPortal(
+    <div className="fixed inset-0 z-[60] bg-black/90 flex flex-col"
+      onClick={() => setLightboxQ(null)}>
+      <div className="flex items-center justify-between px-4 py-3 bg-black/60 shrink-0">
+        <span className="text-white text-sm font-medium">Q{lightboxQ.questionNum}</span>
+        <button className="text-slate-300 hover:text-white p-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="flex-1 overflow-auto flex items-start justify-center p-4"
+        onClick={(e) => e.stopPropagation()}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`/api/exam/${id}/submission?page=${getSubmissionPage(lightboxQ.pageIndex)}`}
+          alt={`Q${lightboxQ.questionNum}`}
+          className="max-w-full h-auto rounded-xl shadow-2xl"
+        />
+      </div>
+      {submissionPageCount > 1 && (
+        <div className="flex items-center justify-center gap-4 py-2 bg-black/60 shrink-0 text-xs text-slate-400">
+          Page {getSubmissionPage(lightboxQ.pageIndex) + 1} of {submissionPageCount}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
+  );
+
+  return (
+    <>
+      {pageContent}
+      {markingDetailPortal}
+      {lightboxPortal}
+    </>
   );
 }
 
