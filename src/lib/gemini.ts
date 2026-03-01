@@ -686,12 +686,13 @@ async function analyzeExamStructure(
 
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for structure analysis");
-  const parsed = JSON.parse(text);
+  console.log("[Exam Pipeline] Structure raw response (first 300 chars):", text.slice(0, 300));
+  const parsed = JSON.parse(sanitizeJsonString(text));
   if (!Array.isArray(parsed.pages)) {
-    throw new Error(`Structure analysis returned invalid format — missing pages array. Keys: ${Object.keys(parsed).join(", ")}`);
+    throw new Error(`Structure analysis: missing pages array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 300)}`);
   }
   if (!Array.isArray(parsed.papers)) {
-    throw new Error(`Structure analysis returned invalid format — missing papers array. Keys: ${Object.keys(parsed).join(", ")}`);
+    throw new Error(`Structure analysis: missing papers array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 300)}`);
   }
   return parsed as StructureResult;
 }
@@ -824,14 +825,16 @@ async function extractQuestionsForBooklet(
 
   const text = response.text;
   if (!text) throw new Error(`Gemini returned empty response for question extraction (${paper.label})`);
-  const parsed = JSON.parse(text);
-  // Gemini Pro may return the result nested or without pages array — normalize
-  const result: QuestionExtractionResult = {
-    pages: Array.isArray(parsed.pages) ? parsed.pages : [],
-  };
-  if (!Array.isArray(parsed.pages)) {
-    console.log(`[Exam Pipeline] ${paper.label}: Gemini returned unexpected structure, keys: ${Object.keys(parsed).join(", ")}`);
+  console.log(`[Exam Pipeline] ${paper.label} raw response (first 300 chars):`, text.slice(0, 300));
+  const parsed = JSON.parse(sanitizeJsonString(text));
+  // Normalize: handle top-level array, nested result, or missing pages
+  let pages = parsed.pages ?? parsed.result?.pages ?? parsed.data?.pages;
+  if (!Array.isArray(pages) && Array.isArray(parsed)) pages = parsed;
+  if (!Array.isArray(pages)) {
+    console.log(`[Exam Pipeline] ${paper.label}: unexpected structure, keys: ${Object.keys(parsed).join(", ")}, raw: ${text.slice(0, 500)}`);
+    pages = [];
   }
+  const result: QuestionExtractionResult = { pages };
 
   // Validate: check first question is correct
   const allQNums = extractQuestionNumbers(result, paper.questionPrefix);
@@ -912,10 +915,11 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
     return result;
   }
 
-  const retryParsed = JSON.parse(retryText);
-  const retryResult: QuestionExtractionResult = {
-    pages: Array.isArray(retryParsed.pages) ? retryParsed.pages : [],
-  };
+  const retryParsed = JSON.parse(sanitizeJsonString(retryText));
+  let retryPages = retryParsed.pages ?? retryParsed.result?.pages ?? retryParsed.data?.pages;
+  if (!Array.isArray(retryPages) && Array.isArray(retryParsed)) retryPages = retryParsed;
+  if (!Array.isArray(retryPages)) retryPages = [];
+  const retryResult: QuestionExtractionResult = { pages: retryPages };
   const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
   console.log(`[Exam Pipeline] ${paper.label} retry: Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
 
