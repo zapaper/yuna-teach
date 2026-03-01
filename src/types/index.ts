@@ -66,8 +66,13 @@ export interface ExamPaperDetail {
   subject: string | null;
   year: string | null;
   semester: string | null;
+  totalMarks: string | null;
   pageCount: number;
   createdAt: string;
+  assignedToId: string | null;
+  assignedToName: string | null;
+  score: number | null;
+  completedAt: string | null;
   questions: ExamQuestionItem[];
 }
 

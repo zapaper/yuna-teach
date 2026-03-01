@@ -15,6 +15,7 @@ interface HeaderInfo {
   year: string;
   semester: string;
   title: string;
+  totalMarks: string;
 }
 
 interface ExtractedQuestion {
@@ -53,6 +54,7 @@ function ExamUploadContent() {
     year: "",
     semester: "",
     title: "",
+    totalMarks: "",
   });
   const [questions, setQuestions] = useState<ExtractedQuestion[]>([]);
   const [processingStatus, setProcessingStatus] = useState("");
@@ -368,6 +370,7 @@ function ExamUploadContent() {
           subject: headerInfo.subject,
           year: headerInfo.year,
           semester: headerInfo.semester,
+          totalMarks: headerInfo.totalMarks,
           pageCount: pageImages.length,
           userId,
           questions: questions.map((q, i) => ({

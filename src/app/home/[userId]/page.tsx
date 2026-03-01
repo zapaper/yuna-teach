@@ -211,6 +211,7 @@ export default function HomePage({
                 key={paper.id}
                 paper={paper}
                 userId={userId}
+                userRole={user?.role}
                 onDelete={isParent ? handleDeleteExam : undefined}
                 students={isParent ? students : undefined}
                 onAssign={isParent ? handleAssignExam : undefined}

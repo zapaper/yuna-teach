@@ -62,11 +62,14 @@ model ExamPaper {
   subject   String?
   year      String?
   semester  String?
+  totalMarks String?
   pageCount Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   userId       String
   assignedToId String?
+  score        Float?
+  completedAt  DateTime?
 
   user       User           @relation("UploadedPapers", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo User?          @relation("AssignedPapers", fields: [assignedToId], references: [id], onDelete: SetNull)

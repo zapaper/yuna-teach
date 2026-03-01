@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       subject,
       year,
       semester,
+      totalMarks,
       pageCount,
       userId,
       questions,
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
         subject: subject || null,
         year: year || null,
         semester: semester || null,
+        totalMarks: totalMarks || null,
         pageCount: pageCount || 0,
         userId,
         questions: {

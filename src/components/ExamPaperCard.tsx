@@ -7,12 +7,14 @@ import { useState } from "react";
 export default function ExamPaperCard({
   paper,
   userId,
+  userRole,
   onDelete,
   students,
   onAssign,
 }: {
   paper: ExamPaperSummary;
   userId: string;
+  userRole?: "PARENT" | "STUDENT";
   onDelete?: (id: string) => void;
   students?: User[];
   onAssign?: (paperId: string, studentId: string | null) => void;
@@ -20,10 +22,16 @@ export default function ExamPaperCard({
   const [showConfirm, setShowConfirm] = useState(false);
   const [showAssign, setShowAssign] = useState(false);
 
+  // Parents go to overview; students go directly to practice
+  const examHref =
+    userRole === "PARENT"
+      ? `/exam/${paper.id}/overview?userId=${userId}`
+      : `/exam/${paper.id}?userId=${userId}`;
+
   return (
     <div className="relative">
       <Link
-        href={`/exam/${paper.id}?userId=${userId}`}
+        href={examHref}
         className="block rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm transition-all active:scale-[0.98] hover:border-primary-200 hover:shadow-md"
       >
         <div className="flex items-start justify-between">
