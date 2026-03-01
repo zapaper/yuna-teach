@@ -89,6 +89,10 @@ function ExamEditContent({ id }: { id: string }) {
     try {
       const images = await renderPdfToImages(file);
       setPageImages(images);
+      // Persist to server so it auto-loads next time
+      const form = new FormData();
+      form.append("pdf", file);
+      await fetch(`/api/exam/${id}/pdf`, { method: "POST", body: form });
     } finally {
       setLoadingPdf(false);
     }
