@@ -475,9 +475,21 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - Extract questions strictly in order, page by page, top to bottom
 - Question N+1's yStartPct = Question N's yEndPct — they must be contiguous, no gap
 - SAME PAGE: each new question starts exactly where the previous ended
-- PAGE BOUNDARY: if Question N is the last on its page, yEndPct = ~95% (extend to near-bottom of that page). Question N+1 on the NEXT page starts at ~2-5% from the top
+- PAGE BOUNDARY: if Question N is the last on its page, yEndPct = 95 (ALWAYS — extend to near-bottom of that page). Question N+1 on the NEXT page starts at ~2-5% from the top
 - If a question's content continues from the previous page with no question number at top, yStartPct = 0 or 1
 - Never leave unexplained gaps — blank space between questions belongs to the preceding question's crop
+- NEVER go back and re-examine a page you have already finished — process pages ONCE, in order
+
+### MANDATORY — yEndPct must always be set:
+- EVERY question MUST have yEndPct > yStartPct
+- If you cannot see the next question number (because the question extends to the end of the page), set yEndPct = 95
+- If yEndPct is missing or equal to yStartPct, your output is INVALID
+- A question with no clearly detected bottom → yEndPct = 95 for that page, then continue on the next page
+
+### MANDATORY — Output order:
+- Output pages in ASCENDING order of their page label (e.g., [Page 3] before [Page 7])
+- Within each page, output questions in ASCENDING order of yStartPct (top to bottom on the page)
+- Process pages sequentially from first to last — NEVER jump forward and come back
 
 ### Multiple papers:
 - If the structure analysis identified multiple papers, question numbers RESET at each new paper
@@ -805,23 +817,80 @@ function extractQuestionNumbers(result: QuestionExtractionResult, prefix: string
 }
 
 // Remap Gemini's returned pageIndex values back to original PDF page indices.
-// Gemini Pro returns sequential 0-based indices (0, 1, 2...) for the images it
-// received, ignoring the [Page N] labels. We map them back using originalPageIndices.
+// Detects whether Gemini used sequential 0-based positions or labeled page indices,
+// then remaps accordingly. Handles both modes reliably.
 function remapPageIndices(
   result: QuestionExtractionResult,
   originalPageIndices: number[]
 ): QuestionExtractionResult {
+  if (result.pages.length === 0) return result;
+
   const origSet = new Set(originalPageIndices);
+  const numSent = originalPageIndices.length;
+  const returnedIndices = result.pages.map(p => p.pageIndex);
+
+  // Sequential mode: all returned indices are valid 0-based positions into originalPageIndices
+  // i.e. every index is in range [0, numSent)
+  const allSequential = returnedIndices.every(i => i >= 0 && i < numSent);
+  // Labeled mode: all returned indices match actual original page indices
+  const allLabeled = returnedIndices.every(i => origSet.has(i));
+
+  let remapFn: (idx: number) => number;
+  if (allSequential && !allLabeled) {
+    // Gemini clearly used sequential positions — remap all
+    remapFn = (idx) => originalPageIndices[idx] ?? idx;
+  } else if (allLabeled) {
+    // Gemini clearly used labeled indices — keep all
+    remapFn = (idx) => idx;
+  } else {
+    // Mixed: per-index heuristic — if in origSet treat as labeled, else try sequential
+    remapFn = (idx) => {
+      if (origSet.has(idx)) return idx;
+      return originalPageIndices[idx] ?? idx;
+    };
+  }
+
   return {
     ...result,
-    pages: result.pages.map(page => {
-      // If Gemini used the label correctly the index is already an original index
-      if (origSet.has(page.pageIndex)) return page;
-      // Otherwise treat as sequential position into originalPageIndices
-      const remapped = originalPageIndices[page.pageIndex] ?? page.pageIndex;
-      return { ...page, pageIndex: remapped };
-    }),
+    pages: result.pages.map(page => ({ ...page, pageIndex: remapFn(page.pageIndex) })),
   };
+}
+
+type PageEntry = QuestionExtractionResult["pages"][0];
+type QuestionEntry = PageEntry["questions"][0];
+
+// Normalize an extraction result after remapping:
+// - Sort pages by pageIndex
+// - Deduplicate pages with the same index (merge questions)
+// - Sort questions within each page by yStartPct
+// - Clamp and fix invalid coordinates
+function normalizeExtractionResult(result: QuestionExtractionResult): QuestionExtractionResult {
+  // Merge pages with duplicate indices
+  const pageMap = new Map<number, QuestionEntry[]>();
+  for (const page of result.pages) {
+    const existing = pageMap.get(page.pageIndex);
+    if (existing) {
+      existing.push(...page.questions);
+    } else {
+      pageMap.set(page.pageIndex, [...page.questions]);
+    }
+  }
+
+  const pages: PageEntry[] = [...pageMap.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([pageIndex, questions]) => {
+      // Fix invalid coordinates and sort by yStartPct
+      const fixed = questions.map(q => {
+        const start = Math.max(0, Math.min(99, q.yStartPct ?? 0));
+        let end = Math.max(0, Math.min(100, q.yEndPct ?? 0));
+        if (end <= start) end = Math.min(100, start + 5); // ensure positive height
+        return { ...q, yStartPct: start, yEndPct: end };
+      }).sort((a, b) => a.yStartPct - b.yStartPct);
+
+      return { pageIndex, questions: fixed };
+    });
+
+  return { ...result, pages };
 }
 
 // Build a booklet-specific context string for per-booklet extraction
@@ -889,7 +958,7 @@ async function extractQuestionsForBooklet(
     // pages stays []
   }
   const result: QuestionExtractionResult = {
-    ...remapPageIndices({ pages }, originalPageIndices),
+    ...normalizeExtractionResult(remapPageIndices({ pages }, originalPageIndices)),
     _rawSnippet: text.slice(0, 400),
   };
 
@@ -984,12 +1053,21 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
     return result;
   }
   const retryResult: QuestionExtractionResult = {
-    ...remapPageIndices({ pages: retryPages }, originalPageIndices),
+    ...normalizeExtractionResult(remapPageIndices({ pages: retryPages }, originalPageIndices)),
     _rawSnippet: retryText.slice(0, 400),
   };
   const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
+  const firstQNums = extractQuestionNumbers(result, paper.questionPrefix);
   console.log(`[Exam Pipeline] ${paper.label} retry: Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
 
+  // Use retry only if it found more questions or starts at the correct first question
+  const retryBetter =
+    (retryQNums.length > firstQNums.length) ||
+    (retryQNums[0] === firstQuestionNum && firstQNums[0] !== firstQuestionNum);
+  if (!retryBetter) {
+    console.log(`[Exam Pipeline] ${paper.label}: retry not better, keeping first attempt`);
+    return result;
+  }
   return retryResult;
 }
 
