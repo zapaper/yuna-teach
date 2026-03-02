@@ -183,8 +183,11 @@ function ExamUploadContent() {
           q.yEndPct
         );
 
-        // Handle both text and image answers
+        // Handle both text and image answers — match by question number
         const rawEntry = result.answers?.[q.questionNum];
+        if (!rawEntry) {
+          console.log(`[Answer Match] Q${q.questionNum}: no answer found in answer key`);
+        }
         let answer = "";
         let answerImageData = "";
 

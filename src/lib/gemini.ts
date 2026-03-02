@@ -621,11 +621,19 @@ You are given ONLY the answer key pages. Each image is labeled with its original
   - Sub-parts: "(a) 24 cm² | (b) 15 cm"
   - IMPORTANT: Do NOT use literal newlines — use " | " as separator
 
-### Sequential scanning — process answers in strict order:
-- Work through question numbers in ASCENDING order: 1, 2, 3, ... then P2-1, P2-2, ...
-- **MCQ tables**: scan row by row. After recording Q(N), the very next row is Q(N+1) — do NOT jump around
-- **Written answers**: after the last line of Q(N)'s working, Q(N+1) begins immediately below it
-- If Q(N+1) seems missing: look at the region immediately below where Q(N) ended — it is almost certainly there
+### CRITICAL — Read the PRINTED question number for each answer:
+- Every answer on the answer key has a PRINTED question number next to it (e.g. "1", "Q1", "1.", "1)")
+- You MUST read this printed number and use it as the JSON key — do NOT infer question numbers from position or row order
+- **MCQ tables**: each row has a question number column and an answer column. Read BOTH columns for every row. The question number tells you which question this answer belongs to. Do NOT assume row N = question N
+- **Written answers**: each answer block is labeled with its question number. Read that label
+- If a table has a HEADER ROW (e.g. "Qn" | "Answer"), skip it — it is not a data row
+- After reading all answers, verify: are the question numbers sequential with no gaps? If you have Q14 and Q16 but no Q15, re-examine the answer key — you likely misread a number
+
+### Sequential verification — cross-check your extracted answers:
+- After extracting all answers, list the question numbers you found in order
+- They should be sequential: 1, 2, 3, ..., N with no gaps and no duplicates
+- If there IS a gap (e.g. missing Q15), go back to the answer key image and find it
+- If there IS a duplicate, you misread one of the numbers — re-examine the printed text
 - Never skip a number. If you found Q5 and Q7 but not Q6, re-examine the gap between them
 
 ### CRITICAL — No missing answers:
@@ -1221,12 +1229,52 @@ async function extractAnswersWithWorking(
     console.log("[Exam Pipeline] Answer extraction: empty response, returning empty answers");
     return { answers: {} };
   }
+
+  let result: AnswerExtractionResult;
   try {
-    return JSON.parse(sanitizeJsonString(text)) as AnswerExtractionResult;
+    result = JSON.parse(sanitizeJsonString(text)) as AnswerExtractionResult;
   } catch (parseErr) {
     console.log(`[Exam Pipeline] Answer extraction: JSON parse failed (truncated response?). Raw snippet: ${text.slice(0, 300)}. Error: ${parseErr}`);
     return { answers: {} };
   }
+
+  // Validate answer keys — check for gaps and off-by-one errors
+  const answerKeys = Object.keys(result.answers);
+  const expectedKeys: string[] = [];
+  for (const paper of structure.papers) {
+    const prevCount = structure.papers
+      .filter(p => p.questionPrefix === paper.questionPrefix)
+      .filter(p => p.firstQuestionPageIndex < paper.firstQuestionPageIndex)
+      .reduce((sum, p) => sum + p.expectedQuestionCount, 0);
+    for (let i = 0; i < paper.expectedQuestionCount; i++) {
+      const qNum = paper.questionPrefix
+        ? `${paper.questionPrefix}${prevCount + i + 1}`
+        : `${prevCount + i + 1}`;
+      expectedKeys.push(qNum);
+    }
+  }
+
+  const missingAnswers = expectedKeys.filter(k => !result.answers[k]);
+  const extraAnswers = answerKeys.filter(k => !expectedKeys.includes(k));
+
+  console.log(`[Exam Pipeline] Answer extraction: ${answerKeys.length} answers found, ${expectedKeys.length} expected`);
+  console.log(`[Exam Pipeline] Answer keys found: [${answerKeys.join(", ")}]`);
+  if (missingAnswers.length > 0) {
+    console.log(`[Exam Pipeline] WARNING — missing answers for: [${missingAnswers.join(", ")}]`);
+  }
+  if (extraAnswers.length > 0) {
+    console.log(`[Exam Pipeline] WARNING — unexpected answer keys: [${extraAnswers.join(", ")}] (possible off-by-one or numbering error)`);
+  }
+
+  // Log first few answers for verification
+  const previewEntries = answerKeys.slice(0, 5).map(k => {
+    const a = result.answers[k];
+    const val = typeof a === "string" ? a : a.value;
+    return `${k}: ${val.slice(0, 30)}`;
+  });
+  console.log(`[Exam Pipeline] Answer preview: ${previewEntries.join(" | ")}`);
+
+  return result;
 }
 
 export type AnswerEntry =
