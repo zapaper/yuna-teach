@@ -461,13 +461,13 @@ function QuestionEditCard({
           </div>
         </div>
 
-        {/* Answer image (if present) + select area */}
-        <div className="flex items-start gap-3">
-          <span className="text-xs font-medium text-slate-500 w-24 shrink-0 mt-1">
-            Answer image
-          </span>
-          <div className="flex-1 space-y-2">
-            {question.answerImageData && (
+        {/* Answer image — collapsed by default, expands when image exists or user clicks */}
+        {question.answerImageData ? (
+          <div className="flex items-start gap-3">
+            <span className="text-xs font-medium text-slate-500 w-24 shrink-0 mt-1">
+              Answer img
+            </span>
+            <div className="flex-1 space-y-2">
               <Image
                 src={question.answerImageData}
                 alt="Answer image"
@@ -476,34 +476,32 @@ function QuestionEditCard({
                 className="w-full h-auto rounded-xl border border-slate-100 object-contain"
                 unoptimized
               />
-            )}
-            <button
-              onClick={() => onSelectArea("answerImageData")}
-              disabled={!pdfLoaded}
-              title={
-                pdfLoaded
-                  ? "Select answer area from PDF"
-                  : "Load PDF first"
-              }
-              className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="13"
-                height="13"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3zM16 16h5v5h-5z" />
-              </svg>
-              {question.answerImageData ? "Replace answer image" : "Select answer image from PDF"}
-            </button>
+              <div className="flex gap-2">
+                {pdfLoaded && (
+                  <button
+                    onClick={() => onSelectArea("answerImageData")}
+                    className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+                  >
+                    Replace
+                  </button>
+                )}
+                <button
+                  onClick={() => onSave(question.id, "answerImageData", null)}
+                  className="text-xs text-slate-500 hover:text-red-500 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : pdfLoaded ? (
+          <button
+            onClick={() => onSelectArea("answerImageData")}
+            className="text-xs text-slate-400 hover:text-primary-600 transition-colors ml-27"
+          >
+            + Add answer image
+          </button>
+        ) : null}
       </div>
     </div>
   );
