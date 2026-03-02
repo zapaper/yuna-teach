@@ -298,8 +298,84 @@ export async function markExamPaper(paperId: string): Promise<void> {
       })
     );
 
-    const allResults = pageResults.flat();
+    let allResults = pageResults.flat();
     console.log(`[marking] All pages done. Total results: ${allResults.length}`);
+
+    // ── Retry pass: re-mark questions that got no result ─────────────────────
+    const markedIds = new Set(allResults.map((r) => r.questionId));
+    const unmarkedQuestions = paper.questions.filter((q) => !markedIds.has(q.id));
+    if (unmarkedQuestions.length > 0) {
+      console.log(`[marking] ${unmarkedQuestions.length} questions got no result — retrying individually`);
+      const retryResults = await Promise.all(
+        unmarkedQuestions.map(async (q) => {
+          const submissionPage = submissionIndexMap.get(q.pageIndex);
+          if (submissionPage === undefined) return null;
+          const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
+          let pageBuffer: Buffer;
+          try {
+            pageBuffer = await fs.readFile(pagePath);
+          } catch {
+            return null;
+          }
+          const pageBase64 = pageBuffer.toString("base64");
+          const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
+          const yEnd = q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
+          const answerDesc = q.answerImageData
+            ? `[diagram — see additional image]`
+            : q.answer ? `"${q.answer}"` : "not provided";
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. Expected answer: ${answerDesc}`;
+
+          let answerImagesNote = "";
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const parts: any[] = [
+            { inlineData: { mimeType: "image/jpeg" as const, data: pageBase64 } },
+          ];
+          if (q.answerImageData) {
+            const sepIdx = q.answerImageData.indexOf(";base64,");
+            if (sepIdx > 5) {
+              answerImagesNote = `Additional image 2: expected answer diagram for Question ${q.questionNum}`;
+              parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
+            }
+          }
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+          parts.push({ text: prompt });
+
+          try {
+            console.log(`[marking] Retry for Q${q.questionNum} (${q.id})`);
+            const response = await withTimeout(
+              getAI().models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts }],
+                config: { responseMimeType: "application/json", temperature: 0.1 },
+              }),
+              GEMINI_TIMEOUT_MS,
+              `retry Q${q.questionNum}`
+            );
+            const text = response.text;
+            if (!text) return null;
+            const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
+            const result = parsed.questions.find((r) => r.questionId === q.id) ?? parsed.questions[0];
+            if (result) {
+              // Ensure the questionId is correct
+              result.questionId = q.id;
+              console.log(`[marking] Retry Q${q.questionNum} succeeded: ${result.marksAwarded}/${result.marksAvailable}`);
+              return result;
+            }
+            return null;
+          } catch (err) {
+            console.warn(`[marking] Retry failed for Q${q.questionNum}:`, err);
+            return null;
+          }
+        })
+      );
+      for (const r of retryResults) {
+        if (r) allResults.push(r);
+      }
+      const stillUnmarked = paper.questions.length - allResults.length;
+      if (stillUnmarked > 0) {
+        console.warn(`[marking] ${stillUnmarked} questions still unmarked after retry`);
+      }
+    }
 
     // ── Batch DB updates in a single transaction ──────────────────────────────
     let totalAwarded = 0;
