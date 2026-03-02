@@ -485,16 +485,19 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - Extract questions strictly in order, page by page, top to bottom
 - Question N+1's yStartPct = Question N's yEndPct — they must be contiguous, no gap
 - SAME PAGE: each new question starts exactly where the previous ended
-- PAGE BOUNDARY: if Question N is the last on its page, yEndPct = 95 (ALWAYS — extend to near-bottom of that page). Question N+1 on the NEXT page starts at ~2-5% from the top
+- PAGE BOUNDARY: if Question N is the last on its page, set yEndPct = 95 (extend to near-bottom). Then move to the NEXT PAGE and look for Question N+1 starting at ~2-5% from the top
 - If a question's content continues from the previous page with no question number at top, yStartPct = 0 or 1
 - Never leave unexplained gaps — blank space between questions belongs to the preceding question's crop
 - NEVER go back and re-examine a page you have already finished — process pages ONCE, in order
+- Pages must be processed in ASCENDING order. You must NEVER output a question on a page that comes BEFORE the page of the previous question. Page numbers only go FORWARD.
 
-### MANDATORY — yEndPct must always be set:
-- EVERY question MUST have yEndPct > yStartPct
-- If you cannot see the next question number (because the question extends to the end of the page), set yEndPct = 95
-- If yEndPct is missing or equal to yStartPct, your output is INVALID
-- A question with no clearly detected bottom → yEndPct = 95 for that page, then continue on the next page
+### MANDATORY — When you cannot detect the bottom boundary:
+- If you cannot see the NEXT question number on the current page, that means THIS question extends to the END of the page
+- Set yEndPct = 95 and set boundaryBottom = "not found"
+- Then MOVE FORWARD to the NEXT PAGE and continue searching there
+- NEVER restart from the beginning of the booklet. NEVER go backwards to an earlier page
+- The next question MUST be on the same page or a LATER page — never an earlier one
+- If you lose track of where you are, look at your LAST output entry: its pageIndex tells you the minimum page to search next
 
 ### MANDATORY — Output order:
 - Output pages in ASCENDING order of their page label (e.g., [Page 3] before [Page 7])
@@ -919,14 +922,49 @@ type QuestionEntry = PageEntry["questions"][0];
 // - Sort questions within each page by yStartPct
 // - Clamp and fix invalid coordinates
 function normalizeExtractionResult(result: QuestionExtractionResult): QuestionExtractionResult {
-  // Merge pages with duplicate indices
-  const pageMap = new Map<number, QuestionEntry[]>();
+  // Fix backwards page jumps: if Gemini restarts from an earlier page after losing
+  // track, move those questions forward to the correct page
+  const allQuestions: Array<{ pageIndex: number; q: QuestionEntry }> = [];
   for (const page of result.pages) {
-    const existing = pageMap.get(page.pageIndex);
+    for (const q of page.questions) {
+      allQuestions.push({ pageIndex: page.pageIndex, q });
+    }
+  }
+
+  // Sort by question number (numeric part) to detect backwards jumps
+  const sorted = allQuestions.sort((a, b) => {
+    const aNum = parseInt(a.q.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
+    const bNum = parseInt(b.q.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
+    if (isNaN(aNum) || isNaN(bNum)) return 0;
+    return aNum - bNum;
+  });
+
+  // Fix backwards page jumps: each question's page must be >= the previous question's page
+  let maxPageSoFar = -1;
+  for (const entry of sorted) {
+    if (entry.pageIndex < maxPageSoFar) {
+      // Backwards jump detected — move to the page after the previous question's page
+      const nextPageIndex = maxPageSoFar + 1;
+      console.log(
+        `[Extraction Fix] Q${entry.q.questionNum}: page ${entry.pageIndex} is before previous page ${maxPageSoFar}. ` +
+        `Moving to page ${nextPageIndex} (question likely continues on next page after boundary not found).`
+      );
+      entry.pageIndex = nextPageIndex;
+      // Reset coordinates to top of the new page
+      entry.q.yStartPct = 2;
+      entry.q.yEndPct = 95;
+    }
+    maxPageSoFar = Math.max(maxPageSoFar, entry.pageIndex);
+  }
+
+  // Rebuild page map with fixed assignments
+  const pageMap = new Map<number, QuestionEntry[]>();
+  for (const entry of sorted) {
+    const existing = pageMap.get(entry.pageIndex);
     if (existing) {
-      existing.push(...page.questions);
+      existing.push(entry.q);
     } else {
-      pageMap.set(page.pageIndex, [...page.questions]);
+      pageMap.set(entry.pageIndex, [entry.q]);
     }
   }
 
