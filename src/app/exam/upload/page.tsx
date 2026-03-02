@@ -198,8 +198,12 @@ function ExamUploadContent() {
       }));
     setAnswerKeyPages(answerPages);
 
-    // Helper: resolve the correct page index for a question using booklet ranges
-    function resolvePageIndex(questionNum: string, extractedPageIndex: number): number {
+    // Helper: resolve the correct page index using booklet ranges + previous question context
+    function resolvePageIndex(
+      questionNum: string,
+      extractedPageIndex: number,
+      prevQuestion: { pageIndex: number; yEndPct: number } | null
+    ): number {
       const printedNum = questionNum.replace(/^(P\d+-|B\d+-)/, "");
       const prefix = questionNum.replace(printedNum, "");
       const qNumInt = parseInt(printedNum, 10);
@@ -208,6 +212,27 @@ function ExamUploadContent() {
       const booklet = ranges.find(
         (b) => b.prefix === prefix && qNumInt >= b.firstQuestionNum && qNumInt <= b.lastQuestionNum
       );
+
+      // If previous question ended at bottom of page (>=90%), this question must be on the NEXT page
+      if (prevQuestion && prevQuestion.yEndPct >= 90) {
+        const nextPage = prevQuestion.pageIndex + 1;
+        if (extractedPageIndex <= prevQuestion.pageIndex && images[nextPage]) {
+          console.log(
+            `[Page Correction] Q${questionNum}: previous question ends at ${prevQuestion.yEndPct}% (end of page ${prevQuestion.pageIndex + 1}). Moving to next page ${nextPage + 1}.`
+          );
+          return nextPage;
+        }
+      }
+
+      // If extracted page is before the previous question's page, move forward
+      if (prevQuestion && extractedPageIndex < prevQuestion.pageIndex) {
+        console.log(
+          `[Page Correction] Q${questionNum}: extracted on page ${extractedPageIndex + 1} but previous question is on page ${prevQuestion.pageIndex + 1}. Using same page.`
+        );
+        return prevQuestion.pageIndex;
+      }
+
+      // If extracted page is before booklet start, use booklet start
       if (booklet && extractedPageIndex < booklet.questionsStartPageIndex) {
         console.log(
           `[Page Correction] Q${questionNum}: extracted on page ${extractedPageIndex + 1} but questionsStartPage is ${booklet.questionsStartPageIndex + 1}. Correcting.`
@@ -220,6 +245,7 @@ function ExamUploadContent() {
     // Crop questions from each page
     setProcessingStatus("Cropping questions...");
     const allQuestions: ExtractedQuestion[] = [];
+    let lastCroppedQuestion: { pageIndex: number; yEndPct: number } | null = null;
 
     for (const page of result.pages) {
       if (page.isAnswerSheet) continue;
@@ -227,8 +253,8 @@ function ExamUploadContent() {
       for (const q of page.questions) {
         setProcessingStatus(`Cropping question ${q.questionNum}...`);
 
-        // Use the correct page (not cover page) based on questionsStartPage
-        const correctPageIndex = resolvePageIndex(q.questionNum, page.pageIndex);
+        // Use the correct page based on booklet ranges + previous question context
+        const correctPageIndex = resolvePageIndex(q.questionNum, page.pageIndex, lastCroppedQuestion);
 
         const croppedImage = await cropQuestionFromPage(
           images[correctPageIndex],
@@ -272,6 +298,9 @@ function ExamUploadContent() {
           boundaryBottom: q.boundaryBottom || "not found",
           marksAvailable: result.marksPerQuestion?.[q.questionNum] ?? null,
         });
+
+        // Track for next question's page resolution
+        lastCroppedQuestion = { pageIndex: correctPageIndex, yEndPct: q.yEndPct };
       }
     }
 
@@ -305,7 +334,7 @@ function ExamUploadContent() {
     const prefix = q.questionNum.replace(printedNum, "");
     const qNumInt = parseInt(printedNum, 10);
 
-    // Find the correct page for this question using booklet ranges
+    // Find the correct page for this question using booklet ranges and previous question's boundary
     let correctPageIndex = q.pageIndex;
     let isFirstInBooklet = false;
     if (bookletRanges.length > 0 && !isNaN(qNumInt)) {
@@ -315,24 +344,41 @@ function ExamUploadContent() {
       if (booklet) {
         isFirstInBooklet = qNumInt === booklet.firstQuestionNum;
         if (q.pageIndex < booklet.questionsStartPageIndex) {
-          console.log(
-            `[Redo Question] Q${q.questionNum}: pageIndex ${q.pageIndex} (page ${q.pageIndex + 1}) is before questionsStartPage ${booklet.questionsStartPageIndex} (page ${booklet.questionsStartPageIndex + 1}). Using correct start page.`
-          );
           correctPageIndex = booklet.questionsStartPageIndex;
         }
       }
     }
 
-    // Find the previous question's boundary to narrow the search region
-    // For non-first questions, the previous question's bottom boundary tells us where this one starts
-    let previousBoundary: { yEndPct: number; yStartPct: number; questionNum: string } | null = null;
+    // Find the previous question (by order) to determine the correct page and boundary
+    let previousBoundary: { yEndPct: number; yStartPct: number; questionNum: string; pageIndex: number } | null = null;
     if (!isFirstInBooklet) {
-      // Find the question immediately before this one on the same page
       const prevQ = questions
-        .filter((other) => other.pageIndex === correctPageIndex && other.orderIndex < q.orderIndex)
+        .filter((other) => other.orderIndex < q.orderIndex)
         .sort((a, b) => b.orderIndex - a.orderIndex)[0];
       if (prevQ) {
-        previousBoundary = { yEndPct: prevQ.yEndPct, yStartPct: prevQ.yStartPct, questionNum: prevQ.questionNum };
+        previousBoundary = {
+          yEndPct: prevQ.yEndPct,
+          yStartPct: prevQ.yStartPct,
+          questionNum: prevQ.questionNum,
+          pageIndex: prevQ.pageIndex,
+        };
+
+        // If previous question ends at ~95% (end of page), this question is on the NEXT page
+        if (prevQ.yEndPct >= 90) {
+          const nextPage = prevQ.pageIndex + 1;
+          if (pageImages[nextPage]) {
+            console.log(
+              `[Redo Question] Q${q.questionNum}: previous Q${prevQ.questionNum} ends at ${prevQ.yEndPct}% (end of page ${prevQ.pageIndex + 1}). Using next page ${nextPage + 1}.`
+            );
+            correctPageIndex = nextPage;
+          }
+        } else if (prevQ.pageIndex > correctPageIndex) {
+          // Previous question is on a later page than where this question thinks it is — use previous question's page
+          console.log(
+            `[Redo Question] Q${q.questionNum}: using Q${prevQ.questionNum}'s page ${prevQ.pageIndex + 1} (was incorrectly on page ${correctPageIndex + 1}).`
+          );
+          correctPageIndex = prevQ.pageIndex;
+        }
       }
     }
 
@@ -352,6 +398,14 @@ function ExamUploadContent() {
         .filter((other, i) => i !== index && other.pageIndex === correctPageIndex)
         .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
 
+      // Only pass boundary hints if the previous question is on the SAME page
+      // (percentages are meaningless for a different page)
+      // Only pass boundary hints if the previous question is on the SAME page
+      // (percentages are meaningless for a different page)
+      const boundaryForApi = previousBoundary && previousBoundary.pageIndex === correctPageIndex && previousBoundary.yEndPct < 90
+        ? { yEndPct: previousBoundary.yEndPct, yStartPct: previousBoundary.yStartPct, questionNum: previousBoundary.questionNum.replace(/^(P\d+-|B\d+-)/, "") }
+        : null;
+
       const res = await fetch("/api/exam/redo-question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -360,9 +414,7 @@ function ExamUploadContent() {
           questionNum: printedNum,
           surroundingQuestions: samePageQuestions,
           isFirstInBooklet,
-          previousBoundary: previousBoundary
-            ? { yEndPct: previousBoundary.yEndPct, yStartPct: previousBoundary.yStartPct, questionNum: previousBoundary.questionNum.replace(/^(P\d+-|B\d+-)/, "") }
-            : null,
+          previousBoundary: boundaryForApi,
         }),
       });
 
