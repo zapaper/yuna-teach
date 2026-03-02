@@ -32,24 +32,28 @@ Questions on this page (vertical position as % from top of image):
 
 {ANSWER_IMAGES_NOTE}
 
-Instructions:
-1. For EACH question, find the student's blue-ink answer within its vertical region.
-   - Questions may have parts (a), (b), (c). Match each part separately.
-   - Final answer is usually in the answer box/line at bottom-right of question space.
+Instructions — follow this EXACT sequence for EACH question:
 
-2. For marks available: use the "marksAvailable" value specified for each question below.
-   If it says "detect", read from the printed label on the page (e.g. "[2]", "(2 marks)").
+STEP 1: Read the student's answer.
+  Find the student's blue-ink answer within the question's vertical region.
+  - Questions may have parts (a), (b), (c). Read each part separately.
+  - Final answer is usually in the answer box/line at bottom-right of question space.
 
-3. Compare the student's answer against the expected answer:
-   - Matches → full marks.
-   - Wrong answer but correct working → partial marks for correct steps.
-   - Diagram questions: compare student's blue-ink drawing against the expected answer diagram.
+STEP 2: Marks available.
+  Use the "marksAvailable" value specified for each question.
+  If it says "detect", read from the printed label on the page (e.g. "[2]", "(2 marks)").
 
-4. Sum marks across all parts for total marksAwarded.
+STEP 3: Compare against the expected answer. Follow this priority:
+  A) If the student's answer MATCHES the expected answer → FULL MARKS. Done. No further checking needed.
+  B) If the student's answer does NOT match:
+     - Check if working/steps are partially correct (similar to the expected answer steps).
+     - If some steps are correct → award PARTIAL marks proportional to correct working.
+     - If answer is wrong with no correct working → ZERO marks.
+  C) For diagram questions: compare student's blue-ink drawing against the expected answer diagram image.
 
-5. NOTES RULE — keep notes SHORT:
-   - If full marks → notes = "" (empty string, say nothing)
-   - If partial or zero marks → briefly explain what went wrong (1 sentence max)
+STEP 4: Notes — keep SHORT:
+  - Full marks → notes = "" (empty string)
+  - Partial or zero marks → 1 sentence max explaining what went wrong
 
 Return ONLY valid JSON (no markdown fences):
 {
