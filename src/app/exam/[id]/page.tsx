@@ -13,6 +13,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail } from "@/types";
 import QuestionCard from "@/components/QuestionCard";
 import { renderPdfToImages } from "@/lib/pdf";
+import { jsPDF } from "jspdf";
 
 const PEN_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z' fill='%232563eb' stroke='white' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 2 22, crosshair`;
 
@@ -215,6 +216,53 @@ function ExamPracticeContent({ id }: { id: string }) {
     pageHandles.current.forEach((h) => h?.clear());
   }
 
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  async function downloadSubmissionPdf() {
+    if (!paper || downloadingPdf) return;
+    setDownloadingPdf(true);
+    try {
+      const metaRes = await fetch(`/api/exam/${id}/submission`);
+      const meta = await metaRes.json();
+      const count = meta.pageCount ?? 0;
+      if (count === 0) return;
+
+      const pages: HTMLImageElement[] = [];
+      for (let i = 0; i < count; i++) {
+        const res = await fetch(`/api/exam/${id}/submission?page=${i}`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const img = await new Promise<HTMLImageElement>((resolve) => {
+          const el = new window.Image();
+          el.onload = () => resolve(el);
+          el.src = url;
+        });
+        pages.push(img);
+        URL.revokeObjectURL(url);
+      }
+
+      const first = pages[0];
+      const pdf = new jsPDF({
+        orientation: first.width > first.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [first.width, first.height],
+      });
+      pdf.addImage(first, "JPEG", 0, 0, first.width, first.height);
+
+      for (let i = 1; i < pages.length; i++) {
+        const img = pages[i];
+        pdf.addPage([img.width, img.height], img.width > img.height ? "landscape" : "portrait");
+        pdf.addImage(img, "JPEG", 0, 0, img.width, img.height);
+      }
+
+      pdf.save(`${paper.title}.pdf`);
+    } catch (err) {
+      console.error("Download PDF failed:", err);
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
+
   const backPath = userId ? `/home/${userId}` : "/";
 
   if (loading) {
@@ -318,7 +366,13 @@ function ExamPracticeContent({ id }: { id: string }) {
                 fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 6 9 17l-5-5" />
               </svg>
-              Submitted{paper.completedAt ? ` on ${new Date(paper.completedAt).toLocaleDateString()}` : ""}
+              <span className="flex-1">
+                Submitted{paper.completedAt ? ` on ${new Date(paper.completedAt).toLocaleDateString()}` : ""}
+              </span>
+              <button onClick={downloadSubmissionPdf} disabled={downloadingPdf}
+                className="text-green-600 font-medium hover:text-green-800 transition-colors disabled:opacity-50">
+                {downloadingPdf ? "Downloading…" : "Download PDF"}
+              </button>
             </div>
           )}
 
