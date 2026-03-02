@@ -21,12 +21,10 @@ interface QuestionMarkResult {
   notes: string;
 }
 
-const MARKING_PROMPT = `You are marking a primary school student's exam submission.
+const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise.
 
-IMPORTANT — HOW TO READ THIS IMAGE:
-- The printed question text is in BLACK (this is the original exam paper).
-- The student's handwritten answers are in BLUE INK overlaid on top.
-- Everything written in blue is the student's work: final answers, working steps, diagrams drawn by the student.
+HOW TO READ THIS IMAGE:
+- Printed question text = BLACK. Student's handwritten answers = BLUE INK.
 - Do NOT confuse printed diagrams/text (black) with the student's writing (blue).
 
 Questions on this page (vertical position as % from top of image):
@@ -35,29 +33,28 @@ Questions on this page (vertical position as % from top of image):
 {ANSWER_IMAGES_NOTE}
 
 Instructions:
-1. For EACH question, find the student's blue-ink handwriting within its vertical region.
-   - Questions often have PARTS: (a), (b), (c). Match each part's blue-ink answer to that part's expected answer.
-   - The final answer is typically written in the answer box/line at the bottom-right of the question space.
-   - Working steps in blue ink appear above or beside the final answer.
+1. For EACH question, find the student's blue-ink answer within its vertical region.
+   - Questions may have parts (a), (b), (c). Match each part separately.
+   - Final answer is usually in the answer box/line at bottom-right of question space.
 
-2. Read the marks available from the PRINTED (black) question label (e.g. "Q3 (3m)", "[2]", "(2 marks)").
+2. Read marks available from the printed label (e.g. "[2]", "(2 marks)").
 
-3. For each question/part:
-   - If the student's blue-ink final answer matches the expected answer → full marks.
-   - If the final answer is wrong but blue-ink working shows correct method → partial marks based on correct steps shown vs total steps.
-   - For diagram questions: compare the student's blue-ink drawing against the expected answer diagram (provided as extra image), assessing accuracy and completeness.
+3. Compare the student's answer against the expected answer:
+   - Matches → full marks.
+   - Wrong answer but correct working → partial marks for correct steps.
+   - Diagram questions: compare student's blue-ink drawing against the expected answer diagram.
 
-4. Sum marks across all parts to get total marksAwarded for the question.
+4. Sum marks across all parts for total marksAwarded.
+
+5. NOTES RULE — keep notes SHORT:
+   - If full marks → notes = "" (empty string, say nothing)
+   - If partial or zero marks → briefly explain what went wrong (1 sentence max)
 
 Return ONLY valid JSON (no markdown fences):
 {
   "questions": [
-    {
-      "questionId": "EXACT_ID_FROM_LIST",
-      "marksAvailable": 2,
-      "marksAwarded": 1,
-      "notes": "Part (a) correct. Part (b): method correct but arithmetic error at last step."
-    }
+    {"questionId": "ID", "marksAvailable": 2, "marksAwarded": 2, "notes": ""},
+    {"questionId": "ID", "marksAvailable": 3, "marksAwarded": 1, "notes": "Part (b) arithmetic error in last step."}
   ]
 }`;
 
