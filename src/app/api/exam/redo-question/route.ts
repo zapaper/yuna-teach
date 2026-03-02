@@ -3,7 +3,7 @@ import { redoQuestionExtraction } from "@/lib/gemini";
 
 export async function POST(request: NextRequest) {
   try {
-    const { image, questionNum, surroundingQuestions } = await request.json();
+    const { image, questionNum, surroundingQuestions, isFirstInBooklet, previousBoundary } = await request.json();
 
     if (!image || !questionNum) {
       return NextResponse.json(
@@ -12,13 +12,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(`[Redo Question API] Re-extracting Q${questionNum}, surrounding: [${(surroundingQuestions ?? []).join(", ")}]`);
+    console.log(
+      `[Redo Question API] Re-extracting Q${questionNum}` +
+      `, surrounding: [${(surroundingQuestions ?? []).join(", ")}]` +
+      (isFirstInBooklet ? " [first in booklet]" : "") +
+      (previousBoundary ? ` [after Q${previousBoundary.questionNum} ends at ${previousBoundary.yEndPct}%]` : "")
+    );
 
     const base64 = image.replace(/^data:image\/\w+;base64,/, "");
     const result = await redoQuestionExtraction(
       base64,
       questionNum,
-      surroundingQuestions ?? []
+      surroundingQuestions ?? [],
+      { isFirstInBooklet, previousBoundary }
     );
 
     console.log(`[Redo Question API] Q${questionNum} result: yStartPct=${result.yStartPct}, yEndPct=${result.yEndPct}`);

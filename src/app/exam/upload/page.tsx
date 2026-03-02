@@ -307,21 +307,42 @@ function ExamUploadContent() {
 
     // Find the correct page for this question using booklet ranges
     let correctPageIndex = q.pageIndex;
+    let isFirstInBooklet = false;
     if (bookletRanges.length > 0 && !isNaN(qNumInt)) {
       const booklet = bookletRanges.find(
         (b) => b.prefix === prefix && qNumInt >= b.firstQuestionNum && qNumInt <= b.lastQuestionNum
       );
-      if (booklet && q.pageIndex < booklet.questionsStartPageIndex) {
-        console.log(
-          `[Redo Question] Q${q.questionNum}: pageIndex ${q.pageIndex} (page ${q.pageIndex + 1}) is before questionsStartPage ${booklet.questionsStartPageIndex} (page ${booklet.questionsStartPageIndex + 1}). Using correct start page.`
-        );
-        correctPageIndex = booklet.questionsStartPageIndex;
+      if (booklet) {
+        isFirstInBooklet = qNumInt === booklet.firstQuestionNum;
+        if (q.pageIndex < booklet.questionsStartPageIndex) {
+          console.log(
+            `[Redo Question] Q${q.questionNum}: pageIndex ${q.pageIndex} (page ${q.pageIndex + 1}) is before questionsStartPage ${booklet.questionsStartPageIndex} (page ${booklet.questionsStartPageIndex + 1}). Using correct start page.`
+          );
+          correctPageIndex = booklet.questionsStartPageIndex;
+        }
+      }
+    }
+
+    // Find the previous question's boundary to narrow the search region
+    // For non-first questions, the previous question's bottom boundary tells us where this one starts
+    let previousBoundary: { yEndPct: number; yStartPct: number; questionNum: string } | null = null;
+    if (!isFirstInBooklet) {
+      // Find the question immediately before this one on the same page
+      const prevQ = questions
+        .filter((other) => other.pageIndex === correctPageIndex && other.orderIndex < q.orderIndex)
+        .sort((a, b) => b.orderIndex - a.orderIndex)[0];
+      if (prevQ) {
+        previousBoundary = { yEndPct: prevQ.yEndPct, yStartPct: prevQ.yStartPct, questionNum: prevQ.questionNum };
       }
     }
 
     if (!pageImages[correctPageIndex]) return;
 
-    console.log(`[Redo Question] Q${q.questionNum} — extracting from pageIndex ${correctPageIndex} (page ${correctPageIndex + 1} in PDF)`);
+    console.log(
+      `[Redo Question] Q${q.questionNum} — extracting from pageIndex ${correctPageIndex} (page ${correctPageIndex + 1})` +
+      (isFirstInBooklet ? " [first in booklet]" : "") +
+      (previousBoundary ? ` [after Q${previousBoundary.questionNum} ends at ${previousBoundary.yEndPct}%]` : "")
+    );
 
     setRedoingIndices((prev) => new Set(prev).add(index));
     setError(null);
@@ -331,8 +352,6 @@ function ExamUploadContent() {
         .filter((other, i) => i !== index && other.pageIndex === correctPageIndex)
         .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
 
-      console.log(`[Redo Question] Looking for printed Q${printedNum} on page ${correctPageIndex + 1}, surrounding: [${samePageQuestions.join(", ")}]`);
-
       const res = await fetch("/api/exam/redo-question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -340,6 +359,10 @@ function ExamUploadContent() {
           image: pageImages[correctPageIndex],
           questionNum: printedNum,
           surroundingQuestions: samePageQuestions,
+          isFirstInBooklet,
+          previousBoundary: previousBoundary
+            ? { yEndPct: previousBoundary.yEndPct, yStartPct: previousBoundary.yStartPct, questionNum: previousBoundary.questionNum.replace(/^(P\d+-|B\d+-)/, "") }
+            : null,
         }),
       });
 

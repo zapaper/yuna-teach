@@ -1598,12 +1598,31 @@ Return ONLY valid JSON: { "questionNum": "{questionNum}", "yStartPct": 15.0, "yE
 export async function redoQuestionExtraction(
   imageBase64: string,
   questionNum: string,
-  surroundingQuestions: string[]
+  surroundingQuestions: string[],
+  hints?: {
+    isFirstInBooklet?: boolean;
+    previousBoundary?: { yEndPct: number; yStartPct: number; questionNum: string } | null;
+  }
 ): Promise<{ questionNum: string; yStartPct: number; yEndPct: number }> {
-  const context =
-    surroundingQuestions.length > 0
-      ? `Other questions on this page: ${surroundingQuestions.join(", ")}`
-      : "This may be the only question on this page.";
+  const contextLines: string[] = [];
+  if (surroundingQuestions.length > 0) {
+    contextLines.push(`Other questions on this page: ${surroundingQuestions.join(", ")}`);
+  } else {
+    contextLines.push("This may be the only question on this page.");
+  }
+
+  if (hints?.isFirstInBooklet) {
+    contextLines.push(`This is the FIRST question in this booklet/paper. It should appear near the top of the page.`);
+  } else if (hints?.previousBoundary) {
+    const prev = hints.previousBoundary;
+    contextLines.push(
+      `The previous question (Q${prev.questionNum}) ends at approximately ${prev.yEndPct.toFixed(1)}% from the top of the page.` +
+      ` Question "${questionNum}" should START just after that point (around ${prev.yEndPct.toFixed(0)}-${Math.min(100, prev.yEndPct + 5).toFixed(0)}% from top).` +
+      ` Do NOT search above ${Math.max(0, prev.yStartPct).toFixed(0)}% — that region belongs to Q${prev.questionNum}.`
+    );
+  }
+
+  const context = contextLines.join("\n");
 
   const prompt = REDO_QUESTION_PROMPT.replaceAll("{questionNum}", questionNum).replace(
     "{context}",
