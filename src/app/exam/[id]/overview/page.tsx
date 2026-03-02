@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail, ExamQuestionItem, User } from "@/types";
 import { jsPDF } from "jspdf";
-import { renderPdfToImages } from "@/lib/pdf";
 
 export default function ExamOverviewPage({
   params,
@@ -69,10 +68,8 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [lightboxQ, setLightboxQ] = useState<MarkingQuestion | null>(null);
   const [submissionPageCount, setSubmissionPageCount] = useState(0);
 
-  // Download / Upload PDF state
+  // Download PDF state
   const [downloading, setDownloading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Portal mount guard (portals require document to exist)
   const [mounted, setMounted] = useState(false);
@@ -282,41 +279,6 @@ function ExamOverviewContent({ id }: { id: string }) {
     }
   }
 
-  async function uploadPdfAsSubmission(file: File) {
-    if (!paper || uploading) return;
-    setUploading(true);
-    try {
-      // Convert PDF to page images
-      const images = await renderPdfToImages(file);
-
-      // Build FormData with page blobs
-      const form = new FormData();
-      form.append("action", "submit");
-
-      for (let i = 0; i < images.length; i++) {
-        const dataUrl = images[i];
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        form.append(`page_${i}`, blob, `page_${i}.jpg`);
-      }
-
-      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
-
-      // Refresh paper data
-      const paperRes = await fetch(`/api/exam/${id}?summary=true`);
-      if (paperRes.ok) setPaper(await paperRes.json());
-      const subRes = await fetch(`/api/exam/${id}/submission`);
-      if (subRes.ok) {
-        const sub = await subRes.json();
-        setSubmissionPageCount(sub.pageCount ?? 0);
-      }
-    } catch (err) {
-      console.error("Upload PDF failed:", err);
-    } finally {
-      setUploading(false);
-    }
-  }
-
   // Build submissionIndexMap from metadata (for lightbox page lookup)
   function getSubmissionPage(originalPageIdx: number): number {
     if (!paper) return originalPageIdx;
@@ -457,19 +419,11 @@ function ExamOverviewContent({ id }: { id: string }) {
                         <span className="ml-2 text-xs text-amber-600 font-medium">In progress</span>
                       )}
                     </div>
-                    {isAssigned && (
-                      <div className="flex gap-3 mt-0.5">
-                        {isSubmitted && (
-                          <button onClick={downloadSubmissionPdf} disabled={downloading}
-                            className="text-xs text-slate-400 hover:text-primary-600 transition-colors">
-                            {downloading ? "Downloading…" : "Download PDF"}
-                          </button>
-                        )}
-                        <button onClick={() => uploadInputRef.current?.click()} disabled={uploading}
-                          className="text-xs text-slate-400 hover:text-primary-600 transition-colors">
-                          {uploading ? "Uploading…" : "Upload PDF"}
-                        </button>
-                      </div>
+                    {isSubmitted && (
+                      <button onClick={downloadSubmissionPdf} disabled={downloading}
+                        className="text-xs text-slate-400 hover:text-primary-600 transition-colors mt-0.5">
+                        {downloading ? "Downloading…" : "Download PDF"}
+                      </button>
                     )}
                   </div>
 
@@ -584,19 +538,6 @@ function ExamOverviewContent({ id }: { id: string }) {
           Open Practice
         </button>
       )}
-
-      {/* Hidden file input for PDF upload */}
-      <input
-        ref={uploadInputRef}
-        type="file"
-        accept="application/pdf"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) uploadPdfAsSubmission(f);
-          e.target.value = "";
-        }}
-      />
 
     </div>
   );

@@ -217,6 +217,8 @@ function ExamPracticeContent({ id }: { id: string }) {
   }
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   async function downloadSubmissionPdf() {
     if (!paper || downloadingPdf) return;
@@ -267,6 +269,28 @@ function ExamPracticeContent({ id }: { id: string }) {
       console.error("Download PDF failed:", err);
     } finally {
       setDownloadingPdf(false);
+    }
+  }
+
+  async function uploadPdfAsSubmission(file: File) {
+    if (!paper || uploadingPdf) return;
+    setUploadingPdf(true);
+    try {
+      const images = await renderPdfToImages(file);
+      const form = new FormData();
+      form.append("action", "submit");
+      for (let i = 0; i < images.length; i++) {
+        const res = await fetch(images[i]);
+        const blob = await res.blob();
+        form.append(`page_${i}`, blob, `page_${i}.jpg`);
+      }
+      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+      setPaper((prev) => prev ? { ...prev, completedAt: new Date().toISOString() } : prev);
+      setSubmitStatus("submitted");
+    } catch (err) {
+      console.error("Upload PDF failed:", err);
+    } finally {
+      setUploadingPdf(false);
     }
   }
 
@@ -376,12 +400,30 @@ function ExamPracticeContent({ id }: { id: string }) {
               <span className="flex-1">
                 Submitted{paper.completedAt ? ` on ${new Date(paper.completedAt).toLocaleDateString()}` : ""}
               </span>
+              <button onClick={() => uploadInputRef.current?.click()} disabled={uploadingPdf}
+                className="text-green-600 font-medium hover:text-green-800 transition-colors disabled:opacity-50">
+                {uploadingPdf ? "Uploading…" : "Upload PDF"}
+              </button>
+              <span className="text-green-300">|</span>
               <button onClick={downloadSubmissionPdf} disabled={downloadingPdf}
                 className="text-green-600 font-medium hover:text-green-800 transition-colors disabled:opacity-50">
-                {downloadingPdf ? "Downloading…" : "Download PDF"}
+                {downloadingPdf ? "Downloading…" : "Download"}
               </button>
             </div>
           )}
+
+          {/* Hidden file input for PDF upload */}
+          <input
+            ref={uploadInputRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadPdfAsSubmission(f);
+              e.target.value = "";
+            }}
+          />
 
           {/* Drawing toolbar */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2"
