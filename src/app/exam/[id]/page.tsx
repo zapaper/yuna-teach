@@ -272,21 +272,17 @@ function ExamPracticeContent({ id }: { id: string }) {
     }
   }
 
-  async function uploadPdfAsSubmission(file: File) {
+  async function loadUploadedPdf(file: File) {
     if (!paper || uploadingPdf) return;
     setUploadingPdf(true);
     try {
       const images = await renderPdfToImages(file);
-      const form = new FormData();
-      form.append("action", "submit");
-      for (let i = 0; i < images.length; i++) {
-        const res = await fetch(images[i]);
-        const blob = await res.blob();
-        form.append(`page_${i}`, blob, `page_${i}.jpg`);
-      }
-      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
-      setPaper((prev) => prev ? { ...prev, completedAt: new Date().toISOString() } : prev);
-      setSubmitStatus("submitted");
+      // Replace displayed pages with uploaded PDF pages
+      setPageImages(images);
+      setInkBlobs([]); // clear any existing ink
+      pageHandles.current = new Array(images.length).fill(null);
+      setView("paper");
+      setSubmitStatus("idle");
     } catch (err) {
       console.error("Upload PDF failed:", err);
     } finally {
@@ -492,7 +488,7 @@ function ExamPracticeContent({ id }: { id: string }) {
               disabled={uploadingPdf}
               className="w-full py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
             >
-              {uploadingPdf ? "Uploading PDF…" : "Upload edited PDF as submission"}
+              {uploadingPdf ? "Loading PDF…" : "Upload edited PDF"}
             </button>
           </div>
         </div>
@@ -525,7 +521,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) uploadPdfAsSubmission(f);
+          if (f) loadUploadedPdf(f);
           e.target.value = "";
         }}
       />
