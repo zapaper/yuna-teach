@@ -227,32 +227,39 @@ function ExamPracticeContent({ id }: { id: string }) {
       const count = meta.pageCount ?? 0;
       if (count === 0) return;
 
-      const pages: HTMLImageElement[] = [];
+      // Fetch each page and convert to data URL via canvas
+      const pages: { dataUrl: string; w: number; h: number }[] = [];
       for (let i = 0; i < count; i++) {
         const res = await fetch(`/api/exam/${id}/submission?page=${i}`);
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
-        const img = await new Promise<HTMLImageElement>((resolve) => {
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
           const el = new window.Image();
           el.onload = () => resolve(el);
+          el.onerror = reject;
           el.src = url;
         });
-        pages.push(img);
+        // Draw to canvas to get a stable data URL for jsPDF
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext("2d")!.drawImage(img, 0, 0);
+        pages.push({ dataUrl: canvas.toDataURL("image/jpeg", 0.92), w: img.naturalWidth, h: img.naturalHeight });
         URL.revokeObjectURL(url);
       }
 
       const first = pages[0];
       const pdf = new jsPDF({
-        orientation: first.width > first.height ? "landscape" : "portrait",
+        orientation: first.w > first.h ? "landscape" : "portrait",
         unit: "px",
-        format: [first.width, first.height],
+        format: [first.w, first.h],
       });
-      pdf.addImage(first, "JPEG", 0, 0, first.width, first.height);
+      pdf.addImage(first.dataUrl, "JPEG", 0, 0, first.w, first.h);
 
       for (let i = 1; i < pages.length; i++) {
-        const img = pages[i];
-        pdf.addPage([img.width, img.height], img.width > img.height ? "landscape" : "portrait");
-        pdf.addImage(img, "JPEG", 0, 0, img.width, img.height);
+        const pg = pages[i];
+        pdf.addPage([pg.w, pg.h], pg.w > pg.h ? "landscape" : "portrait");
+        pdf.addImage(pg.dataUrl, "JPEG", 0, 0, pg.w, pg.h);
       }
 
       pdf.save(`${paper.title}.pdf`);
