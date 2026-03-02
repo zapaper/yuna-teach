@@ -378,8 +378,23 @@ export async function markExamPaper(paperId: string): Promise<void> {
     }
 
     // ── Batch DB updates in a single transaction ──────────────────────────────
+    // Filter to only valid question IDs (Gemini sometimes hallucinates extra IDs)
+    const validIds = new Set(paper.questions.map((q) => q.id));
+    const validResults = new Map<string, QuestionMarkResult>();
+    for (const result of allResults) {
+      if (validIds.has(result.questionId) && !validResults.has(result.questionId)) {
+        validResults.set(result.questionId, result);
+      }
+    }
+
+    const discarded = allResults.length - validResults.size;
+    if (discarded > 0) {
+      console.warn(`[marking] Discarded ${discarded} results with invalid/duplicate question IDs`);
+    }
+    console.log(`[marking] Updating ${validResults.size}/${paper.questions.length} questions`);
+
     let totalAwarded = 0;
-    const questionUpdates = allResults.map((result) => {
+    const questionUpdates = [...validResults.values()].map((result) => {
       totalAwarded += result.marksAwarded ?? 0;
       return prisma.examQuestion.update({
         where: { id: result.questionId },
