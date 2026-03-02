@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
               orderIndex: number;
               yStartPct?: number;
               yEndPct?: number;
+              marksAvailable?: number | null;
             }) => ({
               questionNum: q.questionNum,
               imageData: q.imageData,
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
               orderIndex: q.orderIndex,
               yStartPct: q.yStartPct ?? null,
               yEndPct: q.yEndPct ?? null,
+              marksAvailable: q.marksAvailable ?? null,
             })
           ),
         },

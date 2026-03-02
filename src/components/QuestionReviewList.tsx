@@ -9,6 +9,7 @@ interface ReviewQuestion {
   orderIndex: number;
   boundaryTop?: string;
   boundaryBottom?: string;
+  marksAvailable?: number | null;
 }
 
 export default function QuestionReviewList({
@@ -17,6 +18,7 @@ export default function QuestionReviewList({
   onDeleteQuestion,
   onRedoQuestion,
   onRedoAnswer,
+  onUpdateMarks,
   redoingIndices,
   redoingAnswerIndices,
 }: {
@@ -29,6 +31,7 @@ export default function QuestionReviewList({
   onDeleteQuestion: (index: number) => void;
   onRedoQuestion?: (index: number) => void;
   onRedoAnswer?: (index: number) => void;
+  onUpdateMarks?: (index: number, value: number | null) => void;
   redoingIndices?: Set<number>;
   redoingAnswerIndices?: Set<number>;
 }) {
@@ -60,6 +63,20 @@ export default function QuestionReviewList({
                   }
                   className="w-16 text-sm font-semibold border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-300"
                 />
+                {onUpdateMarks && (
+                  <>
+                    <label className="text-xs text-slate-400 ml-1">Marks</label>
+                    <input
+                      type="number"
+                      value={q.marksAvailable ?? ""}
+                      onChange={(e) => onUpdateMarks(idx, e.target.value ? parseFloat(e.target.value) : null)}
+                      placeholder="?"
+                      min="0"
+                      step="0.5"
+                      className="w-14 text-sm border border-slate-200 rounded-lg px-2 py-1 text-center focus:outline-none focus:border-primary-300"
+                    />
+                  </>
+                )}
               </div>
               <div className="flex items-center gap-1">
                 {onRedoQuestion && (

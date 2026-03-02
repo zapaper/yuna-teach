@@ -37,7 +37,8 @@ Instructions:
    - Questions may have parts (a), (b), (c). Match each part separately.
    - Final answer is usually in the answer box/line at bottom-right of question space.
 
-2. Read marks available from the printed label (e.g. "[2]", "(2 marks)").
+2. For marks available: use the "marksAvailable" value specified for each question below.
+   If it says "detect", read from the printed label on the page (e.g. "[2]", "(2 marks)").
 
 3. Compare the student's answer against the expected answer:
    - Matches → full marks.
@@ -115,7 +116,8 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const answerDesc = question.answerImageData
     ? `[diagram — see additional image]`
     : question.answer ? `"${question.answer}"` : "not provided";
-  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. Expected answer: ${answerDesc}`;
+  const marksInfo = question.marksAvailable != null ? `marksAvailable: ${question.marksAvailable}` : `marksAvailable: detect`;
+  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}`;
 
   let answerImagesNote = "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -236,7 +238,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
               : q.answer
               ? `"${q.answer}"`
               : "not provided";
-            return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. Expected answer: ${answerDesc}`;
+            const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
+            return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}`;
           })
           .join("\n");
 
@@ -324,7 +327,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
           const answerDesc = q.answerImageData
             ? `[diagram — see additional image]`
             : q.answer ? `"${q.answer}"` : "not provided";
-          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. Expected answer: ${answerDesc}`;
+          const retryMarksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}. Expected answer: ${answerDesc}`;
 
           let answerImagesNote = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -394,14 +398,19 @@ export async function markExamPaper(paperId: string): Promise<void> {
     }
     console.log(`[marking] Updating ${validResults.size}/${paper.questions.length} questions`);
 
+    // Build a lookup of pre-set marksAvailable from DB
+    const presetMarks = new Map(paper.questions.map(q => [q.id, q.marksAvailable]));
+
     let totalAwarded = 0;
     const questionUpdates = [...validResults.values()].map((result) => {
       totalAwarded += result.marksAwarded ?? 0;
+      // Keep pre-set marksAvailable if it exists; otherwise use Gemini's detected value
+      const existingMarks = presetMarks.get(result.questionId);
       return prisma.examQuestion.update({
         where: { id: result.questionId },
         data: {
           marksAwarded: result.marksAwarded,
-          marksAvailable: result.marksAvailable,
+          marksAvailable: existingMarks ?? result.marksAvailable,
           markingNotes: result.notes,
         },
       });
@@ -414,6 +423,16 @@ export async function markExamPaper(paperId: string): Promise<void> {
         data: { score: totalAwarded, markingStatus: "complete" },
       }),
     ]);
+    // Validate marks total
+    if (paper.totalMarks) {
+      const expectedTotal = parseFloat(paper.totalMarks);
+      const actualAvailable = [...validResults.values()].reduce(
+        (s, r) => s + ((presetMarks.get(r.questionId) ?? r.marksAvailable) ?? 0), 0
+      );
+      if (!isNaN(expectedTotal) && Math.abs(actualAvailable - expectedTotal) > 0.5) {
+        console.warn(`[marking] Marks validation: sum of marksAvailable (${actualAvailable}) != paper totalMarks (${expectedTotal})`);
+      }
+    }
     console.log(`[marking] Paper ${paperId} marked complete. Score: ${totalAwarded}`);
   } catch (err) {
     console.error(`[marking] markExamPaper failed for ${paperId}:`, err);

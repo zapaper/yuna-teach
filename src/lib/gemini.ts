@@ -118,6 +118,7 @@ export interface ExamHeaderInfo {
   semester: string;
   title: string;
   totalMarks?: string;
+  marksGuidance?: string;
   sections?: Array<{
     name: string;
     type: string;
@@ -320,6 +321,10 @@ Read the cover page or first page header to extract:
 - semester: The exam type (e.g. "Prelim", "SA2", "CA1")
 - title: A short descriptive title (e.g. "ACSJ P6 Math Prelim 2024")
 - totalMarks: total marks as string (e.g. "100"), empty string if unknown
+- marksGuidance: copy the EXACT text from the paper that explains how marks are allocated across questions.
+  Examples: "Questions 1 to 10 carry 1 mark each. Questions 11 to 15 carry 2 marks each."
+  or "The number of marks available is shown in brackets [ ] at the end of each question."
+  Empty string if no such guidance text is found.
 - sections: array of sections with exact breakdown from the header
   e.g. "Section A: 28 questions x 1 mark = 28 marks" → {"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}
 
@@ -347,7 +352,7 @@ Create a SEPARATE entry in the "papers" array for EACH booklet/section that has 
 - expectedQuestionCount: how many questions in THIS booklet only
 - firstQuestionPageIndex: 0-based page where the FIRST question of this booklet appears
 - firstQuestionYStartPct: how far down that page (%) the first question number is printed
-- sections: breakdown per section
+- sections: breakdown per section. Each section must include "marksPerQuestion": marks per individual question (e.g. 1, 2, 3). Compute from section marks / questionCount when uniform. Use null if marks vary per question within the section.
 
 ### CRITICAL — Finding where questions START for each booklet:
 - For EACH booklet, identify the EXACT page where its first question number appears at the LEFT MARGIN
@@ -369,6 +374,7 @@ Return ONLY valid JSON:
   "header": {
     "school": "...", "level": "...", "subject": "...", "year": "...",
     "semester": "...", "title": "...", "totalMarks": "...",
+    "marksGuidance": "Questions 1 to 30 carry 1 mark each. Questions 31 to 44 carry 2 marks each.",
     "sections": [{"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}]
   },
   "pages": [
@@ -388,7 +394,7 @@ Return ONLY valid JSON:
       "expectedQuestionCount": 30,
       "firstQuestionPageIndex": 1,
       "firstQuestionYStartPct": 5,
-      "sections": [{"name": "A", "type": "MCQ", "questionCount": 30}]
+      "sections": [{"name": "A", "type": "MCQ", "questionCount": 30, "marksPerQuestion": 1}]
     },
     {
       "label": "Paper 1 Booklet B",
@@ -396,7 +402,7 @@ Return ONLY valid JSON:
       "expectedQuestionCount": 14,
       "firstQuestionPageIndex": 10,
       "firstQuestionYStartPct": 8,
-      "sections": [{"name": "B", "type": "structured", "questionCount": 14}]
+      "sections": [{"name": "B", "type": "structured", "questionCount": 14, "marksPerQuestion": 2}]
     },
     {
       "label": "Paper 2",
@@ -404,7 +410,7 @@ Return ONLY valid JSON:
       "expectedQuestionCount": 6,
       "firstQuestionPageIndex": 19,
       "firstQuestionYStartPct": 12,
-      "sections": [{"name": "", "type": "structured", "questionCount": 6}]
+      "sections": [{"name": "", "type": "structured", "questionCount": 6, "marksPerQuestion": null}]
     }
   ]
 }
@@ -646,7 +652,7 @@ interface StructureResult {
     expectedQuestionCount: number;
     firstQuestionPageIndex: number;
     firstQuestionYStartPct: number;
-    sections: Array<{ name: string; type: string; questionCount: number }>;
+    sections: Array<{ name: string; type: string; questionCount: number; marksPerQuestion?: number | null }>;
   }>;
 }
 
@@ -1166,6 +1172,7 @@ export interface BatchAnalysisResult {
     }>;
   }>;
   answers: Record<string, AnswerEntry>;
+  marksPerQuestion?: Record<string, number | null>;
   _debug?: {
     papers: Array<{
       label: string;
@@ -1345,10 +1352,27 @@ export async function analyzeExamBatch(
   // Sort pages by pageIndex to match original document order
   pages.sort((a, b) => a.pageIndex - b.pageIndex);
 
+  // --- Derive per-question marks from sections data ---
+  const marksPerQuestion: Record<string, number | null> = {};
+  for (const paper of structure.papers) {
+    let qOffset = 0;
+    for (const section of paper.sections) {
+      const mpq = section.marksPerQuestion ?? null;
+      for (let i = 0; i < section.questionCount; i++) {
+        const qNum = paper.questionPrefix
+          ? `${paper.questionPrefix}${qOffset + i + 1}`
+          : `${qOffset + i + 1}`;
+        marksPerQuestion[qNum] = mpq;
+      }
+      qOffset += section.questionCount;
+    }
+  }
+
   return {
     header: structure.header,
     pages,
     answers: answerResult.answers,
+    marksPerQuestion,
     _debug: {
       papers: structure.papers.map(p => ({
         label: p.label,

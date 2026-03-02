@@ -16,6 +16,7 @@ interface HeaderInfo {
   semester: string;
   title: string;
   totalMarks: string;
+  marksGuidance?: string;
 }
 
 interface ExtractedQuestion {
@@ -29,6 +30,7 @@ interface ExtractedQuestion {
   yEndPct: number;
   boundaryTop: string;
   boundaryBottom: string;
+  marksAvailable: number | null;
 }
 
 export default function ExamUploadPage() {
@@ -212,6 +214,7 @@ function ExamUploadContent() {
           yEndPct: q.yEndPct,
           boundaryTop: q.boundaryTop || q.questionNum,
           boundaryBottom: q.boundaryBottom || "not found",
+          marksAvailable: result.marksPerQuestion?.[q.questionNum] ?? null,
         });
       }
     }
@@ -232,6 +235,12 @@ function ExamUploadContent() {
 
   function handleDeleteQuestion(index: number) {
     setQuestions((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleUpdateMarks(index: number, value: number | null) {
+    setQuestions((prev) =>
+      prev.map((q, i) => (i === index ? { ...q, marksAvailable: value } : q))
+    );
   }
 
   async function handleRedoQuestion(index: number) {
@@ -377,7 +386,7 @@ function ExamUploadContent() {
           year: headerInfo.year,
           semester: headerInfo.semester,
           totalMarks: headerInfo.totalMarks,
-          metadata: batchMetadata,
+          metadata: { ...batchMetadata, marksGuidance: headerInfo.marksGuidance || "" },
           pageCount: pageImages.length,
           userId,
           questions: questions.map((q, i) => ({
@@ -583,6 +592,28 @@ function ExamUploadContent() {
             </div>
           </div>
 
+          {/* Marks guidance */}
+          {headerInfo.marksGuidance && (
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-blue-700 text-sm">
+              <span className="font-medium">Marks guidance:</span> {headerInfo.marksGuidance}
+            </div>
+          )}
+
+          {/* Marks validation */}
+          {(() => {
+            const total = parseInt(headerInfo.totalMarks);
+            const allHaveMarks = questions.every(q => q.marksAvailable != null);
+            const sum = questions.reduce((acc, q) => acc + (q.marksAvailable ?? 0), 0);
+            if (!isNaN(total) && allHaveMarks && sum !== total) {
+              return (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-amber-700 text-sm">
+                  Marks mismatch: questions sum to {sum} but paper total is {total}.
+                </div>
+              );
+            }
+            return null;
+          })()}
+
           {/* Questions */}
           <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
             Questions ({questions.length})
@@ -594,6 +625,7 @@ function ExamUploadContent() {
             onDeleteQuestion={handleDeleteQuestion}
             onRedoQuestion={handleRedoQuestion}
             onRedoAnswer={answerKeyPages.length > 0 ? handleRedoAnswer : undefined}
+            onUpdateMarks={handleUpdateMarks}
             redoingIndices={redoingIndices}
             redoingAnswerIndices={redoingAnswerIndices}
           />
