@@ -56,6 +56,8 @@ export interface ExamPaperSummary {
   createdAt: string;
   assignedToId: string | null;
   assignedToName: string | null;
+  completedAt: string | null;
+  markingStatus: string | null;
 }
 
 export interface ExamMetadata {

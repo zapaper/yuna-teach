@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
       createdAt: p.createdAt.toISOString(),
       assignedToId: p.assignedToId,
       assignedToName: p.assignedTo?.name ?? null,
+      completedAt: p.completedAt?.toISOString() ?? null,
+      markingStatus: p.markingStatus ?? null,
     })),
   });
 }

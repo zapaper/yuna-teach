@@ -582,6 +582,7 @@ function ExamUploadContent() {
         }
       }
 
+      alert("Exam saved successfully!");
       router.push(userId ? `/home/${userId}` : "/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");

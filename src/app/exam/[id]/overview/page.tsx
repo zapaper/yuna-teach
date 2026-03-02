@@ -345,8 +345,8 @@ function ExamOverviewContent({ id }: { id: string }) {
 
       <h1 className="text-2xl font-bold text-slate-800 mb-1">{paper.title}</h1>
       <p className="text-sm text-slate-400 mb-6">
-        {paper.school && <span>{paper.school} · </span>}
-        Added {new Date(paper.createdAt).toLocaleDateString()}
+        {paper.school ? <span>{paper.school} · </span> : null}
+        <span>Added {new Date(paper.createdAt).toLocaleDateString()}</span>
       </p>
 
       {/* Paper Summary */}
@@ -370,12 +370,12 @@ function ExamOverviewContent({ id }: { id: string }) {
           <span className="text-sm text-slate-600">Answers detected</span>
           <span className={`font-semibold ${hasMissingAnswers ? "text-red-500" : "text-green-600"}`}>
             {answersDetected} / {questionsDetected}
-            {hasMissingAnswers && (
+            {hasMissingAnswers ? (
               <span className="ml-2 text-xs font-normal text-red-400">({missingAnswers} missing)</span>
-            )}
+            ) : null}
           </span>
         </div>
-        {hasMissingAnswers && (
+        {hasMissingAnswers ? (
           <div className="mt-2 flex items-start gap-2 rounded-xl bg-red-50 border border-red-200 px-3 py-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -387,7 +387,7 @@ function ExamOverviewContent({ id }: { id: string }) {
               Some answers could not be detected. Use Edit to fill them in.
             </p>
           </div>
-        )}
+        ) : null}
         <button onClick={() => router.push(`/exam/${id}/edit?userId=${userId}`)}
           className="mt-3 w-full py-2.5 px-4 rounded-xl border-2 border-primary-200 text-primary-600 font-medium text-sm hover:bg-primary-50 transition-colors">
           Edit Questions &amp; Answers
@@ -409,32 +409,31 @@ function ExamOverviewContent({ id }: { id: string }) {
                   <div className="flex-1 min-w-0">
                     <div>
                       <span className="font-semibold text-sm text-slate-800">{student.name}</span>
-                      {student.level && <span className="text-xs text-slate-400 ml-1.5">P{student.level}</span>}
-                      {isSubmitted && (
+                      {student.level ? <span className="text-xs text-slate-400 ml-1.5">P{student.level}</span> : null}
+                      {isSubmitted ? (
                         <span className="ml-2 text-xs text-green-600 font-medium">
                           Submitted {new Date(paper.completedAt!).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
                         </span>
-                      )}
-                      {isAssigned && !paper.completedAt && (
+                      ) : isAssigned ? (
                         <span className="ml-2 text-xs text-amber-600 font-medium">In progress</span>
-                      )}
+                      ) : null}
                     </div>
-                    {isSubmitted && (
+                    {isSubmitted ? (
                       <button onClick={downloadSubmissionPdf} disabled={downloading}
                         className="text-xs text-slate-400 hover:text-primary-600 transition-colors mt-0.5">
-                        {downloading ? "Downloading…" : "Download PDF"}
+                        {downloading ? <span>Downloading…</span> : <span>Download PDF</span>}
                       </button>
-                    )}
+                    ) : null}
                   </div>
 
                   {/* Marking button — only for assigned + submitted */}
-                  {isSubmitted && (
-                    <>
-                      {marking && (
+                  {isSubmitted ? (
+                    <div className="flex items-center gap-1.5">
+                      {marking ? (
                         <div className="flex items-center gap-1.5">
                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-600">
-                            <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
-                            Marking…
+                            <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500 inline-block" />
+                            <span>Marking…</span>
                           </div>
                           <button
                             onClick={async () => {
@@ -446,23 +445,15 @@ function ExamOverviewContent({ id }: { id: string }) {
                             className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1"
                             title="Cancel marking"
                           >
-                            ✕
+                            <span>✕</span>
                           </button>
                         </div>
-                      )}
-                      {!marking && isMarkingFailed && (
+                      ) : isMarkingFailed ? (
                         <button onClick={triggerMarking}
                           className="px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600 hover:bg-red-100 transition-colors">
                           Retry mark
                         </button>
-                      )}
-                      {!marking && !isMarked && !isMarkingFailed && (
-                        <button onClick={triggerMarking}
-                          className="px-2.5 py-1 rounded-lg bg-primary-50 border-2 border-primary-300 text-xs font-semibold text-primary-700 hover:bg-primary-100 transition-colors">
-                          Mark paper
-                        </button>
-                      )}
-                      {!marking && isMarked && (
+                      ) : isMarked ? (
                         <div className="flex items-center gap-1.5">
                           <button onClick={() => openMarkingDetail()} disabled={detailLoading}
                             className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
@@ -470,23 +461,35 @@ function ExamOverviewContent({ id }: { id: string }) {
                                 ? "bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100"
                                 : "bg-green-50 border border-green-300 text-green-700 hover:bg-green-100"
                             }`}>
-                            {detailLoading
-                              ? <><div className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500" />Loading…</>
-                              : <><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                            {detailLoading ? (
+                              <span className="inline-flex items-center gap-1">
+                                <span className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500 inline-block" />
+                                <span>Loading…</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
                                   fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                   <path d="M20 6 9 17l-5-5" />
                                 </svg>
-                                {paper.score ?? 0}{paper.totalMarks ? `/${paper.totalMarks}` : ""}</>}
+                                <span>{paper.score ?? 0}{paper.totalMarks ? `/${paper.totalMarks}` : ""}</span>
+                              </span>
+                            )}
                           </button>
-                          {unmarkedCount > 0 && (
+                          {unmarkedCount > 0 ? (
                             <span className="text-xs text-amber-600 font-medium whitespace-nowrap">
                               {unmarkedCount} unmarked
                             </span>
-                          )}
+                          ) : null}
                         </div>
+                      ) : (
+                        <button onClick={triggerMarking}
+                          className="px-2.5 py-1 rounded-lg bg-primary-50 border-2 border-primary-300 text-xs font-semibold text-primary-700 hover:bg-primary-100 transition-colors">
+                          Mark paper
+                        </button>
                       )}
-                    </>
-                  )}
+                    </div>
+                  ) : null}
 
                   {/* Assign / Assigned */}
                   {isAssigned ? (
@@ -506,7 +509,7 @@ function ExamOverviewContent({ id }: { id: string }) {
         )}
 
         {/* Time spent */}
-        {paper.assignedToId && (paper.timeSpentSeconds ?? 0) > 0 && (
+        {paper.assignedToId && (paper.timeSpentSeconds ?? 0) > 0 ? (
           <div className="border-t border-slate-100 pt-1">
             <InfoRow label="Time spent" value={(() => {
               const s = paper.timeSpentSeconds ?? 0;
@@ -516,34 +519,34 @@ function ExamOverviewContent({ id }: { id: string }) {
               return h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`;
             })()} />
           </div>
-        )}
+        ) : null}
 
         {/* Unassign */}
-        {paper.assignedToId && (
+        {paper.assignedToId ? (
           <div className="border-t border-slate-100 pt-2">
             <button onClick={() => handleAssign(null)} disabled={assigning}
               className="w-full py-2 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors">
               Unassign
             </button>
           </div>
-        )}
+        ) : null}
       </Section>
 
       {/* Open practice */}
-      {paper.assignedToId && (
+      {paper.assignedToId ? (
         <button
           onClick={() => router.push(`/exam/${id}?userId=${paper.assignedToId}`)}
           className="w-full py-3.5 rounded-2xl bg-primary-500 text-white font-semibold text-base hover:bg-primary-600 transition-colors"
         >
           Open Practice
         </button>
-      )}
+      ) : null}
 
     </div>
   );
 
   // ── Portals — rendered into document.body to avoid React reconciliation issues ──
-  const markingDetailPortal = mounted && markingDetail && createPortal(
+  const markingDetailPortal = mounted && markingDetail ? createPortal(
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
@@ -560,8 +563,8 @@ function ExamOverviewContent({ id }: { id: string }) {
         </div>
         <div className="text-right">
           <p className="text-xl font-bold text-primary-600">
-            {markingDetail.score ?? 0}
-            {paper.totalMarks ? <span className="text-sm font-normal text-slate-400"> / {paper.totalMarks}</span> : ""}
+            <span>{markingDetail.score ?? 0}</span>
+            {paper.totalMarks ? <span className="text-sm font-normal text-slate-400"> / {paper.totalMarks}</span> : null}
           </p>
         </div>
       </div>
@@ -623,9 +626,9 @@ function ExamOverviewContent({ id }: { id: string }) {
                       {awarded !== null ? awarded : "—"}{available !== null ? ` / ${available}` : ""}
                     </span>
                   </div>
-                  {q.markingNotes && (
+                  {q.markingNotes ? (
                     <p className="text-xs text-slate-500 leading-relaxed mb-2">{q.markingNotes}</p>
-                  )}
+                  ) : null}
 
                   {/* Actions */}
                   {isManual ? (
@@ -646,8 +649,8 @@ function ExamOverviewContent({ id }: { id: string }) {
                     <div className="flex items-center gap-2 mt-1">
                       {isRemarking ? (
                         <div className="flex items-center gap-1 text-xs text-blue-500">
-                          <div className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500" />
-                          Re-marking…
+                          <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500 inline-block" />
+                          <span>Re-marking…</span>
                         </div>
                       ) : (
                         <button onClick={() => remarkQuestion(q.id)}
@@ -677,9 +680,9 @@ function ExamOverviewContent({ id }: { id: string }) {
       </div>
     </div>,
     document.body
-  );
+  ) : null;
 
-  const lightboxPortal = mounted && lightboxQ && createPortal(
+  const lightboxPortal = mounted && lightboxQ ? createPortal(
     <div className="fixed inset-0 z-[60] bg-black/90 flex flex-col"
       onClick={() => setLightboxQ(null)}>
       <div className="flex items-center justify-between px-4 py-3 bg-black/60 shrink-0">
@@ -700,14 +703,14 @@ function ExamOverviewContent({ id }: { id: string }) {
           className="max-w-full h-auto rounded-xl shadow-2xl"
         />
       </div>
-      {submissionPageCount > 1 && (
+      {submissionPageCount > 1 ? (
         <div className="flex items-center justify-center gap-4 py-2 bg-black/60 shrink-0 text-xs text-slate-400">
-          Page {getSubmissionPage(lightboxQ.pageIndex) + 1} of {submissionPageCount}
+          <span>Page {getSubmissionPage(lightboxQ.pageIndex) + 1} of {submissionPageCount}</span>
         </div>
-      )}
+      ) : null}
     </div>,
     document.body
-  );
+  ) : null;
 
   return (
     <>

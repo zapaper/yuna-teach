@@ -35,36 +35,49 @@ export default function ExamPaperCard({
               {paper.title}
             </h3>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {paper.subject && (
+              {paper.subject ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
                   {paper.subject}
                 </span>
-              )}
-              {paper.level && (
+              ) : null}
+              {paper.level ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                   {paper.level}
                 </span>
-              )}
-              {paper.assignedToName && (
+              ) : null}
+              {paper.assignedToName ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
                   Assigned to {paper.assignedToName}
                 </span>
-              )}
+              ) : null}
               <span className="text-xs text-slate-400">
                 {paper.questionCount} questions
               </span>
+              {paper.markingStatus === "complete" ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                  Marked
+                </span>
+              ) : paper.completedAt ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                  Completed
+                </span>
+              ) : (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                  Submitted
+                </span>
+              )}
             </div>
-            {paper.school && (
+            {paper.school ? (
               <p className="text-xs text-slate-400 mt-1 truncate">
                 {paper.school}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </Link>
 
       {/* Delete button — only for parents/owners */}
-      {onDelete && (
+      {onDelete ? (
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -89,10 +102,10 @@ export default function ExamPaperCard({
             <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
           </svg>
         </button>
-      )}
+      ) : null}
 
       {/* Delete confirmation modal */}
-      {showConfirm && onDelete && (
+      {showConfirm && onDelete ? (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
             <h3 className="font-semibold text-lg mb-2">Delete Exam Paper?</h3>
@@ -119,7 +132,7 @@ export default function ExamPaperCard({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
