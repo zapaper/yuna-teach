@@ -40,10 +40,13 @@ export default function QuestionReviewList({
       {questions.map((q, idx) => {
         const isRedoing = redoingIndices?.has(idx) ?? false;
         const isRedoingAnswer = redoingAnswerIndices?.has(idx) ?? false;
+        const stableKey = `${q.questionNum}-${q.pageIndex}-${q.orderIndex}`;
+        const hasBoundaryInfo = Boolean(q.boundaryTop || q.boundaryBottom);
+        const hasAnswerImage = Boolean(q.answerImageData);
 
         return (
           <div
-            key={idx}
+            key={stableKey}
             className={`rounded-2xl border-2 bg-white p-4 shadow-sm ${
               isRedoing
                 ? "border-purple-300 bg-purple-50/30"
@@ -63,8 +66,8 @@ export default function QuestionReviewList({
                   }
                   className="w-16 text-sm font-semibold border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-300"
                 />
-                {onUpdateMarks && (
-                  <>
+                {onUpdateMarks != null && (
+                  <span className="flex items-center gap-1">
                     <label className="text-xs text-slate-400 ml-1">Marks</label>
                     <input
                       type="number"
@@ -75,11 +78,11 @@ export default function QuestionReviewList({
                       step="0.5"
                       className="w-14 text-sm border border-slate-200 rounded-lg px-2 py-1 text-center focus:outline-none focus:border-primary-300"
                     />
-                  </>
+                  </span>
                 )}
               </div>
               <div className="flex items-center gap-1">
-                {onRedoQuestion && (
+                {onRedoQuestion != null && (
                   <button
                     onClick={() => onRedoQuestion(idx)}
                     disabled={isRedoing}
@@ -138,20 +141,20 @@ export default function QuestionReviewList({
               className="w-full rounded-xl border border-slate-200 mb-2"
             />
 
-            {(q.boundaryTop || q.boundaryBottom) && (
+            {hasBoundaryInfo ? (
               <p className="text-xs text-slate-400 mb-2 font-mono">
                 Top: Q{q.boundaryTop || "?"} | Bottom: {q.boundaryBottom === "not found" ? (
                   <span className="text-amber-500">not found</span>
                 ) : (
-                  <>Q{q.boundaryBottom}</>
+                  <span>Q{q.boundaryBottom}</span>
                 )}
               </p>
-            )}
+            ) : null}
 
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs text-slate-400">Answer</label>
-                {onRedoAnswer && (
+                {onRedoAnswer != null && (
                   <button
                     onClick={() => onRedoAnswer(idx)}
                     disabled={isRedoingAnswer}
@@ -182,7 +185,7 @@ export default function QuestionReviewList({
                   </button>
                 )}
               </div>
-              {q.answerImageData && (
+              {hasAnswerImage ? (
                 <div className="mb-2">
                   <img
                     src={q.answerImageData}
@@ -196,12 +199,12 @@ export default function QuestionReviewList({
                     Remove answer image
                   </button>
                 </div>
-              )}
+              ) : null}
               <input
                 type="text"
                 value={q.answer}
                 onChange={(e) => onUpdateQuestion(idx, "answer", e.target.value)}
-                placeholder={q.answerImageData ? "Text summary (optional)" : "No answer extracted"}
+                placeholder={hasAnswerImage ? "Text summary (optional)" : "No answer extracted"}
                 className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-300"
               />
             </div>
