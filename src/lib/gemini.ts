@@ -1241,22 +1241,42 @@ export async function analyzeExamBatch(
   // Track cumulative question numbering for booklets sharing a prefix
   const prefixQuestionCount = new Map<string, number>();
 
+  // Build sets for page classification
+  const coverSet = new Set(coverPageEntries.map(p => p.pageIndex));
+  // Also treat the page immediately before each booklet's firstQuestionPageIndex as a likely cover
+  // (structure analysis sometimes fails to flag these)
+  const impliedCoverSet = new Set<number>();
+  for (const paper of sortedPapers) {
+    const likelyCover = paper.firstQuestionPageIndex - 1;
+    if (likelyCover >= 0 && !answerPageEntries.some(a => a.pageIndex === likelyCover)) {
+      impliedCoverSet.add(likelyCover);
+    }
+  }
+
   for (let i = 0; i < sortedPapers.length; i++) {
     const paper = sortedPapers[i];
-    // If firstQuestionPageIndex itself is a cover page (structure analysis off-by-1),
-    // advance to the next non-cover page
-    const coverSet = new Set(coverPageEntries.map(p => p.pageIndex));
+    // Start from firstQuestionPageIndex, advancing past any flagged cover pages
     let startPage = paper.firstQuestionPageIndex;
     while (coverSet.has(startPage) && startPage <= maxNonAnswerPage) startPage++;
 
-    const endPage = i < sortedPapers.length - 1
+    // End page: for the last booklet, use the last non-answer page.
+    // For other booklets, end 1 page before the next booklet's firstQuestionPageIndex.
+    let endPage = i < sortedPapers.length - 1
       ? sortedPapers[i + 1].firstQuestionPageIndex - 1
       : maxNonAnswerPage;
+    // If endPage is a cover page (flagged or implied), pull it back
+    while (endPage > startPage && (coverSet.has(endPage) || impliedCoverSet.has(endPage))) endPage--;
 
     // Collect question pages in this range — exclude answer sheets AND cover pages
-    // Cover pages must never be sent to question extraction (the AI hallucinates questions on them)
+    // ENFORCE: pages must be >= firstQuestionPageIndex (never include cover pages before questions start)
     const pageIndices = structure.pages
-      .filter(p => p.pageIndex >= startPage && p.pageIndex <= endPage && !p.isAnswerSheet && !p.isCoverPage)
+      .filter(p =>
+        p.pageIndex >= startPage &&
+        p.pageIndex >= paper.firstQuestionPageIndex &&
+        p.pageIndex <= endPage &&
+        !p.isAnswerSheet &&
+        !p.isCoverPage
+      )
       .map(p => p.pageIndex);
 
     // Determine first question number (continuous numbering within same prefix)

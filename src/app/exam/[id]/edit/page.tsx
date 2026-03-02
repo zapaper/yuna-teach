@@ -494,14 +494,15 @@ function QuestionEditCard({
               </div>
             </div>
           </div>
-        ) : pdfLoaded ? (
+        ) : (
           <button
             onClick={() => onSelectArea("answerImageData")}
-            className="text-xs text-slate-400 hover:text-primary-600 transition-colors ml-27"
+            disabled={!pdfLoaded}
+            className="text-xs text-slate-400 hover:text-primary-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            + Add answer image
+            + Add answer image{!pdfLoaded ? " (load PDF first)" : ""}
           </button>
-        ) : null}
+        )}
       </div>
     </div>
   );
