@@ -244,11 +244,11 @@ function TestPageContent({ id }: { id: string }) {
         <h1 className="text-xl font-bold text-slate-800 font-chinese">
           {test.title}
         </h1>
-        {test.subtitle && (
+        {test.subtitle ? (
           <p className="text-sm text-slate-500 mt-0.5 font-chinese">
             {test.subtitle}
           </p>
-        )}
+        ) : null}
       </div>
 
       {/* Instructions */}
@@ -274,28 +274,28 @@ function TestPageContent({ id }: { id: string }) {
       </div>
 
       {/* Word info display */}
-      {currentWordInfo && (
+      {currentWordInfo ? (
         <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4 mb-4">
           <div className="flex items-baseline gap-2 mb-1">
             <span className="text-lg font-bold font-chinese text-primary-700">
               {currentWordInfo.word}
             </span>
-            {currentWordInfo.info.pinyin && (
+            {currentWordInfo.info.pinyin ? (
               <span className="text-sm text-primary-500">
                 {currentWordInfo.info.pinyin}
               </span>
-            )}
+            ) : null}
           </div>
           <p className="text-sm text-slate-700 font-chinese">
             {currentWordInfo.info.meaning}
           </p>
-          {currentWordInfo.info.example && (
+          {currentWordInfo.info.example ? (
             <p className="text-sm text-slate-500 mt-1 font-chinese">
               {currentWordInfo.info.example}
             </p>
-          )}
+          ) : null}
         </div>
-      )}
+      ) : null}
 
       {/* Delay slider */}
       <div className="bg-slate-50 rounded-2xl p-4 mb-4">

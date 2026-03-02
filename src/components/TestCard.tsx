@@ -32,11 +32,11 @@ export default function TestCard({
             <h3 className="font-semibold text-lg text-slate-800 truncate font-chinese">
               {test.title}
             </h3>
-            {test.subtitle && (
+            {test.subtitle ? (
               <p className="text-sm text-slate-500 mt-0.5 font-chinese">
                 {test.subtitle}
               </p>
-            )}
+            ) : null}
             <div className="flex items-center gap-2 mt-2">
               <span
                 className={`text-xs font-medium px-2 py-0.5 rounded-full ${languageColor}`}
@@ -78,7 +78,7 @@ export default function TestCard({
       </button>
 
       {/* Confirmation modal */}
-      {showConfirm && (
+      {showConfirm ? (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
             <h3 className="font-semibold text-lg mb-2">Delete Test?</h3>
@@ -105,7 +105,7 @@ export default function TestCard({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

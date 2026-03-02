@@ -339,16 +339,16 @@ function ExamPracticeContent({ id }: { id: string }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-800 truncate">{paper.title}</p>
           <div className="flex items-center gap-1.5">
-            {paper.subject && (
+            {paper.subject ? (
               <span className="text-[10px] font-medium px-1.5 rounded-full bg-purple-100 text-purple-700">
                 {paper.subject}
               </span>
-            )}
-            {paper.level && (
+            ) : null}
+            {paper.level ? (
               <span className="text-[10px] font-medium px-1.5 rounded-full bg-green-100 text-green-700">
                 {paper.level}
               </span>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -361,7 +361,7 @@ function ExamPracticeContent({ id }: { id: string }) {
           {formatTime(displaySeconds)}
         </div>
 
-        {hasPdf && (
+        {hasPdf ? (
           <div className="flex rounded-xl border border-slate-200 overflow-hidden shrink-0 text-xs font-medium">
             <button onClick={() => setView("paper")}
               className={`px-3 py-1.5 ${view === "paper" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
@@ -372,22 +372,22 @@ function ExamPracticeContent({ id }: { id: string }) {
               Q&A
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* ── PDF loading ── */}
-      {loadingPdf && (
+      {loadingPdf ? (
         <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 border-b border-blue-100 text-xs text-blue-600">
-          <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-200 border-t-blue-500 shrink-0" />
-          Loading exam paper…
+          <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-blue-200 border-t-blue-500 shrink-0 inline-block" />
+          <span>Loading exam paper…</span>
         </div>
-      )}
+      ) : null}
 
       {/* ── Paper drawing view ── */}
-      {hasPdf && view === "paper" && (
+      {hasPdf && view === "paper" ? (
         <div style={{ width: "100vw", marginLeft: "calc(50% - 50vw)" }}>
           {/* Submitted banner */}
-          {submitStatus === "submitted" && (
+          {submitStatus === "submitted" ? (
             <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border-b border-green-200 text-xs text-green-700">
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -401,7 +401,7 @@ function ExamPracticeContent({ id }: { id: string }) {
                 {downloadingPdf ? "Downloading…" : "Download PDF"}
               </button>
             </div>
-          )}
+          ) : null}
 
           {/* Drawing toolbar */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2"
@@ -492,10 +492,10 @@ function ExamPracticeContent({ id }: { id: string }) {
             </button>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* ── Question cards ── */}
-      {(view === "questions" || !hasPdf) && !loadingPdf && (
+      {(view === "questions" || !hasPdf) && !loadingPdf ? (
         <div className="p-4 pb-24">
           {questions.length === 0 ? (
             <div className="text-center py-12">
@@ -511,7 +511,7 @@ function ExamPracticeContent({ id }: { id: string }) {
             />
           )}
         </div>
-      )}
+      ) : null}
 
       {/* Hidden file input for PDF upload */}
       <input

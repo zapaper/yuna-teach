@@ -98,9 +98,9 @@ export default function HomePage({
         <h1 className="text-2xl font-bold text-slate-800">
           {user?.name ? `${user.name}'s Tests` : "Spelling Tests"}
         </h1>
-        {user?.role === "STUDENT" && user.level && (
+        {user?.role === "STUDENT" && user.level ? (
           <p className="text-slate-500 text-sm mt-1">Primary {user.level}</p>
-        )}
+        ) : null}
       </div>
 
       {/* Action buttons */}
@@ -111,14 +111,14 @@ export default function HomePage({
         >
           Scan Spelling / 听写
         </Link>
-        {isParent && (
+        {isParent ? (
           <Link
             href={`/exam/upload?userId=${userId}`}
             className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
           >
             Upload Exam Paper
           </Link>
-        )}
+        ) : null}
       </div>
 
       {/* Test list */}

@@ -47,13 +47,13 @@ export default function QuestionCard({
       ) : (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-4">
           <p className="text-sm font-medium text-green-700 mb-1">Answer:</p>
-          {question.answerImageData && (
+          {question.answerImageData ? (
             <img
               src={question.answerImageData}
               alt={`Answer for Q${question.questionNum}`}
               className="w-full rounded-xl mb-2"
             />
-          )}
+          ) : null}
           {question.answer ? (
             <p className="text-green-800 font-semibold">{question.answer}</p>
           ) : !question.answerImageData ? (
