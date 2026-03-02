@@ -90,26 +90,28 @@ export default function QuestionReviewList({
                     aria-label="Redo extraction"
                     title="Re-extract this question"
                   >
-                    {isRedoing ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-200 border-t-purple-500" />
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                        <path d="M3 3v5h5" />
-                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                        <path d="M16 16h5v5" />
-                      </svg>
-                    )}
+                    <span className="inline-flex items-center justify-center w-4 h-4">
+                      {isRedoing ? (
+                        <span className="animate-spin rounded-full h-4 w-4 border-2 border-purple-200 border-t-purple-500 inline-block" />
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                          <path d="M3 3v5h5" />
+                          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                          <path d="M16 16h5v5" />
+                        </svg>
+                      )}
+                    </span>
                   </button>
                 )}
                 <button
@@ -161,45 +163,49 @@ export default function QuestionReviewList({
                     className="text-xs text-green-500 hover:text-green-700 disabled:opacity-30 flex items-center gap-1"
                     title="Re-detect answer from answer key"
                   >
-                    {isRedoingAnswer ? (
-                      <div className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500" />
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                        <path d="M3 3v5h5" />
-                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                        <path d="M16 16h5v5" />
-                      </svg>
-                    )}
-                    Redo answer
+                    <span className="inline-flex items-center gap-1">
+                      {isRedoingAnswer ? (
+                        <span className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500 inline-block" />
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                          <path d="M3 3v5h5" />
+                          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                          <path d="M16 16h5v5" />
+                        </svg>
+                      )}
+                      <span>Redo answer</span>
+                    </span>
                   </button>
                 )}
               </div>
-              {hasAnswerImage ? (
-                <div className="mb-2">
-                  <img
-                    src={q.answerImageData}
-                    alt={`Answer for Q${q.questionNum}`}
-                    className="w-full rounded-lg border border-green-200"
-                  />
-                  <button
-                    onClick={() => onUpdateQuestion(idx, "answerImageData", "")}
-                    className="text-xs text-red-400 hover:text-red-600 mt-1"
-                  >
-                    Remove answer image
-                  </button>
-                </div>
-              ) : null}
+              <div className={hasAnswerImage ? "mb-2" : undefined}>
+                {hasAnswerImage ? (
+                  <div>
+                    <img
+                      src={q.answerImageData}
+                      alt={`Answer for Q${q.questionNum}`}
+                      className="w-full rounded-lg border border-green-200"
+                    />
+                    <button
+                      onClick={() => onUpdateQuestion(idx, "answerImageData", "")}
+                      className="text-xs text-red-400 hover:text-red-600 mt-1"
+                    >
+                      Remove answer image
+                    </button>
+                  </div>
+                ) : null}
+              </div>
               <input
                 type="text"
                 value={q.answer}
