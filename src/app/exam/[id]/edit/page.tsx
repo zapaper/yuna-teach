@@ -407,7 +407,7 @@ function QuestionEditCard({
               }}
               className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-primary-400"
             />
-            {qNumDirty && (
+            {qNumDirty ? (
               <button
                 onClick={() => {
                   onSave(question.id, "questionNum", qNum);
@@ -418,7 +418,7 @@ function QuestionEditCard({
               >
                 {saving === "questionNum" ? "…" : "Save"}
               </button>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -446,7 +446,7 @@ function QuestionEditCard({
                   : "border-slate-200 focus:border-primary-400"
               }`}
             />
-            {answerDirty && (
+            {answerDirty ? (
               <button
                 onClick={() => {
                   onSave(question.id, "answer", answer);
@@ -457,52 +457,54 @@ function QuestionEditCard({
               >
                 {saving === "answer" ? "…" : "Save"}
               </button>
-            )}
+            ) : null}
           </div>
         </div>
 
         {/* Answer image — collapsed by default, expands when image exists or user clicks */}
-        {question.answerImageData ? (
-          <div className="flex items-start gap-3">
-            <span className="text-xs font-medium text-slate-500 w-24 shrink-0 mt-1">
-              Answer img
-            </span>
-            <div className="flex-1 space-y-2">
-              <Image
-                src={question.answerImageData}
-                alt="Answer image"
-                width={600}
-                height={200}
-                className="w-full h-auto rounded-xl border border-slate-100 object-contain"
-                unoptimized
-              />
-              <div className="flex gap-2">
-                {pdfLoaded && (
+        <div>
+          {question.answerImageData ? (
+            <div className="flex items-start gap-3">
+              <span className="text-xs font-medium text-slate-500 w-24 shrink-0 mt-1">
+                Answer img
+              </span>
+              <div className="flex-1 space-y-2">
+                <Image
+                  src={question.answerImageData}
+                  alt="Answer image"
+                  width={600}
+                  height={200}
+                  className="w-full h-auto rounded-xl border border-slate-100 object-contain"
+                  unoptimized
+                />
+                <div className="flex gap-2">
+                  {pdfLoaded ? (
+                    <button
+                      onClick={() => onSelectArea("answerImageData")}
+                      className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+                    >
+                      Replace
+                    </button>
+                  ) : null}
                   <button
-                    onClick={() => onSelectArea("answerImageData")}
-                    className="text-xs text-slate-500 hover:text-primary-600 transition-colors"
+                    onClick={() => onSave(question.id, "answerImageData", null)}
+                    className="text-xs text-slate-500 hover:text-red-500 transition-colors"
                   >
-                    Replace
+                    Remove
                   </button>
-                )}
-                <button
-                  onClick={() => onSave(question.id, "answerImageData", null)}
-                  className="text-xs text-slate-500 hover:text-red-500 transition-colors"
-                >
-                  Remove
-                </button>
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => onSelectArea("answerImageData")}
-            disabled={!pdfLoaded}
-            className="text-xs px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            + Add answer image{!pdfLoaded ? " (load PDF first)" : ""}
-          </button>
-        )}
+          ) : (
+            <button
+              onClick={() => onSelectArea("answerImageData")}
+              disabled={!pdfLoaded}
+              className="text-xs px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>+ Add answer image</span>{!pdfLoaded ? <span> (load PDF first)</span> : null}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

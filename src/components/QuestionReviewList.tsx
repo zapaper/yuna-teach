@@ -204,7 +204,28 @@ export default function QuestionReviewList({
                       Remove answer image
                     </button>
                   </div>
-                ) : null}
+                ) : (
+                  <label className="inline-block text-xs px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors cursor-pointer mb-1">
+                    <span>+ Add answer image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          if (typeof reader.result === "string") {
+                            onUpdateQuestion(idx, "answerImageData", reader.result);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
               </div>
               <input
                 type="text"
