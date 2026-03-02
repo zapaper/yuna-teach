@@ -498,7 +498,7 @@ function QuestionEditCard({
           <button
             onClick={() => onSelectArea("answerImageData")}
             disabled={!pdfLoaded}
-            className="text-xs text-slate-400 hover:text-primary-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="text-xs px-3 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-500 hover:text-primary-600 hover:border-primary-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             + Add answer image{!pdfLoaded ? " (load PDF first)" : ""}
           </button>

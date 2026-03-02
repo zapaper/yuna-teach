@@ -952,13 +952,14 @@ function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionN
   return lines.join("\n");
 }
 
-// Stage 2a: Extract question boundaries for a SINGLE booklet — with validation + retry
-async function extractQuestionsForBooklet(
+// Run a single extraction call and parse the result
+async function runExtractionCall(
   imagesBase64: string[],
   originalPageIndices: number[],
   paper: StructureResult["papers"][0],
-  firstQuestionNum: number
-): Promise<QuestionExtractionResult> {
+  firstQuestionNum: number,
+  label: string
+): Promise<{ result: QuestionExtractionResult; rawText: string }> {
   const imageParts = imagesBase64.map((data, i) => [
     { inlineData: { mimeType: "image/jpeg" as const, data } },
     { text: `[Page ${originalPageIndices[i]}]` },
@@ -970,7 +971,8 @@ async function extractQuestionsForBooklet(
     bookletContext
   );
 
-  // First attempt — use Pro model for better visual reasoning on question boundaries
+  console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
+
   const response = await getAI().models.generateContent({
     model: "gemini-2.5-pro",
     contents: [
@@ -986,64 +988,131 @@ async function extractQuestionsForBooklet(
   });
 
   const text = response.text;
-  if (!text) throw new Error(`Gemini returned empty response for question extraction (${paper.label})`);
-  console.log(`[Exam Pipeline] ${paper.label} raw response (first 300 chars):`, text.slice(0, 300));
+  if (!text) throw new Error(`Gemini returned empty response for question extraction (${label})`);
+  console.log(`[Exam Pipeline] ${label} raw response (first 300 chars):`, text.slice(0, 300));
+
   let pages: QuestionExtractionResult["pages"] = [];
   try {
     const parsed = JSON.parse(sanitizeJsonString(text));
-    // Normalize: handle top-level array, nested result, or missing pages
     let rawPages = parsed.pages ?? parsed.result?.pages ?? parsed.data?.pages;
     if (!Array.isArray(rawPages) && Array.isArray(parsed)) rawPages = parsed;
     if (!Array.isArray(rawPages)) {
-      console.log(`[Exam Pipeline] ${paper.label}: unexpected structure, keys: ${Object.keys(parsed).join(", ")}, raw: ${text.slice(0, 500)}`);
+      console.log(`[Exam Pipeline] ${label}: unexpected structure, keys: ${Object.keys(parsed).join(", ")}, raw: ${text.slice(0, 500)}`);
       rawPages = [];
     }
     pages = rawPages;
   } catch (parseErr) {
-    console.log(`[Exam Pipeline] ${paper.label}: JSON parse failed (truncated response?), will retry. Error: ${parseErr}`);
-    // pages stays []
+    console.log(`[Exam Pipeline] ${label}: JSON parse failed, error: ${parseErr}`);
   }
+
   const result: QuestionExtractionResult = {
     ...normalizeExtractionResult(remapPageIndices({ pages }, originalPageIndices)),
     _rawSnippet: text.slice(0, 400),
   };
 
-  // Validate: check first question is correct
-  const allQNums = extractQuestionNumbers(result, paper.questionPrefix);
+  return { result, rawText: text };
+}
 
+// Validate extraction result — returns list of issues (empty = all OK)
+function validateExtraction(
+  result: QuestionExtractionResult,
+  paper: StructureResult["papers"][0],
+  firstQuestionNum: number
+): { issues: string[]; qNums: number[] } {
+  const qNums = extractQuestionNumbers(result, paper.questionPrefix);
   const issues: string[] = [];
-  if (allQNums.length === 0) {
+
+  if (qNums.length === 0) {
     issues.push(`No questions detected at all (expected ~${paper.expectedQuestionCount} starting from Q${firstQuestionNum})`);
   } else {
-    // Check first question
-    if (allQNums[0] !== firstQuestionNum) {
-      issues.push(`First question should be ${firstQuestionNum} but got ${allQNums[0]}`);
+    if (qNums[0] !== firstQuestionNum) {
+      issues.push(`First question should be ${firstQuestionNum} but got ${qNums[0]}`);
     }
-    // Check for gaps
     const gaps: number[] = [];
-    for (let i = 1; i < allQNums.length; i++) {
-      for (let g = allQNums[i - 1] + 1; g < allQNums[i]; g++) {
-        gaps.push(g);
-      }
+    for (let i = 1; i < qNums.length; i++) {
+      for (let g = qNums[i - 1] + 1; g < qNums[i]; g++) gaps.push(g);
     }
-    if (gaps.length > 0) {
-      issues.push(`Missing questions: ${gaps.join(", ")}`);
-    }
-    // Check for duplicates
+    if (gaps.length > 0) issues.push(`Missing questions: ${gaps.join(", ")}`);
     const seen = new Set<number>();
-    for (const n of allQNums) {
+    for (const n of qNums) {
       if (seen.has(n)) issues.push(`Duplicate question: ${n}`);
       seen.add(n);
     }
   }
 
+  return { issues, qNums };
+}
+
+// Stage 2a: Extract question boundaries for a SINGLE booklet — with validation + retry
+async function extractQuestionsForBooklet(
+  imagesBase64: string[],
+  originalPageIndices: number[],
+  paper: StructureResult["papers"][0],
+  firstQuestionNum: number
+): Promise<QuestionExtractionResult> {
+  // --- Attempt 1: extract with all pages ---
+  const { result, rawText } = await runExtractionCall(
+    imagesBase64, originalPageIndices, paper, firstQuestionNum,
+    `${paper.label} (attempt 1)`
+  );
+
+  const { issues, qNums } = validateExtraction(result, paper, firstQuestionNum);
+
   if (issues.length === 0) {
-    console.log(`[Exam Pipeline] ${paper.label} extraction OK: Q${allQNums[0]}-Q${allQNums[allQNums.length - 1]} (${allQNums.length} questions)`);
+    console.log(`[Exam Pipeline] ${paper.label} extraction OK: Q${qNums[0]}-Q${qNums[qNums.length - 1]} (${qNums.length} questions)`);
     return result;
   }
 
-  // Retry with feedback
-  console.log(`[Exam Pipeline] ${paper.label} issues, retrying:`, issues);
+  console.log(`[Exam Pipeline] ${paper.label} attempt 1 issues:`, issues);
+
+  // --- Attempt 2: If first question wrong and we have >1 page, DROP the first page (likely cover) ---
+  const firstQWrong = qNums.length > 0 && qNums[0] !== firstQuestionNum;
+  const noQuestionsAtAll = qNums.length === 0;
+
+  if ((firstQWrong || noQuestionsAtAll) && imagesBase64.length > 1) {
+    console.log(`[Exam Pipeline] ${paper.label}: first page (PDF page ${originalPageIndices[0] + 1}) is likely a cover page — dropping it and re-extracting`);
+
+    const trimmedImages = imagesBase64.slice(1);
+    const trimmedIndices = originalPageIndices.slice(1);
+
+    const { result: attempt2 } = await runExtractionCall(
+      trimmedImages, trimmedIndices, paper, firstQuestionNum,
+      `${paper.label} (attempt 2, dropped first page)`
+    );
+
+    const v2 = validateExtraction(attempt2, paper, firstQuestionNum);
+
+    if (v2.issues.length === 0) {
+      console.log(`[Exam Pipeline] ${paper.label} attempt 2 OK (after dropping cover): Q${v2.qNums[0]}-Q${v2.qNums[v2.qNums.length - 1]} (${v2.qNums.length} questions)`);
+      return attempt2;
+    }
+
+    console.log(`[Exam Pipeline] ${paper.label} attempt 2 issues:`, v2.issues);
+
+    // If attempt 2 is better (correct first Q or more questions), use it
+    const attempt2Better =
+      (v2.qNums[0] === firstQuestionNum && qNums[0] !== firstQuestionNum) ||
+      (v2.qNums.length > qNums.length);
+
+    if (attempt2Better) {
+      console.log(`[Exam Pipeline] ${paper.label}: attempt 2 (dropped cover) is better, using it`);
+      return attempt2;
+    }
+  }
+
+  // --- Attempt 3: Conversational retry with feedback (original pages) ---
+  console.log(`[Exam Pipeline] ${paper.label}: attempting conversational retry with feedback`);
+
+  const imageParts = imagesBase64.map((data, i) => [
+    { inlineData: { mimeType: "image/jpeg" as const, data } },
+    { text: `[Page ${originalPageIndices[i]}]` },
+  ]).flat();
+
+  const bookletContext = buildBookletContext(paper, firstQuestionNum);
+  const prompt = QUESTION_EXTRACTION_PROMPT.replace(
+    "{structureContext}",
+    bookletContext
+  );
 
   const retryFeedback = `
 ## Your previous extraction for ${paper.label} had these problems:
@@ -1068,7 +1137,7 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
       },
       {
         role: "model",
-        parts: [{ text: text }],
+        parts: [{ text: rawText }],
       },
       {
         role: "user",
@@ -1083,7 +1152,7 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
 
   const retryText = retryResponse.text;
   if (!retryText) {
-    console.log(`[Exam Pipeline] ${paper.label} retry empty, using first attempt`);
+    console.log(`[Exam Pipeline] ${paper.label} retry empty, using best previous attempt`);
     return result;
   }
 
@@ -1095,23 +1164,23 @@ CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sa
     if (!Array.isArray(rawRetryPages)) rawRetryPages = [];
     retryPages = rawRetryPages;
   } catch (retryParseErr) {
-    console.log(`[Exam Pipeline] ${paper.label}: retry JSON parse failed (truncated response?), using first attempt. Error: ${retryParseErr}`);
+    console.log(`[Exam Pipeline] ${paper.label}: retry JSON parse failed, using best previous. Error: ${retryParseErr}`);
     return result;
   }
+
   const retryResult: QuestionExtractionResult = {
     ...normalizeExtractionResult(remapPageIndices({ pages: retryPages }, originalPageIndices)),
     _rawSnippet: retryText.slice(0, 400),
   };
   const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
-  const firstQNums = extractQuestionNumbers(result, paper.questionPrefix);
-  console.log(`[Exam Pipeline] ${paper.label} retry: Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
+  console.log(`[Exam Pipeline] ${paper.label} attempt 3 (conversational retry): Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
 
-  // Use retry only if it found more questions or starts at the correct first question
+  // Use retry only if it's better
   const retryBetter =
-    (retryQNums.length > firstQNums.length) ||
-    (retryQNums[0] === firstQuestionNum && firstQNums[0] !== firstQuestionNum);
+    (retryQNums.length > qNums.length) ||
+    (retryQNums[0] === firstQuestionNum && qNums[0] !== firstQuestionNum);
   if (!retryBetter) {
-    console.log(`[Exam Pipeline] ${paper.label}: retry not better, keeping first attempt`);
+    console.log(`[Exam Pipeline] ${paper.label}: conversational retry not better, keeping best previous`);
     return result;
   }
   return retryResult;
@@ -1252,12 +1321,16 @@ export async function analyzeExamBatch(
       impliedCoverSet.add(likelyCover);
     }
   }
+  console.log("[Exam Pipeline] Implied cover pages (0-based):", [...impliedCoverSet]);
 
   for (let i = 0; i < sortedPapers.length; i++) {
     const paper = sortedPapers[i];
     // Start from firstQuestionPageIndex, advancing past any flagged cover pages
+    // Also advance past implied covers (structure analysis sometimes sets firstQuestionPageIndex to the cover page)
     let startPage = paper.firstQuestionPageIndex;
-    while (coverSet.has(startPage) && startPage <= maxNonAnswerPage) startPage++;
+    while ((coverSet.has(startPage) || impliedCoverSet.has(startPage)) && startPage <= maxNonAnswerPage) startPage++;
+
+    console.log(`[Exam Pipeline] ${paper.label}: firstQuestionPageIndex=${paper.firstQuestionPageIndex} (page ${paper.firstQuestionPageIndex + 1}), resolved startPage=${startPage} (page ${startPage + 1})`);
 
     // End page: for the last booklet, use the last non-answer page.
     // For other booklets, end 1 page before the next booklet's firstQuestionPageIndex.
@@ -1268,11 +1341,10 @@ export async function analyzeExamBatch(
     while (endPage > startPage && (coverSet.has(endPage) || impliedCoverSet.has(endPage))) endPage--;
 
     // Collect question pages in this range — exclude answer sheets AND cover pages
-    // ENFORCE: pages must be >= firstQuestionPageIndex (never include cover pages before questions start)
+    // Use resolved startPage (which skips covers even when firstQuestionPageIndex points at one)
     const pageIndices = structure.pages
       .filter(p =>
         p.pageIndex >= startPage &&
-        p.pageIndex >= paper.firstQuestionPageIndex &&
         p.pageIndex <= endPage &&
         !p.isAnswerSheet &&
         !p.isCoverPage
@@ -1291,6 +1363,7 @@ export async function analyzeExamBatch(
     label: b.paper.label,
     pages: b.pageIndices.map(i => i + 1), // 1-based for logging
     firstQ: b.firstQuestionNum,
+    firstQuestionPageIndex: b.paper.firstQuestionPageIndex,
   })));
 
   // --- Stage 2a: Extract questions per booklet (concurrent) + Stage 2b: Answers ---

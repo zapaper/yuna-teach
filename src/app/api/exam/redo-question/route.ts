@@ -12,6 +12,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log(`[Redo Question API] Re-extracting Q${questionNum}, surrounding: [${(surroundingQuestions ?? []).join(", ")}]`);
+
     const base64 = image.replace(/^data:image\/\w+;base64,/, "");
     const result = await redoQuestionExtraction(
       base64,
@@ -19,6 +21,7 @@ export async function POST(request: NextRequest) {
       surroundingQuestions ?? []
     );
 
+    console.log(`[Redo Question API] Q${questionNum} result: yStartPct=${result.yStartPct}, yEndPct=${result.yEndPct}`);
     return NextResponse.json(result);
   } catch (error) {
     console.error("Redo question error:", error);

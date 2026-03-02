@@ -247,6 +247,8 @@ function ExamUploadContent() {
     const q = questions[index];
     if (!pageImages[q.pageIndex]) return;
 
+    console.log(`[Redo Question] Q${q.questionNum} — extracting from pageIndex ${q.pageIndex} (page ${q.pageIndex + 1} in PDF)`);
+
     setRedoingIndices((prev) => new Set(prev).add(index));
     setError(null);
 
@@ -255,6 +257,8 @@ function ExamUploadContent() {
       const samePageQuestions = questions
         .filter((other, i) => i !== index && other.pageIndex === q.pageIndex)
         .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
+
+      console.log(`[Redo Question] Looking for printed Q${printedNum} on page ${q.pageIndex + 1}, surrounding: [${samePageQuestions.join(", ")}]`);
 
       const res = await fetch("/api/exam/redo-question", {
         method: "POST",
