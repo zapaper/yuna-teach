@@ -400,30 +400,12 @@ function ExamPracticeContent({ id }: { id: string }) {
               <span className="flex-1">
                 Submitted{paper.completedAt ? ` on ${new Date(paper.completedAt).toLocaleDateString()}` : ""}
               </span>
-              <button onClick={() => uploadInputRef.current?.click()} disabled={uploadingPdf}
-                className="text-green-600 font-medium hover:text-green-800 transition-colors disabled:opacity-50">
-                {uploadingPdf ? "Uploading…" : "Upload PDF"}
-              </button>
-              <span className="text-green-300">|</span>
               <button onClick={downloadSubmissionPdf} disabled={downloadingPdf}
                 className="text-green-600 font-medium hover:text-green-800 transition-colors disabled:opacity-50">
-                {downloadingPdf ? "Downloading…" : "Download"}
+                {downloadingPdf ? "Downloading…" : "Download PDF"}
               </button>
             </div>
           )}
-
-          {/* Hidden file input for PDF upload */}
-          <input
-            ref={uploadInputRef}
-            type="file"
-            accept="application/pdf"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) uploadPdfAsSubmission(f);
-              e.target.value = "";
-            }}
-          />
 
           {/* Drawing toolbar */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2"
@@ -482,26 +464,35 @@ function ExamPracticeContent({ id }: { id: string }) {
 
           {/* ── Bottom action bar ── */}
           <div
-            className="sticky bottom-0 z-10 bg-white border-t border-slate-200 px-4 py-3 flex items-center gap-3"
+            className="sticky bottom-0 z-10 bg-white border-t border-slate-200 px-4 py-3 flex flex-col gap-2"
             style={{ width: "100vw", userSelect: "none", WebkitUserSelect: "none" }}
           >
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSaveAndExit}
+                disabled={isBusy}
+                className="flex-1 py-2.5 rounded-xl border-2 border-slate-300 text-slate-600 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              >
+                {submitStatus === "saving" ? "Saving…" : "Save & exit"}
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isBusy}
+                className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors"
+              >
+                {submitStatus === "submitting"
+                  ? "Submitting…"
+                  : submitStatus === "submitted"
+                  ? "Resubmit"
+                  : "Submit exam"}
+              </button>
+            </div>
             <button
-              onClick={handleSaveAndExit}
-              disabled={isBusy}
-              className="flex-1 py-2.5 rounded-xl border-2 border-slate-300 text-slate-600 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              onClick={() => uploadInputRef.current?.click()}
+              disabled={uploadingPdf}
+              className="w-full py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
             >
-              {submitStatus === "saving" ? "Saving…" : "Save & exit"}
-            </button>
-            <button
-              onClick={handleSubmit}
-              disabled={isBusy}
-              className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors"
-            >
-              {submitStatus === "submitting"
-                ? "Submitting…"
-                : submitStatus === "submitted"
-                ? "Resubmit"
-                : "Submit exam"}
+              {uploadingPdf ? "Uploading PDF…" : "Upload edited PDF as submission"}
             </button>
           </div>
         </div>
@@ -525,6 +516,19 @@ function ExamPracticeContent({ id }: { id: string }) {
           )}
         </div>
       )}
+
+      {/* Hidden file input for PDF upload */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) uploadPdfAsSubmission(f);
+          e.target.value = "";
+        }}
+      />
     </div>
   );
 }
