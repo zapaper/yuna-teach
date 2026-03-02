@@ -322,11 +322,15 @@ Read the cover page or first page header to extract:
 - title: A short descriptive title (e.g. "ACSJ P6 Math Prelim 2024")
 - totalMarks: total marks as string (e.g. "100"), empty string if unknown
 - marksGuidance: copy the EXACT text from the paper that explains how marks are allocated across questions.
+  Look in EVERY cover page and section header throughout the paper, not just the first page.
   Examples: "Questions 1 to 10 carry 1 mark each. Questions 11 to 15 carry 2 marks each."
   or "The number of marks available is shown in brackets [ ] at the end of each question."
-  Empty string if no such guidance text is found.
-- sections: array of sections with exact breakdown from the header
+  or "Section B carries 2 marks per question."
+  Combine all guidance text found across the paper. Empty string if no such guidance text is found.
+- sections: array of sections with exact breakdown from the header.
+  Look for scoring information at EVERY section boundary / booklet header throughout the paper.
   e.g. "Section A: 28 questions x 1 mark = 28 marks" → {"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}
+  If marks are shown in brackets [n] at end of each question (not uniform per section), set marks to the section total and marksPerQuestion to null.
 
 ### 2. Page classification
 For EVERY page, determine whether it is:
@@ -512,6 +516,12 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - Include answer spaces ("Ans:" lines, answer boxes, blank working space)
 - Include diagrams, pictures, graphs, tables, figures
 
+### Marks detection:
+- For each question, look for marks shown in brackets like [1], [2], [3] — typically printed at the bottom-right of the question or at the end of each sub-part
+- If a question has sub-parts with separate bracket marks (e.g. (a) ... [1], (b) ... [2]), SUM them for the total marksAvailable
+- If no bracket marks are visible for a question, set marksAvailable to null
+- MCQ questions are typically 1 mark each unless stated otherwise
+
 ### Validation:
 - NEVER output invalid coordinates (yStartPct >= yEndPct)
 - When in doubt, crop MORE — extra white space is better than cutting off content
@@ -527,12 +537,14 @@ Return ONLY valid JSON:
     {
       "pageIndex": 2,
       "questions": [
-        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "boundaryTop": "1", "boundaryBottom": "2"},
-        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "boundaryTop": "2", "boundaryBottom": "3"}
+        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
+        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3}
       ]
     }
   ]
 }
+
+marksAvailable: total marks for this question (sum of sub-part bracket marks). Use null if not visible.
 
 Return ONLY valid JSON.`;
 
@@ -665,6 +677,7 @@ interface QuestionExtractionResult {
       yEndPct: number;
       boundaryTop: string;
       boundaryBottom: string;
+      marksAvailable?: number | null;
     }>;
   }>;
   _rawSnippet?: string; // first 400 chars of Gemini response, for browser debug
@@ -1169,6 +1182,7 @@ export interface BatchAnalysisResult {
       yEndPct: number;
       boundaryTop: string;
       boundaryBottom: string;
+      marksAvailable?: number | null;
     }>;
   }>;
   answers: Record<string, AnswerEntry>;
@@ -1352,8 +1366,11 @@ export async function analyzeExamBatch(
   // Sort pages by pageIndex to match original document order
   pages.sort((a, b) => a.pageIndex - b.pageIndex);
 
-  // --- Derive per-question marks from sections data ---
+  // --- Derive per-question marks ---
+  // Priority: question-level marks from extraction > section-level marks from structure
   const marksPerQuestion: Record<string, number | null> = {};
+
+  // 1. Start with section-level defaults
   for (const paper of structure.papers) {
     let qOffset = 0;
     for (const section of paper.sections) {
@@ -1365,6 +1382,15 @@ export async function analyzeExamBatch(
         marksPerQuestion[qNum] = mpq;
       }
       qOffset += section.questionCount;
+    }
+  }
+
+  // 2. Override with question-level marks detected from bracket notation [n]
+  for (const qPage of questionResult.pages) {
+    for (const q of qPage.questions) {
+      if (q.marksAvailable != null) {
+        marksPerQuestion[q.questionNum] = q.marksAvailable;
+      }
     }
   }
 
