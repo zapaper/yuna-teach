@@ -4,6 +4,8 @@ import { Suspense, useEffect, useRef, useState, use } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail, ExamQuestionItem, User } from "@/types";
+import { jsPDF } from "jspdf";
+import { renderPdfToImages } from "@/lib/pdf";
 
 export default function ExamOverviewPage({
   params,
@@ -66,6 +68,11 @@ function ExamOverviewContent({ id }: { id: string }) {
   // Lightbox for question image pop-up
   const [lightboxQ, setLightboxQ] = useState<MarkingQuestion | null>(null);
   const [submissionPageCount, setSubmissionPageCount] = useState(0);
+
+  // Download / Upload PDF state
+  const [downloading, setDownloading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   // Portal mount guard (portals require document to exist)
   const [mounted, setMounted] = useState(false);
@@ -223,6 +230,90 @@ function ExamOverviewContent({ id }: { id: string }) {
     }
   }
 
+  async function downloadSubmissionPdf() {
+    if (!paper || downloading) return;
+    setDownloading(true);
+    try {
+      // Get page count
+      const metaRes = await fetch(`/api/exam/${id}/submission`);
+      const meta = await metaRes.json();
+      const count = meta.pageCount ?? 0;
+      if (count === 0) return;
+
+      // Fetch all page images
+      const pages: HTMLImageElement[] = [];
+      for (let i = 0; i < count; i++) {
+        const res = await fetch(`/api/exam/${id}/submission?page=${i}`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const img = await new Promise<HTMLImageElement>((resolve) => {
+          const el = new window.Image();
+          el.onload = () => resolve(el);
+          el.src = url;
+        });
+        pages.push(img);
+        URL.revokeObjectURL(url);
+      }
+
+      // Build PDF — each page sized to image aspect ratio
+      const first = pages[0];
+      const pdf = new jsPDF({
+        orientation: first.width > first.height ? "landscape" : "portrait",
+        unit: "px",
+        format: [first.width, first.height],
+      });
+      pdf.addImage(first, "JPEG", 0, 0, first.width, first.height);
+
+      for (let i = 1; i < pages.length; i++) {
+        const img = pages[i];
+        pdf.addPage([img.width, img.height], img.width > img.height ? "landscape" : "portrait");
+        pdf.addImage(img, "JPEG", 0, 0, img.width, img.height);
+      }
+
+      const studentName = paper.assignedToName ?? "Student";
+      pdf.save(`${paper.title} - ${studentName}.pdf`);
+    } catch (err) {
+      console.error("Download PDF failed:", err);
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  async function uploadPdfAsSubmission(file: File) {
+    if (!paper || uploading) return;
+    setUploading(true);
+    try {
+      // Convert PDF to page images
+      const images = await renderPdfToImages(file);
+
+      // Build FormData with page blobs
+      const form = new FormData();
+      form.append("action", "submit");
+
+      for (let i = 0; i < images.length; i++) {
+        const dataUrl = images[i];
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        form.append(`page_${i}`, blob, `page_${i}.jpg`);
+      }
+
+      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+
+      // Refresh paper data
+      const paperRes = await fetch(`/api/exam/${id}?summary=true`);
+      if (paperRes.ok) setPaper(await paperRes.json());
+      const subRes = await fetch(`/api/exam/${id}/submission`);
+      if (subRes.ok) {
+        const sub = await subRes.json();
+        setSubmissionPageCount(sub.pageCount ?? 0);
+      }
+    } catch (err) {
+      console.error("Upload PDF failed:", err);
+    } finally {
+      setUploading(false);
+    }
+  }
+
   // Build submissionIndexMap from metadata (for lightbox page lookup)
   function getSubmissionPage(originalPageIdx: number): number {
     if (!paper) return originalPageIdx;
@@ -351,15 +442,31 @@ function ExamOverviewContent({ id }: { id: string }) {
                 <div key={student.id} className="flex items-center gap-2 py-2.5">
                   {/* Student info */}
                   <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-sm text-slate-800">{student.name}</span>
-                    {student.level && <span className="text-xs text-slate-400 ml-1.5">P{student.level}</span>}
-                    {isSubmitted && (
-                      <span className="ml-2 text-xs text-green-600 font-medium">
-                        Submitted {new Date(paper.completedAt!).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
-                      </span>
-                    )}
-                    {isAssigned && !paper.completedAt && (
-                      <span className="ml-2 text-xs text-amber-600 font-medium">In progress</span>
+                    <div>
+                      <span className="font-semibold text-sm text-slate-800">{student.name}</span>
+                      {student.level && <span className="text-xs text-slate-400 ml-1.5">P{student.level}</span>}
+                      {isSubmitted && (
+                        <span className="ml-2 text-xs text-green-600 font-medium">
+                          Submitted {new Date(paper.completedAt!).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+                        </span>
+                      )}
+                      {isAssigned && !paper.completedAt && (
+                        <span className="ml-2 text-xs text-amber-600 font-medium">In progress</span>
+                      )}
+                    </div>
+                    {isAssigned && (
+                      <div className="flex gap-3 mt-0.5">
+                        {isSubmitted && (
+                          <button onClick={downloadSubmissionPdf} disabled={downloading}
+                            className="text-xs text-slate-400 hover:text-primary-600 transition-colors">
+                            {downloading ? "Downloading…" : "Download PDF"}
+                          </button>
+                        )}
+                        <button onClick={() => uploadInputRef.current?.click()} disabled={uploading}
+                          className="text-xs text-slate-400 hover:text-primary-600 transition-colors">
+                          {uploading ? "Uploading…" : "Upload PDF"}
+                        </button>
+                      </div>
                     )}
                   </div>
 
@@ -474,6 +581,19 @@ function ExamOverviewContent({ id }: { id: string }) {
           Open Practice
         </button>
       )}
+
+      {/* Hidden file input for PDF upload */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) uploadPdfAsSubmission(f);
+          e.target.value = "";
+        }}
+      />
 
     </div>
   );
