@@ -232,6 +232,14 @@ function ExamUploadContent() {
         return prevQuestion.pageIndex;
       }
 
+      // First question in a booklet/paper always starts on questionsStartPage
+      if (booklet && qNumInt === booklet.firstQuestionNum && extractedPageIndex !== booklet.questionsStartPageIndex) {
+        console.log(
+          `[Page Correction] Q${questionNum}: first in booklet, forcing to questionsStartPage ${booklet.questionsStartPageIndex + 1} (was page ${extractedPageIndex + 1}).`
+        );
+        return booklet.questionsStartPageIndex;
+      }
+
       // If extracted page is before booklet start, use booklet start
       if (booklet && extractedPageIndex < booklet.questionsStartPageIndex) {
         console.log(
@@ -343,7 +351,10 @@ function ExamUploadContent() {
       );
       if (booklet) {
         isFirstInBooklet = qNumInt === booklet.firstQuestionNum;
-        if (q.pageIndex < booklet.questionsStartPageIndex) {
+        if (isFirstInBooklet) {
+          // First question always uses the booklet's questionsStartPage
+          correctPageIndex = booklet.questionsStartPageIndex;
+        } else if (q.pageIndex < booklet.questionsStartPageIndex) {
           correctPageIndex = booklet.questionsStartPageIndex;
         }
       }
