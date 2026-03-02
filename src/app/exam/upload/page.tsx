@@ -67,6 +67,13 @@ function ExamUploadContent() {
   const [redoingIndices, setRedoingIndices] = useState<Set<number>>(new Set());
   const [redoingAnswerIndices, setRedoingAnswerIndices] = useState<Set<number>>(new Set());
   const [answerKeyPages, setAnswerKeyPages] = useState<Array<{ pageIndex: number; paperLabel?: string }>>([]);
+  // Per-booklet info for redo: maps question number ranges to correct start pages
+  const [bookletRanges, setBookletRanges] = useState<Array<{
+    prefix: string;
+    firstQuestionNum: number;
+    lastQuestionNum: number;
+    questionsStartPageIndex: number; // 0-based
+  }>>([]);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
   const AI_PHRASES = [
@@ -151,6 +158,27 @@ function ExamUploadContent() {
       // Exclude rawResponses (verbose) from what we persist
       const { rawResponses: _ignored, ...debugToSave } = result._debug;
       setBatchMetadata(debugToSave);
+
+      // Build booklet ranges for redo page lookup
+      if (result._debug.papers) {
+        interface DebugPaper { label: string; questionPrefix: string; questionsStartPage: number; expectedQuestions: number }
+        const papers = result._debug.papers as DebugPaper[];
+        const prefixCounts = new Map<string, number>();
+        const ranges = papers.map((p: DebugPaper) => {
+          const prevCount = prefixCounts.get(p.questionPrefix) || 0;
+          const firstQ = prevCount + 1;
+          const lastQ = prevCount + p.expectedQuestions;
+          prefixCounts.set(p.questionPrefix, lastQ);
+          return {
+            prefix: p.questionPrefix,
+            firstQuestionNum: firstQ,
+            lastQuestionNum: lastQ,
+            questionsStartPageIndex: p.questionsStartPage - 1, // convert 1-based to 0-based
+          };
+        });
+        setBookletRanges(ranges);
+        console.log("[Exam Structure] Booklet ranges for redo:", ranges);
+      }
     }
 
     // Set header info
@@ -248,26 +276,43 @@ function ExamUploadContent() {
 
   async function handleRedoQuestion(index: number) {
     const q = questions[index];
-    if (!pageImages[q.pageIndex]) return;
+    const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
+    const prefix = q.questionNum.replace(printedNum, "");
+    const qNumInt = parseInt(printedNum, 10);
 
-    console.log(`[Redo Question] Q${q.questionNum} — extracting from pageIndex ${q.pageIndex} (page ${q.pageIndex + 1} in PDF)`);
+    // Find the correct page for this question using booklet ranges
+    let correctPageIndex = q.pageIndex;
+    if (bookletRanges.length > 0 && !isNaN(qNumInt)) {
+      const booklet = bookletRanges.find(
+        (b) => b.prefix === prefix && qNumInt >= b.firstQuestionNum && qNumInt <= b.lastQuestionNum
+      );
+      if (booklet && q.pageIndex < booklet.questionsStartPageIndex) {
+        console.log(
+          `[Redo Question] Q${q.questionNum}: pageIndex ${q.pageIndex} (page ${q.pageIndex + 1}) is before questionsStartPage ${booklet.questionsStartPageIndex} (page ${booklet.questionsStartPageIndex + 1}). Using correct start page.`
+        );
+        correctPageIndex = booklet.questionsStartPageIndex;
+      }
+    }
+
+    if (!pageImages[correctPageIndex]) return;
+
+    console.log(`[Redo Question] Q${q.questionNum} — extracting from pageIndex ${correctPageIndex} (page ${correctPageIndex + 1} in PDF)`);
 
     setRedoingIndices((prev) => new Set(prev).add(index));
     setError(null);
 
     try {
-      const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
       const samePageQuestions = questions
-        .filter((other, i) => i !== index && other.pageIndex === q.pageIndex)
+        .filter((other, i) => i !== index && other.pageIndex === correctPageIndex)
         .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
 
-      console.log(`[Redo Question] Looking for printed Q${printedNum} on page ${q.pageIndex + 1}, surrounding: [${samePageQuestions.join(", ")}]`);
+      console.log(`[Redo Question] Looking for printed Q${printedNum} on page ${correctPageIndex + 1}, surrounding: [${samePageQuestions.join(", ")}]`);
 
       const res = await fetch("/api/exam/redo-question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: pageImages[q.pageIndex],
+          image: pageImages[correctPageIndex],
           questionNum: printedNum,
           surroundingQuestions: samePageQuestions,
         }),
@@ -277,14 +322,16 @@ function ExamUploadContent() {
 
       const result = await res.json();
       const croppedImage = await cropQuestionFromPage(
-        pageImages[q.pageIndex],
+        pageImages[correctPageIndex],
         result.yStartPct,
         result.yEndPct
       );
 
       setQuestions((prev) =>
         prev.map((existing, i) =>
-          i === index ? { ...existing, imageData: croppedImage, yStartPct: result.yStartPct, yEndPct: result.yEndPct } : existing
+          i === index
+            ? { ...existing, imageData: croppedImage, pageIndex: correctPageIndex, yStartPct: result.yStartPct, yEndPct: result.yEndPct }
+            : existing
         )
       );
     } catch (err) {
