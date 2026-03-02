@@ -153,18 +153,21 @@ function ExamUploadContent() {
     }
 
     // Log structure debug info to browser console and store for saving
+    interface DebugPaper { label: string; questionPrefix: string; questionsStartPage: number; expectedQuestions: number }
+    type BookletRange = { prefix: string; firstQuestionNum: number; lastQuestionNum: number; questionsStartPageIndex: number };
+    let ranges: BookletRange[] = [];
+
     if (result._debug) {
       console.log("[Exam Structure]", result._debug);
       // Exclude rawResponses (verbose) from what we persist
       const { rawResponses: _ignored, ...debugToSave } = result._debug;
       setBatchMetadata(debugToSave);
 
-      // Build booklet ranges for redo page lookup
+      // Build booklet ranges for page lookup (used in cropping AND redo)
       if (result._debug.papers) {
-        interface DebugPaper { label: string; questionPrefix: string; questionsStartPage: number; expectedQuestions: number }
         const papers = result._debug.papers as DebugPaper[];
         const prefixCounts = new Map<string, number>();
-        const ranges = papers.map((p: DebugPaper) => {
+        ranges = papers.map((p: DebugPaper) => {
           const prevCount = prefixCounts.get(p.questionPrefix) || 0;
           const firstQ = prevCount + 1;
           const lastQ = prevCount + p.expectedQuestions;
@@ -177,7 +180,7 @@ function ExamUploadContent() {
           };
         });
         setBookletRanges(ranges);
-        console.log("[Exam Structure] Booklet ranges for redo:", ranges);
+        console.log("[Exam Structure] Booklet ranges:", ranges);
       }
     }
 
@@ -195,6 +198,25 @@ function ExamUploadContent() {
       }));
     setAnswerKeyPages(answerPages);
 
+    // Helper: resolve the correct page index for a question using booklet ranges
+    function resolvePageIndex(questionNum: string, extractedPageIndex: number): number {
+      const printedNum = questionNum.replace(/^(P\d+-|B\d+-)/, "");
+      const prefix = questionNum.replace(printedNum, "");
+      const qNumInt = parseInt(printedNum, 10);
+      if (isNaN(qNumInt) || ranges.length === 0) return extractedPageIndex;
+
+      const booklet = ranges.find(
+        (b) => b.prefix === prefix && qNumInt >= b.firstQuestionNum && qNumInt <= b.lastQuestionNum
+      );
+      if (booklet && extractedPageIndex < booklet.questionsStartPageIndex) {
+        console.log(
+          `[Page Correction] Q${questionNum}: extracted on page ${extractedPageIndex + 1} but questionsStartPage is ${booklet.questionsStartPageIndex + 1}. Correcting.`
+        );
+        return booklet.questionsStartPageIndex;
+      }
+      return extractedPageIndex;
+    }
+
     // Crop questions from each page
     setProcessingStatus("Cropping questions...");
     const allQuestions: ExtractedQuestion[] = [];
@@ -205,8 +227,11 @@ function ExamUploadContent() {
       for (const q of page.questions) {
         setProcessingStatus(`Cropping question ${q.questionNum}...`);
 
+        // Use the correct page (not cover page) based on questionsStartPage
+        const correctPageIndex = resolvePageIndex(q.questionNum, page.pageIndex);
+
         const croppedImage = await cropQuestionFromPage(
-          images[page.pageIndex],
+          images[correctPageIndex],
           q.yStartPct,
           q.yEndPct
         );
@@ -239,7 +264,7 @@ function ExamUploadContent() {
           imageData: croppedImage,
           answer,
           answerImageData,
-          pageIndex: page.pageIndex,
+          pageIndex: correctPageIndex,
           orderIndex: allQuestions.length,
           yStartPct: q.yStartPct,
           yEndPct: q.yEndPct,
