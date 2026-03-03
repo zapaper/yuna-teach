@@ -612,7 +612,7 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 - yStartPct: Y-coordinate where this answer starts on that page (0=top, 100=bottom)
 - yEndPct: Y-coordinate where this answer ends on that page
 - Crop TIGHTLY around the answer content — NO extra padding. Start right at the answer, end right after it.
-- value: text description of the diagram/drawing, or empty string if purely visual. IMPORTANT: Do NOT use literal newlines inside JSON string values — use " | " as the separator instead.
+- value: marking guidance — describe WHAT to check when comparing a student's answer to this diagram. Be specific about required elements and what deducts marks (e.g. "Student must shade boxes A and C. Missing/incorrect shading = -1 mark each." or "Triangle must have height label 6cm and base 8cm with right angle marked. Missing labels = -1 each."). If the diagram is purely decorative with no clear marking criteria, use empty string. IMPORTANT: Do NOT use literal newlines inside JSON string values — use " | " as the separator instead.
 
 ### For "text" type answers:
 - value: the FULL answer including all working steps. Transcribe EVERY line — do NOT skip or truncate. Use " | " to separate steps. Include sub-part labels if present.
@@ -653,7 +653,7 @@ Return ONLY valid JSON:
     "2": {"type": "text", "value": "(1)"},
     "29": {"type": "text", "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm"},
     "P2-1": {"type": "text", "value": "(a) Area = 1/2 × 8 × 6 = 24 cm² | (b) Perimeter = 8 + 6 + 10 = 24 cm"},
-    "30": {"type": "image", "answerPageIndex": 8, "yStartPct": 45.0, "yEndPct": 55.0, "value": "triangle with height 6cm and base 8cm"}
+    "30": {"type": "image", "answerPageIndex": 8, "yStartPct": 45.0, "yEndPct": 55.0, "value": "Student must draw a triangle with height 6cm and base 8cm. Right angle must be marked at the base. Missing labels = -1 each."}
   }
 }
 
@@ -1020,7 +1020,7 @@ async function runExtractionCall(
   console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
 
   const response = await getAI().models.generateContent({
-    model: "gemini-2.5-pro",
+    model: "gemini-2.5-flash",
     contents: [
       {
         role: "user",
@@ -1146,90 +1146,9 @@ async function extractQuestionsForBooklet(
     }
   }
 
-  // --- Attempt 3: Conversational retry with feedback (original pages) ---
-  console.log(`[Exam Pipeline] ${paper.label}: attempting conversational retry with feedback`);
-
-  const imageParts = imagesBase64.map((data, i) => [
-    { inlineData: { mimeType: "image/jpeg" as const, data } },
-    { text: `[Page ${originalPageIndices[i]}]` },
-  ]).flat();
-
-  const bookletContext = buildBookletContext(paper, firstQuestionNum);
-  const prompt = QUESTION_EXTRACTION_PROMPT.replace(
-    "{structureContext}",
-    bookletContext
-  );
-
-  const retryFeedback = `
-## Your previous extraction for ${paper.label} had these problems:
-${issues.map(i => `- ${i}`).join("\n")}
-
-Re-examine the pages carefully:
-- The FIRST question on these pages should be "${paper.questionPrefix}${firstQuestionNum}" — find it at the LEFT MARGIN
-- If you cannot find "${firstQuestionNum}." at the left margin of the first page, the first page might be a cover/instruction page — skip it and look at the NEXT page
-- Scan every page carefully for question numbers at the LEFT MARGIN
-- Do NOT skip any question numbers in the sequence
-- Keep ALL boundary coordinates (yStartPct, yEndPct) accurate — do NOT sacrifice crop quality
-
-CRITICAL: Keep ALL boundary coordinates (yStartPct, yEndPct) accurate. Do NOT sacrifice boundary quality to fix the gaps. Each question's crop must still be tight and correct.
-`;
-
-  const retryResponse = await getAI().models.generateContent({
-    model: "gemini-2.5-pro",
-    contents: [
-      {
-        role: "user",
-        parts: [...imageParts, { text: prompt }],
-      },
-      {
-        role: "model",
-        parts: [{ text: rawText }],
-      },
-      {
-        role: "user",
-        parts: [{ text: retryFeedback }],
-      },
-    ],
-    config: {
-      responseMimeType: "application/json",
-      temperature: 0.1,
-    },
-  });
-
-  const retryText = retryResponse.text;
-  if (!retryText) {
-    console.log(`[Exam Pipeline] ${paper.label} retry empty, using best previous attempt`);
-    return result;
-  }
-
-  let retryPages: QuestionExtractionResult["pages"] = [];
-  try {
-    const retryParsed = JSON.parse(sanitizeJsonString(retryText));
-    let rawRetryPages = retryParsed.pages ?? retryParsed.result?.pages ?? retryParsed.data?.pages;
-    if (!Array.isArray(rawRetryPages) && Array.isArray(retryParsed)) rawRetryPages = retryParsed;
-    if (!Array.isArray(rawRetryPages)) rawRetryPages = [];
-    retryPages = rawRetryPages;
-  } catch (retryParseErr) {
-    console.log(`[Exam Pipeline] ${paper.label}: retry JSON parse failed, using best previous. Error: ${retryParseErr}`);
-    return result;
-  }
-
-  const retryResult: QuestionExtractionResult = {
-    ...normalizeExtractionResult(remapPageIndices({ pages: retryPages }, originalPageIndices)),
-    _rawSnippet: retryText.slice(0, 400),
-  };
-  const retryQNums = extractQuestionNumbers(retryResult, paper.questionPrefix);
-  console.log(`[Exam Pipeline] ${paper.label} attempt 3 (conversational retry): Q${retryQNums[0] ?? "?"}-Q${retryQNums[retryQNums.length - 1] ?? "?"} (${retryQNums.length} questions)`);
-
-  // Use retry only if it's better
-  const retryBetter =
-    (retryQNums.length > qNums.length) ||
-    (retryQNums[0] === firstQuestionNum && qNums[0] !== firstQuestionNum);
-  if (!retryBetter) {
-    console.log(`[Exam Pipeline] ${paper.label}: conversational retry not better, keeping best previous`);
-    return result;
-  }
-  return retryResult;
+  // No further retries — return best result from attempts 1/2
+  console.log(`[Exam Pipeline] ${paper.label}: returning best result with ${qNums.length} questions (some issues remain: ${issues.join("; ")})`);
+  return result;
 }
 
 // Stage 2b: Extract answers with working steps (answer key pages only)
@@ -1725,12 +1644,12 @@ Question labels may appear as "Q{questionNum}", "Q{questionNum})", "{questionNum
 ## For "image" type:
 - Provide yStartPct and yEndPct crop boundaries on THIS page
 - Crop TIGHTLY — NO extra padding
-- value: text description of the visual content
+- value: marking guidance — describe what to check when comparing a student's answer (e.g. required elements, what deducts marks). If purely decorative, use empty string.
 
 ## Return format:
 For text: { "type": "text", "value": "B" }
 For worked text: { "type": "text", "value": "(a) 3/4 × 12 = 9 | (b) 9 + 6 = 15 | Ans: 15 cm" }
-For image: { "type": "image", "yStartPct": 45.0, "yEndPct": 55.0, "value": "diagram of triangle" }
+For image: { "type": "image", "yStartPct": 45.0, "yEndPct": 55.0, "value": "Student must draw a triangle with height 6cm and base 8cm. Right angle must be marked." }
 
 If you CANNOT find question "{questionNum}" on this page, return: { "type": "text", "value": "" }`;
 

@@ -118,7 +118,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const yStart = question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown";
   const yEnd = question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "unknown";
   const answerDesc = question.answerImageData
-    ? `[diagram — see additional image]`
+    ? `[diagram — see additional image]${question.answer ? `. Marking guidance: ${question.answer}` : ""}`
     : question.answer ? `"${question.answer}"` : "not provided";
   const marksInfo = question.marksAvailable != null ? `marksAvailable: ${question.marksAvailable}` : `marksAvailable: detect`;
   const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}`;
@@ -238,7 +238,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             const yEnd =
               q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
             const answerDesc = q.answerImageData
-              ? `[diagram — see additional image]`
+              ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
               : q.answer
               ? `"${q.answer}"`
               : "not provided";
@@ -329,7 +329,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
           const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
           const yEnd = q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
           const answerDesc = q.answerImageData
-            ? `[diagram — see additional image]`
+            ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
             : q.answer ? `"${q.answer}"` : "not provided";
           const retryMarksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
           const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}. Expected answer: ${answerDesc}`;
@@ -386,9 +386,106 @@ export async function markExamPaper(paperId: string): Promise<void> {
       }
     }
 
+    // ── Verification pass: re-mark questions that lost marks ─────────────────
+    const validIds = new Set(paper.questions.map((q) => q.id));
+    const resultMap = new Map<string, QuestionMarkResult>();
+    for (const r of allResults) {
+      if (validIds.has(r.questionId) && !resultMap.has(r.questionId)) {
+        resultMap.set(r.questionId, r);
+      }
+    }
+
+    const questionsToVerify = paper.questions.filter((q) => {
+      const r = resultMap.get(q.id);
+      if (!r) return false;
+      return r.marksAwarded < r.marksAvailable;
+    });
+
+    if (questionsToVerify.length > 0) {
+      console.log(`[marking] Verification pass: ${questionsToVerify.length} questions with partial/zero marks — re-marking`);
+
+      const verifyResults = await Promise.all(
+        questionsToVerify.map(async (q) => {
+          const submissionPage = submissionIndexMap.get(q.pageIndex);
+          if (submissionPage === undefined) return null;
+          const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
+          let pageBuffer: Buffer;
+          try {
+            pageBuffer = await fs.readFile(pagePath);
+          } catch {
+            return null;
+          }
+          const pageBase64 = pageBuffer.toString("base64");
+          const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
+          const yEnd = q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
+          const answerDesc = q.answerImageData
+            ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
+            : q.answer ? `"${q.answer}"` : "not provided";
+          const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}`;
+
+          let answerImagesNote = "";
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const parts: any[] = [
+            { inlineData: { mimeType: "image/jpeg" as const, data: pageBase64 } },
+          ];
+          if (q.answerImageData) {
+            const sepIdx = q.answerImageData.indexOf(";base64,");
+            if (sepIdx > 5) {
+              answerImagesNote = `Additional image 2: expected answer diagram for Question ${q.questionNum}`;
+              parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
+            }
+          }
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+          parts.push({ text: prompt });
+
+          try {
+            const orig = resultMap.get(q.id)!;
+            console.log(`[marking] Verify Q${q.questionNum} (${q.id}) — original: ${orig.marksAwarded}/${orig.marksAvailable}`);
+            const response = await withTimeout(
+              getAI().models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts }],
+                config: { responseMimeType: "application/json", temperature: 0.1 },
+              }),
+              GEMINI_TIMEOUT_MS,
+              `verify Q${q.questionNum}`
+            );
+            const text = response.text;
+            if (!text) return null;
+            const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
+            const result = parsed.questions.find((r) => r.questionId === q.id) ?? parsed.questions[0];
+            if (result) {
+              result.questionId = q.id;
+              return result;
+            }
+            return null;
+          } catch (err) {
+            console.warn(`[marking] Verify failed for Q${q.questionNum}:`, err);
+            return null;
+          }
+        })
+      );
+
+      let upgraded = 0;
+      for (const vr of verifyResults) {
+        if (!vr) continue;
+        const original = resultMap.get(vr.questionId);
+        if (!original) continue;
+        if (vr.marksAwarded > original.marksAwarded) {
+          console.log(`[marking] Verify UPGRADE Q${vr.questionId}: ${original.marksAwarded} → ${vr.marksAwarded}/${original.marksAvailable}`);
+          const idx = allResults.findIndex((r) => r.questionId === vr.questionId);
+          if (idx !== -1) allResults[idx] = vr;
+          upgraded++;
+        } else {
+          console.log(`[marking] Verify KEPT original for Q${vr.questionId}: verify=${vr.marksAwarded}, original=${original.marksAwarded}`);
+        }
+      }
+      console.log(`[marking] Verification complete: ${upgraded}/${questionsToVerify.length} questions upgraded`);
+    }
+
     // ── Batch DB updates in a single transaction ──────────────────────────────
     // Filter to only valid question IDs (Gemini sometimes hallucinates extra IDs)
-    const validIds = new Set(paper.questions.map((q) => q.id));
     const validResults = new Map<string, QuestionMarkResult>();
     for (const result of allResults) {
       if (validIds.has(result.questionId) && !validResults.has(result.questionId)) {
@@ -438,6 +535,78 @@ export async function markExamPaper(paperId: string): Promise<void> {
       }
     }
     console.log(`[marking] Paper ${paperId} marked complete. Score: ${totalAwarded}`);
+
+    // ── Generate AI feedback summary ───────────────────────────────────────
+    try {
+      // Compute per-booklet scores from metadata
+      const metaPapers = (paper.metadata as { papers?: Array<{ label: string; questionPrefix: string }> })?.papers ?? [];
+      const bookletScores: Array<{ label: string; awarded: number; available: number }> = [];
+
+      if (metaPapers.length > 1) {
+        for (const mp of metaPapers) {
+          let awarded = 0;
+          let available = 0;
+          for (const [qId, result] of validResults) {
+            const question = paper.questions.find(q => q.id === qId);
+            if (!question) continue;
+            const matchesPrefix = mp.questionPrefix === ""
+              ? !metaPapers.some(other => other.questionPrefix !== "" && question.questionNum.startsWith(other.questionPrefix))
+              : question.questionNum.startsWith(mp.questionPrefix);
+            if (matchesPrefix) {
+              awarded += result.marksAwarded ?? 0;
+              available += (presetMarks.get(qId) ?? result.marksAvailable) ?? 0;
+            }
+          }
+          bookletScores.push({ label: mp.label, awarded, available });
+        }
+      }
+
+      // Build mistakes list
+      const mistakesList = [...validResults.values()]
+        .filter(r => r.marksAwarded < ((presetMarks.get(r.questionId) ?? r.marksAvailable) ?? 0))
+        .map(r => {
+          const q = paper.questions.find(q => q.id === r.questionId);
+          return `Q${q?.questionNum ?? "?"}: Lost ${((presetMarks.get(r.questionId) ?? r.marksAvailable) ?? 0) - r.marksAwarded} mark(s). ${r.notes}`;
+        });
+
+      const totalMarksNum = paper.totalMarks ? parseFloat(paper.totalMarks) : null;
+      const feedbackPrompt = `You are writing a short, encouraging feedback summary for a primary school student's exam.
+
+Paper: ${paper.title}
+Subject: ${paper.subject ?? "Unknown"}
+Level: ${paper.level ?? "Unknown"}
+Score: ${totalAwarded}${totalMarksNum ? ` out of ${totalMarksNum}` : ""}
+${bookletScores.length > 1 ? `\nPer-section scores:\n${bookletScores.map(b => `- ${b.label}: ${b.awarded}/${b.available}`).join("\n")}` : ""}
+${mistakesList.length > 0 ? `\nMistakes:\n${mistakesList.join("\n")}` : "\nNo mistakes — full marks!"}
+
+Write a feedback summary with:
+1. An encouraging opening sentence mentioning the score (e.g. "Well done! You scored 42 out of 50!")
+2. If there are mistakes, briefly summarize the key concepts or topics to revise (group similar mistakes together). Keep it to 2-3 sentences max.
+3. ${bookletScores.length > 1 ? "Include the per-section score breakdown." : "No need for section breakdown."}
+4. End with an encouraging note.
+
+Keep the tone warm, positive, and age-appropriate for a primary school child. Total length: 3-6 sentences. Do NOT use markdown formatting. Plain text only.`;
+
+      const feedbackResponse = await withTimeout(
+        getAI().models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: feedbackPrompt }] }],
+          config: { temperature: 0.7 },
+        }),
+        30_000,
+        "feedback summary"
+      );
+      const feedbackText = feedbackResponse.text?.trim();
+      if (feedbackText) {
+        await prisma.examPaper.update({
+          where: { id: paperId },
+          data: { feedbackSummary: feedbackText },
+        });
+        console.log(`[marking] Feedback summary generated for paper ${paperId}`);
+      }
+    } catch (feedbackErr) {
+      console.warn(`[marking] Failed to generate feedback summary:`, feedbackErr);
+    }
   } catch (err) {
     console.error(`[marking] markExamPaper failed for ${paperId}:`, err);
     await prisma.examPaper.update({

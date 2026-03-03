@@ -36,6 +36,7 @@ interface MarkingQuestion {
 interface MarkingDetail {
   markingStatus: string | null;
   score: number | null;
+  feedbackSummary: string | null;
   questions: MarkingQuestion[];
 }
 
@@ -63,6 +64,11 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [remarkingId, setRemarkingId] = useState<string | null>(null);
   const [manualId, setManualId] = useState<string | null>(null);
   const [manualValue, setManualValue] = useState("");
+
+  // Feedback editing
+  const [editingFeedback, setEditingFeedback] = useState(false);
+  const [feedbackDraft, setFeedbackDraft] = useState("");
+  const [savingFeedback, setSavingFeedback] = useState(false);
 
   // Lightbox for question image pop-up
   const [lightboxQ, setLightboxQ] = useState<MarkingQuestion | null>(null);
@@ -203,6 +209,24 @@ function ExamOverviewContent({ id }: { id: string }) {
     ]);
     if (detailRes.ok) setMarkingDetail(await detailRes.json());
     if (summaryRes.ok) setPaper(await summaryRes.json());
+  }
+
+  async function saveFeedback() {
+    if (!paper) return;
+    setSavingFeedback(true);
+    try {
+      await fetch(`/api/exam/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedbackSummary: feedbackDraft }),
+      });
+      setMarkingDetail((prev) =>
+        prev ? { ...prev, feedbackSummary: feedbackDraft } : prev
+      );
+      setEditingFeedback(false);
+    } finally {
+      setSavingFeedback(false);
+    }
   }
 
   async function handleAssign(studentId: string | null) {
@@ -587,24 +611,78 @@ function ExamOverviewContent({ id }: { id: string }) {
         ) : null;
       })()}
 
-      {/* Per-question list */}
-      <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-        {markingDetail.questions.map((q) => {
-          const awarded = q.marksAwarded ?? null;
-          const available = q.marksAvailable ?? null;
-          const full = awarded !== null && available !== null && awarded >= available;
-          const none = awarded !== null && awarded === 0;
-          const submissionPage = getSubmissionPage(q.pageIndex);
-          const isRemarking = remarkingId === q.id;
-          const isManual = manualId === q.id;
+      {/* Feedback summary */}
+      {markingDetail.feedbackSummary ? (
+        <div className="px-4 py-4 bg-gradient-to-r from-primary-50 to-blue-50 border-b border-slate-100">
+          {editingFeedback ? (
+            <div className="space-y-2">
+              <textarea
+                value={feedbackDraft}
+                onChange={(e) => setFeedbackDraft(e.target.value)}
+                rows={5}
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:border-primary-400 resize-y"
+              />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={saveFeedback}
+                  disabled={savingFeedback}
+                  className="px-3 py-1.5 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50"
+                >
+                  {savingFeedback ? <span>Saving...</span> : <span>Save</span>}
+                </button>
+                <button
+                  onClick={() => setEditingFeedback(false)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 text-xs font-medium hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                {markingDetail.feedbackSummary}
+              </p>
+              <button
+                onClick={() => {
+                  setFeedbackDraft(markingDetail.feedbackSummary ?? "");
+                  setEditingFeedback(true);
+                }}
+                className="mt-2 text-xs text-primary-500 hover:text-primary-700 font-medium"
+              >
+                Edit feedback
+              </button>
+            </div>
+          )}
+        </div>
+      ) : null}
 
-          return (
-            <div key={q.id} className="px-4 py-3">
-              <div className="flex items-start gap-3">
-                {/* Question thumbnail */}
+      {/* Per-question grid */}
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="grid grid-cols-2 gap-3">
+          {markingDetail.questions.map((q) => {
+            const awarded = q.marksAwarded ?? null;
+            const available = q.marksAvailable ?? null;
+            const full = awarded !== null && available !== null && awarded >= available;
+            const none = awarded !== null && awarded === 0;
+            const submissionPage = getSubmissionPage(q.pageIndex);
+            const isRemarking = remarkingId === q.id;
+            const isManual = manualId === q.id;
+
+            return (
+              <div key={q.id} className="rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm">
+                {/* Header: Q number + score */}
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-slate-700">Q{q.questionNum}</span>
+                  <span className={`text-xs font-bold ${full ? "text-green-600" : none ? "text-red-500" : "text-amber-600"}`}>
+                    {awarded !== null ? awarded : "\u2014"}{available !== null ? <span> / {available}</span> : null}
+                  </span>
+                </div>
+
+                {/* Thumbnail — full width */}
                 <button
                   onClick={() => setLightboxQ(q)}
-                  className="shrink-0 w-16 rounded-lg overflow-hidden border border-slate-200 hover:border-primary-400 transition-colors bg-slate-50"
+                  className="w-full rounded-lg overflow-hidden border border-slate-200 hover:border-primary-400 transition-colors bg-slate-50 mb-1.5"
                   title="View question image"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -618,57 +696,49 @@ function ExamOverviewContent({ id }: { id: string }) {
                   />
                 </button>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="text-sm font-semibold text-slate-700">Q{q.questionNum}</span>
-                    <span className={`text-sm font-bold ${full ? "text-green-600" : none ? "text-red-500" : "text-amber-600"}`}>
-                      {awarded !== null ? awarded : "—"}{available !== null ? ` / ${available}` : ""}
-                    </span>
-                  </div>
-                  {q.markingNotes ? (
-                    <p className="text-xs text-slate-500 leading-relaxed mb-2">{q.markingNotes}</p>
-                  ) : null}
+                {/* Notes */}
+                {q.markingNotes ? (
+                  <p className="text-xs text-slate-500 leading-relaxed mb-1.5 line-clamp-2">{q.markingNotes}</p>
+                ) : null}
 
-                  {/* Actions */}
-                  {isManual ? (
-                    <div className="flex items-center gap-2 mt-1">
-                      <input type="number" value={manualValue} onChange={(e) => setManualValue(e.target.value)}
-                        placeholder="Marks" min="0" step="0.5"
-                        className="w-20 px-2 py-1 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-primary-400" />
-                      <button onClick={() => saveManualMark(q.id)}
-                        className="text-xs px-2.5 py-1 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600">
-                        Save
+                {/* Actions */}
+                {isManual ? (
+                  <div className="flex items-center gap-1.5">
+                    <input type="number" value={manualValue} onChange={(e) => setManualValue(e.target.value)}
+                      placeholder="Marks" min="0" step="0.5"
+                      className="w-14 px-1.5 py-1 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-primary-400" />
+                    <button onClick={() => saveManualMark(q.id)}
+                      className="text-xs px-2 py-1 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600">
+                      Save
+                    </button>
+                    <button onClick={() => setManualId(null)}
+                      className="text-xs px-2 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    {isRemarking ? (
+                      <div className="flex items-center gap-1 text-xs text-blue-500">
+                        <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500 inline-block" />
+                        <span>Re-marking</span>
+                      </div>
+                    ) : (
+                      <button onClick={() => remarkQuestion(q.id)}
+                        className="text-xs px-2 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                        Re-mark
                       </button>
-                      <button onClick={() => setManualId(null)}
-                        className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 mt-1">
-                      {isRemarking ? (
-                        <div className="flex items-center gap-1 text-xs text-blue-500">
-                          <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500 inline-block" />
-                          <span>Re-marking…</span>
-                        </div>
-                      ) : (
-                        <button onClick={() => remarkQuestion(q.id)}
-                          className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-                          Re-mark
-                        </button>
-                      )}
-                      <button onClick={() => { setManualId(q.id); setManualValue(String(q.marksAwarded ?? "")); }}
-                        className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-                        Manual
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    )}
+                    <button onClick={() => { setManualId(q.id); setManualValue(String(q.marksAwarded ?? "")); }}
+                      className="text-xs px-2 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                      Manual
+                    </button>
+                  </div>
+                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Footer */}

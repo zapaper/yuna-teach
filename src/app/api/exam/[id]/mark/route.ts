@@ -15,6 +15,7 @@ export async function GET(
     select: {
       markingStatus: true,
       score: true,
+      feedbackSummary: true,
       questions: {
         orderBy: { orderIndex: "asc" },
         select: {
