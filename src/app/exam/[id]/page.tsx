@@ -323,7 +323,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const isBusy = submitStatus === "saving" || submitStatus === "submitting";
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white select-none">
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
         <button
