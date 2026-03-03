@@ -69,6 +69,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "saving" | "submitting" | "submitted"
   >("idle");
+  const [showAutoSaved, setShowAutoSaved] = useState(false);
 
   // ── Timer ──
   const [displaySeconds, setDisplaySeconds] = useState(0);
@@ -77,6 +78,8 @@ function ExamPracticeContent({ id }: { id: string }) {
 
   const pageHandles = useRef<(DrawablePageHandle | null)[]>([]);
   const lastDrawnPage = useRef<number | null>(null);
+  const hasUnsavedInk = useRef(false);
+  const autoSaving = useRef(false);
 
   // Initialise base time once paper loads; sessionStart set later (after PDF renders)
   useEffect(() => {
@@ -92,6 +95,51 @@ function ExamPracticeContent({ id }: { id: string }) {
 
     return () => clearInterval(interval);
   }, [paper?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Auto-save every 5 minutes (silently, only if ink changed) ──
+  useEffect(() => {
+    const AUTO_SAVE_MS = 5 * 60 * 1000;
+    const timer = setInterval(async () => {
+      if (!hasUnsavedInk.current || autoSaving.current) return;
+      autoSaving.current = true;
+      try {
+        const form = new FormData();
+        form.append("action", "save");
+        for (let i = 0; i < pageHandles.current.length; i++) {
+          const handle = pageHandles.current[i];
+          if (handle) {
+            const [composite, ink] = await Promise.all([
+              handle.exportComposite(),
+              handle.exportInk(),
+            ]);
+            form.append(`page_${i}`, composite, `page_${i}.jpg`);
+            form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+          }
+        }
+        await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+        hasUnsavedInk.current = false;
+        setShowAutoSaved(true);
+        setTimeout(() => setShowAutoSaved(false), 3000);
+        console.log("[auto-save] Saved ink successfully");
+      } catch (err) {
+        console.warn("[auto-save] Failed:", err);
+      } finally {
+        autoSaving.current = false;
+      }
+    }, AUTO_SAVE_MS);
+    return () => clearInterval(timer);
+  }, [id]);
+
+  // ── Warn before accidental page reload if unsaved ink ──
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      if (hasUnsavedInk.current) {
+        e.preventDefault();
+      }
+    }
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, []);
 
   function getCurrentTime() {
     if (!sessionStart.current) return baseSeconds.current;
@@ -182,6 +230,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
         saveTimeToServer(),
       ]);
+      hasUnsavedInk.current = false;
       if (action === "submit") {
         setPaper((prev) =>
           prev ? { ...prev, completedAt: new Date().toISOString() } : prev
@@ -323,7 +372,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const isBusy = submitStatus === "saving" || submitStatus === "submitting";
 
   return (
-    <div className="min-h-screen bg-white select-none">
+    <div className="min-h-screen bg-white select-none" style={{ overscrollBehavior: "none" }}>
       {/* ── Sticky header ── */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2">
         <button
@@ -360,6 +409,10 @@ function ExamPracticeContent({ id }: { id: string }) {
           </svg>
           {formatTime(displaySeconds)}
         </div>
+
+        {showAutoSaved ? (
+          <span className="text-[10px] font-medium text-green-500 shrink-0 animate-pulse">Auto-saved</span>
+        ) : null}
 
         {hasPdf ? (
           <div className="flex rounded-xl border border-slate-200 overflow-hidden shrink-0 text-xs font-medium">
@@ -453,7 +506,7 @@ function ExamPracticeContent({ id }: { id: string }) {
                 imageUrl={src}
                 tool={tool}
                 inkBlob={inkBlobs[displayIndex] ?? undefined}
-                onStrokeStart={() => { lastDrawnPage.current = displayIndex; }}
+                onStrokeStart={() => { lastDrawnPage.current = displayIndex; hasUnsavedInk.current = true; }}
               />
             ))}
           </div>
