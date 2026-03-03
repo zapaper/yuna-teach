@@ -67,7 +67,8 @@ STEP 3: Compare against the expected answer. Follow this priority:
 STEP 4: Record what you detected.
   "studentAnswer": Write EXACTLY what the student wrote/drew in blue ink.
     - For text/number answers: quote their written answer (e.g. "3.5 kg", "B", "12").
-    - For MCQ: the option letter/number they circled/wrote (e.g. "C", "3").
+    - For MCQ: the option letter/number they circled/wrote (e.g. "1", "2", "3", "4", "A", "B", "C", "D").
+      IMPORTANT: A handwritten "1" is a single short vertical stroke in blue ink — do NOT dismiss it as a stray mark. Any blue ink writing in the answer area is the student's answer.
     - If nothing was written: "No answer detected"
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
 
