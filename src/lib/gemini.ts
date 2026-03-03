@@ -491,10 +491,17 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - NEVER go back and re-examine a page you have already finished — process pages ONCE, in order
 - Pages must be processed in ASCENDING order. You must NEVER output a question on a page that comes BEFORE the page of the previous question. Page numbers only go FORWARD.
 
+### CRITICAL — Finding the bottom boundary (next question number):
+- For EACH question, you must find where the NEXT question starts — this is the bottom boundary
+- The next question might be on the SAME page OR on the NEXT page — always check BOTH
+- If the previous question ends mid-page but no more question numbers appear on that page, the next question is on the NEXT PAGE — do NOT assume the page must be full before moving on
+- Blank space at the bottom of a page does NOT mean the question extends further — if the question content clearly ends with blank space below, close it there and look for the next question on the next page
+- Set yEndPct = 95 when the question is the last on its page, then look for the next question at the top of the following page
+
 ### MANDATORY — When you cannot detect the bottom boundary:
-- If you cannot see the NEXT question number on the current page, that means THIS question extends to the END of the page
-- Set yEndPct = 95 and set boundaryBottom = "not found"
-- Then MOVE FORWARD to the NEXT PAGE and continue searching there
+- If you cannot see the NEXT question number on the current page, check the NEXT page first
+- If the next question starts at the top of the next page, set this question's yEndPct = 95 on the current page
+- Then output the next question on the next page starting at ~2-5% from the top
 - NEVER restart from the beginning of the booklet. NEVER go backwards to an earlier page
 - The next question MUST be on the same page or a LATER page — never an earlier one
 - If you lose track of where you are, look at your LAST output entry: its pageIndex tells you the minimum page to search next
