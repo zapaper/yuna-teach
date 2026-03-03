@@ -395,8 +395,13 @@ function ExamUploadContent() {
 
     if (!pageImages[correctPageIndex]) return;
 
+    // Send current page + next page so Gemini can search across both
+    const nextPageIndex = correctPageIndex + 1;
+    const hasNextPage = !!pageImages[nextPageIndex];
+
     console.log(
       `[Redo Question] Q${q.questionNum} — extracting from pageIndex ${correctPageIndex} (page ${correctPageIndex + 1})` +
+      (hasNextPage ? ` + next page ${nextPageIndex + 1}` : "") +
       (isFirstInBooklet ? " [first in booklet]" : "") +
       (previousBoundary ? ` [after Q${previousBoundary.questionNum} ends at ${previousBoundary.yEndPct}%]` : "")
     );
@@ -411,17 +416,18 @@ function ExamUploadContent() {
 
       // Only pass boundary hints if the previous question is on the SAME page
       // (percentages are meaningless for a different page)
-      // Only pass boundary hints if the previous question is on the SAME page
-      // (percentages are meaningless for a different page)
       const boundaryForApi = previousBoundary && previousBoundary.pageIndex === correctPageIndex && previousBoundary.yEndPct < 90
         ? { yEndPct: previousBoundary.yEndPct, yStartPct: previousBoundary.yStartPct, questionNum: previousBoundary.questionNum.replace(/^(P\d+-|B\d+-)/, "") }
         : null;
+
+      const images = [pageImages[correctPageIndex]];
+      if (hasNextPage) images.push(pageImages[nextPageIndex]);
 
       const res = await fetch("/api/exam/redo-question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: pageImages[correctPageIndex],
+          images,
           questionNum: printedNum,
           surroundingQuestions: samePageQuestions,
           isFirstInBooklet,
@@ -432,8 +438,10 @@ function ExamUploadContent() {
       if (!res.ok) throw new Error("Failed to re-extract question");
 
       const result = await res.json();
+      // pageOffset: 0 = found on current page, 1 = found on next page
+      const foundPageIndex = correctPageIndex + (result.pageOffset ?? 0);
       const croppedImage = await cropQuestionFromPage(
-        pageImages[correctPageIndex],
+        pageImages[foundPageIndex],
         result.yStartPct,
         result.yEndPct
       );
@@ -441,7 +449,7 @@ function ExamUploadContent() {
       setQuestions((prev) =>
         prev.map((existing, i) =>
           i === index
-            ? { ...existing, imageData: croppedImage, pageIndex: correctPageIndex, yStartPct: result.yStartPct, yEndPct: result.yEndPct }
+            ? { ...existing, imageData: croppedImage, pageIndex: foundPageIndex, yStartPct: result.yStartPct, yEndPct: result.yEndPct }
             : existing
         )
       );

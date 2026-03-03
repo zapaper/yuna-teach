@@ -1522,7 +1522,10 @@ export async function analyzeExamBatch(
 
 // --- Single question re-extraction ---
 
-const REDO_QUESTION_PROMPT = `Find question "{questionNum}" on this exam paper page and provide precise crop boundaries.
+const REDO_QUESTION_PROMPT = `Find question "{questionNum}" on these exam paper page(s) and provide precise crop boundaries.
+
+You are given {pageCount} page(s). Page 1 is the primary page, Page 2 (if present) is the next page.
+The question may be on EITHER page — search both.
 
 Context: {context}
 
@@ -1550,51 +1553,62 @@ Context: {context}
 - Better to crop too much than to cut off content
 - NEVER output invalid coordinates (yStartPct >= yEndPct)
 
-Return ONLY valid JSON: { "questionNum": "{questionNum}", "yStartPct": 15.0, "yEndPct": 45.0 }`;
+## pageOffset:
+- pageOffset = 0 if the question is on Page 1 (the primary page)
+- pageOffset = 1 if the question is on Page 2 (the next page)
+- yStartPct and yEndPct are RELATIVE to the page where the question was found
+
+Return ONLY valid JSON: { "questionNum": "{questionNum}", "pageOffset": 0, "yStartPct": 15.0, "yEndPct": 45.0 }`;
 
 export async function redoQuestionExtraction(
-  imageBase64: string,
+  imagesBase64: string[],
   questionNum: string,
   surroundingQuestions: string[],
   hints?: {
     isFirstInBooklet?: boolean;
     previousBoundary?: { yEndPct: number; yStartPct: number; questionNum: string } | null;
   }
-): Promise<{ questionNum: string; yStartPct: number; yEndPct: number }> {
+): Promise<{ questionNum: string; pageOffset: number; yStartPct: number; yEndPct: number }> {
   const contextLines: string[] = [];
   if (surroundingQuestions.length > 0) {
-    contextLines.push(`Other questions on this page: ${surroundingQuestions.join(", ")}`);
+    contextLines.push(`Other questions on Page 1: ${surroundingQuestions.join(", ")}`);
   } else {
-    contextLines.push("This may be the only question on this page.");
+    contextLines.push("This may be the only question on Page 1.");
   }
 
   if (hints?.isFirstInBooklet) {
-    contextLines.push(`This is the FIRST question in this booklet/paper. It should appear near the top of the page.`);
+    contextLines.push(`This is the FIRST question in this booklet/paper. It should appear near the top of Page 1.`);
   } else if (hints?.previousBoundary) {
     const prev = hints.previousBoundary;
     contextLines.push(
-      `The previous question (Q${prev.questionNum}) ends at approximately ${prev.yEndPct.toFixed(1)}% from the top of the page.` +
-      ` Question "${questionNum}" should START just after that point (around ${prev.yEndPct.toFixed(0)}-${Math.min(100, prev.yEndPct + 5).toFixed(0)}% from top).` +
-      ` Do NOT search above ${Math.max(0, prev.yStartPct).toFixed(0)}% — that region belongs to Q${prev.questionNum}.`
+      `The previous question (Q${prev.questionNum}) ends at approximately ${prev.yEndPct.toFixed(1)}% from the top of Page 1.` +
+      ` Question "${questionNum}" should START just after that point on Page 1, OR at the top of Page 2 if not found on Page 1.` +
+      ` Do NOT search above ${Math.max(0, prev.yStartPct).toFixed(0)}% on Page 1 — that region belongs to Q${prev.questionNum}.`
     );
+  }
+
+  if (imagesBase64.length > 1) {
+    contextLines.push(`If question "${questionNum}" is NOT on Page 1, check Page 2 — it may start at the top of the next page.`);
   }
 
   const context = contextLines.join("\n");
 
-  const prompt = REDO_QUESTION_PROMPT.replaceAll("{questionNum}", questionNum).replace(
-    "{context}",
-    context
-  );
+  const prompt = REDO_QUESTION_PROMPT
+    .replaceAll("{questionNum}", questionNum)
+    .replace("{context}", context)
+    .replace("{pageCount}", String(imagesBase64.length));
+
+  const imageParts = imagesBase64.map((data, i) => [
+    { inlineData: { mimeType: "image/jpeg" as const, data } },
+    { text: `[Page ${i + 1}]` },
+  ]).flat();
 
   const response = await getAI().models.generateContent({
     model: "gemini-2.5-flash",
     contents: [
       {
         role: "user",
-        parts: [
-          { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
-          { text: prompt },
-        ],
+        parts: [...imageParts, { text: prompt }],
       },
     ],
     config: {
@@ -1607,6 +1621,7 @@ export async function redoQuestionExtraction(
   if (!text) throw new Error("Gemini returned empty response");
   return JSON.parse(text) as {
     questionNum: string;
+    pageOffset: number;
     yStartPct: number;
     yEndPct: number;
   };
