@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState, use } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ExamPaperDetail, ExamQuestionItem, User } from "@/types";
+import { ExamPaperDetail, ExamCloneSummary, User } from "@/types";
 import { jsPDF } from "jspdf";
 
 export default function ExamOverviewPage({
@@ -52,11 +52,11 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
 
-  // Marking state
-  const [marking, setMarking] = useState(false);
+  // Polling for marking status
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Marking detail overlay
+  const [detailCloneId, setDetailCloneId] = useState<string | null>(null);
   const [markingDetail, setMarkingDetail] = useState<MarkingDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -74,8 +74,8 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [lightboxQ, setLightboxQ] = useState<MarkingQuestion | null>(null);
   const [submissionPageCount, setSubmissionPageCount] = useState(0);
 
-  // Download PDF state
-  const [downloading, setDownloading] = useState(false);
+  // Download PDF state (tracks which clone is downloading)
+  const [downloadingCloneId, setDownloadingCloneId] = useState<string | null>(null);
 
   // Portal mount guard (portals require document to exist)
   const [mounted, setMounted] = useState(false);
@@ -97,18 +97,11 @@ function ExamOverviewContent({ id }: { id: string }) {
         setStudents(
           (usersData.users as User[]).filter((u) => u.role === "STUDENT")
         );
-        if (paperData.completedAt) {
-          const subRes = await fetch(`/api/exam/${id}/submission`);
-          if (subRes.ok) {
-            const sub = await subRes.json();
-            setSubmissionPageCount(sub.pageCount ?? 0);
-          }
-        }
-        // If marking was already in_progress when page loaded, start polling
-        if (paperData.completedAt && paperData.markingStatus === "in_progress") {
-          setMarking(true);
-          startPolling();
-        }
+        // If any clone or legacy assignment is being marked, start polling
+        const anyMarking = (paperData.clones ?? []).some(
+          (c: ExamCloneSummary) => c.markingStatus === "in_progress"
+        ) || paperData.markingStatus === "in_progress";
+        if (anyMarking) startPolling();
       } catch {
         // handled by null check below
       } finally {
@@ -125,12 +118,12 @@ function ExamOverviewContent({ id }: { id: string }) {
       try {
         const res = await fetch(`/api/exam/${id}?summary=true`);
         if (!res.ok) return;
-        const data: ExamPaperDetail = await res.json();
+        const data = await res.json();
         setPaper(data);
-        if (data.markingStatus === "complete" || data.markingStatus === "failed") {
-          stopPolling();
-          setMarking(false);
-        }
+        const anyMarking = (data.clones ?? []).some(
+          (c: ExamCloneSummary) => c.markingStatus === "in_progress"
+        ) || data.markingStatus === "in_progress";
+        if (!anyMarking) stopPolling();
       } catch {
         // ignore transient errors
       }
@@ -144,37 +137,43 @@ function ExamOverviewContent({ id }: { id: string }) {
     }
   }
 
-  async function triggerMarking() {
-    if (marking) return;
-    setMarking(true);
+  async function triggerMarking(cloneId: string) {
     try {
-      await fetch(`/api/exam/${id}/mark`, { method: "POST" });
-      // Immediately start polling for completion
+      await fetch(`/api/exam/${cloneId}/mark`, { method: "POST" });
       startPolling();
     } catch {
-      setMarking(false);
+      // ignore
     }
   }
 
-  async function openMarkingDetail() {
+  async function openMarkingDetail(cloneId: string) {
+    setDetailCloneId(cloneId);
     setDetailLoading(true);
     try {
-      const res = await fetch(`/api/exam/${id}/mark`);
-      if (res.ok) setMarkingDetail(await res.json());
+      const [markRes, subRes] = await Promise.all([
+        fetch(`/api/exam/${cloneId}/mark`),
+        fetch(`/api/exam/${cloneId}/submission`),
+      ]);
+      if (markRes.ok) setMarkingDetail(await markRes.json());
+      if (subRes.ok) {
+        const sub = await subRes.json();
+        setSubmissionPageCount(sub.pageCount ?? 0);
+      }
     } finally {
       setDetailLoading(false);
     }
   }
 
   async function remarkQuestion(questionId: string) {
+    if (!detailCloneId) return;
     setRemarkingId(questionId);
     try {
-      await fetch(`/api/exam/${id}/mark?questionId=${questionId}`, { method: "POST" });
+      await fetch(`/api/exam/${detailCloneId}/mark?questionId=${questionId}`, { method: "POST" });
       // Poll until updated
       let attempts = 0;
       const poll = setInterval(async () => {
         attempts++;
-        const res = await fetch(`/api/exam/${id}/mark`);
+        const res = await fetch(`/api/exam/${detailCloneId}/mark`);
         if (res.ok) {
           const data: MarkingDetail = await res.json();
           const q = data.questions.find((q) => q.id === questionId);
@@ -193,6 +192,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   }
 
   async function saveManualMark(questionId: string) {
+    if (!detailCloneId) return;
     const marks = parseFloat(manualValue);
     if (isNaN(marks)) return;
     await fetch(`/api/exam/questions/${questionId}`, {
@@ -204,7 +204,7 @@ function ExamOverviewContent({ id }: { id: string }) {
     setManualValue("");
     // Refresh both detail and summary
     const [detailRes, summaryRes] = await Promise.all([
-      fetch(`/api/exam/${id}/mark`),
+      fetch(`/api/exam/${detailCloneId}/mark`),
       fetch(`/api/exam/${id}?summary=true`),
     ]);
     if (detailRes.ok) setMarkingDetail(await detailRes.json());
@@ -212,10 +212,10 @@ function ExamOverviewContent({ id }: { id: string }) {
   }
 
   async function saveFeedback() {
-    if (!paper) return;
+    if (!detailCloneId) return;
     setSavingFeedback(true);
     try {
-      await fetch(`/api/exam/${id}`, {
+      await fetch(`/api/exam/${detailCloneId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ feedbackSummary: feedbackDraft }),
@@ -229,7 +229,7 @@ function ExamOverviewContent({ id }: { id: string }) {
     }
   }
 
-  async function handleAssign(studentId: string | null) {
+  async function handleAssign(studentId: string) {
     if (!paper) return;
     setAssigning(true);
     try {
@@ -238,24 +238,49 @@ function ExamOverviewContent({ id }: { id: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assignedToId: studentId }),
       });
-      const student = studentId
-        ? students.find((s) => s.id === studentId)
-        : null;
-      setPaper((prev) =>
-        prev
-          ? { ...prev, assignedToId: studentId, assignedToName: student?.name ?? null }
-          : prev
-      );
+      // Refresh paper data to get updated clones array
+      const res = await fetch(`/api/exam/${id}?summary=true`);
+      if (res.ok) setPaper(await res.json());
     } finally {
       setAssigning(false);
     }
   }
 
-  async function downloadSubmissionPdf() {
-    if (!paper || downloading) return;
-    setDownloading(true);
+  async function handleUnassign(cloneId: string) {
+    if (!paper) return;
+    setAssigning(true);
     try {
-      const metaRes = await fetch(`/api/exam/${id}/submission`);
+      await fetch(`/api/exam/${cloneId}`, { method: "DELETE" });
+      // Refresh paper data
+      const res = await fetch(`/api/exam/${id}?summary=true`);
+      if (res.ok) setPaper(await res.json());
+    } finally {
+      setAssigning(false);
+    }
+  }
+
+  // Unassign a legacy (pre-clone) assignment by clearing master's assignedToId
+  async function handleLegacyUnassign() {
+    if (!paper) return;
+    setAssigning(true);
+    try {
+      await fetch(`/api/exam/${paper.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignedToId: null }),
+      });
+      const res = await fetch(`/api/exam/${id}?summary=true`);
+      if (res.ok) setPaper(await res.json());
+    } finally {
+      setAssigning(false);
+    }
+  }
+
+  async function downloadSubmissionPdf(cloneId: string, studentName: string) {
+    if (!paper || downloadingCloneId) return;
+    setDownloadingCloneId(cloneId);
+    try {
+      const metaRes = await fetch(`/api/exam/${cloneId}/submission`);
       const meta = await metaRes.json();
       const count = meta.pageCount ?? 0;
       if (count === 0) return;
@@ -263,7 +288,7 @@ function ExamOverviewContent({ id }: { id: string }) {
       // Fetch each page and convert to data URL via canvas
       const pages: { dataUrl: string; w: number; h: number }[] = [];
       for (let i = 0; i < count; i++) {
-        const res = await fetch(`/api/exam/${id}/submission?page=${i}`);
+        const res = await fetch(`/api/exam/${cloneId}/submission?page=${i}`);
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
         const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -294,12 +319,11 @@ function ExamOverviewContent({ id }: { id: string }) {
         pdf.addImage(pg.dataUrl, "JPEG", 0, 0, pg.w, pg.h);
       }
 
-      const studentName = paper.assignedToName ?? "Student";
       pdf.save(`${paper.title} - ${studentName}.pdf`);
     } catch (err) {
       console.error("Download PDF failed:", err);
     } finally {
-      setDownloading(false);
+      setDownloadingCloneId(null);
     }
   }
 
@@ -317,6 +341,13 @@ function ExamOverviewContent({ id }: { id: string }) {
       }
     }
     return originalPageIdx;
+  }
+
+  function formatTime(s: number): string {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`;
   }
 
   const backPath = userId ? `/home/${userId}` : "/";
@@ -347,11 +378,11 @@ function ExamOverviewContent({ id }: { id: string }) {
   const missingAnswers = questionsDetected - answersDetected;
   const hasMissingAnswers = missingAnswers > 0;
 
-  const isMarked = paper.markingStatus === "complete";
-  const isMarkingFailed = paper.markingStatus === "failed";
-  const unmarkedCount = isMarked
-    ? paper.questions.filter((q) => q.marksAwarded === null).length
-    : 0;
+  const clones: ExamCloneSummary[] = paper.clones ?? [];
+  const detailClone = clones.find((c) => c.id === detailCloneId);
+  const detailStudentName = detailClone?.assignedToName
+    ?? (detailCloneId === paper.id ? paper.assignedToName : null)
+    ?? "Student";
 
   const pageContent = (
     <div className="p-6 pb-24 max-w-2xl mx-auto">
@@ -425,8 +456,23 @@ function ExamOverviewContent({ id }: { id: string }) {
         ) : (
           <div className="divide-y divide-slate-50">
             {students.map((student) => {
-              const isAssigned = paper.assignedToId === student.id;
-              const isSubmitted = isAssigned && !!paper.completedAt;
+              const clone = clones.find((c) => c.assignedToId === student.id);
+              // Legacy: assigned directly on master (pre-clone migration)
+              const isLegacy = !clone && paper.assignedToId === student.id;
+              const isAssigned = !!clone || isLegacy;
+
+              // Use clone data or master paper data for legacy assignments
+              const examId = clone?.id ?? (isLegacy ? paper.id : null);
+              const completedAt = clone?.completedAt ?? (isLegacy ? paper.completedAt : null);
+              const score = clone?.score ?? (isLegacy ? paper.score : null);
+              const mStatus = clone?.markingStatus ?? (isLegacy ? paper.markingStatus : null);
+              const timeSpent = clone?.timeSpentSeconds ?? (isLegacy ? paper.timeSpentSeconds : 0);
+
+              const isSubmitted = !!completedAt;
+              const isMarking = mStatus === "in_progress";
+              const isMarked = mStatus === "complete";
+              const isFailed = mStatus === "failed";
+
               return (
                 <div key={student.id} className="flex items-center gap-2 py-2.5">
                   {/* Student info */}
@@ -436,24 +482,32 @@ function ExamOverviewContent({ id }: { id: string }) {
                       {student.level ? <span className="text-xs text-slate-400 ml-1.5">P{student.level}</span> : null}
                       {isSubmitted ? (
                         <span className="ml-2 text-xs text-green-600 font-medium">
-                          Submitted {new Date(paper.completedAt!).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+                          Submitted {new Date(completedAt!).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
                         </span>
                       ) : isAssigned ? (
                         <span className="ml-2 text-xs text-amber-600 font-medium">In progress</span>
                       ) : null}
                     </div>
-                    {isSubmitted ? (
-                      <button onClick={downloadSubmissionPdf} disabled={downloading}
-                        className="text-xs text-slate-400 hover:text-primary-600 transition-colors mt-0.5">
-                        {downloading ? <span>Downloading…</span> : <span>Download PDF</span>}
-                      </button>
+                    {isSubmitted && examId ? (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <button onClick={() => downloadSubmissionPdf(examId, student.name)}
+                          disabled={downloadingCloneId === examId}
+                          className="text-xs text-slate-400 hover:text-primary-600 transition-colors">
+                          {downloadingCloneId === examId ? <span>Downloading…</span> : <span>Download PDF</span>}
+                        </button>
+                        {timeSpent > 0 ? (
+                          <span className="text-xs text-slate-400">
+                            · {formatTime(timeSpent)}
+                          </span>
+                        ) : null}
+                      </div>
                     ) : null}
                   </div>
 
                   {/* Marking button — only for assigned + submitted */}
-                  {isSubmitted ? (
+                  {isSubmitted && examId ? (
                     <div className="flex items-center gap-1.5">
-                      {marking ? (
+                      {isMarking ? (
                         <div className="flex items-center gap-1.5">
                           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-600">
                             <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500 inline-block" />
@@ -461,10 +515,9 @@ function ExamOverviewContent({ id }: { id: string }) {
                           </div>
                           <button
                             onClick={async () => {
-                              stopPolling();
-                              setMarking(false);
-                              await fetch(`/api/exam/${id}/mark`, { method: "DELETE" });
-                              setPaper((p) => p ? { ...p, markingStatus: null } : p);
+                              await fetch(`/api/exam/${examId}/mark`, { method: "DELETE" });
+                              const res = await fetch(`/api/exam/${id}?summary=true`);
+                              if (res.ok) setPaper(await res.json());
                             }}
                             className="text-xs text-slate-400 hover:text-red-500 transition-colors px-1"
                             title="Cancel marking"
@@ -472,42 +525,31 @@ function ExamOverviewContent({ id }: { id: string }) {
                             <span>✕</span>
                           </button>
                         </div>
-                      ) : isMarkingFailed ? (
-                        <button onClick={triggerMarking}
+                      ) : isFailed ? (
+                        <button onClick={() => triggerMarking(examId)}
                           className="px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 text-xs text-red-600 hover:bg-red-100 transition-colors">
                           Retry mark
                         </button>
                       ) : isMarked ? (
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => openMarkingDetail()} disabled={detailLoading}
-                            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
-                              unmarkedCount > 0
-                                ? "bg-amber-50 border border-amber-300 text-amber-700 hover:bg-amber-100"
-                                : "bg-green-50 border border-green-300 text-green-700 hover:bg-green-100"
-                            }`}>
-                            {detailLoading ? (
-                              <span className="inline-flex items-center gap-1">
-                                <span className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500 inline-block" />
-                                <span>Loading…</span>
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
-                                  fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M20 6 9 17l-5-5" />
-                                </svg>
-                                <span>{paper.score ?? 0}{paper.totalMarks ? `/${paper.totalMarks}` : ""}</span>
-                              </span>
-                            )}
-                          </button>
-                          {unmarkedCount > 0 ? (
-                            <span className="text-xs text-amber-600 font-medium whitespace-nowrap">
-                              {unmarkedCount} unmarked
+                        <button onClick={() => openMarkingDetail(examId)} disabled={detailLoading && detailCloneId === examId}
+                          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-green-50 border border-green-300 text-green-700 hover:bg-green-100 transition-colors disabled:opacity-50">
+                          {detailLoading && detailCloneId === examId ? (
+                            <span className="inline-flex items-center gap-1">
+                              <span className="animate-spin rounded-full h-3 w-3 border-2 border-green-200 border-t-green-500 inline-block" />
+                              <span>Loading…</span>
                             </span>
-                          ) : null}
-                        </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M20 6 9 17l-5-5" />
+                              </svg>
+                              <span>{score ?? 0}{paper.totalMarks ? `/${paper.totalMarks}` : ""}</span>
+                            </span>
+                          )}
+                        </button>
                       ) : (
-                        <button onClick={triggerMarking}
+                        <button onClick={() => triggerMarking(examId)}
                           className="px-2.5 py-1 rounded-lg bg-primary-50 border-2 border-primary-300 text-xs font-semibold text-primary-700 hover:bg-primary-100 transition-colors">
                           Mark paper
                         </button>
@@ -515,11 +557,18 @@ function ExamOverviewContent({ id }: { id: string }) {
                     </div>
                   ) : null}
 
-                  {/* Assign / Assigned */}
+                  {/* Assign / Unassign */}
                   {isAssigned ? (
-                    <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 whitespace-nowrap">
-                      Assigned
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1 whitespace-nowrap">
+                        Assigned
+                      </span>
+                      <button onClick={() => isLegacy ? handleLegacyUnassign() : handleUnassign(clone!.id)} disabled={assigning}
+                        className="text-xs text-slate-300 hover:text-red-500 transition-colors p-0.5 disabled:opacity-50"
+                        title="Unassign">
+                        ✕
+                      </button>
+                    </div>
                   ) : (
                     <button onClick={() => handleAssign(student.id)} disabled={assigning}
                       className="text-xs font-medium text-slate-600 border border-slate-200 rounded-lg px-2.5 py-1 hover:bg-slate-50 disabled:opacity-50 transition-colors whitespace-nowrap">
@@ -531,40 +580,7 @@ function ExamOverviewContent({ id }: { id: string }) {
             })}
           </div>
         )}
-
-        {/* Time spent */}
-        {paper.assignedToId && (paper.timeSpentSeconds ?? 0) > 0 ? (
-          <div className="border-t border-slate-100 pt-1">
-            <InfoRow label="Time spent" value={(() => {
-              const s = paper.timeSpentSeconds ?? 0;
-              const h = Math.floor(s / 3600);
-              const m = Math.floor((s % 3600) / 60);
-              const sec = s % 60;
-              return h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`;
-            })()} />
-          </div>
-        ) : null}
-
-        {/* Unassign */}
-        {paper.assignedToId ? (
-          <div className="border-t border-slate-100 pt-2">
-            <button onClick={() => handleAssign(null)} disabled={assigning}
-              className="w-full py-2 px-3 rounded-xl border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 disabled:opacity-50 transition-colors">
-              Unassign
-            </button>
-          </div>
-        ) : null}
       </Section>
-
-      {/* Open practice */}
-      {paper.assignedToId ? (
-        <button
-          onClick={() => router.push(`/exam/${id}?userId=${paper.assignedToId}`)}
-          className="w-full py-3.5 rounded-2xl bg-primary-500 text-white font-semibold text-base hover:bg-primary-600 transition-colors"
-        >
-          Open Practice
-        </button>
-      ) : null}
 
     </div>
   );
@@ -574,7 +590,7 @@ function ExamOverviewContent({ id }: { id: string }) {
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => setMarkingDetail(null)}
+        <button onClick={() => { setMarkingDetail(null); setDetailCloneId(null); }}
           className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -583,7 +599,7 @@ function ExamOverviewContent({ id }: { id: string }) {
         </button>
         <div className="flex-1">
           <p className="text-sm font-semibold text-slate-800">{paper.title}</p>
-          <p className="text-xs text-slate-400">Marking Results · {paper.assignedToName}</p>
+          <p className="text-xs text-slate-400">Marking Results · {detailStudentName}</p>
         </div>
         <div className="text-right">
           <p className="text-xl font-bold text-primary-600">
@@ -686,7 +702,7 @@ function ExamOverviewContent({ id }: { id: string }) {
                   title="View question image"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/api/exam/${id}/submission?page=${submissionPage}`} alt={`Q${q.questionNum}`}
+                  <img src={`/api/exam/${detailCloneId}/submission?page=${submissionPage}`} alt={`Q${q.questionNum}`}
                     className="w-full h-auto block"
                     style={q.yStartPct != null && q.yEndPct != null ? {
                       objectFit: "cover",
@@ -743,7 +759,7 @@ function ExamOverviewContent({ id }: { id: string }) {
 
       {/* Footer */}
       <div className="border-t border-slate-100 px-4 py-3">
-        <button onClick={() => { triggerMarking(); setMarkingDetail(null); }}
+        <button onClick={() => { if (detailCloneId) triggerMarking(detailCloneId); setMarkingDetail(null); setDetailCloneId(null); }}
           className="w-full py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
           Re-mark all questions
         </button>
@@ -768,7 +784,7 @@ function ExamOverviewContent({ id }: { id: string }) {
         onClick={(e) => e.stopPropagation()}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={`/api/exam/${id}/submission?page=${getSubmissionPage(lightboxQ.pageIndex)}`}
+          src={`/api/exam/${detailCloneId}/submission?page=${getSubmissionPage(lightboxQ.pageIndex)}`}
           alt={`Q${lightboxQ.questionNum}`}
           className="max-w-full h-auto rounded-xl shadow-2xl"
         />

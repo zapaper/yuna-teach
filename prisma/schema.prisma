@@ -75,9 +75,12 @@ model ExamPaper {
   timeSpentSeconds Int       @default(0)
   markingStatus    String?   // "pending" | "in_progress" | "complete" | "failed"
   feedbackSummary  String?
+  sourceExamId     String?
 
   user       User           @relation("UploadedPapers", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo User?          @relation("AssignedPapers", fields: [assignedToId], references: [id], onDelete: SetNull)
+  sourceExam ExamPaper?     @relation("ExamClones", fields: [sourceExamId], references: [id], onDelete: SetNull)
+  clones     ExamPaper[]    @relation("ExamClones")
   questions  ExamQuestion[]
 
   @@map("exam_papers")

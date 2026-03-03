@@ -58,6 +58,18 @@ export interface ExamPaperSummary {
   assignedToName: string | null;
   completedAt: string | null;
   markingStatus: string | null;
+  assignmentCount: number;
+}
+
+export interface ExamCloneSummary {
+  id: string;
+  assignedToId: string;
+  assignedToName: string | null;
+  completedAt: string | null;
+  score: number | null;
+  markingStatus: string | null;
+  feedbackSummary: string | null;
+  timeSpentSeconds: number;
 }
 
 export interface ExamMetadata {
@@ -94,6 +106,9 @@ export interface ExamPaperDetail {
   completedAt: string | null;
   timeSpentSeconds: number;
   markingStatus: string | null;
+  feedbackSummary: string | null;
+  sourceExamId: string | null;
+  clones: ExamCloneSummary[];
   questions: ExamQuestionItem[];
 }
 

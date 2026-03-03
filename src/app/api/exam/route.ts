@@ -5,12 +5,14 @@ export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
   const role = request.nextUrl.searchParams.get("role");
 
-  let where = undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let where: any = undefined;
   if (userId) {
     if (role === "STUDENT") {
       where = { assignedToId: userId };
     } else {
-      where = { userId };
+      // Parents see only master papers (exclude clones)
+      where = { userId, sourceExamId: null };
     }
   }
 
@@ -18,7 +20,7 @@ export async function GET(request: NextRequest) {
     where,
     orderBy: { createdAt: "desc" },
     include: {
-      _count: { select: { questions: true } },
+      _count: { select: { questions: true, clones: true } },
       assignedTo: { select: { id: true, name: true } },
     },
   });
@@ -36,6 +38,7 @@ export async function GET(request: NextRequest) {
       assignedToName: p.assignedTo?.name ?? null,
       completedAt: p.completedAt?.toISOString() ?? null,
       markingStatus: p.markingStatus ?? null,
+      assignmentCount: p._count.clones,
     })),
   });
 }

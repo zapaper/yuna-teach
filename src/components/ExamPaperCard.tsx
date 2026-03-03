@@ -45,7 +45,11 @@ export default function ExamPaperCard({
                   {paper.level}
                 </span>
               ) : null}
-              {paper.assignedToName ? (
+              {userRole === "PARENT" && paper.assignmentCount > 0 ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                  {paper.assignmentCount} student{paper.assignmentCount !== 1 ? "s" : ""} assigned
+                </span>
+              ) : paper.assignedToName ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
                   Assigned to {paper.assignedToName}
                 </span>
@@ -53,19 +57,17 @@ export default function ExamPaperCard({
               <span className="text-xs text-slate-400">
                 {paper.questionCount} questions
               </span>
-              {paper.markingStatus === "complete" ? (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                  Marked
-                </span>
-              ) : paper.completedAt ? (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                  Completed
-                </span>
-              ) : (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                  Submitted
-                </span>
-              )}
+              {userRole !== "PARENT" ? (
+                paper.markingStatus === "complete" ? (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    Marked
+                  </span>
+                ) : paper.completedAt ? (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    Completed
+                  </span>
+                ) : null
+              ) : null}
             </div>
             {paper.school ? (
               <p className="text-xs text-slate-400 mt-1 truncate">
