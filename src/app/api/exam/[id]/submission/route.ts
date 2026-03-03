@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
+import { markExamPaper } from "@/lib/marking";
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -114,6 +115,11 @@ export async function POST(
       where: { id },
       data: { completedAt: new Date() },
     });
+
+    // Auto-mark in background — fire and forget
+    markExamPaper(id).catch((err) =>
+      console.error(`[Auto-mark] Background marking for ${id} failed:`, err)
+    );
   }
 
   return NextResponse.json({ success: true, pageCount });
