@@ -44,7 +44,10 @@ Questions on this page (vertical position as % from top of image):
 Instructions — follow this EXACT sequence for EACH question:
 
 STEP 1: Read the student's answer.
-  Find the student's blue-ink answer within the question's vertical region.
+  Find the student's blue-ink answer ONLY within the question's vertical region (yStart%–yEnd%).
+  IMPORTANT: Multiple questions may share the same page image. ONLY look at the area between the
+  specified yStart% and yEnd% for each question. IGNORE any writing outside those boundaries —
+  that belongs to a different question.
   - Questions may have parts (a), (b), (c). Read each part separately.
   - Final answer is usually in the answer box/line at bottom-right of question space.
 
@@ -56,7 +59,8 @@ STEP 3: Compare against the expected answer. Follow this priority:
   A) If the student's answer MATCHES the expected answer → FULL MARKS. Done. No further checking needed.
   B) If the student's answer does NOT match:
      - Check if working/steps are partially correct (similar to the expected answer steps).
-     - If some steps are correct → award PARTIAL marks proportional to correct working.
+     - If some steps are correct → award PARTIAL marks = round(proportion of correct steps × marksAvailable).
+       e.g. 2 out of 3 steps correct on a 3-mark question → round(2/3 × 3) = 2 marks.
      - If answer is wrong with no correct working → ZERO marks.
   C) For diagram questions: compare student's blue-ink drawing against the expected answer diagram image.
 
