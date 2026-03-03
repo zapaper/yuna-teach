@@ -19,7 +19,7 @@ export default function ExamOverviewPage({
   );
 }
 
-// ─── Marking detail question (includes imageData) ─────────────────────────────
+// ─── Marking detail question ──────────────────────────────────────────────────
 
 interface MarkingQuestion {
   id: string;
@@ -27,7 +27,7 @@ interface MarkingQuestion {
   pageIndex: number;
   yStartPct: number | null;
   yEndPct: number | null;
-  imageData: string;
+  answer: string | null;
   marksAwarded: number | null;
   marksAvailable: number | null;
   markingNotes: string | null;
@@ -712,7 +712,12 @@ function ExamOverviewContent({ id }: { id: string }) {
                   />
                 </button>
 
-                {/* Notes */}
+                {/* Expected answer + AI notes */}
+                {q.answer ? (
+                  <p className="text-xs text-slate-400 mb-0.5 truncate" title={q.answer}>
+                    <span className="font-medium">Ans:</span> {q.answer}
+                  </p>
+                ) : null}
                 {q.markingNotes ? (
                   <p className="text-xs text-slate-500 leading-relaxed mb-1.5 line-clamp-2">{q.markingNotes}</p>
                 ) : null}

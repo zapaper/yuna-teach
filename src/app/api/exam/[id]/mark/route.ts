@@ -24,7 +24,7 @@ export async function GET(
           pageIndex: true,
           yStartPct: true,
           yEndPct: true,
-          imageData: true,
+          answer: true,
           marksAwarded: true,
           marksAvailable: true,
           markingNotes: true,

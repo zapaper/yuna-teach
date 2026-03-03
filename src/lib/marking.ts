@@ -18,7 +18,16 @@ interface QuestionMarkResult {
   questionId: string;
   marksAvailable: number;
   marksAwarded: number;
+  studentAnswer?: string;
   notes: string;
+}
+
+/** Build markingNotes string, prefixing with detected student answer when available */
+function buildMarkingNotes(result: QuestionMarkResult): string {
+  const parts: string[] = [];
+  if (result.studentAnswer) parts.push(`Detected: ${result.studentAnswer}`);
+  if (result.notes) parts.push(result.notes);
+  return parts.join(" | ");
 }
 
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise.
@@ -51,15 +60,22 @@ STEP 3: Compare against the expected answer. Follow this priority:
      - If answer is wrong with no correct working → ZERO marks.
   C) For diagram questions: compare student's blue-ink drawing against the expected answer diagram image.
 
-STEP 4: Notes — keep SHORT:
+STEP 4: Record what you detected.
+  "studentAnswer": Write EXACTLY what the student wrote/drew in blue ink.
+    - For text/number answers: quote their written answer (e.g. "3.5 kg", "B", "12").
+    - For MCQ: the option letter/number they circled/wrote (e.g. "C", "3").
+    - If nothing was written: "No answer detected"
+    - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
+
+STEP 5: Notes — keep SHORT:
   - Full marks → notes = "" (empty string)
   - Partial or zero marks → 1 sentence max explaining what went wrong
 
 Return ONLY valid JSON (no markdown fences):
 {
   "questions": [
-    {"questionId": "ID", "marksAvailable": 2, "marksAwarded": 2, "notes": ""},
-    {"questionId": "ID", "marksAvailable": 3, "marksAwarded": 1, "notes": "Part (b) arithmetic error in last step."}
+    {"questionId": "ID", "marksAvailable": 2, "marksAwarded": 2, "studentAnswer": "3.5 kg", "notes": ""},
+    {"questionId": "ID", "marksAvailable": 3, "marksAwarded": 1, "studentAnswer": "(a) 12 (b) 7", "notes": "Part (b) arithmetic error in last step."}
   ]
 }`;
 
@@ -158,7 +174,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   await prisma.examQuestion.update({
     where: { id: questionId },
-    data: { marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable, markingNotes: result.notes },
+    data: { marksAwarded: result.marksAwarded, marksAvailable: result.marksAvailable, markingNotes: buildMarkingNotes(result) },
   });
 
   // Recalculate paper total score
@@ -512,7 +528,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
         data: {
           marksAwarded: result.marksAwarded,
           marksAvailable: existingMarks ?? result.marksAvailable,
-          markingNotes: result.notes,
+          markingNotes: buildMarkingNotes(result),
         },
       });
     });
