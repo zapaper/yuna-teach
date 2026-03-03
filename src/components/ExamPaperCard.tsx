@@ -17,10 +17,12 @@ export default function ExamPaperCard({
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Parents go to overview; students go directly to practice
+  // Parents go to overview; students go to review (if released) or practice
   const examHref =
     userRole === "PARENT"
       ? `/exam/${paper.id}/overview?userId=${userId}`
+      : paper.markingStatus === "released"
+      ? `/exam/${paper.id}/review?userId=${userId}`
       : `/exam/${paper.id}?userId=${userId}`;
 
   return (
@@ -58,9 +60,9 @@ export default function ExamPaperCard({
                 {paper.questionCount} questions
               </span>
               {userRole !== "PARENT" ? (
-                paper.markingStatus === "complete" ? (
+                paper.markingStatus === "released" ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                    Marked
+                    Marked{paper.score != null ? ` ${paper.score}${paper.totalMarks ? `/${paper.totalMarks}` : ""}` : ""}
                   </span>
                 ) : paper.completedAt ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">

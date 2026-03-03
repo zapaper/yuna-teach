@@ -69,6 +69,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [editingFeedback, setEditingFeedback] = useState(false);
   const [feedbackDraft, setFeedbackDraft] = useState("");
   const [savingFeedback, setSavingFeedback] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
 
   // Lightbox for question image pop-up
   const [lightboxQ, setLightboxQ] = useState<MarkingQuestion | null>(null);
@@ -226,6 +227,28 @@ function ExamOverviewContent({ id }: { id: string }) {
       setEditingFeedback(false);
     } finally {
       setSavingFeedback(false);
+    }
+  }
+
+  async function finalizeAndSend() {
+    if (!detailCloneId || !markingDetail) return;
+    setFinalizing(true);
+    try {
+      const totalScore = markingDetail.questions.reduce(
+        (sum, q) => sum + (q.marksAwarded ?? 0), 0
+      );
+      await fetch(`/api/exam/${detailCloneId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score: totalScore, markingStatus: "released" }),
+      });
+      // Refresh summary
+      const res = await fetch(`/api/exam/${id}?summary=true`);
+      if (res.ok) setPaper(await res.json());
+      setMarkingDetail(null);
+      setDetailCloneId(null);
+    } finally {
+      setFinalizing(false);
     }
   }
 
@@ -470,7 +493,7 @@ function ExamOverviewContent({ id }: { id: string }) {
 
               const isSubmitted = !!completedAt;
               const isMarking = mStatus === "in_progress";
-              const isMarked = mStatus === "complete";
+              const isMarked = mStatus === "complete" || mStatus === "released";
               const isFailed = mStatus === "failed";
 
               return (
@@ -763,7 +786,20 @@ function ExamOverviewContent({ id }: { id: string }) {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-slate-100 px-4 py-3">
+      <div className="border-t border-slate-100 px-4 py-3 space-y-2">
+        {markingDetail.markingStatus === "complete" ? (
+          <button
+            onClick={finalizeAndSend}
+            disabled={finalizing || markingDetail.questions.some(q => q.marksAwarded === null)}
+            className="w-full py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {finalizing ? "Sending\u2026" : "Finalize & send to student"}
+          </button>
+        ) : markingDetail.markingStatus === "released" ? (
+          <div className="w-full py-2.5 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-medium text-center">
+            Results sent to student
+          </div>
+        ) : null}
         <button onClick={() => { if (detailCloneId) triggerMarking(detailCloneId); setMarkingDetail(null); setDetailCloneId(null); }}
           className="w-full py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
           Re-mark all questions

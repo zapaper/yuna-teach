@@ -208,6 +208,7 @@ export async function PATCH(
   if ("timeSpentSeconds" in body && typeof body.timeSpentSeconds === "number")
     data.timeSpentSeconds = body.timeSpentSeconds;
   if ("feedbackSummary" in body) data.feedbackSummary = body.feedbackSummary ?? null;
+  if ("markingStatus" in body) data.markingStatus = body.markingStatus ?? null;
 
   const paper = await prisma.examPaper.update({ where: { id }, data });
 

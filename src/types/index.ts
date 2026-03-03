@@ -59,6 +59,8 @@ export interface ExamPaperSummary {
   completedAt: string | null;
   markingStatus: string | null;
   assignmentCount: number;
+  score: number | null;
+  totalMarks: string | null;
 }
 
 export interface ExamCloneSummary {
