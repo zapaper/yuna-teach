@@ -567,6 +567,46 @@ marksAvailable: total marks for this question (sum of sub-part bracket marks). U
 
 Return ONLY valid JSON.`;
 
+// Science-specific addendum — appended to QUESTION_EXTRACTION_PROMPT for science papers
+const SCIENCE_ADDENDUM = `
+
+## SCIENCE PAPER — Multi-page question support
+
+This is a SCIENCE paper. Science questions frequently span multiple pages because they include:
+- Extended reading passages or experimental scenarios before the sub-questions
+- Large diagrams (biological drawings, experimental setups, circuit diagrams)
+- Many sub-parts (a), (b), (c), (d), (e) with answer lines that push content to the next page
+
+### CONTINUATION ENTRIES — same questionNum on multiple pages:
+- When a question starts on one page and continues on the next page WITHOUT a new whole question number appearing at the left margin, you MUST output a CONTINUATION entry
+- A continuation entry has the SAME questionNum as the original entry but appears on the NEXT page
+- Set "isContinuation": true on the continuation entry
+- The continuation entry's yStartPct should be where the question content resumes on the new page (typically 2-5% from top)
+- The continuation entry's yEndPct should be where the next whole question number begins on that page (or 95 if the question is the last on the page)
+
+### How to detect a multi-page question:
+1. You are processing a question (e.g. Q5) and reach the bottom of the page (yEndPct = 95)
+2. On the NEXT page, the content at the top does NOT start with a new whole question number at the left margin
+3. Instead, it continues with sub-parts like "(c)", "(d)" or continuation text from Q5
+4. In this case: output Q5 on the first page with yEndPct = 95, THEN output another entry for Q5 on the next page with "isContinuation": true
+
+### Example — Q5 spanning 2 pages:
+Page 3: Q5 starts at 40%, has parts (a) and (b), continues to bottom
+  {"questionNum": "5", "yStartPct": 40, "yEndPct": 95, "isContinuation": false, "boundaryTop": "5", "boundaryBottom": "continuation", "marksAvailable": null}
+Page 4: Q5 continues with parts (c) and (d), ends at 60% where Q6 starts
+  {"questionNum": "5", "yStartPct": 2, "yEndPct": 60, "isContinuation": true, "boundaryTop": "continuation", "boundaryBottom": "6", "marksAvailable": null}
+Page 4: Q6 starts at 60%
+  {"questionNum": "6", "yStartPct": 60, "yEndPct": 95, "isContinuation": false, "boundaryTop": "6", "boundaryBottom": "end", "marksAvailable": null}
+
+### Rules for continuation entries:
+- The FIRST entry for a question always has "isContinuation": false (or omit the field)
+- Subsequent entries for the SAME question on LATER pages have "isContinuation": true
+- A question can span 2 or even 3 pages — output one entry per page it occupies
+- The uniqueness rule is relaxed: the same questionNum CAN appear multiple times IF all but the first have "isContinuation": true
+- boundaryTop for a continuation should be "continuation" (not a question number)
+- boundaryBottom should be the next question number or "end" as usual
+- marksAvailable should be null on continuation entries (marks are on the primary entry only)`;
+
 // Stage 2b: Answer Extraction — extract answers with full working steps from answer key pages
 const ANSWER_EXTRACTION_PROMPT_V2 = `You are analyzing the answer key / answer sheet pages of a Singapore school exam paper.
 
@@ -705,6 +745,7 @@ interface QuestionExtractionResult {
       boundaryTop: string;
       boundaryBottom: string;
       marksAvailable?: number | null;
+      isContinuation?: boolean;
     }>;
   }>;
   _rawSnippet?: string; // first 400 chars of Gemini response, for browser debug
@@ -830,6 +871,7 @@ function validateQuestionExtraction(
     const nums: number[] = [];
     for (const page of result.pages) {
       for (const q of page.questions) {
+        if (q.isContinuation) continue; // skip continuation entries
         const qNum = q.questionNum;
         if (prefix) {
           // Only count questions that start with this exact prefix (e.g. "P2-1")
@@ -878,15 +920,16 @@ function validateQuestionExtraction(
 
 // Helper: extract sorted question numbers from a QuestionExtractionResult
 function extractQuestionNumbers(result: QuestionExtractionResult, prefix: string): number[] {
-  const nums: number[] = [];
+  const seen = new Set<number>();
   for (const page of result.pages) {
     for (const q of page.questions) {
+      if (q.isContinuation) continue; // skip continuation entries
       const raw = prefix ? q.questionNum.replace(prefix, "") : q.questionNum;
       const n = parseInt(raw, 10);
-      if (!isNaN(n)) nums.push(n);
+      if (!isNaN(n)) seen.add(n);
     }
   }
-  return nums.sort((a, b) => a - b);
+  return [...seen].sort((a, b) => a - b);
 }
 
 // Remap Gemini's returned pageIndex values back to original PDF page indices.
@@ -947,17 +990,29 @@ function normalizeExtractionResult(result: QuestionExtractionResult): QuestionEx
     }
   }
 
-  // Sort by question number (numeric part) to detect backwards jumps
+  // Sort by question number (numeric part), then continuations after primary by pageIndex
   const sorted = allQuestions.sort((a, b) => {
     const aNum = parseInt(a.q.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
     const bNum = parseInt(b.q.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
     if (isNaN(aNum) || isNaN(bNum)) return 0;
-    return aNum - bNum;
+    if (aNum !== bNum) return aNum - bNum;
+    // Same question number: primary entry first, then continuations by page
+    if (a.q.isContinuation !== b.q.isContinuation) {
+      return a.q.isContinuation ? 1 : -1;
+    }
+    return a.pageIndex - b.pageIndex;
   });
 
   // Fix backwards page jumps: each question's page must be >= the previous question's page
+  // Continuation entries are expected to be on later pages than their primary — don't "fix" them
   let maxPageSoFar = -1;
+  let lastQuestionNum = "";
   for (const entry of sorted) {
+    // Continuation entries for the same question are expected on later pages
+    if (entry.q.isContinuation && entry.q.questionNum === lastQuestionNum) {
+      maxPageSoFar = Math.max(maxPageSoFar, entry.pageIndex);
+      continue;
+    }
     if (entry.pageIndex < maxPageSoFar) {
       // Backwards jump detected — move to the page after the previous question's page
       const nextPageIndex = maxPageSoFar + 1;
@@ -971,6 +1026,7 @@ function normalizeExtractionResult(result: QuestionExtractionResult): QuestionEx
       entry.q.yEndPct = 95;
     }
     maxPageSoFar = Math.max(maxPageSoFar, entry.pageIndex);
+    lastQuestionNum = entry.q.questionNum;
   }
 
   // Rebuild page map with fixed assignments
@@ -1002,9 +1058,10 @@ function normalizeExtractionResult(result: QuestionExtractionResult): QuestionEx
 }
 
 // Build a booklet-specific context string for per-booklet extraction
-function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionNum: number): string {
+function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionNum: number, subject: string): string {
   const lines: string[] = [];
   lines.push(`Booklet: ${paper.label}`);
+  if (subject) lines.push(`Subject: ${subject}`);
   lines.push(`Question prefix for JSON output: "${paper.questionPrefix}"`);
   lines.push(`Expected questions: ${paper.expectedQuestionCount} (starting from Q${firstQuestionNum})`);
   lines.push(`First question number to find: ${firstQuestionNum}`);
@@ -1020,18 +1077,23 @@ async function runExtractionCall(
   originalPageIndices: number[],
   paper: StructureResult["papers"][0],
   firstQuestionNum: number,
-  label: string
+  label: string,
+  subject: string
 ): Promise<{ result: QuestionExtractionResult; rawText: string }> {
   const imageParts = imagesBase64.map((data, i) => [
     { inlineData: { mimeType: "image/jpeg" as const, data } },
     { text: `[Page ${originalPageIndices[i]}]` },
   ]).flat();
 
-  const bookletContext = buildBookletContext(paper, firstQuestionNum);
-  const prompt = QUESTION_EXTRACTION_PROMPT.replace(
+  const bookletContext = buildBookletContext(paper, firstQuestionNum, subject);
+  const isScience = subject.toLowerCase().includes("science");
+  let prompt = QUESTION_EXTRACTION_PROMPT.replace(
     "{structureContext}",
     bookletContext
   );
+  if (isScience) {
+    prompt += SCIENCE_ADDENDUM;
+  }
 
   console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
 
@@ -1110,12 +1172,13 @@ async function extractQuestionsForBooklet(
   imagesBase64: string[],
   originalPageIndices: number[],
   paper: StructureResult["papers"][0],
-  firstQuestionNum: number
+  firstQuestionNum: number,
+  subject: string
 ): Promise<QuestionExtractionResult> {
   // --- Attempt 1: extract with all pages ---
   const { result, rawText } = await runExtractionCall(
     imagesBase64, originalPageIndices, paper, firstQuestionNum,
-    `${paper.label} (attempt 1)`
+    `${paper.label} (attempt 1)`, subject
   );
 
   const { issues, qNums } = validateExtraction(result, paper, firstQuestionNum);
@@ -1139,7 +1202,7 @@ async function extractQuestionsForBooklet(
 
     const { result: attempt2 } = await runExtractionCall(
       trimmedImages, trimmedIndices, paper, firstQuestionNum,
-      `${paper.label} (attempt 2, dropped first page)`
+      `${paper.label} (attempt 2, dropped first page)`, subject
     );
 
     const v2 = validateExtraction(attempt2, paper, firstQuestionNum);
@@ -1273,6 +1336,7 @@ export interface BatchAnalysisResult {
       boundaryTop: string;
       boundaryBottom: string;
       marksAvailable?: number | null;
+      isContinuation?: boolean;
     }>;
   }>;
   answers: Record<string, AnswerEntry>;
@@ -1401,7 +1465,7 @@ export async function analyzeExamBatch(
     Promise.all(bookletPageRanges.map(({ paper, pageIndices, firstQuestionNum }) => {
       if (pageIndices.length === 0) return Promise.resolve({ pages: [] } as QuestionExtractionResult);
       const images = pageIndices.map(idx => imagesBase64[idx]);
-      return extractQuestionsForBooklet(images, pageIndices, paper, firstQuestionNum);
+      return extractQuestionsForBooklet(images, pageIndices, paper, firstQuestionNum, structure.header.subject);
     })),
     // Answer extraction runs concurrently with all booklet extractions
     answerImages.length > 0
