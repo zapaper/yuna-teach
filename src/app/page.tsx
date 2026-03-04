@@ -121,7 +121,7 @@ export default function HomePage() {
         {/* Header */}
         <div className="text-center mb-8 pt-8">
           <h1 className="text-3xl font-bold text-slate-800">Mark for You</h1>
-          <p className="text-slate-400 text-sm mt-1">Let AI do the heavy-lifting</p>
+          <TypingSubheader />
         </div>
 
         {/* Register buttons */}
@@ -315,5 +315,60 @@ export default function HomePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Animated typing subheader ───────────────────────────────────────────────
+
+const PHRASES = [
+  "Let AI do the heavy-lifting",
+  "Let AI read out the spelling",
+  "Let AI mark your exam paper",
+  "Let AI track your progress",
+];
+
+function TypingSubheader() {
+  const [text, setText] = useState(PHRASES[0]);
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [phase, setPhase] = useState<"display" | "deleting" | "typing">("display");
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const current = PHRASES[phraseIdx];
+    const next = PHRASES[(phraseIdx + 1) % PHRASES.length];
+
+    if (phase === "display") {
+      // Pause before starting to delete
+      timeoutRef.current = setTimeout(() => setPhase("deleting"), 2500);
+    } else if (phase === "deleting") {
+      // Find common prefix to keep (e.g. "Let AI ")
+      let common = 0;
+      while (common < text.length && common < next.length && text[common] === next[common]) {
+        common++;
+      }
+      if (text.length > common) {
+        timeoutRef.current = setTimeout(() => setText((t) => t.slice(0, -1)), 30);
+      } else {
+        setPhase("typing");
+      }
+    } else if (phase === "typing") {
+      if (text.length < next.length) {
+        timeoutRef.current = setTimeout(() => setText(next.slice(0, text.length + 1)), 50);
+      } else {
+        setPhraseIdx((i) => (i + 1) % PHRASES.length);
+        setPhase("display");
+      }
+    }
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [text, phase, phraseIdx]);
+
+  return (
+    <p className="text-slate-400 text-sm mt-1 h-5">
+      {text}
+      <span className="inline-block w-[2px] h-3.5 bg-slate-400 ml-0.5 align-text-bottom animate-pulse" />
+    </p>
   );
 }
