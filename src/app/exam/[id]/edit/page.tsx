@@ -589,12 +589,12 @@ function QuestionEditCard({
       </div>
 
       <div className="p-4 space-y-3">
-        {/* Question number */}
+        {/* Question number + marks */}
         <div className="flex items-center gap-3">
           <label className="text-xs font-medium text-slate-500 w-24 shrink-0">
             Question No.
           </label>
-          <div className="flex-1 flex gap-2">
+          <div className="flex-1 flex items-center gap-2">
             <input
               type="text"
               value={qNum}
@@ -602,7 +602,7 @@ function QuestionEditCard({
                 setQNum(e.target.value);
                 setQNumDirty(e.target.value !== question.questionNum);
               }}
-              className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-primary-400"
+              className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-primary-400"
             />
             {qNumDirty ? (
               <button
@@ -616,6 +616,12 @@ function QuestionEditCard({
                 {saving === "questionNum" ? "…" : "Save"}
               </button>
             ) : null}
+            <div className="flex items-center gap-1.5 ml-auto text-xs text-slate-500">
+              <span>{question.marksAwarded ?? "–"}</span>
+              <span>/</span>
+              <span>{question.marksAvailable ?? "–"}</span>
+              <span className="text-slate-400">marks</span>
+            </div>
           </div>
         </div>
 
