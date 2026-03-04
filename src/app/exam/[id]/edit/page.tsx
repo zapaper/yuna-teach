@@ -937,7 +937,7 @@ function PageSelectionModal({
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 mr-1">Zoom:</span>
           <button
-            onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}
+            onClick={() => setZoom((z) => Math.max(0.25, z - 0.25))}
             className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700"
             title="Zoom out"
           >
