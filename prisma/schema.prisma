@@ -139,4 +139,5 @@ model InviteCode {
 enum Language {
   CHINESE
   ENGLISH
+  JAPANESE
 }

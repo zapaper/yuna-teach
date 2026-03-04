@@ -10,7 +10,7 @@ export async function performOCR(imageBase64: string): Promise<string> {
             image: { content: imageBase64 },
             features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
             imageContext: {
-              languageHints: ["zh-Hans", "en"],
+              languageHints: ["zh-Hans", "en", "ja"],
             },
           },
         ],

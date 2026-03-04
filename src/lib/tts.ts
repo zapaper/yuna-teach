@@ -28,8 +28,17 @@ const PUNCTUATION_MAP_EN: Record<string, string> = {
   '"': " quotation mark",
 };
 
-function expandPunctuation(text: string, language: "CHINESE" | "ENGLISH"): string {
-  const map = language === "CHINESE" ? PUNCTUATION_MAP_ZH : PUNCTUATION_MAP_EN;
+const PUNCTUATION_MAP_JA: Record<string, string> = {
+  "。": " まる",
+  "、": " てん",
+  "？": " はてな",
+  "！": " びっくり",
+  "「": " かぎかっこ",
+  "」": " かぎかっことじ",
+};
+
+function expandPunctuation(text: string, language: "CHINESE" | "ENGLISH" | "JAPANESE"): string {
+  const map = language === "CHINESE" ? PUNCTUATION_MAP_ZH : language === "JAPANESE" ? PUNCTUATION_MAP_JA : PUNCTUATION_MAP_EN;
   let result = text;
   // Sort by length descending so multi-char punctuation matches first (e.g. …… before …)
   const sorted = Object.entries(map).sort((a, b) => b[0].length - a[0].length);
@@ -39,13 +48,18 @@ function expandPunctuation(text: string, language: "CHINESE" | "ENGLISH"): strin
   return result;
 }
 
-// Google Cloud TTS — used for Chinese (Neural2, high quality Mandarin)
+// Google Cloud TTS — used for Chinese and Japanese
 async function synthesizeSpeechGoogle(
   text: string,
-  speed: number
+  speed: number,
+  language: "CHINESE" | "JAPANESE" = "CHINESE"
 ): Promise<ArrayBuffer> {
   const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_CLOUD_API_KEY is not set");
+
+  const voiceConfig = language === "JAPANESE"
+    ? { languageCode: "ja-JP", name: "ja-JP-Neural2-B" }
+    : { languageCode: "zh-CN", name: "zh-CN-Neural2-C" };
 
   const response = await fetch(
     `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
@@ -54,7 +68,7 @@ async function synthesizeSpeechGoogle(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         input: { text },
-        voice: { languageCode: "zh-CN", name: "zh-CN-Neural2-C" },
+        voice: voiceConfig,
         audioConfig: { audioEncoding: "MP3", speakingRate: speed },
       }),
     }
@@ -77,12 +91,14 @@ const FISH_AUDIO_VOICE_ZH_DEFAULT = "4f201abba2574feeae11e5ebf737859e";
 
 async function synthesizeSpeechFish(
   text: string,
-  language: "CHINESE" | "ENGLISH",
+  language: "CHINESE" | "ENGLISH" | "JAPANESE",
   speed: number
 ): Promise<ArrayBuffer> {
   const voiceId =
     language === "CHINESE"
       ? (process.env.FISH_AUDIO_VOICE_ZH ?? FISH_AUDIO_VOICE_ZH_DEFAULT)
+      : language === "JAPANESE"
+      ? process.env.FISH_AUDIO_VOICE_JA
       : process.env.FISH_AUDIO_VOICE_EN;
 
   const response = await fetch(FISH_AUDIO_API_URL, {
@@ -112,7 +128,7 @@ async function synthesizeSpeechFish(
 
 export async function synthesizeSpeech(
   text: string,
-  language: "CHINESE" | "ENGLISH",
+  language: "CHINESE" | "ENGLISH" | "JAPANESE",
   options?: { expandPunct?: boolean; speed?: number }
 ): Promise<ArrayBuffer> {
   const speed = options?.speed ?? 0.9;
@@ -121,9 +137,19 @@ export async function synthesizeSpeech(
   // Chinese: Google Cloud Neural2, with Fish Audio fallback
   if (language === "CHINESE") {
     try {
-      return await synthesizeSpeechGoogle(speechText, speed);
+      return await synthesizeSpeechGoogle(speechText, speed, "CHINESE");
     } catch (err) {
       console.warn("Google TTS failed, falling back to Fish Audio:", err instanceof Error ? err.message : err);
+      return synthesizeSpeechFish(speechText, language, speed);
+    }
+  }
+
+  // Japanese: Google Cloud Neural2, with Fish Audio fallback
+  if (language === "JAPANESE") {
+    try {
+      return await synthesizeSpeechGoogle(speechText, speed, "JAPANESE");
+    } catch (err) {
+      console.warn("Google TTS failed for Japanese, falling back to Fish Audio:", err instanceof Error ? err.message : err);
       return synthesizeSpeechFish(speechText, language, speed);
     }
   }

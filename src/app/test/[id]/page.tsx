@@ -7,6 +7,7 @@ import BeginTestMode from "@/components/BeginTestMode";
 
 interface WordInfo {
   pinyin?: string;
+  reading?: string;
   meaning: string;
   example: string;
 }
@@ -142,7 +143,7 @@ function TestPageContent({ id }: { id: string }) {
         // After word finishes, read the meaning + example
         if (info) {
           const speechText =
-            test.language === "CHINESE"
+            test.language === "CHINESE" || test.language === "JAPANESE"
               ? `${info.meaning}。${info.example}`
               : `${info.meaning}. ${info.example}`;
 
@@ -205,7 +206,7 @@ function TestPageContent({ id }: { id: string }) {
     return (
       <BeginTestMode
         words={test.words}
-        language={test.language as "CHINESE" | "ENGLISH"}
+        language={test.language as "CHINESE" | "ENGLISH" | "JAPANESE"}
         delaySeconds={delaySeconds}
         onStop={() => setTestMode(false)}
       />
@@ -283,6 +284,11 @@ function TestPageContent({ id }: { id: string }) {
             {currentWordInfo.info.pinyin ? (
               <span className="text-sm text-primary-500">
                 {currentWordInfo.info.pinyin}
+              </span>
+            ) : null}
+            {currentWordInfo.info.reading ? (
+              <span className="text-sm text-primary-500">
+                {currentWordInfo.info.reading}
               </span>
             ) : null}
           </div>

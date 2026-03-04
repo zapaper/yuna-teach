@@ -39,10 +39,12 @@ export default function WordReviewList({
               className={`inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full ${
                 test.language === "CHINESE"
                   ? "bg-red-100 text-red-700"
+                  : test.language === "JAPANESE"
+                  ? "bg-pink-100 text-pink-700"
                   : "bg-blue-100 text-blue-700"
               }`}
             >
-              {test.language === "CHINESE" ? "中文" : "English"}
+              {test.language === "CHINESE" ? "中文" : test.language === "JAPANESE" ? "日本語" : "English"}
             </span>
           </div>
 

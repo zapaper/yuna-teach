@@ -15,10 +15,12 @@ export default function TestCard({
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const languageLabel = test.language === "CHINESE" ? "中文" : "English";
+  const languageLabel = test.language === "CHINESE" ? "中文" : test.language === "JAPANESE" ? "日本語" : "English";
   const languageColor =
     test.language === "CHINESE"
       ? "bg-red-100 text-red-700"
+      : test.language === "JAPANESE"
+      ? "bg-pink-100 text-pink-700"
       : "bg-blue-100 text-blue-700";
 
   return (

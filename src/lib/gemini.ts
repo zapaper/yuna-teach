@@ -21,7 +21,7 @@ Your task:
 2. For each test, extract:
    - The title/header (e.g. "听写(五)")
    - The subtitle/date if present (empty string if none)
-   - The language: "CHINESE" if the test words are Chinese characters, "ENGLISH" if English words
+   - The language: "CHINESE" if the test words are Chinese characters, "ENGLISH" if English words, "JAPANESE" if the words contain Japanese hiragana/katakana or are Japanese vocabulary (even if they use kanji shared with Chinese, look for kana mixed in or Japanese-style formatting)
    - All the test words/phrases in order
 3. IMPORTANT: Only extract actual test words. Do NOT include:
    - Headers, titles, dates as words
@@ -69,7 +69,7 @@ export async function extractWords(ocrText: string) {
     tests: Array<{
       title: string;
       subtitle: string;
-      language: "CHINESE" | "ENGLISH";
+      language: "CHINESE" | "ENGLISH" | "JAPANESE";
       words: Array<{ text: string; orderIndex: number }>;
     }>;
   };
@@ -90,8 +90,17 @@ For the word "{word}", provide:
 
 Return ONLY valid JSON: {"meaning": "...", "example": "..."}`;
 
+const MEANING_PROMPT_JA = `You are a Japanese language teacher.
+For the Japanese word or phrase "{word}", provide:
+1. reading: the hiragana reading (e.g. "がっこう")
+2. meaning: a brief meaning in English, under 10 words (e.g. "school")
+3. example: a simple example sentence in Japanese that a beginner would understand, under 20 characters (e.g. "学校に行きます。")
+
+Return ONLY valid JSON: {"reading": "...", "meaning": "...", "example": "..."}`;
+
 export interface WordInfo {
   pinyin?: string;
+  reading?: string;
   meaning: string;
   example: string;
 }
@@ -1772,7 +1781,7 @@ const wordInfoCache = new Map<string, WordInfo>();
 
 export async function generateWordInfo(
   word: string,
-  language: "CHINESE" | "ENGLISH"
+  language: "CHINESE" | "ENGLISH" | "JAPANESE"
 ): Promise<WordInfo> {
   const cacheKey = `${language}:${word}`;
   const cached = wordInfoCache.get(cacheKey);
@@ -1781,6 +1790,8 @@ export async function generateWordInfo(
   const prompt =
     language === "CHINESE"
       ? MEANING_PROMPT_ZH.replace("{word}", word)
+      : language === "JAPANESE"
+      ? MEANING_PROMPT_JA.replace("{word}", word)
       : MEANING_PROMPT_EN.replace("{word}", word);
 
   const response = await getAI().models.generateContent({

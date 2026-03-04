@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     if (type === "meaning") {
       const info = await generateWordInfo(text, language);
       const speechText =
-        language === "CHINESE"
+        language === "CHINESE" || language === "JAPANESE"
           ? `${info.meaning}。${info.example}`
           : `${info.meaning}. ${info.example}`;
 
