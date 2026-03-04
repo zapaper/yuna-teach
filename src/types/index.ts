@@ -4,6 +4,7 @@ export type Role = "STUDENT" | "PARENT";
 export interface User {
   id: string;
   name: string;
+  email: string | null;
   role: Role;
   level: number | null;
   createdAt: string;

@@ -10,6 +10,7 @@ export async function GET() {
     users: users.map((u) => ({
       id: u.id,
       name: u.name,
+      email: u.email,
       role: u.role,
       level: u.level,
       createdAt: u.createdAt.toISOString(),
@@ -19,19 +20,51 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, role, level } = body;
+  const { name, role, level, email, password } = body;
 
-  if (!name || !role) {
+  if (!name || !role || !password) {
     return NextResponse.json(
-      { error: "Name and role are required" },
+      { error: "Name, role, and password are required" },
       { status: 400 }
     );
+  }
+
+  // Students: name must be unique
+  if (role === "STUDENT") {
+    const existing = await prisma.user.findFirst({
+      where: { name: { equals: name, mode: "insensitive" }, role: "STUDENT" },
+    });
+    if (existing) {
+      return NextResponse.json(
+        { error: "This username is already taken" },
+        { status: 409 }
+      );
+    }
+  }
+
+  // Parents: email required and must be unique
+  if (role === "PARENT") {
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email is required for parent accounts" },
+        { status: 400 }
+      );
+    }
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return NextResponse.json(
+        { error: "This email is already registered" },
+        { status: 409 }
+      );
+    }
   }
 
   const user = await prisma.user.create({
     data: {
       name,
       role,
+      password,
+      email: role === "PARENT" ? email : null,
       level: role === "STUDENT" ? (level ?? 1) : null,
     },
   });
@@ -40,6 +73,7 @@ export async function POST(request: NextRequest) {
     {
       id: user.id,
       name: user.name,
+      email: user.email,
       role: user.role,
       level: user.level,
       createdAt: user.createdAt.toISOString(),

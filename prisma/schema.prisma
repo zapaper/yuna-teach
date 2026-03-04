@@ -10,6 +10,8 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   name      String
+  email     String?  @unique
+  password  String   @default("1234")
   role      Role     @default(STUDENT)
   level     Int?     // Primary 1-6, only for students
   createdAt DateTime @default(now())
