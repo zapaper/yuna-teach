@@ -75,6 +75,56 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // Clone template exam papers to new parents
+  if (role === "PARENT") {
+    try {
+      // Find the template parent (first PARENT user — "Papa")
+      const templateParent = await prisma.user.findFirst({
+        where: { role: "PARENT" },
+        orderBy: { createdAt: "asc" },
+      });
+      if (templateParent && templateParent.id !== user.id) {
+        // Get master papers (not clones) from template parent
+        const templatePapers = await prisma.examPaper.findMany({
+          where: { userId: templateParent.id, sourceExamId: null },
+          include: { questions: true },
+        });
+        for (const tp of templatePapers) {
+          await prisma.examPaper.create({
+            data: {
+              title: tp.title,
+              school: tp.school,
+              level: tp.level,
+              subject: tp.subject,
+              year: tp.year,
+              semester: tp.semester,
+              totalMarks: tp.totalMarks,
+              metadata: tp.metadata ?? undefined,
+              pdfPath: tp.pdfPath,
+              pageCount: tp.pageCount,
+              userId: user.id,
+              questions: {
+                create: tp.questions.map((q) => ({
+                  questionNum: q.questionNum,
+                  imageData: q.imageData,
+                  answer: q.answer,
+                  answerImageData: q.answerImageData,
+                  pageIndex: q.pageIndex,
+                  orderIndex: q.orderIndex,
+                  yStartPct: q.yStartPct,
+                  yEndPct: q.yEndPct,
+                  marksAvailable: q.marksAvailable,
+                })),
+              },
+            },
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to clone template papers:", err);
+    }
+  }
+
   return NextResponse.json(
     {
       id: user.id,
