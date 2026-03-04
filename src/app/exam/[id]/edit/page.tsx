@@ -47,29 +47,80 @@ function ExamEditContent({ id }: { id: string }) {
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [selectTarget, setSelectTarget] = useState<SelectTarget | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchPaper = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/exam/${id}`);
+      if (!res.ok) throw new Error("Not found");
+      const data: ExamPaperDetail = await res.json();
+      setPaper(data);
+      setExtracting(data.extractionStatus === "processing");
+      return data;
+    } catch {
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
   useEffect(() => {
-    async function fetchPaper() {
-      try {
-        const res = await fetch(`/api/exam/${id}`);
-        if (!res.ok) throw new Error("Not found");
-        const data: ExamPaperDetail = await res.json();
-        setPaper(data);
-        // Auto-load PDF from server if stored
-        if (data.pdfPath) {
-          loadPdfFromServer();
-        }
-      } catch {
-        // handled by null check
-      } finally {
-        setLoading(false);
+    fetchPaper().then((data) => {
+      if (data && data.extractionStatus !== "processing") {
+        loadPageImages();
       }
+    });
+  }, [fetchPaper]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Poll while extraction is in progress
+  useEffect(() => {
+    if (extracting) {
+      pollRef.current = setInterval(async () => {
+        const data = await fetchPaper();
+        if (data && data.extractionStatus !== "processing") {
+          setExtracting(false);
+          loadPageImages();
+        }
+      }, 4000);
     }
-    fetchPaper();
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [extracting, fetchPaper]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Try loading page images from disk first, fall back to PDF rendering
+  async function loadPageImages() {
+    setLoadingPdf(true);
+    try {
+      // Try disk pages first
+      const countRes = await fetch(`/api/exam/${id}/pages`);
+      if (countRes.ok) {
+        const { pageCount } = await countRes.json();
+        if (pageCount > 0) {
+          const images: string[] = [];
+          for (let i = 0; i < pageCount; i++) {
+            const pageRes = await fetch(`/api/exam/${id}/pages?page=${i}`);
+            if (!pageRes.ok) throw new Error("Page fetch failed");
+            const blob = await pageRes.blob();
+            const url = URL.createObjectURL(blob);
+            images.push(url);
+          }
+          setPageImages(images);
+          return;
+        }
+      }
+      // Fall back to PDF rendering
+      await loadPdfFromServer();
+    } catch {
+      // Fall back to PDF rendering
+      await loadPdfFromServer();
+    } finally {
+      setLoadingPdf(false);
+    }
+  }
 
   async function loadPdfFromServer() {
-    setLoadingPdf(true);
     try {
       const res = await fetch(`/api/exam/${id}/pdf`);
       if (!res.ok) return;
@@ -79,8 +130,6 @@ function ExamEditContent({ id }: { id: string }) {
       setPageImages(images);
     } catch (err) {
       console.warn("Could not auto-load PDF from server:", err);
-    } finally {
-      setLoadingPdf(false);
     }
   }
 
@@ -176,6 +225,17 @@ function ExamEditContent({ id }: { id: string }) {
         Edit Questions &amp; Answers
       </h1>
       <p className="text-sm text-slate-400 mb-5">{paper.title}</p>
+
+      {/* Extraction in progress banner */}
+      {extracting && (
+        <div className="rounded-2xl border-2 border-blue-200 bg-blue-50 p-4 mb-5 flex items-center gap-3">
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-200 border-t-blue-600 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-blue-800">Extraction in progress...</p>
+            <p className="text-xs text-blue-600">Questions will appear automatically when done.</p>
+          </div>
+        </div>
+      )}
 
       {/* PDF loader */}
       <PdfLoader

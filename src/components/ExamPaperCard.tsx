@@ -17,13 +17,20 @@ export default function ExamPaperCard({
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Parents go to overview; students go to review (if released) or practice
-  const examHref =
-    userRole === "PARENT"
-      ? `/exam/${paper.id}/overview?userId=${userId}`
-      : paper.markingStatus === "released"
-      ? `/exam/${paper.id}/review?userId=${userId}`
-      : `/exam/${paper.id}?userId=${userId}`;
+  const isExtracting = paper.extractionStatus === "processing";
+  const extractionFailed = paper.extractionStatus === "failed";
+
+  // Parents: if extraction just finished (ready), go to edit for review; otherwise overview
+  // Students: review (if released) or practice
+  const examHref = isExtracting
+    ? "#"
+    : userRole === "PARENT"
+    ? paper.extractionStatus === "ready"
+      ? `/exam/${paper.id}/edit?userId=${userId}`
+      : `/exam/${paper.id}/overview?userId=${userId}`
+    : paper.markingStatus === "released"
+    ? `/exam/${paper.id}/review?userId=${userId}`
+    : `/exam/${paper.id}?userId=${userId}`;
 
   return (
     <div className="relative">
@@ -56,9 +63,20 @@ export default function ExamPaperCard({
                   Assigned to {paper.assignedToName}
                 </span>
               ) : null}
-              <span className="text-xs text-slate-400">
-                {paper.questionCount} questions
-              </span>
+              {isExtracting ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 inline-flex items-center gap-1">
+                  <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-600 inline-block" />
+                  Extracting...
+                </span>
+              ) : extractionFailed ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
+                  Extraction failed
+                </span>
+              ) : (
+                <span className="text-xs text-slate-400">
+                  {paper.questionCount} questions
+                </span>
+              )}
               {userRole !== "PARENT" ? (
                 paper.markingStatus === "released" ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">

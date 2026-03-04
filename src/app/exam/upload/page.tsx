@@ -2,36 +2,9 @@
 
 import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { renderPdfToImages, cropQuestionFromPage } from "@/lib/pdf";
-import { normalizeAnswer } from "@/lib/gemini";
-import QuestionReviewList from "@/components/QuestionReviewList";
+import { renderPdfToImages } from "@/lib/pdf";
 
-type Step = "upload" | "processing" | "review";
-
-interface HeaderInfo {
-  school: string;
-  level: string;
-  subject: string;
-  year: string;
-  semester: string;
-  title: string;
-  totalMarks: string;
-  marksGuidance?: string;
-}
-
-interface ExtractedQuestion {
-  questionNum: string;
-  imageData: string;
-  answer: string;
-  answerImageData: string;
-  pageIndex: number;
-  orderIndex: number;
-  yStartPct: number;
-  yEndPct: number;
-  boundaryTop: string;
-  boundaryBottom: string;
-  marksAvailable: number | null;
-}
+type Step = "upload" | "processing";
 
 export default function ExamUploadPage() {
   return (
@@ -48,47 +21,16 @@ function ExamUploadContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>("upload");
-  const [pageImages, setPageImages] = useState<string[]>([]);
-  const [headerInfo, setHeaderInfo] = useState<HeaderInfo>({
-    school: "",
-    level: "",
-    subject: "",
-    year: "",
-    semester: "",
-    title: "",
-    totalMarks: "",
-  });
-  const [questions, setQuestions] = useState<ExtractedQuestion[]>([]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [batchMetadata, setBatchMetadata] = useState<object | null>(null);
   const [processingStatus, setProcessingStatus] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [redoingIndices, setRedoingIndices] = useState<Set<number>>(new Set());
-  const [redoingAnswerIndices, setRedoingAnswerIndices] = useState<Set<number>>(new Set());
-  const [answerKeyPages, setAnswerKeyPages] = useState<Array<{ pageIndex: number; paperLabel?: string }>>([]);
-  // Per-booklet info for redo: maps question number ranges to correct start pages
-  const [bookletRanges, setBookletRanges] = useState<Array<{
-    prefix: string;
-    firstQuestionNum: number;
-    lastQuestionNum: number;
-    questionsStartPageIndex: number; // 0-based
-  }>>([]);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
 
   const AI_PHRASES = [
-    "Reading through the exam paper...",
-    "Identifying question boundaries...",
-    "Checking header instructions...",
-    "Looking for answer sheets...",
-    "Analyzing question structure...",
-    "Detecting sub-parts and segments...",
-    "Almost there, still thinking...",
-    "Mapping out all the questions...",
-    "Extracting question details...",
-    "Hang tight, this takes a moment...",
-    "Scanning for diagrams and figures...",
-    "Cross-checking question count...",
+    "Rendering PDF pages...",
+    "Uploading to server...",
+    "Starting extraction...",
+    "Almost there...",
   ];
 
   const rotatePhrases = useCallback(() => {
@@ -99,7 +41,7 @@ function ExamUploadContent() {
 
   useEffect(() => {
     if (!aiAnalyzing) return;
-    const interval = setInterval(rotatePhrases, 4000);
+    const interval = setInterval(rotatePhrases, 3000);
     return () => clearInterval(interval);
   }, [aiAnalyzing, rotatePhrases]);
 
@@ -119,493 +61,53 @@ function ExamUploadContent() {
 
     try {
       const images = await renderPdfToImages(file);
-      setPageImages(images);
-      await processPages(images);
+      await uploadAndExtract(images, file);
     } catch (err) {
       console.error("PDF processing error:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to process PDF"
-      );
+      setError(err instanceof Error ? err.message : "Failed to process PDF");
       setStep("upload");
     }
   }
 
-  async function processPages(images: string[]) {
-    // Single batch call to analyze all pages at once
-    setProcessingStatus("Reading through the exam paper...");
+  async function uploadAndExtract(images: string[], file: File) {
+    setProcessingStatus("Uploading to server...");
     setAiAnalyzing(true);
 
-    let result;
     try {
-      const batchRes = await fetch("/api/exam/analyze-batch", {
+      const res = await fetch("/api/exam/extract-background", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images }),
+        body: JSON.stringify({ images, userId }),
       });
 
-      result = await batchRes.json();
-
-      if (!batchRes.ok) {
-        throw new Error(result.error || "Failed to analyze exam paper");
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload");
       }
+
+      // Fire-and-forget PDF upload
+      if (file) {
+        const formData = new FormData();
+        formData.append("pdf", file);
+        fetch(`/api/exam/${data.id}/pdf`, {
+          method: "POST",
+          body: formData,
+        }).catch((err) => console.warn("PDF upload failed:", err));
+      }
+
+      // Redirect to home
+      router.push(userId ? `/home/${userId}` : "/");
     } finally {
       setAiAnalyzing(false);
     }
-
-    // Log structure debug info to browser console and store for saving
-    interface DebugPaper { label: string; questionPrefix: string; questionsStartPage: number; expectedQuestions: number }
-    type BookletRange = { prefix: string; firstQuestionNum: number; lastQuestionNum: number; questionsStartPageIndex: number };
-    let ranges: BookletRange[] = [];
-
-    if (result._debug) {
-      console.log("[Exam Structure]", result._debug);
-      // Exclude rawResponses (verbose) from what we persist
-      const { rawResponses: _ignored, ...debugToSave } = result._debug;
-      setBatchMetadata(debugToSave);
-
-      // Build booklet ranges for page lookup (used in cropping AND redo)
-      if (result._debug.papers) {
-        const papers = result._debug.papers as DebugPaper[];
-        const prefixCounts = new Map<string, number>();
-        ranges = papers.map((p: DebugPaper) => {
-          const prevCount = prefixCounts.get(p.questionPrefix) || 0;
-          const firstQ = prevCount + 1;
-          const lastQ = prevCount + p.expectedQuestions;
-          prefixCounts.set(p.questionPrefix, lastQ);
-          return {
-            prefix: p.questionPrefix,
-            firstQuestionNum: firstQ,
-            lastQuestionNum: lastQ,
-            questionsStartPageIndex: p.questionsStartPage - 1, // convert 1-based to 0-based
-          };
-        });
-        setBookletRanges(ranges);
-        console.log("[Exam Structure] Booklet ranges:", ranges);
-      }
-    }
-
-    // Set header info
-    if (result.header) {
-      setHeaderInfo(result.header);
-    }
-
-    // Track answer key pages with paper labels for redo
-    const answerPages = result.pages
-      .filter((p: { isAnswerSheet: boolean }) => p.isAnswerSheet)
-      .map((p: { pageIndex: number; paperLabel?: string }) => ({
-        pageIndex: p.pageIndex,
-        paperLabel: p.paperLabel,
-      }));
-    setAnswerKeyPages(answerPages);
-
-    // Helper: resolve the correct page index using booklet ranges + previous question context
-    function resolvePageIndex(
-      questionNum: string,
-      extractedPageIndex: number,
-      prevQuestion: { pageIndex: number; yEndPct: number } | null
-    ): number {
-      const printedNum = questionNum.replace(/^(P\d+-|B\d+-)/, "");
-      const prefix = questionNum.replace(printedNum, "");
-      const qNumInt = parseInt(printedNum, 10);
-      if (isNaN(qNumInt) || ranges.length === 0) return extractedPageIndex;
-
-      const booklet = ranges.find(
-        (b) => b.prefix === prefix && qNumInt >= b.firstQuestionNum && qNumInt <= b.lastQuestionNum
-      );
-
-      // If previous question ended at bottom of page (>=90%), this question must be on the NEXT page
-      if (prevQuestion && prevQuestion.yEndPct >= 90) {
-        const nextPage = prevQuestion.pageIndex + 1;
-        if (extractedPageIndex <= prevQuestion.pageIndex && images[nextPage]) {
-          console.log(
-            `[Page Correction] Q${questionNum}: previous question ends at ${prevQuestion.yEndPct}% (end of page ${prevQuestion.pageIndex + 1}). Moving to next page ${nextPage + 1}.`
-          );
-          return nextPage;
-        }
-      }
-
-      // If extracted page is before the previous question's page, move forward
-      if (prevQuestion && extractedPageIndex < prevQuestion.pageIndex) {
-        console.log(
-          `[Page Correction] Q${questionNum}: extracted on page ${extractedPageIndex + 1} but previous question is on page ${prevQuestion.pageIndex + 1}. Using same page.`
-        );
-        return prevQuestion.pageIndex;
-      }
-
-      // First question in a booklet/paper always starts on questionsStartPage
-      if (booklet && qNumInt === booklet.firstQuestionNum && extractedPageIndex !== booklet.questionsStartPageIndex) {
-        console.log(
-          `[Page Correction] Q${questionNum}: first in booklet, forcing to questionsStartPage ${booklet.questionsStartPageIndex + 1} (was page ${extractedPageIndex + 1}).`
-        );
-        return booklet.questionsStartPageIndex;
-      }
-
-      // If extracted page is before booklet start, use booklet start
-      if (booklet && extractedPageIndex < booklet.questionsStartPageIndex) {
-        console.log(
-          `[Page Correction] Q${questionNum}: extracted on page ${extractedPageIndex + 1} but questionsStartPage is ${booklet.questionsStartPageIndex + 1}. Correcting.`
-        );
-        return booklet.questionsStartPageIndex;
-      }
-      return extractedPageIndex;
-    }
-
-    // Crop questions from each page
-    setProcessingStatus("Cropping questions...");
-    const allQuestions: ExtractedQuestion[] = [];
-    let lastCroppedQuestion: { pageIndex: number; yEndPct: number } | null = null;
-
-    for (const page of result.pages) {
-      if (page.isAnswerSheet) continue;
-
-      for (const q of page.questions) {
-        setProcessingStatus(`Cropping question ${q.questionNum}...`);
-
-        // Use the correct page based on booklet ranges + previous question context
-        const correctPageIndex = resolvePageIndex(q.questionNum, page.pageIndex, lastCroppedQuestion);
-
-        const croppedImage = await cropQuestionFromPage(
-          images[correctPageIndex],
-          q.yStartPct,
-          q.yEndPct
-        );
-
-        // Handle both text and image answers — match by question number
-        const rawEntry = result.answers?.[q.questionNum];
-        if (!rawEntry) {
-          console.log(`[Answer Match] Q${q.questionNum}: no answer found in answer key`);
-        }
-        let answer = "";
-        let answerImageData = "";
-
-        if (rawEntry) {
-          const entry = normalizeAnswer(rawEntry);
-          if (entry.type === "text") {
-            answer = entry.value;
-          } else if (entry.type === "image") {
-            answer = entry.value || "";
-            setProcessingStatus(`Cropping answer for Q${q.questionNum}...`);
-            answerImageData = await cropQuestionFromPage(
-              images[entry.answerPageIndex],
-              entry.yStartPct,
-              entry.yEndPct
-            );
-          }
-        }
-
-        allQuestions.push({
-          questionNum: q.questionNum,
-          imageData: croppedImage,
-          answer,
-          answerImageData,
-          pageIndex: correctPageIndex,
-          orderIndex: allQuestions.length,
-          yStartPct: q.yStartPct,
-          yEndPct: q.yEndPct,
-          boundaryTop: q.boundaryTop || q.questionNum,
-          boundaryBottom: q.boundaryBottom || "not found",
-          marksAvailable: result.marksPerQuestion?.[q.questionNum] ?? null,
-        });
-
-        // Track for next question's page resolution
-        lastCroppedQuestion = { pageIndex: correctPageIndex, yEndPct: q.yEndPct };
-      }
-    }
-
-    setQuestions(allQuestions);
-    setStep("review");
   }
-
-  function handleUpdateQuestion(
-    index: number,
-    field: "questionNum" | "answer" | "answerImageData",
-    value: string
-  ) {
-    setQuestions((prev) =>
-      prev.map((q, i) => (i === index ? { ...q, [field]: value } : q))
-    );
-  }
-
-  function handleDeleteQuestion(index: number) {
-    setQuestions((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function handleUpdateMarks(index: number, value: number | null) {
-    setQuestions((prev) =>
-      prev.map((q, i) => (i === index ? { ...q, marksAvailable: value } : q))
-    );
-  }
-
-  async function handleRedoQuestion(index: number) {
-    const q = questions[index];
-    const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
-    const prefix = q.questionNum.replace(printedNum, "");
-    const qNumInt = parseInt(printedNum, 10);
-
-    // Find the correct page for this question using booklet ranges and previous question's boundary
-    let correctPageIndex = q.pageIndex;
-    let isFirstInBooklet = false;
-    if (bookletRanges.length > 0 && !isNaN(qNumInt)) {
-      const booklet = bookletRanges.find(
-        (b) => b.prefix === prefix && qNumInt >= b.firstQuestionNum && qNumInt <= b.lastQuestionNum
-      );
-      if (booklet) {
-        isFirstInBooklet = qNumInt === booklet.firstQuestionNum;
-        if (isFirstInBooklet) {
-          // First question always uses the booklet's questionsStartPage
-          correctPageIndex = booklet.questionsStartPageIndex;
-        } else if (q.pageIndex < booklet.questionsStartPageIndex) {
-          correctPageIndex = booklet.questionsStartPageIndex;
-        }
-      }
-    }
-
-    // Find the previous question (by order) to determine the correct page and boundary
-    let previousBoundary: { yEndPct: number; yStartPct: number; questionNum: string; pageIndex: number } | null = null;
-    if (!isFirstInBooklet) {
-      const prevQ = questions
-        .filter((other) => other.orderIndex < q.orderIndex)
-        .sort((a, b) => b.orderIndex - a.orderIndex)[0];
-      if (prevQ) {
-        previousBoundary = {
-          yEndPct: prevQ.yEndPct,
-          yStartPct: prevQ.yStartPct,
-          questionNum: prevQ.questionNum,
-          pageIndex: prevQ.pageIndex,
-        };
-
-        // If previous question ends at ~95% (end of page), this question is on the NEXT page
-        if (prevQ.yEndPct >= 90) {
-          const nextPage = prevQ.pageIndex + 1;
-          if (pageImages[nextPage]) {
-            console.log(
-              `[Redo Question] Q${q.questionNum}: previous Q${prevQ.questionNum} ends at ${prevQ.yEndPct}% (end of page ${prevQ.pageIndex + 1}). Using next page ${nextPage + 1}.`
-            );
-            correctPageIndex = nextPage;
-          }
-        } else if (prevQ.pageIndex > correctPageIndex) {
-          // Previous question is on a later page than where this question thinks it is — use previous question's page
-          console.log(
-            `[Redo Question] Q${q.questionNum}: using Q${prevQ.questionNum}'s page ${prevQ.pageIndex + 1} (was incorrectly on page ${correctPageIndex + 1}).`
-          );
-          correctPageIndex = prevQ.pageIndex;
-        }
-      }
-    }
-
-    if (!pageImages[correctPageIndex]) return;
-
-    // Send current page + next page so Gemini can search across both
-    const nextPageIndex = correctPageIndex + 1;
-    const hasNextPage = !!pageImages[nextPageIndex];
-
-    console.log(
-      `[Redo Question] Q${q.questionNum} — extracting from pageIndex ${correctPageIndex} (page ${correctPageIndex + 1})` +
-      (hasNextPage ? ` + next page ${nextPageIndex + 1}` : "") +
-      (isFirstInBooklet ? " [first in booklet]" : "") +
-      (previousBoundary ? ` [after Q${previousBoundary.questionNum} ends at ${previousBoundary.yEndPct}%]` : "")
-    );
-
-    setRedoingIndices((prev) => new Set(prev).add(index));
-    setError(null);
-
-    try {
-      const samePageQuestions = questions
-        .filter((other, i) => i !== index && other.pageIndex === correctPageIndex)
-        .map((other) => other.questionNum.replace(/^(P\d+-|B\d+-)/, ""));
-
-      // Only pass boundary hints if the previous question is on the SAME page
-      // (percentages are meaningless for a different page)
-      const boundaryForApi = previousBoundary && previousBoundary.pageIndex === correctPageIndex && previousBoundary.yEndPct < 90
-        ? { yEndPct: previousBoundary.yEndPct, yStartPct: previousBoundary.yStartPct, questionNum: previousBoundary.questionNum.replace(/^(P\d+-|B\d+-)/, "") }
-        : null;
-
-      const images = [pageImages[correctPageIndex]];
-      if (hasNextPage) images.push(pageImages[nextPageIndex]);
-
-      const res = await fetch("/api/exam/redo-question", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          images,
-          questionNum: printedNum,
-          surroundingQuestions: samePageQuestions,
-          isFirstInBooklet,
-          previousBoundary: boundaryForApi,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Failed to re-extract question");
-
-      const result = await res.json();
-      // pageOffset: 0 = found on current page, 1 = found on next page
-      const foundPageIndex = correctPageIndex + (result.pageOffset ?? 0);
-      const croppedImage = await cropQuestionFromPage(
-        pageImages[foundPageIndex],
-        result.yStartPct,
-        result.yEndPct
-      );
-
-      setQuestions((prev) =>
-        prev.map((existing, i) =>
-          i === index
-            ? { ...existing, imageData: croppedImage, pageIndex: foundPageIndex, yStartPct: result.yStartPct, yEndPct: result.yEndPct }
-            : existing
-        )
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Redo failed");
-    } finally {
-      setRedoingIndices((prev) => {
-        const next = new Set(prev);
-        next.delete(index);
-        return next;
-      });
-    }
-  }
-
-  async function handleRedoAnswer(index: number) {
-    const q = questions[index];
-    if (answerKeyPages.length === 0) return;
-
-    setRedoingAnswerIndices((prev) => new Set(prev).add(index));
-    setError(null);
-
-    try {
-      const printedNum = q.questionNum.replace(/^(P\d+-|B\d+-)/, "");
-
-      // Determine which paper this question belongs to
-      const prefixMatch = q.questionNum.match(/^(P\d+-|B\d+-)/);
-      const paperPrefix = prefixMatch ? prefixMatch[1] : "";
-      // Map prefix to paper label for filtering answer key pages
-      let paperLabel: string | undefined;
-      if (paperPrefix === "") {
-        paperLabel = answerKeyPages[0]?.paperLabel; // default to first paper
-      } else {
-        // e.g. "P2-" → look for "Paper 2" pages; fall back to searching all
-        const paperNum = paperPrefix.replace(/[^0-9]/g, "");
-        paperLabel = `Paper ${paperNum}`;
-      }
-
-      // Filter answer key pages to the correct paper (fall back to all if no match)
-      const relevantPages = paperLabel
-        ? answerKeyPages.filter((p) => p.paperLabel === paperLabel)
-        : answerKeyPages;
-      const pagesToSearch = relevantPages.length > 0 ? relevantPages : answerKeyPages;
-
-      // Try each relevant answer key page until we find the answer
-      for (const page of pagesToSearch) {
-        const res = await fetch("/api/exam/redo-answer", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: pageImages[page.pageIndex],
-            questionNum: printedNum,
-            paperContext: paperLabel || "",
-          }),
-        });
-
-        if (!res.ok) continue;
-
-        const result = await res.json();
-
-        if (result.type === "text" && result.value) {
-          setQuestions((prev) =>
-            prev.map((existing, i) =>
-              i === index ? { ...existing, answer: result.value, answerImageData: "" } : existing
-            )
-          );
-          return;
-        } else if (result.type === "image" && result.yStartPct != null) {
-          const answerImage = await cropQuestionFromPage(
-            pageImages[page.pageIndex],
-            result.yStartPct,
-            result.yEndPct
-          );
-          setQuestions((prev) =>
-            prev.map((existing, i) =>
-              i === index ? { ...existing, answer: result.value || "", answerImageData: answerImage } : existing
-            )
-          );
-          return;
-        }
-      }
-
-      setError(`Could not find answer for Q${q.questionNum} on any answer key page`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Redo answer failed");
-    } finally {
-      setRedoingAnswerIndices((prev) => {
-        const next = new Set(prev);
-        next.delete(index);
-        return next;
-      });
-    }
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/exam/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: headerInfo.title || "Untitled Exam",
-          school: headerInfo.school,
-          level: headerInfo.level,
-          subject: headerInfo.subject,
-          year: headerInfo.year,
-          semester: headerInfo.semester,
-          totalMarks: headerInfo.totalMarks,
-          metadata: { ...batchMetadata, marksGuidance: headerInfo.marksGuidance || "" },
-          pageCount: pageImages.length,
-          userId,
-          questions: questions.map((q, i) => ({
-            ...q,
-            orderIndex: i,
-          })),
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to save");
-      }
-
-      const saved = await res.json();
-
-      // Upload the original PDF to the server volume (fire-and-forget on error)
-      if (pdfFile && saved?.id) {
-        try {
-          const formData = new FormData();
-          formData.append("pdf", pdfFile);
-          await fetch(`/api/exam/${saved.id}/pdf`, {
-            method: "POST",
-            body: formData,
-          });
-        } catch (pdfErr) {
-          console.warn("PDF upload failed (non-critical):", pdfErr);
-        }
-      }
-
-      alert("Exam saved successfully!");
-      router.push(userId ? `/home/${userId}` : "/");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  const backPath = userId ? `/home/${userId}` : "/";
 
   return (
-    <div className="p-6">
+    <div className="p-6 pb-24">
+      {/* Header */}
       <button
         onClick={() =>
-          step === "upload" ? router.push(backPath) : setStep("upload")
+          router.push(userId ? `/home/${userId}` : "/")
         }
         className="flex items-center gap-1 text-slate-500 mb-4 hover:text-slate-700"
       >
@@ -622,197 +124,61 @@ function ExamUploadContent() {
         >
           <path d="m15 18-6-6 6-6" />
         </svg>
-        Back
+        Home
       </button>
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4 text-red-700 text-sm">
-          {error}
-          <button
-            onClick={() => setError(null)}
-            className="ml-2 underline text-red-500"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
+      <h1 className="text-xl font-bold text-slate-800 mb-6">
+        Upload Exam Paper
+      </h1>
 
-      {/* Upload step */}
       {step === "upload" && (
         <div>
-          <h1 className="text-xl font-bold text-slate-800 mb-6">
-            Upload Exam Paper
-          </h1>
-
-          <div className="space-y-4">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold shadow-md active:scale-[0.98] transition-transform"
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-slate-300 rounded-2xl p-12 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="mx-auto mb-4 text-slate-400"
             >
-              Select PDF File
-            </button>
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-
-            <div
-              className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center cursor-pointer hover:border-purple-300 hover:bg-purple-50/50 transition-colors"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="text-3xl mb-2">📄</div>
-              <p className="text-slate-500 text-sm">
-                Tap to select a PDF exam paper
-              </p>
-              <p className="text-slate-400 text-xs mt-1">
-                Supports multi-page PDF documents
-              </p>
-            </div>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+            </svg>
+            <p className="text-slate-600 font-medium mb-1">
+              Tap to select PDF
+            </p>
+            <p className="text-slate-400 text-sm">
+              Exam paper with answer key
+            </p>
           </div>
-        </div>
-      )}
-
-      {/* Processing step */}
-      {step === "processing" && (
-        <div className="flex flex-col items-center py-16">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-purple-200 border-t-purple-500 mb-6" />
-          <p className="text-lg font-medium text-slate-700">Processing...</p>
-          <p className="text-sm text-slate-500 mt-2">{processingStatus}</p>
-        </div>
-      )}
-
-      {/* Review step */}
-      {step === "review" && (
-        <div>
-          <h1 className="text-xl font-bold text-slate-800 mb-4">
-            Review Exam Paper
-          </h1>
-
-          {/* Header info */}
-          <div className="bg-slate-50 rounded-2xl p-4 mb-6 space-y-3">
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Title</label>
-              <input
-                type="text"
-                value={headerInfo.title}
-                onChange={(e) =>
-                  setHeaderInfo((h) => ({ ...h, title: e.target.value }))
-                }
-                placeholder="Exam paper title"
-                className="w-full text-sm font-semibold border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-300"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">
-                  School
-                </label>
-                <input
-                  type="text"
-                  value={headerInfo.school}
-                  onChange={(e) =>
-                    setHeaderInfo((h) => ({ ...h, school: e.target.value }))
-                  }
-                  placeholder="School name"
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-300"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">
-                  Level
-                </label>
-                <input
-                  type="text"
-                  value={headerInfo.level}
-                  onChange={(e) =>
-                    setHeaderInfo((h) => ({ ...h, level: e.target.value }))
-                  }
-                  placeholder="e.g. P4"
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-300"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  value={headerInfo.subject}
-                  onChange={(e) =>
-                    setHeaderInfo((h) => ({ ...h, subject: e.target.value }))
-                  }
-                  placeholder="e.g. Math"
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-300"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">
-                  Year
-                </label>
-                <input
-                  type="text"
-                  value={headerInfo.year}
-                  onChange={(e) =>
-                    setHeaderInfo((h) => ({ ...h, year: e.target.value }))
-                  }
-                  placeholder="e.g. 2024"
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-300"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Marks guidance */}
-          {headerInfo.marksGuidance && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-blue-700 text-sm">
-              <span className="font-medium">Marks guidance:</span> {headerInfo.marksGuidance}
-            </div>
-          )}
-
-          {/* Marks validation */}
-          {(() => {
-            const total = parseInt(headerInfo.totalMarks);
-            const allHaveMarks = questions.every(q => q.marksAvailable != null);
-            const sum = questions.reduce((acc, q) => acc + (q.marksAvailable ?? 0), 0);
-            if (!isNaN(total) && allHaveMarks && sum !== total) {
-              return (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-amber-700 text-sm">
-                  Marks mismatch: questions sum to {sum} but paper total is {total}.
-                </div>
-              );
-            }
-            return null;
-          })()}
-
-          {/* Questions */}
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
-            Questions ({questions.length})
-          </h2>
-
-          <QuestionReviewList
-            questions={questions}
-            onUpdateQuestion={handleUpdateQuestion}
-            onDeleteQuestion={handleDeleteQuestion}
-            onRedoQuestion={handleRedoQuestion}
-            onRedoAnswer={answerKeyPages.length > 0 ? handleRedoAnswer : undefined}
-            onUpdateMarks={handleUpdateMarks}
-            redoingIndices={redoingIndices}
-            redoingAnswerIndices={redoingAnswerIndices}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileSelect}
+            className="hidden"
           />
+          {error && (
+            <p className="mt-4 text-red-500 text-sm text-center">
+              {error}
+            </p>
+          )}
+        </div>
+      )}
 
-          <div className="mt-6 pb-6">
-            <button
-              onClick={handleSave}
-              disabled={saving || questions.length === 0}
-              className="w-full bg-accent-green text-white rounded-2xl py-4 px-6 text-lg font-semibold shadow-md active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {saving ? "Saving..." : "Save Exam Paper"}
-            </button>
-          </div>
+      {step === "processing" && (
+        <div className="flex flex-col items-center justify-center py-24">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary-200 border-t-primary-500 mb-4" />
+          <p className="text-slate-600 font-medium">{processingStatus}</p>
+          <p className="text-slate-400 text-sm mt-2">
+            Extraction will continue in the background
+          </p>
         </div>
       )}
     </div>

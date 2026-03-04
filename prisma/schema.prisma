@@ -79,6 +79,7 @@ model ExamPaper {
   completedAt      DateTime?
   timeSpentSeconds Int       @default(0)
   markingStatus    String?   // "pending" | "in_progress" | "complete" | "released" | "failed"
+  extractionStatus String?   // "processing" | "ready" | "failed"
   feedbackSummary  String?
   sourceExamId     String?
 

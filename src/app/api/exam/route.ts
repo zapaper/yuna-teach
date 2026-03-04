@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
       assignedToName: p.assignedTo?.name ?? null,
       completedAt: p.completedAt?.toISOString() ?? null,
       markingStatus: p.markingStatus ?? null,
+      extractionStatus: p.extractionStatus ?? null,
       assignmentCount: p._count.clones,
       score: p.score ?? null,
       totalMarks: p.totalMarks ?? null,

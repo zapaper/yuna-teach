@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import TestCard from "@/components/TestCard";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
+import { useRef } from "react";
 
 export default function HomePage({
   params,
@@ -60,6 +61,40 @@ export default function HomePage({
     }
     fetchData();
   }, [userId]);
+
+  // Poll for extraction status updates
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    const anyProcessing = examPapers.some(
+      (p) => p.extractionStatus === "processing"
+    );
+    if (!anyProcessing) {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+      return;
+    }
+    if (pollRef.current) return; // already polling
+    pollRef.current = setInterval(async () => {
+      try {
+        const role = user?.role || "STUDENT";
+        const res = await fetch(
+          `/api/exam?userId=${userId}&role=${role}`
+        );
+        const data = await res.json();
+        setExamPapers(data.papers);
+      } catch {
+        /* ignore */
+      }
+    }, 5000);
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [examPapers, userId, user?.role]);
 
   async function handleDelete(id: string) {
     try {

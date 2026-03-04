@@ -61,6 +61,7 @@ export interface ExamPaperSummary {
   assignedToName: string | null;
   completedAt: string | null;
   markingStatus: string | null;
+  extractionStatus: string | null;
   assignmentCount: number;
   score: number | null;
   totalMarks: string | null;
@@ -111,6 +112,7 @@ export interface ExamPaperDetail {
   completedAt: string | null;
   timeSpentSeconds: number;
   markingStatus: string | null;
+  extractionStatus: string | null;
   feedbackSummary: string | null;
   sourceExamId: string | null;
   clones: ExamCloneSummary[];
