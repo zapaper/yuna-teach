@@ -217,6 +217,18 @@ function ExamEditContent({ id }: { id: string }) {
     );
   }
 
+  // Convert a blob URL or data URL to a base64 data URL
+  async function toDataUrl(src: string): Promise<string> {
+    if (src.startsWith("data:")) return src;
+    const res = await fetch(src);
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  }
+
   async function redoQuestion(questionId: string) {
     const q = paper?.questions.find((x) => x.id === questionId);
     if (!q || pageImages.length === 0) return;
@@ -225,8 +237,10 @@ function ExamEditContent({ id }: { id: string }) {
     try {
       // Send page images around the question for re-extraction
       const pageIdx = q.pageIndex;
-      const imagesToSend = [pageImages[pageIdx]];
-      if (pageIdx + 1 < pageImages.length) imagesToSend.push(pageImages[pageIdx + 1]);
+      const srcs = [pageImages[pageIdx]];
+      if (pageIdx + 1 < pageImages.length) srcs.push(pageImages[pageIdx + 1]);
+      // Convert blob URLs to base64 data URLs for the API
+      const imagesToSend = await Promise.all(srcs.map(toDataUrl));
 
       const idx = paper!.questions.indexOf(q);
       const surrounding = paper!.questions
