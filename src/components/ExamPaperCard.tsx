@@ -32,6 +32,27 @@ export default function ExamPaperCard({
     ? `/exam/${paper.id}/review?userId=${userId}`
     : `/exam/${paper.id}?userId=${userId}`;
 
+  if (isExtracting) {
+    return (
+      <div className="relative">
+        <div className="block rounded-2xl border-2 border-blue-200 bg-blue-50/50 p-4 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="shrink-0">
+              <div className="animate-spin rounded-full h-10 w-10 border-[3px] border-blue-200 border-t-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-lg text-slate-700 truncate">
+                {paper.title || "Exam Paper"}
+              </h3>
+              <p className="text-sm text-blue-600 mt-0.5">Analyzing and extracting...</p>
+              <p className="text-xs text-slate-400 mt-1">Questions will appear when done</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <Link
@@ -63,12 +84,7 @@ export default function ExamPaperCard({
                   Assigned to {paper.assignedToName}
                 </span>
               ) : null}
-              {isExtracting ? (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 inline-flex items-center gap-1">
-                  <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-600 inline-block" />
-                  Extracting...
-                </span>
-              ) : extractionFailed ? (
+              {extractionFailed ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
                   Extraction failed
                 </span>
