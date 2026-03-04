@@ -764,13 +764,46 @@ function PageSelectionModal({
   } | null>(null);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
+  const [displaySrc, setDisplaySrc] = useState("");
+  const [baseWidth, setBaseWidth] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Reset selection when page changes
+  // Measure available width on mount
+  useEffect(() => {
+    if (scrollRef.current) {
+      setBaseWidth(scrollRef.current.clientWidth - 48);
+    }
+  }, []);
+
+  // Pre-render image with rotation baked in — so selection maps directly to pixels
   useEffect(() => {
     setSelection(null);
-  }, [pageIndex]);
+    const src = pageImages[pageIndex];
+    if (!src) return;
+
+    const deg = ((rotation % 360) + 360) % 360;
+    if (deg === 0) {
+      setDisplaySrc(src);
+      return;
+    }
+
+    const img = new window.Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      const swap = deg === 90 || deg === 270;
+      c.width = swap ? img.naturalHeight : img.naturalWidth;
+      c.height = swap ? img.naturalWidth : img.naturalHeight;
+      const ctx = c.getContext("2d")!;
+      ctx.translate(c.width / 2, c.height / 2);
+      ctx.rotate((deg * Math.PI) / 180);
+      ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+      setDisplaySrc(c.toDataURL("image/jpeg", 0.92));
+    };
+    img.src = src;
+  }, [pageImages, pageIndex, rotation]);
 
   function getRelativeCoords(
     e: React.MouseEvent | React.TouchEvent
@@ -809,48 +842,24 @@ function PageSelectionModal({
     setDragging(null);
   }
 
+  // Crop directly from the displayed (already-rotated) image — no extra transform needed
   const handleConfirm = useCallback(() => {
     if (!selection || !imgRef.current) return;
     const img = imgRef.current;
     const natW = img.naturalWidth;
     const natH = img.naturalHeight;
 
-    // If rotated, we need to draw the rotated image first, then crop
-    const isRotated = rotation % 360 !== 0;
-    let srcCanvas: HTMLCanvasElement | HTMLImageElement = img;
-    let srcW = natW;
-    let srcH = natH;
-
-    if (isRotated) {
-      const rc = document.createElement("canvas");
-      const deg = ((rotation % 360) + 360) % 360;
-      if (deg === 90 || deg === 270) {
-        rc.width = natH;
-        rc.height = natW;
-      } else {
-        rc.width = natW;
-        rc.height = natH;
-      }
-      const rctx = rc.getContext("2d")!;
-      rctx.translate(rc.width / 2, rc.height / 2);
-      rctx.rotate((deg * Math.PI) / 180);
-      rctx.drawImage(img, -natW / 2, -natH / 2);
-      srcCanvas = rc;
-      srcW = rc.width;
-      srcH = rc.height;
-    }
-
     const canvas = document.createElement("canvas");
-    const cropX = Math.round(selection.x * srcW);
-    const cropY = Math.round(selection.y * srcH);
-    const cropW = Math.max(1, Math.round(selection.w * srcW));
-    const cropH = Math.max(1, Math.round(selection.h * srcH));
+    const cropX = Math.round(selection.x * natW);
+    const cropY = Math.round(selection.y * natH);
+    const cropW = Math.max(1, Math.round(selection.w * natW));
+    const cropH = Math.max(1, Math.round(selection.h * natH));
     canvas.width = cropW;
     canvas.height = cropH;
     const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(srcCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
     onConfirm(canvas.toDataURL("image/jpeg", 0.92));
-  }, [selection, onConfirm, rotation]);
+  }, [selection, onConfirm]);
 
   const hasSelection = selection && selection.w > 0.01 && selection.h > 0.01;
 
@@ -926,7 +935,7 @@ function PageSelectionModal({
           </button>
           <div className="w-px h-5 bg-slate-700 mx-2" />
           <button
-            onClick={() => { setRotation((r) => r + 90); setSelection(null); }}
+            onClick={() => setRotation((r) => r + 90)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700"
             title="Rotate 90°"
           >
@@ -939,10 +948,11 @@ function PageSelectionModal({
       </div>
 
       {/* Page + drag overlay */}
-      <div className="flex-1 overflow-auto flex items-start justify-center p-2 sm:p-6">
+      <div ref={scrollRef} className="flex-1 overflow-auto p-2 sm:p-6">
         <div
           ref={containerRef}
-          className="relative select-none cursor-crosshair"
+          className="relative select-none cursor-crosshair mx-auto"
+          style={{ width: baseWidth > 0 ? `${baseWidth * zoom}px` : "100%" }}
           onMouseDown={onPointerDown}
           onMouseMove={onPointerMove}
           onMouseUp={onPointerUp}
@@ -954,14 +964,9 @@ function PageSelectionModal({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             ref={imgRef}
-            src={pageImages[pageIndex]}
+            src={displaySrc}
             alt={`Page ${pageIndex + 1}`}
-            className="block rounded shadow-lg"
-            style={{
-              transform: `scale(${zoom}) rotate(${rotation}deg)`,
-              transformOrigin: "center center",
-              maxWidth: zoom <= 1 ? "100%" : "none",
-            }}
+            className="w-full block rounded shadow-lg"
             draggable={false}
           />
 
