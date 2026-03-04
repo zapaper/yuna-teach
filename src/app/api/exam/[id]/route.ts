@@ -215,6 +215,44 @@ export async function PATCH(
   return NextResponse.json({ success: true, id: paper.id });
 }
 
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const body = await request.json();
+
+  // Add a blank question to this exam paper
+  if (body.action === "addQuestion") {
+    // Get the current max orderIndex
+    const lastQuestion = await prisma.examQuestion.findFirst({
+      where: { examPaperId: id },
+      orderBy: { orderIndex: "desc" },
+    });
+    const nextOrder = (lastQuestion?.orderIndex ?? -1) + 1;
+    const nextNum = body.questionNum || String(nextOrder + 1);
+
+    const question = await prisma.examQuestion.create({
+      data: {
+        questionNum: nextNum,
+        imageData: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AKwA//9k=", // 1x1 white pixel
+        answer: null,
+        answerImageData: null,
+        pageIndex: lastQuestion?.pageIndex ?? 0,
+        orderIndex: nextOrder,
+        yStartPct: null,
+        yEndPct: null,
+        marksAvailable: null,
+        examPaperId: id,
+      },
+    });
+
+    return NextResponse.json(question);
+  }
+
+  return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

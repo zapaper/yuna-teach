@@ -174,6 +174,112 @@ function ExamEditContent({ id }: { id: string }) {
     }
   }
 
+  async function deleteQuestion(questionId: string) {
+    await fetch(`/api/exam/questions/${questionId}`, { method: "DELETE" });
+    setPaper((prev) =>
+      prev
+        ? { ...prev, questions: prev.questions.filter((q) => q.id !== questionId) }
+        : prev
+    );
+  }
+
+  async function addQuestion() {
+    const res = await fetch(`/api/exam/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "addQuestion" }),
+    });
+    if (!res.ok) return;
+    const newQ = await res.json();
+    setPaper((prev) =>
+      prev
+        ? {
+            ...prev,
+            questions: [
+              ...prev.questions,
+              {
+                id: newQ.id,
+                questionNum: newQ.questionNum,
+                imageData: newQ.imageData,
+                answer: newQ.answer,
+                answerImageData: newQ.answerImageData,
+                pageIndex: newQ.pageIndex,
+                orderIndex: newQ.orderIndex,
+                yStartPct: newQ.yStartPct,
+                yEndPct: newQ.yEndPct,
+                marksAwarded: newQ.marksAwarded,
+                marksAvailable: newQ.marksAvailable,
+                markingNotes: newQ.markingNotes,
+              },
+            ],
+          }
+        : prev
+    );
+  }
+
+  async function redoQuestion(questionId: string) {
+    const q = paper?.questions.find((x) => x.id === questionId);
+    if (!q || pageImages.length === 0) return;
+
+    setSaving(questionId + "redo");
+    try {
+      // Send page images around the question for re-extraction
+      const pageIdx = q.pageIndex;
+      const imagesToSend = [pageImages[pageIdx]];
+      if (pageIdx + 1 < pageImages.length) imagesToSend.push(pageImages[pageIdx + 1]);
+
+      const idx = paper!.questions.indexOf(q);
+      const surrounding = paper!.questions
+        .filter((_, i) => i >= idx - 1 && i <= idx + 1)
+        .map((x) => x.questionNum);
+
+      const prevQ = idx > 0 ? paper!.questions[idx - 1] : null;
+
+      const res = await fetch("/api/exam/redo-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          images: imagesToSend,
+          questionNum: q.questionNum,
+          surroundingQuestions: surrounding,
+          isFirstInBooklet: idx === 0,
+          previousBoundary: prevQ
+            ? { questionNum: prevQ.questionNum, yEndPct: prevQ.yEndPct }
+            : undefined,
+        }),
+      });
+      if (!res.ok) return;
+
+      const result = await res.json();
+      const actualPage = pageIdx + (result.pageOffset ?? 0);
+
+      // Crop the new area from the page image
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      await new Promise<void>((resolve) => {
+        img.onload = () => resolve();
+        img.src = pageImages[actualPage] ?? pageImages[pageIdx];
+      });
+
+      const canvas = document.createElement("canvas");
+      const natH = img.naturalHeight;
+      const natW = img.naturalWidth;
+      const topPad = Math.round(0.05 * natH);
+      const botPad = Math.round(0.02 * natH);
+      const cropTop = Math.max(0, Math.floor((result.yStartPct / 100) * natH) - topPad);
+      const cropBottom = Math.min(natH, Math.ceil((result.yEndPct / 100) * natH) + botPad);
+      canvas.width = natW;
+      canvas.height = cropBottom - cropTop;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, cropTop, natW, canvas.height, 0, 0, natW, canvas.height);
+      const newImageData = canvas.toDataURL("image/jpeg", 0.92);
+
+      await saveQuestion(questionId, "imageData", newImageData);
+    } finally {
+      setSaving(null);
+    }
+  }
+
   const backPath = `/exam/${id}/overview?userId=${userId}`;
 
   if (loading) {
@@ -250,9 +356,11 @@ function ExamEditContent({ id }: { id: string }) {
           <QuestionEditCard
             key={q.id}
             question={q}
-            saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem : null}
+            saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem | "redo" : null}
             pdfLoaded={pageImages.length > 0}
             onSave={saveQuestion}
+            onDelete={() => deleteQuestion(q.id)}
+            onRedo={() => redoQuestion(q.id)}
             onSelectArea={(field) =>
               setSelectTarget({
                 questionId: q.id,
@@ -263,6 +371,14 @@ function ExamEditContent({ id }: { id: string }) {
           />
         ))}
       </div>
+
+      {/* Add question button */}
+      <button
+        onClick={addQuestion}
+        className="w-full mt-4 py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-medium hover:border-primary-300 hover:text-primary-600 transition-colors"
+      >
+        + Add Question
+      </button>
 
       {/* Area selection modal */}
       {selectTarget && (
@@ -375,18 +491,23 @@ function QuestionEditCard({
   saving,
   pdfLoaded,
   onSave,
+  onDelete,
+  onRedo,
   onSelectArea,
 }: {
   question: ExamQuestionItem;
-  saving: keyof ExamQuestionItem | null;
+  saving: keyof ExamQuestionItem | "redo" | null;
   pdfLoaded: boolean;
   onSave: (
     id: string,
     field: keyof ExamQuestionItem,
     value: string | null
   ) => void;
+  onDelete: () => void;
+  onRedo: () => void;
   onSelectArea: (field: "imageData" | "answerImageData") => void;
 }) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [qNum, setQNum] = useState(question.questionNum);
   const [answer, setAnswer] = useState(question.answer ?? "");
   const [qNumDirty, setQNumDirty] = useState(false);
@@ -424,30 +545,45 @@ function QuestionEditCard({
           className="w-full h-auto object-contain"
           unoptimized
         />
-        <button
-          onClick={() => onSelectArea("imageData")}
-          disabled={!pdfLoaded}
-          title={
-            pdfLoaded
-              ? "Select question area from PDF"
-              : "Load PDF first to use manual selection"
-          }
-          className="absolute bottom-2 right-2 flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-xl bg-white/90 border border-slate-200 text-slate-600 hover:bg-white hover:border-primary-300 hover:text-primary-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="13"
-            height="13"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="absolute bottom-2 right-2 flex items-center gap-1.5">
+          {/* Redo extraction */}
+          <button
+            onClick={onRedo}
+            disabled={!pdfLoaded || saving === "redo"}
+            title="Re-extract question boundaries"
+            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-xl bg-white/90 border border-slate-200 text-slate-600 hover:bg-white hover:border-amber-300 hover:text-amber-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors"
           >
-            <path d="M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3zM16 16h5v5h-5z" />
+            {saving === "redo" ? (
+              <span className="animate-spin rounded-full h-3 w-3 border-2 border-slate-200 border-t-slate-600 inline-block" />
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" />
+              </svg>
+            )}
+            Redo
+          </button>
+          {/* Select area */}
+          <button
+            onClick={() => onSelectArea("imageData")}
+            disabled={!pdfLoaded}
+            title={pdfLoaded ? "Select question area from PDF" : "Load PDF first"}
+            className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-xl bg-white/90 border border-slate-200 text-slate-600 hover:bg-white hover:border-primary-300 hover:text-primary-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3h5v5H3zM16 3h5v5h-5zM3 16h5v5H3zM16 16h5v5h-5z" />
+            </svg>
+            Select area
+          </button>
+        </div>
+        {/* Delete button */}
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          title="Delete this question"
+          className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/80 border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-300 hover:bg-red-50 shadow-sm transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
           </svg>
-          Select area
         </button>
       </div>
 
@@ -566,6 +702,29 @@ function QuestionEditCard({
           )}
         </div>
       </div>
+
+      {/* Delete confirmation */}
+      {showDeleteConfirm && (
+        <div className="px-4 pb-4">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-3 flex items-center justify-between">
+            <p className="text-xs text-red-700">Delete Q{question.questionNum}?</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="text-xs px-3 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { onDelete(); setShowDeleteConfirm(false); }}
+                className="text-xs px-3 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -596,6 +755,8 @@ function PageSelectionModal({
     startX: number;
     startY: number;
   } | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -647,17 +808,42 @@ function PageSelectionModal({
     const natW = img.naturalWidth;
     const natH = img.naturalHeight;
 
+    // If rotated, we need to draw the rotated image first, then crop
+    const isRotated = rotation % 360 !== 0;
+    let srcCanvas: HTMLCanvasElement | HTMLImageElement = img;
+    let srcW = natW;
+    let srcH = natH;
+
+    if (isRotated) {
+      const rc = document.createElement("canvas");
+      const deg = ((rotation % 360) + 360) % 360;
+      if (deg === 90 || deg === 270) {
+        rc.width = natH;
+        rc.height = natW;
+      } else {
+        rc.width = natW;
+        rc.height = natH;
+      }
+      const rctx = rc.getContext("2d")!;
+      rctx.translate(rc.width / 2, rc.height / 2);
+      rctx.rotate((deg * Math.PI) / 180);
+      rctx.drawImage(img, -natW / 2, -natH / 2);
+      srcCanvas = rc;
+      srcW = rc.width;
+      srcH = rc.height;
+    }
+
     const canvas = document.createElement("canvas");
-    const cropX = Math.round(selection.x * natW);
-    const cropY = Math.round(selection.y * natH);
-    const cropW = Math.max(1, Math.round(selection.w * natW));
-    const cropH = Math.max(1, Math.round(selection.h * natH));
+    const cropX = Math.round(selection.x * srcW);
+    const cropY = Math.round(selection.y * srcH);
+    const cropW = Math.max(1, Math.round(selection.w * srcW));
+    const cropH = Math.max(1, Math.round(selection.h * srcH));
     canvas.width = cropW;
     canvas.height = cropH;
     const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+    ctx.drawImage(srcCanvas, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
     onConfirm(canvas.toDataURL("image/jpeg", 0.92));
-  }, [selection, onConfirm]);
+  }, [selection, onConfirm, rotation]);
 
   const hasSelection = selection && selection.w > 0.01 && selection.h > 0.01;
 
@@ -711,9 +897,38 @@ function PageSelectionModal({
           </button>
         </div>
 
-        <p className="text-xs text-slate-400 hidden sm:block">
-          Drag to select an area
-        </p>
+        {/* Zoom + Rotate controls */}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))}
+            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700"
+            title="Zoom out"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M8 11h6" />
+            </svg>
+          </button>
+          <span className="text-xs text-slate-400 tabular-nums w-10 text-center">{Math.round(zoom * 100)}%</span>
+          <button
+            onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700"
+            title="Zoom in"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /><path d="M11 8v6" /><path d="M8 11h6" />
+            </svg>
+          </button>
+          <div className="w-px h-5 bg-slate-700 mx-1" />
+          <button
+            onClick={() => { setRotation((r) => r + 90); setSelection(null); }}
+            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-slate-700"
+            title="Rotate 90°"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" />
+            </svg>
+          </button>
+        </div>
 
         <div className="flex items-center gap-2">
           <button
@@ -762,7 +977,12 @@ function PageSelectionModal({
             ref={imgRef}
             src={pageImages[pageIndex]}
             alt={`Page ${pageIndex + 1}`}
-            className="max-w-full h-auto block rounded shadow-lg"
+            className="block rounded shadow-lg"
+            style={{
+              transform: `scale(${zoom}) rotate(${rotation}deg)`,
+              transformOrigin: "center center",
+              maxWidth: zoom <= 1 ? "100%" : "none",
+            }}
             draggable={false}
           />
 
