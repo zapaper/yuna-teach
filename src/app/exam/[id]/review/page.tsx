@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 interface ReviewQuestion {
   id: string;
   questionNum: string;
+  pageIndex: number;
   answer: string | null;
   marksAwarded: number | null;
   marksAvailable: number | null;
@@ -41,6 +42,9 @@ function ExamReviewContent({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [paperTitle, setPaperTitle] = useState("");
   const [totalMarks, setTotalMarks] = useState<string | null>(null);
+  const [answerPages, setAnswerPages] = useState<number[]>([]);
+  const [pageCount, setPageCount] = useState(0);
+  const [currentIdx, setCurrentIdx] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -54,6 +58,8 @@ function ExamReviewContent({ id }: { id: string }) {
           const paper = await paperRes.json();
           setPaperTitle(paper.title ?? "");
           setTotalMarks(paper.totalMarks ?? null);
+          setAnswerPages(paper.metadata?.answerPages ?? []);
+          setPageCount(paper.pageCount ?? 0);
         }
       } finally {
         setLoading(false);
@@ -61,6 +67,18 @@ function ExamReviewContent({ id }: { id: string }) {
     }
     fetchData();
   }, [id]);
+
+  function getSubmissionPage(originalPageIdx: number): number {
+    const answerPageSet = new Set(answerPages.map((p) => p - 1));
+    let idx = 0;
+    for (let i = 0; i < pageCount; i++) {
+      if (!answerPageSet.has(i)) {
+        if (i === originalPageIdx) return idx;
+        idx++;
+      }
+    }
+    return originalPageIdx;
+  }
 
   const backPath = `/home/${userId}`;
 
@@ -99,6 +117,17 @@ function ExamReviewContent({ id }: { id: string }) {
     return q.marksAwarded < q.marksAvailable;
   });
 
+  const currentQ = incorrectQuestions[currentIdx] ?? null;
+
+  function renderWithNewlines(text: string) {
+    return text.split("|").map((part, i, arr) => (
+      <span key={i}>
+        {part.trim()}
+        {i < arr.length - 1 ? <br /> : null}
+      </span>
+    ));
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Sticky header */}
@@ -114,17 +143,19 @@ function ExamReviewContent({ id }: { id: string }) {
         </button>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-800 truncate">{paperTitle}</p>
-          <p className="text-xs text-slate-400">Exam Results</p>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-xl font-bold text-primary-600">
-            {data.score ?? 0}
-            {totalMarks ? <span className="text-sm font-normal text-slate-400"> / {totalMarks}</span> : null}
-          </p>
         </div>
       </div>
 
       <div className="p-4 pb-24 max-w-2xl mx-auto">
+        {/* Score — large and prominent */}
+        <div className="text-center py-4 mb-2">
+          <p className="text-5xl font-extrabold text-primary-600">
+            {data.score ?? 0}
+            {totalMarks ? <span className="text-2xl font-normal text-slate-400"> / {totalMarks}</span> : null}
+          </p>
+          <p className="text-sm text-slate-400 mt-1">Total Score</p>
+        </div>
+
         {/* Feedback summary */}
         {data.feedbackSummary ? (
           <div className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 p-4 mb-6">
@@ -135,7 +166,7 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         ) : null}
 
-        {/* Questions to review */}
+        {/* Questions to review — flip-through */}
         {incorrectQuestions.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-3xl mb-3">&#127881;</p>
@@ -144,60 +175,90 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         ) : (
           <div>
-            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-              Questions to Review ({incorrectQuestions.length})
-            </h2>
-            <div className="space-y-4">
-              {incorrectQuestions.map((q) => (
-                <div
-                  key={q.id}
-                  className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden"
+            {/* Navigation header */}
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                Questions to Review
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
+                  disabled={currentIdx === 0}
+                  className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
-                  {/* Header */}
-                  <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
-                    <span className="text-sm font-semibold text-slate-700">
-                      Question {q.questionNum}
-                    </span>
-                    <span className={`text-sm font-bold ${
-                      (q.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
-                    }`}>
-                      {q.marksAwarded ?? 0} / {q.marksAvailable ?? 0}
-                    </span>
-                  </div>
-
-                  <div className="px-4 py-3 space-y-3">
-                    {/* Correct answer */}
-                    {q.answer ? (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                          Correct Answer
-                        </p>
-                        <p className="text-sm text-slate-800 leading-relaxed">
-                          {q.answer.split("|").map((part, i, arr) => (
-                            <span key={i}>
-                              {part.trim()}
-                              {i < arr.length - 1 ? <br /> : null}
-                            </span>
-                          ))}
-                        </p>
-                      </div>
-                    ) : null}
-
-                    {/* Marking notes */}
-                    {q.markingNotes ? (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                          Marking Notes
-                        </p>
-                        <p className="text-sm text-slate-600 leading-relaxed">
-                          {q.markingNotes}
-                        </p>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
+                <span className="text-xs font-medium text-slate-500 min-w-[3rem] text-center">
+                  {currentIdx + 1} / {incorrectQuestions.length}
+                </span>
+                <button
+                  onClick={() => setCurrentIdx((i) => Math.min(incorrectQuestions.length - 1, i + 1))}
+                  disabled={currentIdx === incorrectQuestions.length - 1}
+                  className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m9 18 6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
             </div>
+
+            {/* Current question card */}
+            {currentQ ? (
+              <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+                {/* Question header */}
+                <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Question {currentQ.questionNum}
+                  </span>
+                  <span className={`text-sm font-bold ${
+                    (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
+                  }`}>
+                    {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
+                  </span>
+                </div>
+
+                {/* Submission page image (student's handwritten answer) */}
+                <div className="border-b border-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/exam/${id}/submission?page=${getSubmissionPage(currentQ.pageIndex)}`}
+                    alt={`Submission page for Q${currentQ.questionNum}`}
+                    className="w-full h-auto"
+                  />
+                </div>
+
+                <div className="px-4 py-3 space-y-3">
+                  {/* Correct answer */}
+                  {currentQ.answer ? (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                        Correct Answer
+                      </p>
+                      <p className="text-sm text-slate-800 leading-relaxed">
+                        {renderWithNewlines(currentQ.answer)}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {/* Marking notes */}
+                  {currentQ.markingNotes ? (
+                    <div>
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                        Marking Notes
+                      </p>
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        {renderWithNewlines(currentQ.markingNotes)}
+                      </p>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </div>
