@@ -14,6 +14,7 @@ export async function PATCH(
   if ("imageData" in body) data.imageData = body.imageData;
   if ("answerImageData" in body) data.answerImageData = body.answerImageData ?? null;
   if ("marksAwarded" in body) data.marksAwarded = body.marksAwarded ?? null;
+  if ("marksAvailable" in body) data.marksAvailable = body.marksAvailable ?? null;
   if ("markingNotes" in body) data.markingNotes = body.markingNotes ?? null;
 
   const question = await prisma.examQuestion.update({

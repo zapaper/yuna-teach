@@ -150,7 +150,7 @@ function ExamEditContent({ id }: { id: string }) {
   async function saveQuestion(
     questionId: string,
     field: keyof ExamQuestionItem,
-    value: string | null
+    value: string | number | null
   ) {
     setSaving(questionId + field);
     try {
@@ -501,7 +501,7 @@ function QuestionEditCard({
   onSave: (
     id: string,
     field: keyof ExamQuestionItem,
-    value: string | null
+    value: string | number | null
   ) => void;
   onDelete: () => void;
   onRedo: () => void;
@@ -616,10 +616,32 @@ function QuestionEditCard({
                 {saving === "questionNum" ? "…" : "Save"}
               </button>
             ) : null}
-            <div className="flex items-center gap-1.5 ml-auto text-xs text-slate-500">
-              <span>{question.marksAwarded ?? "–"}</span>
+            <div className="flex items-center gap-1 ml-auto text-xs text-slate-500">
+              <input
+                type="number"
+                defaultValue={question.marksAwarded ?? ""}
+                onBlur={(e) => {
+                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  if (v !== (question.marksAwarded ?? null)) {
+                    onSave(question.id, "marksAwarded", v);
+                  }
+                }}
+                placeholder="–"
+                className="w-10 text-center rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:border-primary-400"
+              />
               <span>/</span>
-              <span>{question.marksAvailable ?? "–"}</span>
+              <input
+                type="number"
+                defaultValue={question.marksAvailable ?? ""}
+                onBlur={(e) => {
+                  const v = e.target.value === "" ? null : Number(e.target.value);
+                  if (v !== (question.marksAvailable ?? null)) {
+                    onSave(question.id, "marksAvailable", v);
+                  }
+                }}
+                placeholder="–"
+                className="w-10 text-center rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:border-primary-400"
+              />
               <span className="text-slate-400">marks</span>
             </div>
           </div>
