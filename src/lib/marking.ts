@@ -557,78 +557,6 @@ export async function markExamPaper(paperId: string): Promise<void> {
       }
     }
     console.log(`[marking] Paper ${paperId} marked complete. Score: ${totalAwarded}`);
-
-    // ── Generate AI feedback summary ───────────────────────────────────────
-    try {
-      // Compute per-booklet scores from metadata
-      const metaPapers = (paper.metadata as { papers?: Array<{ label: string; questionPrefix: string }> })?.papers ?? [];
-      const bookletScores: Array<{ label: string; awarded: number; available: number }> = [];
-
-      if (metaPapers.length > 1) {
-        for (const mp of metaPapers) {
-          let awarded = 0;
-          let available = 0;
-          for (const [qId, result] of validResults) {
-            const question = paper.questions.find(q => q.id === qId);
-            if (!question) continue;
-            const matchesPrefix = mp.questionPrefix === ""
-              ? !metaPapers.some(other => other.questionPrefix !== "" && question.questionNum.startsWith(other.questionPrefix))
-              : question.questionNum.startsWith(mp.questionPrefix);
-            if (matchesPrefix) {
-              awarded += result.marksAwarded ?? 0;
-              available += (presetMarks.get(qId) ?? result.marksAvailable) ?? 0;
-            }
-          }
-          bookletScores.push({ label: mp.label, awarded, available });
-        }
-      }
-
-      // Build mistakes list
-      const mistakesList = [...validResults.values()]
-        .filter(r => r.marksAwarded < ((presetMarks.get(r.questionId) ?? r.marksAvailable) ?? 0))
-        .map(r => {
-          const q = paper.questions.find(q => q.id === r.questionId);
-          return `Q${q?.questionNum ?? "?"}: Lost ${((presetMarks.get(r.questionId) ?? r.marksAvailable) ?? 0) - r.marksAwarded} mark(s). ${r.notes}`;
-        });
-
-      const totalMarksNum = paper.totalMarks ? parseFloat(paper.totalMarks) : null;
-      const feedbackPrompt = `You are writing a short, encouraging feedback summary for a primary school student's exam.
-
-Paper: ${paper.title}
-Subject: ${paper.subject ?? "Unknown"}
-Level: ${paper.level ?? "Unknown"}
-Score: ${totalAwarded}${totalMarksNum ? ` out of ${totalMarksNum}` : ""}
-${bookletScores.length > 1 ? `\nPer-section scores:\n${bookletScores.map(b => `- ${b.label}: ${b.awarded}/${b.available}`).join("\n")}` : ""}
-${mistakesList.length > 0 ? `\nMistakes:\n${mistakesList.join("\n")}` : "\nNo mistakes — full marks!"}
-
-Write a feedback summary with:
-1. An encouraging opening sentence mentioning the score (e.g. "Well done! You scored 42 out of 50!")
-2. If there are mistakes, briefly summarize the key concepts or topics to revise (group similar mistakes together). Keep it to 2-3 sentences max.
-3. ${bookletScores.length > 1 ? "Include the per-section score breakdown." : "No need for section breakdown."}
-4. End with an encouraging note.
-
-Keep the tone warm, positive, and age-appropriate for a primary school child. Total length: 3-6 sentences. Do NOT use markdown formatting. Plain text only.`;
-
-      const feedbackResponse = await withTimeout(
-        getAI().models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: [{ role: "user", parts: [{ text: feedbackPrompt }] }],
-          config: { temperature: 0.7 },
-        }),
-        30_000,
-        "feedback summary"
-      );
-      const feedbackText = feedbackResponse.text?.trim();
-      if (feedbackText) {
-        await prisma.examPaper.update({
-          where: { id: paperId },
-          data: { feedbackSummary: feedbackText },
-        });
-        console.log(`[marking] Feedback summary generated for paper ${paperId}`);
-      }
-    } catch (feedbackErr) {
-      console.warn(`[marking] Failed to generate feedback summary:`, feedbackErr);
-    }
   } catch (err) {
     console.error(`[marking] markExamPaper failed for ${paperId}:`, err);
     await prisma.examPaper.update({
@@ -637,4 +565,84 @@ Keep the tone warm, positive, and age-appropriate for a primary school child. To
     });
     throw err;
   }
+}
+
+// ── On-demand feedback summary generation ─────────────────────────────────
+
+export async function generateFeedbackSummary(paperId: string): Promise<string> {
+  const paper = await prisma.examPaper.findUnique({
+    where: { id: paperId },
+    include: { questions: true },
+  });
+  if (!paper) throw new Error("Paper not found");
+
+  const questions = paper.questions;
+  const totalAwarded = questions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+  const totalMarksNum = paper.totalMarks ? parseFloat(paper.totalMarks) : null;
+
+  // Compute per-booklet scores from metadata
+  const metaPapers = (paper.metadata as { papers?: Array<{ label: string; questionPrefix: string }> })?.papers ?? [];
+  const bookletScores: Array<{ label: string; awarded: number; available: number }> = [];
+
+  if (metaPapers.length > 1) {
+    for (const mp of metaPapers) {
+      let awarded = 0;
+      let available = 0;
+      for (const q of questions) {
+        const matchesPrefix = mp.questionPrefix === ""
+          ? !metaPapers.some(other => other.questionPrefix !== "" && q.questionNum.startsWith(other.questionPrefix))
+          : q.questionNum.startsWith(mp.questionPrefix);
+        if (matchesPrefix) {
+          awarded += q.marksAwarded ?? 0;
+          available += q.marksAvailable ?? 0;
+        }
+      }
+      bookletScores.push({ label: mp.label, awarded, available });
+    }
+  }
+
+  // Build mistakes list with question details
+  const mistakes = questions
+    .filter(q => q.marksAwarded !== null && q.marksAvailable !== null && q.marksAwarded < q.marksAvailable)
+    .map(q => {
+      const lost = (q.marksAvailable ?? 0) - (q.marksAwarded ?? 0);
+      return `Q${q.questionNum}: Lost ${lost} mark(s). Answer: ${q.answer ?? "N/A"}. ${q.markingNotes ?? ""}`;
+    });
+
+  const feedbackPrompt = `You are writing a short feedback summary for a primary school student's exam, aimed at helping them know what to revise.
+
+Paper: ${paper.title}
+Subject: ${paper.subject ?? "Unknown"}
+Level: ${paper.level ?? "Unknown"}
+Score: ${totalAwarded}${totalMarksNum ? ` out of ${totalMarksNum}` : ""}
+${bookletScores.length > 1 ? `\nPer-section scores:\n${bookletScores.map(b => `- ${b.label}: ${b.awarded}/${b.available}`).join("\n")}` : ""}
+${mistakes.length > 0 ? `\nQuestions with marks lost:\n${mistakes.join("\n")}` : "\nNo mistakes — full marks!"}
+
+Write a feedback summary with:
+1. An encouraging opening sentence mentioning the score (e.g. "Well done! You scored 42 out of 50!")
+2. ${bookletScores.length > 1 ? "Briefly mention per-section scores." : ""}
+3. If there are mistakes, identify the SPECIFIC TOPICS or CONCEPTS the student should revise. Group related mistakes together. Use phrases like "You may wish to revise your notes on [topic]." Be specific — e.g. "angles and trigonometry", "vocabulary on food and drinks", "fractions and decimals", "grammar — past tense".
+4. End with an encouraging note.
+
+Keep the tone warm, positive, and age-appropriate for a primary school child. Total length: 3-6 sentences. Do NOT use markdown formatting. Plain text only.`;
+
+  const feedbackResponse = await withTimeout(
+    getAI().models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: feedbackPrompt }] }],
+      config: { temperature: 0.7 },
+    }),
+    30_000,
+    "feedback summary"
+  );
+  const feedbackText = feedbackResponse.text?.trim() ?? "";
+
+  if (feedbackText) {
+    await prisma.examPaper.update({
+      where: { id: paperId },
+      data: { feedbackSummary: feedbackText },
+    });
+  }
+
+  return feedbackText;
 }

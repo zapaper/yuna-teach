@@ -69,6 +69,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [editingFeedback, setEditingFeedback] = useState(false);
   const [feedbackDraft, setFeedbackDraft] = useState("");
   const [savingFeedback, setSavingFeedback] = useState(false);
+  const [generatingFeedback, setGeneratingFeedback] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
 
   // Lightbox for question image pop-up
@@ -237,6 +238,22 @@ function ExamOverviewContent({ id }: { id: string }) {
       setEditingFeedback(false);
     } finally {
       setSavingFeedback(false);
+    }
+  }
+
+  async function handleGenerateFeedback() {
+    if (!detailCloneId) return;
+    setGeneratingFeedback(true);
+    try {
+      const res = await fetch(`/api/exam/${detailCloneId}/feedback`, { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setMarkingDetail((prev) =>
+          prev ? { ...prev, feedbackSummary: data.feedbackSummary } : prev
+        );
+      }
+    } finally {
+      setGeneratingFeedback(false);
     }
   }
 
@@ -692,19 +709,45 @@ function ExamOverviewContent({ id }: { id: string }) {
               <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
                 {markingDetail.feedbackSummary}
               </p>
-              <button
-                onClick={() => {
-                  setFeedbackDraft(markingDetail.feedbackSummary ?? "");
-                  setEditingFeedback(true);
-                }}
-                className="mt-2 text-xs text-primary-500 hover:text-primary-700 font-medium"
-              >
-                Edit feedback
-              </button>
+              <div className="flex items-center gap-3 mt-2">
+                <button
+                  onClick={() => {
+                    setFeedbackDraft(markingDetail.feedbackSummary ?? "");
+                    setEditingFeedback(true);
+                  }}
+                  className="text-xs text-primary-500 hover:text-primary-700 font-medium"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleGenerateFeedback}
+                  disabled={generatingFeedback}
+                  className="text-xs text-slate-400 hover:text-primary-500 font-medium disabled:opacity-50"
+                >
+                  {generatingFeedback ? "Regenerating..." : "Regenerate"}
+                </button>
+              </div>
             </div>
           )}
         </div>
-      ) : null}
+      ) : (
+        <div className="px-4 py-3 border-b border-slate-100">
+          <button
+            onClick={handleGenerateFeedback}
+            disabled={generatingFeedback}
+            className="w-full py-2.5 rounded-xl border-2 border-dashed border-primary-200 text-primary-600 text-sm font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
+          >
+            {generatingFeedback ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-primary-200 border-t-primary-500 inline-block" />
+                Generating summary...
+              </span>
+            ) : (
+              "Generate Summary"
+            )}
+          </button>
+        </div>
+      )}
 
       {/* Per-question grid */}
       <div className="flex-1 overflow-y-auto px-4 py-3">

@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { jsPDF } from "jspdf";
 
 interface ReviewQuestion {
   id: string;
@@ -45,6 +46,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [answerPages, setAnswerPages] = useState<number[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -78,6 +80,53 @@ function ExamReviewContent({ id }: { id: string }) {
       }
     }
     return originalPageIdx;
+  }
+
+  async function downloadPdf() {
+    setDownloading(true);
+    try {
+      const metaRes = await fetch(`/api/exam/${id}/submission`);
+      const meta = await metaRes.json();
+      const count = meta.pageCount ?? 0;
+      if (count === 0) return;
+
+      const pages: { dataUrl: string; w: number; h: number }[] = [];
+      for (let i = 0; i < count; i++) {
+        const res = await fetch(`/api/exam/${id}/submission?page=${i}`);
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const el = new window.Image();
+          el.onload = () => resolve(el);
+          el.onerror = reject;
+          el.src = url;
+        });
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext("2d")!.drawImage(img, 0, 0);
+        pages.push({ dataUrl: canvas.toDataURL("image/jpeg", 0.92), w: img.naturalWidth, h: img.naturalHeight });
+        URL.revokeObjectURL(url);
+      }
+
+      const first = pages[0];
+      const pdf = new jsPDF({
+        orientation: first.w > first.h ? "landscape" : "portrait",
+        unit: "px",
+        format: [first.w, first.h],
+      });
+      pdf.addImage(first.dataUrl, "JPEG", 0, 0, first.w, first.h);
+      for (let i = 1; i < pages.length; i++) {
+        const pg = pages[i];
+        pdf.addPage([pg.w, pg.h], pg.w > pg.h ? "landscape" : "portrait");
+        pdf.addImage(pg.dataUrl, "JPEG", 0, 0, pg.w, pg.h);
+      }
+      pdf.save(`${paperTitle}.pdf`);
+    } catch (err) {
+      console.error("Download failed:", err);
+    } finally {
+      setDownloading(false);
+    }
   }
 
   const backPath = `/home/${userId}`;
@@ -146,7 +195,7 @@ function ExamReviewContent({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="p-4 pb-24 max-w-2xl md:max-w-5xl mx-auto">
+      <div className="p-4 pb-24 max-w-2xl md:max-w-5xl lg:max-w-6xl mx-auto">
         {/* Score — large and prominent */}
         <div className="text-center py-4 mb-2">
           <p className="text-5xl font-extrabold text-primary-600">
@@ -154,6 +203,19 @@ function ExamReviewContent({ id }: { id: string }) {
             {totalMarks ? <span className="text-2xl font-normal text-slate-400"> / {totalMarks}</span> : null}
           </p>
           <p className="text-sm text-slate-400 mt-1">Total Score</p>
+          <button
+            onClick={downloadPdf}
+            disabled={downloading}
+            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            {downloading ? "Downloading..." : "Download my paper"}
+          </button>
         </div>
 
         {/* Feedback summary */}
