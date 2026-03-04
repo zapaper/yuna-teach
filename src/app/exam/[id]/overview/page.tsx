@@ -85,18 +85,28 @@ function ExamOverviewContent({ id }: { id: string }) {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [paperRes, usersRes] = await Promise.all([
+        const [paperRes, linkRes] = await Promise.all([
           fetch(`/api/exam/${id}?summary=true`),
-          fetch("/api/users"),
+          fetch(`/api/link?userId=${userId}`),
         ]);
         if (!paperRes.ok) throw new Error("Not found");
-        const [paperData, usersData] = await Promise.all([
+        const [paperData, linkData] = await Promise.all([
           paperRes.json(),
-          usersRes.json(),
+          linkRes.json(),
         ]);
         setPaper(paperData);
+        // Only show linked students (with level info from link API)
         setStudents(
-          (usersData.users as User[]).filter((u) => u.role === "STUDENT")
+          (linkData.linkedStudents ?? []).map((s: { id: string; name: string; level?: number | null }) => ({
+            id: s.id,
+            name: s.name,
+            role: "STUDENT" as const,
+            level: s.level ?? null,
+            email: null,
+            createdAt: "",
+            linkedStudents: [],
+            linkedParents: [],
+          }))
         );
         // If any clone or legacy assignment is being marked, start polling
         const anyMarking = (paperData.clones ?? []).some(
@@ -111,7 +121,7 @@ function ExamOverviewContent({ id }: { id: string }) {
     }
     fetchAll();
     return () => stopPolling();
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id, userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startPolling() {
     if (pollRef.current) return;

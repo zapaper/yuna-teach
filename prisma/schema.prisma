@@ -19,6 +19,9 @@ model User {
   tests              SpellingTest[]
   examPapers         ExamPaper[]    @relation("UploadedPapers")
   assignedExamPapers ExamPaper[]    @relation("AssignedPapers")
+  parentLinks        ParentStudent[] @relation("ParentLinks")
+  studentLinks       ParentStudent[] @relation("StudentLinks")
+  inviteCodes        InviteCode[]
 
   @@map("users")
 }
@@ -106,6 +109,31 @@ model ExamQuestion {
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 
   @@map("exam_questions")
+}
+
+model ParentStudent {
+  id        String   @id @default(cuid())
+  parentId  String
+  studentId String
+  createdAt DateTime @default(now())
+
+  parent  User @relation("ParentLinks", fields: [parentId], references: [id], onDelete: Cascade)
+  student User @relation("StudentLinks", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@map("parent_students")
+}
+
+model InviteCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("invite_codes")
 }
 
 enum Language {

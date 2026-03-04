@@ -21,9 +21,14 @@ export async function POST(request: NextRequest) {
     where = { name: { equals: name, mode: "insensitive" } };
   }
 
+  const includeLinks = {
+    parentLinks: { include: { student: { select: { id: true, name: true } } } },
+    studentLinks: { include: { parent: { select: { id: true, name: true } } } },
+  };
+
   const user = email
-    ? await prisma.user.findUnique({ where: { email } })
-    : await prisma.user.findFirst({ where });
+    ? await prisma.user.findUnique({ where: { email }, include: includeLinks })
+    : await prisma.user.findFirst({ where, include: includeLinks });
 
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 401 });
@@ -40,5 +45,7 @@ export async function POST(request: NextRequest) {
     role: user.role,
     level: user.level,
     createdAt: user.createdAt.toISOString(),
+    linkedStudents: user.parentLinks.map((l) => l.student),
+    linkedParents: user.studentLinks.map((l) => l.parent),
   });
 }

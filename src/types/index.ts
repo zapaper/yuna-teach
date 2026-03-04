@@ -8,6 +8,8 @@ export interface User {
   role: Role;
   level: number | null;
   createdAt: string;
+  linkedStudents: { id: string; name: string }[];
+  linkedParents: { id: string; name: string }[];
 }
 
 export interface SpellingTestSummary {

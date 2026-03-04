@@ -4,6 +4,10 @@ import { prisma } from "@/lib/db";
 export async function GET() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
+    include: {
+      parentLinks: { include: { student: { select: { id: true, name: true } } } },
+      studentLinks: { include: { parent: { select: { id: true, name: true } } } },
+    },
   });
 
   return NextResponse.json({
@@ -14,6 +18,8 @@ export async function GET() {
       role: u.role,
       level: u.level,
       createdAt: u.createdAt.toISOString(),
+      linkedStudents: u.parentLinks.map((l) => l.student),
+      linkedParents: u.studentLinks.map((l) => l.parent),
     })),
   });
 }
@@ -77,6 +83,8 @@ export async function POST(request: NextRequest) {
       role: user.role,
       level: user.level,
       createdAt: user.createdAt.toISOString(),
+      linkedStudents: [],
+      linkedParents: [],
     },
     { status: 201 }
   );

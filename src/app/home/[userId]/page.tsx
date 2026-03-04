@@ -19,6 +19,16 @@ export default function HomePage({
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Invite / link state
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
+  const [connectCode, setConnectCode] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const [connectError, setConnectError] = useState("");
+  const [connectSuccess, setConnectSuccess] = useState("");
+  const [showInvite, setShowInvite] = useState(false);
+  const [showConnect, setShowConnect] = useState(false);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -71,6 +81,52 @@ export default function HomePage({
 
   const isParent = user?.role === "PARENT";
 
+  async function handleGenerateCode() {
+    setGeneratingCode(true);
+    try {
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      setInviteCode(data.code);
+      setShowInvite(true);
+    } finally {
+      setGeneratingCode(false);
+    }
+  }
+
+  async function handleConnect() {
+    if (!connectCode.trim()) return;
+    setConnecting(true);
+    setConnectError("");
+    setConnectSuccess("");
+    try {
+      const res = await fetch("/api/link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: connectCode.trim(), userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setConnectError(data.error || "Failed to connect");
+        return;
+      }
+      setConnectSuccess(`Connected to ${data.linkedUser.name}!`);
+      setConnectCode("");
+      // Refresh user data to show new link
+      const usersRes = await fetch("/api/users");
+      const usersData = await usersRes.json();
+      const foundUser = usersData.users.find((u: User) => u.id === userId);
+      setUser(foundUser || null);
+    } catch {
+      setConnectError("Something went wrong");
+    } finally {
+      setConnecting(false);
+    }
+  }
+
   return (
     <div className="p-6 pb-24">
       {/* Header */}
@@ -101,6 +157,80 @@ export default function HomePage({
         {user?.role === "STUDENT" && user.level ? (
           <p className="text-slate-500 text-sm mt-1">Primary {user.level}</p>
         ) : null}
+
+        {/* Linked users info */}
+        {isParent && user?.linkedStudents && user.linkedStudents.length > 0 ? (
+          <div className="flex flex-wrap justify-center gap-2 mt-3">
+            {user.linkedStudents.map((s) => (
+              <span key={s.id} className="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-medium">
+                {s.name}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {!isParent && user?.linkedParents && user.linkedParents.length > 0 ? (
+          <p className="text-slate-400 text-xs mt-2">
+            Linked to: {user.linkedParents.map((p) => p.name).join(", ")}
+          </p>
+        ) : null}
+      </div>
+
+      {/* Invite / Connect section */}
+      <div className="mb-6">
+        {isParent ? (
+          <>
+            <button
+              onClick={() => {
+                if (!showInvite) handleGenerateCode();
+                else setShowInvite(false);
+              }}
+              disabled={generatingCode}
+              className="w-full py-3 rounded-xl border-2 border-primary-200 text-primary-600 font-semibold hover:bg-primary-50 transition-colors disabled:opacity-50"
+            >
+              {generatingCode ? "Generating..." : showInvite ? "Hide Code" : "Invite Student"}
+            </button>
+            {showInvite && inviteCode ? (
+              <div className="mt-3 rounded-2xl bg-primary-50 border border-primary-100 p-4 text-center">
+                <p className="text-xs text-slate-400 mb-2">Share this code with your student</p>
+                <p className="text-3xl font-mono font-bold text-primary-700 tracking-widest">{inviteCode}</p>
+                <p className="text-xs text-slate-400 mt-2">Expires in 24 hours</p>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => { setShowConnect(!showConnect); setConnectError(""); setConnectSuccess(""); }}
+              className="w-full py-3 rounded-xl border-2 border-primary-200 text-primary-600 font-semibold hover:bg-primary-50 transition-colors"
+            >
+              {showConnect ? "Cancel" : "Connect to Parent"}
+            </button>
+            {showConnect ? (
+              <div className="mt-3 rounded-2xl bg-slate-50 border border-slate-100 p-4">
+                <p className="text-xs text-slate-400 mb-2">Enter the code from your parent</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={connectCode}
+                    onChange={(e) => { setConnectCode(e.target.value.toUpperCase()); setConnectError(""); }}
+                    placeholder="Enter code"
+                    maxLength={6}
+                    className="flex-1 px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 focus:outline-none text-center font-mono text-lg tracking-widest uppercase"
+                  />
+                  <button
+                    onClick={handleConnect}
+                    disabled={connecting || connectCode.length < 6}
+                    className="px-5 py-2.5 rounded-xl bg-primary-600 text-white font-semibold disabled:opacity-50"
+                  >
+                    {connecting ? "..." : "Link"}
+                  </button>
+                </div>
+                {connectError ? <p className="text-xs text-red-500 mt-2">{connectError}</p> : null}
+                {connectSuccess ? <p className="text-xs text-green-500 mt-2">{connectSuccess}</p> : null}
+              </div>
+            ) : null}
+          </>
+        )}
       </div>
 
       {/* Action buttons */}
