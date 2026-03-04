@@ -146,7 +146,7 @@ function ExamReviewContent({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="p-4 pb-24 max-w-2xl mx-auto">
+      <div className="p-4 pb-24 max-w-2xl md:max-w-5xl mx-auto">
         {/* Score — large and prominent */}
         <div className="text-center py-4 mb-2">
           <p className="text-5xl font-extrabold text-primary-600">
@@ -222,40 +222,44 @@ function ExamReviewContent({ id }: { id: string }) {
                   </span>
                 </div>
 
-                {/* Submission page image (student's handwritten answer) */}
-                <div className="border-b border-slate-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/api/exam/${id}/submission?page=${getSubmissionPage(currentQ.pageIndex)}`}
-                    alt={`Submission page for Q${currentQ.questionNum}`}
-                    className="w-full h-auto"
-                  />
-                </div>
+                {/* Side-by-side on wide screens, stacked on mobile */}
+                <div className="md:flex">
+                  {/* Submission page image */}
+                  <div className="border-b border-slate-100 md:border-b-0 md:border-r md:w-1/2 md:shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/exam/${id}/submission?page=${getSubmissionPage(currentQ.pageIndex)}`}
+                      alt={`Submission page for Q${currentQ.questionNum}`}
+                      className="w-full h-auto"
+                    />
+                  </div>
 
-                <div className="px-4 py-3 space-y-3">
-                  {/* Correct answer */}
-                  {currentQ.answer ? (
-                    <div>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                        Correct Answer
-                      </p>
-                      <p className="text-sm text-slate-800 leading-relaxed">
-                        {renderWithNewlines(currentQ.answer)}
-                      </p>
-                    </div>
-                  ) : null}
+                  {/* Solutions panel */}
+                  <div className="px-4 py-3 space-y-3 md:flex-1 md:overflow-y-auto">
+                    {/* Correct answer */}
+                    {currentQ.answer ? (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                          Correct Answer
+                        </p>
+                        <p className="text-sm text-slate-800 leading-relaxed">
+                          {renderWithNewlines(currentQ.answer)}
+                        </p>
+                      </div>
+                    ) : null}
 
-                  {/* Marking notes */}
-                  {currentQ.markingNotes ? (
-                    <div>
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                        Marking Notes
-                      </p>
-                      <p className="text-sm text-slate-600 leading-relaxed">
-                        {renderWithNewlines(currentQ.markingNotes)}
-                      </p>
-                    </div>
-                  ) : null}
+                    {/* Marking notes */}
+                    {currentQ.markingNotes ? (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                          Marking Notes
+                        </p>
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                          {renderWithNewlines(currentQ.markingNotes)}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             ) : null}
