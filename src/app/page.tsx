@@ -120,8 +120,8 @@ export default function HomePage() {
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="text-center mb-8 pt-8">
-          <h1 className="text-3xl font-bold text-slate-800">Yuna Teach</h1>
-          <p className="text-slate-400 text-sm mt-1">Learn, practise, improve</p>
+          <h1 className="text-3xl font-bold text-slate-800">Mark for You</h1>
+          <p className="text-slate-400 text-sm mt-1">Let AI do the heavy-lifting</p>
         </div>
 
         {/* Register buttons */}

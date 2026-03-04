@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Yuna Teach - Spelling Test",
-  description: "Help primary school students practice for spelling tests and 听写",
+  title: "Mark for You",
+  description: "Let AI do the heavy-lifting",
 };
 
 export default function RootLayout({
