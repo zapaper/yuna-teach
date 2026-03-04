@@ -152,7 +152,7 @@ export default function HomePage({
 
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-slate-800">
-          {user?.name ? `${user.name}'s Tests` : "Spelling Tests"}
+          {user?.name ? `${user.name}'s Page` : "Home"}
         </h1>
         {user?.role === "STUDENT" && user.level ? (
           <p className="text-slate-500 text-sm mt-1">Primary {user.level}</p>
@@ -254,7 +254,7 @@ export default function HomePage({
       {/* Test list */}
       <div>
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
-          Recent Tests
+          Recent Spelling / 听写
         </h2>
 
         {loading ? (
