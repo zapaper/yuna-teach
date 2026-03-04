@@ -598,6 +598,11 @@ Page 4: Q5 continues with parts (c) and (d), ends at 60% where Q6 starts
 Page 4: Q6 starts at 60%
   {"questionNum": "6", "yStartPct": 60, "yEndPct": 95, "isContinuation": false, "boundaryTop": "6", "boundaryBottom": "end", "marksAvailable": null}
 
+### IMPORTANT — Bottom-of-page rule for science papers:
+When you CANNOT detect the next question on the current page (i.e., the current question is the LAST question on that page), you MUST set yEndPct to 95 (bottom of page). Do NOT try to guess where the question content ends mid-page. Science questions often have answer blanks, diagrams, or extra whitespace that belongs to the question. Always extend to the bottom of the page when there is no next question visible below.
+
+This applies to ALL entries (both primary and continuation) — if no next question is detected below on the same page, use yEndPct = 95.
+
 ### Rules for continuation entries:
 - The FIRST entry for a question always has "isContinuation": false (or omit the field)
 - Subsequent entries for the SAME question on LATER pages have "isContinuation": true
