@@ -322,9 +322,9 @@ export default function HomePage() {
 
 const PHRASES = [
   "Let AI do the heavy-lifting",
-  "Let AI read out the spelling",
-  "Let AI mark your exam paper",
-  "Let AI track your progress",
+  "Let AI mark your child's exam paper",
+  "Let AI track your child's progress",
+  "Let AI recommend focused practices",
 ];
 
 function TypingSubheader() {
