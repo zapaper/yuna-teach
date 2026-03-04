@@ -366,7 +366,7 @@ function TypingSubheader() {
   }, [text, phase, phraseIdx]);
 
   return (
-    <p className="text-slate-400 text-sm mt-1 h-5">
+    <p className="text-slate-600 text-base font-medium mt-2 h-6">
       {text}
       <span className="inline-block w-[2px] h-3.5 bg-slate-400 ml-0.5 align-text-bottom animate-pulse" />
     </p>
