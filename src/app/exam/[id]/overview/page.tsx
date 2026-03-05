@@ -428,6 +428,14 @@ function ExamOverviewContent({ id }: { id: string }) {
   const missingAnswers = questionsDetected - answersDetected;
   const hasMissingAnswers = missingAnswers > 0;
 
+  // Marks validation: sum of per-question marksAvailable vs paper totalMarks
+  const sumMarksAvailable = paper.questions.reduce(
+    (sum, q) => sum + (q.marksAvailable ?? 0), 0
+  );
+  const expectedTotal = paper.totalMarks ? parseFloat(paper.totalMarks) : null;
+  const hasMarksMismatch = expectedTotal !== null && sumMarksAvailable > 0 && sumMarksAvailable !== expectedTotal;
+  const hasMissingMarks = paper.questions.some((q) => q.marksAvailable == null || q.marksAvailable === 0);
+
   const clones: ExamCloneSummary[] = paper.clones ?? [];
   const detailClone = clones.find((c) => c.id === detailCloneId);
   const detailStudentName = detailClone?.assignedToName
@@ -490,6 +498,38 @@ function ExamOverviewContent({ id }: { id: string }) {
             </svg>
             <p className="text-xs text-red-600">
               Some answers could not be detected. Use Edit to fill them in.
+            </p>
+          </div>
+        ) : null}
+        {/* Marks validation */}
+        <div className="flex items-center justify-between py-2 border-t border-slate-100">
+          <span className="text-sm text-slate-600">Marks total</span>
+          <span className={`font-semibold ${hasMarksMismatch ? "text-amber-600" : hasMissingMarks ? "text-slate-400" : "text-green-600"}`}>
+            {sumMarksAvailable}{expectedTotal !== null ? ` / ${expectedTotal}` : ""}
+          </span>
+        </div>
+        {hasMarksMismatch ? (
+          <div className="mt-1 flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              className="text-amber-500 mt-0.5 shrink-0">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <p className="text-xs text-amber-700">
+              Sum of question marks ({sumMarksAvailable}) does not match paper total ({expectedTotal}). Check marks in Edit.
+            </p>
+          </div>
+        ) : null}
+        {hasMissingMarks && !hasMarksMismatch ? (
+          <div className="mt-1 flex items-start gap-2 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              className="text-slate-400 mt-0.5 shrink-0">
+              <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <p className="text-xs text-slate-500">
+              Some questions have no marks assigned. Set marks in Edit for accurate scoring.
             </p>
           </div>
         ) : null}
