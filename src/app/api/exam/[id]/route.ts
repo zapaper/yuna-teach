@@ -224,13 +224,26 @@ export async function POST(
 
   // Add a blank question to this exam paper
   if (body.action === "addQuestion") {
-    // Get the current max orderIndex
+    const afterOrder = typeof body.afterOrderIndex === "number" ? body.afterOrderIndex : null;
+
+    if (afterOrder !== null) {
+      // Shift all questions after the insertion point
+      await prisma.examQuestion.updateMany({
+        where: { examPaperId: id, orderIndex: { gt: afterOrder } },
+        data: { orderIndex: { increment: 1 } },
+      });
+    }
+
+    // Get the current max orderIndex (after shift)
     const lastQuestion = await prisma.examQuestion.findFirst({
       where: { examPaperId: id },
       orderBy: { orderIndex: "desc" },
     });
-    const nextOrder = (lastQuestion?.orderIndex ?? -1) + 1;
-    const nextNum = body.questionNum || String(nextOrder + 1);
+    const insertOrder = afterOrder !== null ? afterOrder + 1 : (lastQuestion?.orderIndex ?? -1) + 1;
+    const refQuestion = afterOrder !== null
+      ? await prisma.examQuestion.findFirst({ where: { examPaperId: id, orderIndex: afterOrder } })
+      : lastQuestion;
+    const nextNum = body.questionNum || String(insertOrder + 1);
 
     const question = await prisma.examQuestion.create({
       data: {
@@ -238,8 +251,8 @@ export async function POST(
         imageData: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AKwA//9k=", // 1x1 white pixel
         answer: null,
         answerImageData: null,
-        pageIndex: lastQuestion?.pageIndex ?? 0,
-        orderIndex: nextOrder,
+        pageIndex: refQuestion?.pageIndex ?? 0,
+        orderIndex: insertOrder,
         yStartPct: null,
         yEndPct: null,
         marksAvailable: null,

@@ -183,6 +183,23 @@ function ExamEditContent({ id }: { id: string }) {
     );
   }
 
+  function buildQuestionFromResponse(newQ: Record<string, unknown>): ExamQuestionItem {
+    return {
+      id: newQ.id as string,
+      questionNum: newQ.questionNum as string,
+      imageData: newQ.imageData as string,
+      answer: newQ.answer as string | null,
+      answerImageData: newQ.answerImageData as string | null,
+      pageIndex: newQ.pageIndex as number,
+      orderIndex: newQ.orderIndex as number,
+      yStartPct: newQ.yStartPct as number | null,
+      yEndPct: newQ.yEndPct as number | null,
+      marksAwarded: newQ.marksAwarded as number | null,
+      marksAvailable: newQ.marksAvailable as number | null,
+      markingNotes: newQ.markingNotes as string | null,
+    };
+  }
+
   async function addQuestion() {
     const res = await fetch(`/api/exam/${id}`, {
       method: "POST",
@@ -190,31 +207,31 @@ function ExamEditContent({ id }: { id: string }) {
       body: JSON.stringify({ action: "addQuestion" }),
     });
     if (!res.ok) return;
-    const newQ = await res.json();
+    const newQ = buildQuestionFromResponse(await res.json());
     setPaper((prev) =>
       prev
-        ? {
-            ...prev,
-            questions: [
-              ...prev.questions,
-              {
-                id: newQ.id,
-                questionNum: newQ.questionNum,
-                imageData: newQ.imageData,
-                answer: newQ.answer,
-                answerImageData: newQ.answerImageData,
-                pageIndex: newQ.pageIndex,
-                orderIndex: newQ.orderIndex,
-                yStartPct: newQ.yStartPct,
-                yEndPct: newQ.yEndPct,
-                marksAwarded: newQ.marksAwarded,
-                marksAvailable: newQ.marksAvailable,
-                markingNotes: newQ.markingNotes,
-              },
-            ],
-          }
+        ? { ...prev, questions: [...prev.questions, newQ] }
         : prev
     );
+  }
+
+  async function addQuestionAfter(afterOrderIndex: number) {
+    const res = await fetch(`/api/exam/${id}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "addQuestion", afterOrderIndex }),
+    });
+    if (!res.ok) return;
+    const newQ = buildQuestionFromResponse(await res.json());
+    setPaper((prev) => {
+      if (!prev) return prev;
+      // Increment orderIndex for all questions after the insertion point
+      const updated = prev.questions.map((q) =>
+        q.orderIndex > afterOrderIndex ? { ...q, orderIndex: q.orderIndex + 1 } : q
+      );
+      // Insert the new question and re-sort
+      return { ...prev, questions: [...updated, newQ].sort((a, b) => a.orderIndex - b.orderIndex) };
+    });
   }
 
   // Convert a blob URL or data URL to a base64 data URL
@@ -375,6 +392,7 @@ function ExamEditContent({ id }: { id: string }) {
             onSave={saveQuestion}
             onDelete={() => deleteQuestion(q.id)}
             onRedo={() => redoQuestion(q.id)}
+            onAddAfter={() => addQuestionAfter(q.orderIndex)}
             onSelectArea={(field) =>
               setSelectTarget({
                 questionId: q.id,
@@ -507,6 +525,7 @@ function QuestionEditCard({
   onSave,
   onDelete,
   onRedo,
+  onAddAfter,
   onSelectArea,
 }: {
   question: ExamQuestionItem;
@@ -519,6 +538,7 @@ function QuestionEditCard({
   ) => void;
   onDelete: () => void;
   onRedo: () => void;
+  onAddAfter: () => void;
   onSelectArea: (field: "imageData" | "answerImageData") => void;
 }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -744,6 +764,16 @@ function QuestionEditCard({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Add Qn button — bottom right */}
+      <div className="flex justify-end px-4 pb-3">
+        <button
+          onClick={onAddAfter}
+          className="text-[11px] font-medium px-2.5 py-1 rounded-lg border border-dashed border-slate-300 text-slate-400 hover:border-primary-300 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+        >
+          + Add Qn
+        </button>
       </div>
 
       {/* Delete confirmation */}
