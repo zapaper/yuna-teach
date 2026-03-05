@@ -22,18 +22,19 @@ export async function GET(request: NextRequest) {
     select: { id: true, name: true },
   });
 
-  // Get all marked papers for this student uploaded by this parent
+  // Get all marked papers for this student (clones + focused tests)
   const papers = await prisma.examPaper.findMany({
     where: {
       assignedToId: studentId,
-      userId: parentId,
       markingStatus: { in: ["complete", "released"] },
     },
     select: {
       id: true,
       subject: true,
+      sourceExamId: true,
       questions: {
         select: {
+          questionNum: true,
           syllabusTopic: true,
           marksAwarded: true,
           marksAvailable: true,
@@ -41,6 +42,32 @@ export async function GET(request: NextRequest) {
       },
     },
   });
+
+  // Collect all source exam IDs so we can look up master question tags
+  const sourceIds = papers
+    .map((p) => p.sourceExamId)
+    .filter((id): id is string => id !== null);
+
+  // Fetch master papers' questions for syllabus topic lookup
+  const masterTopics: Record<string, Record<string, string | null>> = {};
+  if (sourceIds.length > 0) {
+    const masters = await prisma.examPaper.findMany({
+      where: { id: { in: sourceIds } },
+      select: {
+        id: true,
+        questions: {
+          select: { questionNum: true, syllabusTopic: true },
+        },
+      },
+    });
+    for (const m of masters) {
+      const topicMap: Record<string, string | null> = {};
+      for (const q of m.questions) {
+        topicMap[q.questionNum] = q.syllabusTopic;
+      }
+      masterTopics[m.id] = topicMap;
+    }
+  }
 
   // Aggregate by subject → topic
   const subjects: Record<string, {
@@ -55,8 +82,13 @@ export async function GET(request: NextRequest) {
     }
     subjects[subject].examCount++;
 
+    // For clones, look up syllabusTopic from master if clone's own tag is null
+    const masterMap = paper.sourceExamId ? masterTopics[paper.sourceExamId] : null;
+
     for (const q of paper.questions) {
-      const topic = q.syllabusTopic || "Untagged";
+      const topic = q.syllabusTopic
+        || (masterMap ? masterMap[q.questionNum] : null)
+        || "Untagged";
       if (!subjects[subject].topics[topic]) {
         subjects[subject].topics[topic] = { earned: 0, available: 0, count: 0 };
       }
