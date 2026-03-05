@@ -68,15 +68,14 @@ function ProgressContent({ studentId }: { studentId: string }) {
       const res = await fetch("/api/focused-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId, studentId, subject, topic }),
+        body: JSON.stringify({ parentId, subject, topic }),
       });
       if (!res.ok) {
         const err = await res.json();
         alert(err.error || "Failed to create test");
         return;
       }
-      const { id } = await res.json();
-      router.push(`/exam/${id}/focused?userId=${studentId}`);
+      router.push(`/home/${parentId}`);
     } finally {
       setCreating(null);
     }

@@ -106,6 +106,7 @@ export async function PATCH(
         userId: master.userId,
         assignedToId: studentId,
         sourceExamId: id,
+        paperType: master.paperType,
         questions: {
           create: master.questions.map((q) => ({
             questionNum: q.questionNum,

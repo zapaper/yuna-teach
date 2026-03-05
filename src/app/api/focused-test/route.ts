@@ -2,18 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
-  const { parentId, studentId, subject, topic } = await request.json();
+  const { parentId, subject, topic } = await request.json();
 
-  if (!parentId || !studentId || !subject || !topic) {
+  if (!parentId || !subject || !topic) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
-
-  // Verify parent-student link
-  const link = await prisma.parentStudent.findFirst({
-    where: { parentId, studentId },
-  });
-  if (!link) {
-    return NextResponse.json({ error: "Not linked" }, { status: 403 });
   }
 
   // Find questions from parent's master papers matching subject + topic
@@ -48,18 +40,11 @@ export async function POST(request: NextRequest) {
   const shuffled = candidates.sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, 10);
 
-  // Get student name for title
-  const student = await prisma.user.findUnique({
-    where: { id: studentId },
-    select: { name: true },
-  });
-
   const paper = await prisma.examPaper.create({
     data: {
-      title: `Focused Test: ${topic}`,
+      title: `Focused Test on ${topic}`,
       subject,
       userId: parentId,
-      assignedToId: studentId,
       paperType: "focused",
       pageCount: 0,
       extractionStatus: "ready",

@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
     if (role === "STUDENT") {
       where = { assignedToId: userId };
     } else {
-      // Parents see only master papers (exclude clones and focused tests)
-      where = { userId, sourceExamId: null, paperType: null };
+      // Parents see master papers + focused tests (exclude clones)
+      where = { userId, sourceExamId: null };
     }
   }
 

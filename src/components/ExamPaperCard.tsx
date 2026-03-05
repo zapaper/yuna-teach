@@ -59,14 +59,16 @@ export default function ExamPaperCard({
   // Students: review (if released) or practice; focused tests go to focused page
   const examHref = isExtracting
     ? "#"
+    : userRole === "PARENT"
+    ? isFocused
+      ? `/exam/${paper.id}/overview?userId=${userId}`
+      : paper.extractionStatus === "ready"
+        ? `/exam/${paper.id}/edit?userId=${userId}`
+        : `/exam/${paper.id}/overview?userId=${userId}`
     : isFocused
     ? paper.markingStatus === "released"
       ? `/exam/${paper.id}/review?userId=${userId}`
       : `/exam/${paper.id}/focused?userId=${userId}`
-    : userRole === "PARENT"
-    ? paper.extractionStatus === "ready"
-      ? `/exam/${paper.id}/edit?userId=${userId}`
-      : `/exam/${paper.id}/overview?userId=${userId}`
     : paper.markingStatus === "released"
     ? `/exam/${paper.id}/review?userId=${userId}`
     : `/exam/${paper.id}?userId=${userId}`;
