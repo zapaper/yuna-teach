@@ -218,6 +218,13 @@ function ExamReviewContent({ id }: { id: string }) {
           </button>
         </div>
 
+        {/* Advisory message */}
+        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-4">
+          <p className="text-xs text-amber-700 leading-relaxed">
+            We encourage you to verify and understand where your child has made mistakes, and go through with him/her the mistakes.
+          </p>
+        </div>
+
         {/* Feedback summary */}
         {data.feedbackSummary ? (
           <div className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 p-4 mb-6">
