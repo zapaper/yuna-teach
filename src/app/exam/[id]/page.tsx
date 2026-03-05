@@ -266,6 +266,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   }
 
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingExam, setDownloadingExam] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
@@ -318,6 +319,50 @@ function ExamPracticeContent({ id }: { id: string }) {
       console.error("Download PDF failed:", err);
     } finally {
       setDownloadingPdf(false);
+    }
+  }
+
+  async function downloadExamForPrinting() {
+    if (!paper || downloadingExam || displayPages.length === 0) return;
+    setDownloadingExam(true);
+    try {
+      const pages: { dataUrl: string; w: number; h: number }[] = [];
+      for (const { src } of displayPages) {
+        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const el = new window.Image();
+          el.onload = () => resolve(el);
+          el.onerror = reject;
+          el.src = src;
+        });
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        const pxToMm = 25.4 / 150;
+        pages.push({
+          dataUrl: canvas.toDataURL("image/jpeg", 0.92),
+          w: img.naturalWidth * pxToMm,
+          h: img.naturalHeight * pxToMm,
+        });
+      }
+      const first = pages[0];
+      const pdf = new jsPDF({
+        orientation: first.w > first.h ? "landscape" : "portrait",
+        unit: "mm",
+        format: [first.w, first.h],
+      });
+      pdf.addImage(first.dataUrl, "JPEG", 0, 0, first.w, first.h);
+      for (let i = 1; i < pages.length; i++) {
+        const pg = pages[i];
+        pdf.addPage([pg.w, pg.h], pg.w > pg.h ? "landscape" : "portrait");
+        pdf.addImage(pg.dataUrl, "JPEG", 0, 0, pg.w, pg.h);
+      }
+      pdf.save(`${paper.title} - Questions.pdf`);
+    } catch (err) {
+      console.error("Download exam failed:", err);
+    } finally {
+      setDownloadingExam(false);
     }
   }
 
@@ -536,13 +581,25 @@ function ExamPracticeContent({ id }: { id: string }) {
                   : "Submit exam"}
               </button>
             </div>
-            <button
-              onClick={() => uploadInputRef.current?.click()}
-              disabled={uploadingPdf}
-              className="w-full py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
-            >
-              {uploadingPdf ? "Loading PDF…" : "Upload edited PDF"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={downloadExamForPrinting}
+                disabled={downloadingExam}
+                className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
+              >
+                {downloadingExam ? "Downloading…" : "Download for printing"}
+              </button>
+              <button
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={uploadingPdf}
+                className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
+              >
+                {uploadingPdf ? "Loading PDF…" : "Upload scanned PDF"}
+              </button>
+            </div>
+            <p className="text-center text-[10px] text-slate-400">
+              Use <span className="font-semibold text-blue-500">blue ink</span> for hand-written answers so AI can distinguish your writing from printed text.
+            </p>
           </div>
         </div>
       ) : null}
