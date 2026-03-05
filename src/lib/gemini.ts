@@ -583,6 +583,10 @@ This is a SCIENCE paper. Science questions frequently span multiple pages becaus
 - Set "isContinuation": true on the continuation entry
 - The continuation entry's yStartPct should be where the question content resumes on the new page (typically 2-5% from top)
 - The continuation entry's yEndPct should be where the next whole question number begins on that page (or 95 if the question is the last on the page)
+- IMPORTANT: Include "subParts" on EVERY entry (primary and continuation) — list which sub-part labels appear on that page segment
+  - e.g. if Q5 has (a)(b) on page 3 and (c)(d) on page 4, set "subParts": "ab" on the page 3 entry and "subParts": "cd" on the page 4 entry
+  - If the question has no labeled sub-parts on a page (e.g. just the question stem/diagram), use "subParts": "" (empty string)
+  - Use lowercase letters without parentheses or spaces: "ab", "cde", "fgh"
 
 ### How to detect a multi-page question:
 1. You are processing a question (e.g. Q5) and reach the bottom of the page (yEndPct = 95)
@@ -592,11 +596,11 @@ This is a SCIENCE paper. Science questions frequently span multiple pages becaus
 
 ### Example — Q5 spanning 2 pages:
 Page 3: Q5 starts at 40%, has parts (a) and (b), continues to bottom
-  {"questionNum": "5", "yStartPct": 40, "yEndPct": 95, "isContinuation": false, "boundaryTop": "5", "boundaryBottom": "continuation", "marksAvailable": null}
+  {"questionNum": "5", "yStartPct": 40, "yEndPct": 95, "isContinuation": false, "subParts": "ab", "boundaryTop": "5", "boundaryBottom": "continuation", "marksAvailable": null}
 Page 4: Q5 continues with parts (c) and (d), ends at 60% where Q6 starts
-  {"questionNum": "5", "yStartPct": 2, "yEndPct": 60, "isContinuation": true, "boundaryTop": "continuation", "boundaryBottom": "6", "marksAvailable": null}
+  {"questionNum": "5", "yStartPct": 2, "yEndPct": 60, "isContinuation": true, "subParts": "cd", "boundaryTop": "continuation", "boundaryBottom": "6", "marksAvailable": null}
 Page 4: Q6 starts at 60%
-  {"questionNum": "6", "yStartPct": 60, "yEndPct": 95, "isContinuation": false, "boundaryTop": "6", "boundaryBottom": "end", "marksAvailable": null}
+  {"questionNum": "6", "yStartPct": 60, "yEndPct": 95, "isContinuation": false, "subParts": "abcd", "boundaryTop": "6", "boundaryBottom": "end", "marksAvailable": null}
 
 ### IMPORTANT — Bottom-of-page rule for science papers:
 When you CANNOT detect the next question on the current page (i.e., the current question is the LAST question on that page), you MUST set yEndPct to 95 (bottom of page). Do NOT try to guess where the question content ends mid-page. Science questions often have answer blanks, diagrams, or extra whitespace that belongs to the question. Always extend to the bottom of the page when there is no next question visible below.

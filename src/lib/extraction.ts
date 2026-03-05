@@ -214,6 +214,7 @@ export async function extractExamPaperBackground(
       yStartPct: number;
       yEndPct: number;
       isContinuation: boolean;
+      subParts: string;
     };
 
     const allSegments: QuestionSegment[] = [];
@@ -227,6 +228,7 @@ export async function extractExamPaperBackground(
 
       for (const q of page.questions) {
         const isCont = !!(q as { isContinuation?: boolean }).isContinuation;
+        const subParts = ((q as { subParts?: string }).subParts ?? "").toLowerCase();
         const correctPageIndex: number = isCont
           ? page.pageIndex // continuations use their own page directly
           : resolvePageIndex(
@@ -243,6 +245,7 @@ export async function extractExamPaperBackground(
           yStartPct: q.yStartPct,
           yEndPct: q.yEndPct,
           isContinuation: isCont,
+          subParts,
         });
 
         lastCroppedQuestion = {
@@ -263,7 +266,11 @@ export async function extractExamPaperBackground(
       questionGroups.get(seg.questionNum)!.push(seg);
     }
 
-    // Process each question group — stitch multi-page questions
+    // Determine if this is a science paper — split multi-page questions per page
+    const detectedSubject = (result.header?.subject || paper.subject || "").toLowerCase();
+    const isScience = detectedSubject.includes("science");
+
+    // Process each question group
     const questions: Array<{
       questionNum: string;
       imageData: string;
@@ -279,7 +286,57 @@ export async function extractExamPaperBackground(
     for (const qNum of questionOrder) {
       const segments = questionGroups.get(qNum)!;
 
-      // Crop (single page) or stitch (multi-page)
+      // Science multi-page: split into separate questions per page segment
+      if (isScience && segments.length > 1) {
+        // Get the answer once — assign to the primary (first) segment
+        const rawEntry = result.answers?.[qNum];
+        let answer = "";
+        let answerImageData = "";
+        if (rawEntry) {
+          const entry: AnswerEntry = normalizeAnswer(rawEntry);
+          if (entry.type === "text") {
+            answer = entry.value;
+          } else if (entry.type === "image") {
+            answer = entry.value || "";
+            if (imageBuffers[entry.answerPageIndex]) {
+              answerImageData = await cropQuestionServer(
+                imageBuffers[entry.answerPageIndex],
+                entry.yStartPct,
+                entry.yEndPct
+              );
+            }
+          }
+        }
+
+        for (let si = 0; si < segments.length; si++) {
+          const seg = segments[si];
+          const croppedImage = await cropQuestionServer(
+            imageBuffers[seg.pageIndex],
+            seg.yStartPct,
+            seg.yEndPct
+          );
+          // Build label: e.g. "39ab", "39cd". If no subParts, use page position
+          const suffix = seg.subParts || (si === 0 ? "" : `_p${si + 1}`);
+          const segQNum = suffix ? `${qNum}${suffix}` : qNum;
+
+          questions.push({
+            questionNum: segQNum,
+            imageData: croppedImage,
+            answer: si === 0 ? answer : "",
+            answerImageData: si === 0 ? answerImageData : "",
+            pageIndex: seg.pageIndex,
+            orderIndex: questions.length,
+            yStartPct: seg.yStartPct ?? null,
+            yEndPct: seg.yEndPct ?? null,
+            marksAvailable: si === 0
+              ? (result.marksPerQuestion?.[qNum] ?? null)
+              : null,
+          });
+        }
+        continue;
+      }
+
+      // Single page or non-science: crop or stitch as before
       const croppedImage = segments.length === 1
         ? await cropQuestionServer(
             imageBuffers[segments[0].pageIndex],
