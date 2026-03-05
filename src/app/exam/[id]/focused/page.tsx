@@ -502,7 +502,6 @@ const AnswerCanvas = forwardRef<
 
   function handlePointerDown(e: React.PointerEvent) {
     e.preventDefault();
-    (e.target as Element).setPointerCapture(e.pointerId);
     onStart(e.clientX, e.clientY);
   }
 
@@ -512,8 +511,7 @@ const AnswerCanvas = forwardRef<
     onMove(e.clientX, e.clientY);
   }
 
-  function handlePointerUp(e: React.PointerEvent) {
-    (e.target as Element).releasePointerCapture(e.pointerId);
+  function handlePointerUp() {
     onEnd();
   }
 

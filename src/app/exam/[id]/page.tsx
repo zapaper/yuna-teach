@@ -834,8 +834,6 @@ const DrawablePage = forwardRef<
   function handlePointerDown(e: React.PointerEvent) {
     if (tool === "scroll") return;
     e.preventDefault();
-    // Capture pointer so we get move/up even if it leaves the canvas
-    (e.target as Element).setPointerCapture(e.pointerId);
     onStart(e.clientX, e.clientY);
   }
 
@@ -845,8 +843,7 @@ const DrawablePage = forwardRef<
     onMove(e.clientX, e.clientY);
   }
 
-  function handlePointerUp(e: React.PointerEvent) {
-    (e.target as Element).releasePointerCapture(e.pointerId);
+  function handlePointerUp() {
     onEnd();
   }
 
