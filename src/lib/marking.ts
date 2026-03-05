@@ -69,7 +69,14 @@ STEP 4: Record what you detected.
   "studentAnswer": Write EXACTLY what the student wrote/drew in blue ink.
     - For text/number answers: quote their written answer (e.g. "3.5 kg", "B", "12").
     - For MCQ: the option letter/number they circled/wrote (e.g. "1", "2", "3", "4", "A", "B", "C", "D").
-      IMPORTANT: A handwritten "1" is a single short vertical stroke in blue ink — do NOT dismiss it as a stray mark. Any blue ink writing in the answer area is the student's answer.
+      *** CRITICAL — Detecting the answer "1" ***
+      A handwritten "1" looks like a SINGLE SHORT VERTICAL STROKE in blue ink. It is the MOST commonly misread MCQ answer.
+      - Do NOT dismiss a single vertical blue stroke as a stray mark, scratch, or artifact — it is almost certainly the digit "1".
+      - If you see ANY blue ink mark in the answer area that resembles a short vertical line, treat it as the answer "1".
+      - "1" is a valid and common MCQ answer. Students frequently choose option (1). Expect to see it.
+      - When in doubt between "no answer" and "1", choose "1" — a deliberate stroke of blue ink in the answer area is an answer.
+      - Compare: "1" = single vertical stroke | "2" = curved top + horizontal base | "3" = two curves | "4" = angled lines.
+      Any blue ink writing in the answer area is the student's answer.
     - If nothing was written: "No answer detected"
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
 
