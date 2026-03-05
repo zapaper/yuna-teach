@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { promises as fs } from "fs";
 import path from "path";
+import { extractExamPaperBackground } from "@/lib/extraction";
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -196,6 +197,18 @@ export async function PATCH(
     }
 
     return NextResponse.json({ success: true, id: clone.id });
+  }
+
+  // --- Retry extraction ---
+  if (body.retryExtraction) {
+    await prisma.examPaper.update({
+      where: { id },
+      data: { extractionStatus: "processing" },
+    });
+    extractExamPaperBackground(id).catch((err) =>
+      console.error(`[retry-extraction] Failed for ${id}:`, err)
+    );
+    return NextResponse.json({ success: true, restarted: true });
   }
 
   // --- Regular field updates (non-assignment) ---

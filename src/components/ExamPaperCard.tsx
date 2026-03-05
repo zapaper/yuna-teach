@@ -16,9 +16,25 @@ export default function ExamPaperCard({
   onDelete?: (id: string) => void;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   const isExtracting = paper.extractionStatus === "processing";
   const extractionFailed = paper.extractionStatus === "failed";
+
+  async function retryExtraction() {
+    setRetrying(true);
+    try {
+      await fetch(`/api/exam/${paper.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ retryExtraction: true }),
+      });
+      // Reload the page to show the spinner
+      window.location.reload();
+    } catch {
+      setRetrying(false);
+    }
+  }
 
   // Parents: if extraction just finished (ready), go to edit for review; otherwise overview
   // Students: review (if released) or practice
@@ -46,6 +62,13 @@ export default function ExamPaperCard({
               </h3>
               <p className="text-sm text-blue-600 mt-0.5">Analyzing and extracting...</p>
               <p className="text-xs text-slate-400 mt-1">This takes 3–5 mins. Feel free to continue with other work!</p>
+              <button
+                onClick={retryExtraction}
+                disabled={retrying}
+                className="mt-2 text-xs text-slate-400 hover:text-amber-600 transition-colors disabled:opacity-50"
+              >
+                {retrying ? "Restarting..." : "Stuck? Tap to retry"}
+              </button>
             </div>
           </div>
         </div>
@@ -85,9 +108,13 @@ export default function ExamPaperCard({
                 </span>
               ) : null}
               {extractionFailed ? (
-                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700">
-                  Extraction failed
-                </span>
+                <button
+                  onClick={(e) => { e.preventDefault(); retryExtraction(); }}
+                  disabled={retrying}
+                  className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-700 hover:bg-red-200 transition-colors disabled:opacity-50"
+                >
+                  {retrying ? "Retrying..." : "Extraction failed — tap to retry"}
+                </button>
               ) : (
                 <span className="text-xs text-slate-400">
                   {paper.questionCount} questions
