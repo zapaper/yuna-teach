@@ -295,7 +295,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         const canvas = document.createElement("canvas");
         canvas.width = img.naturalWidth;
         canvas.height = img.naturalHeight;
-        canvas.getContext("2d")!.drawImage(img, 0, 0);
+        canvas.getContext("2d", { desynchronized: true })!.drawImage(img, 0, 0);
         pages.push({ dataUrl: canvas.toDataURL("image/jpeg", 0.92), w: img.naturalWidth, h: img.naturalHeight });
         URL.revokeObjectURL(url);
       }
@@ -337,7 +337,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         const canvas = document.createElement("canvas");
         canvas.width = img.naturalWidth;
         canvas.height = img.naturalHeight;
-        const ctx = canvas.getContext("2d")!;
+        const ctx = canvas.getContext("2d", { desynchronized: true })!;
         ctx.drawImage(img, 0, 0);
         const pxToMm = 25.4 / 150;
         pages.push({
@@ -676,12 +676,12 @@ const DrawablePage = forwardRef<
     undo() {
       const canvas = canvasRef.current;
       if (!canvas || history.current.length === 0) return;
-      canvas.getContext("2d")!.putImageData(history.current.pop()!, 0, 0);
+      canvas.getContext("2d", { desynchronized: true })!.putImageData(history.current.pop()!, 0, 0);
     },
     clear() {
       const canvas = canvasRef.current;
       if (!canvas) return;
-      canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.getContext("2d", { desynchronized: true })?.clearRect(0, 0, canvas.width, canvas.height);
       history.current = [];
     },
     exportComposite(): Promise<Blob> {
@@ -722,7 +722,7 @@ const DrawablePage = forwardRef<
     const url = URL.createObjectURL(blob);
     const img = new Image();
     img.onload = () => {
-      canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.getContext("2d", { desynchronized: true })?.drawImage(img, 0, 0, canvas.width, canvas.height);
       URL.revokeObjectURL(url);
     };
     img.src = url;
@@ -748,34 +748,36 @@ const DrawablePage = forwardRef<
     }
   }, [inkBlob]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Cache bounding rect — avoids forced layout reflow on every pointer event
+  const cachedRect = useRef<DOMRect | null>(null);
+  function invalidateRect() { cachedRect.current = null; }
+
   function getPos(clientX: number, clientY: number) {
     const canvas = canvasRef.current!;
-    const rect = canvas.getBoundingClientRect();
+    if (!cachedRect.current) cachedRect.current = canvas.getBoundingClientRect();
+    const rect = cachedRect.current;
     return {
       x: (clientX - rect.left) * (canvas.width / rect.width),
       y: (clientY - rect.top) * (canvas.height / rect.height),
     };
   }
 
+  // Invalidate cached rect on scroll/resize
+  useEffect(() => {
+    window.addEventListener("scroll", invalidateRect, true);
+    window.addEventListener("resize", invalidateRect);
+    return () => {
+      window.removeEventListener("scroll", invalidateRect, true);
+      window.removeEventListener("resize", invalidateRect);
+    };
+  }, []);
+
   function saveSnapshot() {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
+    const ctx = canvas.getContext("2d", { desynchronized: true })!;
     history.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
     if (history.current.length > 30) history.current.shift();
-  }
-
-  function applyStyle(ctx: CanvasRenderingContext2D) {
-    ctx.lineCap = "round"; ctx.lineJoin = "round";
-    if (tool === "eraser") {
-      ctx.globalCompositeOperation = "destination-out";
-      ctx.strokeStyle = "rgba(0,0,0,1)";
-      ctx.lineWidth = 24;
-    } else {
-      ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = "rgba(37,99,235,0.85)";
-      ctx.lineWidth = 3;
-    }
   }
 
   // Debounced snapshot: only captures after 300ms idle, never between rapid strokes
@@ -795,77 +797,78 @@ const DrawablePage = forwardRef<
       snapshotTimer.current = null;
       const canvas = canvasRef.current;
       if (!canvas) return;
-      pendingSnapshot.current = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height);
+      pendingSnapshot.current = canvas.getContext("2d", { desynchronized: true })!.getImageData(0, 0, canvas.width, canvas.height);
     }, 300);
   }
 
-  function onStart(clientX: number, clientY: number) {
-    if (tool === "scroll") return;
-    // Cancel any pending snapshot capture immediately — prevents getImageData
-    // from blocking the main thread during rapid strokes
-    cancelPendingCapture();
-    onStrokeStart();
-    isDrawing.current = true;
-    if (pendingSnapshot.current) {
-      history.current.push(pendingSnapshot.current);
-      if (history.current.length > 30) history.current.shift();
-      pendingSnapshot.current = null;
-    } else if (history.current.length === 0) {
-      // First stroke only — save synchronously once
-      saveSnapshot();
-    }
-    const pos = getPos(clientX, clientY);
-    lastPos.current = pos;
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
-    applyStyle(ctx);
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, tool === "eraser" ? 12 : 1.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  function onMove(clientX: number, clientY: number) {
-    if (!isDrawing.current || !lastPos.current || tool === "scroll") return;
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
-    const pos = getPos(clientX, clientY);
-    applyStyle(ctx);
-    ctx.beginPath(); ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(pos.x, pos.y); ctx.stroke();
-    lastPos.current = pos;
-  }
-
-  function onEnd() {
-    isDrawing.current = false;
-    lastPos.current = null;
-    // Schedule snapshot after 300ms idle — if user starts drawing again
-    // within 300ms, the capture is cancelled (no main thread blocking)
-    scheduleSnapshotCapture();
-  }
-
-  // Use native event listeners for zero-overhead pointer handling
+  // Store tool and onStrokeStart in refs so native listeners always see latest values
   const toolRef = useRef(tool);
   toolRef.current = tool;
   const onStrokeStartRef = useRef(onStrokeStart);
   onStrokeStartRef.current = onStrokeStart;
 
+  // Stable native event listeners — attached once, never re-attached
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // Get a cached 2D context once — avoids repeated getContext calls
+    const ctx = canvas.getContext("2d", { desynchronized: true })!;
+
+    function applyStyle() {
+      ctx.lineCap = "round"; ctx.lineJoin = "round";
+      if (toolRef.current === "eraser") {
+        ctx.globalCompositeOperation = "destination-out";
+        ctx.strokeStyle = "rgba(0,0,0,1)";
+        ctx.lineWidth = 24;
+      } else {
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = "rgba(37,99,235,0.85)";
+        ctx.lineWidth = 3;
+      }
+    }
+
     function handlePointerDown(e: PointerEvent) {
       if (toolRef.current === "scroll") return;
       e.preventDefault();
-      onStart(e.clientX, e.clientY);
+      // Cancel any pending snapshot immediately
+      cancelPendingCapture();
+      onStrokeStartRef.current();
+      isDrawing.current = true;
+      if (pendingSnapshot.current) {
+        history.current.push(pendingSnapshot.current);
+        if (history.current.length > 30) history.current.shift();
+        pendingSnapshot.current = null;
+      } else if (history.current.length === 0) {
+        saveSnapshot();
+      }
+      const pos = getPos(e.clientX, e.clientY);
+      lastPos.current = pos;
+      applyStyle();
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, toolRef.current === "eraser" ? 12 : 1.5, 0, Math.PI * 2);
+      ctx.fill();
     }
+
     function handlePointerMove(e: PointerEvent) {
-      if (!isDrawing.current) return;
+      if (!isDrawing.current || !lastPos.current) return;
       e.preventDefault();
-      onMove(e.clientX, e.clientY);
+      const pos = getPos(e.clientX, e.clientY);
+      applyStyle();
+      ctx.beginPath();
+      ctx.moveTo(lastPos.current.x, lastPos.current.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      lastPos.current = pos;
     }
+
     function handlePointerUp() {
-      onEnd();
+      if (!isDrawing.current) return;
+      isDrawing.current = false;
+      lastPos.current = null;
+      scheduleSnapshotCapture();
     }
+
     function handleContextMenu(e: Event) {
       e.preventDefault();
     }
@@ -884,7 +887,7 @@ const DrawablePage = forwardRef<
       canvas.removeEventListener("contextmenu", handleContextMenu);
       cancelPendingCapture();
     };
-  }); // Re-attach when component re-renders to capture latest closures
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const drawing = tool !== "scroll";
 
