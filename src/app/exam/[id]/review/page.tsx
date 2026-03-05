@@ -46,6 +46,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [answerPages, setAnswerPages] = useState<number[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [showAll, setShowAll] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
@@ -166,7 +167,8 @@ function ExamReviewContent({ id }: { id: string }) {
     return q.marksAwarded < q.marksAvailable;
   });
 
-  const currentQ = incorrectQuestions[currentIdx] ?? null;
+  const displayQuestions = showAll ? data.questions : incorrectQuestions;
+  const currentQ = displayQuestions[currentIdx] ?? null;
 
   function renderWithNewlines(text: string) {
     return text.split("|").map((part, i, arr) => (
@@ -218,6 +220,24 @@ function ExamReviewContent({ id }: { id: string }) {
           </button>
         </div>
 
+        {/* Incorrect / All toggle */}
+        <div className="flex justify-end mb-3">
+          <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+            <button
+              onClick={() => { setShowAll(false); setCurrentIdx(0); }}
+              className={`px-3 py-1.5 transition-colors ${!showAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+            >
+              Incorrect ({incorrectQuestions.length})
+            </button>
+            <button
+              onClick={() => { setShowAll(true); setCurrentIdx(0); }}
+              className={`px-3 py-1.5 transition-colors ${showAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+            >
+              All ({data.questions.length})
+            </button>
+          </div>
+        </div>
+
         {/* Advisory message */}
         <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-4">
           <p className="text-xs text-amber-700 leading-relaxed">
@@ -236,18 +256,24 @@ function ExamReviewContent({ id }: { id: string }) {
         ) : null}
 
         {/* Questions to review — flip-through */}
-        {incorrectQuestions.length === 0 ? (
+        {displayQuestions.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-3xl mb-3">&#127881;</p>
-            <p className="text-slate-600 font-medium">Perfect score!</p>
-            <p className="text-slate-400 text-sm mt-1">You got every question right.</p>
+            {incorrectQuestions.length === 0 ? (
+              <>
+                <p className="text-3xl mb-3">&#127881;</p>
+                <p className="text-slate-600 font-medium">Perfect score!</p>
+                <p className="text-slate-400 text-sm mt-1">You got every question right.</p>
+              </>
+            ) : (
+              <p className="text-slate-400 text-sm">No questions to show.</p>
+            )}
           </div>
         ) : (
           <div>
             {/* Navigation header */}
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Questions to Review
+                {showAll ? "All Questions" : "Questions to Review"}
               </h2>
               <div className="flex items-center gap-2">
                 <button
@@ -261,11 +287,11 @@ function ExamReviewContent({ id }: { id: string }) {
                   </svg>
                 </button>
                 <span className="text-xs font-medium text-slate-500 min-w-[3rem] text-center">
-                  {currentIdx + 1} / {incorrectQuestions.length}
+                  {currentIdx + 1} / {displayQuestions.length}
                 </span>
                 <button
-                  onClick={() => setCurrentIdx((i) => Math.min(incorrectQuestions.length - 1, i + 1))}
-                  disabled={currentIdx === incorrectQuestions.length - 1}
+                  onClick={() => setCurrentIdx((i) => Math.min(displayQuestions.length - 1, i + 1))}
+                  disabled={currentIdx === displayQuestions.length - 1}
                   className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -285,6 +311,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     Question {currentQ.questionNum}
                   </span>
                   <span className={`text-sm font-bold ${
+                    (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :
                     (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
                   }`}>
                     {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
@@ -304,16 +331,16 @@ function ExamReviewContent({ id }: { id: string }) {
                   </div>
 
                   {/* Solutions panel */}
-                  <div className="px-4 py-3 space-y-3 md:flex-1 md:overflow-y-auto">
+                  <div className="px-4 py-3 space-y-3 md:flex-1 md:overflow-y-auto md:max-h-[70vh]">
                     {/* Correct answer */}
                     {currentQ.answer ? (
                       <div>
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
                           Correct Answer
                         </p>
-                        <p className="text-sm text-slate-800 leading-relaxed">
+                        <div className="text-sm text-slate-800 leading-relaxed max-h-48 overflow-y-auto rounded-lg bg-slate-50 p-3 border border-slate-100">
                           {renderWithNewlines(currentQ.answer)}
-                        </p>
+                        </div>
                       </div>
                     ) : null}
 

@@ -64,6 +64,8 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [remarkingId, setRemarkingId] = useState<string | null>(null);
   const [manualId, setManualId] = useState<string | null>(null);
   const [manualValue, setManualValue] = useState("");
+  const [reviewShowAll, setReviewShowAll] = useState(false);
+  const [reviewIdx, setReviewIdx] = useState(0);
 
   // Feedback editing
   const [editingFeedback, setEditingFeedback] = useState(false);
@@ -161,6 +163,8 @@ function ExamOverviewContent({ id }: { id: string }) {
   async function openMarkingDetail(cloneId: string) {
     setDetailCloneId(cloneId);
     setDetailLoading(true);
+    setReviewShowAll(false);
+    setReviewIdx(0);
     try {
       const [markRes, subRes] = await Promise.all([
         fetch(`/api/exam/${cloneId}/mark`),
@@ -789,94 +793,180 @@ function ExamOverviewContent({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Per-question grid */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
-        <div className="grid grid-cols-2 gap-3">
-          {markingDetail.questions.map((q) => {
-            const awarded = q.marksAwarded ?? null;
-            const available = q.marksAvailable ?? null;
-            const full = awarded !== null && available !== null && awarded >= available;
-            const none = awarded !== null && awarded === 0;
-            const submissionPage = getSubmissionPage(q.pageIndex);
-            const isRemarking = remarkingId === q.id;
-            const isManual = manualId === q.id;
+      {/* Per-question card view */}
+      {(() => {
+        const incorrectQs = markingDetail.questions.filter(
+          (q) => q.marksAwarded !== null && q.marksAvailable !== null && q.marksAwarded < q.marksAvailable
+        );
+        const displayQs = reviewShowAll ? markingDetail.questions : incorrectQs;
+        const currentQ = displayQs[reviewIdx] ?? null;
 
-            return (
-              <div key={q.id} className="rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm">
-                {/* Header: Q number + score */}
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-semibold text-slate-700">Q{q.questionNum}</span>
-                  <span className={`text-xs font-bold ${full ? "text-green-600" : none ? "text-red-500" : "text-amber-600"}`}>
-                    {awarded !== null ? awarded : "\u2014"}{available !== null ? <span> / {available}</span> : null}
-                  </span>
+        function renderAnswer(text: string) {
+          return text.split("|").map((part, i, arr) => (
+            <span key={i}>{part.trim()}{i < arr.length - 1 ? <br /> : null}</span>
+          ));
+        }
+
+        return (
+          <div className="flex-1 overflow-y-auto px-4 py-3">
+            {/* Toggle */}
+            <div className="flex justify-end mb-3">
+              <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+                <button
+                  onClick={() => { setReviewShowAll(false); setReviewIdx(0); }}
+                  className={`px-3 py-1.5 transition-colors ${!reviewShowAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+                >
+                  Incorrect ({incorrectQs.length})
+                </button>
+                <button
+                  onClick={() => { setReviewShowAll(true); setReviewIdx(0); }}
+                  className={`px-3 py-1.5 transition-colors ${reviewShowAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+                >
+                  All ({markingDetail.questions.length})
+                </button>
+              </div>
+            </div>
+
+            {displayQs.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-3xl mb-3">&#127881;</p>
+                <p className="text-slate-600 font-medium">All correct!</p>
+              </div>
+            ) : (
+              <div>
+                {/* Navigation */}
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    {reviewShowAll ? "All Questions" : "Questions to Review"}
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setReviewIdx((i) => Math.max(0, i - 1))}
+                      disabled={reviewIdx === 0}
+                      className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m15 18-6-6 6-6" />
+                      </svg>
+                    </button>
+                    <span className="text-xs font-medium text-slate-500 min-w-[3rem] text-center">
+                      {reviewIdx + 1} / {displayQs.length}
+                    </span>
+                    <button
+                      onClick={() => setReviewIdx((i) => Math.min(displayQs.length - 1, i + 1))}
+                      disabled={reviewIdx === displayQs.length - 1}
+                      className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m9 18 6-6-6-6" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
 
-                {/* Thumbnail — full width */}
-                <button
-                  onClick={() => setLightboxQ(q)}
-                  className="w-full rounded-lg overflow-hidden border border-slate-200 hover:border-primary-400 transition-colors bg-slate-50 mb-1.5"
-                  title="View question image"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/api/exam/${detailCloneId}/submission?page=${submissionPage}`} alt={`Q${q.questionNum}`}
-                    className="w-full h-auto block"
-                    style={q.yStartPct != null && q.yEndPct != null ? {
-                      objectFit: "cover",
-                      objectPosition: `50% ${(q.yStartPct + q.yEndPct) / 2}%`,
-                      aspectRatio: `1 / ${((q.yEndPct - q.yStartPct) / 100) * 1.5}`,
-                    } : {}}
-                  />
-                </button>
+                {/* Current question card */}
+                {currentQ ? (
+                  <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
+                    {/* Question header */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
+                      <span className="text-sm font-semibold text-slate-700">
+                        Question {currentQ.questionNum}
+                      </span>
+                      <span className={`text-sm font-bold ${
+                        (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :
+                        (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
+                      }`}>
+                        {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
+                      </span>
+                    </div>
 
-                {/* Expected answer + AI notes */}
-                {q.answer ? (
-                  <p className="text-xs text-slate-400 mb-0.5 truncate" title={q.answer}>
-                    <span className="font-medium">Ans:</span> {q.answer}
-                  </p>
-                ) : null}
-                {q.markingNotes ? (
-                  <p className="text-xs text-slate-500 leading-relaxed mb-1.5 line-clamp-2">{q.markingNotes}</p>
-                ) : null}
-
-                {/* Actions */}
-                {isManual ? (
-                  <div className="flex items-center gap-1.5">
-                    <input type="number" value={manualValue} onChange={(e) => setManualValue(e.target.value)}
-                      placeholder="Marks" min="0" step="0.5"
-                      className="w-14 px-1.5 py-1 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-primary-400" />
-                    <button onClick={() => saveManualMark(q.id)}
-                      className="text-xs px-2 py-1 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600">
-                      Save
-                    </button>
-                    <button onClick={() => setManualId(null)}
-                      className="text-xs px-2 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5">
-                    {isRemarking ? (
-                      <div className="flex items-center gap-1 text-xs text-blue-500">
-                        <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500 inline-block" />
-                        <span>Re-marking</span>
+                    {/* Side-by-side on wide screens */}
+                    <div className="md:flex">
+                      {/* Submission image */}
+                      <div className="border-b border-slate-100 md:border-b-0 md:border-r md:w-1/2 md:shrink-0">
+                        <button onClick={() => setLightboxQ(currentQ)} className="w-full block">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/api/exam/${detailCloneId}/submission?page=${getSubmissionPage(currentQ.pageIndex)}`}
+                            alt={`Q${currentQ.questionNum}`}
+                            className="w-full h-auto"
+                          />
+                        </button>
                       </div>
-                    ) : (
-                      <button onClick={() => remarkQuestion(q.id)}
-                        className="text-xs px-2 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-                        Re-mark
-                      </button>
-                    )}
-                    <button onClick={() => { setManualId(q.id); setManualValue(String(q.marksAwarded ?? "")); }}
-                      className="text-xs px-2 py-1 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-                      Manual
-                    </button>
+
+                      {/* Solutions panel */}
+                      <div className="px-4 py-3 space-y-3 md:flex-1 md:overflow-y-auto md:max-h-[60vh]">
+                        {/* Correct answer */}
+                        {currentQ.answer ? (
+                          <div>
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                              Correct Answer
+                            </p>
+                            <div className="text-sm text-slate-800 leading-relaxed max-h-48 overflow-y-auto rounded-lg bg-slate-50 p-3 border border-slate-100">
+                              {renderAnswer(currentQ.answer)}
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {/* Marking notes */}
+                        {currentQ.markingNotes ? (
+                          <div>
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                              Marking Notes
+                            </p>
+                            <p className="text-sm text-slate-600 leading-relaxed">
+                              {renderAnswer(currentQ.markingNotes)}
+                            </p>
+                          </div>
+                        ) : null}
+
+                        {/* Actions */}
+                        <div className="pt-2 border-t border-slate-100">
+                          {manualId === currentQ.id ? (
+                            <div className="flex items-center gap-1.5">
+                              <input type="number" value={manualValue} onChange={(e) => setManualValue(e.target.value)}
+                                placeholder="Marks" min="0" step="0.5"
+                                className="w-16 px-2 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-primary-400" />
+                              <button onClick={() => saveManualMark(currentQ.id)}
+                                className="text-xs px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600">
+                                Save
+                              </button>
+                              <button onClick={() => setManualId(null)}
+                                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50">
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              {remarkingId === currentQ.id ? (
+                                <div className="flex items-center gap-1 text-xs text-blue-500">
+                                  <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-500 inline-block" />
+                                  <span>Re-marking...</span>
+                                </div>
+                              ) : (
+                                <button onClick={() => remarkQuestion(currentQ.id)}
+                                  className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                                  Re-mark
+                                </button>
+                              )}
+                              <button onClick={() => { setManualId(currentQ.id); setManualValue(String(currentQ.marksAwarded ?? "")); }}
+                                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                                Manual
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
+                ) : null}
               </div>
-            );
-          })}
-        </div>
-      </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Footer */}
       <div className="border-t border-slate-100 px-4 py-3 space-y-2">
