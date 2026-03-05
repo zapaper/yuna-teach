@@ -778,10 +778,31 @@ const DrawablePage = forwardRef<
     }
   }
 
+  // Pre-saved snapshot: captured at end of previous stroke, ready for next undo
+  const pendingSnapshot = useRef<ImageData | null>(null);
+
+  function captureSnapshotAsync() {
+    // Defer snapshot capture to avoid blocking pointer events
+    requestAnimationFrame(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      pendingSnapshot.current = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height);
+    });
+  }
+
   function onStart(clientX: number, clientY: number) {
     if (tool === "scroll") return;
-    saveSnapshot(); onStrokeStart();
+    onStrokeStart();
     isDrawing.current = true;
+    // Push the pre-captured snapshot (from end of last stroke) as the undo point
+    if (pendingSnapshot.current) {
+      history.current.push(pendingSnapshot.current);
+      if (history.current.length > 30) history.current.shift();
+      pendingSnapshot.current = null;
+    } else {
+      // First stroke — save synchronously (only happens once)
+      saveSnapshot();
+    }
     const pos = getPos(clientX, clientY);
     lastPos.current = pos;
     const ctx = canvasRef.current?.getContext("2d");
@@ -803,7 +824,12 @@ const DrawablePage = forwardRef<
     lastPos.current = pos;
   }
 
-  function onEnd() { isDrawing.current = false; lastPos.current = null; }
+  function onEnd() {
+    isDrawing.current = false;
+    lastPos.current = null;
+    // Pre-capture snapshot for next stroke's undo (deferred, won't block next pointerdown)
+    captureSnapshotAsync();
+  }
 
   function handlePointerDown(e: React.PointerEvent) {
     if (tool === "scroll") return;
