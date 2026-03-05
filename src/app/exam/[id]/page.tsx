@@ -805,6 +805,25 @@ const DrawablePage = forwardRef<
 
   function onEnd() { isDrawing.current = false; lastPos.current = null; }
 
+  function handlePointerDown(e: React.PointerEvent) {
+    if (tool === "scroll") return;
+    e.preventDefault();
+    // Capture pointer so we get move/up even if it leaves the canvas
+    (e.target as Element).setPointerCapture(e.pointerId);
+    onStart(e.clientX, e.clientY);
+  }
+
+  function handlePointerMove(e: React.PointerEvent) {
+    if (!isDrawing.current) return;
+    e.preventDefault();
+    onMove(e.clientX, e.clientY);
+  }
+
+  function handlePointerUp(e: React.PointerEvent) {
+    (e.target as Element).releasePointerCapture(e.pointerId);
+    onEnd();
+  }
+
   const drawing = tool !== "scroll";
 
   return (
@@ -820,13 +839,11 @@ const DrawablePage = forwardRef<
           touchAction: "none",
           cursor: tool === "pen" ? PEN_CURSOR : tool === "eraser" ? "cell" : "default",
         }}
-        onMouseDown={(e) => { e.preventDefault(); onStart(e.clientX, e.clientY); }}
-        onMouseMove={(e) => onMove(e.clientX, e.clientY)}
-        onMouseUp={onEnd} onMouseLeave={onEnd}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         onContextMenu={(e) => e.preventDefault()}
-        onTouchStart={(e) => { e.preventDefault(); onStart(e.touches[0].clientX, e.touches[0].clientY); }}
-        onTouchMove={(e) => { e.preventDefault(); onMove(e.touches[0].clientX, e.touches[0].clientY); }}
-        onTouchEnd={onEnd}
       />
     </div>
   );
