@@ -44,62 +44,45 @@ async function cropQuestionServer(
   return `data:image/jpeg;base64,${croppedBuffer.toString("base64")}`;
 }
 
-async function stitchQuestionImages(
-  segments: Array<{ buffer: Buffer; yStartPct: number; yEndPct: number }>
-): Promise<string> {
-  if (segments.length === 1) {
-    return cropQuestionServer(segments[0].buffer, segments[0].yStartPct, segments[0].yEndPct);
+/**
+ * Split a multi-part answer string by sub-part labels.
+ * Answer format: "(a) 24 cm² | (b) 15 cm | (c) 3.5 kg"
+ * subParts: "ab" → "(a) 24 cm² | (b) 15 cm"
+ * subParts: "c"  → "(c) 3.5 kg"
+ */
+function splitAnswerBySubParts(fullAnswer: string, subParts: string): string {
+  if (!fullAnswer || !subParts) return "";
+  const letters = subParts.split("");
+  // Build a regex that matches parts like "(a)", "(b)", etc.
+  // Split the answer into labeled chunks
+  const partRegex = /\(([a-z])\)\s*/gi;
+  const parts: { label: string; text: string }[] = [];
+  let match: RegExpExecArray | null;
+  const positions: { label: string; start: number; contentStart: number }[] = [];
+
+  while ((match = partRegex.exec(fullAnswer)) !== null) {
+    positions.push({
+      label: match[1].toLowerCase(),
+      start: match.index,
+      contentStart: match.index + match[0].length,
+    });
   }
 
-  // Crop each segment individually
-  const croppedBuffers: Buffer[] = [];
-  for (const seg of segments) {
-    const metadata = await sharp(seg.buffer).metadata();
-    const height = metadata.height!;
-    const width = metadata.width!;
-    const topPad = Math.round(0.05 * height);
-    const botPad = Math.round(0.02 * height);
-    const top = Math.max(0, Math.floor((seg.yStartPct / 100) * height) - topPad);
-    const bottom = Math.min(height, Math.ceil((seg.yEndPct / 100) * height) + botPad);
-    const cropHeight = bottom - top;
-    if (cropHeight <= 0) {
-      croppedBuffers.push(await sharp(seg.buffer).jpeg({ quality: 85 }).toBuffer());
-    } else {
-      croppedBuffers.push(
-        await sharp(seg.buffer)
-          .extract({ left: 0, top, width, height: cropHeight })
-          .jpeg({ quality: 85 })
-          .toBuffer()
-      );
-    }
+  if (positions.length === 0) {
+    // No labeled parts found — if this is the first segment, return the whole answer
+    return fullAnswer;
   }
 
-  // Get dimensions of each cropped image
-  const metas = await Promise.all(croppedBuffers.map(b => sharp(b).metadata()));
-  const maxWidth = Math.max(...metas.map(m => m.width!));
-  const totalHeight = metas.reduce((sum, m) => sum + m.height!, 0);
+  for (let i = 0; i < positions.length; i++) {
+    const end = i + 1 < positions.length ? positions[i + 1].start : fullAnswer.length;
+    const text = fullAnswer.slice(positions[i].start, end).trim();
+    // Remove trailing " | " separator
+    parts.push({ label: positions[i].label, text: text.replace(/\s*\|\s*$/, "") });
+  }
 
-  // Stitch vertically
-  let yOffset = 0;
-  const composites = croppedBuffers.map((buf, i) => {
-    const result = { input: buf, left: 0, top: yOffset };
-    yOffset += metas[i].height!;
-    return result;
-  });
-
-  const stitched = await sharp({
-    create: {
-      width: maxWidth,
-      height: totalHeight,
-      channels: 3,
-      background: { r: 255, g: 255, b: 255 },
-    },
-  })
-    .composite(composites)
-    .jpeg({ quality: 85 })
-    .toBuffer();
-
-  return `data:image/jpeg;base64,${stitched.toString("base64")}`;
+  // Filter to only the parts in this segment's subParts
+  const matched = parts.filter((p) => letters.includes(p.label));
+  return matched.map((p) => p.text).join(" | ");
 }
 
 type BookletRange = {
@@ -286,28 +269,28 @@ export async function extractExamPaperBackground(
     for (const qNum of questionOrder) {
       const segments = questionGroups.get(qNum)!;
 
-      // Science multi-page: split into separate questions per page segment
-      if (isScience && segments.length > 1) {
-        // Get the answer once — assign to the primary (first) segment
-        const rawEntry = result.answers?.[qNum];
-        let answer = "";
-        let answerImageData = "";
-        if (rawEntry) {
-          const entry: AnswerEntry = normalizeAnswer(rawEntry);
-          if (entry.type === "text") {
-            answer = entry.value;
-          } else if (entry.type === "image") {
-            answer = entry.value || "";
-            if (imageBuffers[entry.answerPageIndex]) {
-              answerImageData = await cropQuestionServer(
-                imageBuffers[entry.answerPageIndex],
-                entry.yStartPct,
-                entry.yEndPct
-              );
-            }
+      // Get full answer for this question number
+      const rawEntry = result.answers?.[qNum];
+      let fullAnswer = "";
+      let answerImageData = "";
+      if (rawEntry) {
+        const entry: AnswerEntry = normalizeAnswer(rawEntry);
+        if (entry.type === "text") {
+          fullAnswer = entry.value;
+        } else if (entry.type === "image") {
+          fullAnswer = entry.value || "";
+          if (imageBuffers[entry.answerPageIndex]) {
+            answerImageData = await cropQuestionServer(
+              imageBuffers[entry.answerPageIndex],
+              entry.yStartPct,
+              entry.yEndPct
+            );
           }
         }
+      }
 
+      // Multi-page: split into separate questions per page segment
+      if (segments.length > 1) {
         for (let si = 0; si < segments.length; si++) {
           const seg = segments[si];
           const croppedImage = await cropQuestionServer(
@@ -319,10 +302,15 @@ export async function extractExamPaperBackground(
           const suffix = seg.subParts || (si === 0 ? "" : `_p${si + 1}`);
           const segQNum = suffix ? `${qNum}${suffix}` : qNum;
 
+          // Split the text answer by sub-part labels for this segment
+          const segAnswer = seg.subParts
+            ? splitAnswerBySubParts(fullAnswer, seg.subParts)
+            : (si === 0 ? fullAnswer : "");
+
           questions.push({
             questionNum: segQNum,
             imageData: croppedImage,
-            answer: si === 0 ? answer : "",
+            answer: segAnswer,
             answerImageData: si === 0 ? answerImageData : "",
             pageIndex: seg.pageIndex,
             orderIndex: questions.length,
@@ -336,52 +324,23 @@ export async function extractExamPaperBackground(
         continue;
       }
 
-      // Single page or non-science: crop or stitch as before
-      const croppedImage = segments.length === 1
-        ? await cropQuestionServer(
-            imageBuffers[segments[0].pageIndex],
-            segments[0].yStartPct,
-            segments[0].yEndPct
-          )
-        : await stitchQuestionImages(
-            segments.map(seg => ({
-              buffer: imageBuffers[seg.pageIndex],
-              yStartPct: seg.yStartPct,
-              yEndPct: seg.yEndPct,
-            }))
-          );
-
-      // Handle answers
-      const rawEntry = result.answers?.[qNum];
-      let answer = "";
-      let answerImageData = "";
-
-      if (rawEntry) {
-        const entry: AnswerEntry = normalizeAnswer(rawEntry);
-        if (entry.type === "text") {
-          answer = entry.value;
-        } else if (entry.type === "image") {
-          answer = entry.value || "";
-          if (imageBuffers[entry.answerPageIndex]) {
-            answerImageData = await cropQuestionServer(
-              imageBuffers[entry.answerPageIndex],
-              entry.yStartPct,
-              entry.yEndPct
-            );
-          }
-        }
-      }
+      // Single page
+      const croppedImage = await cropQuestionServer(
+        imageBuffers[segments[0].pageIndex],
+        segments[0].yStartPct,
+        segments[0].yEndPct
+      );
 
       const primary = segments[0];
       questions.push({
         questionNum: qNum,
         imageData: croppedImage,
-        answer,
+        answer: fullAnswer,
         answerImageData,
         pageIndex: primary.pageIndex,
         orderIndex: questions.length,
         yStartPct: primary.yStartPct ?? null,
-        yEndPct: segments.length === 1 ? (primary.yEndPct ?? null) : null,
+        yEndPct: primary.yEndPct ?? null,
         marksAvailable:
           result.marksPerQuestion?.[qNum] ?? null,
       });
