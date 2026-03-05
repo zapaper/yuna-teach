@@ -559,6 +559,7 @@ function PdfLoader({
 // ─── Question card ────────────────────────────────────────────────────────────
 
 const P6_MATH_TOPICS = [
+  "Basic math operations",
   "Fractions",
   "Percentage",
   "Ratio",
@@ -567,18 +568,8 @@ const P6_MATH_TOPICS = [
   "Volume of cube and cuboid",
   "Geometry",
   "Statistics",
+  "Time",
 ];
-
-const TOPIC_COLORS: Record<string, string> = {
-  "Fractions": "bg-blue-100 text-blue-700",
-  "Percentage": "bg-green-100 text-green-700",
-  "Ratio": "bg-amber-100 text-amber-700",
-  "Algebra": "bg-purple-100 text-purple-700",
-  "Area and circumference of circle": "bg-pink-100 text-pink-700",
-  "Volume of cube and cuboid": "bg-cyan-100 text-cyan-700",
-  "Geometry": "bg-orange-100 text-orange-700",
-  "Statistics": "bg-teal-100 text-teal-700",
-};
 
 function QuestionEditCard({
   question,
@@ -743,7 +734,7 @@ function QuestionEditCard({
             </label>
             <div className="flex-1 flex items-center gap-2">
               {question.syllabusTopic && (
-                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${TOPIC_COLORS[question.syllabusTopic] || "bg-slate-100 text-slate-600"}`}>
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
                   {question.syllabusTopic}
                 </span>
               )}

@@ -619,6 +619,7 @@ This applies to ALL entries (both primary and continuation) — if no next quest
 // ─── P6 Math Syllabus Topics ────────────────────────────────────────────────
 
 export const P6_MATH_SYLLABUS = [
+  "Basic math operations",
   "Fractions",
   "Percentage",
   "Ratio",
@@ -627,6 +628,7 @@ export const P6_MATH_SYLLABUS = [
   "Volume of cube and cuboid",
   "Geometry",
   "Statistics",
+  "Time",
 ] as const;
 
 const MATH_SYLLABUS_ADDENDUM = `
