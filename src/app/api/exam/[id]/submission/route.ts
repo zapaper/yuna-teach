@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
-import { markExamPaper } from "@/lib/marking";
+import { markExamPaper, markFocusedTest } from "@/lib/marking";
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -111,15 +111,22 @@ export async function POST(
   }
 
   if (action === "submit") {
-    await prisma.examPaper.update({
+    const updatedPaper = await prisma.examPaper.update({
       where: { id },
       data: { completedAt: new Date() },
+      select: { paperType: true },
     });
 
     // Auto-mark in background — fire and forget
-    markExamPaper(id).catch((err) =>
-      console.error(`[Auto-mark] Background marking for ${id} failed:`, err)
-    );
+    if (updatedPaper.paperType === "focused") {
+      markFocusedTest(id).catch((err) =>
+        console.error(`[Auto-mark] Focused test marking for ${id} failed:`, err)
+      );
+    } else {
+      markExamPaper(id).catch((err) =>
+        console.error(`[Auto-mark] Background marking for ${id} failed:`, err)
+      );
+    }
   }
 
   return NextResponse.json({ success: true, pageCount });

@@ -654,7 +654,29 @@ Keep the tone warm, positive, and age-appropriate for a primary school child. To
   return feedbackText;
 }
 
-// ── Focused test marking (text-only answers) ─────────────────────────────
+// ── Focused test marking (handwritten answers, one submission page per question) ─
+
+const FOCUSED_MARKING_PROMPT = `You are marking a primary school student's handwritten answer for a math question. Be concise.
+
+HOW TO READ THE IMAGES:
+- Image 1: The printed question.
+- Image 2: The student's handwritten answer (blue ink on white paper).
+{ANSWER_IMAGE_NOTE}
+
+Expected answer: {EXPECTED_ANSWER}
+Marks available: {MARKS_AVAILABLE}
+
+Instructions:
+1. Read the student's blue-ink handwritten answer from Image 2.
+2. Compare against the expected answer.
+   - If correct → FULL MARKS.
+   - For written/worked answers: check if working/steps are partially correct → award PARTIAL marks.
+   - If wrong with no correct working → ZERO marks.
+   - For MCQ (1 mark, single option): no partial marks.
+3. Record what you detected.
+
+Return ONLY valid JSON (no markdown fences):
+{"questionId": "{QUESTION_ID}", "marksAvailable": {MARKS_AVAILABLE}, "marksAwarded": <number>, "studentAnswer": "<what the student wrote>", "notes": "<brief 1-sentence explanation or empty if full marks>"}`;
 
 export async function markFocusedTest(paperId: string): Promise<void> {
   console.log(`[focused-marking] Starting for ${paperId}`);
@@ -671,51 +693,70 @@ export async function markFocusedTest(paperId: string): Promise<void> {
     });
     if (!paper) throw new Error("Paper not found");
 
+    const subDir = path.join(SUBMISSIONS_DIR, paperId);
     const ai = getAI();
     let totalAwarded = 0;
-
     const updates = [];
 
-    for (const q of paper.questions) {
-      const studentAnswer = q.studentAnswer?.trim() || "(no answer)";
+    for (let i = 0; i < paper.questions.length; i++) {
+      const q = paper.questions[i];
       const expectedAnswer = q.answer || "?";
+      const marksAvailable = q.marksAvailable ?? 1;
 
-      // Build prompt parts
-      const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const parts: any[] = [];
 
-      // Add question image if available
+      // Image 1: question image (from DB)
       if (q.imageData && q.imageData.startsWith("data:image")) {
         const match = q.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
         if (match) {
+          parts.push({ text: "Image 1 — The question:" });
           parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
         }
       }
 
-      // Add answer image if available
+      // Image 2: student's handwritten answer (from submission files)
+      let hasSubmission = false;
+      try {
+        const pagePath = path.join(subDir, `page_${i}.jpg`);
+        const pageBuffer = await fs.readFile(pagePath);
+        parts.push({ text: "Image 2 — Student's handwritten answer:" });
+        parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
+        hasSubmission = true;
+      } catch {
+        // No submission image for this question
+      }
+
+      // Add expected answer image if available
+      let answerImageNote = "";
       if (q.answerImageData && q.answerImageData.startsWith("data:image")) {
         const match = q.answerImageData.match(/^data:(image\/\w+);base64,(.+)$/);
         if (match) {
-          parts.push({ text: "Expected answer image:" });
+          parts.push({ text: "Expected answer image (for reference):" });
           parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          answerImageNote = "An additional image showing the expected answer is also provided.";
         }
       }
 
-      parts.push({
-        text: `You are marking a primary school student's typed answer for a math question.
+      // Build prompt
+      const prompt = FOCUSED_MARKING_PROMPT
+        .replace("{EXPECTED_ANSWER}", `"${expectedAnswer}"`)
+        .replace(/\{MARKS_AVAILABLE\}/g, String(marksAvailable))
+        .replace("{QUESTION_ID}", q.id)
+        .replace("{ANSWER_IMAGE_NOTE}", answerImageNote);
 
-The question image is shown above.
-Expected answer: "${expectedAnswer}"
-Student's typed answer: "${studentAnswer}"
-Marks available: ${q.marksAvailable ?? 1}
+      parts.push({ text: prompt });
 
-Compare the student's typed answer to the expected answer.
-- Award full marks if the answer is correct (allow equivalent forms, e.g. "1/2" = "0.5").
-- Award partial marks if partially correct for multi-part questions.
-- Award 0 if wrong or no answer given.
-
-Return ONLY valid JSON (no markdown fences):
-{"marksAwarded": <number>, "notes": "<brief 1-sentence explanation>"}`,
-      });
+      if (!hasSubmission) {
+        // No answer submitted for this question
+        updates.push(
+          prisma.examQuestion.update({
+            where: { id: q.id },
+            data: { marksAwarded: 0, markingNotes: "No answer submitted" },
+          })
+        );
+        continue;
+      }
 
       try {
         const response = await withTimeout(
@@ -724,16 +765,16 @@ Return ONLY valid JSON (no markdown fences):
             contents: [{ role: "user", parts }],
             config: { temperature: 0.1 },
           }),
-          60_000,
+          GEMINI_TIMEOUT_MS,
           `focused-q${q.questionNum}`
         );
 
         const text = response.text?.trim() ?? "";
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
+          const parsed = JSON.parse(jsonMatch[0]) as QuestionMarkResult;
           const awarded = Math.min(
-            q.marksAvailable ?? 1,
+            marksAvailable,
             Math.max(0, Number(parsed.marksAwarded) || 0)
           );
           totalAwarded += awarded;
@@ -742,7 +783,7 @@ Return ONLY valid JSON (no markdown fences):
               where: { id: q.id },
               data: {
                 marksAwarded: awarded,
-                markingNotes: `Answer: ${studentAnswer} | ${parsed.notes || ""}`.trim(),
+                markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
               },
             })
           );
