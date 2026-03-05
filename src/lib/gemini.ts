@@ -52,10 +52,14 @@ OCR Text:
 
 Extract all spelling tests and their words from this OCR text. Return ONLY valid JSON.`;
 
-export async function extractWords(ocrText: string) {
+export async function extractWords(ocrText: string, guidance?: string) {
+  let prompt = EXTRACTION_PROMPT.replace("{ocrText}", ocrText);
+  if (guidance) {
+    prompt += `\n\nADDITIONAL GUIDANCE FROM USER: ${guidance}`;
+  }
   const response = await getAI().models.generateContent({
     model: "gemini-2.5-flash",
-    contents: EXTRACTION_PROMPT.replace("{ocrText}", ocrText),
+    contents: prompt,
     config: {
       responseMimeType: "application/json",
       temperature: 0.1,

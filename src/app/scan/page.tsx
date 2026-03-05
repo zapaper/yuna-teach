@@ -22,6 +22,7 @@ function ScanPageContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>("capture");
+  const [guidance, setGuidance] = useState("");
   const [imageData, setImageData] = useState<string | null>(null);
   const [tests, setTests] = useState<ExtractedTest[]>([]);
   const [toggledOff, setToggledOff] = useState<Set<string>>(new Set());
@@ -103,7 +104,7 @@ function ScanPageContent() {
       const extractRes = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ocrText: text }),
+        body: JSON.stringify({ ocrText: text, guidance: guidance || undefined }),
       });
 
       if (!extractRes.ok) {
@@ -248,6 +249,20 @@ function ScanPageContent() {
                 Supports JPG, PNG, WEBP
               </p>
             </div>
+          </div>
+
+          {/* Guidance prompt */}
+          <div className="mt-4">
+            <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+              Optional guidance prompt
+            </label>
+            <input
+              type="text"
+              value={guidance}
+              onChange={(e) => setGuidance(e.target.value)}
+              placeholder="e.g. only underlined words"
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-primary-300 focus:ring-1 focus:ring-primary-200"
+            />
           </div>
 
           {/* Preview of captured image */}

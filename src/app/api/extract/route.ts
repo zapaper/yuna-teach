@@ -4,7 +4,7 @@ import { extractWords } from "@/lib/gemini";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { ocrText } = body;
+    const { ocrText, guidance } = body;
 
     if (!ocrText) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await extractWords(ocrText);
+    const result = await extractWords(ocrText, guidance);
 
     return NextResponse.json(result);
   } catch (error) {
