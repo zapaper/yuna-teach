@@ -569,6 +569,7 @@ const P6_MATH_TOPICS = [
   "Geometry",
   "Statistics",
   "Time",
+  "Volume measurement",
 ];
 
 function QuestionEditCard({

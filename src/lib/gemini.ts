@@ -629,6 +629,7 @@ export const P6_MATH_SYLLABUS = [
   "Geometry",
   "Statistics",
   "Time",
+  "Volume measurement",
 ] as const;
 
 const MATH_SYLLABUS_ADDENDUM = `
