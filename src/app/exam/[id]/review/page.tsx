@@ -180,7 +180,7 @@ function ExamReviewContent({ id }: { id: string }) {
   return (
     <div className="min-h-screen bg-white">
       {/* Sticky header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
+      <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => router.push(backPath)}
           className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 shrink-0"
