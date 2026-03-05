@@ -358,6 +358,7 @@ const AnswerCanvas = forwardRef<
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
   const pendingSnapshot = useRef<ImageData | null>(null);
+  const snapshotTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inkApplied = useRef(false);
   const CANVAS_W = 1200;
   const CANVAS_H = 600;
@@ -431,12 +432,21 @@ const AnswerCanvas = forwardRef<
     if (history.current.length > 30) history.current.shift();
   }
 
-  function captureSnapshotAsync() {
-    requestAnimationFrame(() => {
+  function cancelPendingCapture() {
+    if (snapshotTimer.current) {
+      clearTimeout(snapshotTimer.current);
+      snapshotTimer.current = null;
+    }
+  }
+
+  function scheduleSnapshotCapture() {
+    cancelPendingCapture();
+    snapshotTimer.current = setTimeout(() => {
+      snapshotTimer.current = null;
       const canvas = canvasRef.current;
       if (!canvas) return;
       pendingSnapshot.current = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height);
-    });
+    }, 300);
   }
 
   function getPos(clientX: number, clientY: number) {
@@ -462,13 +472,14 @@ const AnswerCanvas = forwardRef<
   }
 
   function onStart(clientX: number, clientY: number) {
+    cancelPendingCapture();
     onStrokeStart();
     isDrawing.current = true;
     if (pendingSnapshot.current) {
       history.current.push(pendingSnapshot.current);
       if (history.current.length > 30) history.current.shift();
       pendingSnapshot.current = null;
-    } else {
+    } else if (history.current.length === 0) {
       saveSnapshot();
     }
     const pos = getPos(clientX, clientY);
@@ -497,23 +508,48 @@ const AnswerCanvas = forwardRef<
   function onEnd() {
     isDrawing.current = false;
     lastPos.current = null;
-    captureSnapshotAsync();
+    scheduleSnapshotCapture();
   }
 
-  function handlePointerDown(e: React.PointerEvent) {
-    e.preventDefault();
-    onStart(e.clientX, e.clientY);
-  }
+  // Use native event listeners for zero-overhead pointer handling
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
 
-  function handlePointerMove(e: React.PointerEvent) {
-    if (!isDrawing.current) return;
-    e.preventDefault();
-    onMove(e.clientX, e.clientY);
-  }
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  function handlePointerUp() {
-    onEnd();
-  }
+    function handlePointerDown(e: PointerEvent) {
+      e.preventDefault();
+      onStart(e.clientX, e.clientY);
+    }
+    function handlePointerMove(e: PointerEvent) {
+      if (!isDrawing.current) return;
+      e.preventDefault();
+      onMove(e.clientX, e.clientY);
+    }
+    function handlePointerUp() {
+      onEnd();
+    }
+    function handleContextMenu(e: Event) {
+      e.preventDefault();
+    }
+
+    canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
+    canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
+    canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerUp);
+    canvas.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      canvas.removeEventListener("pointerdown", handlePointerDown);
+      canvas.removeEventListener("pointermove", handlePointerMove);
+      canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("contextmenu", handleContextMenu);
+      cancelPendingCapture();
+    };
+  }); // Re-attach when component re-renders to capture latest closures
 
   return (
     <div style={{ touchAction: "none" }}>
@@ -525,11 +561,6 @@ const AnswerCanvas = forwardRef<
           cursor: tool === "pen" ? PEN_CURSOR : "cell",
           touchAction: "none",
         }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        onContextMenu={(e) => e.preventDefault()}
       />
     </div>
   );

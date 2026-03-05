@@ -778,29 +778,40 @@ const DrawablePage = forwardRef<
     }
   }
 
-  // Pre-saved snapshot: captured at end of previous stroke, ready for next undo
+  // Debounced snapshot: only captures after 300ms idle, never between rapid strokes
   const pendingSnapshot = useRef<ImageData | null>(null);
+  const snapshotTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function captureSnapshotAsync() {
-    // Defer snapshot capture to avoid blocking pointer events
-    requestAnimationFrame(() => {
+  function cancelPendingCapture() {
+    if (snapshotTimer.current) {
+      clearTimeout(snapshotTimer.current);
+      snapshotTimer.current = null;
+    }
+  }
+
+  function scheduleSnapshotCapture() {
+    cancelPendingCapture();
+    snapshotTimer.current = setTimeout(() => {
+      snapshotTimer.current = null;
       const canvas = canvasRef.current;
       if (!canvas) return;
       pendingSnapshot.current = canvas.getContext("2d")!.getImageData(0, 0, canvas.width, canvas.height);
-    });
+    }, 300);
   }
 
   function onStart(clientX: number, clientY: number) {
     if (tool === "scroll") return;
+    // Cancel any pending snapshot capture immediately — prevents getImageData
+    // from blocking the main thread during rapid strokes
+    cancelPendingCapture();
     onStrokeStart();
     isDrawing.current = true;
-    // Push the pre-captured snapshot (from end of last stroke) as the undo point
     if (pendingSnapshot.current) {
       history.current.push(pendingSnapshot.current);
       if (history.current.length > 30) history.current.shift();
       pendingSnapshot.current = null;
-    } else {
-      // First stroke — save synchronously (only happens once)
+    } else if (history.current.length === 0) {
+      // First stroke only — save synchronously once
       saveSnapshot();
     }
     const pos = getPos(clientX, clientY);
@@ -827,25 +838,53 @@ const DrawablePage = forwardRef<
   function onEnd() {
     isDrawing.current = false;
     lastPos.current = null;
-    // Pre-capture snapshot for next stroke's undo (deferred, won't block next pointerdown)
-    captureSnapshotAsync();
+    // Schedule snapshot after 300ms idle — if user starts drawing again
+    // within 300ms, the capture is cancelled (no main thread blocking)
+    scheduleSnapshotCapture();
   }
 
-  function handlePointerDown(e: React.PointerEvent) {
-    if (tool === "scroll") return;
-    e.preventDefault();
-    onStart(e.clientX, e.clientY);
-  }
+  // Use native event listeners for zero-overhead pointer handling
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
+  const onStrokeStartRef = useRef(onStrokeStart);
+  onStrokeStartRef.current = onStrokeStart;
 
-  function handlePointerMove(e: React.PointerEvent) {
-    if (!isDrawing.current) return;
-    e.preventDefault();
-    onMove(e.clientX, e.clientY);
-  }
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-  function handlePointerUp() {
-    onEnd();
-  }
+    function handlePointerDown(e: PointerEvent) {
+      if (toolRef.current === "scroll") return;
+      e.preventDefault();
+      onStart(e.clientX, e.clientY);
+    }
+    function handlePointerMove(e: PointerEvent) {
+      if (!isDrawing.current) return;
+      e.preventDefault();
+      onMove(e.clientX, e.clientY);
+    }
+    function handlePointerUp() {
+      onEnd();
+    }
+    function handleContextMenu(e: Event) {
+      e.preventDefault();
+    }
+
+    canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
+    canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
+    canvas.addEventListener("pointerup", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerUp);
+    canvas.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      canvas.removeEventListener("pointerdown", handlePointerDown);
+      canvas.removeEventListener("pointermove", handlePointerMove);
+      canvas.removeEventListener("pointerup", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("contextmenu", handleContextMenu);
+      cancelPendingCapture();
+    };
+  }); // Re-attach when component re-renders to capture latest closures
 
   const drawing = tool !== "scroll";
 
@@ -862,11 +901,6 @@ const DrawablePage = forwardRef<
           touchAction: "none",
           cursor: tool === "pen" ? PEN_CURSOR : tool === "eraser" ? "cell" : "default",
         }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-        onContextMenu={(e) => e.preventDefault()}
       />
     </div>
   );
