@@ -369,7 +369,7 @@ function ExamEditContent({ id }: { id: string }) {
           <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-200 border-t-blue-600 shrink-0" />
           <div>
             <p className="text-sm font-medium text-blue-800">Extraction in progress...</p>
-            <p className="text-xs text-blue-600">Questions will appear automatically when done.</p>
+            <p className="text-xs text-blue-600">This takes 3–5 mins. Feel free to continue with other work!</p>
           </div>
         </div>
       )}

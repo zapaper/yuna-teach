@@ -45,7 +45,7 @@ export default function ExamPaperCard({
                 {paper.title || "Exam Paper"}
               </h3>
               <p className="text-sm text-blue-600 mt-0.5">Analyzing and extracting...</p>
-              <p className="text-xs text-slate-400 mt-1">Questions will appear when done</p>
+              <p className="text-xs text-slate-400 mt-1">This takes 3–5 mins. Feel free to continue with other work!</p>
             </div>
           </div>
         </div>
