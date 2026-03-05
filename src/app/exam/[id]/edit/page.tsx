@@ -717,28 +717,18 @@ function QuestionEditCard({
             <div className="flex items-center gap-1 ml-auto text-xs text-slate-500">
               <input
                 type="number"
-                defaultValue={question.marksAwarded ?? ""}
-                onBlur={(e) => {
-                  const v = e.target.value === "" ? null : Number(e.target.value);
-                  if (v !== (question.marksAwarded ?? null)) {
-                    onSave(question.id, "marksAwarded", v);
-                  }
-                }}
-                placeholder="–"
-                className="w-10 text-center rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:border-primary-400"
-              />
-              <span>/</span>
-              <input
-                type="number"
+                min={0}
+                max={10}
                 defaultValue={question.marksAvailable ?? ""}
                 onBlur={(e) => {
-                  const v = e.target.value === "" ? null : Number(e.target.value);
-                  if (v !== (question.marksAvailable ?? null)) {
-                    onSave(question.id, "marksAvailable", v);
+                  const raw = e.target.value === "" ? null : Math.min(10, Math.max(0, Number(e.target.value)));
+                  if (raw !== null) e.target.value = String(raw);
+                  if (raw !== (question.marksAvailable ?? null)) {
+                    onSave(question.id, "marksAvailable", raw);
                   }
                 }}
                 placeholder="–"
-                className="w-10 text-center rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:border-primary-400"
+                className="w-12 text-center rounded-lg border border-slate-200 px-1 py-1 text-xs focus:outline-none focus:border-primary-400"
               />
               <span className="text-slate-400">marks</span>
             </div>
