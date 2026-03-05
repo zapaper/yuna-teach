@@ -17,9 +17,26 @@ export default function ExamPaperCard({
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [taggingSyllabus, setTaggingSyllabus] = useState(false);
+  const [syllabusTagged, setSyllabusTagged] = useState(false);
 
   const isExtracting = paper.extractionStatus === "processing";
   const extractionFailed = paper.extractionStatus === "failed";
+  const isMathPaper = (paper.subject || "").toLowerCase().includes("math");
+
+  async function tagSyllabus() {
+    setTaggingSyllabus(true);
+    try {
+      const res = await fetch(`/api/exam/${paper.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "tagSyllabus" }),
+      });
+      if (res.ok) setSyllabusTagged(true);
+    } finally {
+      setTaggingSyllabus(false);
+    }
+  }
 
   async function retryExtraction() {
     setRetrying(true);
@@ -140,6 +157,20 @@ export default function ExamPaperCard({
           </div>
         </div>
       </Link>
+
+      {/* Tag Syllabus button — Math papers, parents only */}
+      {userRole === "PARENT" && isMathPaper && !isExtracting && !extractionFailed && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            if (!taggingSyllabus && !syllabusTagged) tagSyllabus();
+          }}
+          disabled={taggingSyllabus || syllabusTagged}
+          className="absolute bottom-3 right-3 text-[11px] font-medium px-2.5 py-1 rounded-lg border border-dashed border-purple-300 text-purple-500 hover:border-purple-400 hover:text-purple-700 hover:bg-purple-50 disabled:opacity-50 transition-colors z-10"
+        >
+          {taggingSyllabus ? "Tagging..." : syllabusTagged ? "Tagged" : "Tag Syllabus"}
+        </button>
+      )}
 
       {/* Delete button — only for parents/owners */}
       {onDelete ? (
