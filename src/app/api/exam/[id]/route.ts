@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { promises as fs } from "fs";
 import path from "path";
 import { extractExamPaperBackground } from "@/lib/extraction";
+import { tagSyllabusTopics } from "@/lib/gemini";
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -21,7 +22,7 @@ export async function GET(
       questions: {
         orderBy: { orderIndex: "asc" },
         select: summary
-          ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, yStartPct: true, yEndPct: true, marksAwarded: true, marksAvailable: true, markingNotes: true }
+          ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, yStartPct: true, yEndPct: true, marksAwarded: true, marksAvailable: true, markingNotes: true, syllabusTopic: true }
           : undefined,
       },
       assignedTo: { select: { id: true, name: true } },
@@ -116,6 +117,7 @@ export async function PATCH(
             yStartPct: q.yStartPct,
             yEndPct: q.yEndPct,
             marksAvailable: q.marksAvailable,
+            syllabusTopic: q.syllabusTopic,
           })),
         },
       },
@@ -274,6 +276,37 @@ export async function POST(
     });
 
     return NextResponse.json(question);
+  }
+
+  // --- Tag syllabus topics (Math only) ---
+  if (body.action === "tagSyllabus") {
+    const questions = await prisma.examQuestion.findMany({
+      where: { examPaperId: id },
+      orderBy: { orderIndex: "asc" },
+      select: { id: true, questionNum: true, imageData: true },
+    });
+
+    // Strip data URL prefix to get raw base64
+    const questionsForAI = questions.map((q) => ({
+      questionNum: q.questionNum,
+      imageBase64: q.imageData.replace(/^data:image\/\w+;base64,/, ""),
+    }));
+
+    const tags = await tagSyllabusTopics(questionsForAI);
+
+    // Update each question with its tag
+    const updates = questions
+      .filter((q) => q.questionNum in tags)
+      .map((q) =>
+        prisma.examQuestion.update({
+          where: { id: q.id },
+          data: { syllabusTopic: tags[q.questionNum] ?? null },
+        })
+      );
+    await prisma.$transaction(updates);
+
+    // Return the tags for client-side update
+    return NextResponse.json({ success: true, tags });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });

@@ -264,6 +264,7 @@ export async function extractExamPaperBackground(
       yStartPct: number | null;
       yEndPct: number | null;
       marksAvailable: number | null;
+      syllabusTopic: string | null;
     }> = [];
 
     for (const qNum of questionOrder) {
@@ -319,6 +320,7 @@ export async function extractExamPaperBackground(
             marksAvailable: si === 0
               ? (result.marksPerQuestion?.[qNum] ?? null)
               : null,
+            syllabusTopic: result.syllabusTopics?.[qNum] ?? null,
           });
         }
         continue;
@@ -343,6 +345,7 @@ export async function extractExamPaperBackground(
         yEndPct: primary.yEndPct ?? null,
         marksAvailable:
           result.marksPerQuestion?.[qNum] ?? null,
+        syllabusTopic: result.syllabusTopics?.[qNum] ?? null,
       });
     }
 
@@ -371,6 +374,7 @@ export async function extractExamPaperBackground(
             yStartPct: q.yStartPct,
             yEndPct: q.yEndPct,
             marksAvailable: q.marksAvailable,
+            syllabusTopic: q.syllabusTopic,
             examPaperId: paperId,
           },
         })

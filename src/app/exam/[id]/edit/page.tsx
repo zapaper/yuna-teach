@@ -48,6 +48,7 @@ function ExamEditContent({ id }: { id: string }) {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [selectTarget, setSelectTarget] = useState<SelectTarget | null>(null);
   const [extracting, setExtracting] = useState(false);
+  const [taggingSyllabus, setTaggingSyllabus] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchPaper = useCallback(async () => {
@@ -197,6 +198,7 @@ function ExamEditContent({ id }: { id: string }) {
       marksAwarded: newQ.marksAwarded as number | null,
       marksAvailable: newQ.marksAvailable as number | null,
       markingNotes: newQ.markingNotes as string | null,
+      syllabusTopic: newQ.syllabusTopic as string | null ?? null,
     };
   }
 
@@ -232,6 +234,31 @@ function ExamEditContent({ id }: { id: string }) {
       // Insert the new question and re-sort
       return { ...prev, questions: [...updated, newQ].sort((a, b) => a.orderIndex - b.orderIndex) };
     });
+  }
+
+  async function tagSyllabus() {
+    if (!paper || taggingSyllabus) return;
+    setTaggingSyllabus(true);
+    try {
+      const res = await fetch(`/api/exam/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "tagSyllabus" }),
+      });
+      if (!res.ok) return;
+      const { tags } = await res.json() as { tags: Record<string, string | null> };
+      setPaper((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          questions: prev.questions.map((q) =>
+            q.questionNum in tags ? { ...q, syllabusTopic: tags[q.questionNum] } : q
+          ),
+        };
+      });
+    } finally {
+      setTaggingSyllabus(false);
+    }
   }
 
   // Convert a blob URL or data URL to a base64 data URL
@@ -311,6 +338,7 @@ function ExamEditContent({ id }: { id: string }) {
     }
   }
 
+  const isMathPaper = (paper?.subject || "").toLowerCase().includes("math");
   const backPath = `/exam/${id}/overview?userId=${userId}`;
 
   if (loading) {
@@ -389,6 +417,7 @@ function ExamEditContent({ id }: { id: string }) {
             question={q}
             saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem | "redo" : null}
             pdfLoaded={pageImages.length > 0}
+            isMathPaper={isMathPaper}
             onSave={saveQuestion}
             onDelete={() => deleteQuestion(q.id)}
             onRedo={() => redoQuestion(q.id)}
@@ -404,13 +433,24 @@ function ExamEditContent({ id }: { id: string }) {
         ))}
       </div>
 
-      {/* Add question button */}
-      <button
-        onClick={addQuestion}
-        className="w-full mt-4 py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-medium hover:border-primary-300 hover:text-primary-600 transition-colors"
-      >
-        + Add Question
-      </button>
+      {/* Add question + Tag syllabus buttons */}
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={addQuestion}
+          className="flex-1 py-3 rounded-2xl border-2 border-dashed border-slate-300 text-slate-500 font-medium hover:border-primary-300 hover:text-primary-600 transition-colors"
+        >
+          + Add Question
+        </button>
+        {isMathPaper ? (
+          <button
+            onClick={tagSyllabus}
+            disabled={taggingSyllabus}
+            className="py-3 px-5 rounded-2xl border-2 border-dashed border-purple-300 text-purple-500 font-medium hover:border-purple-400 hover:text-purple-700 hover:bg-purple-50 disabled:opacity-50 transition-colors"
+          >
+            {taggingSyllabus ? "Tagging..." : "Tag Syllabus"}
+          </button>
+        ) : null}
+      </div>
 
       {/* Area selection modal */}
       {selectTarget && (
@@ -518,10 +558,33 @@ function PdfLoader({
 
 // ─── Question card ────────────────────────────────────────────────────────────
 
+const P6_MATH_TOPICS = [
+  "Fractions",
+  "Percentage",
+  "Ratio",
+  "Algebra",
+  "Area and circumference of circle",
+  "Volume of cube and cuboid",
+  "Geometry",
+  "Statistics",
+];
+
+const TOPIC_COLORS: Record<string, string> = {
+  "Fractions": "bg-blue-100 text-blue-700",
+  "Percentage": "bg-green-100 text-green-700",
+  "Ratio": "bg-amber-100 text-amber-700",
+  "Algebra": "bg-purple-100 text-purple-700",
+  "Area and circumference of circle": "bg-pink-100 text-pink-700",
+  "Volume of cube and cuboid": "bg-cyan-100 text-cyan-700",
+  "Geometry": "bg-orange-100 text-orange-700",
+  "Statistics": "bg-teal-100 text-teal-700",
+};
+
 function QuestionEditCard({
   question,
   saving,
   pdfLoaded,
+  isMathPaper,
   onSave,
   onDelete,
   onRedo,
@@ -531,6 +594,7 @@ function QuestionEditCard({
   question: ExamQuestionItem;
   saving: keyof ExamQuestionItem | "redo" | null;
   pdfLoaded: boolean;
+  isMathPaper: boolean;
   onSave: (
     id: string,
     field: keyof ExamQuestionItem,
@@ -680,6 +744,35 @@ function QuestionEditCard({
             </div>
           </div>
         </div>
+
+        {/* Syllabus topic (Math only) */}
+        {isMathPaper && (
+          <div className="flex items-center gap-3">
+            <label className="text-xs font-medium text-slate-500 w-24 shrink-0">
+              Topic
+            </label>
+            <div className="flex-1 flex items-center gap-2">
+              {question.syllabusTopic && (
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${TOPIC_COLORS[question.syllabusTopic] || "bg-slate-100 text-slate-600"}`}>
+                  {question.syllabusTopic}
+                </span>
+              )}
+              <select
+                value={question.syllabusTopic ?? ""}
+                onChange={(e) => {
+                  const val = e.target.value || null;
+                  onSave(question.id, "syllabusTopic", val);
+                }}
+                className="text-xs rounded-lg border border-slate-200 px-2 py-1 text-slate-600 focus:outline-none focus:border-primary-400 bg-white"
+              >
+                <option value="">— none —</option>
+                {P6_MATH_TOPICS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Answer text */}
         <div className="flex items-start gap-3">

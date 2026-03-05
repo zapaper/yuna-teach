@@ -616,6 +616,98 @@ This applies to ALL entries (both primary and continuation) — if no next quest
 - boundaryBottom should be the next question number or "end" as usual
 - marksAvailable should be null on continuation entries (marks are on the primary entry only)`;
 
+// ─── P6 Math Syllabus Topics ────────────────────────────────────────────────
+
+export const P6_MATH_SYLLABUS = [
+  "Fractions",
+  "Percentage",
+  "Ratio",
+  "Algebra",
+  "Area and circumference of circle",
+  "Volume of cube and cuboid",
+  "Geometry",
+  "Statistics",
+] as const;
+
+const MATH_SYLLABUS_ADDENDUM = `
+
+## MATH PAPER — Syllabus topic tagging
+
+This is a MATH paper. For EACH question, you MUST also output a "syllabusTopic" field.
+
+Choose EXACTLY ONE topic from this list:
+- Fractions
+- Percentage
+- Ratio
+- Algebra
+- Area and circumference of circle
+- Volume of cube and cuboid
+- Geometry
+- Statistics
+
+Rules:
+- Pick the BEST matching topic based on the main concept tested in the question
+- If the question clearly tests fractions (e.g. "1/3 + 2/5"), use "Fractions"
+- If the question tests percentages (e.g. "find 20% of 150"), use "Percentage"
+- If the question involves ratios (e.g. "ratio of boys to girls is 3:5"), use "Ratio"
+- If the question uses algebraic expressions or unknowns (e.g. "find the value of x"), use "Algebra"
+- If the question involves circles, circumference, or area of circles, use "Area and circumference of circle"
+- If the question involves volume of cubes/cuboids, use "Volume of cube and cuboid"
+- If the question involves angles, shapes, quadrilaterals, triangles, or geometric properties, use "Geometry"
+- If the question involves data interpretation, graphs, tables, averages, use "Statistics"
+- If the question does not clearly fit any topic, set "syllabusTopic" to null
+- MCQ questions should also be tagged based on the concept being tested`;
+
+// Standalone syllabus tagging function — tags existing questions via their images
+export async function tagSyllabusTopics(
+  questions: Array<{ questionNum: string; imageBase64: string }>
+): Promise<Record<string, string | null>> {
+  const imageParts = questions.flatMap((q) => [
+    { inlineData: { mimeType: "image/jpeg" as const, data: q.imageBase64 } },
+    { text: `[Question ${q.questionNum}]` },
+  ]);
+
+  const prompt = `You are tagging Primary 6 Math exam questions by syllabus topic.
+
+For each question image, choose EXACTLY ONE topic from this list:
+${P6_MATH_SYLLABUS.map((t) => `- ${t}`).join("\n")}
+
+If a question does not clearly fit any topic, use null.
+
+Return ONLY valid JSON (no markdown fences):
+{
+  "tags": {
+    "1": "Fractions",
+    "2": "Ratio",
+    "3": null
+  }
+}
+
+Use the question numbers shown in the [Question X] labels.`;
+
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts: [...imageParts, { text: prompt }] }],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  });
+
+  const text = response.text;
+  if (!text) return {};
+
+  try {
+    const parsed = JSON.parse(text);
+    const tags = parsed.tags ?? parsed;
+    const result: Record<string, string | null> = {};
+    for (const [qNum, topic] of Object.entries(tags)) {
+      result[qNum] = typeof topic === "string" ? topic : null;
+    }
+    return result;
+  } catch {
+    console.error("[tagSyllabusTopics] Failed to parse response:", text.slice(0, 300));
+    return {};
+  }
+}
+
 // Stage 2b: Answer Extraction — extract answers with full working steps from answer key pages
 const ANSWER_EXTRACTION_PROMPT_V2 = `You are analyzing the answer key / answer sheet pages of a Singapore school exam paper.
 
@@ -1103,6 +1195,10 @@ async function runExtractionCall(
   if (isScience) {
     prompt += SCIENCE_ADDENDUM;
   }
+  const isMath = subject.toLowerCase().includes("math");
+  if (isMath) {
+    prompt += MATH_SYLLABUS_ADDENDUM;
+  }
 
   console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
 
@@ -1346,10 +1442,12 @@ export interface BatchAnalysisResult {
       boundaryBottom: string;
       marksAvailable?: number | null;
       isContinuation?: boolean;
+      syllabusTopic?: string | null;
     }>;
   }>;
   answers: Record<string, AnswerEntry>;
   marksPerQuestion?: Record<string, number | null>;
+  syllabusTopics?: Record<string, string | null>;
   _debug?: {
     papers: Array<{
       label: string;
@@ -1573,10 +1671,15 @@ export async function analyzeExamBatch(
   }
 
   // 2. Override with question-level marks detected from bracket notation [n]
+  // Also collect syllabus topics from extraction (Math papers only)
+  const syllabusTopics: Record<string, string | null> = {};
   for (const qPage of questionResult.pages) {
     for (const q of qPage.questions) {
       if (q.marksAvailable != null) {
         marksPerQuestion[q.questionNum] = q.marksAvailable;
+      }
+      if ((q as { syllabusTopic?: string | null }).syllabusTopic) {
+        syllabusTopics[q.questionNum] = (q as { syllabusTopic?: string | null }).syllabusTopic!;
       }
     }
   }
@@ -1586,6 +1689,7 @@ export async function analyzeExamBatch(
     pages,
     answers: answerResult.answers,
     marksPerQuestion,
+    syllabusTopics: Object.keys(syllabusTopics).length > 0 ? syllabusTopics : undefined,
     _debug: {
       papers: structure.papers.map(p => ({
         label: p.label,

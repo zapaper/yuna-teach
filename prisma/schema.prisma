@@ -106,6 +106,7 @@ model ExamQuestion {
   marksAwarded    Float?
   marksAvailable  Float?
   markingNotes    String?
+  syllabusTopic   String?
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 

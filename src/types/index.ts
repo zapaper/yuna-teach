@@ -132,4 +132,5 @@ export interface ExamQuestionItem {
   marksAwarded: number | null;
   marksAvailable: number | null;
   markingNotes: string | null;
+  syllabusTopic: string | null;
 }

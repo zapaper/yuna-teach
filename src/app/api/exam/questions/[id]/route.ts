@@ -16,6 +16,7 @@ export async function PATCH(
   if ("marksAwarded" in body) data.marksAwarded = body.marksAwarded ?? null;
   if ("marksAvailable" in body) data.marksAvailable = body.marksAvailable ?? null;
   if ("markingNotes" in body) data.markingNotes = body.markingNotes ?? null;
+  if ("syllabusTopic" in body) data.syllabusTopic = body.syllabusTopic ?? null;
 
   const question = await prisma.examQuestion.update({
     where: { id },
