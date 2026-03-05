@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
     if (role === "STUDENT") {
       where = { assignedToId: userId };
     } else {
-      // Parents see only master papers (exclude clones)
-      where = { userId, sourceExamId: null };
+      // Parents see only master papers (exclude clones and focused tests)
+      where = { userId, sourceExamId: null, paperType: null };
     }
   }
 
@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     include: {
       _count: { select: { questions: true, clones: true } },
       assignedTo: { select: { id: true, name: true } },
+      questions: { where: { syllabusTopic: { not: null } }, select: { id: true }, take: 1 },
     },
   });
 
@@ -42,6 +43,8 @@ export async function GET(request: NextRequest) {
       assignmentCount: p._count.clones,
       score: p.score ?? null,
       totalMarks: p.totalMarks ?? null,
+      paperType: p.paperType ?? null,
+      syllabusTagged: p.questions.length > 0,
     })),
   });
 }

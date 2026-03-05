@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { markExamPaper, remarkSingleQuestion } from "@/lib/marking";
+import { markExamPaper, remarkSingleQuestion, markFocusedTest } from "@/lib/marking";
 
 // GET /api/exam/[id]/mark
 // Returns marking status + per-question results (with imageData for thumbnails)
@@ -52,7 +52,7 @@ export async function POST(
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
-    select: { markingStatus: true, completedAt: true },
+    select: { markingStatus: true, completedAt: true, paperType: true },
   });
 
   if (!paper) {
@@ -76,9 +76,15 @@ export async function POST(
 
   // Full paper mark — set status then fire and forget
   // (allow re-triggering even if previously in_progress, to recover from stuck jobs)
-  markExamPaper(id).catch((err) =>
-    console.error(`Background marking for ${id} failed:`, err)
-  );
+  if (paper.paperType === "focused") {
+    markFocusedTest(id).catch((err) =>
+      console.error(`Focused test marking for ${id} failed:`, err)
+    );
+  } else {
+    markExamPaper(id).catch((err) =>
+      console.error(`Background marking for ${id} failed:`, err)
+    );
+  }
 
   return NextResponse.json({ status: "in_progress" });
 }

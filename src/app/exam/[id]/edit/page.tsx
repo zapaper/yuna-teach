@@ -199,6 +199,7 @@ function ExamEditContent({ id }: { id: string }) {
       marksAvailable: newQ.marksAvailable as number | null,
       markingNotes: newQ.markingNotes as string | null,
       syllabusTopic: newQ.syllabusTopic as string | null ?? null,
+      studentAnswer: newQ.studentAnswer as string | null ?? null,
     };
   }
 

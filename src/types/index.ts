@@ -65,6 +65,8 @@ export interface ExamPaperSummary {
   assignmentCount: number;
   score: number | null;
   totalMarks: string | null;
+  paperType: string | null;
+  syllabusTagged: boolean;
 }
 
 export interface ExamCloneSummary {
@@ -115,6 +117,7 @@ export interface ExamPaperDetail {
   extractionStatus: string | null;
   feedbackSummary: string | null;
   sourceExamId: string | null;
+  paperType: string | null;
   clones: ExamCloneSummary[];
   questions: ExamQuestionItem[];
 }
@@ -133,4 +136,5 @@ export interface ExamQuestionItem {
   marksAvailable: number | null;
   markingNotes: string | null;
   syllabusTopic: string | null;
+  studentAnswer: string | null;
 }

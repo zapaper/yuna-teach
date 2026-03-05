@@ -197,9 +197,10 @@ export default function HomePage({
         {isParent && user?.linkedStudents && user.linkedStudents.length > 0 ? (
           <div className="flex flex-wrap justify-center gap-2 mt-3">
             {user.linkedStudents.map((s) => (
-              <span key={s.id} className="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-medium">
+              <Link key={s.id} href={`/progress/${s.id}?parentId=${userId}`}
+                className="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors">
                 {s.name}
-              </span>
+              </Link>
             ))}
           </div>
         ) : null}

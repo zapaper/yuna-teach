@@ -53,10 +53,16 @@ export default function ExamPaperCard({
     }
   }
 
+  const isFocused = paper.paperType === "focused";
+
   // Parents: if extraction just finished (ready), go to edit for review; otherwise overview
-  // Students: review (if released) or practice
+  // Students: review (if released) or practice; focused tests go to focused page
   const examHref = isExtracting
     ? "#"
+    : isFocused
+    ? paper.markingStatus === "released"
+      ? `/exam/${paper.id}/review?userId=${userId}`
+      : `/exam/${paper.id}/focused?userId=${userId}`
     : userRole === "PARENT"
     ? paper.extractionStatus === "ready"
       ? `/exam/${paper.id}/edit?userId=${userId}`
@@ -105,6 +111,11 @@ export default function ExamPaperCard({
               {paper.title}
             </h3>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
+              {isFocused ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                  Focused Test
+                </span>
+              ) : null}
               {paper.subject ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
                   {paper.subject}
@@ -158,8 +169,8 @@ export default function ExamPaperCard({
         </div>
       </Link>
 
-      {/* Tag Syllabus button — Math papers, parents only */}
-      {userRole === "PARENT" && isMathPaper && !isExtracting && !extractionFailed && (
+      {/* Tag Syllabus button — Math papers, parents only, not already tagged */}
+      {userRole === "PARENT" && isMathPaper && !isExtracting && !extractionFailed && !paper.syllabusTagged && (
         <button
           onClick={(e) => {
             e.preventDefault();

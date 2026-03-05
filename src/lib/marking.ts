@@ -653,3 +653,136 @@ Keep the tone warm, positive, and age-appropriate for a primary school child. To
 
   return feedbackText;
 }
+
+// ── Focused test marking (text-only answers) ─────────────────────────────
+
+export async function markFocusedTest(paperId: string): Promise<void> {
+  console.log(`[focused-marking] Starting for ${paperId}`);
+
+  try {
+    await prisma.examPaper.update({
+      where: { id: paperId },
+      data: { markingStatus: "in_progress" },
+    });
+
+    const paper = await prisma.examPaper.findUnique({
+      where: { id: paperId },
+      include: { questions: { orderBy: { orderIndex: "asc" } } },
+    });
+    if (!paper) throw new Error("Paper not found");
+
+    const ai = getAI();
+    let totalAwarded = 0;
+
+    const updates = [];
+
+    for (const q of paper.questions) {
+      const studentAnswer = q.studentAnswer?.trim() || "(no answer)";
+      const expectedAnswer = q.answer || "?";
+
+      // Build prompt parts
+      const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [];
+
+      // Add question image if available
+      if (q.imageData && q.imageData.startsWith("data:image")) {
+        const match = q.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (match) {
+          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+        }
+      }
+
+      // Add answer image if available
+      if (q.answerImageData && q.answerImageData.startsWith("data:image")) {
+        const match = q.answerImageData.match(/^data:(image\/\w+);base64,(.+)$/);
+        if (match) {
+          parts.push({ text: "Expected answer image:" });
+          parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+        }
+      }
+
+      parts.push({
+        text: `You are marking a primary school student's typed answer for a math question.
+
+The question image is shown above.
+Expected answer: "${expectedAnswer}"
+Student's typed answer: "${studentAnswer}"
+Marks available: ${q.marksAvailable ?? 1}
+
+Compare the student's typed answer to the expected answer.
+- Award full marks if the answer is correct (allow equivalent forms, e.g. "1/2" = "0.5").
+- Award partial marks if partially correct for multi-part questions.
+- Award 0 if wrong or no answer given.
+
+Return ONLY valid JSON (no markdown fences):
+{"marksAwarded": <number>, "notes": "<brief 1-sentence explanation>"}`,
+      });
+
+      try {
+        const response = await withTimeout(
+          ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts }],
+            config: { temperature: 0.1 },
+          }),
+          60_000,
+          `focused-q${q.questionNum}`
+        );
+
+        const text = response.text?.trim() ?? "";
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          const awarded = Math.min(
+            q.marksAvailable ?? 1,
+            Math.max(0, Number(parsed.marksAwarded) || 0)
+          );
+          totalAwarded += awarded;
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: {
+                marksAwarded: awarded,
+                markingNotes: `Answer: ${studentAnswer} | ${parsed.notes || ""}`.trim(),
+              },
+            })
+          );
+        } else {
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { marksAwarded: 0, markingNotes: "Failed to parse AI response" },
+            })
+          );
+        }
+      } catch (err) {
+        console.error(`[focused-marking] Q${q.questionNum} failed:`, err);
+        updates.push(
+          prisma.examQuestion.update({
+            where: { id: q.id },
+            data: { marksAwarded: 0, markingNotes: "Marking error" },
+          })
+        );
+      }
+    }
+
+    // Batch update
+    await prisma.$transaction([
+      ...updates,
+      prisma.examPaper.update({
+        where: { id: paperId },
+        data: { score: totalAwarded, markingStatus: "complete" },
+      }),
+    ]);
+
+    // Generate feedback
+    await generateFeedbackSummary(paperId);
+
+    console.log(`[focused-marking] Paper ${paperId} done. Score: ${totalAwarded}`);
+  } catch (err) {
+    console.error(`[focused-marking] Failed for ${paperId}:`, err);
+    await prisma.examPaper.update({
+      where: { id: paperId },
+      data: { markingStatus: "failed" },
+    });
+  }
+}

@@ -82,6 +82,7 @@ model ExamPaper {
   extractionStatus String?   // "processing" | "ready" | "failed"
   feedbackSummary  String?
   sourceExamId     String?
+  paperType        String?   // null = regular, "focused" = focused test
 
   user       User           @relation("UploadedPapers", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo User?          @relation("AssignedPapers", fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -107,6 +108,7 @@ model ExamQuestion {
   marksAvailable  Float?
   markingNotes    String?
   syllabusTopic   String?
+  studentAnswer   String?
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 
