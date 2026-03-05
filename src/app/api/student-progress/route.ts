@@ -28,10 +28,13 @@ export async function GET(request: NextRequest) {
       assignedToId: studentId,
       markingStatus: { in: ["complete", "released"] },
     },
+    orderBy: { completedAt: "asc" },
     select: {
       id: true,
+      title: true,
       subject: true,
       sourceExamId: true,
+      completedAt: true,
       questions: {
         select: {
           questionNum: true,
@@ -69,11 +72,30 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Helper: resolve topic for a question
+  function resolveTopic(
+    q: { syllabusTopic: string | null; questionNum: string },
+    sourceExamId: string | null
+  ): string {
+    return (
+      q.syllabusTopic ||
+      (sourceExamId ? masterTopics[sourceExamId]?.[q.questionNum] : null) ||
+      "Untagged"
+    );
+  }
+
   // Aggregate by subject → topic
   const subjects: Record<string, {
     examCount: number;
     topics: Record<string, { earned: number; available: number; count: number }>;
   }> = {};
+
+  // Timeline: per subject → array of { title, date, topics: { [topic]: pct } }
+  const timeline: Record<string, Array<{
+    title: string;
+    date: string;
+    topics: Record<string, number>;
+  }>> = {};
 
   for (const paper of papers) {
     const subject = paper.subject || "Other";
@@ -82,13 +104,13 @@ export async function GET(request: NextRequest) {
     }
     subjects[subject].examCount++;
 
-    // For clones, look up syllabusTopic from master if clone's own tag is null
-    const masterMap = paper.sourceExamId ? masterTopics[paper.sourceExamId] : null;
+    // Per-exam per-topic aggregation for timeline
+    const examTopics: Record<string, { earned: number; available: number }> = {};
 
     for (const q of paper.questions) {
-      const topic = q.syllabusTopic
-        || (masterMap ? masterMap[q.questionNum] : null)
-        || "Untagged";
+      const topic = resolveTopic(q, paper.sourceExamId);
+
+      // Overall aggregation
       if (!subjects[subject].topics[topic]) {
         subjects[subject].topics[topic] = { earned: 0, available: 0, count: 0 };
       }
@@ -96,8 +118,29 @@ export async function GET(request: NextRequest) {
       t.earned += q.marksAwarded ?? 0;
       t.available += q.marksAvailable ?? 0;
       t.count++;
+
+      // Per-exam aggregation
+      if (!examTopics[topic]) examTopics[topic] = { earned: 0, available: 0 };
+      examTopics[topic].earned += q.marksAwarded ?? 0;
+      examTopics[topic].available += q.marksAvailable ?? 0;
+    }
+
+    // Convert to percentages for timeline
+    const topicPcts: Record<string, number> = {};
+    for (const [topic, td] of Object.entries(examTopics)) {
+      if (topic === "Untagged") continue;
+      topicPcts[topic] = td.available > 0 ? Math.round((td.earned / td.available) * 100) : 0;
+    }
+
+    if (Object.keys(topicPcts).length > 0) {
+      if (!timeline[subject]) timeline[subject] = [];
+      timeline[subject].push({
+        title: paper.title,
+        date: paper.completedAt?.toISOString() ?? "",
+        topics: topicPcts,
+      });
     }
   }
 
-  return NextResponse.json({ student, subjects });
+  return NextResponse.json({ student, subjects, timeline });
 }

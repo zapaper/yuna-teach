@@ -28,10 +28,32 @@ interface SubjectData {
   topics: Record<string, TopicData>;
 }
 
+interface TimelineEntry {
+  title: string;
+  date: string;
+  topics: Record<string, number>;
+}
+
 interface ProgressData {
   student: { id: string; name: string } | null;
   subjects: Record<string, SubjectData>;
+  timeline: Record<string, TimelineEntry[]>;
 }
+
+const TOPIC_COLORS = [
+  "#6366f1", // indigo
+  "#f59e0b", // amber
+  "#10b981", // emerald
+  "#ef4444", // red
+  "#8b5cf6", // violet
+  "#06b6d4", // cyan
+  "#f97316", // orange
+  "#ec4899", // pink
+  "#14b8a6", // teal
+  "#84cc16", // lime
+  "#a855f7", // purple
+  "#0ea5e9", // sky
+];
 
 function ProgressContent({ studentId }: { studentId: string }) {
   const router = useRouter();
@@ -42,6 +64,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
   const [loading, setLoading] = useState(true);
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
   const [creating, setCreating] = useState<string | null>(null);
+  const [view, setView] = useState<"topic" | "time">("topic");
 
   useEffect(() => {
     (async () => {
@@ -91,6 +114,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
 
   const subjects = data ? Object.keys(data.subjects) : [];
   const currentSubject = activeSubject && data?.subjects[activeSubject];
+  const currentTimeline = activeSubject && data?.timeline[activeSubject];
 
   return (
     <div className="p-6 pb-24 max-w-2xl mx-auto">
@@ -105,10 +129,41 @@ function ProgressContent({ studentId }: { studentId: string }) {
         Home
       </button>
 
-      <h1 className="text-xl font-bold text-slate-800 mb-1">
-        {data?.student?.name || "Student"}&apos;s Progress
-      </h1>
-      <p className="text-sm text-slate-400 mb-5">Performance by topic across all marked exams</p>
+      <div className="flex items-center justify-between mb-1">
+        <h1 className="text-xl font-bold text-slate-800">
+          {data?.student?.name || "Student"}&apos;s Progress
+        </h1>
+        {/* Topic / Time toggle */}
+        {subjects.length > 0 && (
+          <div className="flex bg-slate-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setView("topic")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                view === "topic"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Topic
+            </button>
+            <button
+              onClick={() => setView("time")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                view === "time"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Time
+            </button>
+          </div>
+        )}
+      </div>
+      <p className="text-sm text-slate-400 mb-5">
+        {view === "topic"
+          ? "Performance by topic across all marked exams"
+          : "Score trends over time by topic"}
+      </p>
 
       {subjects.length === 0 ? (
         <div className="text-center py-12">
@@ -134,7 +189,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
             ))}
           </div>
 
-          {currentSubject && (
+          {currentSubject && view === "topic" && (
             <>
               <p className="text-sm text-slate-500 mb-4">
                 {currentSubject.examCount} exam{currentSubject.examCount !== 1 ? "s" : ""} marked
@@ -197,8 +252,180 @@ function ProgressContent({ studentId }: { studentId: string }) {
               </div>
             </>
           )}
+
+          {view === "time" && (
+            <TimelineChart entries={currentTimeline || []} />
+          )}
         </>
       )}
+    </div>
+  );
+}
+
+function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
+  if (entries.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-slate-400">No exam data to chart</p>
+      </div>
+    );
+  }
+
+  // Collect all topics across all exams
+  const allTopics = Array.from(
+    new Set(entries.flatMap((e) => Object.keys(e.topics)))
+  ).sort();
+
+  const topicColorMap: Record<string, string> = {};
+  allTopics.forEach((t, i) => {
+    topicColorMap[t] = TOPIC_COLORS[i % TOPIC_COLORS.length];
+  });
+
+  // Chart dimensions
+  const W = 600;
+  const H = 300;
+  const padL = 40;
+  const padR = 20;
+  const padT = 16;
+  const padB = 60;
+  const chartW = W - padL - padR;
+  const chartH = H - padT - padB;
+
+  const n = entries.length;
+  const xStep = n > 1 ? chartW / (n - 1) : 0;
+
+  function x(i: number) {
+    return padL + (n > 1 ? i * xStep : chartW / 2);
+  }
+  function y(pct: number) {
+    return padT + chartH - (pct / 100) * chartH;
+  }
+
+  // Format date label
+  function dateLabel(iso: string) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return `${d.getDate()}/${d.getMonth() + 1}`;
+  }
+
+  return (
+    <div>
+      {/* Legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-4">
+        {allTopics.map((topic) => (
+          <div key={topic} className="flex items-center gap-1.5">
+            <div
+              className="w-3 h-3 rounded-full shrink-0"
+              style={{ backgroundColor: topicColorMap[topic] }}
+            />
+            <span className="text-[11px] text-slate-600">{topic}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* SVG Chart */}
+      <div className="rounded-2xl border-2 border-slate-100 bg-white p-3 shadow-sm overflow-x-auto">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 320 }}>
+          {/* Y-axis grid lines and labels */}
+          {[0, 25, 50, 75, 100].map((pct) => (
+            <g key={pct}>
+              <line
+                x1={padL}
+                x2={W - padR}
+                y1={y(pct)}
+                y2={y(pct)}
+                stroke="#e2e8f0"
+                strokeWidth={pct === 0 ? 1.5 : 0.75}
+                strokeDasharray={pct === 0 ? undefined : "4 4"}
+              />
+              <text
+                x={padL - 6}
+                y={y(pct) + 4}
+                textAnchor="end"
+                className="fill-slate-400"
+                fontSize={10}
+              >
+                {pct}%
+              </text>
+            </g>
+          ))}
+
+          {/* X-axis labels */}
+          {entries.map((e, i) => (
+            <text
+              key={i}
+              x={x(i)}
+              y={H - padB + 16}
+              textAnchor="middle"
+              className="fill-slate-400"
+              fontSize={9}
+            >
+              {dateLabel(e.date)}
+            </text>
+          ))}
+
+          {/* Exam title labels (rotated, below date) */}
+          {entries.map((e, i) => {
+            const label = e.title.length > 18 ? e.title.slice(0, 16) + "..." : e.title;
+            return (
+              <text
+                key={`t-${i}`}
+                x={x(i)}
+                y={H - padB + 30}
+                textAnchor="middle"
+                className="fill-slate-300"
+                fontSize={8}
+              >
+                {label}
+              </text>
+            );
+          })}
+
+          {/* Lines + dots per topic */}
+          {allTopics.map((topic) => {
+            const color = topicColorMap[topic];
+            // Build points for exams that have this topic
+            const points: { idx: number; pct: number }[] = [];
+            entries.forEach((e, i) => {
+              if (e.topics[topic] !== undefined) {
+                points.push({ idx: i, pct: e.topics[topic] });
+              }
+            });
+
+            if (points.length === 0) return null;
+
+            const pathD = points
+              .map((p, j) => `${j === 0 ? "M" : "L"} ${x(p.idx)} ${y(p.pct)}`)
+              .join(" ");
+
+            return (
+              <g key={topic}>
+                {points.length > 1 && (
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke={color}
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                )}
+                {points.map((p) => (
+                  <circle
+                    key={p.idx}
+                    cx={x(p.idx)}
+                    cy={y(p.pct)}
+                    r={4}
+                    fill={color}
+                    stroke="white"
+                    strokeWidth={2}
+                  />
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
     </div>
   );
 }
