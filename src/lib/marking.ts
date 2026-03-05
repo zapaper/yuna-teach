@@ -58,7 +58,7 @@ STEP 2: Marks available.
 STEP 3: Compare against the expected answer. Follow this priority:
   A) If the student's answer MATCHES the expected answer → FULL MARKS. Done. No further checking needed.
   B) If the student's answer does NOT match:
-     - For MCQ (marksAvailable = 1, single option answer): ZERO marks. No partial marks for MCQ.
+     - For MCQ (single option answer like "1","2","A","B"): ZERO marks. No partial marks for MCQ.
      - For written/worked answers: check if working/steps are partially correct.
        If some steps are correct → award PARTIAL marks = round(proportion of correct steps × marksAvailable).
        e.g. 2 out of 3 steps correct on a 3-mark question → round(2/3 × 3) = 2 marks.
@@ -672,7 +672,7 @@ Instructions:
    - If correct → FULL MARKS.
    - For written/worked answers: check if working/steps are partially correct → award PARTIAL marks.
    - If wrong with no correct working → ZERO marks.
-   - For MCQ (1 mark, single option): no partial marks.
+   - For MCQ (single option answer): no partial marks.
 3. Record what you detected.
 
 Return ONLY valid JSON (no markdown fences):

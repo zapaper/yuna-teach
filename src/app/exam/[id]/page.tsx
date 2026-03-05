@@ -501,7 +501,53 @@ function ExamPracticeContent({ id }: { id: string }) {
             </div>
           ) : null}
 
-          {/* Drawing toolbar */}
+          {/* ── Action bar (moved to top to avoid accidental taps) ── */}
+          <div
+            className="bg-white border-b border-slate-200 px-4 py-3 flex flex-col gap-2"
+            style={{ userSelect: "none", WebkitUserSelect: "none" }}
+          >
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleSaveAndExit}
+                disabled={isBusy}
+                className="flex-1 py-2.5 rounded-xl border-2 border-slate-300 text-slate-600 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
+              >
+                {submitStatus === "saving" ? "Saving…" : "Save & exit"}
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isBusy}
+                className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors"
+              >
+                {submitStatus === "submitting"
+                  ? "Submitting…"
+                  : submitStatus === "submitted"
+                  ? "Resubmit"
+                  : "Submit exam"}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={downloadExamForPrinting}
+                disabled={downloadingExam}
+                className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
+              >
+                {downloadingExam ? "Downloading…" : "Download for printing"}
+              </button>
+              <button
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={uploadingPdf}
+                className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
+              >
+                {uploadingPdf ? "Loading PDF…" : "Upload scanned PDF"}
+              </button>
+            </div>
+            <p className="text-center text-[10px] text-slate-400">
+              Use <span className="font-semibold text-blue-500">blue ink</span> for hand-written answers so AI can distinguish your writing from printed text.
+            </p>
+          </div>
+
+          {/* Drawing toolbar — sticky so it floats when zoomed/scrolled */}
           <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2"
             style={{ userSelect: "none", WebkitUserSelect: "none" }}>
             <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll">
@@ -554,52 +600,6 @@ function ExamPracticeContent({ id }: { id: string }) {
                 onStrokeStart={() => { lastDrawnPage.current = displayIndex; hasUnsavedInk.current = true; }}
               />
             ))}
-          </div>
-
-          {/* ── Bottom action bar ── */}
-          <div
-            className="sticky bottom-0 z-10 bg-white border-t border-slate-200 px-4 py-3 flex flex-col gap-2"
-            style={{ width: "100vw", userSelect: "none", WebkitUserSelect: "none" }}
-          >
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleSaveAndExit}
-                disabled={isBusy}
-                className="flex-1 py-2.5 rounded-xl border-2 border-slate-300 text-slate-600 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
-              >
-                {submitStatus === "saving" ? "Saving…" : "Save & exit"}
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={isBusy}
-                className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors"
-              >
-                {submitStatus === "submitting"
-                  ? "Submitting…"
-                  : submitStatus === "submitted"
-                  ? "Resubmit"
-                  : "Submit exam"}
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={downloadExamForPrinting}
-                disabled={downloadingExam}
-                className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
-              >
-                {downloadingExam ? "Downloading…" : "Download for printing"}
-              </button>
-              <button
-                onClick={() => uploadInputRef.current?.click()}
-                disabled={uploadingPdf}
-                className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
-              >
-                {uploadingPdf ? "Loading PDF…" : "Upload scanned PDF"}
-              </button>
-            </div>
-            <p className="text-center text-[10px] text-slate-400">
-              Use <span className="font-semibold text-blue-500">blue ink</span> for hand-written answers so AI can distinguish your writing from printed text.
-            </p>
           </div>
         </div>
       ) : null}

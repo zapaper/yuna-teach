@@ -154,6 +154,9 @@ function ExamOverviewContent({ id }: { id: string }) {
   async function triggerMarking(cloneId: string) {
     try {
       await fetch(`/api/exam/${cloneId}/mark`, { method: "POST" });
+      // Immediately refresh paper data so UI shows "Marking..." right away
+      const res = await fetch(`/api/exam/${id}?summary=true`);
+      if (res.ok) setPaper(await res.json());
       startPolling();
     } catch {
       // ignore
