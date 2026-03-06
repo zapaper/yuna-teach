@@ -246,12 +246,16 @@ export async function markExamPaper(paperId: string): Promise<void> {
     // Sync marksAvailable, answer, and answerImageData from master paper
     // so marking uses the latest values the parent set (not stale clone-time copies)
     if (paper.sourceExamId) {
+      console.log(`[marking] Paper is a clone of master ${paper.sourceExamId}, syncing...`);
       const master = await prisma.examPaper.findUnique({
         where: { id: paper.sourceExamId },
         include: { questions: { orderBy: { orderIndex: "asc" } } },
       });
       if (master) {
         const masterByNum = new Map(master.questions.map((q) => [q.questionNum, q]));
+        console.log(`[marking] Master has ${master.questions.length} questions: ${master.questions.map(q => q.questionNum).join(", ")}`);
+        console.log(`[marking] Clone has ${paper.questions.length} questions: ${paper.questions.map(q => q.questionNum).join(", ")}`);
+        let syncCount = 0;
         for (const q of paper.questions) {
           const mq = masterByNum.get(q.questionNum);
           if (mq) {
@@ -261,13 +265,21 @@ export async function markExamPaper(paperId: string): Promise<void> {
             if (mq.answerImageData !== q.answerImageData) updates.answerImageData = mq.answerImageData;
             if (mq.imageData !== q.imageData) updates.imageData = mq.imageData;
             if (Object.keys(updates).length > 0) {
+              console.log(`[marking] Syncing Q${q.questionNum}: ${Object.keys(updates).join(", ")} (answer: "${mq.answer?.slice(0, 50)}" → clone had: "${q.answer?.slice(0, 50)}")`);
               await prisma.examQuestion.update({ where: { id: q.id }, data: updates });
               Object.assign(q, updates);
+              syncCount++;
             }
+          } else {
+            console.log(`[marking] WARNING: Clone Q${q.questionNum} not found in master!`);
           }
         }
-        console.log(`[marking] Synced question data from master ${paper.sourceExamId}`);
+        console.log(`[marking] Synced ${syncCount} questions from master ${paper.sourceExamId}`);
+      } else {
+        console.log(`[marking] WARNING: Master ${paper.sourceExamId} not found!`);
       }
+    } else {
+      console.log(`[marking] Paper has no sourceExamId — not a clone, skipping sync`);
     }
 
     console.log(`[marking] Paper has ${paper.questions.length} questions, pageCount=${paper.pageCount}`);
