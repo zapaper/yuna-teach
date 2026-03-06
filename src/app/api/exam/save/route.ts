@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
       metadata,
       pageCount,
       userId,
+      examType,
       questions,
     } = body;
 
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
         totalMarks: totalMarks || null,
         metadata: metadata ?? null,
         pageCount: pageCount || 0,
+        examType: examType || null,
         userId,
         questions: {
           create: questions.map(

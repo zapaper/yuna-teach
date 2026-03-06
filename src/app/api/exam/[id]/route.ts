@@ -107,6 +107,7 @@ export async function PATCH(
         assignedToId: studentId,
         sourceExamId: id,
         paperType: master.paperType,
+        examType: master.examType,
         questions: {
           create: master.questions.map((q) => ({
             questionNum: q.questionNum,
@@ -145,6 +146,7 @@ export async function PATCH(
             userId: master.userId,
             assignedToId: master.assignedToId,
             sourceExamId: id,
+            examType: master.examType,
             completedAt: master.completedAt,
             score: master.score,
             markingStatus: master.markingStatus,
@@ -225,6 +227,7 @@ export async function PATCH(
     data.timeSpentSeconds = body.timeSpentSeconds;
   if ("feedbackSummary" in body) data.feedbackSummary = body.feedbackSummary ?? null;
   if ("markingStatus" in body) data.markingStatus = body.markingStatus ?? null;
+  if ("examType" in body) data.examType = body.examType || null;
 
   const paper = await prisma.examPaper.update({ where: { id }, data });
 

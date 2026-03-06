@@ -478,6 +478,29 @@ function ExamOverviewContent({ id }: { id: string }) {
           value={[paper.year, paper.semester].filter(Boolean).join(" / ") || null} />
         <InfoRow label="Total Questions" value={String(questionsDetected)} />
         <InfoRow label="Total Marks" value={paper.totalMarks} />
+        <div className="flex items-center justify-between py-2 border-t border-slate-100">
+          <span className="text-sm text-slate-600">Exam Type</span>
+          <select
+            value={paper.examType || ""}
+            onChange={async (e) => {
+              const val = e.target.value || null;
+              setPaper({ ...paper, examType: val });
+              await fetch(`/api/exam/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ examType: val }),
+              });
+            }}
+            className="text-sm font-semibold text-slate-800 bg-transparent border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-400"
+          >
+            <option value="">Not set</option>
+            <option value="Preliminary">Preliminary</option>
+            <option value="WA1">WA1</option>
+            <option value="WA2">WA2</option>
+            <option value="WA3">WA3</option>
+            <option value="End of Year">End of Year</option>
+          </select>
+        </div>
       </Section>
 
       {/* Detection Status */}

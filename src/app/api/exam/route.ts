@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
       score: p.score ?? null,
       totalMarks: p.totalMarks ?? null,
       paperType: p.paperType ?? null,
+      examType: p.examType ?? null,
       syllabusTagged: p.questions.length > 0,
     })),
   });

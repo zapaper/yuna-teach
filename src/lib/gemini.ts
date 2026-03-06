@@ -119,9 +119,10 @@ Extract the following information from this exam paper image:
 4. year: The year of the exam (e.g. "2024")
 5. semester: The exam type or semester (e.g. "Prelim", "SA2", "CA1", "Mid-Year")
 6. title: A short descriptive title combining school abbreviation, level, subject, and exam type (e.g. "ACSJ P6 Math Prelim 2024")
+7. examType: The type of exam. Must be one of: "Preliminary", "WA1", "WA2", "WA3", "End of Year". Use "Preliminary" for prelim/mid-year exams, "End of Year" for SA2/final exams, "WA1"/"WA2"/"WA3" for weighted assessments. If unclear, use "Preliminary".
 
 If any field cannot be determined, use an empty string.
-Return ONLY valid JSON with these exact fields: school, level, subject, year, semester, title.`;
+Return ONLY valid JSON with these exact fields: school, level, subject, year, semester, title, examType.`;
 
 export interface ExamHeaderInfo {
   school: string;
@@ -130,6 +131,7 @@ export interface ExamHeaderInfo {
   year: string;
   semester: string;
   title: string;
+  examType?: string;
   totalMarks?: string;
   marksGuidance?: string;
   sections?: Array<{

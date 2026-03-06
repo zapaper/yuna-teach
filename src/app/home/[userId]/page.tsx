@@ -20,6 +20,7 @@ export default function HomePage({
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
+  const [examTypeFilter, setExamTypeFilter] = useState<string | null>(null);
 
   // Invite / link state
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -340,7 +341,7 @@ export default function HomePage({
                     : "bg-slate-100 text-slate-500 hover:bg-slate-200"
                 }`}
               >
-                All
+                All Subjects
               </button>
               {subjects.sort().map((s) => (
                 <button
@@ -359,16 +360,54 @@ export default function HomePage({
           );
         })()}
 
+        {/* Exam type tabs */}
         {(() => {
-          const filtered = subjectFilter
-            ? examPapers.filter((p) => p.subject === subjectFilter)
-            : examPapers;
+          const types = [...new Set(examPapers.map((p) => p.examType).filter(Boolean))] as string[];
+          if (types.length <= 1) return null;
+          const order = ["Preliminary", "WA1", "WA2", "WA3", "End of Year"];
+          types.sort((a, b) => {
+            const ia = order.indexOf(a), ib = order.indexOf(b);
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+          });
+          return (
+            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+              <button
+                onClick={() => setExamTypeFilter(null)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  examTypeFilter === null
+                    ? "bg-purple-500 text-white"
+                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                }`}
+              >
+                All Types
+              </button>
+              {types.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setExamTypeFilter(t)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                    examTypeFilter === t
+                      ? "bg-purple-500 text-white"
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
+
+        {(() => {
+          let filtered = examPapers;
+          if (subjectFilter) filtered = filtered.filter((p) => p.subject === subjectFilter);
+          if (examTypeFilter) filtered = filtered.filter((p) => p.examType === examTypeFilter);
 
           return loading ? null : filtered.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">📄</div>
               <p className="text-slate-500">
-                {examPapers.length === 0 ? "No exam papers yet." : `No ${subjectFilter} papers.`}
+                {examPapers.length === 0 ? "No exam papers yet." : "No matching papers."}
               </p>
               <p className="text-slate-400 text-sm">
                 {examPapers.length === 0

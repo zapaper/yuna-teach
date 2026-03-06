@@ -408,6 +408,7 @@ export async function extractExamPaperBackground(
           year: result.header?.year || paper.year,
           semester: result.header?.semester || paper.semester,
           totalMarks: result.header?.totalMarks || paper.totalMarks,
+          examType: result.header?.examType || paper.examType,
           metadata: debugMetadata as object ?? undefined,
           extractionStatus: "ready",
         },
