@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         const levelStrings = studentLevels.map((n) => `Primary ${n}`);
         where = {
           sourceExamId: null,
+          paperType: null, // exclude focused tests
           level: { in: levelStrings },
         };
       } else {
