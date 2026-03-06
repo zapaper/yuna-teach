@@ -19,6 +19,7 @@ export default function HomePage({
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
 
   // Invite / link state
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -325,29 +326,72 @@ export default function HomePage({
           Exam Papers
         </h2>
 
-        {loading ? null : examPapers.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-3">📄</div>
-            <p className="text-slate-500">No exam papers yet.</p>
-            <p className="text-slate-400 text-sm">
-              {isParent
-                ? "Upload a PDF exam paper to get started!"
-                : "No exam papers have been assigned to you yet."}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {examPapers.map((paper) => (
-              <ExamPaperCard
-                key={paper.id}
-                paper={paper}
-                userId={userId}
-                userRole={user?.role}
-                onDelete={isParent ? handleDeleteExam : undefined}
-              />
-            ))}
-          </div>
-        )}
+        {/* Subject tabs */}
+        {(() => {
+          const subjects = [...new Set(examPapers.map((p) => p.subject).filter(Boolean))] as string[];
+          if (subjects.length <= 1) return null;
+          return (
+            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+              <button
+                onClick={() => setSubjectFilter(null)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  subjectFilter === null
+                    ? "bg-primary-500 text-white"
+                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                }`}
+              >
+                All
+              </button>
+              {subjects.sort().map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSubjectFilter(s)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                    subjectFilter === s
+                      ? "bg-primary-500 text-white"
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
+
+        {(() => {
+          const filtered = subjectFilter
+            ? examPapers.filter((p) => p.subject === subjectFilter)
+            : examPapers;
+
+          return loading ? null : filtered.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-3">📄</div>
+              <p className="text-slate-500">
+                {examPapers.length === 0 ? "No exam papers yet." : `No ${subjectFilter} papers.`}
+              </p>
+              <p className="text-slate-400 text-sm">
+                {examPapers.length === 0
+                  ? isParent
+                    ? "Upload a PDF exam paper to get started!"
+                    : "No exam papers have been assigned to you yet."
+                  : null}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filtered.map((paper) => (
+                <ExamPaperCard
+                  key={paper.id}
+                  paper={paper}
+                  userId={userId}
+                  userRole={user?.role}
+                  onDelete={isParent ? handleDeleteExam : undefined}
+                />
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
