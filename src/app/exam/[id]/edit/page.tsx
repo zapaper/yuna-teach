@@ -453,6 +453,17 @@ function ExamEditContent({ id }: { id: string }) {
         ) : null}
       </div>
 
+      {/* Save & Exit */}
+      <button
+        onClick={() => router.push(backPath)}
+        className="w-full mt-6 py-3 rounded-2xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors shadow-md"
+      >
+        Save &amp; Exit
+      </button>
+      <p className="text-center text-[10px] text-slate-400 mt-2 mb-4">
+        All changes are saved automatically when you leave a field.
+      </p>
+
       {/* Area selection modal */}
       {selectTarget && (
         <PageSelectionModal
@@ -693,6 +704,12 @@ function QuestionEditCard({
                 setQNum(e.target.value);
                 setQNumDirty(e.target.value !== question.questionNum);
               }}
+              onBlur={() => {
+                if (qNum !== question.questionNum) {
+                  onSave(question.id, "questionNum", qNum);
+                  setQNumDirty(false);
+                }
+              }}
               className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:border-primary-400"
             />
             {qNumDirty ? (
@@ -773,6 +790,12 @@ function QuestionEditCard({
               onChange={(e) => {
                 setAnswer(e.target.value);
                 setAnswerDirty(e.target.value !== (question.answer ?? ""));
+              }}
+              onBlur={() => {
+                if (answer !== (question.answer ?? "")) {
+                  onSave(question.id, "answer", answer);
+                  setAnswerDirty(false);
+                }
               }}
               placeholder={isMissingAnswer ? "Enter answer…" : ""}
               className={`flex-1 rounded-xl border px-3 py-2 text-sm focus:outline-none resize-none ${
