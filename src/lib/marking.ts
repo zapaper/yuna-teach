@@ -130,16 +130,22 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const paper = question.examPaper;
 
-  // Sync from master if this is a clone
+  // Sync from master if this is a clone — match by questionNum first, then orderIndex
   if (paper.sourceExamId) {
     const masterQ = await prisma.examQuestion.findFirst({
       where: {
-        examPaper: { id: paper.sourceExamId },
+        examPaperId: paper.sourceExamId,
         questionNum: question.questionNum,
+      },
+    }) ?? await prisma.examQuestion.findFirst({
+      where: {
+        examPaperId: paper.sourceExamId,
+        orderIndex: question.orderIndex,
       },
     });
     if (masterQ) {
       const updates: Record<string, unknown> = {};
+      if (masterQ.questionNum !== question.questionNum) updates.questionNum = masterQ.questionNum;
       if (masterQ.marksAvailable !== question.marksAvailable) updates.marksAvailable = masterQ.marksAvailable;
       if (masterQ.answer !== question.answer) updates.answer = masterQ.answer;
       if (masterQ.answerImageData !== question.answerImageData) updates.answerImageData = masterQ.answerImageData;
@@ -243,43 +249,87 @@ export async function markExamPaper(paperId: string): Promise<void> {
     });
     if (!paper) throw new Error("Paper not found");
 
-    // Sync marksAvailable, answer, and answerImageData from master paper
-    // so marking uses the latest values the parent set (not stale clone-time copies)
+    // Sync questions from master paper so marking uses the latest Q&A.
+    // Handles renumbered/split questions (e.g. "35" → "35ab","35c") by
+    // deleting clone questions and recreating from master structure,
+    // preserving student-side marking data where possible.
     if (paper.sourceExamId) {
-      console.log(`[marking] Paper is a clone of master ${paper.sourceExamId}, syncing...`);
       const master = await prisma.examPaper.findUnique({
         where: { id: paper.sourceExamId },
         include: { questions: { orderBy: { orderIndex: "asc" } } },
       });
       if (master) {
-        const masterByNum = new Map(master.questions.map((q) => [q.questionNum, q]));
-        console.log(`[marking] Master has ${master.questions.length} questions: ${master.questions.map(q => q.questionNum).join(", ")}`);
-        console.log(`[marking] Clone has ${paper.questions.length} questions: ${paper.questions.map(q => q.questionNum).join(", ")}`);
-        let syncCount = 0;
-        for (const q of paper.questions) {
-          const mq = masterByNum.get(q.questionNum);
-          if (mq) {
+        // Check if structure matches (same count + same questionNums in order)
+        const masterNums = master.questions.map((q) => q.questionNum).join(",");
+        const cloneNums = paper.questions.map((q) => q.questionNum).join(",");
+        const structureChanged = masterNums !== cloneNums;
+
+        if (structureChanged) {
+          console.log(`[marking] Question structure changed — rebuilding clone questions`);
+          console.log(`[marking]   master: ${masterNums}`);
+          console.log(`[marking]   clone:  ${cloneNums}`);
+
+          // Save existing marking data keyed by questionNum for reuse
+          const existingMarking = new Map(
+            paper.questions.map((q) => [q.questionNum, {
+              marksAwarded: q.marksAwarded,
+              markingNotes: q.markingNotes,
+              studentAnswer: q.studentAnswer,
+            }])
+          );
+
+          // Delete all clone questions and recreate from master
+          await prisma.examQuestion.deleteMany({ where: { examPaperId: paperId } });
+          const created = await Promise.all(
+            master.questions.map((mq) => {
+              const prev = existingMarking.get(mq.questionNum);
+              return prisma.examQuestion.create({
+                data: {
+                  examPaperId: paperId,
+                  questionNum: mq.questionNum,
+                  imageData: mq.imageData,
+                  answer: mq.answer,
+                  answerImageData: mq.answerImageData,
+                  pageIndex: mq.pageIndex,
+                  orderIndex: mq.orderIndex,
+                  yStartPct: mq.yStartPct,
+                  yEndPct: mq.yEndPct,
+                  marksAvailable: mq.marksAvailable,
+                  syllabusTopic: mq.syllabusTopic,
+                  // Preserve marking data if questionNum existed before
+                  marksAwarded: prev?.marksAwarded ?? null,
+                  markingNotes: prev?.markingNotes ?? null,
+                  studentAnswer: prev?.studentAnswer ?? null,
+                },
+              });
+            })
+          );
+          // Replace in-memory questions with freshly created ones
+          paper.questions.length = 0;
+          paper.questions.push(...created);
+          console.log(`[marking] Rebuilt ${created.length} questions from master`);
+        } else {
+          // Structure matches — just sync field values
+          let syncCount = 0;
+          for (let i = 0; i < paper.questions.length; i++) {
+            const q = paper.questions[i];
+            const mq = master.questions[i];
+            if (!mq) continue;
             const updates: Record<string, unknown> = {};
+            if (mq.questionNum !== q.questionNum) updates.questionNum = mq.questionNum;
             if (mq.marksAvailable !== q.marksAvailable) updates.marksAvailable = mq.marksAvailable;
             if (mq.answer !== q.answer) updates.answer = mq.answer;
             if (mq.answerImageData !== q.answerImageData) updates.answerImageData = mq.answerImageData;
             if (mq.imageData !== q.imageData) updates.imageData = mq.imageData;
             if (Object.keys(updates).length > 0) {
-              console.log(`[marking] Syncing Q${q.questionNum}: ${Object.keys(updates).join(", ")} (answer: "${mq.answer?.slice(0, 50)}" → clone had: "${q.answer?.slice(0, 50)}")`);
               await prisma.examQuestion.update({ where: { id: q.id }, data: updates });
               Object.assign(q, updates);
               syncCount++;
             }
-          } else {
-            console.log(`[marking] WARNING: Clone Q${q.questionNum} not found in master!`);
           }
+          console.log(`[marking] Synced ${syncCount} questions from master ${paper.sourceExamId}`);
         }
-        console.log(`[marking] Synced ${syncCount} questions from master ${paper.sourceExamId}`);
-      } else {
-        console.log(`[marking] WARNING: Master ${paper.sourceExamId} not found!`);
       }
-    } else {
-      console.log(`[marking] Paper has no sourceExamId — not a clone, skipping sync`);
     }
 
     console.log(`[marking] Paper has ${paper.questions.length} questions, pageCount=${paper.pageCount}`);

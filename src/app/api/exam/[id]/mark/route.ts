@@ -23,6 +23,7 @@ export async function GET(
           id: true,
           questionNum: true,
           pageIndex: true,
+          orderIndex: true,
           yStartPct: true,
           yEndPct: true,
           answer: true,
@@ -39,13 +40,16 @@ export async function GET(
   }
 
   // If this is a clone, overlay the latest answer/marks from the master paper
-  // so the review always shows the most up-to-date Q&A the parent edited
+  // so the review always shows the most up-to-date Q&A the parent edited.
+  // Matches by questionNum first, then by position (orderIndex) to handle
+  // renamed/split questions (e.g. "35" → "35ab", "35c").
   if (paper.sourceExamId) {
     const master = await prisma.examPaper.findUnique({
       where: { id: paper.sourceExamId },
       select: {
         questions: {
-          select: { questionNum: true, answer: true, marksAvailable: true },
+          orderBy: { orderIndex: "asc" as const },
+          select: { questionNum: true, answer: true, marksAvailable: true, orderIndex: true },
         },
       },
     });
@@ -53,10 +57,14 @@ export async function GET(
       const masterByNum = new Map(
         master.questions.map((q) => [q.questionNum, q])
       );
+      const masterByIdx = new Map(
+        master.questions.map((q) => [q.orderIndex, q])
+      );
       for (const q of paper.questions) {
-        const mq = masterByNum.get(q.questionNum);
+        const mq = masterByNum.get(q.questionNum) ?? masterByIdx.get(q.orderIndex);
         if (mq) {
           q.answer = mq.answer;
+          q.questionNum = mq.questionNum;
           if (mq.marksAvailable != null) q.marksAvailable = mq.marksAvailable;
         }
       }
