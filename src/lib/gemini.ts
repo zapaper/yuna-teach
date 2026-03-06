@@ -622,7 +622,7 @@ This applies to ALL entries (both primary and continuation) — if no next quest
 - boundaryBottom should be the next question number or "end" as usual
 - marksAvailable should be null on continuation entries (marks are on the primary entry only)`;
 
-// ─── P6 Math Syllabus Topics ────────────────────────────────────────────────
+// ─── Syllabus Topics ─────────────────────────────────────────────────────────
 
 export const P6_MATH_SYLLABUS = [
   "Basic math operations",
@@ -636,6 +636,27 @@ export const P6_MATH_SYLLABUS = [
   "Statistics",
   "Time",
   "Volume measurement",
+] as const;
+
+export const SCIENCE_SYLLABUS = [
+  "Diversity of living and non-living things",
+  "Diversity of materials",
+  "Life cycles in plants and animals",
+  "Plant parts and functions",
+  "Human digestive system",
+  "Cycles in matter",
+  "Water cycle",
+  "Plant respiratory and circulatory systems",
+  "Human respiratory and circulatory systems",
+  "Reproduction in plants and animals",
+  "Light energy and uses",
+  "Heat energy and uses",
+  "Electrical system and circuits",
+  "Photosynthesis",
+  "Energy conversion",
+  "Interaction of forces (Magnets)",
+  "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+  "Interactions within the environment",
 ] as const;
 
 const MATH_SYLLABUS_ADDENDUM = `
@@ -667,27 +688,64 @@ Rules:
 - If the question does not clearly fit any topic, set "syllabusTopic" to null
 - MCQ questions should also be tagged based on the concept being tested`;
 
+const SCIENCE_SYLLABUS_ADDENDUM = `
+
+## SCIENCE PAPER — Syllabus topic tagging
+
+This is a SCIENCE paper. For EACH question, you MUST also output a "syllabusTopic" field.
+
+Choose EXACTLY ONE topic from this list:
+${SCIENCE_SYLLABUS.map((t) => `- ${t}`).join("\n")}
+
+Rules:
+- Pick the BEST matching topic based on the main concept tested in the question
+- "Diversity of living and non-living things" — classifying living/non-living, characteristics of living things, animal groups
+- "Diversity of materials" — properties of materials, man-made vs natural materials
+- "Life cycles in plants and animals" — stages of growth, metamorphosis, germination
+- "Plant parts and functions" — roots, stems, leaves, flowers and their roles
+- "Human digestive system" — organs of digestion, nutrients, food tests
+- "Cycles in matter" — matter in different states, changes of state
+- "Water cycle" — evaporation, condensation, precipitation
+- "Plant respiratory and circulatory systems" — transport of water/nutrients in plants
+- "Human respiratory and circulatory systems" — breathing, blood circulation, heart, lungs
+- "Reproduction in plants and animals" — pollination, fertilisation, seed dispersal, animal reproduction
+- "Light energy and uses" — shadows, reflection, refraction, light sources
+- "Heat energy and uses" — conduction, convection, radiation, insulators/conductors
+- "Electrical system and circuits" — open/closed circuits, series/parallel, conductors/insulators
+- "Photosynthesis" — process of photosynthesis, requirements, products
+- "Energy conversion" — forms of energy, energy conversions, conservation of energy
+- "Interaction of forces (Magnets)" — magnetic/non-magnetic materials, poles, attraction/repulsion
+- "Interaction of forces (Frictional force, gravitational force, elastic spring force)" — friction, gravity, springs, effects of forces
+- "Interactions within the environment" — food chains, food webs, adaptations, man's impact on environment
+- If the question does not clearly fit any topic, set "syllabusTopic" to null
+- MCQ questions should also be tagged based on the concept being tested`;
+
 // Standalone syllabus tagging function — tags existing questions via their images
 export async function tagSyllabusTopics(
-  questions: Array<{ questionNum: string; imageBase64: string }>
+  questions: Array<{ questionNum: string; imageBase64: string }>,
+  subject?: string
 ): Promise<Record<string, string | null>> {
   const imageParts = questions.flatMap((q) => [
     { inlineData: { mimeType: "image/jpeg" as const, data: q.imageBase64 } },
     { text: `[Question ${q.questionNum}]` },
   ]);
 
-  const prompt = `You are tagging Primary 6 Math exam questions by syllabus topic.
+  const isScience = (subject || "").toLowerCase().includes("science");
+  const topicList = isScience ? SCIENCE_SYLLABUS : P6_MATH_SYLLABUS;
+  const subjectLabel = isScience ? "Science" : "Math";
+
+  const prompt = `You are tagging Primary school ${subjectLabel} exam questions by syllabus topic.
 
 For each question image, choose EXACTLY ONE topic from this list:
-${P6_MATH_SYLLABUS.map((t) => `- ${t}`).join("\n")}
+${topicList.map((t) => `- ${t}`).join("\n")}
 
 If a question does not clearly fit any topic, use null.
 
 Return ONLY valid JSON (no markdown fences):
 {
   "tags": {
-    "1": "Fractions",
-    "2": "Ratio",
+    "1": "${topicList[0]}",
+    "2": "${topicList[1]}",
     "3": null
   }
 }
@@ -1203,6 +1261,7 @@ async function runExtractionCall(
   );
   if (isScience) {
     prompt += SCIENCE_ADDENDUM;
+    prompt += SCIENCE_SYLLABUS_ADDENDUM;
   }
   const isMath = subject.toLowerCase().includes("math");
   if (isMath) {

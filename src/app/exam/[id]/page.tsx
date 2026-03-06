@@ -545,6 +545,9 @@ function ExamPracticeContent({ id }: { id: string }) {
             <p className="text-center text-[10px] text-slate-400">
               Use <span className="font-semibold text-blue-500">blue ink</span> for hand-written answers so AI can distinguish your writing from printed text.
             </p>
+            <p className="text-center text-[10px] text-slate-300 italic">
+              iPad stylus: disable Apple Pencil double-tap for smoother writing
+            </p>
           </div>
 
           {/* Drawing toolbar — sticky so it floats when zoomed/scrolled */}

@@ -22,7 +22,8 @@ export default function ExamPaperCard({
 
   const isExtracting = paper.extractionStatus === "processing";
   const extractionFailed = paper.extractionStatus === "failed";
-  const isMathPaper = (paper.subject || "").toLowerCase().includes("math");
+  const subjectLower = (paper.subject || "").toLowerCase();
+  const isTaggablePaper = subjectLower.includes("math") || subjectLower.includes("science");
 
   async function tagSyllabus() {
     setTaggingSyllabus(true);
@@ -172,7 +173,7 @@ export default function ExamPaperCard({
       </Link>
 
       {/* Tag Syllabus button — Math papers, parents only, not already tagged */}
-      {userRole === "PARENT" && isMathPaper && !isExtracting && !extractionFailed && !paper.syllabusTagged && (
+      {userRole === "PARENT" && isTaggablePaper && !isExtracting && !extractionFailed && !paper.syllabusTagged && (
         <button
           onClick={(e) => {
             e.preventDefault();

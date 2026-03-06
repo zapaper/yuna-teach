@@ -223,6 +223,7 @@ function FocusedTestContent({ id }: { id: string }) {
         <div className="min-w-0">
           <h1 className="text-sm font-bold text-slate-800 truncate">{paper.title}</h1>
           <p className="text-[11px] text-slate-400">Q{currentIdx + 1} / {questions.length}</p>
+          <p className="text-[10px] text-slate-300 italic">iPad stylus: disable Apple Pencil double-tap for smoother writing</p>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-3">
           {/* Drawing tools */}

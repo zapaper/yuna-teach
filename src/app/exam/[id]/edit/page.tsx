@@ -339,7 +339,9 @@ function ExamEditContent({ id }: { id: string }) {
     }
   }
 
-  const isMathPaper = (paper?.subject || "").toLowerCase().includes("math");
+  const subjectLower = (paper?.subject || "").toLowerCase();
+  const isMathPaper = subjectLower.includes("math");
+  const isTaggablePaper = isMathPaper || subjectLower.includes("science");
   const backPath = `/exam/${id}/overview?userId=${userId}`;
 
   if (loading) {
@@ -418,7 +420,7 @@ function ExamEditContent({ id }: { id: string }) {
             question={q}
             saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem | "redo" : null}
             pdfLoaded={pageImages.length > 0}
-            isMathPaper={isMathPaper}
+            syllabusTopics={isTaggablePaper ? (isMathPaper ? P6_MATH_TOPICS : SCIENCE_TOPICS) : null}
             onSave={saveQuestion}
             onDelete={() => deleteQuestion(q.id)}
             onRedo={() => redoQuestion(q.id)}
@@ -442,7 +444,7 @@ function ExamEditContent({ id }: { id: string }) {
         >
           + Add Question
         </button>
-        {isMathPaper ? (
+        {isTaggablePaper ? (
           <button
             onClick={tagSyllabus}
             disabled={taggingSyllabus}
@@ -584,11 +586,32 @@ const P6_MATH_TOPICS = [
   "Volume measurement",
 ];
 
+const SCIENCE_TOPICS = [
+  "Diversity of living and non-living things",
+  "Diversity of materials",
+  "Life cycles in plants and animals",
+  "Plant parts and functions",
+  "Human digestive system",
+  "Cycles in matter",
+  "Water cycle",
+  "Plant respiratory and circulatory systems",
+  "Human respiratory and circulatory systems",
+  "Reproduction in plants and animals",
+  "Light energy and uses",
+  "Heat energy and uses",
+  "Electrical system and circuits",
+  "Photosynthesis",
+  "Energy conversion",
+  "Interaction of forces (Magnets)",
+  "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+  "Interactions within the environment",
+];
+
 function QuestionEditCard({
   question,
   saving,
   pdfLoaded,
-  isMathPaper,
+  syllabusTopics,
   onSave,
   onDelete,
   onRedo,
@@ -598,7 +621,7 @@ function QuestionEditCard({
   question: ExamQuestionItem;
   saving: keyof ExamQuestionItem | "redo" | null;
   pdfLoaded: boolean;
-  isMathPaper: boolean;
+  syllabusTopics: string[] | null;
   onSave: (
     id: string,
     field: keyof ExamQuestionItem,
@@ -745,8 +768,8 @@ function QuestionEditCard({
           </div>
         </div>
 
-        {/* Syllabus topic (Math only) */}
-        {isMathPaper && (
+        {/* Syllabus topic (Math / Science) */}
+        {syllabusTopics && (
           <div className="flex items-center gap-3">
             <label className="text-xs font-medium text-slate-500 w-24 shrink-0">
               Topic
@@ -766,7 +789,7 @@ function QuestionEditCard({
                 className="text-xs rounded-lg border border-slate-200 px-2 py-1 text-slate-600 focus:outline-none focus:border-primary-400 bg-white"
               >
                 <option value="">— none —</option>
-                {P6_MATH_TOPICS.map((t) => (
+                {syllabusTopics.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>

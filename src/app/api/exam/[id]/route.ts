@@ -282,8 +282,13 @@ export async function POST(
     return NextResponse.json(question);
   }
 
-  // --- Tag syllabus topics (Math only) ---
+  // --- Tag syllabus topics (Math & Science) ---
   if (body.action === "tagSyllabus") {
+    const paper = await prisma.examPaper.findUnique({
+      where: { id },
+      select: { subject: true },
+    });
+
     const questions = await prisma.examQuestion.findMany({
       where: { examPaperId: id },
       orderBy: { orderIndex: "asc" },
@@ -296,7 +301,7 @@ export async function POST(
       imageBase64: q.imageData.replace(/^data:image\/\w+;base64,/, ""),
     }));
 
-    const tags = await tagSyllabusTopics(questionsForAI);
+    const tags = await tagSyllabusTopics(questionsForAI, paper?.subject ?? undefined);
 
     // Update each question with its tag
     const updates = questions
