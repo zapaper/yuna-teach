@@ -24,15 +24,12 @@ export async function GET(request: NextRequest) {
       if (studentLevels.length > 0) {
         const levelStrings = studentLevels.map((n) => `Primary ${n}`);
         where = {
-          userId,
           sourceExamId: null,
-          OR: [
-            { level: { in: levelStrings } },
-            { level: null }, // Include papers without a level set
-          ],
+          level: { in: levelStrings },
         };
       } else {
-        where = { userId, sourceExamId: null };
+        // No linked students — show no papers
+        where = { id: "none" };
       }
     }
   }
