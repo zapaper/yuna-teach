@@ -39,35 +39,48 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  // If this is a clone, overlay the latest answer/marks from the master paper
-  // so the review always shows the most up-to-date Q&A the parent edited.
-  // Matches by questionNum first, then by position (orderIndex) to handle
-  // renamed/split questions (e.g. "35" → "35ab", "35c").
+  // If this is a clone, use the master's question structure as the source of
+  // truth for questionNum, answer, marksAvailable, and pageIndex. Pull marking
+  // results (marksAwarded, markingNotes) from the clone by questionNum match.
+  // This handles splits (e.g. "35" → "35ab","35c") correctly.
   if (paper.sourceExamId) {
     const master = await prisma.examPaper.findUnique({
       where: { id: paper.sourceExamId },
       select: {
         questions: {
           orderBy: { orderIndex: "asc" as const },
-          select: { questionNum: true, answer: true, marksAvailable: true, orderIndex: true },
+          select: {
+            questionNum: true,
+            answer: true,
+            marksAvailable: true,
+            pageIndex: true,
+            orderIndex: true,
+          },
         },
       },
     });
     if (master) {
-      const masterByNum = new Map(
-        master.questions.map((q) => [q.questionNum, q])
+      const cloneByNum = new Map(
+        paper.questions.map((q) => [q.questionNum, q])
       );
-      const masterByIdx = new Map(
-        master.questions.map((q) => [q.orderIndex, q])
-      );
-      for (const q of paper.questions) {
-        const mq = masterByNum.get(q.questionNum) ?? masterByIdx.get(q.orderIndex);
-        if (mq) {
-          q.answer = mq.answer;
-          q.questionNum = mq.questionNum;
-          if (mq.marksAvailable != null) q.marksAvailable = mq.marksAvailable;
-        }
-      }
+      // Build merged list using master structure + clone marking data
+      const merged = master.questions.map((mq) => {
+        const cq = cloneByNum.get(mq.questionNum);
+        return {
+          id: cq?.id ?? mq.questionNum,
+          questionNum: mq.questionNum,
+          pageIndex: mq.pageIndex,
+          orderIndex: mq.orderIndex,
+          yStartPct: cq?.yStartPct ?? null,
+          yEndPct: cq?.yEndPct ?? null,
+          answer: mq.answer,
+          marksAwarded: cq?.marksAwarded ?? null,
+          marksAvailable: mq.marksAvailable,
+          markingNotes: cq?.markingNotes ?? null,
+        };
+      });
+      const { sourceExamId: _, questions: __, ...rest } = paper;
+      return NextResponse.json({ ...rest, questions: merged });
     }
   }
 
