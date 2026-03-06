@@ -264,25 +264,13 @@ function FocusedTestContent({ id }: { id: string }) {
       </div>
 
       <div className="max-w-2xl mx-auto">
-        {/* Question image */}
-        <div className="bg-white border-b border-slate-200">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={currentQ.imageData}
-            alt={`Question ${currentQ.questionNum}`}
-            className="w-full"
-          />
-        </div>
-
-        {/* Answer drawing area */}
+        {/* Question image with drawing overlay */}
         <div className="bg-white">
-          <div className="px-3 py-1 border-b border-slate-100">
-            <span className="text-[10px] font-medium text-slate-300 uppercase tracking-wider">Write your answer below</span>
-          </div>
           <AnswerCanvas
             key={currentIdx}
             ref={(el) => { canvasHandles.current[currentIdx] = el; }}
             tool={tool}
+            questionImageSrc={currentQ.imageData}
             inkBlob={inkBlobs[currentIdx] ?? undefined}
             onStrokeStart={() => {
               lastDrawnIdx.current = currentIdx;
@@ -351,57 +339,84 @@ function FocusedTestContent({ id }: { id: string }) {
 
 const AnswerCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; inkBlob?: Blob; onStrokeStart: () => void }
->(function AnswerCanvas({ tool, inkBlob, onStrokeStart }, ref) {
+  { tool: DrawTool; questionImageSrc: string; inkBlob?: Blob; onStrokeStart: () => void }
+>(function AnswerCanvas({ tool, questionImageSrc, inkBlob, onStrokeStart }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const bgImageRef = useRef<HTMLImageElement | null>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
   const pendingSnapshot = useRef<ImageData | null>(null);
   const snapshotTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inkApplied = useRef(false);
-  const CANVAS_W = 1200;
-  const CANVAS_H = 600;
+  const [canvasSize, setCanvasSize] = useState<{ w: number; h: number } | null>(null);
 
-  function drawBackground(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 1;
-    for (let y = 40; y < CANVAS_H; y += 40) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(CANVAS_W, y);
-      ctx.stroke();
-    }
-  }
-
+  // Load question image and set canvas size
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    canvas.width = CANVAS_W;
-    canvas.height = CANVAS_H;
-    drawBackground(canvas.getContext("2d", { desynchronized: true })!);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const img = new window.Image();
+    img.onload = () => {
+      bgImageRef.current = img;
+      const w = img.naturalWidth;
+      const h = img.naturalHeight;
+      setCanvasSize({ w, h });
 
+      // Set up visible canvas with question image background
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d", { desynchronized: true })!;
+        ctx.drawImage(img, 0, 0, w, h);
+      }
+
+      // Set up off-screen ink canvas
+      const inkCanvas = document.createElement("canvas");
+      inkCanvas.width = w;
+      inkCanvas.height = h;
+      inkCanvasRef.current = inkCanvas;
+    };
+    img.src = questionImageSrc;
+  }, [questionImageSrc]);
+
+  // Apply saved ink blob
   useEffect(() => {
-    if (inkBlob && !inkApplied.current && canvasRef.current?.width) {
+    if (inkBlob && !inkApplied.current && canvasSize) {
       inkApplied.current = true;
       const url = URL.createObjectURL(inkBlob);
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
-        canvasRef.current?.getContext("2d", { desynchronized: true })?.drawImage(img, 0, 0, CANVAS_W, CANVAS_H);
+        const { w, h } = canvasSize;
+        // Draw ink on the off-screen ink canvas
+        inkCanvasRef.current?.getContext("2d")?.drawImage(img, 0, 0, w, h);
+        // Draw ink on the visible canvas (on top of background)
+        canvasRef.current?.getContext("2d", { desynchronized: true })?.drawImage(img, 0, 0, w, h);
         URL.revokeObjectURL(url);
       };
       img.src = url;
     }
-  }, [inkBlob]);
+  }, [inkBlob, canvasSize]);
+
+  // Redraw composite (background + ink) from ink canvas
+  function redrawComposite() {
+    const canvas = canvasRef.current;
+    const bg = bgImageRef.current;
+    const inkCanvas = inkCanvasRef.current;
+    if (!canvas || !bg) return;
+    const ctx = canvas.getContext("2d", { desynchronized: true })!;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+    if (inkCanvas) ctx.drawImage(inkCanvas, 0, 0);
+  }
 
   useImperativeHandle(ref, () => ({
     exportImage(): Promise<Blob> {
       return new Promise((resolve, reject) => {
+        // Export the visible canvas (background + ink)
         const canvas = canvasRef.current;
         if (!canvas) { reject(new Error("Not ready")); return; }
+        // Redraw to ensure composite is clean
+        redrawComposite();
         canvas.toBlob(
           (blob) => blob ? resolve(blob) : reject(new Error("Export failed")),
           "image/jpeg", 0.88
@@ -410,25 +425,27 @@ const AnswerCanvas = forwardRef<
     },
     exportInk(): Promise<Blob> {
       return new Promise((resolve, reject) => {
-        const canvas = canvasRef.current;
-        if (!canvas) { reject(new Error("Not ready")); return; }
-        canvas.toBlob(
+        // Export only the ink layer (transparent background)
+        const inkCanvas = inkCanvasRef.current;
+        if (!inkCanvas) { reject(new Error("Not ready")); return; }
+        inkCanvas.toBlob(
           (blob) => blob ? resolve(blob) : reject(new Error("Export failed")),
           "image/png"
         );
       });
     },
     undo() {
-      const canvas = canvasRef.current;
-      if (!canvas || history.current.length === 0) return;
-      canvas.getContext("2d", { desynchronized: true })!.putImageData(history.current.pop()!, 0, 0);
+      const inkCanvas = inkCanvasRef.current;
+      if (!inkCanvas || history.current.length === 0) return;
+      inkCanvas.getContext("2d")!.putImageData(history.current.pop()!, 0, 0);
+      redrawComposite();
     },
   }));
 
   function saveSnapshot() {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    history.current.push(canvas.getContext("2d", { desynchronized: true })!.getImageData(0, 0, canvas.width, canvas.height));
+    const inkCanvas = inkCanvasRef.current;
+    if (!inkCanvas) return;
+    history.current.push(inkCanvas.getContext("2d")!.getImageData(0, 0, inkCanvas.width, inkCanvas.height));
     if (history.current.length > 30) history.current.shift();
   }
 
@@ -443,9 +460,9 @@ const AnswerCanvas = forwardRef<
     cancelPendingCapture();
     snapshotTimer.current = setTimeout(() => {
       snapshotTimer.current = null;
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      pendingSnapshot.current = canvas.getContext("2d", { desynchronized: true })!.getImageData(0, 0, canvas.width, canvas.height);
+      const inkCanvas = inkCanvasRef.current;
+      if (!inkCanvas) return;
+      pendingSnapshot.current = inkCanvas.getContext("2d")!.getImageData(0, 0, inkCanvas.width, inkCanvas.height);
     }, 300);
   }
 
@@ -485,16 +502,30 @@ const AnswerCanvas = forwardRef<
 
     const ctx = canvas.getContext("2d", { desynchronized: true })!;
 
-    function applyStyle() {
+    function applyStyleVisible() {
       ctx.lineCap = "round"; ctx.lineJoin = "round";
       if (toolRef.current === "eraser") {
-        ctx.globalCompositeOperation = "destination-out";
-        ctx.strokeStyle = "rgba(0,0,0,1)";
+        // For eraser on visible canvas: draw background color to "erase"
+        ctx.globalCompositeOperation = "source-over";
+        ctx.strokeStyle = "rgba(255,255,255,1)";
         ctx.lineWidth = 24;
       } else {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(37,99,235,0.85)";
         ctx.lineWidth = 3;
+      }
+    }
+
+    function applyStyleInk(inkCtx: CanvasRenderingContext2D) {
+      inkCtx.lineCap = "round"; inkCtx.lineJoin = "round";
+      if (toolRef.current === "eraser") {
+        inkCtx.globalCompositeOperation = "destination-out";
+        inkCtx.strokeStyle = "rgba(0,0,0,1)";
+        inkCtx.lineWidth = 24;
+      } else {
+        inkCtx.globalCompositeOperation = "source-over";
+        inkCtx.strokeStyle = "rgba(37,99,235,0.85)";
+        inkCtx.lineWidth = 3;
       }
     }
 
@@ -512,21 +543,50 @@ const AnswerCanvas = forwardRef<
       }
       const pos = getPos(e.clientX, e.clientY);
       lastPos.current = pos;
-      applyStyle();
+
+      // Draw dot on visible canvas
+      applyStyleVisible();
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, toolRef.current === "eraser" ? 12 : 1.5, 0, Math.PI * 2);
       ctx.fill();
+
+      // Draw dot on ink canvas
+      const inkCtx = inkCanvasRef.current?.getContext("2d");
+      if (inkCtx) {
+        applyStyleInk(inkCtx);
+        inkCtx.beginPath();
+        inkCtx.arc(pos.x, pos.y, toolRef.current === "eraser" ? 12 : 1.5, 0, Math.PI * 2);
+        inkCtx.fill();
+      }
+
+      // After eraser, redraw composite to show background through erased areas
+      if (toolRef.current === "eraser") {
+        redrawComposite();
+      }
     }
 
     function handlePointerMove(e: PointerEvent) {
       if (!isDrawing.current || !lastPos.current) return;
       e.preventDefault();
       const pos = getPos(e.clientX, e.clientY);
-      applyStyle();
+
+      // Draw on visible canvas
+      applyStyleVisible();
       ctx.beginPath();
       ctx.moveTo(lastPos.current.x, lastPos.current.y);
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
+
+      // Draw on ink canvas
+      const inkCtx = inkCanvasRef.current?.getContext("2d");
+      if (inkCtx) {
+        applyStyleInk(inkCtx);
+        inkCtx.beginPath();
+        inkCtx.moveTo(lastPos.current.x, lastPos.current.y);
+        inkCtx.lineTo(pos.x, pos.y);
+        inkCtx.stroke();
+      }
+
       lastPos.current = pos;
     }
 
@@ -534,6 +594,10 @@ const AnswerCanvas = forwardRef<
       if (!isDrawing.current) return;
       isDrawing.current = false;
       lastPos.current = null;
+      // After eraser stroke, redraw composite cleanly
+      if (toolRef.current === "eraser") {
+        redrawComposite();
+      }
       scheduleSnapshotCapture();
     }
 
@@ -563,7 +627,7 @@ const AnswerCanvas = forwardRef<
         ref={canvasRef}
         className="w-full border-0"
         style={{
-          aspectRatio: `${CANVAS_W} / ${CANVAS_H}`,
+          aspectRatio: canvasSize ? `${canvasSize.w} / ${canvasSize.h}` : "4 / 3",
           cursor: tool === "pen" ? PEN_CURSOR : "cell",
           touchAction: "none",
         }}
