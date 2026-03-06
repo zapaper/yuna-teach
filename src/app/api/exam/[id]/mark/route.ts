@@ -13,6 +13,7 @@ export async function GET(
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {
+      sourceExamId: true,
       markingStatus: true,
       score: true,
       feedbackSummary: true,
@@ -37,7 +38,34 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(paper);
+  // If this is a clone, overlay the latest answer/marks from the master paper
+  // so the review always shows the most up-to-date Q&A the parent edited
+  if (paper.sourceExamId) {
+    const master = await prisma.examPaper.findUnique({
+      where: { id: paper.sourceExamId },
+      select: {
+        questions: {
+          select: { questionNum: true, answer: true, marksAvailable: true },
+        },
+      },
+    });
+    if (master) {
+      const masterByNum = new Map(
+        master.questions.map((q) => [q.questionNum, q])
+      );
+      for (const q of paper.questions) {
+        const mq = masterByNum.get(q.questionNum);
+        if (mq) {
+          q.answer = mq.answer;
+          if (mq.marksAvailable != null) q.marksAvailable = mq.marksAvailable;
+        }
+      }
+    }
+  }
+
+  // Strip sourceExamId from response
+  const { sourceExamId: _, ...response } = paper;
+  return NextResponse.json(response);
 }
 
 // POST /api/exam/[id]/mark
