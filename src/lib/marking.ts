@@ -77,7 +77,11 @@ STEP 4: Record what you detected.
       - When in doubt between "no answer" and "1", choose "1" — a deliberate stroke of blue ink in the answer area is an answer.
       - Compare: "1" = single vertical stroke | "2" = curved top + horizontal base | "3" = two curves | "4" = angled lines.
       Any blue ink writing in the answer area is the student's answer.
-    - If nothing was written: "No answer detected"
+      *** IMPORTANT — "No answer detected" should be RARE ***
+      Students almost always write an answer. Before reporting "No answer detected", look VERY carefully for any blue ink in the question's region.
+      Even a tiny mark, a single stroke, or a faint line counts as an answer. Zoom in mentally on the answer box/line area.
+      If the expected answer is "1" and you see any vertical blue stroke at all, that IS the answer "1".
+    - If truly nothing was written after careful inspection: "No answer detected"
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
 
 STEP 5: Notes — keep SHORT:
@@ -150,7 +154,10 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     ? `[diagram — see additional image]${question.answer ? `. Marking guidance: ${question.answer}` : ""}`
     : question.answer ? `"${question.answer}"` : "not provided";
   const marksInfo = question.marksAvailable != null ? `marksAvailable: ${question.marksAvailable}` : `marksAvailable: detect`;
-  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}`;
+  const answerOneHint = question.answer?.trim() === "1"
+    ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
+    : "";
+  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${answerOneHint}`;
 
   let answerImagesNote = "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -299,7 +306,11 @@ export async function markExamPaper(paperId: string): Promise<void> {
               ? `"${q.answer}"`
               : "not provided";
             const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
-            return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}`;
+            // Extra hint when expected answer is "1" — the most commonly missed answer
+            const answerOneHint = q.answer?.trim() === "1"
+              ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
+              : "";
+            return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${answerOneHint}`;
           })
           .join("\n");
 
@@ -478,7 +489,10 @@ export async function markExamPaper(paperId: string): Promise<void> {
             ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
             : q.answer ? `"${q.answer}"` : "not provided";
           const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
-          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}`;
+          const retryAnswerOneHint = q.answer?.trim() === "1"
+            ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
+            : "";
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${retryAnswerOneHint}`;
 
           let answerImagesNote = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
