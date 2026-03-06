@@ -129,6 +129,29 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   if (!question) throw new Error("Question not found");
 
   const paper = question.examPaper;
+
+  // Sync from master if this is a clone
+  if (paper.sourceExamId) {
+    const masterQ = await prisma.examQuestion.findFirst({
+      where: {
+        examPaper: { id: paper.sourceExamId },
+        questionNum: question.questionNum,
+      },
+    });
+    if (masterQ) {
+      const updates: Record<string, unknown> = {};
+      if (masterQ.marksAvailable !== question.marksAvailable) updates.marksAvailable = masterQ.marksAvailable;
+      if (masterQ.answer !== question.answer) updates.answer = masterQ.answer;
+      if (masterQ.answerImageData !== question.answerImageData) updates.answerImageData = masterQ.answerImageData;
+      if (masterQ.imageData !== question.imageData) updates.imageData = masterQ.imageData;
+      if (Object.keys(updates).length > 0) {
+        await prisma.examQuestion.update({ where: { id: question.id }, data: updates });
+        Object.assign(question, updates);
+        console.log(`[marking] Synced question ${question.questionNum} from master`);
+      }
+    }
+  }
+
   const subDir = path.join(SUBMISSIONS_DIR, paper.id);
 
   // Compute submissionIndexMap the same way as markExamPaper
@@ -236,6 +259,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             if (mq.marksAvailable !== q.marksAvailable) updates.marksAvailable = mq.marksAvailable;
             if (mq.answer !== q.answer) updates.answer = mq.answer;
             if (mq.answerImageData !== q.answerImageData) updates.answerImageData = mq.answerImageData;
+            if (mq.imageData !== q.imageData) updates.imageData = mq.imageData;
             if (Object.keys(updates).length > 0) {
               await prisma.examQuestion.update({ where: { id: q.id }, data: updates });
               Object.assign(q, updates);
