@@ -3,11 +3,17 @@ import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
-  const role = request.nextUrl.searchParams.get("role");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let where: any = undefined;
   if (userId) {
+    // Determine role from DB
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    const role = user?.role;
+
     if (role === "STUDENT") {
       where = { assignedToId: userId };
     } else {

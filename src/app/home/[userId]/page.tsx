@@ -35,24 +35,22 @@ export default function HomePage({
   useEffect(() => {
     async function fetchData() {
       try {
-        // Phase 1: get user info first (need role for exam API)
-        const usersRes = await fetch("/api/users");
-        const usersData = await usersRes.json();
+        // Fetch all 3 in parallel — exam API determines role server-side
+        const [usersRes, testsRes, examsRes] = await Promise.all([
+          fetch("/api/users"),
+          fetch(`/api/tests?userId=${userId}`),
+          fetch(`/api/exam?userId=${userId}`),
+        ]);
+        const [usersData, testsData, examsData] = await Promise.all([
+          usersRes.json(),
+          testsRes.json(),
+          examsRes.json(),
+        ]);
 
         const foundUser = usersData.users.find(
           (u: User) => u.id === userId
         );
         setUser(foundUser || null);
-
-        // Phase 2: fetch data with role-aware filtering
-        const role = foundUser?.role || "STUDENT";
-        const [testsRes, examsRes] = await Promise.all([
-          fetch(`/api/tests?userId=${userId}`),
-          fetch(`/api/exam?userId=${userId}&role=${role}`),
-        ]);
-        const testsData = await testsRes.json();
-        const examsData = await examsRes.json();
-
         setTests(testsData.tests);
         setExamPapers(examsData.papers);
       } catch (err) {
