@@ -645,7 +645,7 @@ export const SCIENCE_SYLLABUS = [
   "Plant parts and functions",
   "Human digestive system",
   "Cycles in matter",
-  "Water cycle",
+  "Water cycle, evaporation, condensation",
   "Plant respiratory and circulatory systems",
   "Human respiratory and circulatory systems",
   "Reproduction in plants and animals",
