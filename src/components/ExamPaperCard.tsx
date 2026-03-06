@@ -63,9 +63,7 @@ export default function ExamPaperCard({
     : userRole === "PARENT"
     ? isFocused
       ? `/exam/${paper.id}/overview?userId=${userId}`
-      : paper.extractionStatus === "ready"
-        ? `/exam/${paper.id}/edit?userId=${userId}`
-        : `/exam/${paper.id}/overview?userId=${userId}`
+      : `/exam/${paper.id}/overview?userId=${userId}`
     : isFocused
     ? paper.markingStatus === "released"
       ? `/exam/${paper.id}/review?userId=${userId}`

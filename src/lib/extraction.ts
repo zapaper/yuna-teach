@@ -20,6 +20,17 @@ export function normalizeLevel(raw: string | null | undefined): string | null {
   }
   return s;
 }
+
+/** Normalize subject strings to canonical form: "Mathematics", "Science", etc. */
+export function normalizeSubject(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = raw.trim().toLowerCase();
+  if (s.includes("math")) return "Mathematics";
+  if (s.includes("science")) return "Science";
+  // Return original casing for unknown subjects
+  return raw.trim();
+}
+
 import {
   analyzeExamBatch,
   normalizeAnswer,
@@ -404,7 +415,7 @@ export async function extractExamPaperBackground(
           title: result.header?.title || paper.title,
           school: result.header?.school || paper.school,
           level: normalizeLevel(result.header?.level) || paper.level,
-          subject: result.header?.subject || paper.subject,
+          subject: normalizeSubject(result.header?.subject) || paper.subject,
           year: result.header?.year || paper.year,
           semester: result.header?.semester || paper.semester,
           totalMarks: result.header?.totalMarks || paper.totalMarks,
