@@ -2,21 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
-  const { parentId, subject, topic } = await request.json();
+  const { parentId, studentId, subject, topic } = await request.json();
 
   if (!parentId || !subject || !topic) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Find questions from parent's master papers matching subject + topic
+  // Determine level filter from student
+  let levelFilter: string | undefined;
+  if (studentId) {
+    const student = await prisma.user.findUnique({
+      where: { id: studentId },
+      select: { level: true },
+    });
+    if (student?.level) {
+      levelFilter = `Primary ${student.level}`;
+    }
+  }
+
+  // Find questions from master papers matching subject + topic + level
   const candidates = await prisma.examQuestion.findMany({
     where: {
       syllabusTopic: topic,
       answer: { not: null },
       examPaper: {
-        userId: parentId,
         sourceExamId: null, // master papers only
         subject: { contains: subject, mode: "insensitive" },
+        ...(levelFilter ? { level: levelFilter } : {}),
       },
     },
     select: {
@@ -44,7 +56,9 @@ export async function POST(request: NextRequest) {
     data: {
       title: `Focused Test on ${topic}`,
       subject,
+      level: levelFilter || null,
       userId: parentId,
+      assignedToId: studentId || null,
       paperType: "focused",
       pageCount: 0,
       extractionStatus: "ready",
