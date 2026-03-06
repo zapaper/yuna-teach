@@ -724,78 +724,6 @@ function ExamOverviewContent({ id }: { id: string }) {
         ) : null;
       })()}
 
-      {/* Feedback summary */}
-      {markingDetail.feedbackSummary ? (
-        <div className="px-4 py-4 bg-gradient-to-r from-primary-50 to-blue-50 border-b border-slate-100">
-          {editingFeedback ? (
-            <div className="space-y-2">
-              <textarea
-                value={feedbackDraft}
-                onChange={(e) => setFeedbackDraft(e.target.value)}
-                rows={5}
-                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:border-primary-400 resize-y"
-              />
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={saveFeedback}
-                  disabled={savingFeedback}
-                  className="px-3 py-1.5 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50"
-                >
-                  {savingFeedback ? <span>Saving...</span> : <span>Save</span>}
-                </button>
-                <button
-                  onClick={() => setEditingFeedback(false)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 text-xs font-medium hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div>
-              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                {markingDetail.feedbackSummary}
-              </p>
-              <div className="flex items-center gap-3 mt-2">
-                <button
-                  onClick={() => {
-                    setFeedbackDraft(markingDetail.feedbackSummary ?? "");
-                    setEditingFeedback(true);
-                  }}
-                  className="text-xs text-primary-500 hover:text-primary-700 font-medium"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={handleGenerateFeedback}
-                  disabled={generatingFeedback}
-                  className="text-xs text-slate-400 hover:text-primary-500 font-medium disabled:opacity-50"
-                >
-                  {generatingFeedback ? "Regenerating..." : "Regenerate"}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="px-4 py-3 border-b border-slate-100">
-          <button
-            onClick={handleGenerateFeedback}
-            disabled={generatingFeedback}
-            className="w-full py-2.5 rounded-xl border-2 border-dashed border-primary-200 text-primary-600 text-sm font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
-          >
-            {generatingFeedback ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-primary-200 border-t-primary-500 inline-block" />
-                Generating summary...
-              </span>
-            ) : (
-              "Generate Summary"
-            )}
-          </button>
-        </div>
-      )}
-
       {/* Per-question card view */}
       {(() => {
         const incorrectQs = markingDetail.questions.filter(
@@ -812,6 +740,78 @@ function ExamOverviewContent({ id }: { id: string }) {
 
         return (
           <div className="flex-1 overflow-y-auto px-4 py-3">
+            {/* Feedback summary — inside scrollable area */}
+            {markingDetail.feedbackSummary ? (
+              <div className="py-3 mb-3 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl px-4 border border-slate-100">
+                {editingFeedback ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={feedbackDraft}
+                      onChange={(e) => setFeedbackDraft(e.target.value)}
+                      rows={5}
+                      className="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:border-primary-400 resize-y"
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={saveFeedback}
+                        disabled={savingFeedback}
+                        className="px-3 py-1.5 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50"
+                      >
+                        {savingFeedback ? <span>Saving...</span> : <span>Save</span>}
+                      </button>
+                      <button
+                        onClick={() => setEditingFeedback(false)}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 text-xs font-medium hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                      {markingDetail.feedbackSummary}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <button
+                        onClick={() => {
+                          setFeedbackDraft(markingDetail.feedbackSummary ?? "");
+                          setEditingFeedback(true);
+                        }}
+                        className="text-xs text-primary-500 hover:text-primary-700 font-medium"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={handleGenerateFeedback}
+                        disabled={generatingFeedback}
+                        className="text-xs text-slate-400 hover:text-primary-500 font-medium disabled:opacity-50"
+                      >
+                        {generatingFeedback ? "Regenerating..." : "Regenerate"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mb-3">
+                <button
+                  onClick={handleGenerateFeedback}
+                  disabled={generatingFeedback}
+                  className="w-full py-2.5 rounded-xl border-2 border-dashed border-primary-200 text-primary-600 text-sm font-medium hover:bg-primary-50 transition-colors disabled:opacity-50"
+                >
+                  {generatingFeedback ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-primary-200 border-t-primary-500 inline-block" />
+                      Generating summary...
+                    </span>
+                  ) : (
+                    "Generate Summary"
+                  )}
+                </button>
+              </div>
+            )}
+
             {/* Toggle */}
             <div className="flex justify-end mb-3">
               <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
