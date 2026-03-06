@@ -212,6 +212,33 @@ export async function markExamPaper(paperId: string): Promise<void> {
       include: { questions: { orderBy: { orderIndex: "asc" } } },
     });
     if (!paper) throw new Error("Paper not found");
+
+    // Sync marksAvailable, answer, and answerImageData from master paper
+    // so marking uses the latest values the parent set (not stale clone-time copies)
+    if (paper.sourceExamId) {
+      const master = await prisma.examPaper.findUnique({
+        where: { id: paper.sourceExamId },
+        include: { questions: { orderBy: { orderIndex: "asc" } } },
+      });
+      if (master) {
+        const masterByNum = new Map(master.questions.map((q) => [q.questionNum, q]));
+        for (const q of paper.questions) {
+          const mq = masterByNum.get(q.questionNum);
+          if (mq) {
+            const updates: Record<string, unknown> = {};
+            if (mq.marksAvailable !== q.marksAvailable) updates.marksAvailable = mq.marksAvailable;
+            if (mq.answer !== q.answer) updates.answer = mq.answer;
+            if (mq.answerImageData !== q.answerImageData) updates.answerImageData = mq.answerImageData;
+            if (Object.keys(updates).length > 0) {
+              await prisma.examQuestion.update({ where: { id: q.id }, data: updates });
+              Object.assign(q, updates);
+            }
+          }
+        }
+        console.log(`[marking] Synced question data from master ${paper.sourceExamId}`);
+      }
+    }
+
     console.log(`[marking] Paper has ${paper.questions.length} questions, pageCount=${paper.pageCount}`);
 
     const subDir = path.join(SUBMISSIONS_DIR, paperId);
