@@ -48,6 +48,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [showAll, setShowAll] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [elaborations, setElaborations] = useState<Record<string, string>>({});
+  const [elaborating, setElaborating] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -127,6 +129,26 @@ function ExamReviewContent({ id }: { id: string }) {
       console.error("Download failed:", err);
     } finally {
       setDownloading(false);
+    }
+  }
+
+  async function fetchElaboration(questionId: string) {
+    if (elaborations[questionId]) return;
+    setElaborating(questionId);
+    try {
+      const res = await fetch(`/api/exam/${id}/elaborate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId }),
+      });
+      if (res.ok) {
+        const { elaboration } = await res.json();
+        setElaborations((prev) => ({ ...prev, [questionId]: elaboration }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setElaborating(null);
     }
   }
 
@@ -245,14 +267,16 @@ function ExamReviewContent({ id }: { id: string }) {
           </p>
         </div>
 
-        {/* Feedback summary */}
+        {/* Feedback summary — collapsible */}
         {data.feedbackSummary ? (
-          <div className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 p-4 mb-6">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Summary</p>
-            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+          <details className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 mb-6 overflow-hidden">
+            <summary className="px-4 py-3 cursor-pointer text-xs font-semibold text-slate-400 uppercase tracking-wide select-none hover:text-slate-600">
+              Summary
+            </summary>
+            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line px-4 pb-4">
               {data.feedbackSummary}
             </p>
-          </div>
+          </details>
         ) : null}
 
         {/* Questions to review — flip-through */}
@@ -355,6 +379,37 @@ function ExamReviewContent({ id }: { id: string }) {
                         </p>
                       </div>
                     ) : null}
+
+                    {/* AI Elaboration — only for wrong/partial answers */}
+                    {(currentQ.marksAwarded ?? 0) < (currentQ.marksAvailable ?? 0) && (
+                      <div>
+                        {elaborations[currentQ.id] ? (
+                          <div>
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                              AI Elaboration
+                            </p>
+                            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line rounded-lg bg-blue-50 border border-blue-100 p-3">
+                              {elaborations[currentQ.id]}
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => fetchElaboration(currentQ.id)}
+                            disabled={elaborating === currentQ.id}
+                            className="w-full py-2.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50"
+                          >
+                            {elaborating === currentQ.id ? (
+                              <span className="inline-flex items-center gap-2">
+                                <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-600 inline-block" />
+                                Generating...
+                              </span>
+                            ) : (
+                              "AI Elaboration"
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
