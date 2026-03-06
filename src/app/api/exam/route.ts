@@ -12,7 +12,28 @@ export async function GET(request: NextRequest) {
       where = { assignedToId: userId };
     } else {
       // Parents see master papers + focused tests (exclude clones)
-      where = { userId, sourceExamId: null };
+      // Filter to only levels matching their linked students
+      const links = await prisma.parentStudent.findMany({
+        where: { parentId: userId },
+        include: { student: { select: { level: true } } },
+      });
+      const studentLevels = links
+        .map((l) => l.student.level)
+        .filter((v): v is number => v != null);
+
+      if (studentLevels.length > 0) {
+        const levelStrings = studentLevels.map((n) => `Primary ${n}`);
+        where = {
+          userId,
+          sourceExamId: null,
+          OR: [
+            { level: { in: levelStrings } },
+            { level: null }, // Include papers without a level set
+          ],
+        };
+      } else {
+        where = { userId, sourceExamId: null };
+      }
     }
   }
 
