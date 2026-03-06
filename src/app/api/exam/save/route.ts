@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { normalizeLevel } from "@/lib/extraction";
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         school: school || null,
-        level: level || null,
+        level: normalizeLevel(level) || null,
         subject: subject || null,
         year: year || null,
         semester: semester || null,

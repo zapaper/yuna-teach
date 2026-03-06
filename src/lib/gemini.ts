@@ -114,7 +114,7 @@ export interface WordInfo {
 const HEADER_ANALYSIS_PROMPT = `You are analyzing the first page of a Singapore school exam paper.
 Extract the following information from this exam paper image:
 1. school: The school name (e.g. "Anglo-Chinese School (Junior)")
-2. level: The student level (e.g. "P6", "P5", "Sec 4")
+2. level: The student level. For primary school, ALWAYS use the format "Primary 1" through "Primary 6" (not "P6", "P5", "Pri 6", "Primary Six", etc.)
 3. subject: The subject (e.g. "Mathematics", "Science", "English")
 4. year: The year of the exam (e.g. "2024")
 5. semester: The exam type or semester (e.g. "Prelim", "SA2", "CA1", "Mid-Year")

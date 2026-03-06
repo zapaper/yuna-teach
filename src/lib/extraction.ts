@@ -2,6 +2,24 @@ import path from "path";
 import { promises as fs } from "fs";
 import sharp from "sharp";
 import { prisma } from "@/lib/db";
+
+/** Normalize level strings like "P6", "Primary Six", "Pri 6" → "Primary 6" */
+export function normalizeLevel(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const s = raw.trim();
+  // Map word numbers to digits
+  const wordToNum: Record<string, string> = {
+    one: "1", two: "2", three: "3", four: "4", five: "5", six: "6",
+  };
+  // Match patterns like P6, Pri6, Pri 6, Primary 6, Primary Six, etc.
+  const m = s.match(/^(?:p(?:ri(?:mary)?)?)\s*(\w+)$/i);
+  if (m) {
+    const numPart = m[1].toLowerCase();
+    const digit = wordToNum[numPart] ?? (/^[1-6]$/.test(numPart) ? numPart : null);
+    if (digit) return `Primary ${digit}`;
+  }
+  return s;
+}
 import {
   analyzeExamBatch,
   normalizeAnswer,
@@ -385,7 +403,7 @@ export async function extractExamPaperBackground(
         data: {
           title: result.header?.title || paper.title,
           school: result.header?.school || paper.school,
-          level: result.header?.level || paper.level,
+          level: normalizeLevel(result.header?.level) || paper.level,
           subject: result.header?.subject || paper.subject,
           year: result.header?.year || paper.year,
           semester: result.header?.semester || paper.semester,
