@@ -49,7 +49,9 @@ function ExamReviewContent({ id }: { id: string }) {
   const [answerPages, setAnswerPages] = useState<number[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [submissionPageOverride, setSubmissionPageOverride] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [submissionPageCount, setSubmissionPageCount] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const [elaborations, setElaborations] = useState<Record<string, string>>({});
   const [elaborating, setElaborating] = useState<string | null>(null);
@@ -83,6 +85,9 @@ function ExamReviewContent({ id }: { id: string }) {
           setAssignedToId(paper.assignedToId ?? null);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setPageCount(paper.pageCount ?? 0);
+          // Compute submission page count (total pages minus answer pages)
+          const ap = paper.metadata?.answerPages ?? [];
+          setSubmissionPageCount((paper.pageCount ?? 0) - ap.length);
         }
       } finally {
         setLoading(false);
@@ -236,6 +241,10 @@ function ExamReviewContent({ id }: { id: string }) {
   const displayQuestions = showAll ? data.questions : incorrectQuestions;
   const currentQ = displayQuestions[currentIdx] ?? null;
 
+  // Compute the effective submission page for the current question
+  const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
+  const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
+
   function renderWithNewlines(text: string) {
     return text.split("|").map((part, i, arr) => (
       <span key={i}>
@@ -290,13 +299,13 @@ function ExamReviewContent({ id }: { id: string }) {
         <div className="flex justify-end mb-3">
           <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
             <button
-              onClick={() => { setShowAll(false); setCurrentIdx(0); }}
+              onClick={() => { setShowAll(false); setCurrentIdx(0); setSubmissionPageOverride(null); }}
               className={`px-3 py-1.5 transition-colors ${!showAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
             >
               Incorrect ({incorrectQuestions.length})
             </button>
             <button
-              onClick={() => { setShowAll(true); setCurrentIdx(0); }}
+              onClick={() => { setShowAll(true); setCurrentIdx(0); setSubmissionPageOverride(null); }}
               className={`px-3 py-1.5 transition-colors ${showAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
             >
               All ({data.questions.length})
@@ -356,7 +365,7 @@ function ExamReviewContent({ id }: { id: string }) {
               </h2>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
+                  onClick={() => { setCurrentIdx((i) => Math.max(0, i - 1)); setSubmissionPageOverride(null); }}
                   disabled={currentIdx === 0}
                   className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
@@ -369,7 +378,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   {currentIdx + 1} / {displayQuestions.length}
                 </span>
                 <button
-                  onClick={() => setCurrentIdx((i) => Math.min(displayQuestions.length - 1, i + 1))}
+                  onClick={() => { setCurrentIdx((i) => Math.min(displayQuestions.length - 1, i + 1)); setSubmissionPageOverride(null); }}
                   disabled={currentIdx === displayQuestions.length - 1}
                   className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
@@ -400,14 +409,42 @@ function ExamReviewContent({ id }: { id: string }) {
 
                 {/* Side-by-side on wide screens, stacked on mobile */}
                 <div className="md:flex">
-                  {/* Submission page image */}
-                  <div className="border-b border-slate-100 md:border-b-0 md:border-r md:w-1/2 md:shrink-0">
+                  {/* Submission page image with page navigation */}
+                  <div className="border-b border-slate-100 md:border-b-0 md:border-r md:w-1/2 md:shrink-0 relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`/api/exam/${id}/submission?page=${getSubmissionPage(currentQ.pageIndex)}`}
+                      src={`/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
                       alt={`Submission page for Q${currentQ.questionNum}`}
                       className="w-full h-auto"
                     />
+                    {/* Page navigation overlay */}
+                    {submissionPageCount > 1 && (
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 rounded-full px-2 py-1">
+                        <button
+                          onClick={() => setSubmissionPageOverride(Math.max(0, effectiveSubmissionPage - 1))}
+                          disabled={effectiveSubmissionPage === 0}
+                          className="text-white/80 hover:text-white disabled:text-white/30 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m15 18-6-6 6-6" />
+                          </svg>
+                        </button>
+                        <span className="text-[10px] text-white/80 min-w-[2.5rem] text-center">
+                          {effectiveSubmissionPage + 1} / {submissionPageCount}
+                        </span>
+                        <button
+                          onClick={() => setSubmissionPageOverride(Math.min(submissionPageCount - 1, effectiveSubmissionPage + 1))}
+                          disabled={effectiveSubmissionPage === submissionPageCount - 1}
+                          className="text-white/80 hover:text-white disabled:text-white/30 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                            fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m9 18 6-6-6-6" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Solutions panel */}

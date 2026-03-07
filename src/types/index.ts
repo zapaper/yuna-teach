@@ -69,6 +69,7 @@ export interface ExamPaperSummary {
   examType: string | null;
   syllabusTagged: boolean;
   flaggedCount: number;
+  unreleasedAssignmentCount: number;
 }
 
 export interface ExamCloneSummary {

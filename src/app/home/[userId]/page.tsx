@@ -500,6 +500,14 @@ export default function HomePage({
           if (subjectFilter) filtered = filtered.filter((p) => p.subject === subjectFilter);
           if (examTypeFilter) filtered = filtered.filter((p) => p.examType === examTypeFilter);
 
+          // For parents: split into assigned (unreleased) and regular papers
+          const assignedPapers = isParent
+            ? filtered.filter((p) => p.unreleasedAssignmentCount > 0)
+            : [];
+          const regularPapers = isParent
+            ? filtered.filter((p) => p.unreleasedAssignmentCount === 0)
+            : filtered;
+
           return loading ? null : filtered.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-3">📄</div>
@@ -515,18 +523,49 @@ export default function HomePage({
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {filtered.map((paper) => (
-                <ExamPaperCard
-                  key={paper.id}
-                  paper={paper}
-                  userId={userId}
-                  userRole={user?.role}
-                  isAdmin={isAdmin}
-                  onDelete={isAdmin ? handleDeleteExam : undefined}
-                />
-              ))}
-            </div>
+            <>
+              {/* Assigned Papers section — parents only */}
+              {assignedPapers.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-3">
+                    Assigned Papers
+                  </h3>
+                  <div className="space-y-3">
+                    {assignedPapers.map((paper) => (
+                      <ExamPaperCard
+                        key={paper.id}
+                        paper={paper}
+                        userId={userId}
+                        userRole={user?.role}
+                        isAdmin={isAdmin}
+                        onDelete={isAdmin ? handleDeleteExam : undefined}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Regular Exam Papers */}
+              {regularPapers.length > 0 ? (
+                <div className="space-y-3">
+                  {regularPapers.map((paper) => (
+                    <ExamPaperCard
+                      key={paper.id}
+                      paper={paper}
+                      userId={userId}
+                      userRole={user?.role}
+                      isAdmin={isAdmin}
+                      onDelete={isAdmin ? handleDeleteExam : undefined}
+                    />
+                  ))}
+                </div>
+              ) : assignedPapers.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-3">📄</div>
+                  <p className="text-slate-500">No exam papers yet.</p>
+                </div>
+              ) : null}
+            </>
           );
         })()}
       </div>

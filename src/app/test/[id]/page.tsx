@@ -256,19 +256,6 @@ function TestPageContent({ id }: { id: string }) {
             </p>
           ) : null}
         </div>
-        {(test.language === "CHINESE" || test.language === "JAPANESE") && (
-          <button
-            onClick={() => setVoice((v) => (v === "female" ? "male" : "female"))}
-            className={`shrink-0 ml-3 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
-              voice === "male"
-                ? "bg-blue-100 text-blue-700 border-blue-200"
-                : "bg-pink-100 text-pink-700 border-pink-200"
-            }`}
-            title={`Voice: ${voice}`}
-          >
-            {voice === "male" ? "M" : "F"}
-          </button>
-        )}
       </div>
 
       {/* Instructions */}

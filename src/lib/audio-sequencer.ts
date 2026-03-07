@@ -16,6 +16,7 @@ export class AudioSequencer {
     const cache = new Map<string, ArrayBuffer>();
 
     for (const w of words) {
+      const cacheKey = `${w.text}:${w.voice ?? "female"}`;
       try {
         const res = await fetch("/api/tts", {
           method: "POST",
@@ -29,7 +30,7 @@ export class AudioSequencer {
           }),
         });
         if (res.ok) {
-          cache.set(w.text, await res.arrayBuffer());
+          cache.set(cacheKey, await res.arrayBuffer());
         } else {
           console.warn(`TTS prefetch failed for "${w.text}", will retry during playback`);
         }
@@ -80,7 +81,8 @@ export class AudioSequencer {
         options.onWordChange(i, words.length);
         const word = words[i];
 
-        let buffer = audioCache.get(word.text);
+        const cacheKey = `${word.text}:${word.voice ?? "female"}`;
+        let buffer = audioCache.get(cacheKey);
         if (!buffer) {
           try {
             const res = await fetch("/api/tts", {
@@ -96,7 +98,7 @@ export class AudioSequencer {
             });
             if (res.ok) {
               buffer = await res.arrayBuffer();
-              audioCache.set(word.text, buffer);
+              audioCache.set(cacheKey, buffer);
             }
           } catch {
             // skip this word if fetch fails
