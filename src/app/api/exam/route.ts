@@ -48,11 +48,16 @@ export async function GET(request: NextRequest) {
             ],
           };
         } else {
-          // Non-admin parents see all master papers matching their students' levels
+          // Non-admin parents see only admin's master papers matching their students' levels
+          const adminUser = await prisma.user.findFirst({
+            where: { name: { equals: "admin", mode: "insensitive" } },
+            select: { id: true },
+          });
           where = {
             sourceExamId: null,
             paperType: null,
             level: { in: levelStrings },
+            ...(adminUser ? { userId: adminUser.id } : {}),
           };
         }
       } else {
