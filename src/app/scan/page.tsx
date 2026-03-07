@@ -169,7 +169,7 @@ function ScanPageContent() {
         });
       }
 
-      router.push(userId ? `/home/${userId}` : "/");
+      router.push(userId ? `/home/${userId}?t=${Date.now()}` : "/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {

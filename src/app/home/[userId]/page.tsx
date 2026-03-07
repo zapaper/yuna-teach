@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import TestCard from "@/components/TestCard";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
@@ -15,6 +15,8 @@ export default function HomePage({
 }) {
   const { userId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const refreshKey = searchParams.get("t") || "";
   const [user, setUser] = useState<User | null>(null);
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
@@ -32,35 +34,43 @@ export default function HomePage({
   const [showInvite, setShowInvite] = useState(false);
   const [showConnect, setShowConnect] = useState(false);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch all 3 in parallel — exam API determines role server-side
-        const [usersRes, testsRes, examsRes] = await Promise.all([
-          fetch("/api/users"),
-          fetch(`/api/tests?userId=${userId}`),
-          fetch(`/api/exam?userId=${userId}`),
-        ]);
-        const [usersData, testsData, examsData] = await Promise.all([
-          usersRes.json(),
-          testsRes.json(),
-          examsRes.json(),
-        ]);
+  const fetchData = useRef<() => Promise<void>>(undefined);
+  fetchData.current = async () => {
+    try {
+      const [usersRes, testsRes, examsRes] = await Promise.all([
+        fetch("/api/users"),
+        fetch(`/api/tests?userId=${userId}`),
+        fetch(`/api/exam?userId=${userId}`),
+      ]);
+      const [usersData, testsData, examsData] = await Promise.all([
+        usersRes.json(),
+        testsRes.json(),
+        examsRes.json(),
+      ]);
 
-        const foundUser = usersData.users.find(
-          (u: User) => u.id === userId
-        );
-        setUser(foundUser || null);
-        setTests(testsData.tests);
-        setExamPapers(examsData.papers);
-      } catch (err) {
-        console.error("Failed to fetch data:", err);
-      } finally {
-        setLoading(false);
-      }
+      const foundUser = usersData.users.find(
+        (u: User) => u.id === userId
+      );
+      setUser(foundUser || null);
+      setTests(testsData.tests);
+      setExamPapers(examsData.papers);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
-  }, [userId]);
+  };
+
+  useEffect(() => {
+    fetchData.current?.();
+
+    // Refetch when tab becomes visible (e.g. after upload/create redirects back)
+    function onVisible() {
+      if (document.visibilityState === "visible") fetchData.current?.();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [userId, refreshKey]);
 
   // Poll for extraction status updates
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);

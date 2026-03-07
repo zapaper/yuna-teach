@@ -95,8 +95,8 @@ function ExamUploadContent() {
         }).catch((err) => console.warn("PDF upload failed:", err));
       }
 
-      // Redirect to home
-      router.push(userId ? `/home/${userId}` : "/");
+      // Redirect to home (with timestamp to force refetch)
+      router.push(userId ? `/home/${userId}?t=${Date.now()}` : "/");
     } finally {
       setAiAnalyzing(false);
     }
