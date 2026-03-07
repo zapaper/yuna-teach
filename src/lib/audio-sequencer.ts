@@ -11,7 +11,7 @@ export class AudioSequencer {
   private audioContext: AudioContext | null = null;
 
   async prefetchAudio(
-    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE" }>
+    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE"; voice?: "male" | "female" }>
   ): Promise<Map<string, ArrayBuffer>> {
     const cache = new Map<string, ArrayBuffer>();
 
@@ -25,6 +25,7 @@ export class AudioSequencer {
             language: w.language,
             type: "word",
             expandPunct: true,
+            voice: w.voice,
           }),
         });
         if (res.ok) {
@@ -55,7 +56,7 @@ export class AudioSequencer {
   }
 
   async runTestSequence(
-    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE" }>,
+    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE"; voice?: "male" | "female" }>,
     delayMs: number,
     audioCache: Map<string, ArrayBuffer>,
     options: SequencerOptions
@@ -90,6 +91,7 @@ export class AudioSequencer {
                 language: word.language,
                 type: "word",
                 expandPunct: true,
+                voice: word.voice,
               }),
             });
             if (res.ok) {

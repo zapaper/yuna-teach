@@ -52,14 +52,15 @@ function expandPunctuation(text: string, language: "CHINESE" | "ENGLISH" | "JAPA
 async function synthesizeSpeechGoogle(
   text: string,
   speed: number,
-  language: "CHINESE" | "JAPANESE" = "CHINESE"
+  language: "CHINESE" | "JAPANESE" = "CHINESE",
+  voice: "male" | "female" = "female"
 ): Promise<ArrayBuffer> {
   const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_CLOUD_API_KEY is not set");
 
   const voiceConfig = language === "JAPANESE"
-    ? { languageCode: "ja-JP", name: "ja-JP-Neural2-B" }
-    : { languageCode: "zh-CN", name: "zh-CN-Neural2-C" };
+    ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Neural2-C" : "ja-JP-Neural2-B" }
+    : { languageCode: "zh-CN", name: voice === "male" ? "zh-CN-Neural2-D" : "zh-CN-Neural2-C" };
 
   const response = await fetch(
     `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
@@ -129,15 +130,16 @@ async function synthesizeSpeechFish(
 export async function synthesizeSpeech(
   text: string,
   language: "CHINESE" | "ENGLISH" | "JAPANESE",
-  options?: { expandPunct?: boolean; speed?: number }
+  options?: { expandPunct?: boolean; speed?: number; voice?: "male" | "female" }
 ): Promise<ArrayBuffer> {
   const speed = options?.speed ?? 0.9;
+  const voice = options?.voice ?? "female";
   const speechText = options?.expandPunct ? expandPunctuation(text, language) : text;
 
   // Chinese: Google Cloud Neural2, with Fish Audio fallback
   if (language === "CHINESE") {
     try {
-      return await synthesizeSpeechGoogle(speechText, speed, "CHINESE");
+      return await synthesizeSpeechGoogle(speechText, speed, "CHINESE", voice);
     } catch (err) {
       console.warn("Google TTS failed, falling back to Fish Audio:", err instanceof Error ? err.message : err);
       return synthesizeSpeechFish(speechText, language, speed);
@@ -147,7 +149,7 @@ export async function synthesizeSpeech(
   // Japanese: Google Cloud Neural2, with Fish Audio fallback
   if (language === "JAPANESE") {
     try {
-      return await synthesizeSpeechGoogle(speechText, speed, "JAPANESE");
+      return await synthesizeSpeechGoogle(speechText, speed, "JAPANESE", voice);
     } catch (err) {
       console.warn("Google TTS failed for Japanese, falling back to Fish Audio:", err instanceof Error ? err.message : err);
       return synthesizeSpeechFish(speechText, language, speed);

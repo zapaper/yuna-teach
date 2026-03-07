@@ -5,7 +5,7 @@ import { generateWordInfo } from "@/lib/gemini";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, language, type, expandPunct } = body;
+    const { text, language, type, expandPunct, voice } = body;
 
     if (!text || !language) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
           ? `${info.meaning}。${info.example}`
           : `${info.meaning}. ${info.example}`;
 
-      const audioBuffer = await synthesizeSpeech(speechText, language);
+      const audioBuffer = await synthesizeSpeech(speechText, language, { voice });
       return new NextResponse(audioBuffer, {
         status: 200,
         headers: {
@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     const audioBuffer = await synthesizeSpeech(text, language, {
       expandPunct: !!expandPunct,
       speed: expandPunct ? 0.7 : 0.9,
+      voice,
     });
     return new NextResponse(audioBuffer, {
       status: 200,

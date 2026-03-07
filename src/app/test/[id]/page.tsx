@@ -33,6 +33,7 @@ function TestPageContent({ id }: { id: string }) {
   const [test, setTest] = useState<SpellingTestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [delaySeconds, setDelaySeconds] = useState(12);
+  const [voice, setVoice] = useState<"male" | "female">("female");
   const [testMode, setTestMode] = useState(false);
   const [playingWord, setPlayingWord] = useState<string | null>(null);
   const [currentWordInfo, setCurrentWordInfo] = useState<{
@@ -112,6 +113,7 @@ function TestPageContent({ id }: { id: string }) {
               language: test.language,
               type: "word",
               expandPunct: true,
+              voice,
             }),
           }),
           fetch("/api/tts", {
@@ -154,6 +156,7 @@ function TestPageContent({ id }: { id: string }) {
               text: speechText,
               language: test.language,
               type: "word",
+              voice,
             }),
           });
 
@@ -175,7 +178,7 @@ function TestPageContent({ id }: { id: string }) {
         }
       }
     },
-    [test]
+    [test, voice]
   );
 
   if (loading) {
@@ -208,6 +211,7 @@ function TestPageContent({ id }: { id: string }) {
         words={test.words}
         language={test.language as "CHINESE" | "ENGLISH" | "JAPANESE"}
         delaySeconds={delaySeconds}
+        voice={voice}
         onStop={() => setTestMode(false)}
       />
     );
@@ -241,15 +245,30 @@ function TestPageContent({ id }: { id: string }) {
         Home
       </button>
 
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-800 font-chinese">
-          {test.title}
-        </h1>
-        {test.subtitle ? (
-          <p className="text-sm text-slate-500 mt-0.5 font-chinese">
-            {test.subtitle}
-          </p>
-        ) : null}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-slate-800 font-chinese">
+            {test.title}
+          </h1>
+          {test.subtitle ? (
+            <p className="text-sm text-slate-500 mt-0.5 font-chinese">
+              {test.subtitle}
+            </p>
+          ) : null}
+        </div>
+        {(test.language === "CHINESE" || test.language === "JAPANESE") && (
+          <button
+            onClick={() => setVoice((v) => (v === "female" ? "male" : "female"))}
+            className={`shrink-0 ml-3 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+              voice === "male"
+                ? "bg-blue-100 text-blue-700 border-blue-200"
+                : "bg-pink-100 text-pink-700 border-pink-200"
+            }`}
+            title={`Voice: ${voice}`}
+          >
+            {voice === "male" ? "M" : "F"}
+          </button>
+        )}
       </div>
 
       {/* Instructions */}

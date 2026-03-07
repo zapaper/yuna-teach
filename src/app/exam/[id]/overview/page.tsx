@@ -90,6 +90,9 @@ function ExamOverviewContent({ id }: { id: string }) {
   // Download PDF state (tracks which clone is downloading)
   const [downloadingCloneId, setDownloadingCloneId] = useState<string | null>(null);
 
+  // Extraction
+  const [extracting, setExtracting] = useState(false);
+
   // Portal mount guard (portals require document to exist)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -654,10 +657,32 @@ function ExamOverviewContent({ id }: { id: string }) {
           </div>
         ) : null}
         {isAdmin ? (
-          <button onClick={() => router.push(`/exam/${id}/edit?userId=${userId}`)}
-            className="mt-3 w-full py-2.5 px-4 rounded-xl border-2 border-primary-200 text-primary-600 font-medium text-sm hover:bg-primary-50 transition-colors">
-            Edit Questions &amp; Answers
-          </button>
+          <>
+            <button onClick={() => router.push(`/exam/${id}/edit?userId=${userId}`)}
+              className="mt-3 w-full py-2.5 px-4 rounded-xl border-2 border-primary-200 text-primary-600 font-medium text-sm hover:bg-primary-50 transition-colors">
+              Edit Questions &amp; Answers
+            </button>
+            <button
+              onClick={async () => {
+                setExtracting(true);
+                try {
+                  await fetch(`/api/exam/${id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ retryExtraction: true }),
+                  });
+                  router.push(`/home/${userId}`);
+                } catch (err) {
+                  console.error("Extraction failed:", err);
+                  setExtracting(false);
+                }
+              }}
+              disabled={extracting}
+              className="mt-2 w-full py-2.5 px-4 rounded-xl border-2 border-amber-200 text-amber-600 font-medium text-sm hover:bg-amber-50 transition-colors disabled:opacity-50"
+            >
+              {extracting ? "Extracting..." : "Extract all Questions & Answers"}
+            </button>
+          </>
         ) : null}
         {/* Admin-only: AI detection debug info */}
         {isAdmin && paper.metadata ? (
@@ -1126,20 +1151,17 @@ function ExamOverviewContent({ id }: { id: string }) {
                         <button
                           onClick={() => toggleFlag(currentQ.id)}
                           disabled={flagging === currentQ.id}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                            flaggedIds.has(currentQ.id)
-                              ? "bg-red-100 text-red-600 hover:bg-red-200"
-                              : "bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                          } disabled:opacity-50`}
+                          className="p-1 rounded-lg transition-colors disabled:opacity-50 hover:bg-slate-100"
                           title={flaggedIds.has(currentQ.id) ? "Unflag this question" : "Flag incorrect Q&A"}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-                            fill={flaggedIds.has(currentQ.id) ? "currentColor" : "none"}
-                            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                            <line x1="4" y1="22" x2="4" y2="15" />
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                            fill={flaggedIds.has(currentQ.id) ? "#eab308" : "none"}
+                            stroke={flaggedIds.has(currentQ.id) ? "#eab308" : "#94a3b8"}
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
                           </svg>
-                          {flaggedIds.has(currentQ.id) ? "Flagged" : "Flag Q&A"}
                         </button>
 
                         {/* Actions */}

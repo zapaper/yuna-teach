@@ -393,20 +393,17 @@ function ExamReviewContent({ id }: { id: string }) {
                     <button
                       onClick={() => toggleFlag(currentQ.id)}
                       disabled={flagging === currentQ.id}
-                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        flaggedIds.has(currentQ.id)
-                          ? "bg-red-100 text-red-600 hover:bg-red-200"
-                          : "bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50"
-                      } disabled:opacity-50`}
+                      className="p-1 rounded-lg transition-colors disabled:opacity-50 hover:bg-slate-100"
                       title={flaggedIds.has(currentQ.id) ? "Unflag this question" : "Flag incorrect Q&A"}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
-                        fill={flaggedIds.has(currentQ.id) ? "currentColor" : "none"}
-                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-                        <line x1="4" y1="22" x2="4" y2="15" />
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill={flaggedIds.has(currentQ.id) ? "#eab308" : "none"}
+                        stroke={flaggedIds.has(currentQ.id) ? "#eab308" : "#94a3b8"}
+                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                        <line x1="12" y1="9" x2="12" y2="13" />
+                        <line x1="12" y1="17" x2="12.01" y2="17" />
                       </svg>
-                      {flaggedIds.has(currentQ.id) ? "Flagged" : "Flag"}
                     </button>
                     <span className={`text-sm font-bold ${
                       (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :

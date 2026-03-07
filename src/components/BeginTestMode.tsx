@@ -8,6 +8,7 @@ interface BeginTestModeProps {
   words: WordItem[];
   language: "CHINESE" | "ENGLISH" | "JAPANESE";
   delaySeconds: number;
+  voice?: "male" | "female";
   onStop: () => void;
 }
 
@@ -15,6 +16,7 @@ export default function BeginTestMode({
   words,
   language,
   delaySeconds,
+  voice = "female",
   onStop,
 }: BeginTestModeProps) {
   const [status, setStatus] = useState<"loading" | "playing" | "paused">(
@@ -41,7 +43,7 @@ export default function BeginTestMode({
 
     const enabledWords = words
       .filter((w) => w.enabled)
-      .map((w) => ({ text: w.text, language }));
+      .map((w) => ({ text: w.text, language, voice }));
 
     setTotalWords(enabledWords.length);
 
