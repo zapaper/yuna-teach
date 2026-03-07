@@ -65,6 +65,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [view, setView] = useState<"paper" | "questions">("paper");
   const [tool, setTool] = useState<DrawTool>("scroll");
+  const [zoom, setZoom] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "saving" | "submitting" | "submitted"
@@ -514,6 +515,16 @@ function ExamPracticeContent({ id }: { id: string }) {
               className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
               Clear
             </button>
+            <div className="w-px h-5 bg-slate-200 mx-0.5" />
+            <button onClick={() => setZoom((z) => Math.max(1, z - 0.5))}
+              className="px-2 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors leading-none">
+              −
+            </button>
+            <span className="text-[10px] font-medium text-slate-400 min-w-[2.5rem] text-center">{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom((z) => Math.min(3, z + 0.5))}
+              className="px-2 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors leading-none">
+              +
+            </button>
           </div>
         )}
       </div>
@@ -530,7 +541,12 @@ function ExamPracticeContent({ id }: { id: string }) {
 
       {/* ── Paper drawing view ── */}
       {hasPdf && view === "paper" ? (
-        <div style={{ width: "100vw", marginLeft: "calc(50% - 50vw)" }}>
+        <div style={{
+          width: "100vw",
+          marginLeft: "calc(50% - 50vw)",
+          transform: zoom !== 1 ? `scale(${zoom})` : undefined,
+          transformOrigin: "top center",
+        }}>
           {/* Submitted banner */}
           {submitStatus === "submitted" ? (
             <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border-b border-green-200 text-xs text-green-700">
