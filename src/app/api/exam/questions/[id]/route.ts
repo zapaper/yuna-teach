@@ -10,6 +10,7 @@ export async function PATCH(
 
   const data: Record<string, unknown> = {};
   if ("questionNum" in body) data.questionNum = body.questionNum;
+  if ("pageIndex" in body) data.pageIndex = body.pageIndex;
   if ("answer" in body) data.answer = body.answer ?? null;
   if ("imageData" in body) data.imageData = body.imageData;
   if ("answerImageData" in body) data.answerImageData = body.answerImageData ?? null;
