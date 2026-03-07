@@ -229,6 +229,16 @@ export default function ExamPaperCard({
                   {paper.questionCount} questions
                 </span>
               )}
+              {isAdmin && paper.flaggedCount > 0 ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600 inline-flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                    fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                    <line x1="4" y1="22" x2="4" y2="15" />
+                  </svg>
+                  {paper.flaggedCount} flagged
+                </span>
+              ) : null}
               {userRole !== "PARENT" ? (
                 paper.markingStatus === "released" ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">

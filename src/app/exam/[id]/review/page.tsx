@@ -12,6 +12,8 @@ interface ReviewQuestion {
   marksAwarded: number | null;
   marksAvailable: number | null;
   markingNotes: string | null;
+  elaboration: string | null;
+  flagged: boolean;
 }
 
 interface ReviewData {
@@ -50,6 +52,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const [downloading, setDownloading] = useState(false);
   const [elaborations, setElaborations] = useState<Record<string, string>>({});
   const [elaborating, setElaborating] = useState<string | null>(null);
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+  const [flagging, setFlagging] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -58,7 +62,19 @@ function ExamReviewContent({ id }: { id: string }) {
           fetch(`/api/exam/${id}/mark`),
           fetch(`/api/exam/${id}`),
         ]);
-        if (markRes.ok) setData(await markRes.json());
+        if (markRes.ok) {
+          const markData = await markRes.json();
+          setData(markData);
+          // Pre-populate cached elaborations and flagged state
+          const cached: Record<string, string> = {};
+          const flagged = new Set<string>();
+          for (const q of markData.questions ?? []) {
+            if (q.elaboration) cached[q.id] = q.elaboration;
+            if (q.flagged) flagged.add(q.id);
+          }
+          if (Object.keys(cached).length > 0) setElaborations(cached);
+          if (flagged.size > 0) setFlaggedIds(flagged);
+        }
         if (paperRes.ok) {
           const paper = await paperRes.json();
           setPaperTitle(paper.title ?? "");
@@ -149,6 +165,30 @@ function ExamReviewContent({ id }: { id: string }) {
       // ignore
     } finally {
       setElaborating(null);
+    }
+  }
+
+  async function toggleFlag(questionId: string) {
+    setFlagging(questionId);
+    try {
+      const res = await fetch(`/api/exam/${id}/flag`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId, userId }),
+      });
+      if (res.ok) {
+        const { flagged } = await res.json();
+        setFlaggedIds((prev) => {
+          const next = new Set(prev);
+          if (flagged) next.add(questionId);
+          else next.delete(questionId);
+          return next;
+        });
+      }
+    } catch {
+      // ignore
+    } finally {
+      setFlagging(null);
     }
   }
 
@@ -334,12 +374,32 @@ function ExamReviewContent({ id }: { id: string }) {
                   <span className="text-sm font-semibold text-slate-700">
                     Question {currentQ.questionNum}
                   </span>
-                  <span className={`text-sm font-bold ${
-                    (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :
-                    (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
-                  }`}>
-                    {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleFlag(currentQ.id)}
+                      disabled={flagging === currentQ.id}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        flaggedIds.has(currentQ.id)
+                          ? "bg-red-100 text-red-600 hover:bg-red-200"
+                          : "bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                      } disabled:opacity-50`}
+                      title={flaggedIds.has(currentQ.id) ? "Unflag this question" : "Flag incorrect Q&A"}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                        fill={flaggedIds.has(currentQ.id) ? "currentColor" : "none"}
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                        <line x1="4" y1="22" x2="4" y2="15" />
+                      </svg>
+                      {flaggedIds.has(currentQ.id) ? "Flagged" : "Flag"}
+                    </button>
+                    <span className={`text-sm font-bold ${
+                      (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :
+                      (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
+                    }`}>
+                      {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Side-by-side on wide screens, stacked on mobile */}

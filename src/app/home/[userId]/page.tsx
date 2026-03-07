@@ -23,6 +23,7 @@ export default function HomePage({
   const [loading, setLoading] = useState(true);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [examTypeFilter, setExamTypeFilter] = useState<string | null>(null);
+  const [levelFilter, setLevelFilter] = useState<string | null>(null);
 
   // Invite / link state
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -388,10 +389,44 @@ export default function HomePage({
           Exam Papers
         </h2>
 
+        {/* Level filter — for parents/admin */}
+        {(() => {
+          const levels = [...new Set(examPapers.map((p) => p.level).filter(Boolean))] as string[];
+          if (levels.length === 0) return null;
+          levels.sort();
+          return (
+            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+              <button
+                onClick={() => setLevelFilter(null)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                  levelFilter === null
+                    ? "bg-green-500 text-white"
+                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                }`}
+              >
+                All Levels
+              </button>
+              {levels.map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLevelFilter(l)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                    levelFilter === l
+                      ? "bg-green-500 text-white"
+                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  }`}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
+
         {/* Subject tabs */}
         {(() => {
           const subjects = [...new Set(examPapers.map((p) => p.subject).filter(Boolean))] as string[];
-          if (subjects.length <= 1) return null;
+          if (subjects.length === 0) return null;
           return (
             <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
               <button
@@ -424,7 +459,7 @@ export default function HomePage({
         {/* Exam type tabs */}
         {(() => {
           const types = [...new Set(examPapers.map((p) => p.examType).filter(Boolean))] as string[];
-          if (types.length <= 1) return null;
+          if (types.length === 0) return null;
           const order = ["Preliminary", "WA1", "WA2", "WA3", "End of Year"];
           types.sort((a, b) => {
             const ia = order.indexOf(a), ib = order.indexOf(b);
@@ -461,6 +496,7 @@ export default function HomePage({
 
         {(() => {
           let filtered = examPapers;
+          if (levelFilter) filtered = filtered.filter((p) => p.level === levelFilter);
           if (subjectFilter) filtered = filtered.filter((p) => p.subject === subjectFilter);
           if (examTypeFilter) filtered = filtered.filter((p) => p.examType === examTypeFilter);
 

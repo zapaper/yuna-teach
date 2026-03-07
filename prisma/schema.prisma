@@ -110,6 +110,10 @@ model ExamQuestion {
   markingNotes    String?
   syllabusTopic   String?
   studentAnswer   String?
+  elaboration     String?
+  flagged         Boolean @default(false)
+  flaggedAt       DateTime?
+  flaggedByUserId String?
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 

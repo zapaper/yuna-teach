@@ -3,6 +3,25 @@ import { promises as fs } from "fs";
 import sharp from "sharp";
 import { prisma } from "@/lib/db";
 
+// --- Extraction queue: run one extraction at a time to avoid Gemini rate limits ---
+let extractionQueue: Array<{ paperId: string; resolve: () => void; reject: (e: unknown) => void }> = [];
+let extractionRunning = false;
+
+async function processQueue() {
+  if (extractionRunning || extractionQueue.length === 0) return;
+  extractionRunning = true;
+  const { paperId, resolve, reject } = extractionQueue.shift()!;
+  try {
+    await extractExamPaperCore(paperId);
+    resolve();
+  } catch (e) {
+    reject(e);
+  } finally {
+    extractionRunning = false;
+    processQueue();
+  }
+}
+
 /** Normalize level strings like "P6", "Primary Six", "Pri 6" → "Primary 6" */
 export function normalizeLevel(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -192,7 +211,15 @@ function resolvePageIndex(
   return extractedPageIndex;
 }
 
-export async function extractExamPaperBackground(
+export function extractExamPaperBackground(paperId: string): Promise<void> {
+  console.log(`[extraction] Queuing extraction for ${paperId} (queue length: ${extractionQueue.length})`);
+  return new Promise<void>((resolve, reject) => {
+    extractionQueue.push({ paperId, resolve, reject });
+    processQueue();
+  });
+}
+
+async function extractExamPaperCore(
   paperId: string
 ): Promise<void> {
   console.log(`[extraction] Starting background extraction for ${paperId}`);

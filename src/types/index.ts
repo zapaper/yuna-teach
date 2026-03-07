@@ -68,6 +68,7 @@ export interface ExamPaperSummary {
   paperType: string | null;
   examType: string | null;
   syllabusTagged: boolean;
+  flaggedCount: number;
 }
 
 export interface ExamCloneSummary {

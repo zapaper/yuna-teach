@@ -84,6 +84,12 @@ export async function GET(request: NextRequest) {
       _count: { select: { questions: true, clones: true } },
       assignedTo: { select: { id: true, name: true } },
       questions: { where: { syllabusTopic: { not: null } }, select: { id: true }, take: 1 },
+      clones: {
+        select: {
+          id: true,
+          _count: { select: { questions: { where: { flagged: true } } } },
+        },
+      },
     },
   });
 
@@ -107,6 +113,7 @@ export async function GET(request: NextRequest) {
       paperType: p.paperType ?? null,
       examType: p.examType ?? null,
       syllabusTagged: p.questions.length > 0,
+      flaggedCount: p.clones.reduce((sum, c) => sum + c._count.questions, 0),
     })),
   });
 }

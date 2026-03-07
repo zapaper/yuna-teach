@@ -32,11 +32,17 @@ export async function POST(
       markingNotes: true,
       imageData: true,
       studentAnswer: true,
+      elaboration: true,
     },
   });
 
   if (!question) {
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
+  }
+
+  // Return cached elaboration if available
+  if (question.elaboration) {
+    return NextResponse.json({ elaboration: question.elaboration });
   }
 
   const parts: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [];
@@ -75,6 +81,13 @@ Keep the explanation concise (under 200 words), age-appropriate, and encouraging
     });
 
     const elaboration = response.text ?? "Unable to generate explanation.";
+
+    // Cache the elaboration in the database
+    await prisma.examQuestion.update({
+      where: { id: questionId },
+      data: { elaboration },
+    });
+
     return NextResponse.json({ elaboration });
   } catch (err) {
     console.error("Elaboration failed:", err);
