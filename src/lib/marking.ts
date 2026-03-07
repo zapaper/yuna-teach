@@ -35,6 +35,7 @@ const MARKING_PROMPT = `You are marking a primary school student's exam submissi
 HOW TO READ THIS IMAGE:
 - Printed question text = BLACK. Student's handwritten answers = BLUE INK.
 - Do NOT confuse printed diagrams/text (black) with the student's writing (blue).
+- ONLY blue ink counts as the student's answer. Black printed text is NEVER the student's answer.
 
 Questions on this page (vertical position as % from top of image):
 {QUESTIONS}
@@ -43,19 +44,31 @@ Questions on this page (vertical position as % from top of image):
 
 Instructions — follow this EXACT sequence for EACH question:
 
-STEP 1: Read the student's answer.
+STEP 1: Read the student's BLUE INK answer.
   Find the student's blue-ink answer ONLY within the question's vertical region (yStart%–yEnd%).
   IMPORTANT: Multiple questions may share the same page image. ONLY look at the area between the
   specified yStart% and yEnd% for each question. IGNORE any writing outside those boundaries —
   that belongs to a different question.
   - Questions may have parts (a), (b), (c). Read each part separately.
   - Final answer is usually in the answer box/line at bottom-right of question space.
+  *** NO BLUE INK = ZERO MARKS ***
+  If there is NO blue ink writing at all in the question's region → award 0 marks immediately.
+  Do NOT award marks based on printed text — only handwritten blue ink answers count.
 
-STEP 2: Marks available.
+STEP 2: Match the answer to the correct sub-part.
+  The expected answer may contain multiple parts like "(a) 5.6 (b) 3/4 (c) 12".
+  The question number tells you which part(s) to mark:
+  - Question "11a" → only mark against the "(a)" part of the expected answer.
+  - Question "11bcd" → only mark against parts "(b)", "(c)", "(d)" of the expected answer.
+  - Question "11" (no suffix) → mark against all parts of the expected answer.
+  NEVER mark a sub-part question against the wrong answer key. If the question is "11a",
+  compare ONLY against the "(a)" answer, even if the student wrote something matching "(b)".
+
+STEP 3: Marks available.
   Use the "marksAvailable" value specified for each question.
   If it says "detect", read from the printed label on the page (e.g. "[2]", "(2 marks)").
 
-STEP 3: Compare against the expected answer. Follow this priority:
+STEP 4: Compare against the expected answer. Follow this priority:
   A) If the student's answer MATCHES the expected answer → FULL MARKS. Done. No further checking needed.
   B) If the student's answer does NOT match:
      - For MCQ (single option answer like "1","2","A","B"): ZERO marks. No partial marks for MCQ.
@@ -65,7 +78,7 @@ STEP 3: Compare against the expected answer. Follow this priority:
      - If answer is wrong with no correct working → ZERO marks.
   C) For diagram questions: compare student's blue-ink drawing against the expected answer diagram image.
 
-STEP 4: Record what you detected.
+STEP 5: Record what you detected.
   "studentAnswer": Write EXACTLY what the student wrote/drew in blue ink.
     - For text/number answers: quote their written answer (e.g. "3.5 kg", "B", "12").
     - For MCQ: the option letter/number they circled/wrote (e.g. "1", "2", "3", "4", "A", "B", "C", "D").
@@ -84,7 +97,7 @@ STEP 4: Record what you detected.
     - If truly nothing was written after careful inspection: "No answer detected"
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
 
-STEP 5: Notes — keep SHORT:
+STEP 6: Notes — keep SHORT:
   - Full marks → notes = "" (empty string)
   - Partial or zero marks → 1 sentence max explaining what went wrong
 
