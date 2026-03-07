@@ -24,8 +24,7 @@ export default function ExamPaperCard({
 
   const isExtracting = paper.extractionStatus === "processing";
   const extractionFailed = paper.extractionStatus === "failed";
-  const subjectLower = (paper.subject || "").toLowerCase();
-  const isTaggablePaper = subjectLower.includes("math") || subjectLower.includes("science");
+  const isTaggablePaper = true; // admin can tag syllabus on any paper
 
   async function tagSyllabus() {
     setTaggingSyllabus(true);

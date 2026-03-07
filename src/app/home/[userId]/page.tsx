@@ -375,7 +375,7 @@ export default function HomePage({
                 key={test.id}
                 test={test}
                 userId={userId}
-                onDelete={handleDelete}
+                onDelete={isAdmin ? handleDelete : undefined}
               />
             ))}
           </div>
