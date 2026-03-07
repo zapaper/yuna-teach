@@ -27,16 +27,24 @@ export async function GET(request: NextRequest) {
         .map((l) => l.student.level)
         .filter((v): v is number => v != null);
 
+      // Check if this parent is admin
+      const parentUser = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { name: true },
+      });
+      const isAdminUser = parentUser?.name?.toLowerCase() === "admin";
+
       if (studentLevels.length > 0) {
         const levelStrings = studentLevels.map((n) => `Primary ${n}`);
         where = {
-          userId,
           sourceExamId: null,
           paperType: null, // exclude focused tests
           OR: [
             { level: { in: levelStrings } },
             { level: null }, // include papers still being extracted (no level yet)
           ],
+          // Admin sees only own papers; non-admin parents see all master papers matching level
+          ...(isAdminUser ? { userId } : {}),
         };
       } else {
         // No linked students — show no papers
