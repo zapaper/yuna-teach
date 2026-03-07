@@ -167,7 +167,8 @@ function resolvePageIndex(
   extractedPageIndex: number,
   prevQuestion: { pageIndex: number; yEndPct: number } | null,
   ranges: BookletRange[],
-  pageCount: number
+  pageCount: number,
+  yStartPct?: number
 ): number {
   const printedNum = questionNum.replace(/^(P\d+-|B\d+-)/, "");
   const prefix = questionNum.replace(printedNum, "");
@@ -181,10 +182,13 @@ function resolvePageIndex(
       qNumInt <= b.lastQuestionNum
   );
 
-  // If previous question ended at bottom of page (>=90%), move to next page
+  // If previous question ended at bottom of page (>=90%), move to next page.
+  // But skip this correction if the current question starts near the top of its
+  // reported page (yStartPct < 30%) — it genuinely belongs on that page.
   if (prevQuestion && prevQuestion.yEndPct >= 90) {
+    const startsAtTop = yStartPct != null && yStartPct < 30;
     const nextPage = prevQuestion.pageIndex + 1;
-    if (extractedPageIndex <= prevQuestion.pageIndex && nextPage < pageCount) {
+    if (extractedPageIndex <= prevQuestion.pageIndex && nextPage < pageCount && !startsAtTop) {
       return nextPage;
     }
   }
@@ -275,7 +279,8 @@ async function extractExamPaperCore(
               page.pageIndex,
               lastCroppedQuestion,
               ranges,
-              paper.pageCount
+              paper.pageCount,
+              q.yStartPct
             );
 
         allSegments.push({

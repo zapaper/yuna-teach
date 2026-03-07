@@ -150,6 +150,9 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
       if (masterQ.answer !== question.answer) updates.answer = masterQ.answer;
       if (masterQ.answerImageData !== question.answerImageData) updates.answerImageData = masterQ.answerImageData;
       if (masterQ.imageData !== question.imageData) updates.imageData = masterQ.imageData;
+      if (masterQ.pageIndex !== question.pageIndex) updates.pageIndex = masterQ.pageIndex;
+      if (masterQ.yStartPct !== question.yStartPct) updates.yStartPct = masterQ.yStartPct;
+      if (masterQ.yEndPct !== question.yEndPct) updates.yEndPct = masterQ.yEndPct;
       if (Object.keys(updates).length > 0) {
         await prisma.examQuestion.update({ where: { id: question.id }, data: updates });
         Object.assign(question, updates);
@@ -321,6 +324,9 @@ export async function markExamPaper(paperId: string): Promise<void> {
             if (mq.answer !== q.answer) updates.answer = mq.answer;
             if (mq.answerImageData !== q.answerImageData) updates.answerImageData = mq.answerImageData;
             if (mq.imageData !== q.imageData) updates.imageData = mq.imageData;
+            if (mq.pageIndex !== q.pageIndex) updates.pageIndex = mq.pageIndex;
+            if (mq.yStartPct !== q.yStartPct) updates.yStartPct = mq.yStartPct;
+            if (mq.yEndPct !== q.yEndPct) updates.yEndPct = mq.yEndPct;
             if (Object.keys(updates).length > 0) {
               await prisma.examQuestion.update({ where: { id: q.id }, data: updates });
               Object.assign(q, updates);
