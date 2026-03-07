@@ -511,10 +511,6 @@ function ExamPracticeContent({ id }: { id: string }) {
               Undo
             </button>
             <div className="flex-1" />
-            <button onClick={clearAllInk}
-              className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
-              Clear
-            </button>
             <div className="w-px h-5 bg-slate-200 mx-0.5" />
             <button onClick={() => setZoom((z) => Math.max(1, z - 0.5))}
               className="px-2 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors leading-none">
