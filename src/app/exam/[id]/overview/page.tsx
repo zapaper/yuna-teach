@@ -170,13 +170,14 @@ function ExamOverviewContent({ id }: { id: string }) {
 
   async function triggerMarking(cloneId: string) {
     try {
-      await fetch(`/api/exam/${cloneId}/mark`, { method: "POST" });
+      const markRes = await fetch(`/api/exam/${cloneId}/mark`, { method: "POST" });
+      console.log(`[triggerMarking] POST /api/exam/${cloneId}/mark → ${markRes.status}`, await markRes.clone().text());
       // Immediately refresh paper data so UI shows "Marking..." right away
       const res = await fetch(`/api/exam/${id}?summary=true`);
       if (res.ok) setPaper(await res.json());
       startPolling();
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("[triggerMarking] failed:", err);
     }
   }
 

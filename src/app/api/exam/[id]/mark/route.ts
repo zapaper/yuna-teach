@@ -68,23 +68,12 @@ export async function GET(
         paper.questions.map((q) => [q.questionNum, q])
       );
       // Build merged list using master structure + clone marking data
-      const baseNumOf = (qn: string) => qn.replace(/[a-z]+$/i, "");
-      const merged = master.questions.map((mq, i) => {
+      const merged = master.questions.map((mq) => {
         const cq = cloneByNum.get(mq.questionNum);
-        // Fix split questions sharing the same pageIndex:
-        // if this segment has a suffix and the previous segment is the same base
-        // question on the same page, bump to next page
-        let pageIndex = mq.pageIndex;
-        if (i > 0 && mq.questionNum !== baseNumOf(mq.questionNum)) {
-          const prev = master.questions[i - 1];
-          if (baseNumOf(prev.questionNum) === baseNumOf(mq.questionNum) && prev.pageIndex === mq.pageIndex) {
-            pageIndex = mq.pageIndex + 1;
-          }
-        }
         return {
           id: cq?.id ?? mq.questionNum,
           questionNum: mq.questionNum,
-          pageIndex,
+          pageIndex: mq.pageIndex,
           orderIndex: mq.orderIndex,
           yStartPct: mq.yStartPct ?? null,
           yEndPct: mq.yEndPct ?? null,
@@ -98,18 +87,6 @@ export async function GET(
       });
       const { sourceExamId: _, questions: __, ...rest } = paper;
       return NextResponse.json({ ...rest, questions: merged });
-    }
-  }
-
-  // Fix split questions sharing the same pageIndex (non-clone papers)
-  const baseNum = (qn: string) => qn.replace(/[a-z]+$/i, "");
-  for (let i = 1; i < paper.questions.length; i++) {
-    const q = paper.questions[i];
-    if (q.questionNum !== baseNum(q.questionNum)) {
-      const prev = paper.questions[i - 1];
-      if (baseNum(prev.questionNum) === baseNum(q.questionNum) && prev.pageIndex === q.pageIndex) {
-        q.pageIndex = q.pageIndex + 1;
-      }
     }
   }
 
