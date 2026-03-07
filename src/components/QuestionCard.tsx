@@ -19,7 +19,7 @@ export default function QuestionCard({
   const [showAnswer, setShowAnswer] = useState(false);
 
   return (
-    <div>
+    <div className="select-none" style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-slate-800">
           Question {question.questionNum}

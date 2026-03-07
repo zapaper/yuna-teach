@@ -418,7 +418,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const isBusy = submitStatus === "saving" || submitStatus === "submitting";
 
   return (
-    <div className="min-h-screen bg-white select-none" style={{ overscrollBehavior: "none" }}>
+    <div className="min-h-screen bg-white select-none" style={{ overscrollBehavior: "none", WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
       {/* ── Fixed header + drawing toolbar — pinned to top of viewport for iPad compatibility ── */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
         <div className="border-b border-slate-100 px-4 py-2 flex items-center gap-2">
