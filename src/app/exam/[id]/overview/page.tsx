@@ -468,7 +468,23 @@ function ExamOverviewContent({ id }: { id: string }) {
         Home
       </button>
 
-      <h1 className="text-2xl font-bold text-slate-800 mb-1">{paper.title}</h1>
+      {isAdmin ? (
+        <input
+          type="text"
+          value={paper.title}
+          onChange={(e) => setPaper({ ...paper, title: e.target.value })}
+          onBlur={async () => {
+            await fetch(`/api/exam/${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ title: paper.title }),
+            });
+          }}
+          className="text-2xl font-bold text-slate-800 mb-1 w-full bg-transparent border-b-2 border-transparent hover:border-slate-200 focus:border-primary-400 focus:outline-none transition-colors"
+        />
+      ) : (
+        <h1 className="text-2xl font-bold text-slate-800 mb-1">{paper.title}</h1>
+      )}
       <p className="text-sm text-slate-400 mb-6">
         {paper.school ? <span>{paper.school} · </span> : null}
         <span>Added {new Date(paper.createdAt).toLocaleDateString()}</span>

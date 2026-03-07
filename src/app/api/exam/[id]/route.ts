@@ -228,6 +228,7 @@ export async function PATCH(
   if ("feedbackSummary" in body) data.feedbackSummary = body.feedbackSummary ?? null;
   if ("markingStatus" in body) data.markingStatus = body.markingStatus ?? null;
   if ("examType" in body) data.examType = body.examType || null;
+  if ("title" in body && typeof body.title === "string") data.title = body.title;
 
   const paper = await prisma.examPaper.update({ where: { id }, data });
 
