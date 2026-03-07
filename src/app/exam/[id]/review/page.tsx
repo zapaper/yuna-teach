@@ -383,35 +383,19 @@ function ExamReviewContent({ id }: { id: string }) {
 
             {/* Current question card */}
             {currentQ ? (
+              <div>
               <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
                 {/* Question header */}
                 <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
                   <span className="text-sm font-semibold text-slate-700">
                     Question {currentQ.questionNum}
                   </span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => toggleFlag(currentQ.id)}
-                      disabled={flagging === currentQ.id}
-                      className="p-1 rounded-lg transition-colors disabled:opacity-50 hover:bg-slate-100"
-                      title={flaggedIds.has(currentQ.id) ? "Unflag this question" : "Flag incorrect Q&A"}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                        fill={flaggedIds.has(currentQ.id) ? "#eab308" : "none"}
-                        stroke={flaggedIds.has(currentQ.id) ? "#eab308" : "#94a3b8"}
-                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                        <line x1="12" y1="9" x2="12" y2="13" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                      </svg>
-                    </button>
-                    <span className={`text-sm font-bold ${
-                      (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :
-                      (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
-                    }`}>
-                      {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
-                    </span>
-                  </div>
+                  <span className={`text-sm font-bold ${
+                    (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :
+                    (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
+                  }`}>
+                    {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
+                  </span>
                 </div>
 
                 {/* Side-by-side on wide screens, stacked on mobile */}
@@ -484,6 +468,29 @@ function ExamReviewContent({ id }: { id: string }) {
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Flag button — below card, bottom-left */}
+              <div className="mt-2 flex items-center gap-1.5">
+                <button
+                  onClick={() => toggleFlag(currentQ.id)}
+                  disabled={flagging === currentQ.id}
+                  className="p-1 rounded-lg transition-colors disabled:opacity-50 hover:bg-slate-100"
+                  title={flaggedIds.has(currentQ.id) ? "Unflag this question" : "Flag incorrect Q&A"}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                    fill={flaggedIds.has(currentQ.id) ? "#eab308" : "none"}
+                    stroke={flaggedIds.has(currentQ.id) ? "#eab308" : "#94a3b8"}
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </button>
+                <span className="text-xs text-slate-400">
+                  {flaggedIds.has(currentQ.id) ? "Flagged" : "Flag Q&A for improvement"}
+                </span>
+              </div>
               </div>
             ) : null}
           </div>
