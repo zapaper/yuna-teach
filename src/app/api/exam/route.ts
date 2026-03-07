@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
           userId,
           sourceExamId: null,
           paperType: null, // exclude focused tests
-          level: { in: levelStrings },
+          OR: [
+            { level: { in: levelStrings } },
+            { level: null }, // include papers still being extracted (no level yet)
+          ],
         };
       } else {
         // No linked students — show no papers
