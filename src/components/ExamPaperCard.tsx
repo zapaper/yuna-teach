@@ -85,6 +85,23 @@ export default function ExamPaperCard({
                 {paper.title || "Exam Paper"}
               </h3>
               <p className="text-sm text-blue-600 mt-0.5">Analyzing and extracting...</p>
+              <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                {paper.subject ? (
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-600">
+                    {paper.subject}
+                  </span>
+                ) : null}
+                {paper.level ? (
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-green-100 text-green-600">
+                    {paper.level}
+                  </span>
+                ) : null}
+                {paper.examType ? (
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    {paper.examType}
+                  </span>
+                ) : null}
+              </div>
               <p className="text-xs text-slate-400 mt-1">This takes 3–5 mins. Feel free to continue with other work!</p>
               <button
                 onClick={retryExtraction}
@@ -125,6 +142,11 @@ export default function ExamPaperCard({
               {paper.level ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-700">
                   {paper.level}
+                </span>
+              ) : null}
+              {paper.examType ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                  {paper.examType}
                 </span>
               ) : null}
               {userRole === "PARENT" && paper.assignmentCount > 0 ? (
