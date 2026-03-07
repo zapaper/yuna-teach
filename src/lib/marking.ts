@@ -354,19 +354,6 @@ export async function markExamPaper(paperId: string): Promise<void> {
       if (!answerPageSet.has(i)) submissionIndexMap.set(i, submissionIdx++);
     }
 
-    // Fix split segments with no position data (null yStartPct) — bump to next page
-    const baseNumOf = (qn: string) => qn.replace(/[a-z]+$/i, "");
-    for (let i = 1; i < paper.questions.length; i++) {
-      const q = paper.questions[i];
-      if (q.yStartPct == null) {
-        const prev = paper.questions[i - 1];
-        if (baseNumOf(prev.questionNum) === baseNumOf(q.questionNum) && prev.pageIndex === q.pageIndex) {
-          q.pageIndex = q.pageIndex + 1;
-          console.log(`[marking] Split fix: Q${q.questionNum} has null yStartPct, bumped to page ${q.pageIndex}`);
-        }
-      }
-    }
-
     // Group questions by original page index
     const byPage = new Map<number, typeof paper.questions>();
     for (const q of paper.questions) {

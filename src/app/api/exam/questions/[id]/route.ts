@@ -11,6 +11,8 @@ export async function PATCH(
   const data: Record<string, unknown> = {};
   if ("questionNum" in body) data.questionNum = body.questionNum;
   if ("pageIndex" in body) data.pageIndex = body.pageIndex;
+  if ("yStartPct" in body) data.yStartPct = body.yStartPct ?? null;
+  if ("yEndPct" in body) data.yEndPct = body.yEndPct ?? null;
   if ("answer" in body) data.answer = body.answer ?? null;
   if ("imageData" in body) data.imageData = body.imageData;
   if ("answerImageData" in body) data.answerImageData = body.answerImageData ?? null;
@@ -19,11 +21,19 @@ export async function PATCH(
   if ("markingNotes" in body) data.markingNotes = body.markingNotes ?? null;
   if ("syllabusTopic" in body) data.syllabusTopic = body.syllabusTopic ?? null;
 
-  const question = await prisma.examQuestion.update({
-    where: { id },
-    data,
-    include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
-  });
+  let question;
+  try {
+    question = await prisma.examQuestion.update({
+      where: { id },
+      data,
+      include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
+    });
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
+      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+    throw err;
+  }
 
   // If marks changed, recalculate paper total score
   if ("marksAwarded" in body) {

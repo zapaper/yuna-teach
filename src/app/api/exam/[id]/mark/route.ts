@@ -68,22 +68,12 @@ export async function GET(
         paper.questions.map((q) => [q.questionNum, q])
       );
       // Build merged list using master structure + clone marking data
-      // Fix split segments with no position data (null yStartPct) that share
-      // a pageIndex with the previous segment of the same base question.
-      const baseNumOf = (qn: string) => qn.replace(/[a-z]+$/i, "");
-      const merged = master.questions.map((mq, i) => {
+      const merged = master.questions.map((mq) => {
         const cq = cloneByNum.get(mq.questionNum);
-        let pageIndex = mq.pageIndex;
-        if (mq.yStartPct == null && i > 0) {
-          const prev = master.questions[i - 1];
-          if (baseNumOf(prev.questionNum) === baseNumOf(mq.questionNum) && prev.pageIndex === mq.pageIndex) {
-            pageIndex = mq.pageIndex + 1;
-          }
-        }
         return {
           id: cq?.id ?? mq.questionNum,
           questionNum: mq.questionNum,
-          pageIndex,
+          pageIndex: mq.pageIndex,
           orderIndex: mq.orderIndex,
           yStartPct: mq.yStartPct ?? null,
           yEndPct: mq.yEndPct ?? null,
@@ -97,18 +87,6 @@ export async function GET(
       });
       const { sourceExamId: _, questions: __, ...rest } = paper;
       return NextResponse.json({ ...rest, questions: merged });
-    }
-  }
-
-  // Fix split segments with no position data (non-clone papers)
-  const baseNum = (qn: string) => qn.replace(/[a-z]+$/i, "");
-  for (let i = 1; i < paper.questions.length; i++) {
-    const q = paper.questions[i];
-    if (q.yStartPct == null) {
-      const prev = paper.questions[i - 1];
-      if (baseNum(prev.questionNum) === baseNum(q.questionNum) && prev.pageIndex === q.pageIndex) {
-        q.pageIndex = q.pageIndex + 1;
-      }
     }
   }
 

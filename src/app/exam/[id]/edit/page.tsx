@@ -333,7 +333,31 @@ function ExamEditContent({ id }: { id: string }) {
       ctx.drawImage(img, 0, cropTop, natW, canvas.height, 0, 0, natW, canvas.height);
       const newImageData = canvas.toDataURL("image/jpeg", 0.92);
 
-      await saveQuestion(questionId, "imageData", newImageData);
+      // Save cropped image + updated coordinates + page
+      const updates: Record<string, unknown> = {
+        imageData: newImageData,
+        yStartPct: result.yStartPct,
+        yEndPct: result.yEndPct,
+      };
+      if (actualPage !== pageIdx) updates.pageIndex = actualPage;
+
+      await fetch(`/api/exam/questions/${questionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      setPaper((prev) =>
+        prev
+          ? {
+              ...prev,
+              questions: prev.questions.map((qq) =>
+                qq.id === questionId
+                  ? { ...qq, imageData: newImageData, yStartPct: result.yStartPct, yEndPct: result.yEndPct, pageIndex: actualPage }
+                  : qq
+              ),
+            }
+          : prev
+      );
     } finally {
       setSaving(null);
     }
@@ -471,13 +495,33 @@ function ExamEditContent({ id }: { id: string }) {
         <PageSelectionModal
           pageImages={pageImages}
           defaultPageIndex={selectTarget.defaultPageIndex}
-          onConfirm={(croppedDataUrl) => {
-            saveQuestion(
-              selectTarget.questionId,
-              selectTarget.field,
-              croppedDataUrl
-            );
+          onConfirm={async (croppedDataUrl, selectedPage, yStartPct, yEndPct) => {
+            const qId = selectTarget.questionId;
+            const field = selectTarget.field;
             setSelectTarget(null);
+
+            if (field === "imageData") {
+              // Save image + page + boundaries in one PATCH
+              setSaving(qId + field);
+              try {
+                await fetch(`/api/exam/questions/${qId}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct }),
+                });
+                setPaper((prev) =>
+                  prev
+                    ? { ...prev, questions: prev.questions.map((qq) =>
+                        qq.id === qId ? { ...qq, imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct } : qq
+                      ) }
+                    : prev
+                );
+              } finally {
+                setSaving(null);
+              }
+            } else {
+              saveQuestion(qId, field, croppedDataUrl);
+            }
           }}
           onClose={() => setSelectTarget(null)}
         />
@@ -934,7 +978,7 @@ function PageSelectionModal({
 }: {
   pageImages: string[];
   defaultPageIndex: number;
-  onConfirm: (croppedDataUrl: string) => void;
+  onConfirm: (croppedDataUrl: string, pageIndex: number, yStartPct: number, yEndPct: number) => void;
   onClose: () => void;
 }) {
   const [pageIndex, setPageIndex] = useState(
@@ -1046,8 +1090,12 @@ function PageSelectionModal({
     canvas.height = cropH;
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
-    onConfirm(canvas.toDataURL("image/jpeg", 0.92));
-  }, [selection, onConfirm]);
+
+    // Convert selection y-coordinates to percentage of page height
+    const yStartPct = Math.round(selection.y * 1000) / 10;       // e.g. 0.175 → 17.5
+    const yEndPct = Math.round((selection.y + selection.h) * 1000) / 10;
+    onConfirm(canvas.toDataURL("image/jpeg", 0.92), pageIndex, yStartPct, yEndPct);
+  }, [selection, onConfirm, pageIndex]);
 
   const hasSelection = selection && selection.w > 0.01 && selection.h > 0.01;
 
