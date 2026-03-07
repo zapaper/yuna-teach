@@ -58,9 +58,11 @@ async function synthesizeSpeechGoogle(
   const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_CLOUD_API_KEY is not set");
 
+  const ssmlGender = voice === "male" ? "MALE" : "FEMALE";
   const voiceConfig = language === "JAPANESE"
-    ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Neural2-C" : "ja-JP-Neural2-B" }
-    : { languageCode: "zh-CN", name: voice === "male" ? "zh-CN-Neural2-D" : "zh-CN-Neural2-C" };
+    ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Neural2-C" : "ja-JP-Neural2-B", ssmlGender }
+    : { languageCode: "zh-CN", name: voice === "male" ? "zh-CN-Neural2-D" : "zh-CN-Neural2-C", ssmlGender };
+  console.log(`[TTS] language=${language}, voice=${voice}, name=${voiceConfig.name}`);
 
   const response = await fetch(
     `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,

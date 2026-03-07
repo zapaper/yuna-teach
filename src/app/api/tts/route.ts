@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         status: 200,
         headers: {
           "Content-Type": "audio/mpeg",
-          "Cache-Control": "public, max-age=3600",
+          "Cache-Control": "no-store",
         },
       });
     }
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "audio/mpeg",
-        "Cache-Control": "public, max-age=3600",
+        "Cache-Control": "no-store",
       },
     });
   } catch (error) {
