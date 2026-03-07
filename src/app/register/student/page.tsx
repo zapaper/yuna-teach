@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useState, useRef, useCallback, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense, useState, useRef, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function RegisterStudentPage() {
   return (
@@ -13,6 +13,7 @@ export default function RegisterStudentPage() {
 
 function RegisterStudentContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const parentId = searchParams.get("parentId");
 
   const [name, setName] = useState("");
@@ -21,8 +22,6 @@ function RegisterStudentContent() {
   const [level, setLevel] = useState(4);
   const [error, setError] = useState("");
   const [registering, setRegistering] = useState(false);
-  const [done, setDone] = useState(false);
-  const [createdName, setCreatedName] = useState("");
 
   // Username availability
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
@@ -42,16 +41,6 @@ function RegisterStudentContent() {
       finally { setCheckingName(false); }
     }, 400);
   }, []);
-
-  // Notify parent window when student is created and linked
-  useEffect(() => {
-    if (done && parentId) {
-      // Post message to opener (parent's homepage) so it can refresh
-      if (window.opener) {
-        window.opener.postMessage({ type: "student-linked", parentId }, "*");
-      }
-    }
-  }, [done, parentId]);
 
   async function handleRegister() {
     setError("");
@@ -79,34 +68,17 @@ function RegisterStudentContent() {
         return;
       }
       const user = await res.json();
-      setCreatedName(user.name);
-      setDone(true);
+      // Notify parent window to refresh
+      if (window.opener) {
+        window.opener.postMessage({ type: "student-linked", parentId }, "*");
+      }
+      // Navigate to the student's home page
+      router.push(`/home/${user.id}`);
     } catch {
       setError("Something went wrong");
     } finally {
       setRegistering(false);
     }
-  }
-
-  if (done) {
-    return (
-      <div className="min-h-screen bg-white p-6 flex items-center justify-center">
-        <div className="max-w-sm w-full text-center">
-          <div className="text-5xl mb-4">&#x2705;</div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Account Created!</h1>
-          <p className="text-slate-600 mb-6">
-            <strong>{createdName}</strong> has been created and linked to your account.
-            You can now close this page and assign papers.
-          </p>
-          <button
-            onClick={() => window.close()}
-            className="w-full py-3 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700"
-          >
-            Close This Page
-          </button>
-        </div>
-      </div>
-    );
   }
 
   return (
