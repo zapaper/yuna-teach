@@ -51,6 +51,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Polling for marking status
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -88,15 +89,19 @@ function ExamOverviewContent({ id }: { id: string }) {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [paperRes, linkRes] = await Promise.all([
+        const [paperRes, linkRes, usersRes] = await Promise.all([
           fetch(`/api/exam/${id}?summary=true`),
           fetch(`/api/link?userId=${userId}`),
+          fetch("/api/users"),
         ]);
         if (!paperRes.ok) throw new Error("Not found");
-        const [paperData, linkData] = await Promise.all([
+        const [paperData, linkData, usersData] = await Promise.all([
           paperRes.json(),
           linkRes.json(),
+          usersRes.json(),
         ]);
+        const currentUser = usersData.users?.find((u: User) => u.id === userId);
+        setIsAdmin(currentUser?.name?.toLowerCase() === "admin");
         setPaper(paperData);
         // Only show linked students (with level info from link API)
         setStudents(
@@ -480,26 +485,30 @@ function ExamOverviewContent({ id }: { id: string }) {
         <InfoRow label="Total Marks" value={paper.totalMarks} />
         <div className="flex items-center justify-between py-2 border-t border-slate-100">
           <span className="text-sm text-slate-600">Exam Type</span>
-          <select
-            value={paper.examType || ""}
-            onChange={async (e) => {
-              const val = e.target.value || null;
-              setPaper({ ...paper, examType: val });
-              await fetch(`/api/exam/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ examType: val }),
-              });
-            }}
-            className="text-sm font-semibold text-slate-800 bg-transparent border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-400"
-          >
-            <option value="">Not set</option>
-            <option value="Preliminary">Preliminary</option>
-            <option value="WA1">WA1</option>
-            <option value="WA2">WA2</option>
-            <option value="WA3">WA3</option>
-            <option value="End of Year">End of Year</option>
-          </select>
+          {isAdmin ? (
+            <select
+              value={paper.examType || ""}
+              onChange={async (e) => {
+                const val = e.target.value || null;
+                setPaper({ ...paper, examType: val });
+                await fetch(`/api/exam/${id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ examType: val }),
+                });
+              }}
+              className="text-sm font-semibold text-slate-800 bg-transparent border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-400"
+            >
+              <option value="">Not set</option>
+              <option value="Preliminary">Preliminary</option>
+              <option value="WA1">WA1</option>
+              <option value="WA2">WA2</option>
+              <option value="WA3">WA3</option>
+              <option value="End of Year">End of Year</option>
+            </select>
+          ) : (
+            <span className="text-sm font-semibold text-slate-800">{paper.examType || "Not set"}</span>
+          )}
         </div>
       </Section>
 
@@ -563,10 +572,12 @@ function ExamOverviewContent({ id }: { id: string }) {
             </p>
           </div>
         ) : null}
-        <button onClick={() => router.push(`/exam/${id}/edit?userId=${userId}`)}
-          className="mt-3 w-full py-2.5 px-4 rounded-xl border-2 border-primary-200 text-primary-600 font-medium text-sm hover:bg-primary-50 transition-colors">
-          Edit Questions &amp; Answers
-        </button>
+        {isAdmin ? (
+          <button onClick={() => router.push(`/exam/${id}/edit?userId=${userId}`)}
+            className="mt-3 w-full py-2.5 px-4 rounded-xl border-2 border-primary-200 text-primary-600 font-medium text-sm hover:bg-primary-50 transition-colors">
+            Edit Questions &amp; Answers
+          </button>
+        ) : null}
       </Section>
 
       {/* Assignment */}

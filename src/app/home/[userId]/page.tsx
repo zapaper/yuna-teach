@@ -486,7 +486,8 @@ export default function HomePage({
                   paper={paper}
                   userId={userId}
                   userRole={user?.role}
-                  onDelete={isParent ? handleDeleteExam : undefined}
+                  isAdmin={isAdmin}
+                  onDelete={isAdmin ? handleDeleteExam : undefined}
                 />
               ))}
             </div>

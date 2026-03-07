@@ -8,11 +8,13 @@ export default function ExamPaperCard({
   paper,
   userId,
   userRole,
+  isAdmin,
   onDelete,
 }: {
   paper: ExamPaperSummary;
   userId: string;
   userRole?: "PARENT" | "STUDENT";
+  isAdmin?: boolean;
   onDelete?: (id: string) => void;
 }) {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -193,7 +195,7 @@ export default function ExamPaperCard({
       </Link>
 
       {/* Tag Syllabus button — Math papers, parents only, not already tagged */}
-      {userRole === "PARENT" && isTaggablePaper && !isExtracting && !extractionFailed && !paper.syllabusTagged && (
+      {isAdmin && isTaggablePaper && !isExtracting && !extractionFailed && !paper.syllabusTagged && (
         <button
           onClick={(e) => {
             e.preventDefault();
