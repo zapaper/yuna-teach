@@ -354,6 +354,31 @@ export async function markExamPaper(paperId: string): Promise<void> {
       if (!answerPageSet.has(i)) submissionIndexMap.set(i, submissionIdx++);
     }
 
+    // Fix split questions sharing the same pageIndex.
+    // E.g. Q11a and Q11bcd both have pageIndex=5, but Q11bcd should be on page 6.
+    // Detect by looking for questions with the same base number and alphabetic suffix
+    // that share a pageIndex, and bump the later segments to the next page.
+    const baseNumOf = (qn: string) => qn.replace(/[a-z]+$/i, "");
+    for (let i = 0; i < paper.questions.length; i++) {
+      const q = paper.questions[i];
+      const baseNum = baseNumOf(q.questionNum);
+      // If this question has a suffix (split segment) and the previous question
+      // is the same base number on the same page, bump to next page
+      if (q.questionNum !== baseNum && i > 0) {
+        const prev = paper.questions[i - 1];
+        if (baseNumOf(prev.questionNum) === baseNum && prev.pageIndex === q.pageIndex) {
+          const newPage = q.pageIndex + 1;
+          console.log(`[marking] Split fix: Q${q.questionNum} shares pageIndex=${q.pageIndex} with Q${prev.questionNum} → bumping to ${newPage}`);
+          q.pageIndex = newPage;
+        }
+      }
+    }
+
+    // Log question→page mapping for debugging split questions
+    for (const q of paper.questions) {
+      console.log(`[marking] Q${q.questionNum} → pageIndex=${q.pageIndex}, yStart=${q.yStartPct}, yEnd=${q.yEndPct}`);
+    }
+
     // Group questions by original page index
     const byPage = new Map<number, typeof paper.questions>();
     for (const q of paper.questions) {

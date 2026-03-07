@@ -14,6 +14,7 @@ interface ReviewQuestion {
   markingNotes: string | null;
   elaboration: string | null;
   flagged: boolean;
+  imageData?: string;
 }
 
 interface ReviewData {
@@ -65,8 +66,32 @@ function ExamReviewContent({ id }: { id: string }) {
           fetch(`/api/exam/${id}/mark`),
           fetch(`/api/exam/${id}`),
         ]);
+        // Build imageData map from paper questions (always has correct extracted images)
+        let imageMap: Record<string, string> = {};
+        if (paperRes.ok) {
+          const paper = await paperRes.json();
+          setPaperTitle(paper.title ?? "");
+          setTotalMarks(paper.totalMarks ?? null);
+          setAssignedToId(paper.assignedToId ?? null);
+          setAnswerPages(paper.metadata?.answerPages ?? []);
+          setPageCount(paper.pageCount ?? 0);
+          const ap = paper.metadata?.answerPages ?? [];
+          setSubmissionPageCount((paper.pageCount ?? 0) - ap.length);
+          // Map questionNum → imageData from paper questions
+          for (const q of paper.questions ?? []) {
+            if (q.questionNum && q.imageData) {
+              imageMap[q.questionNum] = q.imageData;
+            }
+          }
+        }
         if (markRes.ok) {
           const markData = await markRes.json();
+          // Attach imageData from paper questions to mark data
+          for (const q of markData.questions ?? []) {
+            if (imageMap[q.questionNum]) {
+              q.imageData = imageMap[q.questionNum];
+            }
+          }
           setData(markData);
           // Pre-populate cached elaborations and flagged state
           const cached: Record<string, string> = {};
@@ -77,17 +102,6 @@ function ExamReviewContent({ id }: { id: string }) {
           }
           if (Object.keys(cached).length > 0) setElaborations(cached);
           if (flagged.size > 0) setFlaggedIds(flagged);
-        }
-        if (paperRes.ok) {
-          const paper = await paperRes.json();
-          setPaperTitle(paper.title ?? "");
-          setTotalMarks(paper.totalMarks ?? null);
-          setAssignedToId(paper.assignedToId ?? null);
-          setAnswerPages(paper.metadata?.answerPages ?? []);
-          setPageCount(paper.pageCount ?? 0);
-          // Compute submission page count (total pages minus answer pages)
-          const ap = paper.metadata?.answerPages ?? [];
-          setSubmissionPageCount((paper.pageCount ?? 0) - ap.length);
         }
       } finally {
         setLoading(false);
@@ -406,6 +420,18 @@ function ExamReviewContent({ id }: { id: string }) {
                     {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
                   </span>
                 </div>
+
+                {/* Extracted question image (always correct for split questions) */}
+                {currentQ.imageData ? (
+                  <div className="border-b border-slate-100 bg-slate-50 px-2 py-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={currentQ.imageData}
+                      alt={`Question ${currentQ.questionNum}`}
+                      className="w-full h-auto rounded-lg"
+                    />
+                  </div>
+                ) : null}
 
                 {/* Side-by-side on wide screens, stacked on mobile */}
                 <div className="md:flex">

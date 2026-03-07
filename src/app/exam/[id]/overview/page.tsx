@@ -33,6 +33,7 @@ interface MarkingQuestion {
   markingNotes: string | null;
   elaboration: string | null;
   flagged: boolean;
+  imageData?: string;
 }
 
 interface MarkingDetail {
@@ -191,6 +192,16 @@ function ExamOverviewContent({ id }: { id: string }) {
       ]);
       if (markRes.ok) {
         const md = await markRes.json();
+        // Attach imageData from master paper questions
+        if (paper) {
+          const imgMap: Record<string, string> = {};
+          for (const q of paper.questions ?? []) {
+            if (q.questionNum && q.imageData) imgMap[q.questionNum] = q.imageData;
+          }
+          for (const q of md.questions ?? []) {
+            if (imgMap[q.questionNum]) q.imageData = imgMap[q.questionNum];
+          }
+        }
         setMarkingDetail(md);
         // Pre-populate cached elaborations and flagged state
         const cached: Record<string, string> = {};
@@ -1084,6 +1095,18 @@ function ExamOverviewContent({ id }: { id: string }) {
                         {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
                       </span>
                     </div>
+
+                    {/* Extracted question image */}
+                    {currentQ.imageData ? (
+                      <div className="border-b border-slate-100 bg-slate-50 px-2 py-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={currentQ.imageData}
+                          alt={`Question ${currentQ.questionNum}`}
+                          className="w-full h-auto rounded-lg"
+                        />
+                      </div>
+                    ) : null}
 
                     {/* Side-by-side on wide screens */}
                     <div className="md:flex">
