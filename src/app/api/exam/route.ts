@@ -36,16 +36,25 @@ export async function GET(request: NextRequest) {
 
       if (studentLevels.length > 0) {
         const levelStrings = studentLevels.map((n) => `Primary ${n}`);
-        where = {
-          sourceExamId: null,
-          paperType: null, // exclude focused tests
-          OR: [
-            { level: { in: levelStrings } },
-            { level: null }, // include papers still being extracted (no level yet)
-          ],
-          // Admin sees only own papers; non-admin parents see all master papers matching level
-          ...(isAdminUser ? { userId } : {}),
-        };
+        if (isAdminUser) {
+          // Admin sees own papers: matching levels + still-processing (level null)
+          where = {
+            userId,
+            sourceExamId: null,
+            paperType: null,
+            OR: [
+              { level: { in: levelStrings } },
+              { level: null },
+            ],
+          };
+        } else {
+          // Non-admin parents see all master papers matching their students' levels
+          where = {
+            sourceExamId: null,
+            paperType: null,
+            level: { in: levelStrings },
+          };
+        }
       } else {
         // No linked students — show no papers
         where = { id: "none" };
