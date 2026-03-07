@@ -263,7 +263,7 @@ function ExamReviewContent({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="p-4 pb-24 max-w-2xl md:max-w-6xl lg:max-w-7xl mx-auto">
+      <div className="p-4 pb-24 mx-auto" style={{ maxWidth: "min(100%, 90rem)" }}>
         {/* Score — large and prominent */}
         <div className="text-center py-4 mb-2">
           <p className="text-5xl font-extrabold text-primary-600">
