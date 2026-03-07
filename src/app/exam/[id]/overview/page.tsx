@@ -578,6 +578,57 @@ function ExamOverviewContent({ id }: { id: string }) {
             Edit Questions &amp; Answers
           </button>
         ) : null}
+        {/* Admin-only: AI detection debug info */}
+        {isAdmin && paper.metadata ? (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">AI Detection Details</p>
+            <div className="space-y-1.5 text-xs text-slate-600">
+              <div className="flex justify-between">
+                <span>Answer pages (0-based)</span>
+                <span className={`font-mono font-medium ${paper.metadata.answerPages.length === 0 ? "text-red-500" : "text-green-600"}`}>
+                  {paper.metadata.answerPages.length > 0 ? paper.metadata.answerPages.join(", ") : "None detected"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Cover pages</span>
+                <span className="font-mono font-medium text-slate-500">
+                  {paper.metadata.coverPages.length > 0 ? paper.metadata.coverPages.join(", ") : "None"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Total pages</span>
+                <span className="font-mono font-medium text-slate-500">{paper.pageCount}</span>
+              </div>
+              {paper.metadata.papers.length > 0 ? (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-slate-500 mb-1">Booklets:</p>
+                  {paper.metadata.papers.map((b, i) => (
+                    <div key={i} className="flex justify-between bg-slate-50 rounded-lg px-2 py-1 mb-1">
+                      <span>{b.label}{b.questionPrefix ? ` (prefix: ${b.questionPrefix})` : ""}</span>
+                      <span className="font-mono text-slate-500">
+                        {b.expectedQuestions}Q, start pg {b.questionsStartPage}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+              <div className="flex justify-between">
+                <span>Answers detected</span>
+                <span className="font-mono font-medium text-slate-500">
+                  {paper.metadata.answersDetected.length} [{paper.metadata.answersDetected.slice(0, 15).join(", ")}{paper.metadata.answersDetected.length > 15 ? "..." : ""}]
+                </span>
+              </div>
+              {paper.metadata.validationIssues && paper.metadata.validationIssues.length > 0 ? (
+                <div className="mt-2">
+                  <p className="text-xs font-medium text-red-500 mb-1">Validation Issues:</p>
+                  {paper.metadata.validationIssues.map((issue, i) => (
+                    <p key={i} className="text-xs text-red-400 pl-2">• {issue}</p>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </Section>
 
       {/* Assignment */}
