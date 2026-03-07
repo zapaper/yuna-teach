@@ -563,10 +563,11 @@ Return ONLY valid JSON:
       "pageIndex": 2,
       "questions": [
         {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
-        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3}
+        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3, "isContinuation": false, "subParts": "abc"}
       ]
     }
   ]
+Note: "isContinuation" and "subParts" fields are optional — include them when a question spans multiple pages (see SCIENCE PAPER addendum if applicable).
 }
 
 marksAvailable: total marks for this question (sum of sub-part bracket marks). Use null if not visible.
@@ -914,6 +915,7 @@ interface QuestionExtractionResult {
       boundaryBottom: string;
       marksAvailable?: number | null;
       isContinuation?: boolean;
+      subParts?: string;
     }>;
   }>;
   _rawSnippet?: string; // first 400 chars of Gemini response, for browser debug
@@ -1510,6 +1512,7 @@ export interface BatchAnalysisResult {
       boundaryBottom: string;
       marksAvailable?: number | null;
       isContinuation?: boolean;
+      subParts?: string;
       syllabusTopic?: string | null;
     }>;
   }>;
