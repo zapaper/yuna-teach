@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let where: any;
   if (email) {
-    where = { email };
+    where = { email: { equals: email, mode: "insensitive" } };
   } else {
     where = { name: { equals: name, mode: "insensitive" } };
   }
@@ -26,9 +26,7 @@ export async function POST(request: NextRequest) {
     studentLinks: { include: { parent: { select: { id: true, name: true } } } },
   };
 
-  const user = email
-    ? await prisma.user.findUnique({ where: { email }, include: includeLinks })
-    : await prisma.user.findFirst({ where, include: includeLinks });
+  const user = await prisma.user.findFirst({ where, include: includeLinks });
 
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 401 });

@@ -68,8 +68,16 @@ export default function HomePage({
     function onVisible() {
       if (document.visibilityState === "visible") fetchData.current?.();
     }
+    // Refetch when student is linked from the register page (opened in new tab)
+    function onMessage(e: MessageEvent) {
+      if (e.data?.type === "student-linked") fetchData.current?.();
+    }
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    window.addEventListener("message", onMessage);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("message", onMessage);
+    };
   }, [userId, refreshKey]);
 
   // Poll for extraction status updates
@@ -125,6 +133,9 @@ export default function HomePage({
   }
 
   const isParent = user?.role === "PARENT";
+  const isAdmin = user?.name?.toLowerCase() === "admin";
+  const hasLinkedStudents = (user?.linkedStudents?.length ?? 0) > 0;
+  const [showLinkPrompt, setShowLinkPrompt] = useState(false);
 
   async function handleGenerateCode() {
     setGeneratingCode(true);
@@ -287,15 +298,57 @@ export default function HomePage({
         >
           Scan Spelling / 听写
         </Link>
-        {isParent ? (
+        {isAdmin ? (
           <Link
             href={`/exam/upload?userId=${userId}`}
             className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
           >
             Upload Exam Paper
           </Link>
+        ) : isParent ? (
+          <button
+            onClick={() => {
+              if (hasLinkedStudents) {
+                document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" });
+              } else {
+                setShowLinkPrompt(true);
+              }
+            }}
+            className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+          >
+            Assign Papers
+          </button>
         ) : null}
       </div>
+
+      {/* Prompt to create student account */}
+      {showLinkPrompt ? (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <h3 className="font-semibold text-lg mb-2">No Student Linked</h3>
+            <p className="text-slate-600 text-sm mb-4">
+              To assign papers, you will need to create an account for your child. Agree to proceed?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLinkPrompt(false)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+              >
+                No
+              </button>
+              <button
+                onClick={() => {
+                  setShowLinkPrompt(false);
+                  window.open(`/register/student?parentId=${userId}`, "_blank");
+                }}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-700"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Test list */}
       <div>
@@ -330,7 +383,7 @@ export default function HomePage({
       </div>
 
       {/* Exam papers list */}
-      <div className="mt-8">
+      <div className="mt-8" id="exam-papers-section">
         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
           Exam Papers
         </h2>

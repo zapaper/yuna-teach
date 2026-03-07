@@ -26,7 +26,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, role, level, email, password } = body;
+  const { name, role, level, email, password, parentId } = body;
 
   if (!name || !role || !password) {
     return NextResponse.json(
@@ -56,7 +56,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
+    });
     if (existing) {
       return NextResponse.json(
         { error: "This email is already registered" },
@@ -74,6 +76,17 @@ export async function POST(request: NextRequest) {
       level: role === "STUDENT" ? (level ?? 1) : null,
     },
   });
+
+  // Auto-link student to parent if parentId provided
+  if (role === "STUDENT" && parentId) {
+    try {
+      await prisma.parentStudent.create({
+        data: { parentId, studentId: user.id },
+      });
+    } catch (err) {
+      console.error("Failed to auto-link student to parent:", err);
+    }
+  }
 
   // Clone template exam papers to new parents
   if (role === "PARENT") {
