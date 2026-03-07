@@ -500,12 +500,16 @@ export default function HomePage({
           if (subjectFilter) filtered = filtered.filter((p) => p.subject === subjectFilter);
           if (examTypeFilter) filtered = filtered.filter((p) => p.examType === examTypeFilter);
 
-          // For parents: split into assigned (unreleased) and regular papers
+          // Split into assigned/pending and regular/completed papers
           const assignedPapers = isParent
             ? filtered.filter((p) => p.unreleasedAssignmentCount > 0)
+            : !isAdmin
+            ? filtered.filter((p) => !p.completedAt)
             : [];
           const regularPapers = isParent
             ? filtered.filter((p) => p.unreleasedAssignmentCount === 0)
+            : !isAdmin
+            ? filtered.filter((p) => p.completedAt)
             : filtered;
 
           return loading ? null : filtered.length === 0 ? (
@@ -524,11 +528,11 @@ export default function HomePage({
             </div>
           ) : (
             <>
-              {/* Assigned Papers section — parents only */}
+              {/* Assigned / To Do section */}
               {assignedPapers.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-3">
-                    Assigned Papers
+                    {isParent ? "Assigned Papers" : "To Do"}
                   </h3>
                   <div className="space-y-3">
                     {assignedPapers.map((paper) => (
@@ -545,9 +549,14 @@ export default function HomePage({
                 </div>
               )}
 
-              {/* Regular Exam Papers */}
+              {/* Regular / Completed Exam Papers */}
               {regularPapers.length > 0 ? (
                 <div className="space-y-3">
+                  {!isParent && !isAdmin && assignedPapers.length > 0 && (
+                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                      Completed
+                    </h3>
+                  )}
                   {regularPapers.map((paper) => (
                     <ExamPaperCard
                       key={paper.id}
