@@ -1,9 +1,17 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { Suspense, useState, useRef, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function RegisterStudentPage() {
+  return (
+    <Suspense>
+      <RegisterStudentContent />
+    </Suspense>
+  );
+}
+
+function RegisterStudentContent() {
   const searchParams = useSearchParams();
   const parentId = searchParams.get("parentId");
 
