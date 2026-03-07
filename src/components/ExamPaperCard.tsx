@@ -83,7 +83,7 @@ export default function ExamPaperCard({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-lg text-slate-700 truncate">
-                {paper.title || "Exam Paper"}
+                {paper.title && paper.title !== "Processing..." ? paper.title : "Exam Paper"}
               </h3>
               <p className="text-sm text-blue-600 mt-0.5">Analyzing and extracting...</p>
               <div className="flex items-center gap-1.5 mt-1 flex-wrap">
@@ -114,6 +114,63 @@ export default function ExamPaperCard({
             </div>
           </div>
         </div>
+
+        {/* Delete button for processing cards */}
+        {onDelete ? (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setShowConfirm(true);
+            }}
+            className="absolute top-3 right-3 p-2 rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors z-10"
+            aria-label="Delete exam paper"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+          </button>
+        ) : null}
+
+        {/* Delete confirmation modal */}
+        {showConfirm && onDelete ? (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+              <h3 className="font-semibold text-lg mb-2">Delete Exam Paper?</h3>
+              <p className="text-slate-600 text-sm mb-4">
+                This will stop processing and delete the paper. This cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    onDelete(paper.id);
+                    setShowConfirm(false);
+                  }}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     );
   }

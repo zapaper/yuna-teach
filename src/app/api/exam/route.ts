@@ -45,6 +45,16 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Auto-fail papers stuck in "processing" for more than 10 minutes
+  const staleThreshold = new Date(Date.now() - 10 * 60 * 1000);
+  await prisma.examPaper.updateMany({
+    where: {
+      extractionStatus: "processing",
+      createdAt: { lt: staleThreshold },
+    },
+    data: { extractionStatus: "failed" },
+  });
+
   const papers = await prisma.examPaper.findMany({
     where,
     orderBy: { createdAt: "desc" },
