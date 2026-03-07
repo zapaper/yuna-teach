@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
       answer: { not: null },
       examPaper: {
         sourceExamId: null, // master papers only
+        paperType: null, // exclude other focused tests
         subject: { contains: subject, mode: "insensitive" },
         ...(levelFilter ? { level: levelFilter } : {}),
       },
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
 
   const paper = await prisma.examPaper.create({
     data: {
-      title: `Focused Test on ${topic}`,
+      title: `${levelFilter ? `P${levelFilter.replace("Primary ", "")} ` : ""}Focused: ${topic}`,
       subject,
       level: levelFilter || null,
       userId: parentId,
