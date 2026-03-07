@@ -120,7 +120,11 @@ export default function HomePage() {
       <div className="max-w-sm mx-auto">
         {/* Header */}
         <div className="text-center mb-8 pt-8">
-          <h1 className="text-3xl font-bold text-slate-800">Mark for You</h1>
+          <div className="flex items-center justify-center gap-3 mb-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Mark for You" width={48} height={48} />
+            <h1 className="text-3xl font-bold text-slate-800">Mark for You</h1>
+          </div>
           <TypingSubheader />
         </div>
 
