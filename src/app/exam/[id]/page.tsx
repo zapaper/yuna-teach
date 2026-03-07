@@ -418,8 +418,8 @@ function ExamPracticeContent({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-white select-none" style={{ overscrollBehavior: "none" }}>
-      {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-20 bg-white">
+      {/* ── Fixed header + drawing toolbar — pinned to top of viewport for iPad compatibility ── */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
         <div className="border-b border-slate-100 px-4 py-2 flex items-center gap-2">
           <button
             onClick={() => router.push(backPath)}
@@ -473,50 +473,52 @@ function ExamPracticeContent({ id }: { id: string }) {
             </div>
           ) : null}
         </div>
-      </div>
 
-      {/* ── Fixed drawing toolbar — always visible at bottom of screen ── */}
-      {hasPdf && view === "paper" && submitStatus !== "submitted" && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 px-4 py-2 flex items-center gap-2 shadow-lg"
-          style={{ userSelect: "none", WebkitUserSelect: "none" }}>
-          <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 8L22 12L18 16M2 12H22" />
-            </svg>
-            Scroll
-          </ToolButton>
-          <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} title="Pen"
-            activeClass="bg-blue-100 text-blue-700 border-blue-300">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-            </svg>
-            Pen
-          </ToolButton>
-          <ToolButton active={tool === "eraser"} onClick={() => setTool("eraser")} title="Eraser">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21M22 21H7M5 11l9 9" />
-            </svg>
-            Eraser
-          </ToolButton>
-          <div className="w-px h-5 bg-slate-200 mx-0.5" />
-          <button onClick={handleUndo} title="Undo"
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-            </svg>
-            Undo
-          </button>
-          <div className="flex-1" />
-          <button onClick={clearAllInk}
-            className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
-            Clear
-          </button>
-        </div>
-      )}
+        {/* Drawing toolbar */}
+        {hasPdf && view === "paper" && submitStatus !== "submitted" && (
+          <div className="bg-white border-b border-slate-200 px-4 py-1.5 flex items-center gap-2"
+            style={{ userSelect: "none", WebkitUserSelect: "none" }}>
+            <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8L22 12L18 16M2 12H22" />
+              </svg>
+              Scroll
+            </ToolButton>
+            <ToolButton active={tool === "pen"} onClick={() => setTool("pen")} title="Pen"
+              activeClass="bg-blue-100 text-blue-700 border-blue-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              </svg>
+              Pen
+            </ToolButton>
+            <ToolButton active={tool === "eraser"} onClick={() => setTool("eraser")} title="Eraser">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21M22 21H7M5 11l9 9" />
+              </svg>
+              Eraser
+            </ToolButton>
+            <div className="w-px h-5 bg-slate-200 mx-0.5" />
+            <button onClick={handleUndo} title="Undo"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+              </svg>
+              Undo
+            </button>
+            <div className="flex-1" />
+            <button onClick={clearAllInk}
+              className="text-xs text-slate-400 hover:text-red-500 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+              Clear
+            </button>
+          </div>
+        )}
+      </div>
+      {/* Spacer to push content below the fixed header */}
+      <div style={{ height: hasPdf && view === "paper" && submitStatus !== "submitted" ? 88 : 52 }} />
 
       {/* ── PDF loading ── */}
       {loadingPdf ? (
