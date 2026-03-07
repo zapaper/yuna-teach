@@ -550,8 +550,8 @@ function ExamPracticeContent({ id }: { id: string }) {
             </p>
           </div>
 
-          {/* Drawing toolbar — sticky so it floats when zoomed/scrolled */}
-          <div className="sticky top-[53px] z-10 bg-white border-b border-slate-100 px-4 py-2 flex items-center gap-2"
+          {/* Drawing toolbar — fixed so it stays visible when zoomed */}
+          <div className="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-slate-200 px-4 py-2.5 flex items-center gap-2 shadow-lg"
             style={{ userSelect: "none", WebkitUserSelect: "none" }}>
             <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
@@ -592,7 +592,7 @@ function ExamPracticeContent({ id }: { id: string }) {
           </div>
 
           {/* PDF pages */}
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 pb-16">
             {displayPages.map(({ src }, displayIndex) => (
               <DrawablePage
                 key={displayIndex}

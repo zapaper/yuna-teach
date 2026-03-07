@@ -45,6 +45,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [paperTitle, setPaperTitle] = useState("");
   const [totalMarks, setTotalMarks] = useState<string | null>(null);
+  const [assignedToId, setAssignedToId] = useState<string | null>(null);
   const [answerPages, setAnswerPages] = useState<number[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -79,6 +80,7 @@ function ExamReviewContent({ id }: { id: string }) {
           const paper = await paperRes.json();
           setPaperTitle(paper.title ?? "");
           setTotalMarks(paper.totalMarks ?? null);
+          setAssignedToId(paper.assignedToId ?? null);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setPageCount(paper.pageCount ?? 0);
         }
@@ -224,6 +226,8 @@ function ExamReviewContent({ id }: { id: string }) {
     );
   }
 
+  const isStudent = userId === assignedToId;
+
   const incorrectQuestions = data.questions.filter((q) => {
     if (q.marksAwarded === null || q.marksAvailable === null) return false;
     return q.marksAwarded < q.marksAvailable;
@@ -259,7 +263,7 @@ function ExamReviewContent({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="p-4 pb-24 max-w-2xl md:max-w-5xl lg:max-w-6xl mx-auto">
+      <div className="p-4 pb-24 max-w-2xl md:max-w-6xl lg:max-w-7xl mx-auto">
         {/* Score — large and prominent */}
         <div className="text-center py-4 mb-2">
           <p className="text-5xl font-extrabold text-primary-600">
@@ -300,23 +304,34 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         </div>
 
-        {/* Advisory message */}
-        <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-4">
-          <p className="text-xs text-amber-700 leading-relaxed">
-            We encourage you to verify and understand where your child has made mistakes, and go through with him/her the mistakes.
-          </p>
-        </div>
-
-        {/* Feedback summary — collapsible */}
-        {data.feedbackSummary ? (
-          <details className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 mb-6 overflow-hidden">
-            <summary className="px-4 py-3 cursor-pointer text-xs font-semibold text-slate-400 uppercase tracking-wide select-none hover:text-slate-600">
-              Summary
-            </summary>
-            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line px-4 pb-4">
-              {data.feedbackSummary}
+        {/* Advisory message — parents only */}
+        {!isStudent && (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-4">
+            <p className="text-xs text-amber-700 leading-relaxed">
+              We encourage you to verify and understand where your child has made mistakes, and go through with him/her the mistakes.
             </p>
-          </details>
+          </div>
+        )}
+
+        {/* Feedback summary — prominent for students, collapsible for parents */}
+        {data.feedbackSummary ? (
+          isStudent ? (
+            <div className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 mb-6 px-4 py-4">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Summary</p>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                {data.feedbackSummary}
+              </p>
+            </div>
+          ) : (
+            <details className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 mb-6 overflow-hidden">
+              <summary className="px-4 py-3 cursor-pointer text-xs font-semibold text-slate-400 uppercase tracking-wide select-none hover:text-slate-600">
+                Summary
+              </summary>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line px-4 pb-4">
+                {data.feedbackSummary}
+              </p>
+            </details>
+          )
         ) : null}
 
         {/* Questions to review — flip-through */}
@@ -440,15 +455,15 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     ) : null}
 
-                    {/* AI Elaboration — only for wrong/partial answers */}
+                    {/* AI Elaboration — only for wrong/partial answers, shown below answer key */}
                     {(currentQ.marksAwarded ?? 0) < (currentQ.marksAvailable ?? 0) && (
                       <div>
                         {elaborations[currentQ.id] ? (
                           <div>
-                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                            <p className="text-xs font-semibold text-teal-500 uppercase tracking-wide mb-1">
                               AI Elaboration
                             </p>
-                            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line rounded-lg bg-blue-50 border border-blue-100 p-3">
+                            <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3">
                               {elaborations[currentQ.id]}
                             </div>
                           </div>
@@ -456,11 +471,11 @@ function ExamReviewContent({ id }: { id: string }) {
                           <button
                             onClick={() => fetchElaboration(currentQ.id)}
                             disabled={elaborating === currentQ.id}
-                            className="w-full py-2.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors disabled:opacity-50"
+                            className="w-full py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-600 text-xs font-semibold hover:bg-teal-100 transition-colors disabled:opacity-50"
                           >
                             {elaborating === currentQ.id ? (
                               <span className="inline-flex items-center gap-2">
-                                <span className="animate-spin rounded-full h-3 w-3 border-2 border-blue-200 border-t-blue-600 inline-block" />
+                                <span className="animate-spin rounded-full h-3 w-3 border-2 border-teal-200 border-t-teal-600 inline-block" />
                                 Generating...
                               </span>
                             ) : (

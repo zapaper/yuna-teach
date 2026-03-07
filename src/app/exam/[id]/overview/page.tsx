@@ -31,6 +31,8 @@ interface MarkingQuestion {
   marksAwarded: number | null;
   marksAvailable: number | null;
   markingNotes: string | null;
+  elaboration: string | null;
+  flagged: boolean;
 }
 
 interface MarkingDetail {
@@ -67,6 +69,12 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [manualValue, setManualValue] = useState("");
   const [reviewShowAll, setReviewShowAll] = useState(false);
   const [reviewIdx, setReviewIdx] = useState(0);
+
+  // AI elaboration + flag state
+  const [elaborations, setElaborations] = useState<Record<string, string>>({});
+  const [elaborating, setElaborating] = useState<string | null>(null);
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+  const [flagging, setFlagging] = useState<string | null>(null);
 
   // Feedback editing
   const [editingFeedback, setEditingFeedback] = useState(false);
@@ -178,7 +186,19 @@ function ExamOverviewContent({ id }: { id: string }) {
         fetch(`/api/exam/${cloneId}/mark`),
         fetch(`/api/exam/${cloneId}/submission`),
       ]);
-      if (markRes.ok) setMarkingDetail(await markRes.json());
+      if (markRes.ok) {
+        const md = await markRes.json();
+        setMarkingDetail(md);
+        // Pre-populate cached elaborations and flagged state
+        const cached: Record<string, string> = {};
+        const flagged = new Set<string>();
+        for (const q of md.questions ?? []) {
+          if (q.elaboration) cached[q.id] = q.elaboration;
+          if (q.flagged) flagged.add(q.id);
+        }
+        if (Object.keys(cached).length > 0) setElaborations(prev => ({ ...prev, ...cached }));
+        if (flagged.size > 0) setFlaggedIds(prev => { const next = new Set(prev); flagged.forEach(id => next.add(id)); return next; });
+      }
       if (subRes.ok) {
         const sub = await subRes.json();
         setSubmissionPageCount(sub.pageCount ?? 0);
@@ -288,6 +308,51 @@ function ExamOverviewContent({ id }: { id: string }) {
       setDetailCloneId(null);
     } finally {
       setFinalizing(false);
+    }
+  }
+
+  async function fetchElaboration(questionId: string) {
+    if (elaborations[questionId] || !detailCloneId) return;
+    setElaborating(questionId);
+    try {
+      const res = await fetch(`/api/exam/${detailCloneId}/elaborate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId }),
+      });
+      if (res.ok) {
+        const { elaboration } = await res.json();
+        setElaborations(prev => ({ ...prev, [questionId]: elaboration }));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setElaborating(null);
+    }
+  }
+
+  async function toggleFlag(questionId: string) {
+    if (!detailCloneId) return;
+    setFlagging(questionId);
+    try {
+      const res = await fetch(`/api/exam/${detailCloneId}/flag`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId, userId }),
+      });
+      if (res.ok) {
+        const { flagged } = await res.json();
+        setFlaggedIds(prev => {
+          const next = new Set(prev);
+          if (flagged) next.add(questionId);
+          else next.delete(questionId);
+          return next;
+        });
+      }
+    } catch {
+      // ignore
+    } finally {
+      setFlagging(null);
     }
   }
 
@@ -1025,6 +1090,57 @@ function ExamOverviewContent({ id }: { id: string }) {
                             </p>
                           </div>
                         ) : null}
+
+                        {/* AI Elaboration — for wrong/partial answers */}
+                        {(currentQ.marksAwarded ?? 0) < (currentQ.marksAvailable ?? 0) && (
+                          <div>
+                            {elaborations[currentQ.id] ? (
+                              <div>
+                                <p className="text-xs font-semibold text-teal-500 uppercase tracking-wide mb-1">
+                                  AI Elaboration
+                                </p>
+                                <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3">
+                                  {elaborations[currentQ.id]}
+                                </div>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => fetchElaboration(currentQ.id)}
+                                disabled={elaborating === currentQ.id}
+                                className="w-full py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-600 text-xs font-semibold hover:bg-teal-100 transition-colors disabled:opacity-50"
+                              >
+                                {elaborating === currentQ.id ? (
+                                  <span className="inline-flex items-center gap-2">
+                                    <span className="animate-spin rounded-full h-3 w-3 border-2 border-teal-200 border-t-teal-600 inline-block" />
+                                    Generating...
+                                  </span>
+                                ) : (
+                                  "AI Elaboration"
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Flag Q&A */}
+                        <button
+                          onClick={() => toggleFlag(currentQ.id)}
+                          disabled={flagging === currentQ.id}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                            flaggedIds.has(currentQ.id)
+                              ? "bg-red-100 text-red-600 hover:bg-red-200"
+                              : "bg-slate-100 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                          } disabled:opacity-50`}
+                          title={flaggedIds.has(currentQ.id) ? "Unflag this question" : "Flag incorrect Q&A"}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+                            fill={flaggedIds.has(currentQ.id) ? "currentColor" : "none"}
+                            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                            <line x1="4" y1="22" x2="4" y2="15" />
+                          </svg>
+                          {flaggedIds.has(currentQ.id) ? "Flagged" : "Flag Q&A"}
+                        </button>
 
                         {/* Actions */}
                         <div className="pt-2 border-t border-slate-100">

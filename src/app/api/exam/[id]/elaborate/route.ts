@@ -58,18 +58,12 @@ export async function POST(
   parts.push({
     text: `You are a helpful tutor for a primary/secondary school student.
 
-The student got this exam question wrong (or partially wrong).
+Here is an exam question the student needs help with.
 
 Question number: ${question.questionNum}
 Correct answer: ${question.answer ?? "Not provided"}
-Student's answer: ${question.studentAnswer ?? "See their work in the image"}
-Marks awarded: ${question.marksAwarded ?? 0} / ${question.marksAvailable ?? 0}
-Marking notes: ${question.markingNotes ?? "None"}
 
-Please provide a clear, student-friendly explanation of:
-1. What the correct answer is and why
-2. A step-by-step explanation of how to arrive at the correct answer
-3. Common mistakes students make on this type of question
+Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
 Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. If the question image is provided, reference the actual question content.`,
   });

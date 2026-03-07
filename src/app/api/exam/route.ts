@@ -37,27 +37,31 @@ export async function GET(request: NextRequest) {
       if (studentLevels.length > 0) {
         const levelStrings = studentLevels.map((n) => `Primary ${n}`);
         if (isAdminUser) {
-          // Admin sees own papers: matching levels + still-processing (level null)
+          // Admin sees own master papers (matching levels + processing) + own focused tests
           where = {
             userId,
             sourceExamId: null,
-            paperType: null,
             OR: [
-              { level: { in: levelStrings } },
-              { level: null },
+              { paperType: null, OR: [{ level: { in: levelStrings } }, { level: null }] },
+              { paperType: "focused" },
             ],
           };
         } else {
-          // Non-admin parents see only admin's master papers matching their students' levels
+          // Non-admin parents see admin's master papers + own focused tests
           const adminUser = await prisma.user.findFirst({
             where: { name: { equals: "admin", mode: "insensitive" } },
             select: { id: true },
           });
           where = {
             sourceExamId: null,
-            paperType: null,
-            level: { in: levelStrings },
-            ...(adminUser ? { userId: adminUser.id } : {}),
+            OR: [
+              {
+                paperType: null,
+                level: { in: levelStrings },
+                ...(adminUser ? { userId: adminUser.id } : {}),
+              },
+              { paperType: "focused", userId },
+            ],
           };
         }
       } else {
