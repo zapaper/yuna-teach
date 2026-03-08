@@ -1,5 +1,6 @@
 import path from "path";
 import { promises as fs } from "fs";
+import sharp from "sharp";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
 
@@ -12,6 +13,35 @@ const GEMINI_TIMEOUT_MS = 180_000;
 
 function getAI() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+}
+
+/** Crop a page image to a vertical region defined by yStartPct/yEndPct */
+async function cropPageRegion(
+  pageBuffer: Buffer,
+  yStartPct: number,
+  yEndPct: number
+): Promise<Buffer> {
+  const metadata = await sharp(pageBuffer).metadata();
+  const height = metadata.height ?? 1;
+  const width = metadata.width ?? 1;
+  // Add small padding (2%) above and below to avoid cutting off handwriting
+  const pad = height * 0.02;
+  const top = Math.max(0, Math.round((yStartPct / 100) * height - pad));
+  const bottom = Math.min(height, Math.round((yEndPct / 100) * height + pad));
+  const cropHeight = Math.max(1, bottom - top);
+  return sharp(pageBuffer)
+    .extract({ left: 0, top, width, height: cropHeight })
+    .jpeg()
+    .toBuffer();
+}
+
+/** Check if a question is a "written" (non-MCQ) science question */
+function isScienceWrittenQuestion(subject: string | null, answer: string | null): boolean {
+  if (!subject || !subject.toLowerCase().includes("science")) return false;
+  if (!answer) return true; // no answer key = assume written
+  // MCQ answers are typically single digit/letter: "1","2","3","4","A","B","C","D"
+  const trimmed = answer.trim();
+  return !/^[1-4A-Da-d]$/.test(trimmed);
 }
 
 interface QuestionMarkResult {
@@ -222,10 +252,17 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
   const pageBuffer = await fs.readFile(pagePath);
-  const pageBase64 = pageBuffer.toString("base64");
 
-  const yStart = question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown";
-  const yEnd = question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "unknown";
+  // For science written questions with known boundaries, crop to answer region only
+  const useCrop = isScienceWrittenQuestion(paper.subject, question.answer)
+    && question.yStartPct != null && question.yEndPct != null;
+  const imageBuffer = useCrop
+    ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!)
+    : pageBuffer;
+  const pageBase64 = imageBuffer.toString("base64");
+
+  const yStart = useCrop ? "0%" : (question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown");
+  const yEnd = useCrop ? "100%" : (question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "unknown");
   const answerDesc = question.answerImageData
     ? `[diagram — see additional image]${question.answer ? `. Marking guidance: ${question.answer}` : ""}`
     : question.answer ? `"${question.answer}"` : "not provided";
@@ -233,7 +270,8 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const printWarning = question.answer
     ? ` ⚠️ WARNING: The text "${question.answer}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
     : "";
-  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}`;
+  const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
+  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}${cropNote}`;
 
   let answerImagesNote = "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -410,12 +448,83 @@ export async function markExamPaper(paperId: string): Promise<void> {
     // ── Mark all pages CONCURRENTLY ──────────────────────────────────────────
     const pageEntries = [...byPage.entries()];
 
+    /** Helper: build a Gemini call for a batch of questions sharing one image */
+    async function markBatch(
+      imageBase64: string,
+      questions: NonNullable<typeof paper>["questions"],
+      label: string,
+      isCropped: boolean
+    ): Promise<QuestionMarkResult[]> {
+      const questionLines = questions
+        .map((q) => {
+          const yStart = isCropped ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
+          const yEnd = isCropped ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
+          const answerDesc = q.answerImageData
+            ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
+            : q.answer ? `"${q.answer}"` : "not provided";
+          const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
+          const printWarning = q.answer
+            ? ` [PRINTED TEXT "${q.answer}" may appear on page — IGNORE unless handwritten in BLUE ink]`
+            : "";
+          const cropNote = isCropped ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
+          return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}${cropNote}`;
+        })
+        .join("\n");
+
+      const imageAnswerQuestions = questions.filter((q) => q.answerImageData);
+      let answerImagesNote = "";
+      if (imageAnswerQuestions.length > 0) {
+        answerImagesNote =
+          `Additional images (2 onwards) are expected answer diagrams:\n` +
+          imageAnswerQuestions
+            .map((q, i) => `- Image ${i + 2}: expected answer for Question ${q.questionNum}`)
+            .join("\n");
+      }
+
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const parts: any[] = [
+        { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+      ];
+      for (const q of imageAnswerQuestions) {
+        if (!q.answerImageData) continue;
+        const sepIdx = q.answerImageData.indexOf(";base64,");
+        if (sepIdx > 5) {
+          parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
+        }
+      }
+      parts.push({ text: prompt });
+
+      try {
+        const response = await withTimeout(
+          getAI().models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts }],
+            config: { responseMimeType: "application/json", temperature: 0.1 },
+          }),
+          GEMINI_TIMEOUT_MS,
+          label
+        );
+        const text = response.text;
+        if (!text) { console.warn(`[marking] Empty Gemini response for ${label}`); return []; }
+        const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
+        console.log(`[marking] ${label} done — ${parsed.questions.length} results`);
+        return parsed.questions;
+      } catch (err) {
+        console.warn(`[marking] Failed for ${label}:`, err);
+        return [];
+      }
+    }
+
+    const isScience = paper.subject?.toLowerCase().includes("science") ?? false;
+
     const pageResults = await Promise.all(
       pageEntries.map(async ([pageIndex, questions]) => {
         const submissionPage = submissionIndexMap.get(pageIndex);
         if (submissionPage === undefined) {
           console.log(`[marking] Page ${pageIndex} is an answer page — skipping`);
-          return []; // answer page — skip
+          return [];
         }
 
         const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
@@ -424,88 +533,46 @@ export async function markExamPaper(paperId: string): Promise<void> {
           pageBuffer = await fs.readFile(pagePath);
         } catch {
           console.warn(`[marking] Submission file not found for page ${pageIndex} (submission page ${submissionPage})`);
-          return []; // page not submitted
-        }
-        const pageBase64 = pageBuffer.toString("base64");
-        console.log(`[marking] Calling Gemini for pageIndex=${pageIndex} (${questions.length} questions, file size ${pageBuffer.length} bytes)`);
-
-        // Build question descriptions for prompt
-        const questionLines = questions
-          .map((q) => {
-            const yStart =
-              q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
-            const yEnd =
-              q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
-            const answerDesc = q.answerImageData
-              ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
-              : q.answer
-              ? `"${q.answer}"`
-              : "not provided";
-            const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
-            // Per-question warning: the expected answer may be printed on the page
-            const printWarning = q.answer
-              ? ` [PRINTED TEXT "${q.answer}" may appear on page — IGNORE unless handwritten in BLUE ink]`
-              : "";
-            return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}`;
-          })
-          .join("\n");
-
-        // Collect questions with image (diagram) answers
-        const imageAnswerQuestions = questions.filter((q) => q.answerImageData);
-        let answerImagesNote = "";
-        if (imageAnswerQuestions.length > 0) {
-          answerImagesNote =
-            `Additional images (2 onwards) are expected answer diagrams:\n` +
-            imageAnswerQuestions
-              .map(
-                (q, i) =>
-                  `- Image ${i + 2}: expected answer for Question ${q.questionNum}`
-              )
-              .join("\n");
-        }
-
-        const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace(
-          "{ANSWER_IMAGES_NOTE}",
-          answerImagesNote
-        );
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const parts: any[] = [
-          { inlineData: { mimeType: "image/jpeg" as const, data: pageBase64 } },
-        ];
-        for (const q of imageAnswerQuestions) {
-          if (!q.answerImageData) continue;
-          const sepIdx = q.answerImageData.indexOf(";base64,");
-          if (sepIdx > 5) {
-            const mimeType = q.answerImageData.slice(5, sepIdx);
-            const data = q.answerImageData.slice(sepIdx + 8);
-            parts.push({ inlineData: { mimeType, data } });
-          }
-        }
-        parts.push({ text: prompt });
-
-        try {
-          const response = await withTimeout(
-            getAI().models.generateContent({
-              model: "gemini-2.5-flash",
-              contents: [{ role: "user", parts }],
-              config: { responseMimeType: "application/json", temperature: 0.1 },
-            }),
-            GEMINI_TIMEOUT_MS,
-            `page ${pageIndex}`
-          );
-          const text = response.text;
-          if (!text) {
-            console.warn(`[marking] Empty Gemini response for page ${pageIndex}`);
-            return [];
-          }
-          const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
-          console.log(`[marking] Page ${pageIndex} done — ${parsed.questions.length} results`);
-          return parsed.questions;
-        } catch (err) {
-          console.warn(`[marking] Failed for page ${pageIndex}:`, err);
           return [];
         }
+
+        // Split questions: science written questions with boundaries get cropped images
+        const writtenQs = isScience
+          ? questions.filter((q) => isScienceWrittenQuestion(paper.subject, q.answer) && q.yStartPct != null && q.yEndPct != null)
+          : [];
+        const otherQs = isScience
+          ? questions.filter((q) => !writtenQs.includes(q))
+          : questions;
+
+        const results: QuestionMarkResult[] = [];
+
+        // Batch call for MCQ / non-science questions (full page)
+        if (otherQs.length > 0) {
+          const pageBase64 = pageBuffer.toString("base64");
+          console.log(`[marking] Calling Gemini for pageIndex=${pageIndex} (${otherQs.length} questions, full page)`);
+          const batch = await markBatch(pageBase64, otherQs, `page ${pageIndex}`, false);
+          results.push(...batch);
+        }
+
+        // Individual cropped calls for science written questions
+        if (writtenQs.length > 0) {
+          console.log(`[marking] Cropping ${writtenQs.length} science written questions on page ${pageIndex}`);
+          const croppedResults = await Promise.all(
+            writtenQs.map(async (q) => {
+              try {
+                const cropped = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!);
+                const croppedBase64 = cropped.toString("base64");
+                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true);
+              } catch (err) {
+                console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
+                return [];
+              }
+            })
+          );
+          for (const cr of croppedResults) results.push(...cr);
+        }
+
+        return results;
       })
     );
 
@@ -528,14 +595,23 @@ export async function markExamPaper(paperId: string): Promise<void> {
           } catch {
             return null;
           }
-          const pageBase64 = pageBuffer.toString("base64");
-          const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
-          const yEnd = q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
+
+          // Crop for science written questions
+          const useCrop = isScience && isScienceWrittenQuestion(paper.subject, q.answer)
+            && q.yStartPct != null && q.yEndPct != null;
+          const imageBuffer = useCrop
+            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!)
+            : pageBuffer;
+          const pageBase64 = imageBuffer.toString("base64");
+
+          const yStart = useCrop ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
+          const yEnd = useCrop ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
           const answerDesc = q.answerImageData
             ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
             : q.answer ? `"${q.answer}"` : "not provided";
           const retryMarksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
-          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}. Expected answer: ${answerDesc}`;
+          const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}. Expected answer: ${answerDesc}${cropNote}`;
 
           let answerImagesNote = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -553,7 +629,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
           parts.push({ text: prompt });
 
           try {
-            console.log(`[marking] Retry for Q${q.questionNum} (${q.id})`);
+            console.log(`[marking] Retry for Q${q.questionNum} (${q.id})${useCrop ? " [cropped]" : ""}`);
             const response = await withTimeout(
               getAI().models.generateContent({
                 model: "gemini-2.5-flash",
@@ -568,7 +644,6 @@ export async function markExamPaper(paperId: string): Promise<void> {
             const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
             const result = parsed.questions.find((r) => r.questionId === q.id) ?? parsed.questions[0];
             if (result) {
-              // Ensure the questionId is correct
               result.questionId = q.id;
               console.log(`[marking] Retry Q${q.questionNum} succeeded: ${result.marksAwarded}/${result.marksAvailable}`);
               return result;
@@ -618,9 +693,17 @@ export async function markExamPaper(paperId: string): Promise<void> {
           } catch {
             return null;
           }
-          const pageBase64 = pageBuffer.toString("base64");
-          const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
-          const yEnd = q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
+
+          // Crop for science written questions
+          const useCrop = isScience && isScienceWrittenQuestion(paper.subject, q.answer)
+            && q.yStartPct != null && q.yEndPct != null;
+          const imageBuffer = useCrop
+            ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!)
+            : pageBuffer;
+          const pageBase64 = imageBuffer.toString("base64");
+
+          const yStart = useCrop ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
+          const yEnd = useCrop ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
           const answerDesc = q.answerImageData
             ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
             : q.answer ? `"${q.answer}"` : "not provided";
@@ -628,7 +711,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
           const retryAnswerOneHint = q.answer?.trim() === "1"
             ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
             : "";
-          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${retryAnswerOneHint}`;
+          const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
+          const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${retryAnswerOneHint}${cropNote}`;
 
           let answerImagesNote = "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
