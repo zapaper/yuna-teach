@@ -83,7 +83,8 @@ Reply with ONLY one word: YES or NO.`;
 async function detectMcqAnswers(
   imageBase64: string,
   questions: Array<{ id: string; questionNum: string; yStartPct: number | null; yEndPct: number | null }>,
-  label: string
+  label: string,
+  temperature = 0.4
 ): Promise<Map<string, string | null>> {
   const qLines = questions.map((q) => {
     const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
@@ -141,7 +142,7 @@ Return ONLY valid JSON (no markdown fences):
           { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
           { text: prompt },
         ]}],
-        config: { responseMimeType: "application/json", temperature: 0 },
+        config: { responseMimeType: "application/json", temperature },
       }),
       GEMINI_TIMEOUT_MS,
       `MCQ detect ${label}`
@@ -842,7 +843,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
           if (isMcqAnswer(q.answer)) {
             const pageBase64 = pageBuffer.toString("base64");
             console.log(`[marking] Retry MCQ Q${q.questionNum}: blind detection`);
-            const detected = await detectMcqAnswers(pageBase64, [q], `retry Q${q.questionNum}`);
+            const detected = await detectMcqAnswers(pageBase64, [q], `retry Q${q.questionNum}`, 0);
             const studentAnswer = detected.get(q.id) ?? null;
             const expected = q.answer?.trim() ?? "";
             if (!studentAnswer) {
@@ -1086,7 +1087,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             ...q,
             yStartPct: 0,
             yEndPct: 100,
-          }], `mcqRetry Q${q.questionNum}`);
+          }], `mcqRetry Q${q.questionNum}`, 0);
 
           const studentAnswer = detected.get(q.id) ?? null;
           if (!studentAnswer) {
