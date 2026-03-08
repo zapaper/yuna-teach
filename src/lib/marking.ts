@@ -55,10 +55,14 @@ The image contains TWO types of content:
   ✅ BLUE = student's handwritten answer. This is the ONLY thing that counts.
 
 IF NO BLUE INK EXISTS in this question's region:
-  → studentAnswer = "No answer detected"
-  → marksAwarded = 0
-  → notes = "No blue ink answer found"
-  → SKIP all remaining steps. Move to the next question.
+  → For MCQ / short-answer questions (expected answer is a single digit, letter, or short word):
+    LOOK AGAIN. Children's handwriting can be very small, faint, or lightly written.
+    Check near answer boxes, brackets, parentheses, or underlines in the answer area.
+    A tiny blue mark that resembles a digit or letter IS the student's answer.
+    Only conclude "No answer detected" if you are CERTAIN there is no blue ink at all.
+  → For all questions, if truly no blue ink: studentAnswer = "No answer detected",
+    marksAwarded = 0, notes = "No blue ink answer found".
+    SKIP all remaining steps. Move to the next question.
 
 Do NOT confuse printed black text with the student's answer. If text in the answer area
 matches the expected answer but is BLACK (printed), that is the answer key — the student
