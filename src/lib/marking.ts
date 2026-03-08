@@ -185,9 +185,11 @@ STEP 6: Record what you detected.
     - For MCQ: the option they wrote (e.g. "1", "2", "A", "B").
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
 
-STEP 7: Notes — keep SHORT:
+STEP 7: Notes — concise but helpful:
   - Full marks → notes = "" (empty string)
-  - Partial or zero marks → 1 sentence max explaining what went wrong
+  - Partial marks → explain which parts were correct and which were wrong/missing (2-3 sentences max)
+  - Zero marks → explain why the student's answer is wrong compared to the expected answer (1-2 sentences)
+  - Include what the student wrote vs what was expected when relevant
 
 FINAL REMINDER — READ THIS BEFORE RESPONDING:
   1. For EVERY question, your FIRST action must be checking for blue ink within its yStart%–yEnd% region.
