@@ -476,38 +476,23 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     let studentAnswer: string | null = null;
 
     if (isAnswer1) {
-      // Majority voting for answer "1" — run 3 detections + 1 OpenCV-enhanced
-      console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: answer=1, majority voting (3 + 1 opencv)`);
-      // Prepare OpenCV-enhanced image (blue ink isolated + thickened)
+      // 1 normal + 1 OpenCV-enhanced — if either detects "1", accept it
+      console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: answer=1, normal + opencv`);
       const enhancedBuffer = await isolateAndThickenBlueInk(pageBuffer, `remarkSingle Q${question.questionNum}`);
       const enhancedBase64 = enhancedBuffer.toString("base64");
 
-      const temps = [0.3, 0.5, 0.7];
-      const votes: (string | null)[] = [];
-      await Promise.all([
-        // 3 normal detections at varied temperatures
-        ...temps.map(async (t, i) => {
-          const det = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} vote${i + 1}`, t);
-          votes[i] = det.get(question.id) ?? null;
-        }),
-        // 1 OpenCV-enhanced detection
-        (async () => {
-          const det = await detectMcqAnswers(enhancedBase64, [question], `remarkSingle Q${question.questionNum} opencv`, 0.3);
-          votes[3] = det.get(question.id) ?? null;
-        })(),
+      const [normalDet, opencvDet] = await Promise.all([
+        detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} normal`, 0.4),
+        detectMcqAnswers(enhancedBase64, [question], `remarkSingle Q${question.questionNum} opencv`, 0.3),
       ]);
-      console.log(`[marking] remarkSingle Q${question.questionNum} majority vote: [${votes.map(v => v ?? "null").join(", ")}]`);
-      const counts = new Map<string, number>();
-      for (const v of votes) {
-        if (v) {
-          const norm = normalizeMcq(v);
-          counts.set(norm, (counts.get(norm) ?? 0) + 1);
-        }
-      }
-      // Need at least 2 of 4 agreeing
-      for (const [val, count] of counts) {
-        if (count >= 2) { studentAnswer = val; break; }
-      }
+      const normalAns = normalDet.get(question.id) ?? null;
+      const opencvAns = opencvDet.get(question.id) ?? null;
+      console.log(`[marking] remarkSingle Q${question.questionNum}: normal="${normalAns}", opencv="${opencvAns}"`);
+
+      // If either detects "1", use "1"; otherwise use whichever detected something
+      if (normalAns && normalizeMcq(normalAns) === "1") studentAnswer = "1";
+      else if (opencvAns && normalizeMcq(opencvAns) === "1") studentAnswer = "1";
+      else studentAnswer = normalAns ?? opencvAns;
     } else {
       console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: blind detection`);
       const detected = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum}`);
@@ -1208,51 +1193,33 @@ export async function markExamPaper(paperId: string): Promise<void> {
 
           const isAnswer1 = normalizeMcq(q.answer ?? "") === "1";
 
-          // For answer "1": majority voting — 3 normal + 1 OpenCV-enhanced
+          // For answer "1": 1 normal + 1 OpenCV-enhanced — if either detects "1", accept it
           if (isAnswer1) {
             const enhancedBuffer = await isolateAndThickenBlueInk(imageBuffer, `mcqRetry Q${q.questionNum}`);
             const enhancedBase64 = enhancedBuffer.toString("base64");
 
-            const temps = [0.3, 0.5, 0.7];
-            const votes: (string | null)[] = [];
-            await Promise.all([
-              ...temps.map(async (t, i) => {
-                const det = await detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum} vote${i + 1}`, t);
-                votes[i] = det.get(q.id) ?? null;
-              }),
-              (async () => {
-                const det = await detectMcqAnswers(enhancedBase64, [croppedQ], `mcqRetry Q${q.questionNum} opencv`, 0.3);
-                votes[3] = det.get(q.id) ?? null;
-              })(),
+            const [normalDet, opencvDet] = await Promise.all([
+              detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum} normal`, 0.4),
+              detectMcqAnswers(enhancedBase64, [croppedQ], `mcqRetry Q${q.questionNum} opencv`, 0.3),
             ]);
-            console.log(`[marking] MCQ retry Q${q.questionNum} (answer=1) majority vote: [${votes.map(v => v ?? "null").join(", ")}]`);
+            const normalAns = normalDet.get(q.id) ?? null;
+            const opencvAns = opencvDet.get(q.id) ?? null;
+            console.log(`[marking] MCQ retry Q${q.questionNum} (answer=1): normal="${normalAns}", opencv="${opencvAns}"`);
 
-            // Count non-null votes
-            const counts = new Map<string, number>();
-            for (const v of votes) {
-              if (v) {
-                const norm = normalizeMcq(v);
-                counts.set(norm, (counts.get(norm) ?? 0) + 1);
-              }
-            }
-
-            // Pick the answer with most votes (need at least 2 of 4)
+            // If either detects "1", use "1"; otherwise use whichever detected something
             let studentAnswer: string | null = null;
-            for (const [val, count] of counts) {
-              if (count >= 2) {
-                studentAnswer = val;
-                break;
-              }
-            }
+            if (normalAns && normalizeMcq(normalAns) === "1") studentAnswer = "1";
+            else if (opencvAns && normalizeMcq(opencvAns) === "1") studentAnswer = "1";
+            else studentAnswer = normalAns ?? opencvAns;
 
             if (!studentAnswer) {
-              console.log(`[marking] MCQ retry Q${q.questionNum}: no majority — confirmed blank`);
+              console.log(`[marking] MCQ retry Q${q.questionNum}: no detection — confirmed blank`);
               return null;
             }
 
             const expected = q.answer?.trim() ?? "";
             const match = normalizeMcq(studentAnswer) === normalizeMcq(expected);
-            console.log(`[marking] MCQ retry Q${q.questionNum}: majority="${studentAnswer}", expected="${expected}", match=${match}`);
+            console.log(`[marking] MCQ retry Q${q.questionNum}: result="${studentAnswer}", expected="${expected}", match=${match}`);
             return {
               questionId: q.id,
               marksAvailable: q.marksAvailable ?? 1,
