@@ -1157,7 +1157,7 @@ function ExamOverviewContent({ id }: { id: string }) {
                                 <p className="text-xs font-semibold text-teal-500 uppercase tracking-wide mb-1">
                                   AI Elaboration
                                 </p>
-                                <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3">
+                                <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3 max-h-40 overflow-y-auto">
                                   {elaborations[currentQ.id]}
                                 </div>
                               </div>
