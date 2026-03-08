@@ -96,9 +96,8 @@ async function cropPageRegion(
   return cropped;
 }
 
-/** Check if a question is a "written" (non-MCQ) science question */
-function isScienceWrittenQuestion(subject: string | null, answer: string | null): boolean {
-  if (!subject || !subject.toLowerCase().includes("science")) return false;
+/** Check if a question is a "written" (non-MCQ) question — applies to science and math */
+function isWrittenQuestion(answer: string | null): boolean {
   if (!answer) return true; // no answer key = assume written
   // MCQ answers: "1","2","3","4","A","B","C","D","(1)","(2)","(3)","(4)","(A)","(B)","(C)","(D)"
   const trimmed = answer.trim();
@@ -496,10 +495,10 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     return;
   }
 
-  // For science written questions with known boundaries, crop to answer region only
-  const useCrop = isScienceWrittenQuestion(paper.subject, question.answer)
+  // For written (non-MCQ) questions with known boundaries, crop to answer region only
+  const useCrop = isWrittenQuestion(question.answer)
     && question.yStartPct != null && question.yEndPct != null;
-  console.log(`[marking] remarkSingle Q${question.questionNum}: subject="${paper.subject}", answer="${question.answer}", isSciWritten=${isScienceWrittenQuestion(paper.subject, question.answer)}, hasBounds=${question.yStartPct != null && question.yEndPct != null}, useCrop=${useCrop}`);
+  console.log(`[marking] remarkSingle Q${question.questionNum}: subject="${paper.subject}", answer="${question.answer}", isWritten=${isWrittenQuestion(question.answer)}, hasBounds=${question.yStartPct != null && question.yEndPct != null}, useCrop=${useCrop}`);
   const imageBuffer = useCrop
     ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle Q${question.questionNum}`)
     : pageBuffer;
@@ -782,7 +781,6 @@ export async function markExamPaper(paperId: string): Promise<void> {
       }
     }
 
-    const isScience = paper.subject?.toLowerCase().includes("science") ?? false;
 
     const pageResults = await Promise.all(
       pageEntries.map(async ([pageIndex, questions]) => {
@@ -801,19 +799,15 @@ export async function markExamPaper(paperId: string): Promise<void> {
           return [];
         }
 
-        // Split questions: science written questions with boundaries get cropped images
-        const writtenQs = isScience
-          ? questions.filter((q) => isScienceWrittenQuestion(paper.subject, q.answer) && q.yStartPct != null && q.yEndPct != null)
-          : [];
-        const otherQs = isScience
-          ? questions.filter((q) => !writtenQs.includes(q))
-          : questions;
+        // Split questions: written (non-MCQ) questions with boundaries get cropped + blue ink check
+        const writtenQs = questions.filter((q) => isWrittenQuestion(q.answer) && q.yStartPct != null && q.yEndPct != null);
+        const otherQs = questions.filter((q) => !writtenQs.includes(q));
 
         // Further split otherQs into MCQ (blind detection) and non-MCQ (normal marking)
         const mcqQs = otherQs.filter((q) => isMcqAnswer(q.answer));
         const nonMcqOther = otherQs.filter((q) => !isMcqAnswer(q.answer));
 
-        console.log(`[marking] Page ${pageIndex}: isScience=${isScience}, total=${questions.length}, writtenCrop=${writtenQs.length}, mcq=${mcqQs.length}, nonMcq=${nonMcqOther.length}`);
+        console.log(`[marking] Page ${pageIndex}: total=${questions.length}, writtenCrop=${writtenQs.length}, mcq=${mcqQs.length}, nonMcq=${nonMcqOther.length}`);
         for (const q of writtenQs) {
           console.log(`[marking]   CROP Q${q.questionNum}: answer="${q.answer}", yStart=${q.yStartPct}, yEnd=${q.yEndPct}`);
         }
@@ -939,9 +933,9 @@ export async function markExamPaper(paperId: string): Promise<void> {
           }
 
           // Crop for science written questions
-          const useCrop = isScience && isScienceWrittenQuestion(paper.subject, q.answer)
+          const useCrop = isWrittenQuestion(q.answer)
             && q.yStartPct != null && q.yEndPct != null;
-          console.log(`[marking] Retry Q${q.questionNum}: useCrop=${useCrop}, subject="${paper.subject}", answer="${q.answer}"`);
+          console.log(`[marking] Retry Q${q.questionNum}: useCrop=${useCrop}, answer="${q.answer}"`);
           const imageBuffer = useCrop
             ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `retry Q${q.questionNum}`)
             : pageBuffer;
@@ -1056,9 +1050,9 @@ export async function markExamPaper(paperId: string): Promise<void> {
           }
 
           // Crop for science written questions
-          const useCrop = isScience && isScienceWrittenQuestion(paper.subject, q.answer)
+          const useCrop = isWrittenQuestion(q.answer)
             && q.yStartPct != null && q.yEndPct != null;
-          console.log(`[marking] Verify Q${q.questionNum}: useCrop=${useCrop}, subject="${paper.subject}", answer="${q.answer}"`);
+          console.log(`[marking] Verify Q${q.questionNum}: useCrop=${useCrop}, answer="${q.answer}"`);
           const imageBuffer = useCrop
             ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `verify Q${q.questionNum}`)
             : pageBuffer;
