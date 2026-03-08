@@ -391,9 +391,35 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   // MCQ: use blind detection (no expected answer shown to AI)
   if (isMcqAnswer(question.answer)) {
     const pageBase64 = pageBuffer.toString("base64");
-    console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: blind detection`);
-    const detected = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum}`);
-    const studentAnswer = detected.get(question.id) ?? null;
+    const isAnswer1 = normalizeMcq(question.answer ?? "") === "1";
+    let studentAnswer: string | null = null;
+
+    if (isAnswer1) {
+      // Majority voting for answer "1" — run 3 detections
+      console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: answer=1, majority voting (3 attempts)`);
+      const temps = [0.3, 0.5, 0.7];
+      const votes: (string | null)[] = [];
+      await Promise.all(temps.map(async (t, i) => {
+        const det = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} vote${i + 1}`, t);
+        votes[i] = det.get(question.id) ?? null;
+      }));
+      console.log(`[marking] remarkSingle Q${question.questionNum} majority vote: [${votes.map(v => v ?? "null").join(", ")}]`);
+      const counts = new Map<string, number>();
+      for (const v of votes) {
+        if (v) {
+          const norm = normalizeMcq(v);
+          counts.set(norm, (counts.get(norm) ?? 0) + 1);
+        }
+      }
+      for (const [val, count] of counts) {
+        if (count >= 2) { studentAnswer = val; break; }
+      }
+    } else {
+      console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: blind detection`);
+      const detected = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum}`);
+      studentAnswer = detected.get(question.id) ?? null;
+    }
+
     const expected = question.answer?.trim() ?? "";
     const match = studentAnswer ? normalizeMcq(studentAnswer) === normalizeMcq(expected) : false;
     const awarded = match ? (question.marksAvailable ?? 1) : 0;
@@ -1081,17 +1107,57 @@ export async function markExamPaper(paperId: string): Promise<void> {
           // Crop to the question's region for a closer look
           const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct, q.yEndPct, `mcqRetry Q${q.questionNum}`);
           const pageBase64 = imageBuffer.toString("base64");
+          const croppedQ = { ...q, yStartPct: 0, yEndPct: 100 };
 
-          // Re-detect with cropped image (full region = 0–100%)
-          // Higher temperature for answer "1" — AI struggles with single vertical stroke
-          const r = resultMap.get(q.id);
-          const isAnswer1NoDetect = normalizeMcq(q.answer ?? "") === "1" && (!r || r.studentAnswer === "No answer detected");
-          const retryTemp = isAnswer1NoDetect ? 0.6 : 0;
-          const detected = await detectMcqAnswers(pageBase64, [{
-            ...q,
-            yStartPct: 0,
-            yEndPct: 100,
-          }], `mcqRetry Q${q.questionNum}`, retryTemp);
+          const isAnswer1 = normalizeMcq(q.answer ?? "") === "1";
+
+          // For answer "1": majority voting — run 3 detections with varied temperatures
+          if (isAnswer1) {
+            const temps = [0.3, 0.5, 0.7];
+            const votes: (string | null)[] = [];
+            await Promise.all(temps.map(async (t, i) => {
+              const det = await detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum} vote${i + 1}`, t);
+              votes[i] = det.get(q.id) ?? null;
+            }));
+            console.log(`[marking] MCQ retry Q${q.questionNum} (answer=1) majority vote: [${votes.map(v => v ?? "null").join(", ")}]`);
+
+            // Count non-null votes
+            const counts = new Map<string, number>();
+            for (const v of votes) {
+              if (v) {
+                const norm = normalizeMcq(v);
+                counts.set(norm, (counts.get(norm) ?? 0) + 1);
+              }
+            }
+
+            // Pick the answer with most votes (need at least 2 of 3)
+            let studentAnswer: string | null = null;
+            for (const [val, count] of counts) {
+              if (count >= 2) {
+                studentAnswer = val;
+                break;
+              }
+            }
+
+            if (!studentAnswer) {
+              console.log(`[marking] MCQ retry Q${q.questionNum}: no majority — confirmed blank`);
+              return null;
+            }
+
+            const expected = q.answer?.trim() ?? "";
+            const match = normalizeMcq(studentAnswer) === normalizeMcq(expected);
+            console.log(`[marking] MCQ retry Q${q.questionNum}: majority="${studentAnswer}", expected="${expected}", match=${match}`);
+            return {
+              questionId: q.id,
+              marksAvailable: q.marksAvailable ?? 1,
+              marksAwarded: match ? (q.marksAvailable ?? 1) : 0,
+              studentAnswer,
+              notes: match ? "" : `Student wrote "${studentAnswer}", expected "${expected}"`,
+            } as QuestionMarkResult;
+          }
+
+          // Non-"1" MCQ: single retry with temperature 0
+          const detected = await detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum}`, 0);
 
           const studentAnswer = detected.get(q.id) ?? null;
           if (!studentAnswer) {
