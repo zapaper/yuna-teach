@@ -153,8 +153,9 @@ export async function POST(
 
   if (questionId) {
     // Re-mark single question — fire and forget
+    console.log(`[mark API] Re-mark triggered for paper=${id}, questionId=${questionId}`);
     remarkSingleQuestion(questionId).catch((err) =>
-      console.error(`Re-mark question ${questionId} failed:`, err)
+      console.error(`[mark API] Re-mark question ${questionId} failed:`, err)
     );
     return NextResponse.json({ status: "remarking" });
   }
