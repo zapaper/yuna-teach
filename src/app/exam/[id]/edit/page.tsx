@@ -737,6 +737,9 @@ function QuestionEditCard({
           className="w-full h-auto object-contain"
           unoptimized
         />
+        <p className="px-3 py-0.5 text-[10px] text-blue-500 font-mono">
+          page {question.pageIndex ?? "—"} · yStart {question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "—"} · yEnd {question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "—"}
+        </p>
       </div>
 
       {/* ── Action bar ── */}
