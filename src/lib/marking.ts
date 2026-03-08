@@ -1083,11 +1083,15 @@ export async function markExamPaper(paperId: string): Promise<void> {
           const pageBase64 = imageBuffer.toString("base64");
 
           // Re-detect with cropped image (full region = 0–100%)
+          // Higher temperature for answer "1" — AI struggles with single vertical stroke
+          const r = resultMap.get(q.id);
+          const isAnswer1NoDetect = normalizeMcq(q.answer ?? "") === "1" && (!r || r.studentAnswer === "No answer detected");
+          const retryTemp = isAnswer1NoDetect ? 0.6 : 0;
           const detected = await detectMcqAnswers(pageBase64, [{
             ...q,
             yStartPct: 0,
             yEndPct: 100,
-          }], `mcqRetry Q${q.questionNum}`, 0);
+          }], `mcqRetry Q${q.questionNum}`, retryTemp);
 
           const studentAnswer = detected.get(q.id) ?? null;
           if (!studentAnswer) {
