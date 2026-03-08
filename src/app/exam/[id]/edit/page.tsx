@@ -707,13 +707,26 @@ function QuestionEditCard({
     !question.answer ||
     question.answer.trim() === "" ||
     question.answer === "?";
+  const isMissingPage = question.pageIndex == null;
 
   return (
     <div
       className={`rounded-2xl border-2 bg-white shadow-sm overflow-hidden ${
-        isMissingAnswer ? "border-red-200" : "border-slate-100"
+        isMissingPage ? "border-amber-300" : isMissingAnswer ? "border-red-200" : "border-slate-100"
       }`}
     >
+      {/* No pageIndex warning */}
+      {isMissingPage && (
+        <div className="px-3 py-1.5 bg-amber-50 border-b border-amber-200 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            className="text-amber-500 shrink-0">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <span className="text-[11px] text-amber-700 font-medium">No page index — use Redo extract or Select area</span>
+        </div>
+      )}
       {/* ── Question image ── */}
       <div className="bg-slate-50">
         <Image
