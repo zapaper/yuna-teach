@@ -450,8 +450,24 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const pageBase64 = imageBuffer.toString("base64");
   console.log(`[marking] remarkSingle Q${question.questionNum}: sending image ${imageBuffer.length} bytes (original ${pageBuffer.length} bytes, cropped=${useCrop})`);
 
-  // Skip blue ink pre-check for remark — user deliberately triggered re-mark,
-  // so always send to Gemini for full evaluation
+  // Step 1: Pre-check for blue ink (science written only)
+  if (useCrop) {
+    const inkFound = await hasBlueInk(pageBase64, `remarkSingle Q${question.questionNum}`);
+    if (!inkFound) {
+      console.log(`[marking] remarkSingle Q${question.questionNum}: no blue ink detected — awarding 0`);
+      await prisma.examQuestion.update({
+        where: { id: questionId },
+        data: { marksAwarded: 0, markingNotes: "Detected: No answer detected | No blue ink found (pre-check)" },
+      });
+      const allMarks = paper.questions.map((q) =>
+        q === question ? 0 : (q.marksAwarded ?? 0)
+      );
+      const total = allMarks.reduce((a, b) => a + b, 0);
+      await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
+      console.log(`[marking] remarkSingleQuestion done (blank), new total=${total}`);
+      return;
+    }
+  }
 
   // Step 2: Mark normally
   const yStart = useCrop ? "0%" : (question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown");
