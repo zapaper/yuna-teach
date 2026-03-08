@@ -535,7 +535,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         </div>
 
         {/* Drawing toolbar */}
-        {hasPdf && view === "paper" && submitStatus !== "submitted" && (
+        {hasPdf && view === "paper" && (
           <div className="bg-white border-b border-slate-200 px-4 py-1.5 flex items-center gap-2"
             style={{ userSelect: "none", WebkitUserSelect: "none" }}>
             <ToolButton active={tool === "scroll"} onClick={() => setTool("scroll")} title="Scroll">
@@ -584,7 +584,7 @@ function ExamPracticeContent({ id }: { id: string }) {
         )}
       </div>
       {/* Spacer to push content below the fixed header */}
-      <div style={{ height: hasPdf && view === "paper" && submitStatus !== "submitted" ? 88 : 52 }} />
+      <div style={{ height: hasPdf && view === "paper" ? 88 : 52 }} />
 
       {/* ── PDF loading ── */}
       {loadingPdf ? (
