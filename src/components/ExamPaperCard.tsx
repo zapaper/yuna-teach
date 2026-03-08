@@ -63,8 +63,10 @@ export default function ExamPaperCard({
     ? "#"
     : userRole === "PARENT"
     ? `/exam/${paper.id}/overview?userId=${userId}`
-    : paper.completedAt
+    : paper.markingStatus === "released"
     ? `/exam/${paper.id}/review?userId=${userId}`
+    : paper.completedAt
+    ? "#" // Submitted but not yet released — no link
     : isFocused
     ? `/exam/${paper.id}/focused?userId=${userId}`
     : `/exam/${paper.id}?userId=${userId}`;
@@ -235,17 +237,23 @@ export default function ExamPaperCard({
                   {paper.flaggedCount} flagged
                 </span>
               ) : null}
-              {userRole !== "PARENT" ? (
+              {userRole === "PARENT" ? (
+                paper.pendingReviewCount > 0 ? (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
+                    Pending review ({paper.pendingReviewCount})
+                  </span>
+                ) : null
+              ) : (
                 paper.markingStatus === "released" ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                     Marked{paper.score != null ? ` ${paper.score}${paper.totalMarks ? `/${paper.totalMarks}` : ""}` : ""}
                   </span>
                 ) : paper.completedAt ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                    Completed
+                    Submitted
                   </span>
                 ) : null
-              ) : null}
+              )}
             </div>
             {paper.school ? (
               <p className="text-xs text-slate-400 mt-1 truncate">

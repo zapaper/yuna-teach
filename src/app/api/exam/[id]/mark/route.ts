@@ -2,6 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { markExamPaper, remarkSingleQuestion, markFocusedTest } from "@/lib/marking";
 
+// Compute per-booklet/paper scores from metadata.papers + questions
+function computeBookletScores(
+  metadata: unknown,
+  questions: Array<{ questionNum: string; marksAwarded: number | null; marksAvailable: number | null }>
+): Array<{ label: string; awarded: number; available: number }> | null {
+  const metaPapers = (metadata as { papers?: Array<{ label: string; questionPrefix: string }> })?.papers ?? [];
+  if (metaPapers.length <= 1) return null;
+
+  const scores: Array<{ label: string; awarded: number; available: number }> = [];
+  for (const mp of metaPapers) {
+    let awarded = 0;
+    let available = 0;
+    for (const q of questions) {
+      const matchesPrefix = mp.questionPrefix === ""
+        ? !metaPapers.some(other => other.questionPrefix !== "" && q.questionNum.startsWith(other.questionPrefix))
+        : q.questionNum.startsWith(mp.questionPrefix);
+      if (matchesPrefix) {
+        awarded += q.marksAwarded ?? 0;
+        available += q.marksAvailable ?? 0;
+      }
+    }
+    scores.push({ label: mp.label, awarded, available });
+  }
+  return scores;
+}
+
 // GET /api/exam/[id]/mark
 // Returns marking status + per-question results (with imageData for thumbnails)
 export async function GET(
@@ -17,6 +43,7 @@ export async function GET(
       markingStatus: true,
       score: true,
       feedbackSummary: true,
+      metadata: true,
       questions: {
         orderBy: { orderIndex: "asc" },
         select: {
@@ -49,6 +76,7 @@ export async function GET(
     const master = await prisma.examPaper.findUnique({
       where: { id: paper.sourceExamId },
       select: {
+        metadata: true,
         questions: {
           orderBy: { orderIndex: "asc" as const },
           select: {
@@ -85,14 +113,16 @@ export async function GET(
           flagged: cq?.flagged ?? false,
         };
       });
-      const { sourceExamId: _, questions: __, ...rest } = paper;
-      return NextResponse.json({ ...rest, questions: merged });
+      const { sourceExamId: _, questions: __, metadata: _meta, ...rest } = paper;
+      const bookletScores = computeBookletScores(master.metadata, merged);
+      return NextResponse.json({ ...rest, questions: merged, ...(bookletScores ? { bookletScores } : {}) });
     }
   }
 
-  // Strip sourceExamId from response
-  const { sourceExamId: _, ...response } = paper;
-  return NextResponse.json(response);
+  // Strip sourceExamId and metadata from response
+  const { sourceExamId: _, metadata: _meta, ...response } = paper;
+  const bookletScores = computeBookletScores(paper.metadata, paper.questions);
+  return NextResponse.json({ ...response, ...(bookletScores ? { bookletScores } : {}) });
 }
 
 // POST /api/exam/[id]/mark

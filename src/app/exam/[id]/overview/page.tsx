@@ -36,11 +36,18 @@ interface MarkingQuestion {
   imageData?: string;
 }
 
+interface BookletScore {
+  label: string;
+  awarded: number;
+  available: number;
+}
+
 interface MarkingDetail {
   markingStatus: string | null;
   score: number | null;
   feedbackSummary: string | null;
   questions: MarkingQuestion[];
+  bookletScores?: BookletScore[];
 }
 
 // ─── Main content ─────────────────────────────────────────────────────────────
@@ -916,6 +923,18 @@ function ExamOverviewContent({ id }: { id: string }) {
           </p>
         </div>
       </div>
+
+      {/* Per-booklet/paper scores */}
+      {markingDetail.bookletScores && markingDetail.bookletScores.length > 0 && (
+        <div className="px-4 py-2 bg-slate-50 border-b border-slate-100 flex flex-wrap gap-3">
+          {markingDetail.bookletScores.map((b) => (
+            <div key={b.label} className="flex items-center gap-1.5 text-xs">
+              <span className="text-slate-500">{b.label}:</span>
+              <span className="font-semibold text-slate-700">{b.awarded}/{b.available}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Unmarked warning banner */}
       {(() => {

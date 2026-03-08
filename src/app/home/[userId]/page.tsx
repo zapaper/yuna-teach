@@ -510,12 +510,12 @@ export default function HomePage({
 
           // Split into assigned/pending and regular/completed papers
           const assignedPapers = isParent
-            ? filtered.filter((p) => p.unreleasedAssignmentCount > 0)
+            ? filtered.filter((p) => p.pendingReviewCount > 0)
             : !isAdmin
             ? filtered.filter((p) => !p.completedAt)
             : [];
           const regularPapers = isParent
-            ? filtered.filter((p) => p.unreleasedAssignmentCount === 0)
+            ? filtered.filter((p) => p.pendingReviewCount === 0)
             : !isAdmin
             ? filtered.filter((p) => p.completedAt)
             : filtered;
@@ -540,7 +540,7 @@ export default function HomePage({
               {assignedPapers.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-3">
-                    {isParent ? "Assigned Papers" : "To Do"}
+                    {isParent ? "Pending Review" : "To Do"}
                   </h3>
                   <div className="space-y-3">
                     {assignedPapers.map((paper) => (

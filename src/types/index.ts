@@ -70,6 +70,7 @@ export interface ExamPaperSummary {
   syllabusTagged: boolean;
   flaggedCount: number;
   unreleasedAssignmentCount: number;
+  pendingReviewCount: number;
 }
 
 export interface ExamCloneSummary {

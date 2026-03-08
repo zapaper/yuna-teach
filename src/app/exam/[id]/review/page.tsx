@@ -17,11 +17,18 @@ interface ReviewQuestion {
   imageData?: string;
 }
 
+interface BookletScore {
+  label: string;
+  awarded: number;
+  available: number;
+}
+
 interface ReviewData {
   markingStatus: string | null;
   score: number | null;
   feedbackSummary: string | null;
   questions: ReviewQuestion[];
+  bookletScores?: BookletScore[];
 }
 
 export default function ExamReviewPage({
@@ -294,6 +301,15 @@ function ExamReviewContent({ id }: { id: string }) {
             {totalMarks ? <span className="text-2xl font-normal text-slate-400"> / {totalMarks}</span> : null}
           </p>
           <p className="text-sm text-slate-400 mt-1">Total Score</p>
+          {data.bookletScores && data.bookletScores.length > 0 && (
+            <div className="flex justify-center flex-wrap gap-3 mt-2">
+              {data.bookletScores.map((b) => (
+                <span key={b.label} className="text-xs text-slate-500">
+                  {b.label}: <span className="font-semibold text-slate-700">{b.awarded}/{b.available}</span>
+                </span>
+              ))}
+            </div>
+          )}
           <button
             onClick={downloadPdf}
             disabled={downloading}

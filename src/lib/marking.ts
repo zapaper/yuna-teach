@@ -78,6 +78,92 @@ Reply with ONLY one word: YES or NO.`;
   }
 }
 
+/** Detect MCQ answer(s) from a page image WITHOUT revealing expected answers (avoids confirmation bias).
+ *  Returns map of questionId → detected digit/letter or null. */
+async function detectMcqAnswers(
+  imageBase64: string,
+  questions: Array<{ id: string; questionNum: string; yStartPct: number | null; yEndPct: number | null }>,
+  label: string
+): Promise<Map<string, string | null>> {
+  const qLines = questions.map((q) => {
+    const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
+    const yEnd = q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
+    return `- Question ${q.questionNum} (ID: ${q.id}): answer region ${yStart}–${yEnd} from top of image`;
+  }).join("\n");
+
+  const prompt = `You are reading a student's handwritten MCQ answers from an exam paper.
+
+HOW TO READ THIS IMAGE:
+- Printed question text = BLACK INK (ignore this).
+- Student's handwritten answers = BLUE INK (this is what you must read).
+- ONLY blue ink marks count as the student's answer.
+
+For each question below, look ONLY within its vertical region (yStart% to yEnd% from top of image).
+Find the BLUE INK digit or letter the student wrote as their MCQ answer.
+
+Children's handwriting guide:
+- "1" = a short vertical stroke (|), may have no serif or base
+- "2" = a curvy shape, may look like a Z or S
+- "3" = two bumps or curves
+- "4" = an angular shape with a horizontal bar
+- Letters A/B/C/D may also be used
+
+IMPORTANT:
+- Read ONLY what is actually written in blue ink. Do NOT guess or assume.
+- If you see no blue ink in a question's region, report null.
+- Do NOT let nearby printed text influence your reading.
+- Each question's region is independent — do NOT mix up answers between questions.
+
+Questions:
+${qLines}
+
+Return ONLY valid JSON (no markdown fences):
+{
+  "answers": [
+    {"questionId": "ID", "detected": "1"},
+    {"questionId": "ID", "detected": null}
+  ]
+}`;
+
+  try {
+    const response = await withTimeout(
+      getAI().models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: prompt },
+        ]}],
+        config: { responseMimeType: "application/json", temperature: 0 },
+      }),
+      GEMINI_TIMEOUT_MS,
+      `MCQ detect ${label}`
+    );
+    const text = response.text;
+    if (!text) return new Map();
+    const parsed = extractJson(text) as { answers: Array<{ questionId: string; detected: string | null }> };
+    const result = new Map<string, string | null>();
+    for (const a of parsed.answers) {
+      result.set(a.questionId, a.detected);
+    }
+    console.log(`[marking] MCQ DETECT ${label}: ${[...result.entries()].map(([id, d]) => `${id}=${d}`).join(", ")}`);
+    return result;
+  } catch (err) {
+    console.warn(`[marking] MCQ detect failed for ${label}:`, err);
+    return new Map();
+  }
+}
+
+/** Check if a question is MCQ based on its expected answer */
+function isMcqAnswer(answer: string | null): boolean {
+  if (!answer) return false;
+  return /^\(?[1-4A-Da-d]\)?$/.test(answer.trim());
+}
+
+/** Normalize MCQ answer for comparison: strip parens, uppercase */
+function normalizeMcq(val: string): string {
+  return val.trim().replace(/[()]/g, "").toUpperCase();
+}
+
 interface QuestionMarkResult {
   questionId: string;
   marksAvailable: number;
@@ -290,6 +376,32 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
   const pageBuffer = await fs.readFile(pagePath);
+
+  // MCQ: use blind detection (no expected answer shown to AI)
+  if (isMcqAnswer(question.answer)) {
+    const pageBase64 = pageBuffer.toString("base64");
+    console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: blind detection`);
+    const detected = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum}`);
+    const studentAnswer = detected.get(question.id) ?? null;
+    const expected = question.answer?.trim() ?? "";
+    const match = studentAnswer ? normalizeMcq(studentAnswer) === normalizeMcq(expected) : false;
+    const awarded = match ? (question.marksAvailable ?? 1) : 0;
+    const notes = !studentAnswer ? "No blue ink answer found"
+      : match ? ""
+      : `Student wrote "${studentAnswer}", expected "${expected}"`;
+
+    await prisma.examQuestion.update({
+      where: { id: questionId },
+      data: { marksAwarded: awarded, markingNotes: `Detected: ${studentAnswer ?? "No answer detected"}${notes ? ` | ${notes}` : ""}` },
+    });
+    const allMarks = paper.questions.map((q) =>
+      q === question ? awarded : (q.marksAwarded ?? 0)
+    );
+    const total = allMarks.reduce((a, b) => a + b, 0);
+    await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
+    console.log(`[marking] remarkSingleQuestion MCQ done: detected="${studentAnswer}", expected="${expected}", awarded=${awarded}, total=${total}`);
+    return;
+  }
 
   // For science written questions with known boundaries, crop to answer region only
   const useCrop = isScienceWrittenQuestion(paper.subject, question.answer)
@@ -604,21 +716,57 @@ export async function markExamPaper(paperId: string): Promise<void> {
           ? questions.filter((q) => !writtenQs.includes(q))
           : questions;
 
-        console.log(`[marking] Page ${pageIndex}: isScience=${isScience}, total=${questions.length}, writtenCrop=${writtenQs.length}, fullPage=${otherQs.length}`);
+        // Further split otherQs into MCQ (blind detection) and non-MCQ (normal marking)
+        const mcqQs = otherQs.filter((q) => isMcqAnswer(q.answer));
+        const nonMcqOther = otherQs.filter((q) => !isMcqAnswer(q.answer));
+
+        console.log(`[marking] Page ${pageIndex}: isScience=${isScience}, total=${questions.length}, writtenCrop=${writtenQs.length}, mcq=${mcqQs.length}, nonMcq=${nonMcqOther.length}`);
         for (const q of writtenQs) {
           console.log(`[marking]   CROP Q${q.questionNum}: answer="${q.answer}", yStart=${q.yStartPct}, yEnd=${q.yEndPct}`);
         }
-        for (const q of otherQs) {
-          console.log(`[marking]   FULL Q${q.questionNum}: answer="${q.answer}", isSciWritten=${isScienceWrittenQuestion(paper.subject, q.answer)}, hasBounds=${q.yStartPct != null && q.yEndPct != null}`);
+        for (const q of mcqQs) {
+          console.log(`[marking]   MCQ Q${q.questionNum}: answer="${q.answer}"`);
+        }
+        for (const q of nonMcqOther) {
+          console.log(`[marking]   FULL Q${q.questionNum}: answer="${q.answer}"`);
         }
 
         const results: QuestionMarkResult[] = [];
 
-        // Batch call for MCQ / non-science questions (full page)
-        if (otherQs.length > 0) {
+        // Blind MCQ detection: detect student's answer WITHOUT showing expected answer (avoids bias)
+        if (mcqQs.length > 0) {
           const pageBase64 = pageBuffer.toString("base64");
-          console.log(`[marking] Calling Gemini for pageIndex=${pageIndex} (${otherQs.length} questions, full page)`);
-          const batch = await markBatch(pageBase64, otherQs, `page ${pageIndex}`, false);
+          const detected = await detectMcqAnswers(pageBase64, mcqQs, `page ${pageIndex}`);
+          for (const q of mcqQs) {
+            const studentAnswer = detected.get(q.id) ?? null;
+            const expected = q.answer?.trim() ?? "";
+            if (!studentAnswer) {
+              results.push({
+                questionId: q.id,
+                marksAvailable: q.marksAvailable ?? 1,
+                marksAwarded: 0,
+                studentAnswer: "No answer detected",
+                notes: "No blue ink answer found",
+              });
+            } else {
+              const match = normalizeMcq(studentAnswer) === normalizeMcq(expected);
+              results.push({
+                questionId: q.id,
+                marksAvailable: q.marksAvailable ?? 1,
+                marksAwarded: match ? (q.marksAvailable ?? 1) : 0,
+                studentAnswer,
+                notes: match ? "" : `Student wrote "${studentAnswer}", expected "${expected}"`,
+              });
+            }
+            console.log(`[marking] MCQ Q${q.questionNum}: detected="${studentAnswer}", expected="${expected}", awarded=${results[results.length - 1].marksAwarded}`);
+          }
+        }
+
+        // Batch call for non-MCQ, non-science-written questions (full page, normal marking)
+        if (nonMcqOther.length > 0) {
+          const pageBase64 = pageBuffer.toString("base64");
+          console.log(`[marking] Calling Gemini for pageIndex=${pageIndex} (${nonMcqOther.length} non-MCQ questions, full page)`);
+          const batch = await markBatch(pageBase64, nonMcqOther, `page ${pageIndex}`, false);
           results.push(...batch);
         }
 
@@ -677,6 +825,20 @@ export async function markExamPaper(paperId: string): Promise<void> {
             pageBuffer = await fs.readFile(pagePath);
           } catch {
             return null;
+          }
+
+          // MCQ retry: use blind detection
+          if (isMcqAnswer(q.answer)) {
+            const pageBase64 = pageBuffer.toString("base64");
+            console.log(`[marking] Retry MCQ Q${q.questionNum}: blind detection`);
+            const detected = await detectMcqAnswers(pageBase64, [q], `retry Q${q.questionNum}`);
+            const studentAnswer = detected.get(q.id) ?? null;
+            const expected = q.answer?.trim() ?? "";
+            if (!studentAnswer) {
+              return { questionId: q.id, marksAvailable: q.marksAvailable ?? 1, marksAwarded: 0, studentAnswer: "No answer detected", notes: "No blue ink answer found" } as QuestionMarkResult;
+            }
+            const match = normalizeMcq(studentAnswer) === normalizeMcq(expected);
+            return { questionId: q.id, marksAvailable: q.marksAvailable ?? 1, marksAwarded: match ? (q.marksAvailable ?? 1) : 0, studentAnswer, notes: match ? "" : `Student wrote "${studentAnswer}", expected "${expected}"` } as QuestionMarkResult;
           }
 
           // Crop for science written questions
@@ -776,6 +938,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
       if (!r) return false;
       // Skip verification for questions already confirmed blank by pre-check
       if (r.notes?.includes("pre-check")) return false;
+      // Skip MCQ — blind detection is already unbiased, re-detection unlikely to differ
+      if (isMcqAnswer(q.answer)) return false;
       return r.marksAwarded < r.marksAvailable;
     });
 

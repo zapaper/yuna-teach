@@ -57,6 +57,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
+  const backPath = userId ? `/home/${userId}` : "/";
 
   const [paper, setPaper] = useState<ExamPaperDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,6 +142,55 @@ function ExamPracticeContent({ id }: { id: string }) {
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, []);
+
+  // ── Intercept browser back button: save ink + time, then navigate ──
+  const backSaving = useRef(false);
+  useEffect(() => {
+    // Push a duplicate history entry so pressing back triggers popstate instead of leaving
+    window.history.pushState(null, "", window.location.href);
+
+    function onPopState() {
+      if (backSaving.current) return;
+      if (submitStatus === "submitted" || !sessionStart.current) {
+        // Already submitted or timer not started — just navigate
+        router.push(backPath);
+        return;
+      }
+      backSaving.current = true;
+
+      // Save ink + time in the background, then navigate
+      (async () => {
+        try {
+          const form = new FormData();
+          form.append("action", "save");
+          for (let i = 0; i < pageHandles.current.length; i++) {
+            const handle = pageHandles.current[i];
+            if (handle) {
+              const [composite, ink] = await Promise.all([
+                handle.exportComposite(),
+                handle.exportInk(),
+              ]);
+              form.append(`page_${i}`, composite, `page_${i}.jpg`);
+              form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+            }
+          }
+          await Promise.all([
+            fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
+            saveTimeToServer(),
+          ]);
+          console.log("[back-button] Saved ink + time before navigating away");
+        } catch (err) {
+          console.warn("[back-button] Save failed:", err);
+        } finally {
+          backSaving.current = false;
+          router.push(backPath);
+        }
+      })();
+    }
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [submitStatus, backPath, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function getCurrentTime() {
     if (!sessionStart.current) return baseSeconds.current;
@@ -385,8 +435,6 @@ function ExamPracticeContent({ id }: { id: string }) {
     }
   }
 
-  const backPath = userId ? `/home/${userId}` : "/";
-
   if (loading) {
     return (
       <div className="flex justify-center py-24">
@@ -423,8 +471,9 @@ function ExamPracticeContent({ id }: { id: string }) {
       <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-md">
         <div className="border-b border-slate-100 px-4 py-2 flex items-center gap-2">
           <button
-            onClick={() => router.push(backPath)}
-            className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 shrink-0"
+            onClick={handleSaveAndExit}
+            disabled={isBusy}
+            className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 shrink-0 disabled:opacity-50"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
               fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
