@@ -541,21 +541,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      // For cropped images, add the question image so AI can see what was asked
-      let questionContextNote = "";
-      if (isCropped) {
-        const qWithImages = questions.filter((q) => q.imageData);
-        if (qWithImages.length > 0) {
-          const startIdx = 2 + imageAnswerQuestions.length;
-          questionContextNote =
-            `\nQuestion context images (so you understand what was asked):\n` +
-            qWithImages
-              .map((q, i) => `- Image ${startIdx + i}: Question ${q.questionNum} text (for context — the submission image above shows ONLY the answer area)`)
-              .join("\n");
-        }
-      }
-
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote + questionContextNote);
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -566,16 +552,6 @@ export async function markExamPaper(paperId: string): Promise<void> {
         const sepIdx = q.answerImageData.indexOf(";base64,");
         if (sepIdx > 5) {
           parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
-        }
-      }
-      // Add question images for cropped context
-      if (isCropped) {
-        for (const q of questions) {
-          if (!q.imageData) continue;
-          const sepIdx = q.imageData.indexOf(";base64,");
-          if (sepIdx > 5) {
-            parts.push({ inlineData: { mimeType: q.imageData.slice(5, sepIdx), data: q.imageData.slice(sepIdx + 8) } });
-          }
         }
       }
       parts.push({ text: prompt });
