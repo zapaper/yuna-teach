@@ -206,10 +206,10 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     ? `[diagram — see additional image]${question.answer ? `. Marking guidance: ${question.answer}` : ""}`
     : question.answer ? `"${question.answer}"` : "not provided";
   const marksInfo = question.marksAvailable != null ? `marksAvailable: ${question.marksAvailable}` : `marksAvailable: detect`;
-  const answerOneHint = question.answer?.trim() === "1"
-    ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
+  const printWarning = question.answer
+    ? ` ⚠️ WARNING: The text "${question.answer}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
     : "";
-  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${answerOneHint}`;
+  const questionLines = `- Question ${question.questionNum} (ID: ${question.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}`;
 
   let answerImagesNote = "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -418,11 +418,11 @@ export async function markExamPaper(paperId: string): Promise<void> {
               ? `"${q.answer}"`
               : "not provided";
             const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
-            // Extra hint when expected answer is "1" — the most commonly missed answer
-            const answerOneHint = q.answer?.trim() === "1"
-              ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
+            // Per-question warning: the expected answer may be printed on the page
+            const printWarning = q.answer
+              ? ` ⚠️ WARNING: The text "${q.answer}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
               : "";
-            return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${answerOneHint}`;
+            return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}`;
           })
           .join("\n");
 
