@@ -71,12 +71,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Auto-fail papers stuck in "processing" for more than 10 minutes
-  const staleThreshold = new Date(Date.now() - 10 * 60 * 1000);
+  // Auto-fail papers stuck in "processing" for more than 15 minutes (based on updatedAt)
+  const staleThreshold = new Date(Date.now() - 15 * 60 * 1000);
   await prisma.examPaper.updateMany({
     where: {
       extractionStatus: "processing",
-      createdAt: { lt: staleThreshold },
+      updatedAt: { lt: staleThreshold },
     },
     data: { extractionStatus: "failed" },
   });

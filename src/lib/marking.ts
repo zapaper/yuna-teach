@@ -47,6 +47,37 @@ function isScienceWrittenQuestion(subject: string | null, answer: string | null)
   return !/^[1-4A-Da-d]$/.test(trimmed);
 }
 
+/** Step 1 pre-check: ask Gemini if there is any handwritten blue ink in the image.
+ *  Returns true if blue ink is detected, false if blank. */
+async function hasBlueInk(imageBase64: string, label: string): Promise<boolean> {
+  const prompt = `Look at this image carefully. Is there ANY handwritten text or marks in BLUE INK?
+Do NOT count printed black text — only handwritten blue ink marks made by a student.
+Reply with ONLY one word: YES or NO.`;
+
+  try {
+    const response = await withTimeout(
+      getAI().models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: prompt },
+        ]}],
+        config: { temperature: 0 },
+      }),
+      30_000,
+      `blueInkCheck ${label}`
+    );
+    const text = (response.text ?? "").trim().toUpperCase();
+    const result = text.startsWith("YES");
+    console.log(`[marking] BLUE INK CHECK ${label}: "${text}" → ${result ? "HAS INK" : "BLANK"}`);
+    return result;
+  } catch (err) {
+    // If pre-check fails, assume ink exists to avoid false negatives
+    console.warn(`[marking] BLUE INK CHECK ${label} failed, assuming ink exists:`, err);
+    return true;
+  }
+}
+
 interface QuestionMarkResult {
   questionId: string;
   marksAvailable: number;
@@ -266,7 +297,26 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const pageBase64 = imageBuffer.toString("base64");
   console.log(`[marking] remarkSingle Q${question.questionNum}: sending image ${imageBuffer.length} bytes (original ${pageBuffer.length} bytes, cropped=${useCrop})`);
 
+  // Step 1: Pre-check for blue ink (science written only)
+  if (useCrop) {
+    const inkFound = await hasBlueInk(pageBase64, `remarkSingle Q${question.questionNum}`);
+    if (!inkFound) {
+      console.log(`[marking] remarkSingle Q${question.questionNum}: no blue ink detected — awarding 0`);
+      await prisma.examQuestion.update({
+        where: { id: questionId },
+        data: { marksAwarded: 0, markingNotes: "Detected: No answer detected | No blue ink found (pre-check)" },
+      });
+      const allMarks = paper.questions.map((q) =>
+        q === question ? 0 : (q.marksAwarded ?? 0)
+      );
+      const total = allMarks.reduce((a, b) => a + b, 0);
+      await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
+      console.log(`[marking] remarkSingleQuestion done (blank), new total=${total}`);
+      return;
+    }
+  }
 
+  // Step 2: Mark normally
   const yStart = useCrop ? "0%" : (question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown");
   const yEnd = useCrop ? "100%" : (question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "unknown");
   const answerDesc = question.answerImageData
@@ -568,7 +618,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
           results.push(...batch);
         }
 
-        // Individual cropped calls for science written questions
+        // Individual cropped calls for science written questions (with blue ink pre-check)
         if (writtenQs.length > 0) {
           console.log(`[marking] Cropping ${writtenQs.length} science written questions on page ${pageIndex}`);
           const croppedResults = await Promise.all(
@@ -576,6 +626,21 @@ export async function markExamPaper(paperId: string): Promise<void> {
               try {
                 const cropped = await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `batch Q${q.questionNum}`);
                 const croppedBase64 = cropped.toString("base64");
+
+                // Step 1: Pre-check for blue ink
+                const inkFound = await hasBlueInk(croppedBase64, `Q${q.questionNum}`);
+                if (!inkFound) {
+                  // No blue ink — skip marking, return 0
+                  return [{
+                    questionId: q.id,
+                    marksAvailable: q.marksAvailable ?? 0,
+                    marksAwarded: 0,
+                    studentAnswer: "No answer detected",
+                    notes: "No blue ink found (pre-check)",
+                  }] as QuestionMarkResult[];
+                }
+
+                // Step 2: Mark normally with cropped image
                 return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true);
               } catch (err) {
                 console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
@@ -618,6 +683,20 @@ export async function markExamPaper(paperId: string): Promise<void> {
             ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `retry Q${q.questionNum}`)
             : pageBuffer;
           const pageBase64 = imageBuffer.toString("base64");
+
+          // Pre-check for blue ink (science written only)
+          if (useCrop) {
+            const inkFound = await hasBlueInk(pageBase64, `retry Q${q.questionNum}`);
+            if (!inkFound) {
+              return {
+                questionId: q.id,
+                marksAvailable: q.marksAvailable ?? 0,
+                marksAwarded: 0,
+                studentAnswer: "No answer detected",
+                notes: "No blue ink found (pre-check)",
+              } as QuestionMarkResult;
+            }
+          }
 
           const yStart = useCrop ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
           const yEnd = useCrop ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
@@ -691,6 +770,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
     const questionsToVerify = paper.questions.filter((q) => {
       const r = resultMap.get(q.id);
       if (!r) return false;
+      // Skip verification for questions already confirmed blank by pre-check
+      if (r.notes?.includes("pre-check")) return false;
       return r.marksAwarded < r.marksAvailable;
     });
 
