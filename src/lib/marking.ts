@@ -44,16 +44,21 @@ Questions on this page (vertical position as % from top of image):
 
 Instructions — follow this EXACT sequence for EACH question:
 
-STEP 1: Read the student's BLUE INK answer.
-  Find the student's blue-ink answer ONLY within the question's vertical region (yStart%–yEnd%).
-  IMPORTANT: Multiple questions may share the same page image. ONLY look at the area between the
-  specified yStart% and yEnd% for each question. IGNORE any writing outside those boundaries —
-  that belongs to a different question.
-  - Questions may have parts (a), (b), (c). Read each part separately.
-  - Final answer is usually in the answer box/line at bottom-right of question space.
-  *** NO BLUE INK = ZERO MARKS ***
-  If there is NO blue ink writing at all in the question's region → award 0 marks immediately.
-  Do NOT award marks based on printed text — only handwritten blue ink answers count.
+STEP 1: Read the student's BLUE INK answer — STRICTLY within boundaries.
+  Each question has a vertical region: yStart% to yEnd% (measured from the TOP of the image).
+  Example: yStart=42% yEnd=60% means ONLY look at the strip between 42% and 60% down the page.
+
+  *** BOUNDARY ENFORCEMENT — THIS IS CRITICAL FOR MCQ PAGES ***
+  - ONLY read blue ink that falls WITHIN the specified yStart%–yEnd% region.
+  - Blue ink ABOVE yStart% belongs to the PREVIOUS question — IGNORE it completely.
+  - Blue ink BELOW yEnd% belongs to the NEXT question — IGNORE it completely.
+  - For MCQ: the answer box/circle is usually near the RIGHT side of the question's strip.
+    Look ONLY in that strip. A "1" or "2" written in a different question's region is NOT this question's answer.
+  - If boundaries are "unknown", use visual cues (printed question number, separator lines) to find the region.
+
+  *** NO BLUE INK IN REGION = ZERO MARKS ***
+  If there is NO blue ink writing within this question's yStart%–yEnd% region → award 0 marks immediately.
+  Do NOT read answers from other questions' regions. Do NOT award marks based on printed text.
 
 STEP 2: Match the answer to the correct sub-part.
   The expected answer may contain multiple parts like "(a) 5.6 (b) 3/4 (c) 12".
