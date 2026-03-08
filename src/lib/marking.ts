@@ -108,11 +108,17 @@ STEP 7: Notes — keep SHORT:
   - Full marks → notes = "" (empty string)
   - Partial or zero marks → 1 sentence max explaining what went wrong
 
+FINAL REMINDER — READ THIS BEFORE RESPONDING:
+  For EVERY question, your FIRST action must be checking for blue ink.
+  If a question's region has NO blue handwritten ink → marksAwarded: 0, studentAnswer: "No answer detected".
+  Printed black text (even if it matches the expected answer) is NOT the student's answer.
+  Do NOT hallucinate or invent answers. Only report what is actually handwritten in blue ink.
+
 Return ONLY valid JSON (no markdown fences):
 {
   "questions": [
     {"questionId": "ID", "marksAvailable": 2, "marksAwarded": 2, "studentAnswer": "3.5 kg", "notes": ""},
-    {"questionId": "ID", "marksAvailable": 3, "marksAwarded": 1, "studentAnswer": "(a) 12 (b) 7", "notes": "Part (b) arithmetic error in last step."}
+    {"questionId": "ID", "marksAvailable": 3, "marksAwarded": 0, "studentAnswer": "No answer detected", "notes": "No blue ink answer found"}
   ]
 }`;
 
@@ -420,7 +426,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
             // Per-question warning: the expected answer may be printed on the page
             const printWarning = q.answer
-              ? ` ⚠️ WARNING: The text "${q.answer}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
+              ? ` [PRINTED TEXT "${q.answer}" may appear on page — IGNORE unless handwritten in BLUE ink]`
               : "";
             return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}`;
           })
