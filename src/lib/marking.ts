@@ -4,83 +4,60 @@ import sharp from "sharp";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
 
-// Lazy-load opencv-js (heavy ~8MB, only needed for MCQ answer "1" preprocessing)
-let cvReady: typeof import("@techstark/opencv-js") | null = null;
-async function getCV() {
-  if (cvReady) return cvReady;
-  const cv = await import("@techstark/opencv-js");
-  // opencv-js may need to initialize its WASM module
-  if ("onRuntimeInitialized" in cv) {
-    await new Promise<void>((resolve) => {
-      (cv as unknown as { onRuntimeInitialized: () => void }).onRuntimeInitialized = resolve;
-    });
-  }
-  cvReady = cv;
-  return cv;
-}
-
 /**
- * Isolate blue ink and thicken strokes using OpenCV.
+ * Isolate blue ink and thicken strokes using Sharp + raw pixel manipulation.
  * Used for MCQ answer "1" which is a thin vertical stroke easily missed by AI.
- * Steps: decode → convert BGR→HSV → mask blue range → dilate → encode as JPEG
+ * Steps: extract RGB pixels → filter blue ink → thicken via neighbor spread → encode as JPEG
  */
 async function isolateAndThickenBlueInk(imageBuffer: Buffer, label: string): Promise<Buffer> {
   try {
-    const cv = await getCV();
-
-    // Decode image buffer into OpenCV Mat via sharp raw pixels
     const { data, info } = await sharp(imageBuffer)
-      .ensureAlpha()
+      .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
 
-    const mat = new cv.Mat(info.height, info.width, cv.CV_8UC4);
-    mat.data.set(data);
+    const { width, height } = info;
+    // Create grayscale mask: 0 = blue ink, 255 = background
+    const mask = Buffer.alloc(width * height, 255);
 
-    // Convert RGBA → BGR → HSV
-    const bgr = new cv.Mat();
-    cv.cvtColor(mat, bgr, cv.COLOR_RGBA2BGR);
-    mat.delete();
+    // Pass 1: identify blue pixels (RGB where blue is dominant)
+    for (let i = 0; i < width * height; i++) {
+      const r = data[i * 3];
+      const g = data[i * 3 + 1];
+      const b = data[i * 3 + 2];
+      // Blue ink: blue channel high, significantly more than red and green
+      if (b > 60 && b > r * 1.3 && b > g * 1.2 && (r + g) < 380) {
+        mask[i] = 0; // mark as ink
+      }
+    }
 
-    const hsv = new cv.Mat();
-    cv.cvtColor(bgr, hsv, cv.COLOR_BGR2HSV);
-    bgr.delete();
+    // Pass 2: dilate — spread each ink pixel by 2px in all directions
+    const dilated = Buffer.alloc(width * height, 255);
+    const radius = 2;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (mask[y * width + x] === 0) {
+          // Spread to neighbors
+          for (let dy = -radius; dy <= radius; dy++) {
+            for (let dx = -radius; dx <= radius; dx++) {
+              const ny = y + dy, nx = x + dx;
+              if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
+                dilated[ny * width + nx] = 0;
+              }
+            }
+          }
+        }
+      }
+    }
 
-    // Blue ink HSV range (hue 90-130 covers most blue ink pens)
-    const lowerBlue = new cv.Mat(1, 1, cv.CV_8UC3, new cv.Scalar(90, 40, 40));
-    const upperBlue = new cv.Mat(1, 1, cv.CV_8UC3, new cv.Scalar(135, 255, 255));
-    const mask = new cv.Mat();
-    cv.inRange(hsv, lowerBlue, upperBlue, mask);
-    hsv.delete();
-    lowerBlue.delete();
-    upperBlue.delete();
-
-    // Dilate to thicken thin strokes (3x3 kernel, 2 iterations)
-    const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
-    const dilated = new cv.Mat();
-    cv.dilate(mask, dilated, kernel, new cv.Point(-1, -1), 2);
-    mask.delete();
-    kernel.delete();
-
-    // Convert mask to white-on-black → invert to dark-on-white (for readability)
-    const inverted = new cv.Mat();
-    cv.bitwise_not(dilated, inverted);
-    dilated.delete();
-
-    // Extract raw pixels and convert back to JPEG via sharp
-    const resultBuffer = Buffer.from(inverted.data);
-    const width = inverted.cols;
-    const height = inverted.rows;
-    inverted.delete();
-
-    const jpegBuffer = await sharp(resultBuffer, { raw: { width, height, channels: 1 } })
+    const jpegBuffer = await sharp(dilated, { raw: { width, height, channels: 1 } })
       .jpeg({ quality: 90 })
       .toBuffer();
 
-    console.log(`[marking] OPENCV ${label}: isolated blue ink + dilated, ${imageBuffer.length} → ${jpegBuffer.length} bytes`);
+    console.log(`[marking] BLUE_ENHANCE ${label}: isolated + dilated, ${imageBuffer.length} → ${jpegBuffer.length} bytes`);
     return jpegBuffer;
   } catch (err) {
-    console.warn(`[marking] OPENCV ${label}: failed, falling back to original image:`, err);
+    console.warn(`[marking] BLUE_ENHANCE ${label}: failed, falling back to original:`, err);
     return imageBuffer;
   }
 }
