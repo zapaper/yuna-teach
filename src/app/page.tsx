@@ -327,7 +327,7 @@ export default function HomePage() {
 const PHRASES = [
   "Let AI pinpoint your child's learning gaps",
   "Let AI assign and grade your child's exam",
-  "Let AI suggest the perfect focused test",
+  "Let AI monitor progress and suggest focused practices",
   "Let AI narrate your child's Spelling / \u542C\u5199",
 ];
 
