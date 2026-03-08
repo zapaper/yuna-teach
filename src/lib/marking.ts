@@ -4,6 +4,87 @@ import sharp from "sharp";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
 
+// Lazy-load opencv-js (heavy ~8MB, only needed for MCQ answer "1" preprocessing)
+let cvReady: typeof import("@techstark/opencv-js") | null = null;
+async function getCV() {
+  if (cvReady) return cvReady;
+  const cv = await import("@techstark/opencv-js");
+  // opencv-js may need to initialize its WASM module
+  if ("onRuntimeInitialized" in cv) {
+    await new Promise<void>((resolve) => {
+      (cv as unknown as { onRuntimeInitialized: () => void }).onRuntimeInitialized = resolve;
+    });
+  }
+  cvReady = cv;
+  return cv;
+}
+
+/**
+ * Isolate blue ink and thicken strokes using OpenCV.
+ * Used for MCQ answer "1" which is a thin vertical stroke easily missed by AI.
+ * Steps: decode → convert BGR→HSV → mask blue range → dilate → encode as JPEG
+ */
+async function isolateAndThickenBlueInk(imageBuffer: Buffer, label: string): Promise<Buffer> {
+  try {
+    const cv = await getCV();
+
+    // Decode image buffer into OpenCV Mat via sharp raw pixels
+    const { data, info } = await sharp(imageBuffer)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const mat = new cv.Mat(info.height, info.width, cv.CV_8UC4);
+    mat.data.set(data);
+
+    // Convert RGBA → BGR → HSV
+    const bgr = new cv.Mat();
+    cv.cvtColor(mat, bgr, cv.COLOR_RGBA2BGR);
+    mat.delete();
+
+    const hsv = new cv.Mat();
+    cv.cvtColor(bgr, hsv, cv.COLOR_BGR2HSV);
+    bgr.delete();
+
+    // Blue ink HSV range (hue 90-130 covers most blue ink pens)
+    const lowerBlue = new cv.Mat(1, 1, cv.CV_8UC3, new cv.Scalar(90, 40, 40));
+    const upperBlue = new cv.Mat(1, 1, cv.CV_8UC3, new cv.Scalar(135, 255, 255));
+    const mask = new cv.Mat();
+    cv.inRange(hsv, lowerBlue, upperBlue, mask);
+    hsv.delete();
+    lowerBlue.delete();
+    upperBlue.delete();
+
+    // Dilate to thicken thin strokes (3x3 kernel, 2 iterations)
+    const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
+    const dilated = new cv.Mat();
+    cv.dilate(mask, dilated, kernel, new cv.Point(-1, -1), 2);
+    mask.delete();
+    kernel.delete();
+
+    // Convert mask to white-on-black → invert to dark-on-white (for readability)
+    const inverted = new cv.Mat();
+    cv.bitwise_not(dilated, inverted);
+    dilated.delete();
+
+    // Extract raw pixels and convert back to JPEG via sharp
+    const resultBuffer = Buffer.from(inverted.data);
+    const width = inverted.cols;
+    const height = inverted.rows;
+    inverted.delete();
+
+    const jpegBuffer = await sharp(resultBuffer, { raw: { width, height, channels: 1 } })
+      .jpeg({ quality: 90 })
+      .toBuffer();
+
+    console.log(`[marking] OPENCV ${label}: isolated blue ink + dilated, ${imageBuffer.length} → ${jpegBuffer.length} bytes`);
+    return jpegBuffer;
+  } catch (err) {
+    console.warn(`[marking] OPENCV ${label}: failed, falling back to original image:`, err);
+    return imageBuffer;
+  }
+}
+
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
@@ -395,14 +476,26 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     let studentAnswer: string | null = null;
 
     if (isAnswer1) {
-      // Majority voting for answer "1" — run 3 detections
-      console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: answer=1, majority voting (3 attempts)`);
+      // Majority voting for answer "1" — run 3 detections + 1 OpenCV-enhanced
+      console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: answer=1, majority voting (3 + 1 opencv)`);
+      // Prepare OpenCV-enhanced image (blue ink isolated + thickened)
+      const enhancedBuffer = await isolateAndThickenBlueInk(pageBuffer, `remarkSingle Q${question.questionNum}`);
+      const enhancedBase64 = enhancedBuffer.toString("base64");
+
       const temps = [0.3, 0.5, 0.7];
       const votes: (string | null)[] = [];
-      await Promise.all(temps.map(async (t, i) => {
-        const det = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} vote${i + 1}`, t);
-        votes[i] = det.get(question.id) ?? null;
-      }));
+      await Promise.all([
+        // 3 normal detections at varied temperatures
+        ...temps.map(async (t, i) => {
+          const det = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} vote${i + 1}`, t);
+          votes[i] = det.get(question.id) ?? null;
+        }),
+        // 1 OpenCV-enhanced detection
+        (async () => {
+          const det = await detectMcqAnswers(enhancedBase64, [question], `remarkSingle Q${question.questionNum} opencv`, 0.3);
+          votes[3] = det.get(question.id) ?? null;
+        })(),
+      ]);
       console.log(`[marking] remarkSingle Q${question.questionNum} majority vote: [${votes.map(v => v ?? "null").join(", ")}]`);
       const counts = new Map<string, number>();
       for (const v of votes) {
@@ -411,6 +504,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
           counts.set(norm, (counts.get(norm) ?? 0) + 1);
         }
       }
+      // Need at least 2 of 4 agreeing
       for (const [val, count] of counts) {
         if (count >= 2) { studentAnswer = val; break; }
       }
@@ -1114,14 +1208,23 @@ export async function markExamPaper(paperId: string): Promise<void> {
 
           const isAnswer1 = normalizeMcq(q.answer ?? "") === "1";
 
-          // For answer "1": majority voting — run 3 detections with varied temperatures
+          // For answer "1": majority voting — 3 normal + 1 OpenCV-enhanced
           if (isAnswer1) {
+            const enhancedBuffer = await isolateAndThickenBlueInk(imageBuffer, `mcqRetry Q${q.questionNum}`);
+            const enhancedBase64 = enhancedBuffer.toString("base64");
+
             const temps = [0.3, 0.5, 0.7];
             const votes: (string | null)[] = [];
-            await Promise.all(temps.map(async (t, i) => {
-              const det = await detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum} vote${i + 1}`, t);
-              votes[i] = det.get(q.id) ?? null;
-            }));
+            await Promise.all([
+              ...temps.map(async (t, i) => {
+                const det = await detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum} vote${i + 1}`, t);
+                votes[i] = det.get(q.id) ?? null;
+              }),
+              (async () => {
+                const det = await detectMcqAnswers(enhancedBase64, [croppedQ], `mcqRetry Q${q.questionNum} opencv`, 0.3);
+                votes[3] = det.get(q.id) ?? null;
+              })(),
+            ]);
             console.log(`[marking] MCQ retry Q${q.questionNum} (answer=1) majority vote: [${votes.map(v => v ?? "null").join(", ")}]`);
 
             // Count non-null votes
@@ -1133,7 +1236,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
               }
             }
 
-            // Pick the answer with most votes (need at least 2 of 3)
+            // Pick the answer with most votes (need at least 2 of 4)
             let studentAnswer: string | null = null;
             for (const [val, count] of counts) {
               if (count >= 2) {
