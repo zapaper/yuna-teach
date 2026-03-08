@@ -561,12 +561,12 @@ function ExamPracticeContent({ id }: { id: string }) {
             </button>
             <div className="flex-1" />
             <div className="w-px h-5 bg-slate-200 mx-0.5" />
-            <button onClick={() => setZoom((z) => Math.max(1, z - 0.5))}
+            <button onClick={() => setZoom((z) => Math.max(1, z - 0.25))}
               className="px-2 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors leading-none">
               −
             </button>
             <span className="text-[10px] font-medium text-slate-400 min-w-[2.5rem] text-center">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom((z) => Math.min(3, z + 0.5))}
+            <button onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
               className="px-2 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors leading-none">
               +
             </button>
