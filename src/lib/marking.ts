@@ -42,9 +42,9 @@ async function cropPageRegion(
 function isScienceWrittenQuestion(subject: string | null, answer: string | null): boolean {
   if (!subject || !subject.toLowerCase().includes("science")) return false;
   if (!answer) return true; // no answer key = assume written
-  // MCQ answers are typically single digit/letter: "1","2","3","4","A","B","C","D"
+  // MCQ answers: "1","2","3","4","A","B","C","D","(1)","(2)","(3)","(4)","(A)","(B)","(C)","(D)"
   const trimmed = answer.trim();
-  return !/^[1-4A-Da-d]$/.test(trimmed);
+  return !/^\(?[1-4A-Da-d]\)?$/.test(trimmed);
 }
 
 /** Step 1 pre-check: ask Gemini if there is any handwritten blue ink in the image.
