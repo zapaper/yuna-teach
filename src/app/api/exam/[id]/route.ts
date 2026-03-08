@@ -337,9 +337,10 @@ export async function DELETE(
   });
 
   if (paper?.paperType === "focused" && paper.assignedToId && paper.completedAt) {
+    // Transfer ownership to the student so it stays on their homepage
     await prisma.examPaper.update({
       where: { id },
-      data: { userId: null },
+      data: { userId: paper.assignedToId },
     });
   } else {
     await prisma.examPaper.delete({ where: { id } });
