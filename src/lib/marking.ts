@@ -36,13 +36,6 @@ HOW TO READ THIS IMAGE:
 - Printed question text = BLACK. Student's handwritten answers = BLUE INK.
 - ONLY blue ink counts as the student's answer. Black printed text is NEVER the student's answer.
 
-*** CRITICAL — DISTINGUISHING INK COLORS ***
-The image may contain BOTH printed black text AND handwritten blue ink.
-- BLACK ink/text: This is the PRINTED exam paper (questions, labels, answer keys, watermarks). IGNORE ALL BLACK TEXT when reading the student's answer.
-- BLUE ink: This is what the STUDENT wrote by hand. Only blue ink is the student's answer.
-- If the answer area contains text that matches the expected answer but it is in BLACK (printed) — that is the answer key, NOT the student's work. The student left it BLANK → award 0 marks.
-- A blank answer area (no blue ink) = "No answer detected" = 0 marks. Even if you can see printed text.
-
 Questions on this page (vertical position as % from top of image):
 {QUESTIONS}
 
@@ -50,65 +43,68 @@ Questions on this page (vertical position as % from top of image):
 
 Instructions — follow this EXACT sequence for EACH question:
 
-STEP 1: Read the student's BLUE INK answer — STRICTLY within boundaries.
-  Each question has a vertical region: yStart% to yEnd% (measured from the TOP of the image).
-  Example: yStart=42% yEnd=60% means ONLY look at the strip between 42% and 60% down the page.
+╔══════════════════════════════════════════════════════════════════╗
+║  STEP 1: BLUE INK CHECK — DO THIS FIRST, BEFORE ANYTHING ELSE  ║
+╚══════════════════════════════════════════════════════════════════╝
 
-  *** BOUNDARY ENFORCEMENT — THIS IS CRITICAL FOR MCQ PAGES ***
+Look at the question's vertical region (yStart% to yEnd%, measured from TOP of image).
+Scan ONLY this strip for BLUE INK — handwritten marks made by the student.
+
+The image contains TWO types of content:
+  ❌ BLACK = printed exam paper (questions, labels, answer keys, diagrams). IGNORE ALL BLACK TEXT.
+  ✅ BLUE = student's handwritten answer. This is the ONLY thing that counts.
+
+IF NO BLUE INK EXISTS in this question's region:
+  → studentAnswer = "No answer detected"
+  → marksAwarded = 0
+  → notes = "No blue ink answer found"
+  → SKIP all remaining steps. Move to the next question.
+
+Do NOT confuse printed black text with the student's answer. If text in the answer area
+matches the expected answer but is BLACK (printed), that is the answer key — the student
+left it blank. Award 0 marks.
+
+STEP 2: Read the blue ink answer — STRICTLY within boundaries.
+  Each question has a vertical region: yStart% to yEnd%.
+  Example: yStart=42% yEnd=60% means ONLY look at the strip between 42% and 60% down the page.
   - ONLY read blue ink that falls WITHIN the specified yStart%–yEnd% region.
   - Blue ink ABOVE yStart% belongs to the PREVIOUS question — IGNORE it completely.
   - Blue ink BELOW yEnd% belongs to the NEXT question — IGNORE it completely.
   - For MCQ: the answer box/circle is usually near the RIGHT side of the question's strip.
-    Look ONLY in that strip. A "1" or "2" written in a different question's region is NOT this question's answer.
-  - If boundaries are "unknown", use visual cues (printed question number, separator lines) to find the region.
+    Look ONLY in that strip. An answer in a different question's region is NOT this question's answer.
+  - If boundaries are "unknown", use visual cues (printed question number, separator lines).
+  - For MCQ with expected answer "1": a handwritten "1" looks like a single short vertical stroke
+    in blue ink. Do not dismiss a blue vertical stroke as a stray mark — it is likely the digit "1".
+  - Questions may have parts (a), (b), (c). Read each part's blue ink answer separately.
 
-  *** NO BLUE INK IN REGION = ZERO MARKS ***
-  If there is NO blue ink writing within this question's yStart%–yEnd% region → award 0 marks immediately.
-  Do NOT read answers from other questions' regions. Do NOT award marks based on printed text.
-
-STEP 2: Match the answer to the correct sub-part.
+STEP 3: Match the answer to the correct sub-part.
   The expected answer may contain multiple parts like "(a) 5.6 (b) 3/4 (c) 12".
   The question number tells you which part(s) to mark:
   - Question "11a" → only mark against the "(a)" part of the expected answer.
   - Question "11bcd" → only mark against parts "(b)", "(c)", "(d)" of the expected answer.
   - Question "11" (no suffix) → mark against all parts of the expected answer.
-  NEVER mark a sub-part question against the wrong answer key. If the question is "11a",
-  compare ONLY against the "(a)" answer, even if the student wrote something matching "(b)".
+  NEVER mark a sub-part question against the wrong answer key.
 
-STEP 3: Marks available.
+STEP 4: Marks available.
   Use the "marksAvailable" value specified for each question.
   If it says "detect", read from the printed label on the page (e.g. "[2]", "(2 marks)").
 
-STEP 4: Compare against the expected answer. Follow this priority:
-  A) If the student's answer MATCHES the expected answer → FULL MARKS. Done. No further checking needed.
+STEP 5: Compare against the expected answer.
+  A) If the student's answer MATCHES the expected answer → FULL MARKS.
   B) If the student's answer does NOT match:
-     - For MCQ (single option answer like "1","2","A","B"): ZERO marks. No partial marks for MCQ.
+     - For MCQ (single option like "1","2","A","B"): ZERO marks. No partial marks for MCQ.
      - For written/worked answers: check if working/steps are partially correct.
-       If some steps are correct → award PARTIAL marks = round(proportion of correct steps × marksAvailable).
-       e.g. 2 out of 3 steps correct on a 3-mark question → round(2/3 × 3) = 2 marks.
+       If some steps are correct → award PARTIAL marks = round(proportion × marksAvailable).
      - If answer is wrong with no correct working → ZERO marks.
   C) For diagram questions: compare student's blue-ink drawing against the expected answer diagram image.
 
-STEP 5: Record what you detected.
-  "studentAnswer": Write EXACTLY what the student wrote/drew in blue ink.
-    - For text/number answers: quote their written answer (e.g. "3.5 kg", "B", "12").
-    - For MCQ: the option letter/number they circled/wrote (e.g. "1", "2", "3", "4", "A", "B", "C", "D").
-      *** CRITICAL — Detecting the answer "1" ***
-      A handwritten "1" looks like a SINGLE SHORT VERTICAL STROKE in blue ink. It is the MOST commonly misread MCQ answer.
-      - Do NOT dismiss a single vertical blue stroke as a stray mark, scratch, or artifact — it is almost certainly the digit "1".
-      - If you see ANY blue ink mark in the answer area that resembles a short vertical line, treat it as the answer "1".
-      - "1" is a valid and common MCQ answer. Students frequently choose option (1). Expect to see it.
-      - When in doubt between "no answer" and "1", choose "1" — a deliberate stroke of blue ink in the answer area is an answer.
-      - Compare: "1" = single vertical stroke | "2" = curved top + horizontal base | "3" = two curves | "4" = angled lines.
-      Any blue ink writing in the answer area is the student's answer.
-      *** IMPORTANT — "No answer detected" should be RARE ***
-      Students almost always write an answer. Before reporting "No answer detected", look VERY carefully for any blue ink in the question's region.
-      Even a tiny mark, a single stroke, or a faint line counts as an answer. Zoom in mentally on the answer box/line area.
-      If the expected answer is "1" and you see any vertical blue stroke at all, that IS the answer "1".
-    - If truly nothing was written after careful inspection: "No answer detected"
+STEP 6: Record what you detected.
+  "studentAnswer": Write EXACTLY what the student wrote in blue ink.
+    - For text/number answers: quote their answer (e.g. "3.5 kg", "B", "12").
+    - For MCQ: the option they wrote (e.g. "1", "2", "A", "B").
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
 
-STEP 6: Notes — keep SHORT:
+STEP 7: Notes — keep SHORT:
   - Full marks → notes = "" (empty string)
   - Partial or zero marks → 1 sentence max explaining what went wrong
 
