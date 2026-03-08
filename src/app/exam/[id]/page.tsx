@@ -522,6 +522,16 @@ function ExamPracticeContent({ id }: { id: string }) {
               </button>
             </div>
           ) : null}
+
+          {submitStatus !== "submitted" ? (
+            <button
+              onClick={handleSubmit}
+              disabled={isBusy}
+              className="px-3 py-1.5 rounded-xl bg-green-500 text-white text-xs font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors shrink-0"
+            >
+              {submitStatus === "submitting" ? "Submitting…" : "Submit"}
+            </button>
+          ) : null}
         </div>
 
         {/* Drawing toolbar */}
