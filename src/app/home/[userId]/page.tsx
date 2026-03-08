@@ -560,9 +560,9 @@ export default function HomePage({
               {/* Regular / Completed Exam Papers */}
               {regularPapers.length > 0 ? (
                 <div className="space-y-3">
-                  {!isParent && !isAdmin && assignedPapers.length > 0 && (
+                  {(isParent || (!isAdmin && assignedPapers.length > 0)) && (
                     <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                      Completed
+                      {isParent ? "Exams" : "Completed"}
                     </h3>
                   )}
                   {regularPapers.map((paper) => (
