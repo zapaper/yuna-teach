@@ -93,26 +93,28 @@ async function detectMcqAnswers(
 
   const prompt = `You are reading a student's handwritten MCQ answers from an exam paper.
 
-HOW TO READ THIS IMAGE:
-- Printed question text = BLACK INK (ignore this).
-- Student's handwritten answers = BLUE INK (this is what you must read).
-- ONLY blue ink marks count as the student's answer.
+COLOR DISTINCTION — THIS IS CRITICAL:
+- PRINTED text on the page is BLACK or DARK GREY ink. This includes question numbers, option labels "(1)", "(2)", "(3)", "(4)", answer keys, and all printed text. COMPLETELY IGNORE all black/dark printed text.
+- The student writes in BLUE INK — a distinctly BLUE color, NOT black, NOT grey, NOT dark.
+- You must ONLY read marks that are clearly BLUE in color. If a mark is black or dark, it is printed — ignore it.
 
 For each question below, look ONLY within its vertical region (yStart% to yEnd% from top of image).
-Find the BLUE INK digit or letter the student wrote as their MCQ answer.
+Find the single digit or letter the student HANDWROTE in BLUE INK as their MCQ answer.
 
-Children's handwriting guide:
-- "1" = a short vertical stroke (|), may have no serif or base
-- "2" = a curvy shape, may look like a Z or S
-- "3" = two bumps or curves
-- "4" = an angular shape with a horizontal bar
-- Letters A/B/C/D may also be used
+The student's answer will be ONE of: 1, 2, 3, 4, A, B, C, or D.
 
-IMPORTANT:
-- Read ONLY what is actually written in blue ink. Do NOT guess or assume.
-- If you see no blue ink in a question's region, report null.
-- Do NOT let nearby printed text influence your reading.
-- Each question's region is independent — do NOT mix up answers between questions.
+How to distinguish BLUE handwriting from BLACK print:
+- Printed option labels like "(1)", "(2)", "(3)", "(4)" are BLACK — these are NOT the student's answer
+- The student's answer is written SEPARATELY in BLUE ink, usually near a box, bracket, or answer space
+- Blue ink has a distinctly BLUE hue — it looks different from the black printed text around it
+- If you are unsure whether a mark is blue or black, it is probably black (printed) — report null
+
+STRICT RULES:
+1. ONLY report a digit/letter if it is clearly written in BLUE INK by hand
+2. If the only digits you see are BLACK PRINTED text → report null (student left it blank)
+3. Do NOT read printed black "(1)", "(2)" etc. as the student's answer
+4. Each question's region is independent — do NOT mix up answers between regions
+5. Report your confidence: "high" if clearly blue handwriting, "low" if uncertain
 
 Questions:
 ${qLines}
@@ -120,8 +122,8 @@ ${qLines}
 Return ONLY valid JSON (no markdown fences):
 {
   "answers": [
-    {"questionId": "ID", "detected": "1"},
-    {"questionId": "ID", "detected": null}
+    {"questionId": "ID", "detected": "1", "confidence": "high"},
+    {"questionId": "ID", "detected": null, "confidence": "high"}
   ]
 }`;
 
@@ -140,12 +142,14 @@ Return ONLY valid JSON (no markdown fences):
     );
     const text = response.text;
     if (!text) return new Map();
-    const parsed = extractJson(text) as { answers: Array<{ questionId: string; detected: string | null }> };
+    const parsed = extractJson(text) as { answers: Array<{ questionId: string; detected: string | null; confidence?: string }> };
     const result = new Map<string, string | null>();
     for (const a of parsed.answers) {
-      result.set(a.questionId, a.detected);
+      // Discard low-confidence detections — treat as null (no answer)
+      const val = a.confidence === "low" ? null : a.detected;
+      result.set(a.questionId, val);
+      console.log(`[marking] MCQ DETECT ${label} Q-ID ${a.questionId}: detected="${a.detected}", confidence=${a.confidence ?? "?"}, using="${val}"`);
     }
-    console.log(`[marking] MCQ DETECT ${label}: ${[...result.entries()].map(([id, d]) => `${id}=${d}`).join(", ")}`);
     return result;
   } catch (err) {
     console.warn(`[marking] MCQ detect failed for ${label}:`, err);
@@ -735,6 +739,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
 
         // Blind MCQ detection: detect student's answer WITHOUT showing expected answer (avoids bias)
         if (mcqQs.length > 0) {
+          console.log(`[marking] ── MCQ BLIND DETECTION ── page ${pageIndex}, ${mcqQs.length} questions: ${mcqQs.map(q => `Q${q.questionNum}(ans=${q.answer})`).join(", ")}`);
           const pageBase64 = pageBuffer.toString("base64");
           const detected = await detectMcqAnswers(pageBase64, mcqQs, `page ${pageIndex}`);
           for (const q of mcqQs) {
@@ -1037,6 +1042,74 @@ export async function markExamPaper(paperId: string): Promise<void> {
         }
       }
       console.log(`[marking] Verification complete: ${upgraded}/${questionsToVerify.length} questions upgraded`);
+    }
+
+    // ── MCQ retry pass: re-detect with cropped image ──────────────────────────
+    // Retry when: (a) no answer detected, or (b) expected answer is "1" and student got 0
+    // (AI struggles to read handwritten "1" — a single vertical stroke is easily missed or misread)
+    const mcqToRetry = paper.questions.filter((q) => {
+      if (!isMcqAnswer(q.answer)) return false;
+      const r = resultMap.get(q.id);
+      if (!r) return false;
+      if (r.studentAnswer === "No answer detected") return true;
+      if (normalizeMcq(q.answer ?? "") === "1" && r.marksAwarded === 0) return true;
+      return false;
+    });
+
+    if (mcqToRetry.length > 0) {
+      console.log(`[marking] MCQ retry pass: ${mcqToRetry.length} MCQ questions with no detection — cropped re-detect`);
+      const mcqRetryResults = await Promise.all(
+        mcqToRetry.map(async (q) => {
+          const submissionPage = submissionIndexMap.get(q.pageIndex);
+          if (submissionPage === undefined) return null;
+          if (q.yStartPct == null || q.yEndPct == null) return null; // need bounds to crop
+          const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
+          let pageBuffer: Buffer;
+          try {
+            pageBuffer = await fs.readFile(pagePath);
+          } catch {
+            return null;
+          }
+
+          // Crop to the question's region for a closer look
+          const imageBuffer = await cropPageRegion(pageBuffer, q.yStartPct, q.yEndPct, `mcqRetry Q${q.questionNum}`);
+          const pageBase64 = imageBuffer.toString("base64");
+
+          // Re-detect with cropped image (full region = 0–100%)
+          const detected = await detectMcqAnswers(pageBase64, [{
+            ...q,
+            yStartPct: 0,
+            yEndPct: 100,
+          }], `mcqRetry Q${q.questionNum}`);
+
+          const studentAnswer = detected.get(q.id) ?? null;
+          if (!studentAnswer) {
+            console.log(`[marking] MCQ retry Q${q.questionNum}: still no answer — confirmed blank`);
+            return null;
+          }
+
+          // Accept whatever was detected — don't bias toward expected answer
+          const expected = q.answer?.trim() ?? "";
+          const match = normalizeMcq(studentAnswer) === normalizeMcq(expected);
+          console.log(`[marking] MCQ retry Q${q.questionNum}: detected "${studentAnswer}" on cropped pass, expected="${expected}", match=${match}`);
+          return {
+            questionId: q.id,
+            marksAvailable: q.marksAvailable ?? 1,
+            marksAwarded: match ? (q.marksAvailable ?? 1) : 0,
+            studentAnswer,
+            notes: match ? "" : `Student wrote "${studentAnswer}", expected "${expected}"`,
+          } as QuestionMarkResult;
+        })
+      );
+
+      let mcqUpgraded = 0;
+      for (const r of mcqRetryResults) {
+        if (!r) continue;
+        const idx = allResults.findIndex((x) => x.questionId === r.questionId);
+        if (idx !== -1) { allResults[idx] = r; mcqUpgraded++; }
+        else { allResults.push(r); mcqUpgraded++; }
+      }
+      console.log(`[marking] MCQ retry complete: ${mcqUpgraded}/${mcqToRetry.length} upgraded`);
     }
 
     // ── Batch DB updates in a single transaction ──────────────────────────────
