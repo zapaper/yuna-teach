@@ -81,8 +81,13 @@ STEP 2: Read the blue ink answer — HARD BOUNDARY ENFORCEMENT.
   - For MCQ: the answer box/circle is usually near the RIGHT side of the question's strip.
     Look ONLY in that strip. An answer in a different question's region is NOT this question's answer.
   - If boundaries are "unknown", use visual cues (printed question number, separator lines).
-  - For MCQ with expected answer "1": a handwritten "1" looks like a single short vertical stroke
-    in blue ink. Do not dismiss a blue vertical stroke as a stray mark — it is likely the digit "1".
+  - CRITICAL — detecting handwritten digits in blue ink:
+    Children write digits simply. A blue "1" is just a short vertical stroke (|) — no serif, no base.
+    A blue "2" may look like a curvy Z. A blue "3" looks like two bumps. A blue "4" has an angular top.
+    ANY blue ink mark in the answer area that resembles a digit IS the student's answer.
+    Do NOT dismiss small or faint blue marks as stray marks — children's handwriting is often small.
+    If the expected answer is a single digit (1, 2, 3, 4) and you see ANY blue mark in the answer
+    region, interpret it as the student's digit answer. Err on the side of detecting an answer.
   - Questions may have parts (a), (b), (c). Read each part's blue ink answer separately.
 
 STEP 3: Match the answer to the correct sub-part.
