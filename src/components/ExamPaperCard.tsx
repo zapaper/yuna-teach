@@ -65,8 +65,6 @@ export default function ExamPaperCard({
     ? `/exam/${paper.id}/overview?userId=${userId}`
     : paper.markingStatus === "released"
     ? `/exam/${paper.id}/review?userId=${userId}`
-    : paper.completedAt
-    ? "#" // Submitted but not yet released — no link
     : isFocused
     ? `/exam/${paper.id}/focused?userId=${userId}`
     : `/exam/${paper.id}?userId=${userId}`;
