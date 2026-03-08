@@ -483,9 +483,9 @@ function ExamEditContent({ id }: { id: string }) {
       <button
         onClick={async () => {
           // Clear "extraction failed" status since admin has manually reviewed Q&A
-          if (paper?.extractionStatus === "failed") {
+          if (paper?.extractionStatus === "failed" || paper?.extractionStatus === "processing") {
             await fetch(`/api/exam/${id}`, {
-              method: "PUT",
+              method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ extractionStatus: "ready" }),
             });
