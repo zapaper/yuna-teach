@@ -325,11 +325,10 @@ export default function HomePage() {
 // ─── Animated typing subheader ───────────────────────────────────────────────
 
 const PHRASES = [
-  "Let AI do the heavy-lifting",
-  "Let AI mark your child's exam paper",
+  "Let AI pinpoint your child's learning gaps",
+  "Let AI assign and grade your child's exam",
+  "Let AI suggest the perfect focused test",
   "Let AI narrate your child's Spelling / \u542C\u5199",
-  "Let AI track your child's progress",
-  "Let AI recommend focused practices",
 ];
 
 function TypingSubheader() {
