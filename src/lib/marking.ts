@@ -34,8 +34,14 @@ const MARKING_PROMPT = `You are marking a primary school student's exam submissi
 
 HOW TO READ THIS IMAGE:
 - Printed question text = BLACK. Student's handwritten answers = BLUE INK.
-- Do NOT confuse printed diagrams/text (black) with the student's writing (blue).
 - ONLY blue ink counts as the student's answer. Black printed text is NEVER the student's answer.
+
+*** CRITICAL — DISTINGUISHING INK COLORS ***
+The image may contain BOTH printed black text AND handwritten blue ink.
+- BLACK ink/text: This is the PRINTED exam paper (questions, labels, answer keys, watermarks). IGNORE ALL BLACK TEXT when reading the student's answer.
+- BLUE ink: This is what the STUDENT wrote by hand. Only blue ink is the student's answer.
+- If the answer area contains text that matches the expected answer but it is in BLACK (printed) — that is the answer key, NOT the student's work. The student left it BLANK → award 0 marks.
+- A blank answer area (no blue ink) = "No answer detected" = 0 marks. Even if you can see printed text.
 
 Questions on this page (vertical position as % from top of image):
 {QUESTIONS}
