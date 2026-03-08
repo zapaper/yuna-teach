@@ -300,12 +300,20 @@ export default function HomePage({
           Scan Spelling / 听写
         </Link>
         {isAdmin ? (
-          <Link
-            href={`/exam/upload?userId=${userId}`}
-            className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-          >
-            Upload Exam Paper
-          </Link>
+          <>
+            <Link
+              href={`/exam/upload?userId=${userId}`}
+              className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+            >
+              Upload Exam Paper
+            </Link>
+            <Link
+              href="/flagged"
+              className="block w-full bg-amber-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+            >
+              Review Flagged Q&amp;A
+            </Link>
+          </>
         ) : isParent ? (
           <button
             onClick={() => {
