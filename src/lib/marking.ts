@@ -770,34 +770,37 @@ export async function markExamPaper(paperId: string): Promise<void> {
 
         const results: QuestionMarkResult[] = [];
 
-        // Blind MCQ detection: detect student's answer WITHOUT showing expected answer (avoids bias)
+        // Blind MCQ detection: one question at a time to avoid cross-contamination
         if (mcqQs.length > 0) {
-          console.log(`[marking] ── MCQ BLIND DETECTION ── page ${pageIndex}, ${mcqQs.length} questions: ${mcqQs.map(q => `Q${q.questionNum}(ans=${q.answer})`).join(", ")}`);
+          console.log(`[marking] ── MCQ BLIND DETECTION ── page ${pageIndex}, ${mcqQs.length} questions (1-by-1): ${mcqQs.map(q => `Q${q.questionNum}(ans=${q.answer})`).join(", ")}`);
           const pageBase64 = pageBuffer.toString("base64");
-          const detected = await detectMcqAnswers(pageBase64, mcqQs, `page ${pageIndex}`);
-          for (const q of mcqQs) {
-            const studentAnswer = detected.get(q.id) ?? null;
-            const expected = q.answer?.trim() ?? "";
-            if (!studentAnswer) {
-              results.push({
-                questionId: q.id,
-                marksAvailable: q.marksAvailable ?? 1,
-                marksAwarded: 0,
-                studentAnswer: "No answer detected",
-                notes: "No blue ink answer found",
-              });
-            } else {
+          const mcqResults = await Promise.all(
+            mcqQs.map(async (q) => {
+              const detected = await detectMcqAnswers(pageBase64, [q], `page ${pageIndex} Q${q.questionNum}`);
+              const studentAnswer = detected.get(q.id) ?? null;
+              const expected = q.answer?.trim() ?? "";
+              if (!studentAnswer) {
+                console.log(`[marking] MCQ Q${q.questionNum}: detected=null, expected="${expected}", awarded=0`);
+                return {
+                  questionId: q.id,
+                  marksAvailable: q.marksAvailable ?? 1,
+                  marksAwarded: 0,
+                  studentAnswer: "No answer detected",
+                  notes: "No blue ink answer found",
+                } as QuestionMarkResult;
+              }
               const match = normalizeMcq(studentAnswer) === normalizeMcq(expected);
-              results.push({
+              console.log(`[marking] MCQ Q${q.questionNum}: detected="${studentAnswer}", expected="${expected}", awarded=${match ? (q.marksAvailable ?? 1) : 0}`);
+              return {
                 questionId: q.id,
                 marksAvailable: q.marksAvailable ?? 1,
                 marksAwarded: match ? (q.marksAvailable ?? 1) : 0,
                 studentAnswer,
                 notes: match ? "" : `Student wrote "${studentAnswer}", expected "${expected}"`,
-              });
-            }
-            console.log(`[marking] MCQ Q${q.questionNum}: detected="${studentAnswer}", expected="${expected}", awarded=${results[results.length - 1].marksAwarded}`);
-          }
+              } as QuestionMarkResult;
+            })
+          );
+          results.push(...mcqResults);
         }
 
         // Batch call for non-MCQ, non-science-written questions (full page, normal marking)
