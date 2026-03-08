@@ -188,7 +188,9 @@ STEP 6: Record what you detected.
 STEP 7: Notes — concise but helpful:
   - Full marks → notes = "" (empty string)
   - Partial marks → explain which parts were correct and which were wrong/missing (2-3 sentences max)
-  - Zero marks → explain why the student's answer is wrong compared to the expected answer (1-2 sentences)
+  - Zero marks (with an answer) → explain why the student's answer is wrong compared to the expected answer (1-2 sentences)
+  - Zero marks (no answer) → "No blue ink answer found"
+  - If a question context image is provided, use it to explain the mistake in context of what was asked
   - Include what the student wrote vs what was expected when relevant
 
 FINAL REMINDER — READ THIS BEFORE RESPONDING:
@@ -539,7 +541,21 @@ export async function markExamPaper(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+      // For cropped images, add the question image so AI can see what was asked
+      let questionContextNote = "";
+      if (isCropped) {
+        const qWithImages = questions.filter((q) => q.imageData);
+        if (qWithImages.length > 0) {
+          const startIdx = 2 + imageAnswerQuestions.length;
+          questionContextNote =
+            `\nQuestion context images (so you understand what was asked):\n` +
+            qWithImages
+              .map((q, i) => `- Image ${startIdx + i}: Question ${q.questionNum} text (for context — the submission image above shows ONLY the answer area)`)
+              .join("\n");
+        }
+      }
+
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote + questionContextNote);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -550,6 +566,16 @@ export async function markExamPaper(paperId: string): Promise<void> {
         const sepIdx = q.answerImageData.indexOf(";base64,");
         if (sepIdx > 5) {
           parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
+        }
+      }
+      // Add question images for cropped context
+      if (isCropped) {
+        for (const q of questions) {
+          if (!q.imageData) continue;
+          const sepIdx = q.imageData.indexOf(";base64,");
+          if (sepIdx > 5) {
+            parts.push({ inlineData: { mimeType: q.imageData.slice(5, sepIdx), data: q.imageData.slice(sepIdx + 8) } });
+          }
         }
       }
       parts.push({ text: prompt });
