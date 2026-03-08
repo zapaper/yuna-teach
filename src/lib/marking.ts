@@ -62,7 +62,7 @@ Reply with ONLY one word: YES or NO.`;
           { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
           { text: prompt },
         ]}],
-        config: { temperature: 0 },
+        config: { temperature: 0.3 },
       }),
       30_000,
       `blueInkCheck ${label}`
