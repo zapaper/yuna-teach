@@ -481,7 +481,17 @@ function ExamEditContent({ id }: { id: string }) {
 
       {/* Save & Exit */}
       <button
-        onClick={() => router.push(backPath)}
+        onClick={async () => {
+          // Clear "extraction failed" status since admin has manually reviewed Q&A
+          if (paper?.extractionStatus === "failed") {
+            await fetch(`/api/exam/${id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ extractionStatus: "ready" }),
+            });
+          }
+          router.push(backPath);
+        }}
         className="w-full mt-6 py-3 rounded-2xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors shadow-md"
       >
         Save &amp; Exit
