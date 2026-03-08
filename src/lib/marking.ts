@@ -64,12 +64,20 @@ Do NOT confuse printed black text with the student's answer. If text in the answ
 matches the expected answer but is BLACK (printed), that is the answer key — the student
 left it blank. Award 0 marks.
 
-STEP 2: Read the blue ink answer — STRICTLY within boundaries.
-  Each question has a vertical region: yStart% to yEnd%.
-  Example: yStart=42% yEnd=60% means ONLY look at the strip between 42% and 60% down the page.
-  - ONLY read blue ink that falls WITHIN the specified yStart%–yEnd% region.
-  - Blue ink ABOVE yStart% belongs to the PREVIOUS question — IGNORE it completely.
-  - Blue ink BELOW yEnd% belongs to the NEXT question — IGNORE it completely.
+STEP 2: Read the blue ink answer — HARD BOUNDARY ENFORCEMENT.
+  Each question has a vertical region: yStart% to yEnd% (measured from TOP of image).
+  Example: yStart=42% yEnd=60% means ONLY the strip between 42% and 60% down the page.
+
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  BOUNDARY RULE: Treat yStart% and yEnd% as ABSOLUTE WALLS.     ║
+  ║  ANY ink, text, or marks OUTSIDE this region DO NOT EXIST.      ║
+  ║  Even if you can see writing above or below — it is NOT there.  ║
+  ╚══════════════════════════════════════════════════════════════════╝
+
+  - Blue ink ABOVE yStart% → belongs to another question. PRETEND IT DOES NOT EXIST.
+  - Blue ink BELOW yEnd% → belongs to another question. PRETEND IT DOES NOT EXIST.
+  - If the student's answer for a DIFFERENT question bleeds into this region, ignore it
+    unless it is clearly within the boundaries.
   - For MCQ: the answer box/circle is usually near the RIGHT side of the question's strip.
     Look ONLY in that strip. An answer in a different question's region is NOT this question's answer.
   - If boundaries are "unknown", use visual cues (printed question number, separator lines).
@@ -109,10 +117,11 @@ STEP 7: Notes — keep SHORT:
   - Partial or zero marks → 1 sentence max explaining what went wrong
 
 FINAL REMINDER — READ THIS BEFORE RESPONDING:
-  For EVERY question, your FIRST action must be checking for blue ink.
-  If a question's region has NO blue handwritten ink → marksAwarded: 0, studentAnswer: "No answer detected".
-  Printed black text (even if it matches the expected answer) is NOT the student's answer.
-  Do NOT hallucinate or invent answers. Only report what is actually handwritten in blue ink.
+  1. For EVERY question, your FIRST action must be checking for blue ink within its yStart%–yEnd% region.
+  2. NEVER read ink outside a question's yStart%–yEnd% boundaries. Content outside = invisible.
+  3. If a question's region has NO blue handwritten ink → marksAwarded: 0, studentAnswer: "No answer detected".
+  4. Printed black text (even if it matches the expected answer) is NOT the student's answer.
+  5. Do NOT hallucinate or invent answers. Only report what is actually handwritten in blue ink WITHIN boundaries.
 
 Return ONLY valid JSON (no markdown fences):
 {
