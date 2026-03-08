@@ -1155,8 +1155,8 @@ function ExamOverviewContent({ id }: { id: string }) {
                           </div>
                         ) : null}
 
-                        {/* AI Elaboration — for wrong/partial answers */}
-                        {(currentQ.marksAwarded ?? 0) < (currentQ.marksAvailable ?? 0) && (
+                        {/* AI Elaboration — available for all questions */}
+                        {currentQ.marksAwarded !== null && (
                           <div>
                             {elaborations[currentQ.id] ? (
                               <div>

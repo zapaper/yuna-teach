@@ -499,8 +499,8 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     ) : null}
 
-                    {/* AI Elaboration — only for wrong/partial answers, shown below answer key */}
-                    {(currentQ.marksAwarded ?? 0) < (currentQ.marksAvailable ?? 0) && (
+                    {/* AI Elaboration — available for all marked questions */}
+                    {currentQ.marksAwarded !== null && (
                       <div>
                         {elaborations[currentQ.id] ? (
                           <div>
