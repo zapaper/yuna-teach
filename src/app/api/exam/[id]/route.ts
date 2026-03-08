@@ -329,7 +329,21 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  await prisma.examPaper.delete({ where: { id } });
+  // For focused tests assigned to a student, soft-delete by clearing parent's userId
+  // so it disappears from parent's list but stays for the student
+  const paper = await prisma.examPaper.findUnique({
+    where: { id },
+    select: { paperType: true, assignedToId: true, completedAt: true },
+  });
+
+  if (paper?.paperType === "focused" && paper.assignedToId && paper.completedAt) {
+    await prisma.examPaper.update({
+      where: { id },
+      data: { userId: null },
+    });
+  } else {
+    await prisma.examPaper.delete({ where: { id } });
+  }
 
   return NextResponse.json({ success: true });
 }
