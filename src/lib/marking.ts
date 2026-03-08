@@ -333,7 +333,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   console.log(`[marking] remarkSingleQuestion ${questionId}`);
   const question = await prisma.examQuestion.findUnique({
     where: { id: questionId },
-    include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
+    include: { examPaper: { include: { questions: { select: { id: true, marksAwarded: true } } } } },
   });
   if (!question) throw new Error("Question not found");
 
@@ -432,7 +432,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
       data: { marksAwarded: awarded, markingNotes: `Detected: ${studentAnswer ?? "No answer detected"}${notes ? ` | ${notes}` : ""}` },
     });
     const allMarks = paper.questions.map((q) =>
-      q === question ? awarded : (q.marksAwarded ?? 0)
+      q.id === questionId ? awarded : (q.marksAwarded ?? 0)
     );
     const total = allMarks.reduce((a, b) => a + b, 0);
     await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
@@ -460,7 +460,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
         data: { marksAwarded: 0, markingNotes: "Detected: No answer detected | No blue ink found (pre-check)" },
       });
       const allMarks = paper.questions.map((q) =>
-        q === question ? 0 : (q.marksAwarded ?? 0)
+        q.id === questionId ? 0 : (q.marksAwarded ?? 0)
       );
       const total = allMarks.reduce((a, b) => a + b, 0);
       await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
@@ -522,7 +522,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   // Recalculate paper total score
   const allMarks = paper.questions.map((q) =>
-    q === question ? (result.marksAwarded ?? 0) : (q.marksAwarded ?? 0)
+    q.id === questionId ? (result.marksAwarded ?? 0) : (q.marksAwarded ?? 0)
   );
   const total = allMarks.reduce((a, b) => a + b, 0);
   await prisma.examPaper.update({ where: { id: paper.id }, data: { score: total } });
