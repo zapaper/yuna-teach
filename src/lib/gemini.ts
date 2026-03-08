@@ -1472,6 +1472,59 @@ async function extractAnswersWithWorking(
   console.log(`[Exam Pipeline] Answer keys found: [${answerKeys.join(", ")}]`);
   if (missingAnswers.length > 0) {
     console.log(`[Exam Pipeline] WARNING — missing answers for: [${missingAnswers.join(", ")}]`);
+
+    // Retry missing answers individually on each answer page
+    console.log(`[Exam Pipeline] Retrying ${missingAnswers.length} missing answers individually...`);
+
+    // Build paperLabel → prefix mapping
+    const labelToPrefix = new Map(structure.papers.map(p => [p.label, p.questionPrefix]));
+
+    for (const key of missingAnswers) {
+      // Determine which answer pages to search (match by prefix)
+      const prefix = structure.papers.find(p => key.startsWith(p.questionPrefix))?.questionPrefix ?? "";
+      const matchingPages = structure.pages
+        .filter(p => p.isAnswerSheet)
+        .filter(p => {
+          const pagePrefix = labelToPrefix.get(p.paperLabel ?? "") ?? "";
+          return pagePrefix === prefix;
+        });
+
+      // Try each matching answer page
+      let found = false;
+      for (const ap of matchingPages) {
+        const pageIdx = originalPageIndices.indexOf(ap.pageIndex);
+        if (pageIdx === -1) continue;
+        try {
+          const entry = await redoAnswerExtraction(
+            imagesBase64[pageIdx],
+            key.replace(prefix, ""), // strip prefix for the prompt
+            ap.paperLabel ?? ""
+          );
+          if (entry.value && entry.value !== "") {
+            // Re-add prefix to image entries' page index
+            if (entry.type === "image") {
+              (entry as { answerPageIndex: number }).answerPageIndex = ap.pageIndex;
+            }
+            result.answers[key] = entry;
+            console.log(`[Exam Pipeline] Retry found answer for ${key}: ${entry.value.slice(0, 50)}`);
+            found = true;
+            break;
+          }
+        } catch (err) {
+          console.warn(`[Exam Pipeline] Retry failed for ${key} on page ${ap.pageIndex}:`, err);
+        }
+      }
+      if (!found) {
+        console.log(`[Exam Pipeline] Retry: still no answer for ${key}`);
+      }
+    }
+
+    const finalMissing = expectedKeys.filter(k => !result.answers[k]);
+    if (finalMissing.length > 0) {
+      console.log(`[Exam Pipeline] After retry, still missing: [${finalMissing.join(", ")}]`);
+    } else {
+      console.log(`[Exam Pipeline] All missing answers recovered after retry`);
+    }
   }
   if (extraAnswers.length > 0) {
     console.log(`[Exam Pipeline] WARNING — unexpected answer keys: [${extraAnswers.join(", ")}] (possible off-by-one or numbering error)`);
