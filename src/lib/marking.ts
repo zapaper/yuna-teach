@@ -103,10 +103,16 @@ Find the single digit or letter the student HANDWROTE in BLUE INK as their MCQ a
 
 The student's answer will be ONE of: 1, 2, 3, 4, A, B, C, or D.
 
+WHERE TO LOOK — START FROM THE RIGHT SIDE:
+- The student writes their answer in BLUE INK on the RIGHT SIDE of the page
+- SCAN RIGHT TO LEFT: Start from the far right of the question's row and work leftward
+- The answer is a single handwritten digit (1/2/3/4) in blue ink on the right portion
+- IGNORE everything on the left — that is printed question text and option labels in black
+
 How to distinguish BLUE handwriting from BLACK print:
-- Printed option labels like "(1)", "(2)", "(3)", "(4)" are BLACK — these are NOT the student's answer
-- The student's answer is written SEPARATELY in BLUE ink, usually near a box, bracket, or answer space
-- Blue ink has a distinctly BLUE hue — it looks different from the black printed text around it
+- Printed option labels "(1)", "(2)", "(3)", "(4)" scattered across the question are BLACK — IGNORE them all
+- The student's BLUE INK answer is on the RIGHT side, written separately from any printed text
+- Blue ink has a distinctly BLUE hue — it looks different from black printed text
 - If you are unsure whether a mark is blue or black, it is probably black (printed) — report null
 
 STRICT RULES:
