@@ -255,14 +255,9 @@ function ExamReviewContent({ id }: { id: string }) {
 
   const isStudent = userId === assignedToId;
 
-  // For students, hide questions they didn't answer (no ink detected)
+  // For students, only show questions that were actually marked (have a marking result)
   const writtenQuestions = isStudent
-    ? data.questions.filter((q) => {
-        const noAnswer =
-          (q.studentAnswer === null || q.studentAnswer === "No answer detected") &&
-          (q.markingNotes?.includes("No answer detected") || q.markingNotes?.includes("No blue ink") || q.markingNotes === null);
-        return !noAnswer;
-      })
+    ? data.questions.filter((q) => q.marksAwarded !== null)
     : data.questions;
 
   const incorrectQuestions = writtenQuestions.filter((q) => {
