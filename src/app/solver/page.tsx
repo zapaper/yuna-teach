@@ -97,12 +97,10 @@ function SolverContent() {
         return;
       }
 
-      // Use first linked student
-      const studentId = linkedStudents[0].id;
       const res = await fetch("/api/focused-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId: userId, studentId, subject, topic }),
+        body: JSON.stringify({ parentId: userId, subject, topic }),
       });
       const data = await res.json();
       if (res.ok && data.id) {
