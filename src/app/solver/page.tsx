@@ -106,7 +106,7 @@ function SolverContent() {
       });
       const data = await res.json();
       if (res.ok && data.id) {
-        router.push(`/exam/${data.id}/focused?userId=${userId}`);
+        router.push(`/home/${userId}`);
       } else {
         setError(data.error ?? "Could not create focused test");
       }
