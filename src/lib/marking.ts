@@ -31,9 +31,9 @@ async function isolateAndThickenBlueInk(imageBuffer: Buffer, label: string): Pro
       }
     }
 
-    // Pass 2: dilate — spread each ink pixel by 2px in all directions
+    // Pass 2: dilate — spread each ink pixel by 5px in all directions (thicker = easier to detect)
     const dilated = Buffer.alloc(width * height, 255);
-    const radius = 2;
+    const radius = 5;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (mask[y * width + x] === 0) {
