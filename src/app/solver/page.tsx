@@ -87,10 +87,9 @@ function SolverContent() {
       // Get linked students for this parent
       const usersRes = await fetch("/api/users");
       const usersData = await usersRes.json();
-      const currentUser = Array.isArray(usersData)
-        ? usersData.find((u: { id: string }) => u.id === userId)
-        : null;
-      const linkedStudents: { id: string }[] = currentUser?.linkedStudents ?? [];
+      const usersList: { id: string; linkedStudents: { id: string }[] }[] = usersData.users ?? [];
+      const currentUser = usersList.find((u) => u.id === userId) ?? null;
+      const linkedStudents = currentUser?.linkedStudents ?? [];
 
       if (linkedStudents.length === 0) {
         setNoStudentLinked(true);
