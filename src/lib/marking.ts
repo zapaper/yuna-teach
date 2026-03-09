@@ -382,7 +382,8 @@ STEP 6: Record what you detected.
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
     - If blue ink exists but the answer is illegible, incomplete, or too unclear to read:
       write what you can see (e.g. "illegible blue ink" or partial answer like "12...") — do NOT guess the rest.
-    - NEVER complete or infer what the answer "should" say based on the expected answer or context.
+    - NEVER write the expected answer as the student's answer. If you did not clearly detect it in blue ink, it is not there.
+    - For sub-parts where the student did not answer or the answer is wrong/unclear: write "(a) missing" or "(b) incorrect" — do NOT copy the answer key into studentAnswer.
 
 STEP 7: Notes — concise but helpful:
   - Full marks → notes = "" (empty string)
@@ -400,6 +401,7 @@ FINAL REMINDER — READ THIS BEFORE RESPONDING:
   5. Do NOT hallucinate or invent answers. Only report what is actually handwritten in blue ink WITHIN boundaries.
   6. For answer image questions: ONLY compare against what is visible in the provided answer image. Never guess or infer the correct answer from context.
   7. Blue ink present ≠ correct answer. If blue ink exists but is too incomplete/illegible to match the expected answer, award 0 marks. Do NOT assume the student wrote the correct answer just because some blue ink is there.
+  8. NEVER copy the answer key into studentAnswer. studentAnswer must only contain what you actually saw written in blue ink. If a sub-part answer was not detected, say "(x) missing" — never substitute the expected answer.
 
 Return ONLY valid JSON (no markdown fences):
 {
