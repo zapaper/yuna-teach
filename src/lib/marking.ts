@@ -344,13 +344,17 @@ STEP 5: Compare against the expected answer.
      - If answer is wrong with no correct working → ZERO marks.
   C) For questions with an answer image provided:
      - The answer image shows EXACTLY what the correct answer looks like.
-     - Compare ONLY what the student actually wrote/drew in blue ink against what is shown in the answer image.
-     - For multi-part answers (a), (b), (c): the answer image may show all parts together.
-       Match each sub-part's blue ink answer against the corresponding part shown in the answer image.
-     - DO NOT infer, assume, or hallucinate what the correct answer should be.
-       If there is no answer image, use only the provided expected answer text.
-     - If the student's answer for a sub-part is missing or unclear, award 0 for that sub-part only.
-     - NEVER award marks based on what you think the answer "should" be — only what is shown in the answer image.
+     - Compare ONLY what the student actually drew/wrote in blue ink against what is shown in the answer image.
+     - You MUST verify VISUAL DETAILS precisely — direction, orientation, shape, and position all matter:
+         • An arrow pointing UP is WRONG if the answer image shows it pointing DOWN. Opposite directions = 0 marks.
+         • A curve going LEFT is WRONG if the answer shows it going RIGHT.
+         • A label in the wrong position is WRONG even if the word is correct.
+         • A line at the wrong angle is WRONG even if it connects the right endpoints.
+     - Do NOT award marks if the student's drawing merely "looks similar" — it must match the answer image in direction, orientation, and all key visual features.
+     - For multi-part answers (a), (b), (c): compare each sub-part independently against its corresponding part in the answer image.
+     - If the student's drawing differs in ANY key visual aspect (wrong direction, wrong shape, wrong position) → 0 marks for that part.
+     - If you cannot clearly see the student's blue ink detail → do not assume it matches → 0 marks for that part.
+     - NEVER infer, assume, or hallucinate. Only award marks for what you can clearly see matches the answer image.
 
 STEP 6: Record what you detected.
   "studentAnswer": Write EXACTLY what the student wrote in blue ink.
