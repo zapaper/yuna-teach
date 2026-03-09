@@ -331,7 +331,15 @@ STEP 5: Compare against the expected answer.
      - For written/worked answers: check if working/steps are partially correct.
        If some steps are correct → award PARTIAL marks = round(proportion × marksAvailable).
      - If answer is wrong with no correct working → ZERO marks.
-  C) For diagram questions: compare student's blue-ink drawing against the expected answer diagram image.
+  C) For questions with an answer image provided:
+     - The answer image shows EXACTLY what the correct answer looks like.
+     - Compare ONLY what the student actually wrote/drew in blue ink against what is shown in the answer image.
+     - For multi-part answers (a), (b), (c): the answer image may show all parts together.
+       Match each sub-part's blue ink answer against the corresponding part shown in the answer image.
+     - DO NOT infer, assume, or hallucinate what the correct answer should be.
+       If there is no answer image, use only the provided expected answer text.
+     - If the student's answer for a sub-part is missing or unclear, award 0 for that sub-part only.
+     - NEVER award marks based on what you think the answer "should" be — only what is shown in the answer image.
 
 STEP 6: Record what you detected.
   "studentAnswer": Write EXACTLY what the student wrote in blue ink.
@@ -353,6 +361,7 @@ FINAL REMINDER — READ THIS BEFORE RESPONDING:
   3. If a question's region has NO blue handwritten ink → marksAwarded: 0, studentAnswer: "No answer detected".
   4. Printed black text (even if it matches the expected answer) is NOT the student's answer.
   5. Do NOT hallucinate or invent answers. Only report what is actually handwritten in blue ink WITHIN boundaries.
+  6. For answer image questions: ONLY compare against what is visible in the provided answer image. Never guess or infer the correct answer from context.
 
 Return ONLY valid JSON (no markdown fences):
 {
