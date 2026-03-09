@@ -585,7 +585,24 @@ function ExamOverviewContent({ id }: { id: string }) {
         <InfoRow label="Year / Semester"
           value={[paper.year, paper.semester].filter(Boolean).join(" / ") || null} />
         <InfoRow label="Total Questions" value={String(questionsDetected)} />
-        <InfoRow label="Total Marks" value={paper.totalMarks} />
+        <div className="flex items-center justify-between py-2 border-t border-slate-100">
+          <span className="text-sm text-slate-600">Total Marks</span>
+          <input
+            type="number"
+            min="0"
+            value={paper.totalMarks ?? ""}
+            onChange={(e) => setPaper({ ...paper, totalMarks: e.target.value || null })}
+            onBlur={async (e) => {
+              await fetch(`/api/exam/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ totalMarks: e.target.value || null }),
+              });
+            }}
+            placeholder="—"
+            className="w-20 text-sm font-semibold text-slate-800 text-right bg-transparent border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-400"
+          />
+        </div>
         <div className="flex items-center justify-between py-2 border-t border-slate-100">
           <span className="text-sm text-slate-600">Exam Type</span>
           {isAdmin ? (
