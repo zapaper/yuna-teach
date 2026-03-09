@@ -391,7 +391,7 @@ Create a SEPARATE entry in the "papers" array for EACH booklet/section that has 
 Return ONLY valid JSON:
 {
   "header": {
-    "school": "...", "level": "...", "subject": "...", "year": "...",
+    "school": "...", "level": "Primary 4" or "Primary 5" or "Primary 6", "subject": "...", "year": "...",
     "semester": "...", "title": "...", "totalMarks": "...",
     "marksGuidance": "Questions 1 to 30 carry 1 mark each. Questions 31 to 44 carry 2 marks each.",
     "sections": [{"name": "A", "type": "MCQ", "marks": 28, "questionCount": 28}]

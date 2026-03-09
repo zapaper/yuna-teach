@@ -30,8 +30,8 @@ export function normalizeLevel(raw: string | null | undefined): string | null {
   const wordToNum: Record<string, string> = {
     one: "1", two: "2", three: "3", four: "4", five: "5", six: "6",
   };
-  // Match patterns like P6, Pri6, Pri 6, Primary 6, Primary Six, etc.
-  const m = s.match(/^(?:p(?:ri(?:mary)?)?)\s*(\w+)$/i);
+  // Match patterns like P6, Pr6, Pr 6, Pri6, Pri 6, Primary 6, Primary Six, etc.
+  const m = s.match(/^(?:p(?:r(?:i(?:mary)?)?)?)\s*(\w+)$/i);
   if (m) {
     const numPart = m[1].toLowerCase();
     const digit = wordToNum[numPart] ?? (/^[1-6]$/.test(numPart) ? numPart : null);
