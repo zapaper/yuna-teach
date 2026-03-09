@@ -141,12 +141,16 @@ async function detectMcqAnswers(
   imageBase64: string,
   questions: Array<{ id: string; questionNum: string; yStartPct: number | null; yEndPct: number | null }>,
   label: string,
-  temperature = 0.4
+  temperature = 0.4,
+  hintAnswer1QuestionIds: Set<string> = new Set()
 ): Promise<Map<string, string | null>> {
   const qLines = questions.map((q) => {
     const yStart = q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown";
     const yEnd = q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown";
-    return `- Question ${q.questionNum} (ID: ${q.id}): answer region ${yStart}–${yEnd} from top of image`;
+    const hint = hintAnswer1QuestionIds.has(q.id)
+      ? ` ⚠️ HINT: The answer for this question is likely the digit "1" — a single short vertical blue stroke (like | or l or I). It may be very thin and small. Look carefully for ANY vertical blue line in the answer area.`
+      : "";
+    return `- Question ${q.questionNum} (ID: ${q.id}): answer region ${yStart}–${yEnd} from top of image${hint}`;
   }).join("\n");
 
   const prompt = `You are reading a student's handwritten MCQ answers from an exam paper.
@@ -160,6 +164,12 @@ For each question below, look ONLY within its vertical region (yStart% to yEnd% 
 Find the single digit or letter the student HANDWROTE in BLUE INK as their MCQ answer.
 
 The student's answer will be ONE of: 1, 2, 3, 4, A, B, C, or D.
+
+HOW EACH DIGIT LOOKS IN HANDWRITING:
+- "1" = a single short vertical stroke (like | or l or I). No curves. May have a small top serif or tick. VERY EASY TO MISS — it looks like a simple line.
+- "2" = starts high, curves right, then sweeps left with a flat base (like a mirrored Z)
+- "3" = two bumps on the right side, open on the left
+- "4" = angular top-left stroke, vertical right stroke, horizontal crossbar
 
 WHERE TO LOOK — START FROM THE RIGHT SIDE:
 - The student writes their answer in BLUE INK on the RIGHT SIDE of the page
@@ -179,6 +189,7 @@ STRICT RULES:
 3. Do NOT read printed black "(1)", "(2)" etc. as the student's answer
 4. Each question's region is independent — do NOT mix up answers between regions
 5. Report your confidence: "high" if clearly blue handwriting, "low" if uncertain
+6. For any question with the ⚠️ HINT: look extra carefully for a thin vertical blue stroke — "1" is the most missed digit
 
 Questions:
 ${qLines}
@@ -466,9 +477,10 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
       const enhancedBuffer = await isolateAndThickenBlueInk(pageBuffer, `remarkSingle Q${question.questionNum}`);
       const enhancedBase64 = enhancedBuffer.toString("base64");
 
+      const hint1 = new Set([question.id]);
       const [normalDet, opencvDet] = await Promise.all([
-        detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} normal`, 0.4),
-        detectMcqAnswers(enhancedBase64, [question], `remarkSingle Q${question.questionNum} opencv`, 0.3),
+        detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} normal`, 0.4, hint1),
+        detectMcqAnswers(enhancedBase64, [question], `remarkSingle Q${question.questionNum} opencv`, 0.3, hint1),
       ]);
       const normalAns = normalDet.get(question.id) ?? null;
       const opencvAns = opencvDet.get(question.id) ?? null;
@@ -1178,9 +1190,10 @@ export async function markExamPaper(paperId: string): Promise<void> {
             const enhancedBuffer = await isolateAndThickenBlueInk(imageBuffer, `mcqRetry Q${q.questionNum}`);
             const enhancedBase64 = enhancedBuffer.toString("base64");
 
+            const hint1 = new Set([q.id]);
             const [normalDet, opencvDet] = await Promise.all([
-              detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum} normal`, 0.4),
-              detectMcqAnswers(enhancedBase64, [croppedQ], `mcqRetry Q${q.questionNum} opencv`, 0.3),
+              detectMcqAnswers(pageBase64, [croppedQ], `mcqRetry Q${q.questionNum} normal`, 0.4, hint1),
+              detectMcqAnswers(enhancedBase64, [croppedQ], `mcqRetry Q${q.questionNum} opencv`, 0.3, hint1),
             ]);
             const normalAns = normalDet.get(q.id) ?? null;
             const opencvAns = opencvDet.get(q.id) ?? null;
