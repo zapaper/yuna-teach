@@ -315,18 +315,26 @@ export default function HomePage({
             </Link>
           </>
         ) : isParent ? (
-          <button
-            onClick={() => {
-              if (hasLinkedStudents) {
-                document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" });
-              } else {
-                setShowLinkPrompt(true);
-              }
-            }}
-            className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-          >
-            Assign Papers
-          </button>
+          <>
+            <button
+              onClick={() => {
+                if (hasLinkedStudents) {
+                  document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" });
+                } else {
+                  setShowLinkPrompt(true);
+                }
+              }}
+              className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+            >
+              Assign Papers
+            </button>
+            <Link
+              href={`/solver?userId=${userId}`}
+              className="block w-full bg-teal-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+            >
+              AI Solver
+            </Link>
+          </>
         ) : null}
       </div>
 
