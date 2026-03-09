@@ -137,6 +137,10 @@ export default function HomePage({
   const isAdmin = user?.name?.toLowerCase() === "admin";
   const hasLinkedStudents = (user?.linkedStudents?.length ?? 0) > 0;
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackMsg, setFeedbackMsg] = useState("");
+  const [sendingFeedback, setSendingFeedback] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   async function handleGenerateCode() {
     setGeneratingCode(true);
@@ -594,6 +598,73 @@ export default function HomePage({
           );
         })()}
       </div>
+
+      {/* Feedback button */}
+      <div className="text-center py-6">
+        <button
+          onClick={() => { setShowFeedback(true); setFeedbackSent(false); setFeedbackMsg(""); }}
+          className="text-xs text-slate-300 hover:text-slate-400 transition-colors"
+        >
+          Feedback / Feature Request
+        </button>
+      </div>
+
+      {/* Feedback modal */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            {feedbackSent ? (
+              <>
+                <p className="text-center text-slate-700 font-medium mb-4">Thank you for your feedback!</p>
+                <button
+                  onClick={() => setShowFeedback(false)}
+                  className="w-full py-2.5 rounded-xl bg-primary-500 text-white font-medium"
+                >
+                  Close
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="font-semibold text-lg mb-3">Feedback / Feature Request</h3>
+                <textarea
+                  value={feedbackMsg}
+                  onChange={(e) => setFeedbackMsg(e.target.value)}
+                  placeholder="Tell us what you think or what you'd like to see..."
+                  rows={4}
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-primary-400 mb-3"
+                />
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowFeedback(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!feedbackMsg.trim()) return;
+                      setSendingFeedback(true);
+                      try {
+                        await fetch("/api/feedback", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ userId, message: feedbackMsg }),
+                        });
+                        setFeedbackSent(true);
+                      } catch { /* ignore */ }
+                      finally { setSendingFeedback(false); }
+                    }}
+                    disabled={sendingFeedback || !feedbackMsg.trim()}
+                    className="flex-1 py-2.5 rounded-xl bg-primary-500 text-white font-medium hover:bg-primary-600 disabled:opacity-50"
+                  >
+                    {sendingFeedback ? "Sending..." : "Send"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -145,6 +145,15 @@ model InviteCode {
   @@map("invite_codes")
 }
 
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("feedback")
+}
+
 enum Language {
   CHINESE
   ENGLISH
