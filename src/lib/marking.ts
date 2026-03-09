@@ -243,6 +243,25 @@ function normalizeMcq(val: string): string {
   return val.trim().replace(/[()]/g, "").toUpperCase();
 }
 
+/**
+ * Build the answer description string for the marking prompt.
+ * When an answer image is present, makes it explicit which sub-segment
+ * the image covers vs which segments have text answers.
+ */
+function buildAnswerDesc(answer: string | null, hasImage: boolean): string {
+  if (!hasImage) return answer ? `"${answer}"` : "not provided";
+  // With image: the answer text typically contains all sub-parts.
+  // Tell AI: image covers the diagram/drawing part; text covers remaining parts.
+  return `Multi-part answer:
+    - The ADDITIONAL IMAGE provided shows the expected diagram/drawing answer for the sub-segment that requires a drawing.
+    - The TEXT answer key is: "${answer ?? "see image only"}"
+    - For any sub-segment marked "(a)", "(b)", "(c)" etc. in the text answer key:
+        • If the text key shows a value for that sub-segment (e.g. "(b) 5") → compare student's blue ink against that TEXT value.
+        • If the text key does NOT have a value for a sub-segment (or says "see image") → compare student's drawing against the ADDITIONAL IMAGE.
+    - NEVER use the image to mark a sub-segment that already has a text answer in the key.
+    - NEVER use the text key to mark a sub-segment that should be compared against the image.`;
+}
+
 interface QuestionMarkResult {
   questionId: string;
   marksAvailable: number;
@@ -556,9 +575,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   // Step 2: Mark normally
   const yStart = useCrop ? "0%" : (question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "unknown");
   const yEnd = useCrop ? "100%" : (question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "unknown");
-  const answerDesc = question.answerImageData
-    ? `[diagram — see additional image]${question.answer ? `. Marking guidance: ${question.answer}` : ""}`
-    : question.answer ? `"${question.answer}"` : "not provided";
+  const answerDesc = buildAnswerDesc(question.answer, !!question.answerImageData);
   const marksInfo = question.marksAvailable != null ? `marksAvailable: ${question.marksAvailable}` : `marksAvailable: detect`;
   const printWarning = question.answer
     ? ` ⚠️ WARNING: The text "${question.answer}" may appear PRINTED (black ink) on this page — that is the answer key, NOT the student's handwriting. Only count it if written in BLUE INK by hand.`
@@ -752,9 +769,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
         .map((q) => {
           const yStart = isCropped ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
           const yEnd = isCropped ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
-          const answerDesc = q.answerImageData
-            ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
-            : q.answer ? `"${q.answer}"` : "not provided";
+          const answerDesc = buildAnswerDesc(q.answer, !!q.answerImageData);
           const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
           const printWarning = q.answer
             ? ` [PRINTED TEXT "${q.answer}" may appear on page — IGNORE unless handwritten in BLUE ink]`
@@ -986,9 +1001,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
 
           const yStart = useCrop ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
           const yEnd = useCrop ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
-          const answerDesc = q.answerImageData
-            ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
-            : q.answer ? `"${q.answer}"` : "not provided";
+          const answerDesc = buildAnswerDesc(q.answer, !!q.answerImageData);
           const retryMarksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
           const cropNote = useCrop ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
           const questionLines = `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${retryMarksInfo}. Expected answer: ${answerDesc}${cropNote}`;
@@ -1089,9 +1102,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
 
           const yStart = useCrop ? "0%" : (q.yStartPct != null ? `${q.yStartPct.toFixed(1)}%` : "unknown");
           const yEnd = useCrop ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
-          const answerDesc = q.answerImageData
-            ? `[diagram — see additional image]${q.answer ? `. Marking guidance: ${q.answer}` : ""}`
-            : q.answer ? `"${q.answer}"` : "not provided";
+          const answerDesc = buildAnswerDesc(q.answer, !!q.answerImageData);
           const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
           const retryAnswerOneHint = q.answer?.trim() === "1"
             ? ` ⚠️ EXPECTED ANSWER IS "1" — look extra carefully for a single vertical blue stroke. Do NOT report "No answer detected" unless the answer area is completely blank.`
