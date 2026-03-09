@@ -357,6 +357,9 @@ STEP 6: Record what you detected.
     - For text/number answers: quote their answer (e.g. "3.5 kg", "B", "12").
     - For MCQ: the option they wrote (e.g. "1", "2", "A", "B").
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
+    - If blue ink exists but the answer is illegible, incomplete, or too unclear to read:
+      write what you can see (e.g. "illegible blue ink" or partial answer like "12...") — do NOT guess the rest.
+    - NEVER complete or infer what the answer "should" say based on the expected answer or context.
 
 STEP 7: Notes — concise but helpful:
   - Full marks → notes = "" (empty string)
@@ -373,6 +376,7 @@ FINAL REMINDER — READ THIS BEFORE RESPONDING:
   4. Printed black text (even if it matches the expected answer) is NOT the student's answer.
   5. Do NOT hallucinate or invent answers. Only report what is actually handwritten in blue ink WITHIN boundaries.
   6. For answer image questions: ONLY compare against what is visible in the provided answer image. Never guess or infer the correct answer from context.
+  7. Blue ink present ≠ correct answer. If blue ink exists but is too incomplete/illegible to match the expected answer, award 0 marks. Do NOT assume the student wrote the correct answer just because some blue ink is there.
 
 Return ONLY valid JSON (no markdown fences):
 {
