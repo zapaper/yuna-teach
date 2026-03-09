@@ -71,7 +71,7 @@ function SolverContent() {
         return;
       }
       setSubject(data.subject);
-      setTopic(data.topic);
+      setTopic(data.topic ?? "");
       setSolution(data.solution);
       setStep("result");
     } catch {

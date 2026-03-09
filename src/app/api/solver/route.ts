@@ -5,20 +5,41 @@ function getAI() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 }
 
+// Exact topics as they exist in the database
 const MATH_TOPICS = [
-  "Whole Numbers", "Fractions", "Decimals", "Percentage", "Ratio",
-  "Rate and Speed", "Algebra", "Functions and Graphs",
-  "Geometry", "Angles", "Area and Perimeter", "Volume",
-  "Data Analysis", "Probability", "Average", "Money",
-  "Time", "Measurement",
+  "Percentage",
+  "Geometry",
+  "Basic math operations",
+  "Time",
+  "Statistics",
+  "Fractions",
+  "Volume of cube and cuboid",
+  "Algebra",
+  "Area and circumference of circle",
+  "Ratio",
+  "Volume measurement",
 ];
 
 const SCIENCE_TOPICS = [
-  "Diversity", "Cycles", "Systems", "Interactions", "Energy",
-  "Plants", "Animals", "Fungi and Bacteria", "Human Body",
-  "Matter", "Heat", "Light", "Forces", "Electricity",
-  "Water Cycle", "Reproduction", "Life Cycles", "Photosynthesis",
-  "Food Chains", "Ecosystems",
+  "Heat energy and uses",
+  "Light energy and uses",
+  "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
+  "Interaction of forces (Magnets)",
+  "Water cycle",
+  "Water cycle, evaporation, condensation",
+  "Life cycles in plants and animals",
+  "Plant respiratory and circulatory systems",
+  "Human respiratory and circulatory systems",
+  "Human digestive system",
+  "Interactions within the environment",
+  "Photosynthesis",
+  "Plant parts and functions",
+  "Reproduction in plants and animals",
+  "Energy conversion",
+  "Cycles in matter",
+  "Diversity of living and non-living things",
+  "Diversity of materials",
+  "Electrical system and circuits",
 ];
 
 export async function POST(request: NextRequest) {
@@ -27,23 +48,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
 
-  // Strip data URL prefix if present
   const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
 
   const prompt = `You are an expert primary school tutor. Analyse this question image and respond in JSON.
 
 Steps:
 1. Identify the subject: "Math" or "Science".
-2. Identify the specific syllabus topic from the relevant list below.
-   Math topics: ${MATH_TOPICS.join(", ")}
-   Science topics: ${SCIENCE_TOPICS.join(", ")}
-   Pick the single closest match from the list above.
+2. Match to ONE topic from the exact list below. You MUST pick a topic from the list word-for-word, or return null if none fits.
+   Math topics:
+   ${MATH_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
+   Science topics:
+   ${SCIENCE_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
 3. Provide a clear, step-by-step solution suitable for a primary school student.
+
+Rules:
+- topic must be copied EXACTLY from the list, or null if no match.
+- Do NOT invent or paraphrase topic names.
 
 Respond with ONLY valid JSON (no markdown fences):
 {
   "subject": "Math" or "Science",
-  "topic": "<closest topic from the list>",
+  "topic": "<exact topic from list, or null>",
   "solution": "<step-by-step solution, use \\n for line breaks>"
 }`;
 
@@ -64,9 +89,14 @@ Respond with ONLY valid JSON (no markdown fences):
     const jsonStr = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
     const parsed = JSON.parse(jsonStr);
 
+    // Validate topic is actually in our list
+    const allTopics = [...MATH_TOPICS, ...SCIENCE_TOPICS];
+    const rawTopic: string | null = parsed.topic ?? null;
+    const validTopic = rawTopic && allTopics.includes(rawTopic) ? rawTopic : null;
+
     return NextResponse.json({
       subject: parsed.subject ?? "Math",
-      topic: parsed.topic ?? "",
+      topic: validTopic,
       solution: parsed.solution ?? "",
     });
   } catch (err) {
