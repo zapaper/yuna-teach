@@ -35,14 +35,17 @@ export async function GET(request: NextRequest) {
       const isAdminUser = parentUser?.name?.toLowerCase() === "admin";
 
       if (studentLevels.length > 0) {
-        const levelStrings = studentLevels.map((n) => `Primary ${n}`);
+        // Match levels with various formats: "Primary 5", "Pr 5", "P5", etc.
+        const levelConditions = studentLevels.flatMap((n) => [
+          { level: { contains: String(n) } },
+        ]);
         if (isAdminUser) {
           // Admin sees own master papers (matching levels + processing) + own focused tests
           where = {
             userId,
             sourceExamId: null,
             OR: [
-              { paperType: null, OR: [{ level: { in: levelStrings } }, { level: null }] },
+              { paperType: null, OR: [...levelConditions, { level: null }] },
               { paperType: "focused" },
             ],
           };
@@ -57,7 +60,7 @@ export async function GET(request: NextRequest) {
             OR: [
               {
                 paperType: null,
-                level: { in: levelStrings },
+                OR: levelConditions,
                 ...(adminUser ? { userId: adminUser.id } : {}),
               },
               { paperType: "focused", userId },
