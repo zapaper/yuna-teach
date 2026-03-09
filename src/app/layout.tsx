@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-slate-50">
-        <div className="mx-auto max-w-lg min-h-screen bg-white shadow-sm">
+        <div className="mx-auto max-w-lg lg:max-w-none min-h-screen bg-white shadow-sm">
           {children}
         </div>
       </body>
