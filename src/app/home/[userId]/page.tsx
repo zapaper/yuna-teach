@@ -603,7 +603,7 @@ export default function HomePage({
       <div className="text-center py-6">
         <button
           onClick={() => { setShowFeedback(true); setFeedbackSent(false); setFeedbackMsg(""); }}
-          className="text-xs text-slate-300 hover:text-slate-400 transition-colors"
+          className="text-xs text-slate-400 hover:text-slate-500 transition-colors"
         >
           Feedback / Feature Request
         </button>
