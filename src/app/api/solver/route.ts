@@ -5,19 +5,15 @@ function getAI() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 }
 
-// Exact topics as they exist in the database
 const MATH_TOPICS = [
-  "Percentage",
-  "Geometry",
-  "Basic math operations",
-  "Time",
-  "Statistics",
   "Fractions",
-  "Volume of cube and cuboid",
+  "Percentage",
+  "Ratio",
   "Algebra",
   "Area and circumference of circle",
-  "Ratio",
-  "Volume measurement",
+  "Volume of cube and cuboid",
+  "Geometry",
+  "Statistics",
 ];
 
 const SCIENCE_TOPICS = [
