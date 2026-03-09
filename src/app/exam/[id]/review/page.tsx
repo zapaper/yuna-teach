@@ -443,8 +443,8 @@ function ExamReviewContent({ id }: { id: string }) {
                   </span>
                 </div>
 
-                {/* Extracted question image (always correct for split questions) */}
-                {currentQ.imageData ? (
+                {/* Extracted question image — shown to parents only; students see it in their submission */}
+                {!isStudent && currentQ.imageData ? (
                   <div className="border-b border-slate-100 bg-slate-50 px-2 py-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
