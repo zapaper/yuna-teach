@@ -1342,9 +1342,11 @@ export async function markExamPaper(paperId: string): Promise<void> {
 export async function generateFeedbackSummary(paperId: string): Promise<string> {
   const paper = await prisma.examPaper.findUnique({
     where: { id: paperId },
-    include: { questions: true },
+    include: { questions: true, assignedTo: { select: { name: true } } },
   });
   if (!paper) throw new Error("Paper not found");
+
+  const studentName = paper.assignedTo?.name ?? null;
 
   const questions = paper.questions;
   const totalAwarded = questions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
@@ -1380,7 +1382,7 @@ export async function generateFeedbackSummary(paperId: string): Promise<string> 
     });
 
   const feedbackPrompt = `You are writing a short feedback summary for a primary school student's exam, aimed at helping them know what to revise.
-
+${studentName ? `\nStudent: ${studentName}` : ""}
 Paper: ${paper.title}
 Subject: ${paper.subject ?? "Unknown"}
 Level: ${paper.level ?? "Unknown"}
@@ -1389,7 +1391,7 @@ ${bookletScores.length > 1 ? `\nPer-section scores:\n${bookletScores.map(b => `-
 ${mistakes.length > 0 ? `\nQuestions with marks lost:\n${mistakes.join("\n")}` : "\nNo mistakes — full marks!"}
 
 Write a feedback summary with:
-1. An encouraging opening sentence mentioning the score (e.g. "Well done! You scored 42 out of 50!")
+1. An encouraging opening sentence${studentName ? ` addressing ${studentName} by name` : ""} mentioning the score (e.g. "${studentName ?? "You"} scored 42 out of 50! Well done!")
 2. ${bookletScores.length > 1 ? "Briefly mention per-section scores." : ""}
 3. If there are mistakes, identify the SPECIFIC TOPICS or CONCEPTS the student should revise. Group related mistakes together. Use phrases like "You may wish to revise your notes on [topic]." Be specific — e.g. "angles and trigonometry", "vocabulary on food and drinks", "fractions and decimals", "grammar — past tense".
 4. End with an encouraging note.
