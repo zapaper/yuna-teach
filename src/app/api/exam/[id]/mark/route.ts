@@ -57,6 +57,7 @@ export async function GET(
           marksAwarded: true,
           marksAvailable: true,
           markingNotes: true,
+          studentAnswer: true,
           elaboration: true,
           flagged: true,
         },
@@ -109,6 +110,7 @@ export async function GET(
           marksAwarded: cq?.marksAwarded ?? null,
           marksAvailable: mq.marksAvailable,
           markingNotes: cq?.markingNotes ?? null,
+          studentAnswer: cq?.studentAnswer ?? null,
           elaboration: cq?.elaboration ?? null,
           flagged: cq?.flagged ?? false,
         };

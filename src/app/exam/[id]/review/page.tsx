@@ -12,6 +12,7 @@ interface ReviewQuestion {
   marksAwarded: number | null;
   marksAvailable: number | null;
   markingNotes: string | null;
+  studentAnswer: string | null;
   elaboration: string | null;
   flagged: boolean;
   imageData?: string;
@@ -254,12 +255,22 @@ function ExamReviewContent({ id }: { id: string }) {
 
   const isStudent = userId === assignedToId;
 
-  const incorrectQuestions = data.questions.filter((q) => {
+  // For students, hide questions they didn't answer (no ink detected)
+  const writtenQuestions = isStudent
+    ? data.questions.filter((q) => {
+        const noAnswer =
+          (q.studentAnswer === null || q.studentAnswer === "No answer detected") &&
+          (q.markingNotes?.includes("No answer detected") || q.markingNotes?.includes("No blue ink") || q.markingNotes === null);
+        return !noAnswer;
+      })
+    : data.questions;
+
+  const incorrectQuestions = writtenQuestions.filter((q) => {
     if (q.marksAwarded === null || q.marksAvailable === null) return false;
     return q.marksAwarded < q.marksAvailable;
   });
 
-  const displayQuestions = showAll ? data.questions : incorrectQuestions;
+  const displayQuestions = showAll ? writtenQuestions : incorrectQuestions;
   const currentQ = displayQuestions[currentIdx] ?? null;
 
   // Compute the effective submission page for the current question
@@ -338,7 +349,7 @@ function ExamReviewContent({ id }: { id: string }) {
               onClick={() => { setShowAll(true); setCurrentIdx(0); setSubmissionPageOverride(null); }}
               className={`px-3 py-1.5 transition-colors ${showAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
             >
-              All ({data.questions.length})
+              All ({writtenQuestions.length})
             </button>
           </div>
         </div>
