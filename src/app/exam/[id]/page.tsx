@@ -72,6 +72,7 @@ function ExamPracticeContent({ id }: { id: string }) {
     "idle" | "saving" | "submitting" | "submitted"
   >("idle");
   const [showAutoSaved, setShowAutoSaved] = useState(false);
+  const [showSubmittedModal, setShowSubmittedModal] = useState(false);
 
   // ── Timer ──
   const [displaySeconds, setDisplaySeconds] = useState(0);
@@ -287,6 +288,7 @@ function ExamPracticeContent({ id }: { id: string }) {
           prev ? { ...prev, completedAt: new Date().toISOString() } : prev
         );
         setSubmitStatus("submitted");
+        setShowSubmittedModal(true);
       } else {
         setSubmitStatus("idle");
       }
@@ -715,6 +717,39 @@ function ExamPracticeContent({ id }: { id: string }) {
           e.target.value = "";
         }}
       />
+
+      {/* ── Submitted modal ── */}
+      {showSubmittedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl px-8 py-7 mx-4 max-w-sm w-full flex flex-col items-center gap-4">
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-green-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                className="text-green-500">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            </div>
+            <div className="text-center">
+              <h2 className="text-lg font-bold text-slate-800">Submitted!</h2>
+              <p className="text-sm text-slate-500 mt-1">Your exam has been submitted successfully.</p>
+            </div>
+            <div className="flex gap-3 w-full mt-1">
+              <button
+                onClick={() => { setShowSubmittedModal(false); router.push(backPath); }}
+                className="flex-1 py-2.5 rounded-xl border-2 border-slate-300 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
+                Exit
+              </button>
+              <button
+                onClick={() => setShowSubmittedModal(false)}
+                className="flex-1 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
