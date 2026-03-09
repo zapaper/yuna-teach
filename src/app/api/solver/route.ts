@@ -1,41 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { readFileSync } from "fs";
+import path from "path";
 
 function getAI() {
   return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
 }
 
-const MATH_TOPICS = [
-  "Fractions",
-  "Percentage",
-  "Ratio",
-  "Algebra",
-  "Area and circumference of circle",
-  "Volume of cube and cuboid",
-  "Geometry",
-  "Statistics",
-];
+function loadTopics(filename: string): string[] {
+  try {
+    const filePath = path.join(process.cwd(), "data", filename);
+    return readFileSync(filePath, "utf-8")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+  } catch {
+    return [];
+  }
+}
 
-const SCIENCE_TOPICS = [
-  "Diversity of living and non-living things",
-  "Diversity of materials",
-  "Life cycles in plants and animals",
-  "Plant parts and functions",
-  "Human digestive system",
-  "Cycles in matter",
-  "Water cycle",
-  "Plant respiratory and circulatory systems",
-  "Human respiratory and circulatory systems",
-  "Reproduction in plants and animals",
-  "Light energy and uses",
-  "Heat energy and uses",
-  "Electrical system and circuits",
-  "Photosynthesis",
-  "Energy conversion",
-  "Interaction of forces (Magnets)",
-  "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
-  "Interactions within the environment",
-];
+const MATH_TOPICS = loadTopics("math-topics.txt");
+const SCIENCE_TOPICS = loadTopics("science-topics.txt");
 
 export async function POST(request: NextRequest) {
   const { imageBase64 } = await request.json();
