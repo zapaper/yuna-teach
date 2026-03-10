@@ -107,8 +107,19 @@ function isWrittenQuestion(answer: string | null): boolean {
 /** Step 1 pre-check: ask Gemini if there is any handwritten blue ink in the image.
  *  Returns true if blue ink is detected, false if blank. */
 async function hasBlueInk(imageBase64: string, label: string): Promise<boolean> {
-  const prompt = `Look at this image carefully. Is there ANY handwritten text or marks in BLUE INK?
-Do NOT count printed black text — only handwritten blue ink marks made by a student.
+  const prompt = `Look at this image carefully. Is there ANY handwritten writing or marks that could be a student's answer?
+
+This includes:
+- Blue or blue-black ink (any shade — dark blue, light blue, navy, blue-black)
+- Any handwritten strokes, letters, words, or marks that are NOT printed black text
+- Even faint, light, or partially visible blue marks count
+- Pencil-like or grey-blue marks from a ballpoint pen also count
+
+Do NOT count: printed black text, pre-printed lines, boxes, or diagrams on the exam paper.
+
+IMPORTANT: If you can see ANY marks that could be a student's handwriting — even if faint or unclear — answer YES.
+Only answer NO if the answer area is completely blank with absolutely no handwritten marks whatsoever.
+
 Reply with ONLY one word: YES or NO.`;
 
   try {
@@ -119,7 +130,7 @@ Reply with ONLY one word: YES or NO.`;
           { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
           { text: prompt },
         ]}],
-        config: { temperature: 0.3 },
+        config: { temperature: 0.1 },
       }),
       30_000,
       `blueInkCheck ${label}`
