@@ -278,6 +278,37 @@ function buildMarkingNotes(result: QuestionMarkResult): string {
   return parts.join(" | ");
 }
 
+function englishMarkingRules(subject: string | null | undefined): string {
+  if (!subject?.toLowerCase().includes("english")) return "";
+  return `
+  ENGLISH PAPER MARKING RULES:
+  - MCQ questions: mark identically to Math/Science — no partial marks, exact single-option match only.
+  - For ALL written English questions, READ the question text in the image to identify the question type, then apply the rules below:
+
+  SYNTHESIS & TRANSFORMATION / GRAMMAR FILL-IN:
+  - There is usually one correct rewritten sentence or one accepted form.
+  - Award full marks only if the answer is grammatically correct AND preserves the original meaning.
+  - Award 0 if meaning is changed, tense is wrong, or key words are missing.
+  - Minor spelling errors that do not change the word: still award marks.
+
+  COMPREHENSION (open-ended, short answer):
+  - The answer key gives the expected key point(s).
+  - Award full marks if all key points are present in the student's answer.
+  - Award PARTIAL marks if some key points are present — even for 1-mark questions, award 0 if the key idea is missing or too vague.
+  - Accept synonyms and paraphrases as long as the meaning is preserved.
+  - In notes, state which key point was present or missing.
+
+  EDITING (spelling/grammar correction):
+  - One specific correct answer per error. Award marks only if the student identified the correct word AND wrote the correct replacement.
+
+  CLOZE / FILL-IN-THE-BLANK:
+  - Accept the exact word from the answer key. Accept clear synonyms only if semantically equivalent in context.
+  - Do NOT accept answers that change the grammar of the sentence.
+
+  VOCABULARY (word meaning, synonym, antonym):
+  - Award marks for exact match or clear semantic equivalent from the answer key.`;
+}
+
 function scienceCommandWordRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("science")) return "";
   return `
@@ -376,7 +407,7 @@ STEP 5: Compare against the expected answer.
      - For written/worked answers: check if working/steps are partially correct.
        If some steps are correct → award PARTIAL marks = round(proportion × marksAvailable).
      - If answer is wrong with no correct working → ZERO marks.
-{SCIENCE_COMMAND_WORD_RULES}
+{SUBJECT_RULES}
   C) For questions with an answer image provided:
      - The answer image shows EXACTLY what the correct answer looks like.
      - Compare ONLY what the student actually drew/wrote in blue ink against what is shown in the answer image.
@@ -614,7 +645,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     }
   }
 
-  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper.subject));
+  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + englishMarkingRules(paper.subject));
   parts.push({ text: prompt });
 
   console.log(`[marking] Calling Gemini for remark of question ${questionId}`);
@@ -807,7 +838,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper?.subject));
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + englishMarkingRules(paper?.subject));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -1036,7 +1067,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper.subject));
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + englishMarkingRules(paper.subject));
           parts.push({ text: prompt });
 
           try {
@@ -1140,7 +1171,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper.subject));
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + englishMarkingRules(paper.subject));
           parts.push({ text: prompt });
 
           try {

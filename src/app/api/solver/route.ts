@@ -21,6 +21,7 @@ function loadTopics(filename: string): string[] {
 
 const MATH_TOPICS = loadTopics("math-topics.txt");
 const SCIENCE_TOPICS = loadTopics("science-topics.txt");
+const ENGLISH_TOPICS = loadTopics("english-topics.txt");
 
 export async function POST(request: NextRequest) {
   const { imageBase64 } = await request.json();
@@ -33,12 +34,14 @@ export async function POST(request: NextRequest) {
   const prompt = `You are an expert primary school tutor. Analyse this question image and respond in JSON.
 
 Steps:
-1. Identify the subject: "Math" or "Science".
+1. Identify the subject: "Math", "Science", or "English".
 2. Match to ONE topic from the exact list below. You MUST pick a topic from the list word-for-word, or return null if none fits.
    Math topics:
    ${MATH_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
    Science topics:
    ${SCIENCE_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
+   English topics:
+   ${ENGLISH_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
 3. Provide a clear, step-by-step solution suitable for a primary school student.
 
 Rules:
@@ -47,7 +50,7 @@ Rules:
 
 Respond with ONLY valid JSON (no markdown fences):
 {
-  "subject": "Math" or "Science",
+  "subject": "Math" or "Science" or "English",
   "topic": "<exact topic from list, or null>",
   "solution": "<step-by-step solution, use \\n for line breaks>"
 }`;

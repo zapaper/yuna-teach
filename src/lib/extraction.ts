@@ -46,6 +46,7 @@ export function normalizeSubject(raw: string | null | undefined): string | null 
   const s = raw.trim().toLowerCase();
   if (s.includes("math")) return "Mathematics";
   if (s.includes("science")) return "Science";
+  if (s.includes("english")) return "English";
   // Return original casing for unknown subjects
   return raw.trim();
 }

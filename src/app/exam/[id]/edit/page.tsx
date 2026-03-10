@@ -365,7 +365,8 @@ function ExamEditContent({ id }: { id: string }) {
 
   const subjectLower = (paper?.subject || "").toLowerCase();
   const isMathPaper = subjectLower.includes("math");
-  const isTaggablePaper = isMathPaper || subjectLower.includes("science");
+  const isEnglishPaper = subjectLower.includes("english");
+  const isTaggablePaper = isMathPaper || subjectLower.includes("science") || isEnglishPaper;
   const backPath = `/exam/${id}/overview?userId=${userId}`;
 
   if (loading) {
@@ -444,7 +445,7 @@ function ExamEditContent({ id }: { id: string }) {
             question={q}
             saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem | "redo" : null}
             pdfLoaded={pageImages.length > 0}
-            syllabusTopics={isTaggablePaper ? (isMathPaper ? P6_MATH_TOPICS : SCIENCE_TOPICS) : null}
+            syllabusTopics={isTaggablePaper ? (isMathPaper ? P6_MATH_TOPICS : isEnglishPaper ? ENGLISH_TOPICS : SCIENCE_TOPICS) : null}
             onSave={saveQuestion}
             onDelete={() => deleteQuestion(q.id)}
             onRedo={() => redoQuestion(q.id)}
@@ -659,6 +660,19 @@ const SCIENCE_TOPICS = [
   "Interaction of forces (Magnets)",
   "Interaction of forces (Frictional force, gravitational force, elastic spring force)",
   "Interactions within the environment",
+];
+
+const ENGLISH_TOPICS = [
+  "Grammar",
+  "Vocabulary",
+  "Comprehension (Open-ended)",
+  "Synthesis & Transformation",
+  "Editing (Spelling & Grammar)",
+  "Cloze Passage",
+  "Continuous Writing",
+  "Situational Writing",
+  "Visual Text Comprehension",
+  "Oral Communication",
 ];
 
 function QuestionEditCard({

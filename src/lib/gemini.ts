@@ -660,6 +660,42 @@ export const SCIENCE_SYLLABUS = [
   "Interactions within the environment",
 ] as const;
 
+export const ENGLISH_SYLLABUS = [
+  "Grammar",
+  "Vocabulary",
+  "Comprehension (Open-ended)",
+  "Synthesis & Transformation",
+  "Editing (Spelling & Grammar)",
+  "Cloze Passage",
+  "Continuous Writing",
+  "Situational Writing",
+  "Visual Text Comprehension",
+  "Oral Communication",
+] as const;
+
+const ENGLISH_SYLLABUS_ADDENDUM = `
+
+## ENGLISH PAPER — Syllabus topic tagging
+
+This is an ENGLISH paper. For EACH question, you MUST also output a "syllabusTopic" field.
+
+Choose EXACTLY ONE topic from this list:
+${ENGLISH_SYLLABUS.map((t) => `- ${t}`).join("\n")}
+
+Rules:
+- "Grammar" — questions testing tenses, subject-verb agreement, punctuation, articles, prepositions, conjunctions
+- "Vocabulary" — questions testing word meaning, synonyms, antonyms, word choice, phrasal verbs
+- "Comprehension (Open-ended)" — questions based on a reading passage requiring written answers
+- "Synthesis & Transformation" — rewriting sentences using given words, combining sentences, direct/indirect speech
+- "Editing (Spelling & Grammar)" — passages with errors to identify and correct
+- "Cloze Passage" — fill-in-the-blank passage (words given or free response)
+- "Continuous Writing" — extended creative writing or narrative
+- "Situational Writing" — writing for a specific purpose (email, report, letter, recount)
+- "Visual Text Comprehension" — questions about advertisements, posters, infographics
+- "Oral Communication" — reading aloud or stimulus-based conversation
+- If the question does not clearly fit any topic, set "syllabusTopic" to null
+- MCQ questions should also be tagged based on the concept being tested`;
+
 const MATH_SYLLABUS_ADDENDUM = `
 
 ## MATH PAPER — Syllabus topic tagging
@@ -731,9 +767,11 @@ export async function tagSyllabusTopics(
     { text: `[Question ${q.questionNum}]` },
   ]);
 
-  const isScience = (subject || "").toLowerCase().includes("science");
-  const topicList = isScience ? SCIENCE_SYLLABUS : P6_MATH_SYLLABUS;
-  const subjectLabel = isScience ? "Science" : "Math";
+  const subjectLower = (subject || "").toLowerCase();
+  const isScience = subjectLower.includes("science");
+  const isEnglish = subjectLower.includes("english");
+  const topicList = isScience ? SCIENCE_SYLLABUS : isEnglish ? ENGLISH_SYLLABUS : P6_MATH_SYLLABUS;
+  const subjectLabel = isScience ? "Science" : isEnglish ? "English" : "Math";
 
   const prompt = `You are tagging Primary school ${subjectLabel} exam questions by syllabus topic.
 
@@ -1256,7 +1294,10 @@ async function runExtractionCall(
   ]).flat();
 
   const bookletContext = buildBookletContext(paper, firstQuestionNum, subject);
-  const isScience = subject.toLowerCase().includes("science");
+  const subjectLowerEx = subject.toLowerCase();
+  const isScience = subjectLowerEx.includes("science");
+  const isMath = subjectLowerEx.includes("math");
+  const isEnglish = subjectLowerEx.includes("english");
   let prompt = QUESTION_EXTRACTION_PROMPT.replace(
     "{structureContext}",
     bookletContext
@@ -1265,9 +1306,11 @@ async function runExtractionCall(
     prompt += SCIENCE_ADDENDUM;
     prompt += SCIENCE_SYLLABUS_ADDENDUM;
   }
-  const isMath = subject.toLowerCase().includes("math");
   if (isMath) {
     prompt += MATH_SYLLABUS_ADDENDUM;
+  }
+  if (isEnglish) {
+    prompt += ENGLISH_SYLLABUS_ADDENDUM;
   }
 
   console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
