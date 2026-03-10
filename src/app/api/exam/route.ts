@@ -135,6 +135,7 @@ export async function GET(request: NextRequest) {
       flaggedCount: p.clones.reduce((sum, c) => sum + c._count.questions, 0),
       unreleasedAssignmentCount: p.clones.filter((c) => c.markingStatus !== "released").length,
       pendingReviewCount: p.clones.filter((c) => c.markingStatus === "complete").length,
+      instantFeedback: p.instantFeedback,
     })),
   });
 }

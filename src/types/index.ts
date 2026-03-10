@@ -71,6 +71,7 @@ export interface ExamPaperSummary {
   flaggedCount: number;
   unreleasedAssignmentCount: number;
   pendingReviewCount: number;
+  instantFeedback: boolean;
 }
 
 export interface ExamCloneSummary {

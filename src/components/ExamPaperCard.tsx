@@ -242,7 +242,7 @@ export default function ExamPaperCard({
                   </span>
                 ) : null
               ) : (
-                paper.markingStatus === "released" ? (
+                paper.markingStatus === "released" || (paper.instantFeedback && paper.markingStatus === "complete") ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                     Marked{paper.score != null ? ` ${paper.score}${paper.totalMarks ? `/${paper.totalMarks}` : ""}` : ""}
                   </span>
