@@ -82,6 +82,7 @@ export interface ExamCloneSummary {
   markingStatus: string | null;
   feedbackSummary: string | null;
   timeSpentSeconds: number;
+  instantFeedback: boolean;
 }
 
 export interface ExamMetadata {

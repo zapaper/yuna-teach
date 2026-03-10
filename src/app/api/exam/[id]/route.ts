@@ -35,6 +35,7 @@ export async function GET(
           markingStatus: true,
           feedbackSummary: true,
           timeSpentSeconds: true,
+          instantFeedback: true,
           assignedTo: { select: { id: true, name: true } },
         },
         orderBy: { createdAt: "asc" },
@@ -72,6 +73,7 @@ export async function PATCH(
   // --- Clone-on-assign: when assignedToId is provided, create a clone ---
   if ("assignedToId" in body && body.assignedToId) {
     const studentId = body.assignedToId as string;
+    const instantFeedback = body.instantFeedback === true;
 
     // Check if clone already exists for this student + master
     const existing = await prisma.examPaper.findFirst({
@@ -108,6 +110,7 @@ export async function PATCH(
         sourceExamId: id,
         paperType: master.paperType,
         examType: master.examType,
+        instantFeedback,
         questions: {
           create: master.questions.map((q) => ({
             questionNum: q.questionNum,

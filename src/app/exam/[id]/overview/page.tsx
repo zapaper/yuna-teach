@@ -61,6 +61,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
+  const [instantFeedback, setInstantFeedback] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Polling for marking status
@@ -385,7 +386,7 @@ function ExamOverviewContent({ id }: { id: string }) {
       await fetch(`/api/exam/${paper.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assignedToId: studentId }),
+        body: JSON.stringify({ assignedToId: studentId, instantFeedback }),
       });
       // Refresh paper data to get updated clones array
       const res = await fetch(`/api/exam/${id}?summary=true`);
@@ -787,6 +788,28 @@ function ExamOverviewContent({ id }: { id: string }) {
 
       {/* Assignment */}
       <Section title="Assignment">
+        {/* Feedback mode toggle */}
+        <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
+          <div>
+            <p className="text-xs font-semibold text-slate-700">
+              {instantFeedback ? "Student gets instant feedback" : "Parent reviews grading first"}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {instantFeedback
+                ? "Student sees score and feedback immediately after marking completes"
+                : "You review and approve the marking before student sees results"}
+            </p>
+          </div>
+          <button
+            onClick={() => setInstantFeedback(v => !v)}
+            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${instantFeedback ? "bg-primary-500" : "bg-slate-300"}`}
+            role="switch"
+            aria-checked={instantFeedback}
+          >
+            <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ${instantFeedback ? "translate-x-5" : "translate-x-0"}`} />
+          </button>
+        </div>
+
         {students.length === 0 ? (
           <p className="text-xs text-slate-400 py-2">No student profiles found.</p>
         ) : (

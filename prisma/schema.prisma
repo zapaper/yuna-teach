@@ -78,6 +78,7 @@ model ExamPaper {
   score            Float?
   completedAt      DateTime?
   timeSpentSeconds Int       @default(0)
+  instantFeedback  Boolean   @default(false)
   markingStatus    String?   // "pending" | "in_progress" | "complete" | "released" | "failed"
   extractionStatus String?   // "processing" | "ready" | "failed"
   feedbackSummary  String?
