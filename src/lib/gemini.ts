@@ -435,6 +435,16 @@ Return ONLY valid JSON:
 }
 
 If there is only one paper with no booklets, still include it in the "papers" array with questionPrefix "".
+
+### ENGLISH PAPERS ONLY — Non-gradable sections:
+For English Preliminary and End-of-Year exams, certain papers cannot be auto-graded and must be excluded from question extraction:
+- **Writing papers** (e.g. "Paper 1 - Writing", "Paper 1 Writing", any paper whose label or section title indicates it is a writing/composition paper)
+- **Listening Comprehension papers** (e.g. "Paper 3 - Listening Comprehension", "Listening", any paper labelled as listening)
+
+For these papers, set **"skipExtraction": true** in the papers array.
+Also mark ALL pages belonging to these papers as **"isCoverPage": true** so they are excluded from the question extraction stage.
+All other English papers (Paper 2 Booklet A, Paper 2 Booklet B, etc.) should be extracted normally.
+
 Return ONLY valid JSON.`;
 
 // Stage 2a: Question Extraction — extract question boundaries from question pages only
@@ -707,15 +717,22 @@ There are two passage-fill sections that use this same extraction method:
 
 Both sections use identical extraction:
 
-- **yStartPct** = ~3% ABOVE the blank line (use the yEndPct of the previous question as the starting point)
-- **yEndPct** = ~3% BELOW the question number printed beneath the blank
+- **yStartPct** = the line IMMEDIATELY ABOVE the blank line (just one row up — cloze questions are densely packed and the next question may be on the same line or the very next line)
+- **yEndPct** = just below the question number printed beneath the blank (the number in parentheses, e.g. "(38)" — use its bottom edge as the lower boundary)
 
 The blank line is near the TOP of the crop. The question number is near the BOTTOM.
+Keep crops TIGHT — do NOT add generous padding above; the previous question ends right where this one begins.
 Questions are contiguous: yStartPct of question N+1 = yEndPct of question N.
 marksAvailable: 1 per blank unless a mark bracket is visible.
 
+### Key recognition — question numbers in Cloze:
+Question numbers in cloze passages appear in parentheses BELOW the blank line, e.g. **(38)**, **(39)**.
+The lower boundary is the bottom of this parenthesised number.
+The upper boundary is the line immediately above the blank line (one row up only).
+
 ### Important — do NOT use the standard rule for these sections:
 "yStartPct = above the question number" is WRONG here. The number is at the BOTTOM, not the top.
+Do NOT add ~3% padding above — cloze questions sit right next to each other.
 
 ---
 
@@ -1029,6 +1046,7 @@ interface StructureResult {
     expectedQuestionCount: number;
     firstQuestionPageIndex: number;
     firstQuestionYStartPct: number;
+    skipExtraction?: boolean;
     sections: Array<{ name: string; type: string; questionCount: number; marksPerQuestion?: number | null }>;
   }>;
 }
@@ -1063,6 +1081,10 @@ function buildStructureContext(structure: StructureResult): string {
     lines.push(`Total marks: ${structure.header.totalMarks}`);
   }
   for (const paper of structure.papers) {
+    if (paper.skipExtraction) {
+      lines.push(`\n${paper.label}: EXCLUDED (Writing/Listening — not auto-gradable, skip all pages)`);
+      continue;
+    }
     lines.push(`\n${paper.label} (prefix: "${paper.questionPrefix}", expected ${paper.expectedQuestionCount} questions):`);
     lines.push(`  - Questions START on page ${paper.firstQuestionPageIndex} at ~${paper.firstQuestionYStartPct}% from top`);
     for (const section of paper.sections) {
@@ -1090,6 +1112,7 @@ function buildStructureContext(structure: StructureResult): string {
   // Track cumulative start per prefix group (booklets in same paper share continuous numbering)
   const prefixStart = new Map<string, number>();
   for (const paper of structure.papers) {
+    if (paper.skipExtraction) continue;
     const prefix = paper.questionPrefix;
     const start = prefixStart.get(prefix) ?? 1;
     const end = start + paper.expectedQuestionCount - 1;
@@ -1713,6 +1736,7 @@ export interface BatchAnalysisResult {
       questionsStartPage: number;
       questionsStartY: number;
       expectedQuestions: number;
+      skipExtraction?: boolean;
     }>;
     coverPages: number[];
     answerPages: number[];

@@ -251,6 +251,13 @@ async function extractExamPaperCore(
     // 3. Build booklet ranges for page correction
     const ranges = buildBookletRanges(result);
 
+    // Build set of paperLabels to skip (Writing / Listening Comprehension)
+    const skipLabels = new Set(
+      (result._debug?.papers ?? [])
+        .filter(p => p.skipExtraction)
+        .map(p => p.label)
+    );
+
     // 4. Collect all question segments (including multi-page continuations)
     type QuestionSegment = {
       questionNum: string;
@@ -269,6 +276,7 @@ async function extractExamPaperCore(
 
     for (const page of result.pages) {
       if (page.isAnswerSheet) continue;
+      if (skipLabels.size > 0 && page.paperLabel && skipLabels.has(page.paperLabel)) continue;
 
       for (const q of page.questions) {
         const isCont = !!(q as { isContinuation?: boolean }).isContinuation;
