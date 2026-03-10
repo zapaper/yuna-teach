@@ -6,6 +6,7 @@ interface SequencerOptions {
 
 export class AudioSequencer {
   private abortController: AbortController | null = null;
+  private skipController: AbortController | null = null;
   private paused = false;
   private pauseResolve: (() => void) | null = null;
   private audioContext: AudioContext | null = null;
@@ -78,6 +79,7 @@ export class AudioSequencer {
         await this.waitIfPaused();
         if (this.abortController.signal.aborted) break;
 
+        this.skipController = new AbortController();
         options.onWordChange(i, words.length);
         const word = words[i];
 
@@ -138,6 +140,11 @@ export class AudioSequencer {
     } finally {
       this.closeAudio();
     }
+  }
+
+  skip() {
+    this.skipController?.abort();
+    this.skipController = null;
   }
 
   pause() {
@@ -204,36 +211,25 @@ export class AudioSequencer {
     source.buffer = audioBuffer;
     source.connect(this.audioContext.destination);
 
+    const stopSource = () => {
+      try { source.stop(); } catch { /* already stopped */ }
+    };
+
     await new Promise<void>((resolve) => {
       source.onended = () => resolve();
       source.start(0);
 
-      this.abortController?.signal.addEventListener(
-        "abort",
-        () => {
-          try {
-            source.stop();
-          } catch {
-            // already stopped
-          }
-          resolve();
-        },
-        { once: true }
-      );
+      this.abortController?.signal.addEventListener("abort", () => { stopSource(); resolve(); }, { once: true });
+      this.skipController?.signal.addEventListener("abort", () => { stopSource(); resolve(); }, { once: true });
     });
   }
 
   private wait(ms: number): Promise<void> {
     return new Promise((resolve) => {
       const timeout = setTimeout(resolve, ms);
-      this.abortController?.signal.addEventListener(
-        "abort",
-        () => {
-          clearTimeout(timeout);
-          resolve();
-        },
-        { once: true }
-      );
+      const cancel = () => { clearTimeout(timeout); resolve(); };
+      this.abortController?.signal.addEventListener("abort", cancel, { once: true });
+      this.skipController?.signal.addEventListener("abort", cancel, { once: true });
     });
   }
 }

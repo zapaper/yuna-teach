@@ -102,6 +102,10 @@ export default function BeginTestMode({
     onStopRef.current();
   }
 
+  function handleNext() {
+    sequencerRef.current?.skip();
+  }
+
   return (
     <div className="fixed inset-0 bg-slate-900 text-white flex flex-col items-center justify-center z-50">
       {status === "loading" && (
@@ -128,45 +132,60 @@ export default function BeginTestMode({
         </>
       )}
 
-      <div className="flex gap-4">
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex gap-4">
+          {(status === "playing" || status === "paused") && (
+            <button
+              onClick={handlePauseResume}
+              className="bg-white/10 text-white rounded-full w-14 h-14 flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
+              {status === "paused" ? (
+                /* Play icon */
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <polygon points="6 3 20 12 6 21 6 3" />
+                </svg>
+              ) : (
+                /* Pause icon */
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              )}
+            </button>
+          )}
+
+          <button
+            onClick={handleStop}
+            className="bg-red-500/80 text-white rounded-full px-8 py-3 text-lg font-semibold hover:bg-red-600 transition-colors"
+          >
+            Stop
+          </button>
+        </div>
+
         {(status === "playing" || status === "paused") && (
           <button
-            onClick={handlePauseResume}
-            className="bg-white/10 text-white rounded-full w-14 h-14 flex items-center justify-center hover:bg-white/20 transition-colors"
+            onClick={handleNext}
+            className="bg-white/10 text-white rounded-full px-8 py-3 text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
           >
-            {status === "paused" ? (
-              /* Play icon */
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <polygon points="6 3 20 12 6 21 6 3" />
-              </svg>
-            ) : (
-              /* Pause icon */
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-            )}
+            Next
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 4 15 12 5 20 5 4" />
+              <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </button>
         )}
-
-        <button
-          onClick={handleStop}
-          className="bg-red-500/80 text-white rounded-full px-8 py-3 text-lg font-semibold hover:bg-red-600 transition-colors"
-        >
-          Stop
-        </button>
       </div>
     </div>
   );
