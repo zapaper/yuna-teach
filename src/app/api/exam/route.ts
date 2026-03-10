@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let where: any = undefined;
+  let linkedStudentIds: string[] | null = null; // null = no filter (admin), [] = no students
   if (userId) {
     // Determine role from DB
     const user = await prisma.user.findUnique({
@@ -21,8 +22,9 @@ export async function GET(request: NextRequest) {
       // Filter to only levels matching their linked students
       const links = await prisma.parentStudent.findMany({
         where: { parentId: userId },
-        include: { student: { select: { level: true } } },
+        include: { student: { select: { id: true, level: true } } },
       });
+      linkedStudentIds = links.map((l) => l.student.id);
       const studentLevels = links
         .map((l) => l.student.level)
         .filter((v): v is number => v != null);
@@ -100,6 +102,7 @@ export async function GET(request: NextRequest) {
       assignedTo: { select: { id: true, name: true } },
       questions: { where: { syllabusTopic: { not: null } }, select: { id: true }, take: 1 },
       clones: {
+        where: linkedStudentIds !== null ? { assignedToId: { in: linkedStudentIds } } : undefined,
         select: {
           id: true,
           markingStatus: true,
