@@ -667,6 +667,7 @@ export const ENGLISH_SYLLABUS = [
   "Synthesis & Transformation",
   "Editing (Spelling & Grammar)",
   "Cloze Passage",
+  "Comprehension Cloze",
   "Continuous Writing",
   "Situational Writing",
   "Visual Text Comprehension",
@@ -675,69 +676,71 @@ export const ENGLISH_SYLLABUS = [
 
 const ENGLISH_CLOZE_ADDENDUM = `
 
-## ENGLISH PAPER — Cloze Passage question extraction
+## ENGLISH PAPER — Special extraction rules for Booklet B passage-fill sections
 
-English Booklet B papers contain a **Cloze Passage** section. This section has a special layout that is completely different from normal questions:
+English Booklet B contains passage-fill sections where the standard extraction rules do NOT apply.
+Use this decision rule FIRST when encountering any passage-fill question:
 
-### What it looks like:
-- A paragraph of running text with BLANK LINES embedded within the sentences (horizontal underscores like "___")
-- Beneath each blank line, a question number is printed (e.g. "31", "32", "33") — the number sits BELOW the blank, not above it
-- The student writes their answer ON the blank line itself
-
-### How to extract Cloze questions:
-Because the question number appears BELOW the blank (the answer region), the crop boundaries work differently:
-
-- **yStartPct** = ~3% ABOVE the blank line for this question (i.e., the yEndPct of the previous question, which already includes padding below its number — no extra gap needed)
-- **yEndPct** = ~3% BELOW the question number itself (give a small buffer so the number is never clipped)
-
-In other words: the blank line is near the TOP of the crop, and the question number is near the BOTTOM of the crop, with a small cushion on both sides.
-
-### Step-by-step for Cloze sections:
-1. Identify the start of the Cloze passage (usually a section heading like "Booklet B" or "Cloze Passage")
-2. Scan for blank lines (underscores) embedded in the text — each one is an answer region
-3. Below each blank, find the question number
-4. Set yStartPct = ~3% above the blank line (or the yEndPct of the previous cloze question)
-5. Set yEndPct = ~3% below the question number printed under this blank
-6. Contiguous: the yStartPct of question N+1 = yEndPct of question N
-
-### marksAvailable for Cloze:
-- Each Cloze blank is typically 1 mark — set marksAvailable: 1 for each unless a bracket mark is visible
-
-### Important — do NOT apply the standard rule to Cloze:
-The standard rule "yStartPct = above the question number, yEndPct = above the NEXT question number" does NOT apply here. For Cloze, the question number is the BOTTOM boundary, not the top.
-
-### Non-Cloze sections:
-All other English question types (MCQ, Comprehension open-ended, Synthesis & Transformation, etc.) follow the STANDARD extraction rules — question number at the top, next question number as the bottom boundary.
+╔══════════════════════════════════════════════════════════════════════╗
+║  QUESTION NUMBER POSITION → EXTRACTION METHOD                        ║
+║                                                                      ║
+║  Number is BELOW the blank/line  →  PASSAGE CLOZE extraction        ║
+║  Number is BESIDE or ABOVE a box →  EDITING extraction              ║
+╚══════════════════════════════════════════════════════════════════════╝
 
 ---
 
-## ENGLISH PAPER — Editing section extraction (also in Booklet B)
+## Method 1: PASSAGE CLOZE extraction
+### (applies to: Cloze Passage — letters OR words — any section where question number is BELOW the blank)
 
-After the Cloze Passage, Booklet B typically contains an **Editing** section with this layout:
+There are two passage-fill sections that use this same extraction method:
+
+**Section A — Cloze Passage (letter/word fill):**
+- Running text with blank lines (underscores "___") embedded in sentences
+- Student fills in a missing letter or word ON the blank line
+- Question number printed BELOW the blank
+
+**Section B — Comprehension Cloze / Word Cloze:**
+- Similar running text with blank lines embedded in sentences
+- Student fills in an appropriate WORD (not just letters) on the blank line
+- Question number also printed BELOW the blank
+
+Both sections use identical extraction:
+
+- **yStartPct** = ~3% ABOVE the blank line (use the yEndPct of the previous question as the starting point)
+- **yEndPct** = ~3% BELOW the question number printed beneath the blank
+
+The blank line is near the TOP of the crop. The question number is near the BOTTOM.
+Questions are contiguous: yStartPct of question N+1 = yEndPct of question N.
+marksAvailable: 1 per blank unless a mark bracket is visible.
+
+### Important — do NOT use the standard rule for these sections:
+"yStartPct = above the question number" is WRONG here. The number is at the BOTTOM, not the top.
+
+---
+
+## Method 2: EDITING extraction
+### (applies to: Editing section — question number is BESIDE or ABOVE an empty box)
 
 ### What it looks like:
-- A passage of text with certain words **underlined**
-- Above each underlined word there is a small **empty box** — this is where the student writes the corrected word
-- The **question number** is printed inside or directly beside the empty box (above the underlined word)
-- The student writes the correct spelling or grammar fix inside the empty box
+- A passage with certain words **underlined**
+- A small **empty box** floats ABOVE each underlined word — the student writes the corrected word inside the box
+- The question number is printed inside or directly beside the empty box
 
-### How to extract Editing questions:
-The crop is defined by the **empty answer box** itself, with slight padding:
+### Extraction:
+The crop is defined by the **empty answer box** itself:
 
 - **yStartPct** = ~3% ABOVE the top edge of the empty box
-- **yEndPct** = ~3% BELOW the bottom edge of the empty box (the box sits just above the underlined word in the passage)
+- **yEndPct** = ~3% BELOW the bottom edge of the empty box
 
-### Step-by-step for Editing sections:
-1. Identify the Editing passage (usually follows the Cloze Passage in Booklet B)
-2. Scan for small empty boxes floating above underlined words — each box is one question
-3. The question number is printed in or beside the box
-4. Set yStartPct = ~3% above the top of the box
-5. Set yEndPct = ~3% below the bottom of the box
-6. Each box is a separate question entry with marksAvailable: 1
+Do NOT extend the crop down to the underlined word. The box is the entire answer region.
+Do NOT use the next question number as the bottom boundary.
+marksAvailable: 1 per box.
 
-### Important:
-- Do NOT extend the crop down to include the underlined word — the boundary is the box only (plus padding)
-- Do NOT use the "next question number" as the bottom boundary — the box bottom is the bottom boundary`;
+---
+
+## All other English question types:
+MCQ, Comprehension open-ended, Synthesis & Transformation, Visual Text, Writing — use the STANDARD extraction rules: question number at the top, next question number as the bottom boundary.`;
 
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
