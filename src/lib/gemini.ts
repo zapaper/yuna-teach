@@ -673,6 +673,42 @@ export const ENGLISH_SYLLABUS = [
   "Oral Communication",
 ] as const;
 
+const ENGLISH_CLOZE_ADDENDUM = `
+
+## ENGLISH PAPER — Cloze Passage question extraction
+
+English Booklet B papers contain a **Cloze Passage** section. This section has a special layout that is completely different from normal questions:
+
+### What it looks like:
+- A paragraph of running text with BLANK LINES embedded within the sentences (horizontal underscores like "___")
+- Beneath each blank line, a question number is printed (e.g. "31", "32", "33") — the number sits BELOW the blank, not above it
+- The student writes their answer ON the blank line itself
+
+### How to extract Cloze questions:
+Because the question number appears BELOW the blank (the answer region), the crop boundaries work differently:
+
+- **yStartPct** = just ABOVE the blank line for this question number (i.e., immediately below where the previous question's number was printed, or the top of the passage for the very first blank)
+- **yEndPct** = just BELOW the question number itself (a few % below the printed number)
+
+In other words: the blank line is at the TOP of the crop, and the question number is at the BOTTOM of the crop.
+
+### Step-by-step for Cloze sections:
+1. Identify the start of the Cloze passage (usually a section heading like "Booklet B" or "Cloze Passage")
+2. Scan for blank lines (underscores) embedded in the text — each one is an answer region
+3. Below each blank, find the question number
+4. Set yStartPct = just above the blank line for this question (use the bottom of the previous question's number as the top boundary, or the section header for Q1)
+5. Set yEndPct = just below the question number printed under this blank (add ~2% padding below the number)
+6. Contiguous: the yStartPct of question N+1 = yEndPct of question N
+
+### marksAvailable for Cloze:
+- Each Cloze blank is typically 1 mark — set marksAvailable: 1 for each unless a bracket mark is visible
+
+### Important — do NOT apply the standard rule to Cloze:
+The standard rule "yStartPct = above the question number, yEndPct = above the NEXT question number" does NOT apply here. For Cloze, the question number is the BOTTOM boundary, not the top.
+
+### Non-Cloze sections:
+All other English question types (MCQ, Comprehension open-ended, Synthesis & Transformation, Editing, etc.) follow the STANDARD extraction rules — question number at the top, next question number as the bottom boundary.`;
+
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
 ## ENGLISH PAPER — Syllabus topic tagging
@@ -1310,6 +1346,7 @@ async function runExtractionCall(
     prompt += MATH_SYLLABUS_ADDENDUM;
   }
   if (isEnglish) {
+    prompt += ENGLISH_CLOZE_ADDENDUM;
     prompt += ENGLISH_SYLLABUS_ADDENDUM;
   }
 
