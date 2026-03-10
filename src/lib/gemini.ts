@@ -687,17 +687,17 @@ English Booklet B papers contain a **Cloze Passage** section. This section has a
 ### How to extract Cloze questions:
 Because the question number appears BELOW the blank (the answer region), the crop boundaries work differently:
 
-- **yStartPct** = just ABOVE the blank line for this question number (i.e., immediately below where the previous question's number was printed, or the top of the passage for the very first blank)
-- **yEndPct** = just BELOW the question number itself (a few % below the printed number)
+- **yStartPct** = ~3% ABOVE the blank line for this question (i.e., the yEndPct of the previous question, which already includes padding below its number — no extra gap needed)
+- **yEndPct** = ~3% BELOW the question number itself (give a small buffer so the number is never clipped)
 
-In other words: the blank line is at the TOP of the crop, and the question number is at the BOTTOM of the crop.
+In other words: the blank line is near the TOP of the crop, and the question number is near the BOTTOM of the crop, with a small cushion on both sides.
 
 ### Step-by-step for Cloze sections:
 1. Identify the start of the Cloze passage (usually a section heading like "Booklet B" or "Cloze Passage")
 2. Scan for blank lines (underscores) embedded in the text — each one is an answer region
 3. Below each blank, find the question number
-4. Set yStartPct = just above the blank line for this question (use the bottom of the previous question's number as the top boundary, or the section header for Q1)
-5. Set yEndPct = just below the question number printed under this blank (add ~2% padding below the number)
+4. Set yStartPct = ~3% above the blank line (or the yEndPct of the previous cloze question)
+5. Set yEndPct = ~3% below the question number printed under this blank
 6. Contiguous: the yStartPct of question N+1 = yEndPct of question N
 
 ### marksAvailable for Cloze:
