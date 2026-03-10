@@ -707,7 +707,37 @@ In other words: the blank line is near the TOP of the crop, and the question num
 The standard rule "yStartPct = above the question number, yEndPct = above the NEXT question number" does NOT apply here. For Cloze, the question number is the BOTTOM boundary, not the top.
 
 ### Non-Cloze sections:
-All other English question types (MCQ, Comprehension open-ended, Synthesis & Transformation, Editing, etc.) follow the STANDARD extraction rules — question number at the top, next question number as the bottom boundary.`;
+All other English question types (MCQ, Comprehension open-ended, Synthesis & Transformation, etc.) follow the STANDARD extraction rules — question number at the top, next question number as the bottom boundary.
+
+---
+
+## ENGLISH PAPER — Editing section extraction (also in Booklet B)
+
+After the Cloze Passage, Booklet B typically contains an **Editing** section with this layout:
+
+### What it looks like:
+- A passage of text with certain words **underlined**
+- Above each underlined word there is a small **empty box** — this is where the student writes the corrected word
+- The **question number** is printed inside or directly beside the empty box (above the underlined word)
+- The student writes the correct spelling or grammar fix inside the empty box
+
+### How to extract Editing questions:
+The crop is defined by the **empty answer box** itself, with slight padding:
+
+- **yStartPct** = ~3% ABOVE the top edge of the empty box
+- **yEndPct** = ~3% BELOW the bottom edge of the empty box (the box sits just above the underlined word in the passage)
+
+### Step-by-step for Editing sections:
+1. Identify the Editing passage (usually follows the Cloze Passage in Booklet B)
+2. Scan for small empty boxes floating above underlined words — each box is one question
+3. The question number is printed in or beside the box
+4. Set yStartPct = ~3% above the top of the box
+5. Set yEndPct = ~3% below the bottom of the box
+6. Each box is a separate question entry with marksAvailable: 1
+
+### Important:
+- Do NOT extend the crop down to include the underlined word — the boundary is the box only (plus padding)
+- Do NOT use the "next question number" as the bottom boundary — the box bottom is the bottom boundary`;
 
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
