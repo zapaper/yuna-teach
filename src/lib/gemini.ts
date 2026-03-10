@@ -739,8 +739,30 @@ marksAvailable: 1 per box.
 
 ---
 
-## All other English question types:
-MCQ, Comprehension open-ended, Synthesis & Transformation, Visual Text, Writing — use the STANDARD extraction rules: question number at the top, next question number as the bottom boundary.`;
+## Method 3: STANDARD extraction (question number at left margin)
+### (applies to: Synthesis & Transformation, Open-ended Comprehension, MCQ, Visual Text, Writing)
+
+These sections have the question number printed at the **left margin**, and the student writes answers on **lines or inside boxes** provided below the question.
+
+Use the standard extraction rule:
+- **yStartPct** = ~2% ABOVE the question number at the left margin
+- **yEndPct** = ~2% ABOVE the NEXT question number (or end of page if last question)
+
+### Synthesis & Transformation:
+- Question number is at the left margin
+- A sentence (or pair of sentences) is printed, and one or more answer lines are provided below it
+- The student rewrites or completes the sentence on the answer lines
+- The entire block (question sentence + answer lines) is the crop region
+- marksAvailable: typically 2 per question unless a mark bracket states otherwise
+
+### Open-ended Comprehension:
+- Question number is at the left margin
+- The question text is printed, followed by answer lines or a box
+- The student writes their answer on those lines/in the box
+- Crop from just above the question number to just above the next question number
+- marksAvailable: read from the mark bracket printed beside the question (e.g. "[2m]", "[1]")
+
+For both: do NOT use the passage-cloze or editing rules — simply apply the standard top-to-next-question-number boundary.`;
 
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
