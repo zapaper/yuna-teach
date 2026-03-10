@@ -36,6 +36,8 @@ function TestPageContent({ id }: { id: string }) {
   const [voice, setVoice] = useState<"male" | "female">("female");
   const [testMode, setTestMode] = useState(false);
   const [playingWord, setPlayingWord] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleInput, setTitleInput] = useState("");
   const [currentWordInfo, setCurrentWordInfo] = useState<{
     word: string;
     info: WordInfo;
@@ -222,6 +224,25 @@ function TestPageContent({ id }: { id: string }) {
     setTestMode(true);
   }
 
+  async function saveTitle() {
+    if (!test || !titleInput.trim()) { setEditingTitle(false); return; }
+    try {
+      const res = await fetch(`/api/tests/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: titleInput.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTest((prev) => prev ? { ...prev, title: data.title } : prev);
+      }
+    } catch (err) {
+      console.error("Failed to update title:", err);
+    } finally {
+      setEditingTitle(false);
+    }
+  }
+
   return (
     <div className="p-6 pb-24">
       {/* Header */}
@@ -246,10 +267,36 @@ function TestPageContent({ id }: { id: string }) {
       </button>
 
       <div className="mb-6 flex items-start justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800 font-chinese">
-            {test.title}
-          </h1>
+        <div className="flex-1 min-w-0">
+          {editingTitle ? (
+            <div className="flex items-center gap-2">
+              <input
+                autoFocus
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") saveTitle(); if (e.key === "Escape") setEditingTitle(false); }}
+                className="flex-1 text-xl font-bold text-slate-800 font-chinese border-b-2 border-primary-400 outline-none bg-transparent min-w-0"
+              />
+              <button onClick={saveTitle} className="text-primary-500 text-sm font-semibold shrink-0">Save</button>
+              <button onClick={() => setEditingTitle(false)} className="text-slate-400 text-sm shrink-0">Cancel</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-slate-800 font-chinese truncate">
+                {test.title}
+              </h1>
+              <button
+                onClick={() => { setTitleInput(test.title); setEditingTitle(true); }}
+                className="text-slate-300 hover:text-slate-500 transition-colors shrink-0"
+                aria-label="Edit title"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+            </div>
+          )}
           {test.subtitle ? (
             <p className="text-sm text-slate-500 mt-0.5 font-chinese">
               {test.subtitle}

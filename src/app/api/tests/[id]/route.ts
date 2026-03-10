@@ -32,6 +32,25 @@ export async function GET(
   });
 }
 
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const { title } = await request.json();
+
+  if (!title || typeof title !== "string" || !title.trim()) {
+    return NextResponse.json({ error: "Title is required" }, { status: 400 });
+  }
+
+  const test = await prisma.spellingTest.update({
+    where: { id },
+    data: { title: title.trim() },
+  });
+
+  return NextResponse.json({ id: test.id, title: test.title });
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
