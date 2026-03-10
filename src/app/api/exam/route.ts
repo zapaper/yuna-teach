@@ -40,13 +40,12 @@ export async function GET(request: NextRequest) {
           { level: { contains: String(n) } },
         ]);
         if (isAdminUser) {
-          // Admin sees own master papers (matching levels + processing) + own focused tests
+          // Admin sees all master papers + own focused tests (no level filter)
           where = {
-            userId,
             sourceExamId: null,
             OR: [
-              { paperType: null, OR: [...levelConditions, { level: null }] },
-              { paperType: "focused" },
+              { paperType: null },
+              { paperType: "focused", userId },
             ],
           };
         } else {
@@ -67,6 +66,15 @@ export async function GET(request: NextRequest) {
             ],
           };
         }
+      } else if (isAdminUser) {
+        // Admin with no linked students — still show all master papers
+        where = {
+          sourceExamId: null,
+          OR: [
+            { paperType: null },
+            { paperType: "focused", userId },
+          ],
+        };
       } else {
         // No linked students — show no papers
         where = { id: "none" };

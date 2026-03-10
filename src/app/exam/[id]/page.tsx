@@ -322,6 +322,7 @@ function ExamPracticeContent({ id }: { id: string }) {
   const [downloadingExam, setDownloadingExam] = useState(false);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [reminderType, setReminderType] = useState<"scan" | "download" | null>(null);
 
   async function downloadSubmissionPdf() {
     if (!paper || downloadingPdf) return;
@@ -648,14 +649,14 @@ function ExamPracticeContent({ id }: { id: string }) {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={downloadExamForPrinting}
+                onClick={() => setReminderType("download")}
                 disabled={downloadingExam}
                 className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
               >
                 {downloadingExam ? "Downloading…" : "Download for printing"}
               </button>
               <button
-                onClick={() => uploadInputRef.current?.click()}
+                onClick={() => setReminderType("scan")}
                 disabled={uploadingPdf}
                 className="flex-1 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-xs font-medium hover:bg-slate-50 hover:border-primary-300 hover:text-primary-600 disabled:opacity-50 transition-colors"
               >
@@ -704,6 +705,40 @@ function ExamPracticeContent({ id }: { id: string }) {
           )}
         </div>
       ) : null}
+
+      {/* Reminder modal */}
+      {reminderType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <p className="text-slate-800 font-semibold text-base mb-3">
+              {reminderType === "scan" ? "Before you upload" : "Before you print"}
+            </p>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              {reminderType === "scan"
+                ? "Please make sure you scan every page, including cover pages, and answers are written in blue ink."
+                : "Please make sure you write in blue ink."}
+            </p>
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => setReminderType(null)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (reminderType === "scan") uploadInputRef.current?.click();
+                  else downloadExamForPrinting();
+                  setReminderType(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors"
+              >
+                OK, got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hidden file input for PDF upload */}
       <input

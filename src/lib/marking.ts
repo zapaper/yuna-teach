@@ -278,6 +278,21 @@ function buildMarkingNotes(result: QuestionMarkResult): string {
   return parts.join(" | ");
 }
 
+function scienceCommandWordRules(subject: string | null | undefined): string {
+  if (!subject?.toLowerCase().includes("science")) return "";
+  return `
+  SCIENCE COMMAND WORD RULES (applies to this Science paper only):
+  - Before comparing the student's answer, READ the printed question text in the image to identify the command word.
+  - "State" questions: expect a concise, factual answer. The answer key gives a short, direct answer.
+    Award full marks only if the student's answer matches the key point(s). Partial marks only if marksAvailable > 1 and some (but not all) key points are present.
+  - "Describe" questions: the answer key gives a more detailed expected response covering multiple aspects (e.g. what happens, how, why).
+    The student must provide sufficient detail to earn full marks.
+    Award PARTIAL marks if the student captures some but not all key details — even if only 1 mark is available, award 0 if the description is too vague or missing the key detail.
+    In notes, clearly state which details were present and which were missing.
+  - "Explain" questions: treat the same as "Describe" — detail and reasoning are required.
+  - All other command words (Name, Give, Identify, etc.): treat like "State" — short, specific answer expected.`;
+}
+
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise.
 
 HOW TO READ THIS IMAGE:
@@ -361,6 +376,7 @@ STEP 5: Compare against the expected answer.
      - For written/worked answers: check if working/steps are partially correct.
        If some steps are correct → award PARTIAL marks = round(proportion × marksAvailable).
      - If answer is wrong with no correct working → ZERO marks.
+{SCIENCE_COMMAND_WORD_RULES}
   C) For questions with an answer image provided:
      - The answer image shows EXACTLY what the correct answer looks like.
      - Compare ONLY what the student actually drew/wrote in blue ink against what is shown in the answer image.
@@ -598,7 +614,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     }
   }
 
-  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper.subject));
   parts.push({ text: prompt });
 
   console.log(`[marking] Calling Gemini for remark of question ${questionId}`);
@@ -791,7 +807,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper?.subject));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -1020,7 +1036,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper.subject));
           parts.push({ text: prompt });
 
           try {
@@ -1124,7 +1140,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote);
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SCIENCE_COMMAND_WORD_RULES}", scienceCommandWordRules(paper.subject));
           parts.push({ text: prompt });
 
           try {
