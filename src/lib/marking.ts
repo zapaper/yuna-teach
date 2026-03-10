@@ -1375,18 +1375,13 @@ export async function markExamPaper(paperId: string): Promise<void> {
     }
     console.log(`[marking] Paper ${paperId} marked complete. Score: ${totalAwarded}`);
 
-    // Auto-release if instantFeedback is enabled
+    // Auto-generate summary if instantFeedback is enabled (paper stays "complete" for parent review)
     if (paper.instantFeedback) {
-      console.log(`[marking] instantFeedback=true — auto-generating summary and releasing paper ${paperId}`);
+      console.log(`[marking] instantFeedback=true — auto-generating summary for ${paperId}`);
       try {
         await generateFeedbackSummary(paperId);
-        await prisma.examPaper.update({
-          where: { id: paperId },
-          data: { markingStatus: "released" },
-        });
-        console.log(`[marking] Paper ${paperId} auto-released.`);
       } catch (err) {
-        console.error(`[marking] Auto-release failed for ${paperId}:`, err);
+        console.error(`[marking] Auto-summary failed for ${paperId}:`, err);
       }
     }
   } catch (err) {

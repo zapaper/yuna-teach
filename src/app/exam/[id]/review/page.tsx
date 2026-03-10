@@ -66,6 +66,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [elaborating, setElaborating] = useState<string | null>(null);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   const [flagging, setFlagging] = useState<string | null>(null);
+  const [instantFeedback, setInstantFeedback] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -81,6 +82,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setPaperTitle(paper.title ?? "");
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
+          setInstantFeedback(paper.instantFeedback === true);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
@@ -242,7 +244,7 @@ function ExamReviewContent({ id }: { id: string }) {
     );
   }
 
-  if (data.markingStatus !== "released") {
+  if (data.markingStatus !== "released" && !(instantFeedback && data.markingStatus === "complete")) {
     return (
       <div className="p-6 text-center py-24">
         <p className="text-slate-500">Results are not available yet.</p>
