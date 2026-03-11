@@ -325,9 +325,12 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - The question number is printed BESIDE the answer box in the image.
   - STEP 1 — Verify question number: locate the printed question number in the crop and confirm it matches the question you are marking. If the crop shows multiple question numbers, only read the answer for the matching number.
   - STEP 2 — Blue ink check: confirm there is blue ink written INSIDE the answer box next to that specific question number. If no blue ink is found in that box, award 0 marks.
-  - STEP 3 — Read answer CAREFULLY: read EVERY letter of the handwritten word exactly as written. Do NOT assume or infer what the word is — read it character by character.
-  - STEP 4 — Spell-check the handwriting: since editing questions often test spelling, the student's word must be spelled EXACTLY correctly to earn marks. A word that looks "close" but has a wrong letter, missing letter, or extra letter is WRONG. Do NOT hallucinate the correct spelling from what you expect to see — transcribe only what the blue ink actually shows.
-  - Compare the exactly-transcribed word against the expected answer letter by letter. Award marks only if the spelling is a perfect match (or the word is a correct grammatical replacement).
+  - STEP 3 — Transcribe letter by letter: spell out EVERY letter you see in the handwritten word, one at a time, in order. Write the transcription as a sequence like "r-u-n-n-i-n-g". Do NOT guess the word from context — only transcribe what the ink physically shows.
+  - STEP 4 — Count the letters: count the number of letters in your transcription and compare it to the number of letters in the expected answer. A MISSING LETTER (student wrote fewer letters) is a spelling error. An EXTRA LETTER is a spelling error. Even one missing or extra letter = WRONG.
+  - STEP 5 — Compare letter by letter: after confirming the letter count matches, compare each position. Any single wrong letter = WRONG.
+  - STEP 6 — Award marks: ONLY award marks if every letter in the transcription exactly matches the expected answer. A word that looks "approximately right" or "nearly correct" earns 0. Do NOT award marks based on what you think the student intended — award only on what they actually wrote.
+  - Common trap: students sometimes omit a silent or weak letter (e.g. omit the 'e' in "received", omit the double letter in "beginning"). These are spelling mistakes — award 0.
+  - In markingNotes, always include your transcription (e.g. "Student wrote: r-e-c-i-e-v-e-d") so the teacher can verify.
 
   CLOZE PASSAGE / COMPREHENSION CLOZE (fill-in-the-blank):
   - The question number is printed in parentheses BELOW the blank line, e.g. (34).
