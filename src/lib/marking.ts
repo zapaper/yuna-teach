@@ -560,6 +560,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
       if (masterQ.pageIndex !== question.pageIndex) updates.pageIndex = masterQ.pageIndex;
       if (masterQ.yStartPct !== question.yStartPct) updates.yStartPct = masterQ.yStartPct;
       if (masterQ.yEndPct !== question.yEndPct) updates.yEndPct = masterQ.yEndPct;
+      if (masterQ.syllabusTopic !== question.syllabusTopic) updates.syllabusTopic = masterQ.syllabusTopic;
       if (Object.keys(updates).length > 0) {
         await prisma.examQuestion.update({ where: { id: question.id }, data: updates });
         Object.assign(question, updates);
@@ -584,7 +585,10 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
       submissionIdx++;
     }
   }
-  if (submissionPage === -1) throw new Error("Question page not in submission");
+  if (submissionPage === -1) {
+    console.error(`[marking] remarkSingle Q${question.questionNum}: pageIndex=${question.pageIndex} is in hiddenPageSet or out of range (pageCount=${paper.pageCount}, hiddenPageSet=[${[...hiddenPageSet].join(",")}])`);
+    throw new Error("Question page not in submission");
+  }
 
   const pagePath = path.join(subDir, `page_${submissionPage}.jpg`);
   const pageBuffer = await fs.readFile(pagePath);
