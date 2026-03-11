@@ -10,11 +10,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Mark for You",
-  description: "Let AI pinpoint your child's learning gaps",
+  description: "Let AI help with your child's learning gaps.",
   metadataBase: new URL("https://markforyou.com"),
   openGraph: {
     title: "Mark for You",
-    description: "Let AI pinpoint your child's learning gaps",
+    description: "Let AI help with your child's learning gaps.",
     siteName: "Mark for You",
     type: "website",
   },
