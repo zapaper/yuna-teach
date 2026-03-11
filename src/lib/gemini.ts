@@ -895,7 +895,26 @@ Use the standard extraction rule:
 - **yEndPct** = ~2% ABOVE the NEXT question number (or end of page if last question)
 - marksAvailable: read from the mark bracket printed beside the question (e.g. "[2m]", "[1]")
 
-For both: do NOT use the passage-cloze or editing rules — simply apply the standard top-to-next-question-number boundary.`;
+For both: do NOT use the passage-cloze or editing rules — simply apply the standard top-to-next-question-number boundary.
+
+---
+
+## ENGLISH — Comprehension MCQ: questions may resume AFTER a passage page
+
+In the Comprehension MCQ section of Booklet A, the reading passage is often printed across one or more full pages BEFORE or BETWEEN the MCQ question pages. This means:
+
+- A page that contains ONLY the reading passage (dense prose, no numbered questions at the left margin) is a **passage-only page** — extract zero questions from it.
+- MCQ questions with options (1)/(2)/(3)/(4) may appear on the **page before** the passage, on the **page after** the passage, or on **both**.
+
+⚠ **CRITICAL — do NOT stop extracting MCQs when you hit a passage-only page.**
+After a passage-only page, scan the **next page** for question numbers continuing the MCQ sequence. If questions resume there, extract them normally.
+
+Example layout:
+- Page 5: Questions 18–21 (MCQ with options)
+- Page 6: Reading passage only (no question numbers at left margin)
+- Page 7: Questions 22–25 (MCQ with options — these MUST be extracted)
+
+When you reach the last MCQ on a page and the page count expected for this section has not been reached, look at the immediately following page(s) for more MCQs before concluding the section is complete.`;
 
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
