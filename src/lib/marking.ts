@@ -215,10 +215,14 @@ Return ONLY valid JSON (no markdown fences):
   ]
 }`;
 
+  // Use a stronger model when any question on this page has expected answer "1"
+  // (thin vertical stroke — easily missed by 2.5 Flash)
+  const mcqModel = hintAnswer1QuestionIds.size > 0 ? "gemini-3-flash-preview" : "gemini-2.5-flash";
+
   try {
     const response = await withTimeout(
       getAI().models.generateContent({
-        model: "gemini-2.5-flash",
+        model: mcqModel,
         contents: [{ role: "user", parts: [
           { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
           { text: prompt },
