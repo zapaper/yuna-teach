@@ -95,6 +95,14 @@ function ExamUploadContent() {
         }).catch((err) => console.warn("PDF upload failed:", err));
       }
 
+      // Explicitly trigger extraction — the extract-background route may not have
+      // fired it reliably for large payloads (network timeout before the call).
+      await fetch(`/api/exam/${data.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ retryExtraction: true }),
+      }).catch((err) => console.warn("Extraction trigger failed:", err));
+
       // Redirect to home (with timestamp to force refetch)
       router.push(userId ? `/home/${userId}?t=${Date.now()}` : "/");
     } finally {

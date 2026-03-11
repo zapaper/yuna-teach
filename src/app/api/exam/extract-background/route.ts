@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { promises as fs } from "fs";
 import { prisma } from "@/lib/db";
-import { extractExamPaperBackground } from "@/lib/extraction";
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -49,14 +48,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fire-and-forget extraction
-    extractExamPaperBackground(paper.id).catch((err) =>
-      console.error(
-        `[extract-background] Background extraction failed for ${paper.id}:`,
-        err
-      )
-    );
-
+    // Extraction is triggered separately by the client after this response.
+    // Keeping it out of this route avoids silent failures when large request bodies
+    // hit network timeouts before this code would have been reached.
     return NextResponse.json({ id: paper.id }, { status: 201 });
   } catch (error) {
     console.error("Extract-background error:", error);
