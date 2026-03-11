@@ -319,8 +319,9 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - The question number is printed BESIDE the answer box in the image.
   - STEP 1 — Verify question number: locate the printed question number in the crop and confirm it matches the question you are marking. If the crop shows multiple question numbers, only read the answer for the matching number.
   - STEP 2 — Blue ink check: confirm there is blue ink written INSIDE the answer box next to that specific question number. If no blue ink is found in that box, award 0 marks.
-  - STEP 3 — Read answer: the student's answer is the word written in blue ink inside the box beside the matching question number.
-  - One specific correct answer per error. Award marks only if the student wrote the correct replacement word.
+  - STEP 3 — Read answer CAREFULLY: read EVERY letter of the handwritten word exactly as written. Do NOT assume or infer what the word is — read it character by character.
+  - STEP 4 — Spell-check the handwriting: since editing questions often test spelling, the student's word must be spelled EXACTLY correctly to earn marks. A word that looks "close" but has a wrong letter, missing letter, or extra letter is WRONG. Do NOT hallucinate the correct spelling from what you expect to see — transcribe only what the blue ink actually shows.
+  - Compare the exactly-transcribed word against the expected answer letter by letter. Award marks only if the spelling is a perfect match (or the word is a correct grammatical replacement).
 
   CLOZE PASSAGE / COMPREHENSION CLOZE (fill-in-the-blank):
   - The question number is printed in parentheses BELOW the blank line, e.g. (34).
