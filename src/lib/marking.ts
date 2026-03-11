@@ -316,9 +316,17 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - In notes, state which key point was present or missing.
 
   EDITING (spelling/grammar correction):
-  - One specific correct answer per error. Award marks only if the student identified the correct word AND wrote the correct replacement.
+  - The question number is printed BESIDE the answer box in the image.
+  - STEP 1 — Verify question number: locate the printed question number in the crop and confirm it matches the question you are marking. If the crop shows multiple question numbers, only read the answer for the matching number.
+  - STEP 2 — Blue ink check: confirm there is blue ink written INSIDE the answer box next to that specific question number. If no blue ink is found in that box, award 0 marks.
+  - STEP 3 — Read answer: the student's answer is the word written in blue ink inside the box beside the matching question number.
+  - One specific correct answer per error. Award marks only if the student wrote the correct replacement word.
 
-  CLOZE / FILL-IN-THE-BLANK:
+  CLOZE PASSAGE / COMPREHENSION CLOZE (fill-in-the-blank):
+  - The question number is printed in parentheses BELOW the blank line, e.g. (34).
+  - STEP 1 — Verify question number: locate the parenthesised number e.g. "(34)" in the crop and confirm it matches the question you are marking. If multiple question numbers are visible, only read the answer for the matching number.
+  - STEP 2 — Blue ink check: look for blue ink written ON or ABOVE the blank line that is directly above the matching parenthesised number. If no blue ink is found there, award 0 marks.
+  - STEP 3 — Read answer: the student's answer is the word written in blue ink on/above the blank paired with the matching number. Do NOT read a word from a different blank belonging to a different number.
   - Accept the exact word from the answer key. Accept clear synonyms only if semantically equivalent in context.
   - Do NOT accept answers that change the grammar of the sentence.
 
@@ -984,9 +992,9 @@ export async function markExamPaper(paperId: string): Promise<void> {
           results.push(...batch);
         }
 
-        // Individual cropped calls for science written questions (with blue ink pre-check)
+        // Individual cropped calls for written questions (all subjects) with blue ink pre-check
         if (writtenQs.length > 0) {
-          console.log(`[marking] Cropping ${writtenQs.length} science written questions on page ${pageIndex}`);
+          console.log(`[marking] Cropping ${writtenQs.length} written questions on page ${pageIndex}`);
           const croppedResults = await Promise.all(
             writtenQs.map(async (q) => {
               try {
