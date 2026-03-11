@@ -673,11 +673,11 @@ export const SCIENCE_SYLLABUS = [
 export const ENGLISH_SYLLABUS = [
   "Grammar",
   "Vocabulary",
-  "Comprehension (Open-ended)",
-  "Synthesis & Transformation",
-  "Editing (Spelling & Grammar)",
   "Cloze Passage",
+  "Editing (Spelling & Grammar)",
   "Comprehension Cloze",
+  "Synthesis & Transformation",
+  "Comprehension (Open-ended)",
   "Continuous Writing",
   "Situational Writing",
   "Visual Text Comprehension",
@@ -685,6 +685,15 @@ export const ENGLISH_SYLLABUS = [
 ] as const;
 
 const ENGLISH_CLOZE_ADDENDUM = `
+
+## ENGLISH PAPER — MCQ question extraction (Booklet A)
+
+For English MCQ questions (Booklet A), override the general lower-bound padding rule:
+- **yEndPct** = bottom edge of the LAST answer option (e.g. "(4) option text") — NO extra padding below the last option
+- The next question starts immediately after; do NOT extend the crop into the whitespace gap or the next question's number
+- Keep the lower bound tight: stop right where the last option line ends
+
+---
 
 ## ENGLISH PAPER — Special extraction rules for Booklet B passage-fill sections
 
@@ -694,45 +703,39 @@ Use this decision rule FIRST when encountering any passage-fill question:
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  QUESTION NUMBER POSITION → EXTRACTION METHOD                        ║
 ║                                                                      ║
-║  Number is BELOW the blank/line  →  PASSAGE CLOZE extraction        ║
-║  Number is BESIDE or ABOVE a box →  EDITING extraction              ║
+║  Number is BELOW the blank/line  →  CLOZE extraction (Method 1)     ║
+║  Number is BESIDE a box          →  EDITING extraction (Method 2)   ║
 ╚══════════════════════════════════════════════════════════════════════╝
+
+The sections appear in this order in Booklet B:
+  1. Cloze Passage       — number BELOW the blank      → Method 1
+  2. Editing             — number BESIDE the box       → Method 2
+  3. Comprehension Cloze — number BELOW the blank      → Method 1 (same as Cloze Passage)
 
 ---
 
-## Method 1: PASSAGE CLOZE extraction
-### (applies to: Cloze Passage — letters OR words — any section where question number is BELOW the blank)
+## Method 1: CLOZE extraction
+### (applies to: Cloze Passage AND Comprehension Cloze — question number is BELOW the blank line)
 
-There are two passage-fill sections that use this same extraction method:
-
-**Section A — Cloze Passage (letter/word fill):**
+**What it looks like:**
 - Running text with blank lines (underscores "___") embedded in sentences
-- Student fills in a missing letter or word ON the blank line
-- Question number printed BELOW the blank
+- Student fills in a missing letter or word on the blank
+- Question number printed in parentheses BELOW the blank, e.g. "(34)"
 
-**Section B — Comprehension Cloze / Word Cloze:**
-- Similar running text with blank lines embedded in sentences
-- Student fills in an appropriate WORD (not just letters) on the blank line
-- Question number also printed BELOW the blank
+**How to FIND questions — scan for parenthesised numbers:**
+These passages contain almost no numbers. Every number in parentheses e.g. **(34)**, **(35)** is a question marker.
+Scan for ALL occurrences of a parenthesised number — each one is a question, with the blank line directly above it.
 
-Both sections use identical extraction:
+**Extraction:**
+- **yStartPct** = MIDPOINT of the blank/underscore line directly above the number — start halfway through the blank
+- **yEndPct** = MIDPOINT of the parenthesised number e.g. "(34)" — stop halfway through it, no space below
 
-- **yStartPct** = the line IMMEDIATELY ABOVE the blank line (just one row up — cloze questions are densely packed and the next question may be on the same line or the very next line)
-- **yEndPct** = just below the question number printed beneath the blank (the number in parentheses, e.g. "(38)" — use its bottom edge as the lower boundary)
-
-The blank line is near the TOP of the crop. The question number is near the BOTTOM.
-Keep crops TIGHT — do NOT add generous padding above; the previous question ends right where this one begins.
-Questions are contiguous: yStartPct of question N+1 = yEndPct of question N.
+Keep crops TIGHT — contiguous, no gaps between questions.
 marksAvailable: 1 per blank unless a mark bracket is visible.
 
-### Key recognition — question numbers in Cloze:
-Question numbers in cloze passages appear in parentheses BELOW the blank line, e.g. **(38)**, **(39)**.
-The lower boundary is the bottom of this parenthesised number.
-The upper boundary is the line immediately above the blank line (one row up only).
-
-### Important — do NOT use the standard rule for these sections:
-"yStartPct = above the question number" is WRONG here. The number is at the BOTTOM, not the top.
-Do NOT add ~3% padding above — cloze questions sit right next to each other.
+### Important:
+"yStartPct = above the question number" is WRONG here — the number is at the BOTTOM, not the top.
+No padding above the midpoint of the blank. No padding below the midpoint of the number.
 
 ---
 
@@ -776,7 +779,8 @@ Use the standard extraction rule:
 - Question number is at the left margin
 - The question text is printed, followed by answer lines or a box
 - The student writes their answer on those lines/in the box
-- Crop from just above the question number to just above the next question number
+- **yStartPct** = ~1% ABOVE the question number (minimal — do not extend far above the number)
+- **yEndPct** = ~2% ABOVE the NEXT question number (or end of page if last question)
 - marksAvailable: read from the mark bracket printed beside the question (e.g. "[2m]", "[1]")
 
 For both: do NOT use the passage-cloze or editing rules — simply apply the standard top-to-next-question-number boundary.`;
@@ -795,8 +799,9 @@ Rules:
 - "Vocabulary" — questions testing word meaning, synonyms, antonyms, word choice, phrasal verbs
 - "Comprehension (Open-ended)" — questions based on a reading passage requiring written answers
 - "Synthesis & Transformation" — rewriting sentences using given words, combining sentences, direct/indirect speech
-- "Editing (Spelling & Grammar)" — passages with errors to identify and correct
-- "Cloze Passage" — fill-in-the-blank passage (words given or free response)
+- "Cloze Passage" — fill-in-the-blank passage where question number is printed BELOW the blank; student fills in a letter or word
+- "Editing (Spelling & Grammar)" — passages with underlined errors; student writes the correction in the box beside the question number
+- "Comprehension Cloze" — fill-in-the-blank passage where question number is printed BELOW the blank; student fills in an appropriate word (same layout as Cloze Passage but appears after Editing)
 - "Continuous Writing" — extended creative writing or narrative
 - "Situational Writing" — writing for a specific purpose (email, report, letter, recount)
 - "Visual Text Comprehension" — questions about advertisements, posters, infographics

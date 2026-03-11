@@ -337,6 +337,19 @@ function scienceCommandWordRules(subject: string | null | undefined): string {
   - All other command words (Name, Give, Identify, etc.): treat like "State" — short, specific answer expected.`;
 }
 
+function mathMarkingRules(subject: string | null | undefined): string {
+  if (!subject?.toLowerCase().includes("math")) return "";
+  return `
+  MATH OPEN-ENDED MARKING RULES (applies to this Mathematics paper only):
+  - For each written (non-MCQ) question, FIRST locate the "Ans:" or "Answer:" line at the BOTTOM-RIGHT of the question's answer region.
+    This is a printed line followed by a blank — the student writes their final answer on or above this line in blue ink.
+  - Read the blue ink written on/above the "Ans:" line as the student's FINAL ANSWER.
+  - If the final answer matches the expected answer → award FULL MARKS immediately. Do NOT penalise for missing or incomplete working.
+  - ONLY if the final answer does NOT match the expected answer (or is absent): scan the student's working steps for partial credit.
+    Award partial marks if some steps or methods are correct, proportional to marksAvailable.
+  - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.`;
+}
+
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise.
 
 HOW TO READ THIS IMAGE:
@@ -658,7 +671,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     }
   }
 
-  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + englishMarkingRules(paper.subject));
+  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject));
   parts.push({ text: prompt });
 
   console.log(`[marking] Calling Gemini for remark of question ${questionId}`);
@@ -851,7 +864,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + englishMarkingRules(paper?.subject));
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + mathMarkingRules(paper?.subject) + englishMarkingRules(paper?.subject));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -1080,7 +1093,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + englishMarkingRules(paper.subject));
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject));
           parts.push({ text: prompt });
 
           try {
@@ -1184,7 +1197,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + englishMarkingRules(paper.subject));
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject));
           parts.push({ text: prompt });
 
           try {
