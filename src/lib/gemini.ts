@@ -3,7 +3,9 @@ import { GoogleGenAI } from "@google/genai";
 let _ai: GoogleGenAI | null = null;
 function getAI() {
   if (!_ai) {
-    _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+    // Set a 3-minute HTTP timeout so extraction calls never hang indefinitely.
+    // Large English papers with many images can take 2+ minutes on the first call.
+    _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!, httpOptions: { timeout: 180000 } });
   }
   return _ai;
 }

@@ -224,10 +224,18 @@ export function extractExamPaperBackground(paperId: string): Promise<void> {
   });
 }
 
+// Hard cap: if extraction hasn't completed in 10 minutes, fail loudly.
+const EXTRACTION_TIMEOUT_MS = 10 * 60 * 1000;
+
 async function extractExamPaperCore(
   paperId: string
 ): Promise<void> {
   console.log(`[extraction] Starting background extraction for ${paperId}`);
+
+  const timeoutHandle = setTimeout(() => {
+    console.error(`[extraction] TIMEOUT after ${EXTRACTION_TIMEOUT_MS / 1000}s for ${paperId} — marking as failed`);
+    prisma.examPaper.update({ where: { id: paperId }, data: { extractionStatus: "failed" } }).catch(() => {});
+  }, EXTRACTION_TIMEOUT_MS);
 
   try {
     // 1. Load page images from disk
@@ -478,5 +486,7 @@ async function extractExamPaperCore(
         data: { extractionStatus: "failed" },
       })
       .catch(() => {});
+  } finally {
+    clearTimeout(timeoutHandle);
   }
 }
