@@ -325,15 +325,16 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - In notes, state which key point was present or missing.
 
   EDITING (spelling/grammar correction):
-  - The question number is printed BESIDE the answer box in the image.
-  - STEP 1 — Verify question number: locate the printed question number in the crop and confirm it matches the question you are marking. If the crop shows multiple question numbers, only read the answer for the matching number.
-  - STEP 2 — Blue ink check: confirm there is blue ink written INSIDE the answer box next to that specific question number. If no blue ink is found in that box, award 0 marks.
-  - STEP 3 — Transcribe letter by letter: spell out EVERY letter you see in the handwritten word, one at a time, in order. Write the transcription as a sequence like "r-u-n-n-i-n-g". Do NOT guess the word from context — only transcribe what the ink physically shows.
-  - STEP 4 — Count the letters: count the number of letters in your transcription and compare it to the number of letters in the expected answer. A MISSING LETTER (student wrote fewer letters) is a spelling error. An EXTRA LETTER is a spelling error. Even one missing or extra letter = WRONG.
-  - STEP 5 — Compare letter by letter: after confirming the letter count matches, compare each position. Any single wrong letter = WRONG.
-  - STEP 6 — Award marks: ONLY award marks if every letter in the transcription exactly matches the expected answer. A word that looks "approximately right" or "nearly correct" earns 0. Do NOT award marks based on what you think the student intended — award only on what they actually wrote.
-  - Common trap: students sometimes omit a silent or weak letter (e.g. omit the 'e' in "received", omit the double letter in "beginning"). These are spelling mistakes — award 0.
-  - In markingNotes, always include your transcription (e.g. "Student wrote: r-e-c-i-e-v-e-d") so the teacher can verify.
+  - The question number is printed BESIDE an answer box. The passage nearby contains an UNDERLINED or MARKED word — this is the erroneous word the student must correct.
+  - STEP 1 — Verify question number: locate the printed question number and confirm it matches the question you are marking.
+  - STEP 2 — Read the underlined error word: find the underlined/marked word in the printed passage near this question number. Read it carefully. This tells you WHAT KIND of error the student was asked to fix (e.g. a misspelling, wrong tense, wrong form). Log it: "Error word: [word]".
+  - STEP 3 — Blue ink check: confirm there is blue ink written INSIDE the answer box. If no blue ink, award 0 marks.
+  - STEP 4 — Transcribe letter by letter: spell out EVERY letter of the handwritten blue-ink word, one at a time. Write as "x-x-x-x-x". Do NOT infer or guess the word — transcribe only what the ink physically shows, stroke by stroke. Log it: "Transcription: [x-x-x-x-x]".
+  - STEP 5 — Cross-check against the error word: if the error word looks like a misspelling of the expected answer (e.g. error word is "beleive", expected is "believe"), the student's answer is VERY LIKELY a near-miss spelling attempt. In this case, apply MAXIMUM strictness — even one wrong or missing letter = 0.
+  - STEP 6 — Count letters: count letters in your transcription vs expected answer. If counts differ, immediately award 0. Log: "Letter count: student=[N] expected=[N]".
+  - STEP 7 — Compare position by position: for each position, confirm the letter matches exactly. One mismatch = 0. Log: "Match: YES/NO".
+  - STEP 8 — Award marks only if every letter matches exactly.
+  - ALWAYS output this in notes (even for correct answers): "Error word: X | Transcription: x-x-x-x | Letter count: student=N expected=N | Match: YES/NO".
 
   CLOZE PASSAGE / COMPREHENSION CLOZE (fill-in-the-blank):
   - The question number is printed in parentheses BELOW the blank line, e.g. (34).
