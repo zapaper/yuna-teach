@@ -65,13 +65,15 @@ const PAGES_DIR = path.join(VOLUME_PATH, "pages");
 async function cropQuestionServer(
   imageBuffer: Buffer,
   yStartPct: number,
-  yEndPct: number
+  yEndPct: number,
+  topPadPct = 0.05,
+  botPadPct = 0.02
 ): Promise<string> {
   const metadata = await sharp(imageBuffer).metadata();
   const height = metadata.height!;
   const width = metadata.width!;
-  const topPad = Math.round(0.05 * height);
-  const botPad = Math.round(0.02 * height);
+  const topPad = Math.round(topPadPct * height);
+  const botPad = Math.round(botPadPct * height);
   const top = Math.max(
     0,
     Math.floor((yStartPct / 100) * height) - topPad
@@ -327,9 +329,11 @@ async function extractExamPaperCore(
       questionGroups.get(seg.questionNum)!.push(seg);
     }
 
-    // Determine if this is a science paper — split multi-page questions per page
     const detectedSubject = (result.header?.subject || paper.subject || "").toLowerCase();
-    const isScience = detectedSubject.includes("science");
+    const isEnglish = detectedSubject.includes("english");
+
+    // English MCQ topics — use tighter top padding so answer options aren't clipped
+    const ENGLISH_MCQ_TOPICS = new Set(["Grammar", "Vocabulary", "Comprehension MCQ"]);
 
     // Process each question group
     const questions: Array<{
@@ -347,6 +351,12 @@ async function extractExamPaperCore(
 
     for (const qNum of questionOrder) {
       const segments = questionGroups.get(qNum)!;
+
+      const syllabusTopic = result.syllabusTopics?.[qNum] ?? null;
+      const isEnglishMcq = isEnglish && ENGLISH_MCQ_TOPICS.has(syllabusTopic ?? "");
+      // English MCQ: half the top padding (question number is compact), slightly more bottom
+      const topPadPct = isEnglishMcq ? 0.025 : 0.05;
+      const botPadPct = isEnglishMcq ? 0.035 : 0.02;
 
       // Get full answer for this question number
       const rawEntry = result.answers?.[qNum];
@@ -375,7 +385,9 @@ async function extractExamPaperCore(
           const croppedImage = await cropQuestionServer(
             imageBuffers[seg.pageIndex],
             seg.yStartPct,
-            seg.yEndPct
+            seg.yEndPct,
+            topPadPct,
+            botPadPct
           );
           // Build label: e.g. "39ab", "39cd". If no subParts, use page position
           const suffix = seg.subParts || (si === 0 ? "" : `_p${si + 1}`);
@@ -408,7 +420,9 @@ async function extractExamPaperCore(
       const croppedImage = await cropQuestionServer(
         imageBuffers[segments[0].pageIndex],
         segments[0].yStartPct,
-        segments[0].yEndPct
+        segments[0].yEndPct,
+        topPadPct,
+        botPadPct
       );
 
       const primary = segments[0];
