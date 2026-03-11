@@ -84,27 +84,11 @@ function ScanPageContent() {
     setStep("processing");
 
     try {
-      // Step 1: OCR
-      setProcessingStep("Reading text from image...");
-      const ocrRes = await fetch("/api/ocr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: dataUrl }),
-      });
-
-      if (!ocrRes.ok) {
-        const err = await ocrRes.json();
-        throw new Error(err.error || "OCR failed");
-      }
-
-      const { text } = await ocrRes.json();
-
-      // Step 2: Extract words
       setProcessingStep("Extracting spelling words...");
       const extractRes = await fetch("/api/extract", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ocrText: text, guidance: guidance || undefined }),
+        body: JSON.stringify({ image: dataUrl, guidance: guidance || undefined }),
       });
 
       if (!extractRes.ok) {

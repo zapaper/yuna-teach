@@ -52,6 +52,45 @@ OCR Text:
 
 Extract all spelling tests and their words from this OCR text. Return ONLY valid JSON.`;
 
+const EXTRACTION_IMAGE_PROMPT = `You are an expert at reading primary school spelling test documents from photos.
+
+Look at this photo of a spelling test sheet. These sheets typically contain:
+- One or more spelling tests arranged in a grid/table layout
+- Each test has a header (e.g. "听写(五)" meaning "Dictation 5", or "Spelling Test 12")
+- Each test may have a date line (e.g. "2月6日 2024 星期二")
+- Each test has a numbered list of words or short phrases to memorize
+
+Your task:
+1. Identify ALL separate spelling tests in the image
+2. For each test, extract:
+   - The title/header (e.g. "听写(五)")
+   - The subtitle/date if present (empty string if none)
+   - The language: "CHINESE" if the test words are Chinese characters, "ENGLISH" if English words, "JAPANESE" if the words contain Japanese hiragana/katakana or are Japanese vocabulary
+   - All the test words/phrases in order
+3. IMPORTANT: Only extract actual test words. Do NOT include:
+   - Headers, titles, dates as words
+   - Numbers that are just list indices
+   - Teacher marks, ticks, circles, or other annotations
+   - Page numbers or other non-word text
+4. Clean each word: remove any stray marks or punctuation artifacts
+
+Return a JSON object with this exact structure:
+{
+  "tests": [
+    {
+      "title": "听写(五)",
+      "subtitle": "2月6日 2024 星期二",
+      "language": "CHINESE",
+      "words": [
+        { "text": "种族", "orderIndex": 1 },
+        { "text": "华人", "orderIndex": 2 }
+      ]
+    }
+  ]
+}
+
+Return ONLY valid JSON.`;
+
 export async function extractWords(ocrText: string, guidance?: string) {
   let prompt = EXTRACTION_PROMPT.replace("{ocrText}", ocrText);
   if (guidance) {
@@ -77,6 +116,38 @@ export async function extractWords(ocrText: string, guidance?: string) {
       words: Array<{ text: string; orderIndex: number }>;
     }>;
   };
+}
+
+type ExtractWordsResult = {
+  tests: Array<{
+    title: string;
+    subtitle: string;
+    language: "CHINESE" | "ENGLISH" | "JAPANESE";
+    words: Array<{ text: string; orderIndex: number }>;
+  }>;
+};
+
+export async function extractWordsFromImage(imageBase64: string, mimeType: string, guidance?: string): Promise<ExtractWordsResult> {
+  let prompt = EXTRACTION_IMAGE_PROMPT;
+  if (guidance) {
+    prompt += `\n\nADDITIONAL GUIDANCE FROM USER: ${guidance}`;
+  }
+  const response = await getAI().models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: [
+      { inlineData: { mimeType, data: imageBase64 } },
+      { text: prompt },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      temperature: 0.1,
+    },
+  });
+
+  const text = response.text;
+  if (!text) throw new Error("Gemini returned empty response");
+
+  return JSON.parse(text) as ExtractWordsResult;
 }
 
 const MEANING_PROMPT_ZH = `You are a primary school Chinese teacher in Singapore.
