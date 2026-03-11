@@ -57,7 +57,7 @@ Respond with ONLY valid JSON (no markdown fences):
 
   try {
     const response = await getAI().models.generateContent({
-      model: "gemini-2.5-pro",
+      model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
         parts: [
