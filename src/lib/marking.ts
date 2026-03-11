@@ -177,7 +177,7 @@ Find the single digit or letter the student HANDWROTE in BLUE INK as their MCQ a
 The student's answer will be ONE of: 1, 2, 3, 4, A, B, C, or D.
 
 HOW EACH DIGIT LOOKS IN HANDWRITING:
-- "1" = a single short vertical stroke (like | or l or I). No curves. May have a small top serif or tick. VERY EASY TO MISS — it looks like a simple line.
+- "1" = a single short vertical stroke (like | or l or I). No curves. May have a small top serif or tick. VERY EASY TO MISS — it looks like a simple line. If you detect what looks like the letter "I", report it as "1" — they are identical in handwriting.
 - "2" = starts high, curves right, then sweeps left with a flat base (like a mirrored Z)
 - "3" = two bumps on the right side, open on the left
 - "4" = angular top-left stroke, vertical right stroke, horizontal crossbar
@@ -261,9 +261,12 @@ function isClozeQuestion(syllabusTopic: string | null | undefined): boolean {
   return syllabusTopic === "Cloze Passage" || syllabusTopic === "Comprehension Cloze";
 }
 
-/** Normalize MCQ answer for comparison: strip parens, uppercase */
+/** Normalize MCQ answer for comparison: strip parens, uppercase.
+ *  Capital "I" is treated as "1" — they are visually identical in handwriting
+ *  and "I" is never a valid MCQ option (options are 1–4 or A–D). */
 function normalizeMcq(val: string): string {
-  return val.trim().replace(/[()]/g, "").toUpperCase();
+  const upper = val.trim().replace(/[()]/g, "").toUpperCase();
+  return upper === "I" ? "1" : upper;
 }
 
 /**
