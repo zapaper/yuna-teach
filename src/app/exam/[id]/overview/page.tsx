@@ -823,7 +823,7 @@ function ExamOverviewContent({ id }: { id: string }) {
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">AI Detection Details</p>
             <div className="space-y-1.5 text-xs text-slate-600">
               <div className="flex justify-between">
-                <span>Answer pages (0-based)</span>
+                <span>Answer pages</span>
                 <span className={`font-mono font-medium ${paper.metadata.answerPages.length === 0 ? "text-red-500" : "text-green-600"}`}>
                   {paper.metadata.answerPages.length > 0 ? paper.metadata.answerPages.join(", ") : "None detected"}
                 </span>
@@ -832,6 +832,18 @@ function ExamOverviewContent({ id }: { id: string }) {
                 <span>Cover pages</span>
                 <span className="font-mono font-medium text-slate-500">
                   {paper.metadata.coverPages.length > 0 ? paper.metadata.coverPages.join(", ") : "None"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Hidden from student (skipPages)</span>
+                <span className={`font-mono font-medium ${(paper.metadata.skipPages ?? []).length === 0 ? "text-slate-400" : "text-amber-600"}`}>
+                  {(paper.metadata.skipPages ?? []).length > 0 ? paper.metadata.skipPages!.join(", ") : "None"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Passage pages (duplicated)</span>
+                <span className={`font-mono font-medium ${(paper.metadata.passagePages ?? []).length === 0 ? "text-slate-400" : "text-blue-600"}`}>
+                  {(paper.metadata.passagePages ?? []).length > 0 ? paper.metadata.passagePages!.join(", ") : "None detected"}
                 </span>
               </div>
               <div className="flex justify-between">
