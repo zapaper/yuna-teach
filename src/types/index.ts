@@ -100,6 +100,7 @@ export interface ExamMetadata {
   answersDetected: string[];
   questionsPerPage?: Array<{ page: number; questions: string[] }>;
   validationIssues?: string[];
+  skipPages?: number[]; // 1-based PDF pages hidden from student view
 }
 
 export interface ExamPaperDetail {
