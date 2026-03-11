@@ -1864,6 +1864,7 @@ export interface BatchAnalysisResult {
     }>;
     coverPages: number[];
     answerPages: number[];
+    passagePages: number[]; // 1-based PDF pages containing the comprehension passage (Booklet A)
     answersDetected: string[];
     questionsPerPage: Array<{ page: number; questions: string[] }>;
     validationIssues: string[];
@@ -2091,6 +2092,64 @@ export async function analyzeExamBatch(
     }
   }
 
+  // Auto-detect comprehension passage pages for English exams.
+  // Passage pages are in Booklet A and contain the reading passage students need
+  // when answering Open-ended Comprehension questions in Booklet B.
+  let passagePages: number[] = [];
+  if ((structure.header.subject ?? "").toLowerCase().includes("english")) {
+    // Build pageIndex → [syllabusTopics] map from extracted question data
+    const pageTopicsMap = new Map<number, string[]>();
+    for (const [qNum, topic] of Object.entries(syllabusTopics)) {
+      if (!topic) continue;
+      for (const qPage of questionResult.pages) {
+        if (qPage.questions.some(q => q.questionNum === qNum)) {
+          const existing = pageTopicsMap.get(qPage.pageIndex) ?? [];
+          if (!existing.includes(topic)) existing.push(topic);
+          pageTopicsMap.set(qPage.pageIndex, existing);
+          break;
+        }
+      }
+    }
+    // Comprehension MCQ pages are in Booklet A near the passage
+    const compMcqPages = [...pageTopicsMap.entries()]
+      .filter(([, topics]) => topics.includes("Comprehension MCQ"))
+      .map(([idx]) => idx)
+      .sort((a, b) => a - b);
+    // First Booklet B page = first page with any Booklet B topic
+    const bookletBTopics = new Set(["Cloze Passage", "Editing (Spelling & Grammar)",
+      "Comprehension Cloze", "Synthesis & Transformation", "Comprehension (Open-ended)"]);
+    const firstBookletBPage = [...pageTopicsMap.entries()]
+      .filter(([, topics]) => topics.some(t => bookletBTopics.has(t)))
+      .map(([idx]) => idx)
+      .sort((a, b) => a - b)[0] ?? -1;
+    if (compMcqPages.length > 0) {
+      const firstCompMcqPage = compMcqPages[0];
+      const lastCompMcqPage = compMcqPages[compMcqPages.length - 1];
+      const candidates = new Set<number>();
+      // Include all Comprehension MCQ pages (passage is on/adjacent to these pages)
+      for (const idx of compMcqPages) candidates.add(idx);
+      // Include empty pages immediately before the first Comp MCQ page (pure passage pages)
+      for (let i = firstCompMcqPage - 1; i >= 0; i--) {
+        const p = structure.pages.find(pg => pg.pageIndex === i);
+        if (!p || p.isAnswerSheet || p.isCoverPage) break;
+        if (pageTopicsMap.has(i)) break; // has other questions, stop
+        candidates.add(i);
+        if (candidates.size >= 4) break; // don't go too far back
+      }
+      // Include empty pages between last Comp MCQ page and Booklet B start
+      if (firstBookletBPage !== -1) {
+        for (let i = lastCompMcqPage + 1; i < firstBookletBPage; i++) {
+          const p = structure.pages.find(pg => pg.pageIndex === i);
+          if (p && !p.isAnswerSheet && !p.isCoverPage) candidates.add(i);
+        }
+      }
+      passagePages = [...candidates].sort((a, b) => a - b).map(i => i + 1); // 1-based
+      if (passagePages.length > 0) {
+        console.log(`[Exam Pipeline] Auto-detected comprehension passage pages (1-based): ${passagePages.join(", ")}`);
+      }
+    }
+  }
+
   return {
     header: structure.header,
     pages,
@@ -2107,6 +2166,7 @@ export async function analyzeExamBatch(
       })),
       coverPages: coverPageEntries.map(p => p.pageIndex + 1), // 1-based
       answerPages: answerPageEntries.map(p => p.pageIndex + 1), // 1-based
+      passagePages,
       answersDetected: Object.keys(answerResult.answers),
       questionsPerPage: questionResult.pages.map(p => ({
         page: p.pageIndex + 1, // 1-based

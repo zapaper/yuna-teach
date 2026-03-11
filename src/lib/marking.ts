@@ -331,10 +331,10 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - STEP 3 — Blue ink check: confirm there is blue ink written INSIDE the answer box. If no blue ink, award 0 marks.
   - STEP 4 — Transcribe letter by letter: spell out EVERY letter of the handwritten blue-ink word, one at a time. Write as "x-x-x-x-x". Do NOT infer or guess the word — transcribe only what the ink physically shows, stroke by stroke. Log it: "Transcription: [x-x-x-x-x]".
   - STEP 5 — Cross-check against the error word: if the error word looks like a misspelling of the expected answer (e.g. error word is "beleive", expected is "believe"), the student's answer is VERY LIKELY a near-miss spelling attempt. In this case, apply MAXIMUM strictness — even one wrong or missing letter = 0.
-  - STEP 6 — Count letters: count letters in your transcription vs expected answer. If counts differ, immediately award 0. Log: "Letter count: student=[N] expected=[N]".
-  - STEP 7 — Compare position by position: for each position, confirm the letter matches exactly. One mismatch = 0. Log: "Match: YES/NO".
+  - STEP 6 — Count letters: count letters in your transcription vs expected answer. If counts differ, immediately award 0 (do NOT show letter count in notes).
+  - STEP 7 — Compare position by position: for each position, confirm the letter matches exactly. One mismatch = 0.
   - STEP 8 — Award marks only if every letter matches exactly.
-  - ALWAYS output this in notes (even for correct answers): "Error word: X | Transcription: x-x-x-x | Letter count: student=N expected=N | Match: YES/NO".
+  - ALWAYS output this in notes (even for correct answers): "Error word: X | Transcription: x-x-x-x | Match: YES/NO".
 
   CLOZE PASSAGE / COMPREHENSION CLOZE (fill-in-the-blank):
   - The question number is printed in parentheses BELOW the blank line, e.g. (34).

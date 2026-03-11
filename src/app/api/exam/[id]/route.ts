@@ -240,6 +240,12 @@ export async function PATCH(
     const existingMeta = (existing?.metadata ?? {}) as Record<string, unknown>;
     data.metadata = { ...existingMeta, skipPages: body.skipPages };
   }
+  if ("passagePages" in body && Array.isArray(body.passagePages)) {
+    // Merge passagePages into existing metadata
+    const existing = await prisma.examPaper.findUnique({ where: { id }, select: { metadata: true } });
+    const existingMeta = (existing?.metadata ?? {}) as Record<string, unknown>;
+    data.metadata = { ...existingMeta, passagePages: body.passagePages };
+  }
 
   const paper = await prisma.examPaper.update({ where: { id }, data });
 

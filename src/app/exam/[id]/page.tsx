@@ -465,6 +465,19 @@ function ExamPracticeContent({ id }: { id: string }) {
     .map((src, i) => ({ src, originalIndex: i }))
     .filter(({ originalIndex }) => !hiddenPageSet.has(originalIndex));
 
+  // Comprehension passage pages — displayed read-only just before open-ended section
+  // These are NOT part of displayPages so they don't affect submission index mapping
+  const passagePageImages = (paper.metadata?.passagePages ?? [])
+    .map((p: number) => pageImages[p - 1])
+    .filter(Boolean) as string[];
+  const firstOpenEndedOriginalIndex = paper.questions
+    .filter(q => q.syllabusTopic === "Comprehension (Open-ended)")
+    .map(q => q.pageIndex)
+    .sort((a, b) => a - b)[0] ?? -1;
+  const passageInsertBeforeDisplayIndex = passagePageImages.length === 0 ? -1
+    : firstOpenEndedOriginalIndex === -1 ? -1
+    : displayPages.findIndex(({ originalIndex }) => originalIndex >= firstOpenEndedOriginalIndex);
+
   const hasPdf = displayPages.length > 0;
   const questions = paper.questions;
   const isBusy = submitStatus === "saving" || submitStatus === "submitting";
@@ -675,14 +688,33 @@ function ExamPracticeContent({ id }: { id: string }) {
           {/* PDF pages */}
           <div className="divide-y divide-slate-100">
             {displayPages.map(({ src }, displayIndex) => (
-              <DrawablePage
-                key={displayIndex}
-                ref={(el) => { pageHandles.current[displayIndex] = el; }}
-                imageUrl={src}
-                tool={tool}
-                inkBlob={inkBlobs[displayIndex] ?? undefined}
-                onStrokeStart={() => { lastDrawnPage.current = displayIndex; hasUnsavedInk.current = true; }}
-              />
+              <div key={displayIndex}>
+                {/* Inject comprehension passage pages just before the open-ended section */}
+                {passageInsertBeforeDisplayIndex === displayIndex && passagePageImages.map((imgSrc, pi) => (
+                  <div key={`passage-${pi}`} className="relative border-b border-blue-100">
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] font-semibold px-3 py-0.5 rounded-full z-10 shadow-sm whitespace-nowrap pointer-events-none">
+                      Comprehension Passage (Reference)
+                    </div>
+                    <img src={imgSrc} className="w-full block" alt={`Comprehension passage ${pi + 1}`} draggable={false} />
+                  </div>
+                ))}
+                <DrawablePage
+                  ref={(el) => { pageHandles.current[displayIndex] = el; }}
+                  imageUrl={src}
+                  tool={tool}
+                  inkBlob={inkBlobs[displayIndex] ?? undefined}
+                  onStrokeStart={() => { lastDrawnPage.current = displayIndex; hasUnsavedInk.current = true; }}
+                />
+              </div>
+            ))}
+            {/* If no open-ended questions detected, append passage at end */}
+            {passagePageImages.length > 0 && passageInsertBeforeDisplayIndex === -1 && passagePageImages.map((imgSrc, pi) => (
+              <div key={`passage-end-${pi}`} className="relative border-b border-blue-100">
+                <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white text-[10px] font-semibold px-3 py-0.5 rounded-full z-10 shadow-sm whitespace-nowrap pointer-events-none">
+                  Comprehension Passage (Reference)
+                </div>
+                <img src={imgSrc} className="w-full block" alt={`Comprehension passage ${pi + 1}`} draggable={false} />
+              </div>
             ))}
           </div>
         </div>

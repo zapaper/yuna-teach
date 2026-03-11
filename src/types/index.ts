@@ -101,6 +101,7 @@ export interface ExamMetadata {
   questionsPerPage?: Array<{ page: number; questions: string[] }>;
   validationIssues?: string[];
   skipPages?: number[]; // 1-based PDF pages hidden from student view
+  passagePages?: number[]; // 1-based PDF pages (Booklet A comprehension passage) duplicated before open-ended section
 }
 
 export interface ExamPaperDetail {

@@ -106,6 +106,10 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [skipPagesInput, setSkipPagesInput] = useState("");
   const [savingSkipPages, setSavingSkipPages] = useState(false);
 
+  // Passage pages editor (admin) — comprehension passage pages duplicated before open-ended section
+  const [passagePagesInput, setPassagePagesInput] = useState("");
+  const [savingPassagePages, setSavingPassagePages] = useState(false);
+
   // Portal mount guard (portals require document to exist)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -165,6 +169,8 @@ function ExamOverviewContent({ id }: { id: string }) {
         setPaper(data);
         const existingSkip = (data.metadata?.skipPages ?? []) as number[];
         setSkipPagesInput(existingSkip.join(", "));
+        const existingPassage = (data.metadata?.passagePages ?? []) as number[];
+        setPassagePagesInput(existingPassage.join(", "));
         const anyMarking = (data.clones ?? []).some(
           (c: ExamCloneSummary) => c.markingStatus === "in_progress"
         ) || data.markingStatus === "in_progress";
@@ -771,6 +777,42 @@ function ExamOverviewContent({ id }: { id: string }) {
                 className="text-xs px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors shrink-0"
               >
                 {savingSkipPages ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Admin-only: Passage pages config (English exams) */}
+        {isAdmin && (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Comprehension Passage Pages</p>
+            <p className="text-xs text-slate-400 mb-2">Pages from Booklet A showing the comprehension passage — duplicated just before Open-ended Comprehension questions. Auto-detected for English exams; override here if needed. Comma-separated, 1-based.</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={passagePagesInput}
+                onChange={(e) => setPassagePagesInput(e.target.value)}
+                placeholder="e.g. 8, 9"
+                className="flex-1 text-xs rounded-lg border border-slate-200 px-2 py-1.5 focus:outline-none focus:border-primary-400"
+              />
+              <button
+                onClick={async () => {
+                  setSavingPassagePages(true);
+                  try {
+                    const pages = passagePagesInput.split(",").map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0);
+                    await fetch(`/api/exam/${id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ passagePages: pages }),
+                    });
+                    setPassagePagesInput(pages.join(", "));
+                  } finally {
+                    setSavingPassagePages(false);
+                  }
+                }}
+                disabled={savingPassagePages}
+                className="text-xs px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors shrink-0"
+              >
+                {savingPassagePages ? "Saving…" : "Save"}
               </button>
             </div>
           </div>
