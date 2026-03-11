@@ -234,6 +234,12 @@ export async function PATCH(
   if ("title" in body && typeof body.title === "string") data.title = body.title;
   if ("extractionStatus" in body) data.extractionStatus = body.extractionStatus || null;
   if ("visible" in body && typeof body.visible === "boolean") data.visible = body.visible;
+  if ("skipPages" in body && Array.isArray(body.skipPages)) {
+    // Merge skipPages into existing metadata
+    const existing = await prisma.examPaper.findUnique({ where: { id }, select: { metadata: true } });
+    const existingMeta = (existing?.metadata ?? {}) as Record<string, unknown>;
+    data.metadata = { ...existingMeta, skipPages: body.skipPages };
+  }
 
   const paper = await prisma.examPaper.update({ where: { id }, data });
 

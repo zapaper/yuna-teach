@@ -565,12 +565,15 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const subDir = path.join(SUBMISSIONS_DIR, paper.id);
 
   // Compute submissionIndexMap the same way as markExamPaper
-  const metadata = paper.metadata as { answerPages?: number[] } | null;
-  const answerPageSet = new Set((metadata?.answerPages ?? []).map((p: number) => p - 1));
+  const metadata = paper.metadata as { answerPages?: number[]; skipPages?: number[] } | null;
+  const hiddenPageSet = new Set([
+    ...(metadata?.answerPages ?? []).map((p: number) => p - 1),
+    ...(metadata?.skipPages ?? []).map((p: number) => p - 1),
+  ]);
   let submissionIdx = 0;
   let submissionPage = -1;
   for (let i = 0; i < paper.pageCount; i++) {
-    if (!answerPageSet.has(i)) {
+    if (!hiddenPageSet.has(i)) {
       if (i === question.pageIndex) { submissionPage = submissionIdx; break; }
       submissionIdx++;
     }
@@ -825,15 +828,16 @@ export async function markExamPaper(paperId: string): Promise<void> {
     const subDir = path.join(SUBMISSIONS_DIR, paperId);
 
     // Build mapping: original PDF page index → submission file index
-    // Answer pages (from metadata) are not included in the submission files
-    const metadata = paper.metadata as { answerPages?: number[] } | null;
-    const answerPageSet = new Set(
-      (metadata?.answerPages ?? []).map((p: number) => p - 1)
-    );
+    // Answer pages and skip pages (from metadata) are not included in the submission files
+    const metadata = paper.metadata as { answerPages?: number[]; skipPages?: number[] } | null;
+    const hiddenPageSet = new Set([
+      ...(metadata?.answerPages ?? []).map((p: number) => p - 1),
+      ...(metadata?.skipPages ?? []).map((p: number) => p - 1),
+    ]);
     const submissionIndexMap = new Map<number, number>();
     let submissionIdx = 0;
     for (let i = 0; i < paper.pageCount; i++) {
-      if (!answerPageSet.has(i)) submissionIndexMap.set(i, submissionIdx++);
+      if (!hiddenPageSet.has(i)) submissionIndexMap.set(i, submissionIdx++);
     }
 
     // Group questions by original page index

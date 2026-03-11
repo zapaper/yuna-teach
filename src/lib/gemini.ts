@@ -872,21 +872,29 @@ This is an ENGLISH paper. For EACH question, you MUST also output a "syllabusTop
 Choose EXACTLY ONE topic from this list:
 ${ENGLISH_SYLLABUS.map((t) => `- ${t}`).join("\n")}
 
-Rules:
-- "Grammar" — questions testing tenses, subject-verb agreement, punctuation, articles, prepositions, conjunctions
-- "Vocabulary" — questions testing word meaning, synonyms, antonyms, word choice, phrasal verbs
-- "Comprehension MCQ" — multiple-choice questions based on a reading passage (Booklet A); answer is A/B/C/D
-- "Comprehension (Open-ended)" — questions based on a reading passage requiring written answers
+English Paper 2 follows this section order — use it to resolve ambiguous questions:
+1. Grammar & Vocabulary MCQ (Booklet A) — early MCQ questions (A/B/C/D), testing grammar and vocabulary
+2. Comprehension MCQ (Booklet A) — later MCQ questions (A/B/C/D) based on a reading passage
+3. Cloze Passage — fill-in-the-blank passage, question number printed BELOW each blank
+4. Editing (Spelling & Grammar) — passage with numbered boxes beside errors; student corrects in the box
+5. Comprehension Cloze — fill-in-the-blank passage (same layout as Cloze Passage), appears AFTER Editing
+6. Synthesis & Transformation — sentence rewriting using given words
+7. Comprehension (Open-ended) — written answers to questions about a reading passage
+
+Rules per topic:
+- "Grammar" — MCQ testing tenses, subject-verb agreement, punctuation, articles, prepositions, conjunctions (Booklet A, earlier questions)
+- "Vocabulary" — MCQ testing word meaning, synonyms, antonyms, word choice, phrasal verbs (Booklet A, earlier questions)
+- "Comprehension MCQ" — MCQ based on a reading passage (Booklet A, later questions); answer is A/B/C/D
+- "Cloze Passage" — fill-in-blank passage; question number is printed BELOW the blank line; appears BEFORE Editing
+- "Editing (Spelling & Grammar)" — numbered boxes beside underlined/marked errors in a passage; student writes correction in the box to the right of the question number
+- "Comprehension Cloze" — fill-in-blank passage; question number is BELOW the blank (same as Cloze Passage layout); appears AFTER Editing section
 - "Synthesis & Transformation" — rewriting sentences using given words, combining sentences, direct/indirect speech
-- "Cloze Passage" — fill-in-the-blank passage where question number is printed BELOW the blank; student fills in a letter or word
-- "Editing (Spelling & Grammar)" — passages with underlined errors; student writes the correction in the box beside the question number
-- "Comprehension Cloze" — fill-in-the-blank passage where question number is printed BELOW the blank; student fills in an appropriate word (same layout as Cloze Passage but appears after Editing)
+- "Comprehension (Open-ended)" — written answers to questions about a reading passage; NOT multiple choice
 - "Continuous Writing" — extended creative writing or narrative
 - "Situational Writing" — writing for a specific purpose (email, report, letter, recount)
 - "Visual Text Comprehension" — questions about advertisements, posters, infographics
 - "Oral Communication" — reading aloud or stimulus-based conversation
-- If the question does not clearly fit any topic, set "syllabusTopic" to null
-- MCQ questions should also be tagged based on the concept being tested`;
+- If the question does not clearly fit any topic, set "syllabusTopic" to null`;
 
 const MATH_SYLLABUS_ADDENDUM = `
 

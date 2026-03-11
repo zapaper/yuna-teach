@@ -457,12 +457,13 @@ function ExamPracticeContent({ id }: { id: string }) {
     );
   }
 
-  const answerPageSet = new Set(
-    (paper.metadata?.answerPages ?? []).map((p) => p - 1)
-  );
+  const hiddenPageSet = new Set([
+    ...(paper.metadata?.answerPages ?? []).map((p) => p - 1),
+    ...(paper.metadata?.skipPages ?? []).map((p: number) => p - 1),
+  ]);
   const displayPages = pageImages
     .map((src, i) => ({ src, originalIndex: i }))
-    .filter(({ originalIndex }) => !answerPageSet.has(originalIndex));
+    .filter(({ originalIndex }) => !hiddenPageSet.has(originalIndex));
 
   const hasPdf = displayPages.length > 0;
   const questions = paper.questions;

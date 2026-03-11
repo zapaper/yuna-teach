@@ -102,6 +102,10 @@ function ExamOverviewContent({ id }: { id: string }) {
   // Extraction
   const [extracting, setExtracting] = useState(false);
 
+  // Skip pages editor (admin)
+  const [skipPagesInput, setSkipPagesInput] = useState("");
+  const [savingSkipPages, setSavingSkipPages] = useState(false);
+
   // Portal mount guard (portals require document to exist)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -159,6 +163,8 @@ function ExamOverviewContent({ id }: { id: string }) {
         if (!res.ok) return;
         const data = await res.json();
         setPaper(data);
+        const existingSkip = (data.metadata?.skipPages ?? []) as number[];
+        setSkipPagesInput(existingSkip.join(", "));
         const anyMarking = (data.clones ?? []).some(
           (c: ExamCloneSummary) => c.markingStatus === "in_progress"
         ) || data.markingStatus === "in_progress";
@@ -733,6 +739,42 @@ function ExamOverviewContent({ id }: { id: string }) {
             </button>
           </>
         ) : null}
+        {/* Admin-only: Skip pages config */}
+        {isAdmin && (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Student View — Hidden Pages</p>
+            <p className="text-xs text-slate-400 mb-2">Enter page numbers to hide from student (e.g. writing or listening pages). Comma-separated, 1-based.</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={skipPagesInput}
+                onChange={(e) => setSkipPagesInput(e.target.value)}
+                placeholder="e.g. 1, 2, 3"
+                className="flex-1 text-xs rounded-lg border border-slate-200 px-2 py-1.5 focus:outline-none focus:border-primary-400"
+              />
+              <button
+                onClick={async () => {
+                  setSavingSkipPages(true);
+                  try {
+                    const pages = skipPagesInput.split(",").map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0);
+                    await fetch(`/api/exam/${id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ skipPages: pages }),
+                    });
+                    setSkipPagesInput(pages.join(", "));
+                  } finally {
+                    setSavingSkipPages(false);
+                  }
+                }}
+                disabled={savingSkipPages}
+                className="text-xs px-3 py-1.5 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 disabled:opacity-50 transition-colors shrink-0"
+              >
+                {savingSkipPages ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        )}
         {/* Admin-only: AI detection debug info */}
         {isAdmin && paper.metadata ? (
           <div className="mt-3 pt-3 border-t border-slate-100">
