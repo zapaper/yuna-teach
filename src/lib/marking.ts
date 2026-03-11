@@ -255,6 +255,12 @@ function isMcqAnswer(answer: string | null): boolean {
   return /^\(?[1-4A-Da-d]\)?$/.test(answer.trim());
 }
 
+/** Cloze Passage and Comprehension Cloze answers are words, never MCQ choices.
+ *  Even if the answer field is a single letter (e.g. "D"), treat as written. */
+function isClozeQuestion(syllabusTopic: string | null | undefined): boolean {
+  return syllabusTopic === "Cloze Passage" || syllabusTopic === "Comprehension Cloze";
+}
+
 /** Normalize MCQ answer for comparison: strip parens, uppercase */
 function normalizeMcq(val: string): string {
   return val.trim().replace(/[()]/g, "").toUpperCase();
@@ -584,7 +590,8 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const pageBuffer = await fs.readFile(pagePath);
 
   // MCQ: use blind detection (no expected answer shown to AI)
-  if (isMcqAnswer(question.answer)) {
+  // Cloze questions are always written even if their answer field is a single letter
+  if (isMcqAnswer(question.answer) && !isClozeQuestion(question.syllabusTopic)) {
     const pageBase64 = pageBuffer.toString("base64");
     const isAnswer1 = normalizeMcq(question.answer ?? "") === "1";
     let studentAnswer: string | null = null;
@@ -635,7 +642,8 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   }
 
   // For written (non-MCQ) questions with known boundaries, crop to answer region only
-  const useCrop = isWrittenQuestion(question.answer)
+  // Cloze questions are always treated as written regardless of answer field
+  const useCrop = (isWrittenQuestion(question.answer) || isClozeQuestion(question.syllabusTopic))
     && question.yStartPct != null && question.yEndPct != null;
   console.log(`[marking] remarkSingle Q${question.questionNum}: subject="${paper.subject}", answer="${question.answer}", isWritten=${isWrittenQuestion(question.answer)}, hasBounds=${question.yStartPct != null && question.yEndPct != null}, useCrop=${useCrop}`);
   const imageBuffer = useCrop
@@ -939,12 +947,14 @@ export async function markExamPaper(paperId: string): Promise<void> {
         }
 
         // Split questions: written (non-MCQ) questions with boundaries get cropped + blue ink check
-        const writtenQs = questions.filter((q) => isWrittenQuestion(q.answer) && q.yStartPct != null && q.yEndPct != null);
+        // Cloze questions are always treated as written regardless of answer field
+        const writtenQs = questions.filter((q) => (isWrittenQuestion(q.answer) || isClozeQuestion(q.syllabusTopic)) && q.yStartPct != null && q.yEndPct != null);
         const otherQs = questions.filter((q) => !writtenQs.includes(q));
 
         // Further split otherQs into MCQ (blind detection) and non-MCQ (normal marking)
-        const mcqQs = otherQs.filter((q) => isMcqAnswer(q.answer));
-        const nonMcqOther = otherQs.filter((q) => !isMcqAnswer(q.answer));
+        // Cloze questions are excluded from MCQ detection even if their answer is a single letter
+        const mcqQs = otherQs.filter((q) => isMcqAnswer(q.answer) && !isClozeQuestion(q.syllabusTopic));
+        const nonMcqOther = otherQs.filter((q) => !isMcqAnswer(q.answer) || isClozeQuestion(q.syllabusTopic));
 
         console.log(`[marking] Page ${pageIndex}: total=${questions.length}, writtenCrop=${writtenQs.length}, mcq=${mcqQs.length}, nonMcq=${nonMcqOther.length}`);
         for (const q of writtenQs) {
@@ -1061,7 +1071,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
           }
 
           // MCQ retry: use blind detection
-          if (isMcqAnswer(q.answer)) {
+          if (isMcqAnswer(q.answer) && !isClozeQuestion(q.syllabusTopic)) {
             const pageBase64 = pageBuffer.toString("base64");
             console.log(`[marking] Retry MCQ Q${q.questionNum}: blind detection`);
             const detected = await detectMcqAnswers(pageBase64, [q], `retry Q${q.questionNum}`, 0);
@@ -1170,7 +1180,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
       // Skip verification for questions already confirmed blank by pre-check
       if (r.notes?.includes("pre-check")) return false;
       // Skip MCQ — blind detection is already unbiased, re-detection unlikely to differ
-      if (isMcqAnswer(q.answer)) return false;
+      if (isMcqAnswer(q.answer) && !isClozeQuestion(q.syllabusTopic)) return false;
       return r.marksAwarded < r.marksAvailable;
     });
 
@@ -1272,7 +1282,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
     // Retry when: (a) no answer detected, or (b) expected answer is "1" and student got 0
     // (AI struggles to read handwritten "1" — a single vertical stroke is easily missed or misread)
     const mcqToRetry = paper.questions.filter((q) => {
-      if (!isMcqAnswer(q.answer)) return false;
+      if (!isMcqAnswer(q.answer) || isClozeQuestion(q.syllabusTopic)) return false;
       const r = resultMap.get(q.id);
       if (!r) return false;
       if (r.studentAnswer === "No answer detected") return true;
