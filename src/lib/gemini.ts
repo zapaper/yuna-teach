@@ -133,7 +133,7 @@ export async function extractWordsFromImage(imageBase64: string, mimeType: strin
     prompt += `\n\nADDITIONAL GUIDANCE FROM USER: ${guidance}`;
   }
   const response = await getAI().models.generateContent({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     contents: [
       { inlineData: { mimeType, data: imageBase64 } },
       { text: prompt },
