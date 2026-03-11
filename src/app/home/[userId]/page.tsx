@@ -126,7 +126,7 @@ export default function HomePage({
 
   async function handleDeleteExam(id: string) {
     try {
-      await fetch(`/api/exam/${id}`, { method: "DELETE" });
+      await fetch(`/api/exam/${id}?userId=${userId}`, { method: "DELETE" });
       setExamPapers((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Failed to delete exam:", err);
@@ -562,7 +562,7 @@ export default function HomePage({
                         userId={userId}
                         userRole={user?.role}
                         isAdmin={isAdmin}
-                        onDelete={isAdmin ? handleDeleteExam : undefined}
+                        onDelete={isAdmin || (isParent && paper.paperType === "focused") ? handleDeleteExam : undefined}
                       />
                     ))}
                   </div>
@@ -584,7 +584,7 @@ export default function HomePage({
                       userId={userId}
                       userRole={user?.role}
                       isAdmin={isAdmin}
-                      onDelete={isAdmin ? handleDeleteExam : undefined}
+                      onDelete={isAdmin || (isParent && paper.paperType === "focused") ? handleDeleteExam : undefined}
                     />
                   ))}
                 </div>

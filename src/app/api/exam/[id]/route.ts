@@ -327,19 +327,39 @@ export async function POST(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const { searchParams } = new URL(request.url);
+  const requesterId = searchParams.get("userId");
+
+  const paper = await prisma.examPaper.findUnique({
+    where: { id },
+    select: { paperType: true, assignedToId: true, completedAt: true, userId: true },
+  });
+
+  if (!paper) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  // Non-admin users may only delete focused tests they own
+  const isAdmin = requesterId === null; // admin calls don't pass userId, or check by name below
+  const requester = requesterId
+    ? await prisma.user.findUnique({ where: { id: requesterId }, select: { name: true } })
+    : null;
+  const callerIsAdmin = requester?.name?.toLowerCase() === "admin";
+
+  if (!callerIsAdmin) {
+    if (paper.paperType !== "focused") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    if (paper.userId !== requesterId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+  }
 
   // For focused tests assigned to a student, soft-delete by clearing parent's userId
   // so it disappears from parent's list but stays for the student
-  const paper = await prisma.examPaper.findUnique({
-    where: { id },
-    select: { paperType: true, assignedToId: true, completedAt: true },
-  });
-
-  if (paper?.paperType === "focused" && paper.assignedToId && paper.completedAt) {
+  if (paper.paperType === "focused" && paper.assignedToId && paper.completedAt) {
     // Transfer ownership to the student so it stays on their homepage
     await prisma.examPaper.update({
       where: { id },
