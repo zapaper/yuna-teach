@@ -182,25 +182,27 @@ HOW EACH DIGIT LOOKS IN HANDWRITING:
 - "3" = two bumps on the right side, open on the left
 - "4" = angular top-left stroke, vertical right stroke, horizontal crossbar
 
-WHERE TO LOOK — START FROM THE RIGHT SIDE:
-- The student writes their answer in BLUE INK on the RIGHT SIDE of the page
-- SCAN RIGHT TO LEFT: Start from the far right of the question's row and work leftward
-- The answer is a single handwritten digit (1/2/3/4) in blue ink on the right portion
-- IGNORE everything on the left — that is printed question text and option labels in black
+WHERE TO LOOK — RIGHT MARGIN ONLY:
+- The student writes their MCQ answer in BLUE INK at the RIGHTMOST edge of the page (the far right margin)
+- Look ONLY at the rightmost ~10% of the page width within the question's vertical strip
+- The answer box / answer bubble / answer circle is printed at the far right — the student writes inside or next to it
+- IGNORE all blue ink that appears in the centre or left portion of the page — that is working, calculations, or rough work, NOT the MCQ answer
+- A digit written in working steps mid-page is NEVER the MCQ answer, even if it is blue and even if it is 1/2/3/4
 
 How to distinguish BLUE handwriting from BLACK print:
 - Printed option labels "(1)", "(2)", "(3)", "(4)" scattered across the question are BLACK — IGNORE them all
-- The student's BLUE INK answer is on the RIGHT side, written separately from any printed text
+- The student's BLUE INK answer is at the FAR RIGHT MARGIN only, written separately from any printed text
 - Blue ink has a distinctly BLUE hue — it looks different from black printed text
 - If you are unsure whether a mark is blue or black, it is probably black (printed) — report null
 
 STRICT RULES:
-1. ONLY report a digit/letter if it is clearly written in BLUE INK by hand
-2. If the only digits you see are BLACK PRINTED text → report null (student left it blank)
-3. Do NOT read printed black "(1)", "(2)" etc. as the student's answer
-4. Each question's region is independent — do NOT mix up answers between regions
-5. Report your confidence: "high" if clearly blue handwriting, "low" if uncertain
-6. For any question with the ⚠️ HINT: look extra carefully for a thin vertical blue stroke — "1" is the most missed digit
+1. ONLY report a digit/letter if it is clearly written in BLUE INK by hand at the RIGHTMOST margin
+2. Any blue digit found in the middle of the page (working steps, calculations) — IGNORE completely
+3. If the only digits you see are BLACK PRINTED text → report null (student left it blank)
+4. Do NOT read printed black "(1)", "(2)" etc. as the student's answer
+5. Each question's region is independent — do NOT mix up answers between regions
+6. Report your confidence: "high" if clearly blue handwriting at right margin, "low" if uncertain
+7. For any question with the ⚠️ HINT: look extra carefully for a thin vertical blue stroke at the right margin only — "1" is the most missed digit
 
 Questions:
 ${qLines}
