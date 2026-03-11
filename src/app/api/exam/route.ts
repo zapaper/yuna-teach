@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
             OR: [
               {
                 paperType: null,
+                visible: true,
                 OR: levelConditions,
                 ...(adminUser ? { userId: adminUser.id } : {}),
               },
@@ -136,6 +137,7 @@ export async function GET(request: NextRequest) {
       unreleasedAssignmentCount: p.clones.filter((c) => c.markingStatus !== "released").length,
       pendingReviewCount: p.clones.filter((c) => c.markingStatus === "complete").length,
       instantFeedback: p.instantFeedback,
+      visible: p.visible,
     })),
   });
 }

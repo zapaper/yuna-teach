@@ -72,6 +72,7 @@ export interface ExamPaperSummary {
   unreleasedAssignmentCount: number;
   pendingReviewCount: number;
   instantFeedback: boolean;
+  visible: boolean;
 }
 
 export interface ExamCloneSummary {

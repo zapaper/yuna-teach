@@ -21,6 +21,8 @@ export default function ExamPaperCard({
   const [retrying, setRetrying] = useState(false);
   const [taggingSyllabus, setTaggingSyllabus] = useState(false);
   const [syllabusTagged, setSyllabusTagged] = useState(false);
+  const [visible, setVisible] = useState(paper.visible);
+  const [togglingVisible, setTogglingVisible] = useState(false);
 
   const isExtracting = paper.extractionStatus === "processing";
   const extractionFailed = paper.extractionStatus === "failed";
@@ -37,6 +39,20 @@ export default function ExamPaperCard({
       if (res.ok) setSyllabusTagged(true);
     } finally {
       setTaggingSyllabus(false);
+    }
+  }
+
+  async function toggleVisible() {
+    setTogglingVisible(true);
+    try {
+      await fetch(`/api/exam/${paper.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visible: !visible }),
+      });
+      setVisible((v) => !v);
+    } finally {
+      setTogglingVisible(false);
     }
   }
 
@@ -265,6 +281,21 @@ export default function ExamPaperCard({
           </div>
         </div>
       </Link>
+
+      {/* Visibility toggle — admin only, master papers only */}
+      {isAdmin && !paper.paperType && (
+        <button
+          onClick={(e) => { e.preventDefault(); if (!togglingVisible) toggleVisible(); }}
+          disabled={togglingVisible}
+          className={`absolute top-3 left-3 text-[11px] font-medium px-2.5 py-1 rounded-full transition-colors z-10 disabled:opacity-50 ${
+            visible
+              ? "bg-green-100 text-green-700 hover:bg-green-200"
+              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+          }`}
+        >
+          {visible ? "Visible" : "Hidden"}
+        </button>
+      )}
 
       {/* Tag Syllabus button — Math papers, parents only, not already tagged */}
       {isAdmin && isTaggablePaper && !isExtracting && !extractionFailed && !paper.syllabusTagged && (
