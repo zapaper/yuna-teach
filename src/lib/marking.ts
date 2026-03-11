@@ -851,7 +851,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
       imageBase64: string,
       questions: NonNullable<typeof paper>["questions"],
       label: string,
-      isCropped: boolean
+      isCropped: boolean,
+      modelOverride?: string
     ): Promise<QuestionMarkResult[]> {
       const questionLines = questions
         .map((q) => {
@@ -895,7 +896,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
       try {
         const response = await withTimeout(
           getAI().models.generateContent({
-            model: "gemini-2.5-flash",
+            model: modelOverride ?? "gemini-2.5-flash",
             contents: [{ role: "user", parts }],
             config: { responseMimeType: "application/json", temperature: 0.1 },
           }),
@@ -1016,7 +1017,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
                 }
 
                 // Step 2: Mark normally with cropped image
-                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true);
+                const isCloze = q.syllabusTopic === "Cloze Passage" || q.syllabusTopic === "Comprehension Cloze";
+                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, isCloze ? "gemini-3.1-flash-lite-preview" : undefined);
               } catch (err) {
                 console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
                 return [];
