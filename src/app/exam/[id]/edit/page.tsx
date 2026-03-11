@@ -665,10 +665,12 @@ const SCIENCE_TOPICS = [
 const ENGLISH_TOPICS = [
   "Grammar",
   "Vocabulary",
-  "Comprehension (Open-ended)",
-  "Synthesis & Transformation",
-  "Editing (Spelling & Grammar)",
+  "Comprehension MCQ",
   "Cloze Passage",
+  "Editing (Spelling & Grammar)",
+  "Comprehension Cloze",
+  "Synthesis & Transformation",
+  "Comprehension (Open-ended)",
   "Continuous Writing",
   "Situational Writing",
   "Visual Text Comprehension",
@@ -740,7 +742,7 @@ function QuestionEditCard({
         else if (topic === "Comprehension Cloze") { label = "Comprehension Cloze"; cls = "bg-green-100 text-green-700 border-green-200"; }
         else if (topic.startsWith("Editing")) { label = "Editing (Spelling & Grammar)"; cls = "bg-yellow-100 text-yellow-700 border-yellow-200"; }
         else if (topic.includes("Open-ended") || topic === "Comprehension (Open-ended)") { label = "Open-ended Comprehension"; cls = "bg-purple-100 text-purple-700 border-purple-200"; }
-        else if (isMcq) { label = "MCQ"; cls = "bg-blue-100 text-blue-700 border-blue-200"; }
+        else if (topic === "Comprehension MCQ" || isMcq) { label = topic === "Comprehension MCQ" ? "Comprehension MCQ" : "MCQ"; cls = "bg-blue-100 text-blue-700 border-blue-200"; }
         else { label = "Written"; cls = "bg-slate-100 text-slate-500 border-slate-200"; }
         return (
           <div className={`px-3 py-1 border-b flex items-center gap-2 ${cls}`}>

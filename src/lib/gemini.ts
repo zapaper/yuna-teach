@@ -744,6 +744,7 @@ export const SCIENCE_SYLLABUS = [
 export const ENGLISH_SYLLABUS = [
   "Grammar",
   "Vocabulary",
+  "Comprehension MCQ",
   "Cloze Passage",
   "Editing (Spelling & Grammar)",
   "Comprehension Cloze",
@@ -874,6 +875,7 @@ ${ENGLISH_SYLLABUS.map((t) => `- ${t}`).join("\n")}
 Rules:
 - "Grammar" — questions testing tenses, subject-verb agreement, punctuation, articles, prepositions, conjunctions
 - "Vocabulary" — questions testing word meaning, synonyms, antonyms, word choice, phrasal verbs
+- "Comprehension MCQ" — multiple-choice questions based on a reading passage (Booklet A); answer is A/B/C/D
 - "Comprehension (Open-ended)" — questions based on a reading passage requiring written answers
 - "Synthesis & Transformation" — rewriting sentences using given words, combining sentences, direct/indirect speech
 - "Cloze Passage" — fill-in-the-blank passage where question number is printed BELOW the blank; student fills in a letter or word
