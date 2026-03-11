@@ -727,15 +727,21 @@ These passages contain almost no numbers. Every number in parentheses e.g. **(34
 Scan for ALL occurrences of a parenthesised number — each one is a question, with the blank line directly above it.
 
 **Extraction:**
-- **yStartPct** = MIDPOINT of the blank/underscore line directly above the number — start halfway through the blank
+- **yStartPct** = BOTTOM EDGE of the blank/underscore line directly above the number — start right at the bottom of the blank, not above it
 - **yEndPct** = MIDPOINT of the parenthesised number e.g. "(34)" — stop halfway through it, no space below
 
 Keep crops TIGHT — contiguous, no gaps between questions.
 marksAvailable: 1 per blank unless a mark bracket is visible.
 
+**Answer detection:**
+The expected answer for each question is the word written ON or ABOVE the blank line that is directly above that question's parenthesised number.
+- Two questions can appear on the same line (e.g. "... ___ ... (34) ... ___ ... (35) ..."). In that case both questions share the same yStartPct/yEndPct.
+- When two questions share a line, read the answer from the blank that is DIRECTLY ABOVE its own question number — do NOT read the blank belonging to the other question on the same line.
+- Ignore all other words in the passage; the answer is only the word on/above the blank paired with that specific number.
+
 ### Important:
 "yStartPct = above the question number" is WRONG here — the number is at the BOTTOM, not the top.
-No padding above the midpoint of the blank. No padding below the midpoint of the number.
+Start at the very bottom of the blank line — do NOT include any space above the blank.
 
 ---
 
