@@ -711,8 +711,8 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 
   const isCloze = question.syllabusTopic === "Cloze Passage" || question.syllabusTopic === "Comprehension Cloze";
   const isEditing = question.syllabusTopic === "Editing (Spelling & Grammar)";
-  const remarkModel = isCloze ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
-  if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
+  const remarkModel = (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
+  if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-3.1-flash-lite-preview)`);
   console.log(`[marking] Calling Gemini (${remarkModel}) for remark of question ${questionId} (syllabusTopic="${question.syllabusTopic ?? "none"}")`);
   const response = await withTimeout(
     getAI().models.generateContent({
@@ -1048,10 +1048,10 @@ export async function markExamPaper(paperId: string): Promise<void> {
                 // Step 2: Mark normally with cropped image
                 const isCloze = q.syllabusTopic === "Cloze Passage" || q.syllabusTopic === "Comprehension Cloze";
                 const isEditing = q.syllabusTopic === "Editing (Spelling & Grammar)";
-                const batchModel = isCloze ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
-                if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
+                const batchModel = (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
+                if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-3.1-flash-lite-preview)`);
                 console.log(`[marking] Q${q.questionNum} using model: ${batchModel} (syllabusTopic="${q.syllabusTopic ?? "none"}")`);
-                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, isCloze ? "gemini-3.1-flash-lite-preview" : undefined);
+                return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : undefined);
               } catch (err) {
                 console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
                 return [];
