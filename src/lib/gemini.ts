@@ -32,7 +32,7 @@ async function generateContentWithRetry(
   let lastErr: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await generateContentWithRetry(params);
+      return await getAI().models.generateContent(params);
     } catch (err) {
       lastErr = err;
       if (!isRetryable(err) || attempt === maxRetries) throw err;
