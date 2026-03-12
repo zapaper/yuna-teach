@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { transcribeMathMcqQuestion } from "@/lib/gemini";
+import { transcribeMathMcqQuestion, transcribeMathOpenEndedQuestion } from "@/lib/gemini";
 
-/** Normalize answer string to bare digit, e.g. "(2)" → "2", "3." → "3" */
+/** Normalize answer string to bare digit, e.g. "(2)" → "2" */
 function normalizeMcqAnswer(ans: string | null): string {
   if (!ans) return "";
   return ans.trim().replace(/[().]/g, "").trim();
@@ -33,39 +33,54 @@ export async function POST(
   const questions = await prisma.examQuestion.findMany({
     where: { examPaperId: id },
     orderBy: { orderIndex: "asc" },
-    select: { id: true, questionNum: true, answer: true, imageData: true, syllabusTopic: true },
+    select: { id: true, questionNum: true, answer: true, imageData: true, syllabusTopic: true, marksAvailable: true },
   });
 
-  const mcqQuestions = questions.filter(q => isMathMcq(q.answer));
-
-  if (mcqQuestions.length === 0) {
-    return NextResponse.json({ questions: [], message: "No MCQ questions detected in this paper" });
-  }
-
-  console.log(`[transcribe-mcq] Paper ${id}: transcribing ${mcqQuestions.length} MCQ questions`);
+  console.log(`[transcribe] Paper ${id}: transcribing ${questions.length} questions (MCQ + open-ended)`);
 
   const results = await Promise.all(
-    mcqQuestions.map(async (q) => {
+    questions.map(async (q) => {
+      const base64 = q.imageData.replace(/^data:image\/\w+;base64,/, "");
+      const mcq = isMathMcq(q.answer);
       try {
-        // Strip data URI prefix if present
-        const base64 = q.imageData.replace(/^data:image\/\w+;base64,/, "");
-        const transcribed = await transcribeMathMcqQuestion(base64);
-        return {
-          questionNum: q.questionNum,
-          answer: normalizeMcqAnswer(q.answer),
-          syllabusTopic: q.syllabusTopic,
-          stem: transcribed.stem,
-          options: transcribed.options,
-          error: null,
-        };
+        if (mcq) {
+          const transcribed = await transcribeMathMcqQuestion(base64);
+          return {
+            type: "mcq" as const,
+            questionNum: q.questionNum,
+            answer: normalizeMcqAnswer(q.answer),
+            syllabusTopic: q.syllabusTopic,
+            marksAvailable: q.marksAvailable,
+            stem: transcribed.stem,
+            options: transcribed.options,
+            subparts: null,
+            error: null,
+          };
+        } else {
+          const transcribed = await transcribeMathOpenEndedQuestion(base64);
+          return {
+            type: "open" as const,
+            questionNum: q.questionNum,
+            answer: q.answer ?? "",
+            syllabusTopic: q.syllabusTopic,
+            marksAvailable: q.marksAvailable,
+            stem: transcribed.stem,
+            options: null,
+            subparts: transcribed.subparts,
+            error: null,
+          };
+        }
       } catch (err) {
-        console.error(`[transcribe-mcq] Q${q.questionNum} failed:`, err);
+        console.error(`[transcribe] Q${q.questionNum} failed:`, err);
         return {
+          type: mcq ? "mcq" as const : "open" as const,
           questionNum: q.questionNum,
-          answer: normalizeMcqAnswer(q.answer),
+          answer: mcq ? normalizeMcqAnswer(q.answer) : (q.answer ?? ""),
           syllabusTopic: q.syllabusTopic,
+          marksAvailable: q.marksAvailable,
           stem: null,
           options: null,
+          subparts: null,
           error: err instanceof Error ? err.message : "Failed",
         };
       }

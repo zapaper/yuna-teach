@@ -110,17 +110,20 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [passagePagesInput, setPassagePagesInput] = useState("");
   const [savingPassagePages, setSavingPassagePages] = useState(false);
 
-  // Math MCQ transcription preview (admin)
-  type TranscribedMcq = {
+  // Math question transcription preview (admin)
+  type TranscribedQuestion = {
+    type: "mcq" | "open";
     questionNum: string;
     answer: string;
     syllabusTopic: string | null;
+    marksAvailable: number | null;
     stem: string | null;
     options: [string, string, string, string] | null;
+    subparts: { label: string; text: string }[] | null;
     error: string | null;
   };
   const [mcqTranscribing, setMcqTranscribing] = useState(false);
-  const [mcqResults, setMcqResults] = useState<TranscribedMcq[] | null>(null);
+  const [mcqResults, setMcqResults] = useState<TranscribedQuestion[] | null>(null);
   const [mcqError, setMcqError] = useState<string | null>(null);
 
   async function generateMcqPreview() {
@@ -915,39 +918,52 @@ function ExamOverviewContent({ id }: { id: string }) {
         ) : null}
       </Section>
 
-      {/* Admin: Math MCQ transcription preview */}
+      {/* Admin: Math question transcription preview */}
       {isAdmin && paper.subject?.toLowerCase().includes("math") && (
         <Section title="Quiz Question Preview (Admin)">
           <p className="text-xs text-slate-500 mb-3">
-            Transcribes MCQ question images into clean text using AI. Preview only — nothing is saved yet.
+            Transcribes all question images (MCQ + open-ended) into clean text using AI. Preview only — nothing is saved yet.
           </p>
           <button
             onClick={generateMcqPreview}
             disabled={mcqTranscribing}
             className="w-full py-2 rounded-xl text-sm font-medium bg-violet-500 text-white disabled:opacity-50"
           >
-            {mcqTranscribing ? "Transcribing MCQ questions…" : "Generate Clean MCQ Questions"}
+            {mcqTranscribing ? "Transcribing questions…" : "Generate Clean Questions"}
           </button>
           {mcqError && (
             <p className="mt-3 text-xs text-red-500">{mcqError}</p>
           )}
           {mcqResults && (
             <div className="mt-4 space-y-4">
-              <p className="text-xs text-slate-500">{mcqResults.length} MCQ questions transcribed</p>
+              <p className="text-xs text-slate-500">
+                {mcqResults.filter(q => q.type === "mcq").length} MCQ &nbsp;·&nbsp;
+                {mcqResults.filter(q => q.type === "open").length} open-ended
+              </p>
               {mcqResults.map((q) => (
-                <div key={q.questionNum} className="rounded-xl border border-slate-200 p-3 bg-slate-50">
+                <div key={q.questionNum} className={`rounded-xl border p-3 ${q.type === "mcq" ? "bg-slate-50 border-slate-200" : "bg-amber-50 border-amber-200"}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold text-slate-700">Q{q.questionNum}</span>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-700">Q{q.questionNum}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${q.type === "mcq" ? "bg-slate-200 text-slate-600" : "bg-amber-200 text-amber-700"}`}>
+                        {q.type === "mcq" ? "MCQ" : "Open"}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 flex-wrap justify-end">
                       {q.syllabusTopic && (
                         <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{q.syllabusTopic}</span>
                       )}
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Ans: ({q.answer})</span>
+                      {q.marksAvailable && (
+                        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{q.marksAvailable}m</span>
+                      )}
+                      {q.type === "mcq" && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Ans: ({q.answer})</span>
+                      )}
                     </div>
                   </div>
                   {q.error ? (
                     <p className="text-xs text-red-500">Error: {q.error}</p>
-                  ) : (
+                  ) : q.type === "mcq" ? (
                     <>
                       <p className="text-sm text-slate-800 mb-3 leading-relaxed">{q.stem}</p>
                       <div className="space-y-1.5">
@@ -964,6 +980,24 @@ function ExamOverviewContent({ id }: { id: string }) {
                             <span>{opt}</span>
                           </div>
                         ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-slate-800 leading-relaxed mb-2">{q.stem}</p>
+                      {q.subparts && q.subparts.length > 0 && (
+                        <div className="space-y-2 mt-2">
+                          {q.subparts.map((sp) => (
+                            <div key={sp.label} className="flex gap-2 bg-white rounded-lg px-3 py-2 border border-amber-100">
+                              <span className="font-mono text-xs text-amber-600 mt-0.5 shrink-0">({sp.label})</span>
+                              <span className="text-sm text-slate-700">{sp.text}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-2 pt-2 border-t border-amber-100">
+                        <span className="text-xs text-slate-500">Answer: </span>
+                        <span className="text-xs font-mono text-slate-700">{q.answer || "—"}</span>
                       </div>
                     </>
                   )}

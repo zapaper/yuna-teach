@@ -99,6 +99,74 @@ export async function transcribeMathMcqQuestion(
 }
 
 // ---------------------------------------------------------------------------
+// Math open-ended transcription
+// ---------------------------------------------------------------------------
+
+const MATH_OPEN_ENDED_TRANSCRIPTION_PROMPT = `You are transcribing a Singapore primary school Mathematics open-ended question from an exam paper image.
+
+The image shows ONE question. It may have sub-parts labeled (a), (b), (c), etc., or it may be a single question with no sub-parts.
+
+Your task:
+1. Extract the FULL question stem — everything before any sub-parts begin
+2. Extract each sub-part label and its text separately
+3. If there are NO sub-parts, leave the subparts array empty and put the full question in stem
+
+Rules:
+- Preserve all mathematical notation exactly (e.g. "1/2", "3.5 cm²", "2 × 4", "∠ABC")
+- Include units (e.g. "cm", "kg", "m²")
+- If the question includes a figure/diagram you cannot fully read, write "[diagram]" in the relevant place
+- Do NOT include blank answer lines or answer boxes in the text
+- Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "stem": "main question text (context, given info, or the question itself if no sub-parts)",
+  "subparts": [
+    { "label": "a", "text": "sub-question text here" },
+    { "label": "b", "text": "sub-question text here" }
+  ]
+}
+
+If there are no sub-parts, return:
+{
+  "stem": "full question text",
+  "subparts": []
+}`;
+
+export type OpenEndedSubpart = { label: string; text: string };
+export type TranscribedOpenEnded = { stem: string; subparts: OpenEndedSubpart[] };
+
+export async function transcribeMathOpenEndedQuestion(
+  imageBase64: string
+): Promise<TranscribedOpenEnded> {
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: MATH_OPEN_ENDED_TRANSCRIPTION_PROMPT },
+        ],
+      },
+    ],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  });
+
+  const text = response.text ?? "";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  return {
+    stem: String(parsed.stem ?? ""),
+    subparts: Array.isArray(parsed.subparts)
+      ? parsed.subparts.map((p: Record<string, unknown>) => ({
+          label: String(p.label ?? ""),
+          text: String(p.text ?? ""),
+        }))
+      : [],
+  };
+}
+
+// ---------------------------------------------------------------------------
 
 const EXTRACTION_PROMPT = `You are an expert at reading OCR text from primary school spelling test documents.
 
