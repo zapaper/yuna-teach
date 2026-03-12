@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 import { prisma } from "@/lib/db";
-import { transcribeMathMcqQuestion, transcribeMathOpenEndedQuestion } from "@/lib/gemini";
+import { transcribeMathMcqQuestion, transcribeMathOpenEndedQuestion, DiagramBounds } from "@/lib/gemini";
 
 /** Normalize answer string to bare digit, e.g. "(2)" → "2" */
 function normalizeMcqAnswer(ans: string | null): string {
@@ -11,6 +12,31 @@ function normalizeMcqAnswer(ans: string | null): string {
 function isMathMcq(answer: string | null): boolean {
   const n = normalizeMcqAnswer(answer);
   return n === "1" || n === "2" || n === "3" || n === "4";
+}
+
+/** Crop the diagram bounding box from a base64 question image and return enhanced base64 */
+async function cropDiagram(imageBase64: string, bounds: DiagramBounds): Promise<string> {
+  const buf = Buffer.from(imageBase64, "base64");
+  const meta = await sharp(buf).metadata();
+  const w = meta.width ?? 0;
+  const h = meta.height ?? 0;
+
+  const left = Math.round((bounds.left / 100) * w);
+  const top = Math.round((bounds.top / 100) * h);
+  const right = Math.round((bounds.right / 100) * w);
+  const bottom = Math.round((bounds.bottom / 100) * h);
+  const width = Math.max(right - left, 1);
+  const height = Math.max(bottom - top, 1);
+
+  const cropped = await sharp(buf)
+    .extract({ left, top, width, height })
+    .grayscale()
+    .normalize()
+    .sharpen()
+    .jpeg({ quality: 90 })
+    .toBuffer();
+
+  return cropped.toString("base64");
 }
 
 export async function POST(
@@ -45,6 +71,9 @@ export async function POST(
       try {
         if (mcq) {
           const transcribed = await transcribeMathMcqQuestion(base64);
+          const diagramBase64 = transcribed.diagram
+            ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
+            : null;
           return {
             type: "mcq" as const,
             questionNum: q.questionNum,
@@ -54,10 +83,14 @@ export async function POST(
             stem: transcribed.stem,
             options: transcribed.options,
             subparts: null,
+            diagramBase64,
             error: null,
           };
         } else {
           const transcribed = await transcribeMathOpenEndedQuestion(base64);
+          const diagramBase64 = transcribed.diagram
+            ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
+            : null;
           return {
             type: "open" as const,
             questionNum: q.questionNum,
@@ -67,6 +100,7 @@ export async function POST(
             stem: transcribed.stem,
             options: null,
             subparts: transcribed.subparts,
+            diagramBase64,
             error: null,
           };
         }
@@ -81,6 +115,7 @@ export async function POST(
           stem: null,
           options: null,
           subparts: null,
+          diagramBase64: null,
           error: err instanceof Error ? err.message : "Failed",
         };
       }

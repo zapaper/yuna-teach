@@ -120,6 +120,7 @@ function ExamOverviewContent({ id }: { id: string }) {
     stem: string | null;
     options: [string, string, string, string] | null;
     subparts: { label: string; text: string }[] | null;
+    diagramBase64: string | null;
     error: string | null;
   };
   const [mcqTranscribing, setMcqTranscribing] = useState(false);
@@ -966,6 +967,13 @@ function ExamOverviewContent({ id }: { id: string }) {
                   ) : q.type === "mcq" ? (
                     <>
                       <p className="text-sm text-slate-800 mb-3 leading-relaxed">{q.stem}</p>
+                      {q.diagramBase64 && (
+                        <img
+                          src={`data:image/jpeg;base64,${q.diagramBase64}`}
+                          alt="diagram"
+                          className="max-w-full rounded-lg border border-slate-200 mb-3"
+                        />
+                      )}
                       <div className="space-y-1.5">
                         {q.options?.map((opt, i) => (
                           <div
@@ -985,6 +993,13 @@ function ExamOverviewContent({ id }: { id: string }) {
                   ) : (
                     <>
                       <p className="text-sm text-slate-800 leading-relaxed mb-2">{q.stem}</p>
+                      {q.diagramBase64 && (
+                        <img
+                          src={`data:image/jpeg;base64,${q.diagramBase64}`}
+                          alt="diagram"
+                          className="max-w-full rounded-lg border border-amber-200 mb-3"
+                        />
+                      )}
                       {q.subparts && q.subparts.length > 0 && (
                         <div className="space-y-2 mt-2">
                           {q.subparts.map((sp) => (

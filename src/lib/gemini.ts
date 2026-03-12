@@ -48,29 +48,40 @@ async function generateContentWithRetry(
 // Math MCQ transcription — converts a cropped question image to clean text
 // ---------------------------------------------------------------------------
 
+export type DiagramBounds = { top: number; left: number; bottom: number; right: number };
+
+const DIAGRAM_BOUNDS_INSTRUCTION = `
+- diagram: If the question contains a figure, shape, number line, bar model, table, or any visual element that is NOT just text — return its bounding box as percentages of the full image height/width. Use null if there is no diagram.
+  { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 }
+  Be generous — include a small margin around the diagram so nothing is clipped.
+  If there is a diagram, do NOT write "[diagram]" in the stem — just reference it naturally (e.g. "In the figure,").`;
+
 const MATH_MCQ_TRANSCRIPTION_PROMPT = `You are transcribing a Singapore primary school Mathematics MCQ question from an exam paper image.
 
 The image shows ONE question with a question stem and four answer options labeled (1), (2), (3), (4).
 
 Your task:
-1. Extract the FULL question stem — include all numbers, units, mathematical expressions, diagrams described in words if any
+1. Extract the FULL question stem — include all numbers, units, mathematical expressions
 2. Extract all four answer options exactly as printed
+3. Detect any diagram/figure in the question
+${DIAGRAM_BOUNDS_INSTRUCTION}
 
 Rules:
 - Preserve mathematical notation (e.g. "1/2", "3.5 cm²", "2 × 4")
 - Include units in options if present (e.g. "12 cm", "0.75")
 - Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
-- If the question includes a figure/diagram you cannot read, write "[diagram]" in the stem
 
 Return ONLY valid JSON, no markdown fences:
 {
   "stem": "full question text here",
-  "options": ["option 1 text", "option 2 text", "option 3 text", "option 4 text"]
-}`;
+  "options": ["option 1 text", "option 2 text", "option 3 text", "option 4 text"],
+  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 }
+}
+(set "diagram" to null if no diagram)`;
 
 export async function transcribeMathMcqQuestion(
   imageBase64: string
-): Promise<{ stem: string; options: [string, string, string, string] }> {
+): Promise<{ stem: string; options: [string, string, string, string]; diagram: DiagramBounds | null }> {
   const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
@@ -87,6 +98,7 @@ export async function transcribeMathMcqQuestion(
 
   const text = response.text ?? "";
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const d = parsed.diagram;
   return {
     stem: String(parsed.stem ?? ""),
     options: [
@@ -95,6 +107,7 @@ export async function transcribeMathMcqQuestion(
       String(parsed.options?.[2] ?? ""),
       String(parsed.options?.[3] ?? ""),
     ],
+    diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
   };
 }
 
@@ -110,11 +123,12 @@ Your task:
 1. Extract the FULL question stem — everything before any sub-parts begin
 2. Extract each sub-part label and its text separately
 3. If there are NO sub-parts, leave the subparts array empty and put the full question in stem
+4. Detect any diagram/figure in the question
+${DIAGRAM_BOUNDS_INSTRUCTION}
 
 Rules:
 - Preserve all mathematical notation exactly (e.g. "1/2", "3.5 cm²", "2 × 4", "∠ABC")
 - Include units (e.g. "cm", "kg", "m²")
-- If the question includes a figure/diagram you cannot fully read, write "[diagram]" in the relevant place
 - Do NOT include blank answer lines or answer boxes in the text
 - Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
 
@@ -124,17 +138,13 @@ Return ONLY valid JSON, no markdown fences:
   "subparts": [
     { "label": "a", "text": "sub-question text here" },
     { "label": "b", "text": "sub-question text here" }
-  ]
+  ],
+  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 }
 }
-
-If there are no sub-parts, return:
-{
-  "stem": "full question text",
-  "subparts": []
-}`;
+(set "diagram" to null if no diagram; if no sub-parts use "subparts": [])`;
 
 export type OpenEndedSubpart = { label: string; text: string };
-export type TranscribedOpenEnded = { stem: string; subparts: OpenEndedSubpart[] };
+export type TranscribedOpenEnded = { stem: string; subparts: OpenEndedSubpart[]; diagram: DiagramBounds | null };
 
 export async function transcribeMathOpenEndedQuestion(
   imageBase64: string
@@ -155,6 +165,7 @@ export async function transcribeMathOpenEndedQuestion(
 
   const text = response.text ?? "";
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const d = parsed.diagram;
   return {
     stem: String(parsed.stem ?? ""),
     subparts: Array.isArray(parsed.subparts)
@@ -163,6 +174,7 @@ export async function transcribeMathOpenEndedQuestion(
           text: String(p.text ?? ""),
         }))
       : [],
+    diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
   };
 }
 
