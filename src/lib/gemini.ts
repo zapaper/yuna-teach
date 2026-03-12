@@ -1769,6 +1769,7 @@ async function extractAnswersWithWorking(
   const answerKeys = Object.keys(result.answers);
   const expectedKeys: string[] = [];
   for (const paper of structure.papers) {
+    if (paper.skipExtraction) continue; // Writing/Listening — no answers to validate
     const prevCount = structure.papers
       .filter(p => p.questionPrefix === paper.questionPrefix)
       .filter(p => p.firstQuestionPageIndex < paper.firstQuestionPageIndex)
