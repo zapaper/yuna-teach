@@ -10,6 +10,40 @@ function getAI() {
   return _ai;
 }
 
+/** Retryable network error codes — ECONNRESET means Railway's proxy cut the connection mid-request. */
+const RETRYABLE_CODES = new Set(["ECONNRESET", "ECONNREFUSED", "ETIMEDOUT", "ENOTFOUND"]);
+
+function isRetryable(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as Record<string, unknown>;
+  if (typeof e.code === "string" && RETRYABLE_CODES.has(e.code)) return true;
+  // HTTP 503 / 429 from Gemini
+  if (typeof e.status === "number" && (e.status === 503 || e.status === 429)) return true;
+  return false;
+}
+
+type GenerateContentParams = Parameters<ReturnType<typeof getAI>["models"]["generateContent"]>[0];
+
+async function generateContentWithRetry(
+  params: GenerateContentParams,
+  maxRetries = 2,
+  delayMs = 5000
+): Promise<Awaited<ReturnType<ReturnType<typeof getAI>["models"]["generateContent"]>>> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await generateContentWithRetry(params);
+    } catch (err) {
+      lastErr = err;
+      if (!isRetryable(err) || attempt === maxRetries) throw err;
+      const wait = delayMs * (attempt + 1);
+      console.warn(`[Gemini] Network error (${(err as Record<string, unknown>).code ?? "unknown"}), retrying in ${wait / 1000}s (attempt ${attempt + 1}/${maxRetries})...`);
+      await new Promise(r => setTimeout(r, wait));
+    }
+  }
+  throw lastErr;
+}
+
 const EXTRACTION_PROMPT = `You are an expert at reading OCR text from primary school spelling test documents.
 
 The OCR text below was extracted from a photo of a spelling test sheet. These sheets typically contain:
@@ -98,7 +132,7 @@ export async function extractWords(ocrText: string, guidance?: string) {
   if (guidance) {
     prompt += `\n\nADDITIONAL GUIDANCE FROM USER: ${guidance}`;
   }
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: prompt,
     config: {
@@ -134,7 +168,7 @@ export async function extractWordsFromImage(imageBase64: string, mimeType: strin
   if (guidance) {
     prompt += `\n\nADDITIONAL GUIDANCE FROM USER: ${guidance}`;
   }
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       { inlineData: { mimeType, data: imageBase64 } },
@@ -218,7 +252,7 @@ export interface ExamHeaderInfo {
 export async function analyzeExamHeader(
   imageBase64: string
 ): Promise<ExamHeaderInfo> {
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -284,7 +318,7 @@ export async function analyzeExamPage(
     existingQuestions.length > 0 ? existingQuestions.join(", ") : "none"
   );
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -327,7 +361,7 @@ export async function extractExamAnswers(
     inlineData: { mimeType: "image/jpeg" as const, data },
   }));
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -1057,7 +1091,7 @@ Return ONLY valid JSON (no markdown fences):
 
 Use the question numbers shown in the [Question X] labels.`;
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [{ role: "user", parts: [...imageParts, { text: prompt }] }],
     config: { responseMimeType: "application/json", temperature: 0.1 },
@@ -1291,7 +1325,7 @@ async function analyzeExamStructure(
     { text: `[Page ${i}]` },
   ]).flat();
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-pro",
     contents: [
       {
@@ -1588,7 +1622,7 @@ async function runExtractionCall(
 
   console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -1737,7 +1771,7 @@ async function extractAnswersWithWorking(
     buildStructureContext(structure)
   );
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -2285,7 +2319,7 @@ export async function redoQuestionExtraction(
     { text: `[Page ${i + 1}]` },
   ]).flat();
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -2362,7 +2396,7 @@ export async function redoAnswerExtraction(
     .replaceAll("{questionNum}", questionNum)
     .replace("{paperContextLine}", paperContextLine);
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -2421,7 +2455,7 @@ export async function validateQuestionCrop(
     .replaceAll("{questionNum}", questionNum)
     .replaceAll("{displayNum}", displayNum);
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
       {
@@ -2460,7 +2494,7 @@ export async function generateWordInfo(
       ? MEANING_PROMPT_JA.replace("{word}", word)
       : MEANING_PROMPT_EN.replace("{word}", word);
 
-  const response = await getAI().models.generateContent({
+  const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: prompt,
     config: {
