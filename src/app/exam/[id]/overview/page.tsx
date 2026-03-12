@@ -923,15 +923,23 @@ function ExamOverviewContent({ id }: { id: string }) {
       {isAdmin && paper.subject?.toLowerCase().includes("math") && (
         <Section title="Quiz Question Preview (Admin)">
           <p className="text-xs text-slate-500 mb-3">
-            Transcribes all question images (MCQ + open-ended) into clean text using AI. Preview only — nothing is saved yet.
+            Transcribes all question images (MCQ + open-ended) into clean text using AI.
           </p>
-          <button
-            onClick={generateMcqPreview}
-            disabled={mcqTranscribing}
-            className="w-full py-2 rounded-xl text-sm font-medium bg-violet-500 text-white disabled:opacity-50"
-          >
-            {mcqTranscribing ? "Transcribing questions…" : "Generate Clean Questions"}
-          </button>
+          <div className="flex gap-2 mb-1">
+            <button
+              onClick={generateMcqPreview}
+              disabled={mcqTranscribing}
+              className="flex-1 py-2 rounded-xl text-sm font-medium bg-violet-500 text-white disabled:opacity-50"
+            >
+              {mcqTranscribing ? "Transcribing questions…" : "Preview Clean Questions"}
+            </button>
+            <button
+              onClick={() => router.push(`/exam/${id}/transcribe-edit?userId=${userId}`)}
+              className="px-3 py-2 rounded-xl text-sm font-medium bg-violet-100 text-violet-700 hover:bg-violet-200"
+            >
+              Edit &amp; Save
+            </button>
+          </div>
           {mcqError && (
             <p className="mt-3 text-xs text-red-500">{mcqError}</p>
           )}

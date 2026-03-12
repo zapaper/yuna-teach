@@ -40,6 +40,64 @@ async function cropDiagram(imageBase64: string, bounds: DiagramBounds): Promise<
   return cropped.toString("base64");
 }
 
+/** GET — return saved transcription data from DB */
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const questions = await prisma.examQuestion.findMany({
+    where: { examPaperId: id },
+    orderBy: { orderIndex: "asc" },
+    select: {
+      id: true, questionNum: true, answer: true, syllabusTopic: true, marksAvailable: true,
+      transcribedStem: true, transcribedOptions: true, transcribedSubparts: true,
+      diagramBounds: true, diagramImageData: true,
+    },
+  });
+  const hasSaved = questions.some(q => q.transcribedStem || q.diagramImageData);
+  return NextResponse.json({ hasSaved, questions });
+}
+
+/** PUT — save all transcription data to DB */
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const { questions } = await req.json() as {
+    questions: {
+      id: string;
+      stem: string | null;
+      options: string[] | null;
+      subparts: { label: string; text: string }[] | null;
+      diagramBounds: { top: number; left: number; bottom: number; right: number } | null;
+      diagramImageData: string | null;
+    }[];
+  };
+
+  await Promise.all(
+    questions.map(q =>
+      prisma.examQuestion.update({
+        where: { id: q.id },
+        data: {
+          transcribedStem: q.stem,
+          transcribedOptions: q.options ?? undefined,
+          transcribedSubparts: q.subparts ?? undefined,
+          diagramBounds: q.diagramBounds ?? undefined,
+          diagramImageData: q.diagramImageData,
+        },
+      })
+    )
+  );
+
+  // Verify they belong to this paper
+  const paper = await prisma.examPaper.findUnique({ where: { id }, select: { id: true } });
+  if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
+
+  return NextResponse.json({ ok: true, saved: questions.length });
+}
+
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -76,6 +134,7 @@ export async function POST(
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
           return {
+            id: q.id,
             type: "mcq" as const,
             questionNum: q.questionNum,
             answer: normalizeMcqAnswer(q.answer),
@@ -84,6 +143,7 @@ export async function POST(
             stem: transcribed.stem,
             options: transcribed.options,
             subparts: null,
+            diagramBounds: transcribed.diagram ?? null,
             diagramBase64,
             error: null,
           };
@@ -93,6 +153,7 @@ export async function POST(
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
           return {
+            id: q.id,
             type: "open" as const,
             questionNum: q.questionNum,
             answer: q.answer ?? "",
@@ -101,6 +162,7 @@ export async function POST(
             stem: transcribed.stem,
             options: null,
             subparts: transcribed.subparts,
+            diagramBounds: transcribed.diagram ?? null,
             diagramBase64,
             error: null,
           };
@@ -108,6 +170,7 @@ export async function POST(
       } catch (err) {
         console.error(`[transcribe] Q${q.questionNum} failed:`, err);
         return {
+          id: q.id,
           type: mcq ? "mcq" as const : "open" as const,
           questionNum: q.questionNum,
           answer: mcq ? normalizeMcqAnswer(q.answer) : (q.answer ?? ""),
@@ -116,6 +179,7 @@ export async function POST(
           stem: null,
           options: null,
           subparts: null,
+          diagramBounds: null,
           diagramBase64: null,
           error: err instanceof Error ? err.message : "Failed",
         };
