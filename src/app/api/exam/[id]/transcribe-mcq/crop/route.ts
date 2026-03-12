@@ -24,11 +24,10 @@ export async function POST(
   const w = meta.width ?? 0;
   const h = meta.height ?? 0;
 
-  const PAD = 0.02;
-  const left = Math.max(0, Math.round(((bounds.left / 100) - PAD) * w));
-  const top = Math.max(0, Math.round(((bounds.top / 100) - PAD) * h));
-  const right = Math.min(w, Math.round(((bounds.right / 100) + PAD) * w));
-  const bottom = Math.min(h, Math.round(((bounds.bottom / 100) + PAD) * h));
+  const left = Math.max(0, Math.round((bounds.left / 100) * w));
+  const top = Math.max(0, Math.round((bounds.top / 100) * h));
+  const right = Math.min(w, Math.round((bounds.right / 100) * w));
+  const bottom = Math.min(h, Math.round((bounds.bottom / 100) * h));
   const width = Math.max(right - left, 1);
   const height = Math.max(bottom - top, 1);
 
