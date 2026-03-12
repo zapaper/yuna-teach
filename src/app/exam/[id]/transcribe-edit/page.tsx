@@ -52,48 +52,70 @@ function DrawableImage({
   onDraw: (b: DiagramBounds) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
-  const [cur, setCur] = useState<{ x: number; y: number } | null>(null);
+  const anchorRef = useRef<{ x: number; y: number } | null>(null);
+  const onDrawRef = useRef(onDraw);
+  const [live, setLive] = useState<DiagramBounds | null>(null);
 
-  function toPct(e: React.MouseEvent) {
+  // Keep onDrawRef current so global handlers always call the latest version
+  useEffect(() => { onDrawRef.current = onDraw; }, [onDraw]);
+
+  function toPct(clientX: number, clientY: number) {
     if (!ref.current) return null;
     const r = ref.current.getBoundingClientRect();
     return {
-      x: Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100)),
-      y: Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100)),
+      x: Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100)),
+      y: Math.max(0, Math.min(100, ((clientY - r.top) / r.height) * 100)),
     };
   }
 
-  const live = anchor && cur ? {
-    left: Math.min(anchor.x, cur.x), top: Math.min(anchor.y, cur.y),
-    right: Math.max(anchor.x, cur.x), bottom: Math.max(anchor.y, cur.y),
-  } : null;
+  // Attach global mouse listeners so drag works even when cursor leaves the image
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      if (!anchorRef.current) return;
+      const p = toPct(e.clientX, e.clientY);
+      if (!p) return;
+      const a = anchorRef.current;
+      setLive({
+        left: Math.min(a.x, p.x), top: Math.min(a.y, p.y),
+        right: Math.max(a.x, p.x), bottom: Math.max(a.y, p.y),
+      });
+    }
+    function onUp(e: MouseEvent) {
+      if (!anchorRef.current) return;
+      const a = anchorRef.current;
+      anchorRef.current = null;
+      setLive(null);
+      const p = toPct(e.clientX, e.clientY);
+      if (p) {
+        const b: DiagramBounds = {
+          left: Math.round(Math.min(a.x, p.x) * 10) / 10,
+          top: Math.round(Math.min(a.y, p.y) * 10) / 10,
+          right: Math.round(Math.max(a.x, p.x) * 10) / 10,
+          bottom: Math.round(Math.max(a.y, p.y) * 10) / 10,
+        };
+        if (b.right - b.left > 2 && b.bottom - b.top > 2) onDrawRef.current(b);
+      }
+    }
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
       ref={ref}
       className="relative select-none cursor-crosshair rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
       onMouseDown={e => {
-        const p = toPct(e); if (!p) return;
+        const p = toPct(e.clientX, e.clientY);
+        if (!p) return;
         e.preventDefault();
-        setAnchor(p); setCur(p);
+        anchorRef.current = p;
+        setLive(null);
       }}
-      onMouseMove={e => { if (!anchor) return; const p = toPct(e); if (p) setCur(p); }}
-      onMouseUp={e => {
-        if (!anchor) return;
-        const p = toPct(e);
-        if (p) {
-          const b: DiagramBounds = {
-            left: Math.round(Math.min(anchor.x, p.x) * 10) / 10,
-            top: Math.round(Math.min(anchor.y, p.y) * 10) / 10,
-            right: Math.round(Math.max(anchor.x, p.x) * 10) / 10,
-            bottom: Math.round(Math.max(anchor.y, p.y) * 10) / 10,
-          };
-          if (b.right - b.left > 2 && b.bottom - b.top > 2) onDraw(b);
-        }
-        setAnchor(null); setCur(null);
-      }}
-      onMouseLeave={() => { setAnchor(null); setCur(null); }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="" className="w-full block" draggable={false} />
