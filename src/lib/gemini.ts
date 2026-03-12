@@ -845,13 +845,32 @@ Start at the very bottom of the blank line — do NOT include any space above th
 
 ---
 
+## ⚠ CRITICAL: Transition from Cloze Passage → Editing (Spelling & Grammar)
+
+The Cloze Passage section is typically **ONE PAGE**. After the Cloze page ends, the very next page begins the **Editing (Spelling & Grammar)** section.
+
+**How to detect you have crossed into Editing:**
+
+| Cloze Passage (Method 1) | Editing (Method 2) |
+|---|---|
+| Prose with **blank underscore lines** embedded | Prose with **underlined words** (no blank lines) |
+| Parenthesised number **(nn)** printed **BELOW** the blank | Small **numbered box** printed **BESIDE or ABOVE** an underlined word |
+| Student fills in the blank | Student writes correction **inside the box** |
+
+**Rule:** As soon as you see a page where the prose contains **underlined words** and **small boxes** beside or above them — switch to Method 2 immediately. Do NOT apply Method 1 to this page. Even if you are still finding prose text, the presence of boxes (not blanks) is the definitive signal.
+
+If you have just finished extracting Cloze questions and turn to the next page: check for boxes first. If boxes are visible → Method 2 (Editing). If only blank underscore lines → still Method 1 (possibly Comprehension Cloze, which uses the same layout).
+
+---
+
 ## Method 2: EDITING extraction
 ### (applies to: Editing section — question number is BESIDE or ABOVE an empty box)
 
 ### What it looks like:
-- A passage with certain words **underlined**
-- A small **empty box** floats ABOVE each underlined word — the student writes the corrected word inside the box
+- A passage with certain words **underlined** (these are the words with errors)
+- A small **empty box** floats ABOVE or BESIDE each underlined word — the student writes the corrected spelling inside the box
 - The question number is printed inside or directly beside the empty box
+- **Key difference from Cloze:** there are NO blank underscore lines. The words are printed (and underlined), not absent.
 
 ### Extraction:
 The crop is defined by the **empty answer box** itself:
@@ -932,9 +951,9 @@ Rules per topic:
 - "Grammar" — MCQ testing tenses, subject-verb agreement, punctuation, articles, prepositions, conjunctions (Booklet A, earlier questions)
 - "Vocabulary" — MCQ testing word meaning, synonyms, antonyms, word choice, phrasal verbs (Booklet A, earlier questions)
 - "Comprehension MCQ" — MCQ based on a reading passage (Booklet A, later questions); answer is A/B/C/D
-- "Cloze Passage" — fill-in-blank passage; question number is printed BELOW the blank line; appears BEFORE Editing
-- "Editing (Spelling & Grammar)" — numbered boxes beside underlined/marked errors in a passage; student writes correction in the box to the right of the question number
-- "Comprehension Cloze" — fill-in-blank passage; question number is BELOW the blank (same as Cloze Passage layout); appears AFTER Editing section
+- "Cloze Passage" — fill-in-blank passage; blank underscore lines embedded in prose; question number printed BELOW the blank; appears BEFORE Editing; usually ONE PAGE
+- "Editing (Spelling & Grammar)" — prose passage with UNDERLINED words (not blanks); a small numbered BOX is beside/above each underlined word; student writes the corrected spelling in the box; appears on the page IMMEDIATELY AFTER Cloze Passage; if you see boxes → this topic, NOT Cloze
+- "Comprehension Cloze" — fill-in-blank passage; blank underscore lines + question number BELOW the blank (same visual layout as Cloze Passage); appears AFTER Editing section; if you see blanks (not boxes) after the Editing page → this topic
 - "Synthesis & Transformation" — rewriting sentences using given words, combining sentences, direct/indirect speech
 - "Comprehension (Open-ended)" — written answers to questions about a reading passage; NOT multiple choice
 - "Continuous Writing" — extended creative writing or narrative
