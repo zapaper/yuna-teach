@@ -774,8 +774,8 @@ function ExamOverviewContent({ id }: { id: string }) {
             </button>
           </>
         ) : null}
-        {/* Admin-only: Skip pages config */}
-        {isAdmin && (
+        {/* Admin-only: Skip pages config — English only */}
+        {isAdmin && paper.subject?.toLowerCase().includes("english") && (
           <div className="mt-3 pt-3 border-t border-slate-100">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Student View — Hidden Pages</p>
             <p className="text-xs text-slate-400 mb-2">Enter page numbers to hide from student (e.g. writing or listening pages). Comma-separated, 1-based.</p>
@@ -810,8 +810,8 @@ function ExamOverviewContent({ id }: { id: string }) {
             </div>
           </div>
         )}
-        {/* Admin-only: Passage pages config (English exams) */}
-        {isAdmin && (
+        {/* Admin-only: Passage pages config — English only */}
+        {isAdmin && paper.subject?.toLowerCase().includes("english") && (
           <div className="mt-3 pt-3 border-t border-slate-100">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Comprehension Passage Pages</p>
             <p className="text-xs text-slate-400 mb-2">Pages from Booklet A showing the comprehension passage — duplicated just before Open-ended Comprehension questions. Auto-detected for English exams; override here if needed. Comma-separated, 1-based.</p>
@@ -863,18 +863,22 @@ function ExamOverviewContent({ id }: { id: string }) {
                   {paper.metadata.coverPages.length > 0 ? paper.metadata.coverPages.join(", ") : "None"}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span>Hidden from student (skipPages)</span>
-                <span className={`font-mono font-medium ${(paper.metadata.skipPages ?? []).length === 0 ? "text-slate-400" : "text-amber-600"}`}>
-                  {(paper.metadata.skipPages ?? []).length > 0 ? paper.metadata.skipPages!.join(", ") : "None"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Passage pages (duplicated)</span>
-                <span className={`font-mono font-medium ${(paper.metadata.passagePages ?? []).length === 0 ? "text-slate-400" : "text-blue-600"}`}>
-                  {(paper.metadata.passagePages ?? []).length > 0 ? paper.metadata.passagePages!.join(", ") : "None detected"}
-                </span>
-              </div>
+              {paper.subject?.toLowerCase().includes("english") && (
+                <>
+                  <div className="flex justify-between">
+                    <span>Hidden from student (skipPages)</span>
+                    <span className={`font-mono font-medium ${(paper.metadata.skipPages ?? []).length === 0 ? "text-slate-400" : "text-amber-600"}`}>
+                      {(paper.metadata.skipPages ?? []).length > 0 ? paper.metadata.skipPages!.join(", ") : "None"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Passage pages (duplicated)</span>
+                    <span className={`font-mono font-medium ${(paper.metadata.passagePages ?? []).length === 0 ? "text-slate-400" : "text-blue-600"}`}>
+                      {(paper.metadata.passagePages ?? []).length > 0 ? paper.metadata.passagePages!.join(", ") : "None detected"}
+                    </span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between">
                 <span>Total pages</span>
                 <span className="font-mono font-medium text-slate-500">{paper.pageCount}</span>
