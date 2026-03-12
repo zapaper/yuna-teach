@@ -796,10 +796,30 @@ const ENGLISH_CLOZE_ADDENDUM = `
 
 ## ENGLISH PAPER — MCQ question extraction (Booklet A)
 
-For English MCQ questions (Booklet A), override the general lower-bound padding rule:
-- **yEndPct** = bottom edge of the LAST answer option (e.g. "(4) option text") — NO extra padding below the last option
-- The next question starts immediately after; do NOT extend the crop into the whitespace gap or the next question's number
-- Keep the lower bound tight: stop right where the last option line ends
+English MCQ questions are **vertically much tighter** than Math or Science questions. Each question (stem + 4 options) typically spans only **5–8% of the page height**. This tight spacing means the general padding rules will produce incorrect crops — use these overrides instead.
+
+### Identifying question numbers in tight layouts
+
+The question number is a bare integer ("1", "2", … "28") at the **far left margin**. The answer options are **(1)**, **(2)**, **(3)**, **(4)** — they are **indented** (not flush left) and must NEVER be mistaken for a new question boundary.
+
+In a tight layout, the visual gap between consecutive questions is very small (sometimes just one blank line). Scan only the leftmost edge for the bare integer — if you see "(1)" or "(2)" near the left, it is an answer option, not a question number.
+
+### Crop boundaries for English MCQ
+
+- **yStartPct** = **~1% above** the question number line — MINIMAL top padding only, do NOT use 2–3% (questions are too close together; that much padding will bleed into the previous question)
+- **yEndPct** = bottom edge of the LAST answer option line, e.g. the line with "(4) option text" — stop immediately after it with NO extra padding
+- The next question's number line starts immediately (or within 1–2% gap) after the previous question's last option
+
+### How each English MCQ question looks on the page
+
+    1.  Question stem text here
+        (1) first option
+        (2) second option
+        (3) third option
+        (4) fourth option
+    2.  Next question stem...   ← bare "2." at left margin = next question boundary
+
+The crop for Q1 runs from just above "1." down to just below "(4) fourth option". Q2 starts at "2."
 
 ---
 
