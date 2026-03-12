@@ -796,26 +796,26 @@ The sections appear in this order in Booklet B:
 - Student fills in a missing letter or word on the blank
 - Question number printed in parentheses BELOW the blank, e.g. "(34)"
 
-**How to FIND questions — scan for parenthesised numbers:**
-These passages contain almost no numbers. Every number in parentheses e.g. **(34)**, **(35)** is a question marker.
-Scan for ALL occurrences of a parenthesised number — each one is a question, with the blank line directly above it.
+**How to FIND the FIRST Cloze question — the numbers stand out immediately:**
 
-### ⚠ CRITICAL: Question number must match — do NOT assign a lower number than expected
+The Cloze passage is pure prose — every word in it is alphabetic. **The question numbers are the ONLY digits on the page.** This makes them trivial to find: scan the passage for the first parenthesised number, e.g. **(31)**. That number IS the first question. There is nothing else numeric to confuse it with.
 
-The parenthesised number you find IS the question number. Do NOT renumber questions sequentially — use the actual number printed in the passage.
+**Step-by-step for the first question:**
+1. Scan the passage top-to-bottom for the first occurrence of a parenthesised number, e.g. **(31)**.
+2. Confirm there is a blank underscore line "___" directly above it in the same line or the line immediately above.
+3. That number is the question number for question 1 of the Cloze section. Use it exactly — do NOT renumber it.
+4. All subsequent question numbers increase by 1: (32), (33), etc. Find each one the same way.
 
-**Validate sequence as you scan:** question numbers increase monotonically (e.g. 31, 32, 33...). If you find a parenthesised number that is **lower than the last question number you extracted**, it is NOT a question marker — it is likely a footnote, reference, or part of a date/statistic in the passage. **Skip it and keep scanning further down** until you find the next number that continues the sequence.
+**Getting the first number right is critical** — if you misidentify it, every subsequent question will have the wrong number. Since the passage is all letters, the first number you see below a blank is unambiguous.
 
-Examples of false positives to ignore:
-- "(2024)" or "(2)" in a sentence like "She ran (2) kilometres" — not a question
-- "(1)" beside a footnote symbol — not a question
-- Any number that would repeat or go backwards in the sequence
+### ⚠ CRITICAL: Use the PRINTED number — do NOT renumber sequentially
 
-The correct question number for each blank is always **higher than the previous question's number**. If the number you found is equal to or lower than the previous question, skip it and look further ahead.
+The parenthesised number you find IS the question number. The numbers are continuous with the MCQ section before (e.g. MCQ ends at Q30, so Cloze starts at Q31). Use the actual printed number — do NOT restart from 1 or renumber.
+
+**Sequence validation:** question numbers increase monotonically. The only false positives are 4-digit years like "(2024)" — ignore those. Any 2-digit number in parentheses below a blank is always a question marker.
 
 ### ⚠ CRITICAL: Recognising the FIRST Cloze question (transition from MCQ)
 
-The question numbers are continuous across sections (e.g. MCQ ends at Q30, Cloze starts at Q31).
 The ONLY visual difference between the last MCQ question and the first Cloze question is WHERE the number appears:
 
 | MCQ (Method 3) | Cloze (Method 1) |
@@ -824,17 +824,11 @@ The ONLY visual difference between the last MCQ question and the first Cloze que
 | Followed by (1)/(2)/(3)/(4) answer options below | Blank line (underscores) **DIRECTLY ABOVE** the number |
 | Answer is a letter/digit (A/B/C/D or 1/2/3/4) | Answer is a word written **on** the blank |
 
-**Rule:** The very first question where you see a parenthesised number **(nn)** appearing INSIDE a sentence or passage, with an underscore blank directly above it — that is the FIRST Cloze question. Switch to Method 1 from that point on for all remaining fill-in-blank questions.
-
-**Do NOT treat the first Cloze question as MCQ** just because it follows MCQ questions. Even if the parenthesised number looks similar to "(C)" or could be mistaken for an answer option — if it is embedded in passage text with a blank above it, it is a Cloze question.
-
-**If you are uncertain:** look at what is ABOVE the number. MCQ has answer options like "(1) word  (2) word ...". Cloze has a blank underscore line "____" immediately above the number. Choose Method 1 if there is a blank above the number, Method 3 if there are answer options.
+**Rule:** The very first question where you see a parenthesised number embedded in passage text with a blank directly above it — that is the FIRST Cloze question. The passage text is all letters, so the number is the ONLY digit visible. Switch to Method 1 from that point on.
 
 **Extraction:**
 - **yStartPct** = BOTTOM EDGE of the blank/underscore line directly above the number — start right at the bottom of the blank, not above it
 - **yEndPct** = MIDPOINT of the parenthesised number e.g. "(34)" — stop halfway through it, no space below
-
-For the **first Cloze question specifically**: use the same rule. The blank is somewhere in the passage. Find the FIRST parenthesised number embedded in passage text — the blank directly above THAT number is Q1 of the Cloze section. Set yStartPct to the bottom of that blank, and yEndPct to the midpoint of that first number.
 
 Keep crops TIGHT — contiguous, no gaps between questions.
 marksAvailable: 1 per blank unless a mark bracket is visible.
