@@ -110,6 +110,35 @@ function ExamOverviewContent({ id }: { id: string }) {
   const [passagePagesInput, setPassagePagesInput] = useState("");
   const [savingPassagePages, setSavingPassagePages] = useState(false);
 
+  // Math MCQ transcription preview (admin)
+  type TranscribedMcq = {
+    questionNum: string;
+    answer: string;
+    syllabusTopic: string | null;
+    stem: string | null;
+    options: [string, string, string, string] | null;
+    error: string | null;
+  };
+  const [mcqTranscribing, setMcqTranscribing] = useState(false);
+  const [mcqResults, setMcqResults] = useState<TranscribedMcq[] | null>(null);
+  const [mcqError, setMcqError] = useState<string | null>(null);
+
+  async function generateMcqPreview() {
+    setMcqTranscribing(true);
+    setMcqResults(null);
+    setMcqError(null);
+    try {
+      const res = await fetch(`/api/exam/${id}/transcribe-mcq`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed");
+      setMcqResults(data.questions);
+    } catch (e) {
+      setMcqError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setMcqTranscribing(false);
+    }
+  }
+
   // Portal mount guard (portals require document to exist)
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -881,6 +910,65 @@ function ExamOverviewContent({ id }: { id: string }) {
           </div>
         ) : null}
       </Section>
+
+      {/* Admin: Math MCQ transcription preview */}
+      {isAdmin && paper.subject?.toLowerCase().includes("math") && (
+        <Section title="Quiz Question Preview (Admin)">
+          <p className="text-xs text-slate-500 mb-3">
+            Transcribes MCQ question images into clean text using AI. Preview only — nothing is saved yet.
+          </p>
+          <button
+            onClick={generateMcqPreview}
+            disabled={mcqTranscribing}
+            className="w-full py-2 rounded-xl text-sm font-medium bg-violet-500 text-white disabled:opacity-50"
+          >
+            {mcqTranscribing ? "Transcribing MCQ questions…" : "Generate Clean MCQ Questions"}
+          </button>
+          {mcqError && (
+            <p className="mt-3 text-xs text-red-500">{mcqError}</p>
+          )}
+          {mcqResults && (
+            <div className="mt-4 space-y-4">
+              <p className="text-xs text-slate-500">{mcqResults.length} MCQ questions transcribed</p>
+              {mcqResults.map((q) => (
+                <div key={q.questionNum} className="rounded-xl border border-slate-200 p-3 bg-slate-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-700">Q{q.questionNum}</span>
+                    <div className="flex gap-2">
+                      {q.syllabusTopic && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{q.syllabusTopic}</span>
+                      )}
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Ans: ({q.answer})</span>
+                    </div>
+                  </div>
+                  {q.error ? (
+                    <p className="text-xs text-red-500">Error: {q.error}</p>
+                  ) : (
+                    <>
+                      <p className="text-sm text-slate-800 mb-3 leading-relaxed">{q.stem}</p>
+                      <div className="space-y-1.5">
+                        {q.options?.map((opt, i) => (
+                          <div
+                            key={i}
+                            className={`flex items-start gap-2 rounded-lg px-3 py-2 text-sm ${
+                              String(i + 1) === q.answer
+                                ? "bg-green-100 text-green-800 font-medium"
+                                : "bg-white text-slate-700 border border-slate-200"
+                            }`}
+                          >
+                            <span className="font-mono text-xs mt-0.5 opacity-60">({i + 1})</span>
+                            <span>{opt}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      )}
 
       {/* Assignment */}
       <Section title="Assignment">

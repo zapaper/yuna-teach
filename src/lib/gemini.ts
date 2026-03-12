@@ -44,6 +44,62 @@ async function generateContentWithRetry(
   throw lastErr;
 }
 
+// ---------------------------------------------------------------------------
+// Math MCQ transcription — converts a cropped question image to clean text
+// ---------------------------------------------------------------------------
+
+const MATH_MCQ_TRANSCRIPTION_PROMPT = `You are transcribing a Singapore primary school Mathematics MCQ question from an exam paper image.
+
+The image shows ONE question with a question stem and four answer options labeled (1), (2), (3), (4).
+
+Your task:
+1. Extract the FULL question stem — include all numbers, units, mathematical expressions, diagrams described in words if any
+2. Extract all four answer options exactly as printed
+
+Rules:
+- Preserve mathematical notation (e.g. "1/2", "3.5 cm²", "2 × 4")
+- Include units in options if present (e.g. "12 cm", "0.75")
+- Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
+- If the question includes a figure/diagram you cannot read, write "[diagram]" in the stem
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "stem": "full question text here",
+  "options": ["option 1 text", "option 2 text", "option 3 text", "option 4 text"]
+}`;
+
+export async function transcribeMathMcqQuestion(
+  imageBase64: string
+): Promise<{ stem: string; options: [string, string, string, string] }> {
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: MATH_MCQ_TRANSCRIPTION_PROMPT },
+        ],
+      },
+    ],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  });
+
+  const text = response.text ?? "";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  return {
+    stem: String(parsed.stem ?? ""),
+    options: [
+      String(parsed.options?.[0] ?? ""),
+      String(parsed.options?.[1] ?? ""),
+      String(parsed.options?.[2] ?? ""),
+      String(parsed.options?.[3] ?? ""),
+    ],
+  };
+}
+
+// ---------------------------------------------------------------------------
+
 const EXTRACTION_PROMPT = `You are an expert at reading OCR text from primary school spelling test documents.
 
 The OCR text below was extracted from a photo of a spelling test sheet. These sheets typically contain:
