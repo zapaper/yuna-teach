@@ -112,6 +112,7 @@ function ExamOverviewContent({ id }: { id: string }) {
 
   // Math question transcription preview (admin)
   type TranscribedQuestion = {
+    id: string;
     type: "mcq" | "open";
     questionNum: string;
     answer: string;
@@ -120,12 +121,14 @@ function ExamOverviewContent({ id }: { id: string }) {
     stem: string | null;
     options: [string, string, string, string] | null;
     subparts: { label: string; text: string }[] | null;
+    diagramBounds: { top: number; left: number; bottom: number; right: number } | null;
     diagramBase64: string | null;
     error: string | null;
   };
   const [mcqTranscribing, setMcqTranscribing] = useState(false);
   const [mcqResults, setMcqResults] = useState<TranscribedQuestion[] | null>(null);
   const [mcqError, setMcqError] = useState<string | null>(null);
+  const [mcqExtracted, setMcqExtracted] = useState(false);
 
   async function generateMcqPreview() {
     setMcqTranscribing(true);
@@ -136,6 +139,23 @@ function ExamOverviewContent({ id }: { id: string }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed");
       setMcqResults(data.questions);
+      // Auto-save to DB so Edit & Save page can load it
+      const saveRes = await fetch(`/api/exam/${id}/transcribe-mcq`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questions: (data.questions as TranscribedQuestion[]).map(q => ({
+            id: q.id,
+            stem: q.stem,
+            options: q.options ?? null,
+            optionImages: null,
+            subparts: q.subparts ?? null,
+            diagramBounds: q.diagramBounds ?? null,
+            diagramImageData: q.diagramBase64 ?? null,
+          })),
+        }),
+      });
+      if (saveRes.ok) setMcqExtracted(true);
     } catch (e) {
       setMcqError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -150,10 +170,11 @@ function ExamOverviewContent({ id }: { id: string }) {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [paperRes, linkRes, usersRes] = await Promise.all([
+        const [paperRes, linkRes, usersRes, transcribeRes] = await Promise.all([
           fetch(`/api/exam/${id}?summary=true`),
           fetch(`/api/link?userId=${userId}`),
           fetch("/api/users"),
+          fetch(`/api/exam/${id}/transcribe-mcq`),
         ]);
         if (!paperRes.ok) throw new Error("Not found");
         const [paperData, linkData, usersData] = await Promise.all([
@@ -164,6 +185,10 @@ function ExamOverviewContent({ id }: { id: string }) {
         const currentUser = usersData.users?.find((u: User) => u.id === userId);
         setIsAdmin(currentUser?.name?.toLowerCase() === "admin");
         setPaper(paperData);
+        if (transcribeRes.ok) {
+          const td = await transcribeRes.json();
+          if (td.hasSaved) setMcqExtracted(true);
+        }
         // Only show linked students (with level info from link API)
         setStudents(
           (linkData.linkedStudents ?? []).map((s: { id: string; name: string; level?: number | null }) => ({
@@ -926,13 +951,27 @@ function ExamOverviewContent({ id }: { id: string }) {
             Transcribes all question images (MCQ + open-ended) into clean text using AI.
           </p>
           <div className="flex gap-2 mb-1">
-            <button
-              onClick={generateMcqPreview}
-              disabled={mcqTranscribing}
-              className="flex-1 py-2 rounded-xl text-sm font-medium bg-violet-500 text-white disabled:opacity-50"
-            >
-              {mcqTranscribing ? "Transcribing questions…" : "Preview Clean Questions"}
-            </button>
+            {mcqExtracted ? (
+              <div className="flex-1 flex items-center gap-2 py-2 px-3 rounded-xl bg-green-50 border border-green-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+                <span className="text-sm font-medium text-green-700">Extracted</span>
+                <button
+                  onClick={generateMcqPreview}
+                  disabled={mcqTranscribing}
+                  className="ml-auto text-xs text-slate-400 hover:text-slate-600 disabled:opacity-50"
+                >
+                  {mcqTranscribing ? "Re-extracting…" : "Re-extract"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={generateMcqPreview}
+                disabled={mcqTranscribing}
+                className="flex-1 py-2 rounded-xl text-sm font-medium bg-violet-500 text-white disabled:opacity-50"
+              >
+                {mcqTranscribing ? "Transcribing questions…" : "Extract Clean Questions"}
+              </button>
+            )}
             <button
               onClick={() => router.push(`/exam/${id}/transcribe-edit?userId=${userId}`)}
               className="px-3 py-2 rounded-xl text-sm font-medium bg-violet-100 text-violet-700 hover:bg-violet-200"

@@ -51,11 +51,11 @@ export async function GET(
     orderBy: { orderIndex: "asc" },
     select: {
       id: true, questionNum: true, answer: true, syllabusTopic: true, marksAvailable: true,
-      transcribedStem: true, transcribedOptions: true, transcribedSubparts: true,
-      diagramBounds: true, diagramImageData: true,
+      transcribedStem: true, transcribedOptions: true, transcribedOptionImages: true,
+      transcribedSubparts: true, diagramBounds: true, diagramImageData: true,
     },
   });
-  const hasSaved = questions.some(q => q.transcribedStem || q.diagramImageData);
+  const hasSaved = questions.some(q => q.transcribedStem || q.diagramImageData || q.transcribedOptionImages);
   return NextResponse.json({ hasSaved, questions });
 }
 
@@ -70,6 +70,7 @@ export async function PUT(
       id: string;
       stem: string | null;
       options: string[] | null;
+      optionImages: string[] | null;
       subparts: { label: string; text: string }[] | null;
       diagramBounds: { top: number; left: number; bottom: number; right: number } | null;
       diagramImageData: string | null;
@@ -83,6 +84,7 @@ export async function PUT(
         data: {
           transcribedStem: q.stem,
           transcribedOptions: q.options ?? undefined,
+          transcribedOptionImages: q.optionImages ?? undefined,
           transcribedSubparts: q.subparts ?? undefined,
           diagramBounds: q.diagramBounds ?? undefined,
           diagramImageData: q.diagramImageData,

@@ -118,11 +118,12 @@ model ExamQuestion {
   flaggedByUserId String?
 
   // Clean question transcription (quiz mode)
-  transcribedStem     String?
-  transcribedOptions  Json?    // string[4] for MCQ
-  transcribedSubparts Json?    // {label: string, text: string}[]
-  diagramBounds       Json?    // {top, left, bottom, right} percentages
-  diagramImageData    String?  // base64 cropped diagram
+  transcribedStem         String?
+  transcribedOptions      Json?    // string[4] for MCQ (text options)
+  transcribedOptionImages Json?    // string[4] for MCQ (image options, base64)
+  transcribedSubparts     Json?    // {label: string, text: string}[]
+  diagramBounds           Json?    // {top, left, bottom, right} percentages
+  diagramImageData        String?  // base64 cropped diagram
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 

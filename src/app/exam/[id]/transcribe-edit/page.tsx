@@ -1,24 +1,12 @@
 "use client";
 
-import { Suspense, use, useEffect, useState, useCallback } from "react";
+import { Suspense, use, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
-export default function TranscribeEditPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  return (
-    <Suspense>
-      <TranscribeEditContent id={id} />
-    </Suspense>
-  );
-}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type DiagramBounds = { top: number; left: number; bottom: number; right: number };
+type DrawTarget = "diagram" | 0 | 1 | 2 | 3;
 
 type EditQuestion = {
   id: string;
@@ -28,16 +16,117 @@ type EditQuestion = {
   syllabusTopic: string | null;
   marksAvailable: number | null;
   stem: string;
-  options: [string, string, string, string] | null;
+  options: [string, string, string, string] | null;   // text options
+  optionImages: (string | null)[] | null;              // image options (null = not drawn yet)
   subparts: { label: string; text: string }[] | null;
   diagramBounds: DiagramBounds | null;
   diagramBase64: string | null;
-  /** The original question image (for re-cropping) */
-  imageData?: string;
+  imageData?: string; // original question image for drawing/cropping
   error: string | null;
 };
 
+// Colors per draw target
+const TARGET_COLOR: Record<string, string> = {
+  diagram: "#7c3aed",
+  "0": "#2563eb",
+  "1": "#16a34a",
+  "2": "#ea580c",
+  "3": "#dc2626",
+};
+const TARGET_LABEL: Record<string, string> = {
+  diagram: "Diagram",
+  "0": "Opt 1", "1": "Opt 2", "2": "Opt 3", "3": "Opt 4",
+};
+
+// ─── DrawableImage ─────────────────────────────────────────────────────────────
+
+function DrawableImage({
+  src,
+  boxes,
+  liveColor,
+  onDraw,
+}: {
+  src: string;
+  boxes: { bounds: DiagramBounds; color: string; label: string }[];
+  liveColor: string;
+  onDraw: (b: DiagramBounds) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [cur, setCur] = useState<{ x: number; y: number } | null>(null);
+
+  function toPct(e: React.MouseEvent) {
+    if (!ref.current) return null;
+    const r = ref.current.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(100, ((e.clientX - r.left) / r.width) * 100)),
+      y: Math.max(0, Math.min(100, ((e.clientY - r.top) / r.height) * 100)),
+    };
+  }
+
+  const live = anchor && cur ? {
+    left: Math.min(anchor.x, cur.x), top: Math.min(anchor.y, cur.y),
+    right: Math.max(anchor.x, cur.x), bottom: Math.max(anchor.y, cur.y),
+  } : null;
+
+  return (
+    <div
+      ref={ref}
+      className="relative select-none cursor-crosshair rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
+      onMouseDown={e => {
+        const p = toPct(e); if (!p) return;
+        e.preventDefault();
+        setAnchor(p); setCur(p);
+      }}
+      onMouseMove={e => { if (!anchor) return; const p = toPct(e); if (p) setCur(p); }}
+      onMouseUp={e => {
+        if (!anchor) return;
+        const p = toPct(e);
+        if (p) {
+          const b: DiagramBounds = {
+            left: Math.round(Math.min(anchor.x, p.x) * 10) / 10,
+            top: Math.round(Math.min(anchor.y, p.y) * 10) / 10,
+            right: Math.round(Math.max(anchor.x, p.x) * 10) / 10,
+            bottom: Math.round(Math.max(anchor.y, p.y) * 10) / 10,
+          };
+          if (b.right - b.left > 2 && b.bottom - b.top > 2) onDraw(b);
+        }
+        setAnchor(null); setCur(null);
+      }}
+      onMouseLeave={() => { setAnchor(null); setCur(null); }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" className="w-full block" draggable={false} />
+      {boxes.map((b, i) => (
+        <div key={i} className="absolute pointer-events-none" style={{
+          border: `2px solid ${b.color}`,
+          backgroundColor: `${b.color}22`,
+          left: `${b.bounds.left}%`, top: `${b.bounds.top}%`,
+          width: `${b.bounds.right - b.bounds.left}%`,
+          height: `${b.bounds.bottom - b.bounds.top}%`,
+        }}>
+          <span className="absolute top-0 left-0 text-white text-[10px] font-bold px-1 py-0.5 leading-none"
+            style={{ backgroundColor: b.color }}>{b.label}</span>
+        </div>
+      ))}
+      {live && (
+        <div className="absolute pointer-events-none" style={{
+          border: `2px dashed ${liveColor}`,
+          backgroundColor: `${liveColor}18`,
+          left: `${live.left}%`, top: `${live.top}%`,
+          width: `${live.right - live.left}%`, height: `${live.bottom - live.top}%`,
+        }} />
+      )}
+    </div>
+  );
+}
+
 // ─── Main content ─────────────────────────────────────────────────────────────
+
+export default function TranscribeEditPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  return <Suspense><TranscribeEditContent id={id} /></Suspense>;
+}
 
 function TranscribeEditContent({ id }: { id: string }) {
   const router = useRouter();
@@ -50,68 +139,12 @@ function TranscribeEditContent({ id }: { id: string }) {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [paperTitle, setPaperTitle] = useState("");
-  const [reCropping, setReCropping] = useState<string | null>(null);
-
-  // Load saved transcription or detect if empty
-  useEffect(() => {
-    async function load() {
-      try {
-        const [savedRes, paperRes] = await Promise.all([
-          fetch(`/api/exam/${id}/transcribe-mcq`),
-          fetch(`/api/exam/${id}?summary=true`),
-        ]);
-        if (paperRes.ok) {
-          const pd = await paperRes.json();
-          setPaperTitle(pd.title ?? "");
-        }
-        if (savedRes.ok) {
-          const data = await savedRes.json();
-          if (data.hasSaved && data.questions.length > 0) {
-            // Convert DB format → edit format
-            setQuestions(
-              data.questions.map((q: {
-                id: string;
-                questionNum: string;
-                answer: string | null;
-                syllabusTopic: string | null;
-                marksAvailable: number | null;
-                transcribedStem: string | null;
-                transcribedOptions: string[] | null;
-                transcribedSubparts: { label: string; text: string }[] | null;
-                diagramBounds: DiagramBounds | null;
-                diagramImageData: string | null;
-              }) => {
-                const isMcq = !!(q.transcribedOptions);
-                return {
-                  id: q.id,
-                  type: isMcq ? "mcq" : "open",
-                  questionNum: q.questionNum,
-                  answer: q.answer ?? "",
-                  syllabusTopic: q.syllabusTopic,
-                  marksAvailable: q.marksAvailable,
-                  stem: q.transcribedStem ?? "",
-                  options: q.transcribedOptions as [string, string, string, string] | null,
-                  subparts: q.transcribedSubparts ?? null,
-                  diagramBounds: q.diagramBounds ?? null,
-                  diagramBase64: q.diagramImageData ?? null,
-                  error: null,
-                };
-              })
-            );
-          }
-        }
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, [id]);
+  const [cropping, setCropping] = useState<string | null>(null); // "questionId-target"
 
   // Generate from AI
   const handleGenerate = useCallback(async () => {
     setGenerating(true);
     try {
-      // Fetch question imageData for re-cropping later
       const [genRes, paperRes] = await Promise.all([
         fetch(`/api/exam/${id}/transcribe-mcq`, { method: "POST" }),
         fetch(`/api/exam/${id}`),
@@ -119,7 +152,6 @@ function TranscribeEditContent({ id }: { id: string }) {
       const genData = await genRes.json();
       if (!genRes.ok) throw new Error(genData.error ?? "Failed");
 
-      // Build imageData map from full paper for re-crop support
       const imgMap: Record<string, string> = {};
       if (paperRes.ok) {
         const pd = await paperRes.json();
@@ -131,6 +163,7 @@ function TranscribeEditContent({ id }: { id: string }) {
       setQuestions(
         (genData.questions as EditQuestion[]).map(q => ({
           ...q,
+          optionImages: null,
           imageData: imgMap[q.id],
         }))
       );
@@ -140,6 +173,104 @@ function TranscribeEditContent({ id }: { id: string }) {
       setGenerating(false);
     }
   }, [id]);
+
+  // Load saved transcription — auto-generate if nothing saved yet
+  useEffect(() => {
+    async function load() {
+      let shouldAutoGenerate = false;
+      try {
+        const [savedRes, paperRes] = await Promise.all([
+          fetch(`/api/exam/${id}/transcribe-mcq`),
+          fetch(`/api/exam/${id}`), // full paper for imageData + title
+        ]);
+
+        // Build imageData map
+        const imgMap: Record<string, string> = {};
+        if (paperRes.ok) {
+          const pd = await paperRes.json();
+          setPaperTitle(pd.title ?? "");
+          for (const q of pd.questions ?? []) {
+            if (q.id && q.imageData) imgMap[q.id] = q.imageData;
+          }
+        }
+
+        if (savedRes.ok) {
+          const data = await savedRes.json();
+          if (data.hasSaved && data.questions.length > 0) {
+            setQuestions(
+              data.questions.map((q: {
+                id: string;
+                questionNum: string;
+                answer: string | null;
+                syllabusTopic: string | null;
+                marksAvailable: number | null;
+                transcribedStem: string | null;
+                transcribedOptions: string[] | null;
+                transcribedOptionImages: string[] | null;
+                transcribedSubparts: { label: string; text: string }[] | null;
+                diagramBounds: DiagramBounds | null;
+                diagramImageData: string | null;
+              }) => {
+                const isMcq = !!(q.transcribedOptions) || !!(q.transcribedOptionImages);
+                return {
+                  id: q.id,
+                  type: isMcq ? "mcq" as const : "open" as const,
+                  questionNum: q.questionNum,
+                  answer: q.answer ?? "",
+                  syllabusTopic: q.syllabusTopic,
+                  marksAvailable: q.marksAvailable,
+                  stem: q.transcribedStem ?? "",
+                  options: q.transcribedOptions as [string, string, string, string] | null,
+                  optionImages: q.transcribedOptionImages ?? null,
+                  subparts: q.transcribedSubparts ?? null,
+                  diagramBounds: q.diagramBounds ?? null,
+                  diagramBase64: q.diagramImageData ?? null,
+                  imageData: imgMap[q.id],
+                  error: null,
+                };
+              })
+            );
+          } else {
+            shouldAutoGenerate = true;
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+      if (shouldAutoGenerate) handleGenerate();
+    }
+    load();
+  }, [id, handleGenerate]);
+
+  // Crop a region from the question image
+  async function handleCrop(questionId: string, bounds: DiagramBounds, target: DrawTarget) {
+    const key = `${questionId}-${String(target)}`;
+    setCropping(key);
+    try {
+      const res = await fetch(`/api/exam/${id}/transcribe-mcq/crop`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId, bounds }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Crop failed");
+
+      setQuestions(qs => qs.map(q => {
+        if (q.id !== questionId) return q;
+        if (target === "diagram") {
+          return { ...q, diagramBounds: bounds, diagramBase64: data.diagramBase64 };
+        } else {
+          const imgs = [...(q.optionImages ?? [null, null, null, null])];
+          imgs[target as number] = data.diagramBase64;
+          return { ...q, optionImages: imgs };
+        }
+      }));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Crop failed");
+    } finally {
+      setCropping(null);
+    }
+  }
 
   // Save all to DB
   async function handleSaveAll() {
@@ -153,7 +284,8 @@ function TranscribeEditContent({ id }: { id: string }) {
           questions: questions.map(q => ({
             id: q.id,
             stem: q.stem,
-            options: q.options,
+            options: q.optionImages ? null : q.options,
+            optionImages: q.optionImages ?? null,
             subparts: q.subparts,
             diagramBounds: q.diagramBounds,
             diagramImageData: q.diagramBase64,
@@ -167,27 +299,6 @@ function TranscribeEditContent({ id }: { id: string }) {
       setSaveMsg(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
-    }
-  }
-
-  // Re-crop a single question diagram
-  async function handleReCrop(questionId: string, bounds: DiagramBounds) {
-    setReCropping(questionId);
-    try {
-      const res = await fetch(`/api/exam/${id}/transcribe-mcq/crop`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId, bounds }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Crop failed");
-      setQuestions(qs => qs.map(q =>
-        q.id === questionId ? { ...q, diagramBase64: data.diagramBase64, diagramBounds: bounds } : q
-      ));
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Crop failed");
-    } finally {
-      setReCropping(null);
     }
   }
 
@@ -241,19 +352,10 @@ function TranscribeEditContent({ id }: { id: string }) {
 
       {questions.length === 0 ? (
         <div className="rounded-2xl border border-slate-100 bg-white shadow-sm p-6 text-center">
-          <p className="text-slate-500 text-sm mb-4">No clean questions saved yet. Generate them from AI first.</p>
-          <button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="px-5 py-2.5 rounded-xl bg-violet-500 text-white text-sm font-medium disabled:opacity-50"
-          >
-            {generating ? (
-              <span className="inline-flex items-center gap-2">
-                <span className="animate-spin rounded-full h-4 w-4 border-2 border-violet-200 border-t-white" />
-                Generating…
-              </span>
-            ) : "Generate Clean Questions from AI"}
-          </button>
+          <span className="inline-flex items-center gap-2 text-slate-500 text-sm">
+            <span className="animate-spin rounded-full h-4 w-4 border-2 border-slate-200 border-t-slate-500" />
+            {generating ? "Extracting clean questions from AI…" : "Loading…"}
+          </span>
         </div>
       ) : (
         <>
@@ -273,14 +375,16 @@ function TranscribeEditContent({ id }: { id: string }) {
               <QuestionCard
                 key={q.id}
                 question={q}
-                examId={id}
-                reCropping={reCropping}
+                cropping={cropping}
                 onUpdateStem={stem => updateQuestion(q.id, { stem })}
                 onUpdateOption={(i, v) => updateOption(q.id, i, v)}
                 onUpdateSubpart={(i, v) => updateSubpart(q.id, i, v)}
-                onUpdateBounds={bounds => updateQuestion(q.id, { diagramBounds: bounds })}
-                onReCrop={() => q.diagramBounds && handleReCrop(q.id, q.diagramBounds)}
+                onDraw={(bounds, target) => handleCrop(q.id, bounds, target)}
                 onRemoveDiagram={() => updateQuestion(q.id, { diagramBounds: null, diagramBase64: null })}
+                onToggleOptionImages={(imageMode) => updateQuestion(q.id, {
+                  optionImages: imageMode ? [null, null, null, null] : null,
+                  options: imageMode ? null : q.options,
+                })}
               />
             ))}
           </div>
@@ -317,37 +421,48 @@ function TranscribeEditContent({ id }: { id: string }) {
 
 function QuestionCard({
   question: q,
-  examId,
-  reCropping,
+  cropping,
   onUpdateStem,
   onUpdateOption,
   onUpdateSubpart,
-  onUpdateBounds,
-  onReCrop,
+  onDraw,
   onRemoveDiagram,
+  onToggleOptionImages,
 }: {
   question: EditQuestion;
-  examId: string;
-  reCropping: string | null;
+  cropping: string | null;
   onUpdateStem: (v: string) => void;
   onUpdateOption: (i: number, v: string) => void;
   onUpdateSubpart: (i: number, v: string) => void;
-  onUpdateBounds: (b: DiagramBounds) => void;
-  onReCrop: () => void;
+  onDraw: (bounds: DiagramBounds, target: DrawTarget) => void;
   onRemoveDiagram: () => void;
+  onToggleOptionImages: (imageMode: boolean) => void;
 }) {
   const isMcq = q.type === "mcq";
-  const cardBg = isMcq ? "bg-slate-50 border-slate-200" : "bg-amber-50 border-amber-200";
+  const imageOptionsMode = !!(q.optionImages);
+  const [drawTarget, setDrawTarget] = useState<DrawTarget>("diagram");
 
-  function nudgeBound(key: keyof DiagramBounds, delta: number) {
-    const cur = q.diagramBounds ?? { top: 10, left: 10, bottom: 90, right: 90 };
-    onUpdateBounds({ ...cur, [key]: Math.max(0, Math.min(100, Math.round((cur[key] + delta) * 10) / 10)) });
+  // Build overlay boxes for the drawable image
+  const boxes: { bounds: DiagramBounds; color: string; label: string }[] = [];
+  if (q.diagramBounds) boxes.push({ bounds: q.diagramBounds, color: TARGET_COLOR.diagram, label: "Diagram" });
+  if (q.optionImages) {
+    q.optionImages.forEach((_, i) => {
+      // We don't store option bounds separately — just show the drawn area isn't tracked here
+      // (option images are cropped directly, bounds aren't persisted)
+    });
   }
+
+  function isCropping(target: DrawTarget) {
+    return cropping === `${q.id}-${String(target)}`;
+  }
+  const anyIsCropping = isCropping("diagram") || isCropping(0) || isCropping(1) || isCropping(2) || isCropping(3);
+
+  const cardBg = isMcq ? "bg-slate-50 border-slate-200" : "bg-amber-50 border-amber-200";
 
   return (
     <div className={`rounded-2xl border p-4 ${cardBg}`}>
       {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <span className="text-sm font-bold text-slate-700">Q{q.questionNum}</span>
         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isMcq ? "bg-slate-200 text-slate-600" : "bg-amber-200 text-amber-700"}`}>
           {isMcq ? "MCQ" : "Open"}
@@ -367,6 +482,50 @@ function QuestionCard({
         <p className="text-xs text-red-500 mb-2">Error: {q.error}</p>
       ) : (
         <>
+          {/* Original image with draw overlay */}
+          {q.imageData && (
+            <div className="mb-3">
+              {/* Draw target selector */}
+              <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                <span className="text-xs text-slate-400">Draw:</span>
+                {(["diagram", 0, 1, 2, 3] as DrawTarget[]).filter(t =>
+                  t === "diagram" || (isMcq && imageOptionsMode)
+                ).map(t => {
+                  const key = String(t);
+                  const active = drawTarget === t;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setDrawTarget(t)}
+                      className="text-xs px-2 py-0.5 rounded-full font-medium transition-colors"
+                      style={{
+                        backgroundColor: active ? TARGET_COLOR[key] : `${TARGET_COLOR[key]}22`,
+                        color: active ? "white" : TARGET_COLOR[key],
+                        border: `1px solid ${TARGET_COLOR[key]}`,
+                      }}
+                    >
+                      {TARGET_LABEL[key]}
+                    </button>
+                  );
+                })}
+                {anyIsCropping && (
+                  <span className="text-xs text-slate-400 inline-flex items-center gap-1">
+                    <span className="animate-spin rounded-full h-3 w-3 border-2 border-slate-200 border-t-slate-500" />
+                    Cropping…
+                  </span>
+                )}
+              </div>
+
+              <DrawableImage
+                src={q.imageData}
+                boxes={boxes}
+                liveColor={TARGET_COLOR[String(drawTarget)]}
+                onDraw={bounds => onDraw(bounds, drawTarget)}
+              />
+              <p className="text-xs text-slate-400 mt-1 text-center">Drag on image to set crop region</p>
+            </div>
+          )}
+
           {/* Stem */}
           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Question</label>
           <textarea
@@ -376,79 +535,102 @@ function QuestionCard({
             className="w-full text-sm rounded-xl border border-slate-200 bg-white px-3 py-2 focus:outline-none focus:border-primary-400 resize-y mb-3"
           />
 
-          {/* Diagram section */}
-          {q.diagramBounds && (
+          {/* Diagram crop preview */}
+          {q.diagramBase64 && (
             <div className="mb-3 rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Diagram Crop</span>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Diagram Preview</span>
                 <button onClick={onRemoveDiagram} className="text-xs text-red-400 hover:text-red-600">Remove</button>
               </div>
-
-              {/* Current crop preview */}
-              {q.diagramBase64 && (
-                <img
-                  src={`data:image/jpeg;base64,${q.diagramBase64}`}
-                  alt="diagram"
-                  className="w-full rounded-lg border border-slate-100 mb-3"
-                />
-              )}
-
-              {/* Bounds adjusters */}
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                {(["top", "left", "bottom", "right"] as const).map(key => (
-                  <div key={key} className="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2 py-1.5">
-                    <span className="text-xs text-slate-500 w-10 capitalize">{key}</span>
-                    <button
-                      onClick={() => nudgeBound(key, -1)}
-                      className="w-6 h-6 flex items-center justify-center rounded-md bg-slate-200 text-slate-600 text-xs hover:bg-slate-300 font-bold"
-                    >−</button>
-                    <span className="text-xs font-mono text-slate-700 w-10 text-center">
-                      {q.diagramBounds ? Math.round(q.diagramBounds[key]) : 0}%
-                    </span>
-                    <button
-                      onClick={() => nudgeBound(key, 1)}
-                      className="w-6 h-6 flex items-center justify-center rounded-md bg-slate-200 text-slate-600 text-xs hover:bg-slate-300 font-bold"
-                    >+</button>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={onReCrop}
-                disabled={reCropping === q.id}
-                className="w-full py-2 rounded-xl bg-slate-700 text-white text-xs font-medium hover:bg-slate-800 disabled:opacity-50"
-              >
-                {reCropping === q.id ? (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="animate-spin rounded-full h-3 w-3 border-2 border-slate-400 border-t-white" />
-                    Re-cropping…
-                  </span>
-                ) : "Preview Crop"}
-              </button>
+              <img
+                src={`data:image/jpeg;base64,${q.diagramBase64}`}
+                alt="diagram"
+                className="w-full rounded-lg border border-slate-100"
+              />
             </div>
           )}
 
           {/* MCQ options */}
-          {isMcq && q.options && (
+          {isMcq && (
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Options</label>
-              {q.options.map((opt, i) => (
-                <div key={i} className={`flex items-start gap-2 rounded-xl px-3 py-2 border ${String(i + 1) === q.answer ? "border-green-300 bg-green-50" : "border-slate-200 bg-white"}`}>
-                  <span className="font-mono text-xs text-slate-400 mt-2 shrink-0 w-5">({i + 1})</span>
-                  <textarea
-                    value={opt}
-                    onChange={e => onUpdateOption(i, e.target.value)}
-                    rows={1}
-                    className="flex-1 text-sm bg-transparent focus:outline-none resize-none"
-                  />
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Options</label>
+                <button
+                  onClick={() => onToggleOptionImages(!imageOptionsMode)}
+                  className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                    imageOptionsMode
+                      ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                      : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                  }`}
+                >
+                  {imageOptionsMode ? "Images mode" : "Text mode"} — switch
+                </button>
+              </div>
+
+              {imageOptionsMode ? (
+                // Image options: draw boxes on the question image
+                <div className="space-y-2">
+                  {[0, 1, 2, 3].map(i => {
+                    const imgData = q.optionImages?.[i] ?? null;
+                    const optColor = TARGET_COLOR[String(i)];
+                    const isThisAnswer = String(i + 1) === q.answer;
+                    return (
+                      <div key={i} className={`rounded-xl border p-2 ${isThisAnswer ? "border-green-300 bg-green-50" : "border-slate-200 bg-white"}`}>
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded-md"
+                            style={{ backgroundColor: optColor }}>({i + 1})</span>
+                          {isThisAnswer && <span className="text-xs text-green-600 font-medium">Correct answer</span>}
+                          <button
+                            onClick={() => setDrawTarget(i as DrawTarget)}
+                            className="ml-auto text-xs px-2 py-0.5 rounded-lg transition-colors"
+                            style={{
+                              backgroundColor: drawTarget === i ? optColor : `${optColor}22`,
+                              color: drawTarget === i ? "white" : optColor,
+                            }}
+                          >
+                            {isCropping(i as DrawTarget) ? "Cropping…" : drawTarget === i ? "Drawing this" : "Draw this"}
+                          </button>
+                        </div>
+                        {imgData ? (
+                          <img
+                            src={`data:image/jpeg;base64,${imgData}`}
+                            alt={`Option ${i + 1}`}
+                            className="w-full rounded-lg border border-slate-100"
+                          />
+                        ) : (
+                          <div className="h-10 rounded-lg border-2 border-dashed flex items-center justify-center"
+                            style={{ borderColor: optColor }}>
+                            <span className="text-xs" style={{ color: optColor }}>
+                              Select "Draw this" then drag on image above
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              ) : (
+                // Text options
+                q.options ? q.options.map((opt, i) => (
+                  <div key={i} className={`flex items-start gap-2 rounded-xl px-3 py-2 border ${String(i + 1) === q.answer ? "border-green-300 bg-green-50" : "border-slate-200 bg-white"}`}>
+                    <span className="font-mono text-xs text-slate-400 mt-2 shrink-0 w-5">({i + 1})</span>
+                    <textarea
+                      value={opt}
+                      onChange={e => onUpdateOption(i, e.target.value)}
+                      rows={1}
+                      className="flex-1 text-sm bg-transparent focus:outline-none resize-none"
+                    />
+                  </div>
+                )) : (
+                  <p className="text-xs text-slate-400 italic">No text options — switch to Images mode to draw them</p>
+                )
+              )}
             </div>
           )}
 
           {/* Open-ended subparts */}
           {!isMcq && q.subparts && q.subparts.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2 mt-2">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Sub-parts</label>
               {q.subparts.map((sp, i) => (
                 <div key={sp.label} className="flex items-start gap-2 rounded-xl bg-white border border-amber-100 px-3 py-2">
