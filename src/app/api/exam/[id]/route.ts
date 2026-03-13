@@ -362,16 +362,21 @@ export async function DELETE(
   const callerIsAdmin = requester?.name?.toLowerCase() === "admin";
 
   if (!callerIsAdmin) {
-    if (paper.paperType !== "focused") {
+    if (paper.paperType === "quiz") {
+      // Students can delete their own quizzes
+      if (paper.assignedToId !== requesterId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } else if (paper.paperType !== "focused") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    if (paper.userId !== requesterId) {
+    } else if (paper.userId !== requesterId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }
 
-  // For focused tests assigned to a student, soft-delete by clearing parent's userId
+  // For focused tests assigned to a student, soft-delete by transferring ownership
   // so it disappears from parent's list but stays for the student
+  // Quiz papers are always hard-deleted
   if (paper.paperType === "focused" && paper.assignedToId && paper.completedAt) {
     // Transfer ownership to the student so it stays on their homepage
     await prisma.examPaper.update({

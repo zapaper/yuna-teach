@@ -573,7 +573,7 @@ export default function HomePage({
                         userId={userId}
                         userRole={user?.role}
                         isAdmin={isAdmin}
-                        onDelete={isAdmin || (isParent && paper.paperType === "focused") ? handleDeleteExam : undefined}
+                        onDelete={isAdmin || (isParent && paper.paperType === "focused") || (!isParent && !isAdmin && paper.paperType === "quiz") ? handleDeleteExam : undefined}
                       />
                     ))}
                   </div>
@@ -595,7 +595,7 @@ export default function HomePage({
                       userId={userId}
                       userRole={user?.role}
                       isAdmin={isAdmin}
-                      onDelete={isAdmin || (isParent && paper.paperType === "focused") ? handleDeleteExam : undefined}
+                      onDelete={isAdmin || (isParent && paper.paperType === "focused") || (!isParent && !isAdmin && paper.paperType === "quiz") ? handleDeleteExam : undefined}
                     />
                   ))}
                 </div>
