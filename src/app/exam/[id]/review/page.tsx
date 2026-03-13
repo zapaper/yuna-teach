@@ -16,6 +16,11 @@ interface ReviewQuestion {
   elaboration: string | null;
   flagged: boolean;
   imageData?: string;
+  // Quiz-specific transcription fields
+  transcribedStem?: string | null;
+  transcribedOptions?: string[] | null;
+  transcribedSubparts?: { label: string; text: string }[] | null;
+  diagramImageData?: string | null;
 }
 
 interface BookletScore {
@@ -76,32 +81,43 @@ function ExamReviewContent({ id }: { id: string }) {
           fetch(`/api/exam/${id}/mark`),
           fetch(`/api/exam/${id}`),
         ]);
-        // Build imageData map from paper questions (always has correct extracted images)
-        let imageMap: Record<string, string> = {};
+        // Build maps from paper questions (imageData + transcription data for quizzes)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let paperQuestionMap: Record<string, any> = {};
+        let paperIsQuiz = false;
         if (paperRes.ok) {
           const paper = await paperRes.json();
           setPaperTitle(paper.title ?? "");
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
           setInstantFeedback(paper.instantFeedback === true);
-          setIsQuiz(paper.paperType === "quiz");
+          paperIsQuiz = paper.paperType === "quiz";
+          setIsQuiz(paperIsQuiz);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
           setSubmissionPageCount((paper.pageCount ?? 0) - ap.length);
-          // Map questionNum → imageData from paper questions
+          // Map questionNum → full question data from paper
           for (const q of paper.questions ?? []) {
-            if (q.questionNum && q.imageData) {
-              imageMap[q.questionNum] = q.imageData;
+            if (q.questionNum) {
+              paperQuestionMap[q.questionNum] = q;
             }
           }
         }
         if (markRes.ok) {
           const markData = await markRes.json();
-          // Attach imageData from paper questions to mark data
+          // Attach data from paper questions to mark data
           for (const q of markData.questions ?? []) {
-            if (imageMap[q.questionNum]) {
-              q.imageData = imageMap[q.questionNum];
+            const pq = paperQuestionMap[q.questionNum];
+            if (pq) {
+              if (pq.imageData) q.imageData = pq.imageData;
+              // For quizzes, also attach transcription data
+              if (paperIsQuiz) {
+                q.transcribedStem = pq.transcribedStem ?? null;
+                q.transcribedOptions = pq.transcribedOptions ?? null;
+                q.transcribedSubparts = pq.transcribedSubparts ?? null;
+                q.diagramImageData = pq.diagramImageData ?? null;
+              }
             }
           }
           setData(markData);
@@ -450,8 +466,65 @@ function ExamReviewContent({ id }: { id: string }) {
                   </span>
                 </div>
 
-                {/* Extracted question image — shown to parents only; students see it in their submission */}
-                {!isStudent && currentQ.imageData ? (
+                {/* Quiz question text — show transcribed stem, diagram, options/subparts */}
+                {isQuiz && currentQ.transcribedStem ? (
+                  <div className="border-b border-slate-100 px-4 py-3 space-y-2">
+                    <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
+                      {currentQ.transcribedStem}
+                    </p>
+                    {currentQ.diagramImageData ? (
+                      <div className="flex justify-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`data:image/jpeg;base64,${currentQ.diagramImageData}`}
+                          alt="Diagram"
+                          className="max-h-48 rounded-lg border border-slate-100"
+                        />
+                      </div>
+                    ) : null}
+                    {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 ? (
+                      <div className="space-y-1">
+                        {currentQ.transcribedOptions.map((opt, i) => {
+                          const optNum = String(i + 1);
+                          const isCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                          const isSelected = currentQ.studentAnswer === optNum;
+                          return (
+                            <div
+                              key={i}
+                              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
+                                isCorrect
+                                  ? "bg-green-50 border border-green-200 text-green-800 font-medium"
+                                  : isSelected
+                                  ? "bg-red-50 border border-red-200 text-red-700"
+                                  : "text-slate-600"
+                              }`}
+                            >
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                isCorrect ? "bg-green-500 text-white" : isSelected ? "bg-red-400 text-white" : "bg-slate-100 text-slate-500"
+                              }`}>
+                                {i + 1}
+                              </span>
+                              <span>{opt}</span>
+                              {isCorrect && isSelected ? <span className="ml-auto text-xs text-green-600">Correct</span> : null}
+                              {isCorrect && !isSelected ? <span className="ml-auto text-xs text-green-600">Answer</span> : null}
+                              {!isCorrect && isSelected ? <span className="ml-auto text-xs text-red-500">Your pick</span> : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                    {currentQ.transcribedSubparts && currentQ.transcribedSubparts.length > 0 ? (
+                      <div className="space-y-1 mt-1">
+                        {currentQ.transcribedSubparts.map((sp) => (
+                          <p key={sp.label} className="text-sm text-slate-700">
+                            <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
+                          </p>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : !isStudent && currentQ.imageData ? (
+                  /* Extracted question image — shown to parents only for regular exams */
                   <div className="border-b border-slate-100 bg-slate-50 px-2 py-2">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -506,8 +579,8 @@ function ExamReviewContent({ id }: { id: string }) {
 
                   {/* Solutions panel */}
                   <div className="px-4 py-3 space-y-3 md:flex-1 md:overflow-y-auto md:max-h-[70vh]">
-                    {/* Student's answer — for quizzes */}
-                    {isQuiz && currentQ.studentAnswer ? (
+                    {/* Student's answer — for quiz OEQ (MCQ already shown in options above) */}
+                    {isQuiz && currentQ.studentAnswer && !currentQ.transcribedOptions ? (
                       <div>
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
                           Your Answer
@@ -522,8 +595,8 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     ) : null}
 
-                    {/* Correct answer */}
-                    {currentQ.answer ? (
+                    {/* Correct answer — skip for quiz MCQs (already shown inline in options) */}
+                    {currentQ.answer && !(isQuiz && currentQ.transcribedOptions) ? (
                       <div>
                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
                           Correct Answer
