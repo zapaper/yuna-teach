@@ -165,11 +165,11 @@ function QuizContent({ id }: { id: string }) {
       }
       setMcqScore({ correct, total: mcqQuestions.length });
 
-      // Save MCQ answers to DB
+      // Save MCQ answers to DB via PATCH
       await Promise.all(
         mcqQuestions.map(q =>
           fetch(`/api/exam/questions/${q.id}`, {
-            method: "POST",
+            method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               studentAnswer: mcqAnswers[q.id] || null,
@@ -179,10 +179,10 @@ function QuizContent({ id }: { id: string }) {
         )
       );
 
-      // For MCQ+OEQ: submit OEQ drawings for AI marking
+      // For MCQ+OEQ: save OEQ drawings (action "save" — don't trigger marking yet)
       if (hasOeq) {
         const form = new FormData();
-        form.append("action", "submit");
+        form.append("action", "save");
         for (let i = 0; i < oeqQuestions.length; i++) {
           const handle = oeqCanvasHandles.current[oeqQuestions[i].id];
           if (handle) {
@@ -190,13 +190,12 @@ function QuizContent({ id }: { id: string }) {
               handle.exportImage(),
               handle.exportInk(),
             ]);
-            const pageIdx = mcqQuestions.length + i;
-            form.append(`page_${pageIdx}`, composite, `page_${pageIdx}.jpg`);
-            form.append(`page_${pageIdx}_ink`, ink, `page_${pageIdx}_ink.png`);
+            // Save using sequential index so marking can find them
+            form.append(`page_${i}`, composite, `page_${i}.jpg`);
+            form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
           }
         }
         await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
-        setMarkingOeq(true);
       }
 
       // Save time and mark as completed
@@ -205,6 +204,10 @@ function QuizContent({ id }: { id: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ timeSpentSeconds: elapsed, completedAt: new Date().toISOString() }),
       });
+
+      // Trigger marking (handles both MCQ-only and MCQ+OEQ)
+      await fetch(`/api/exam/${id}/mark`, { method: "POST" });
+      if (hasOeq) setMarkingOeq(true);
 
       setSubmitted(true);
     } finally {

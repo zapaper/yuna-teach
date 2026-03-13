@@ -67,6 +67,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   const [flagging, setFlagging] = useState<string | null>(null);
   const [instantFeedback, setInstantFeedback] = useState(false);
+  const [isQuiz, setIsQuiz] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -83,6 +84,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
           setInstantFeedback(paper.instantFeedback === true);
+          setIsQuiz(paper.paperType === "quiz");
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
@@ -258,7 +260,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const isStudent = userId === assignedToId;
 
   // For students, only show questions that were actually marked (have a marking result)
-  const writtenQuestions = isStudent
+  // For quizzes, show all questions since they're all marked (MCQ instantly, OEQ by AI)
+  const writtenQuestions = isStudent && !isQuiz
     ? data.questions.filter((q) => q.marksAwarded !== null)
     : data.questions;
 
@@ -318,19 +321,21 @@ function ExamReviewContent({ id }: { id: string }) {
               ))}
             </div>
           )}
-          <button
-            onClick={downloadPdf}
-            disabled={downloading}
-            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-50"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            {downloading ? "Downloading..." : "Download my paper"}
-          </button>
+          {!isQuiz && (
+            <button
+              onClick={downloadPdf}
+              disabled={downloading}
+              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              {downloading ? "Downloading..." : "Download my paper"}
+            </button>
+          )}
         </div>
 
         {/* Incorrect / All toggle */}
@@ -459,7 +464,8 @@ function ExamReviewContent({ id }: { id: string }) {
 
                 {/* Side-by-side on wide screens, stacked on mobile */}
                 <div className="md:flex">
-                  {/* Submission page image with page navigation */}
+                  {/* Submission page image with page navigation — not shown for quizzes */}
+                  {!isQuiz && (
                   <div className="border-b border-slate-100 md:border-b-0 md:border-r md:w-1/2 md:shrink-0 relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -496,9 +502,26 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* Solutions panel */}
                   <div className="px-4 py-3 space-y-3 md:flex-1 md:overflow-y-auto md:max-h-[70vh]">
+                    {/* Student's answer — for quizzes */}
+                    {isQuiz && currentQ.studentAnswer ? (
+                      <div>
+                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
+                          Your Answer
+                        </p>
+                        <div className={`text-sm leading-relaxed rounded-lg p-3 border ${
+                          (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0)
+                            ? "bg-green-50 border-green-200 text-green-800"
+                            : "bg-red-50 border-red-200 text-red-800"
+                        }`}>
+                          {currentQ.studentAnswer}
+                        </div>
+                      </div>
+                    ) : null}
+
                     {/* Correct answer */}
                     {currentQ.answer ? (
                       <div>

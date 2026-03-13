@@ -1723,3 +1723,171 @@ export async function markFocusedTest(paperId: string): Promise<void> {
     });
   }
 }
+
+/**
+ * Mark a quiz paper (paperType === "quiz").
+ * MCQ questions should already have marksAwarded set by the client.
+ * OEQ questions are marked via AI using their submission drawings.
+ */
+export async function markQuizPaper(paperId: string): Promise<void> {
+  console.log(`[quiz-marking] Starting for ${paperId}`);
+
+  try {
+    await prisma.examPaper.update({
+      where: { id: paperId },
+      data: { markingStatus: "in_progress" },
+    });
+
+    const paper = await prisma.examPaper.findUnique({
+      where: { id: paperId },
+      include: { questions: { orderBy: { orderIndex: "asc" } } },
+    });
+    if (!paper) throw new Error("Paper not found");
+
+    // Separate MCQ (already marked) and OEQ (need AI marking)
+    const mcqQuestions = paper.questions.filter(q => {
+      const n = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+      return n === "1" || n === "2" || n === "3" || n === "4";
+    });
+    const oeqQuestions = paper.questions.filter(q => {
+      const n = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+      return !(n === "1" || n === "2" || n === "3" || n === "4");
+    });
+
+    let totalAwarded = mcqQuestions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
+    const updates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+
+    if (oeqQuestions.length > 0) {
+      const subDir = path.join(SUBMISSIONS_DIR, paperId);
+      const ai = getAI();
+
+      for (let i = 0; i < oeqQuestions.length; i++) {
+        const q = oeqQuestions[i];
+        const expectedAnswer = q.answer || "?";
+        const marksAvailable = q.marksAvailable ?? 1;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const parts: any[] = [];
+
+        // Use transcribed stem as the question text
+        if (q.transcribedStem) {
+          parts.push({ text: `Question: ${q.transcribedStem}` });
+        }
+
+        // Add question image if available
+        if (q.imageData && q.imageData.startsWith("data:image")) {
+          const match = q.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
+          if (match) {
+            parts.push({ text: "Question image:" });
+            parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          }
+        }
+
+        // Student's handwritten answer from submission files (saved as page_0, page_1, ...)
+        let hasSubmission = false;
+        try {
+          const pagePath = path.join(subDir, `page_${i}.jpg`);
+          const pageBuffer = await fs.readFile(pagePath);
+          parts.push({ text: "Student's handwritten answer:" });
+          parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
+          hasSubmission = true;
+        } catch {
+          // No submission image
+        }
+
+        // Add expected answer image if available
+        let answerImageNote = "";
+        if (q.answerImageData && q.answerImageData.startsWith("data:image")) {
+          const match = q.answerImageData.match(/^data:(image\/\w+);base64,(.+)$/);
+          if (match) {
+            parts.push({ text: "Expected answer image (for reference):" });
+            parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+            answerImageNote = "An additional image showing the expected answer is also provided.";
+          }
+        }
+
+        const prompt = FOCUSED_MARKING_PROMPT
+          .replace("{EXPECTED_ANSWER}", `"${expectedAnswer}"`)
+          .replace(/\{MARKS_AVAILABLE\}/g, String(marksAvailable))
+          .replace("{QUESTION_ID}", q.id)
+          .replace("{ANSWER_IMAGE_NOTE}", answerImageNote);
+
+        parts.push({ text: prompt });
+
+        if (!hasSubmission) {
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { marksAwarded: 0, markingNotes: "No answer submitted" },
+            })
+          );
+          continue;
+        }
+
+        try {
+          const response = await withTimeout(
+            ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: [{ role: "user", parts }],
+              config: { temperature: 0.1 },
+            }),
+            GEMINI_TIMEOUT_MS,
+            `quiz-oeq-q${q.questionNum}`
+          );
+
+          const text = response.text?.trim() ?? "";
+          const jsonMatch = text.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]) as QuestionMarkResult;
+            const awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
+            totalAwarded += awarded;
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: {
+                  marksAwarded: awarded,
+                  markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
+                },
+              })
+            );
+          } else {
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: 0, markingNotes: "Failed to parse AI response" },
+              })
+            );
+          }
+        } catch (err) {
+          console.error(`[quiz-marking] OEQ Q${q.questionNum} failed:`, err);
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { marksAwarded: 0, markingNotes: "Marking error" },
+            })
+          );
+        }
+      }
+    }
+
+    // Batch update OEQ marks + set paper score/status
+    await prisma.$transaction([
+      ...updates,
+      prisma.examPaper.update({
+        where: { id: paperId },
+        data: { score: totalAwarded, markingStatus: "complete" },
+      }),
+    ]);
+
+    // Generate feedback
+    await generateFeedbackSummary(paperId);
+
+    console.log(`[quiz-marking] Paper ${paperId} done. Score: ${totalAwarded}`);
+  } catch (err) {
+    console.error(`[quiz-marking] Failed for ${paperId}:`, err);
+    await prisma.examPaper.update({
+      where: { id: paperId },
+      data: { markingStatus: "failed" },
+    });
+  }
+}

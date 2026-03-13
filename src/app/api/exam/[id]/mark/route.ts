@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { markExamPaper, remarkSingleQuestion, markFocusedTest } from "@/lib/marking";
+import { markExamPaper, remarkSingleQuestion, markFocusedTest, markQuizPaper } from "@/lib/marking";
 
 // Compute per-booklet/paper scores from metadata.papers + questions
 function computeBookletScores(
@@ -166,7 +166,11 @@ export async function POST(
 
   // Full paper mark — set status then fire and forget
   // (allow re-triggering even if previously in_progress, to recover from stuck jobs)
-  if (paper.paperType === "focused") {
+  if (paper.paperType === "quiz") {
+    markQuizPaper(id).catch((err) =>
+      console.error(`Quiz marking for ${id} failed:`, err)
+    );
+  } else if (paper.paperType === "focused") {
     markFocusedTest(id).catch((err) =>
       console.error(`Focused test marking for ${id} failed:`, err)
     );

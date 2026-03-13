@@ -20,6 +20,7 @@ export async function PATCH(
   if ("marksAvailable" in body) data.marksAvailable = body.marksAvailable ?? null;
   if ("markingNotes" in body) data.markingNotes = body.markingNotes ?? null;
   if ("syllabusTopic" in body) data.syllabusTopic = body.syllabusTopic ?? null;
+  if ("studentAnswer" in body) data.studentAnswer = body.studentAnswer ?? null;
 
   let question;
   try {
