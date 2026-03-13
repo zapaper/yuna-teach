@@ -305,6 +305,7 @@ function TranscribeEditContent({ id }: { id: string }) {
         body: JSON.stringify({
           questions: questions.map(q => ({
             id: q.id,
+            answer: q.answer || null,
             stem: q.stem,
             options: q.optionImages ? null : q.options,
             optionImages: q.optionImages ?? null,
@@ -398,6 +399,7 @@ function TranscribeEditContent({ id }: { id: string }) {
                 key={q.id}
                 question={q}
                 cropping={cropping}
+                onUpdateAnswer={answer => updateQuestion(q.id, { answer })}
                 onUpdateStem={stem => updateQuestion(q.id, { stem })}
                 onUpdateOption={(i, v) => updateOption(q.id, i, v)}
                 onUpdateSubpart={(i, v) => updateSubpart(q.id, i, v)}
@@ -406,6 +408,12 @@ function TranscribeEditContent({ id }: { id: string }) {
                 onToggleOptionImages={(imageMode) => updateQuestion(q.id, {
                   optionImages: imageMode ? [null, null, null, null] : null,
                   options: imageMode ? null : q.options,
+                })}
+                onToggleType={() => updateQuestion(q.id, {
+                  type: q.type === "mcq" ? "open" : "mcq",
+                  options: q.type === "mcq" ? null : ["", "", "", ""],
+                  optionImages: null,
+                  subparts: q.type === "open" ? null : q.subparts,
                 })}
               />
             ))}
@@ -444,21 +452,25 @@ function TranscribeEditContent({ id }: { id: string }) {
 function QuestionCard({
   question: q,
   cropping,
+  onUpdateAnswer,
   onUpdateStem,
   onUpdateOption,
   onUpdateSubpart,
   onDraw,
   onRemoveDiagram,
   onToggleOptionImages,
+  onToggleType,
 }: {
   question: EditQuestion;
   cropping: string | null;
+  onUpdateAnswer: (v: string) => void;
   onUpdateStem: (v: string) => void;
   onUpdateOption: (i: number, v: string) => void;
   onUpdateSubpart: (i: number, v: string) => void;
   onDraw: (bounds: DiagramBounds, target: DrawTarget) => void;
   onRemoveDiagram: () => void;
   onToggleOptionImages: (imageMode: boolean) => void;
+  onToggleType: () => void;  // MCQ <-> OEQ
 }) {
   const isMcq = q.type === "mcq";
   const imageOptionsMode = !!(q.optionImages);
@@ -486,18 +498,29 @@ function QuestionCard({
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <span className="text-sm font-bold text-slate-700">Q{q.questionNum}</span>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isMcq ? "bg-slate-200 text-slate-600" : "bg-amber-200 text-amber-700"}`}>
-          {isMcq ? "MCQ" : "Open"}
-        </span>
+        <button
+          onClick={onToggleType}
+          title={isMcq ? "Switch to Open-ended" : "Switch to MCQ"}
+          className={`text-xs px-2 py-0.5 rounded-full font-medium cursor-pointer hover:opacity-80 transition-opacity ${isMcq ? "bg-slate-200 text-slate-600" : "bg-amber-200 text-amber-700"}`}
+        >
+          {isMcq ? "MCQ" : "Open"} &harr;
+        </button>
         {q.syllabusTopic && (
           <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{q.syllabusTopic}</span>
         )}
         {q.marksAvailable && (
           <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{q.marksAvailable}m</span>
         )}
-        {isMcq && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Ans: ({q.answer})</span>
-        )}
+        <span className="text-xs text-slate-400 flex items-center gap-1">
+          Ans:
+          <input
+            type="text"
+            value={q.answer}
+            onChange={e => onUpdateAnswer(e.target.value)}
+            className="w-16 text-xs px-1.5 py-0.5 rounded-md border border-slate-200 bg-white focus:outline-none focus:border-primary-400 text-center"
+            placeholder={isMcq ? "1-4" : "answer"}
+          />
+        </span>
       </div>
 
       {q.error ? (

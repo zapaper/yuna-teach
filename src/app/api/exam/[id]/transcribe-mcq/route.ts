@@ -68,6 +68,7 @@ export async function PUT(
   const { questions } = await req.json() as {
     questions: {
       id: string;
+      answer?: string | null;
       stem: string | null;
       options: string[] | null;
       optionImages: string[] | null;
@@ -82,6 +83,7 @@ export async function PUT(
       prisma.examQuestion.update({
         where: { id: q.id },
         data: {
+          ...(q.answer !== undefined ? { answer: q.answer } : {}),
           transcribedStem: q.stem,
           transcribedOptions: q.options ?? undefined,
           transcribedOptionImages: q.optionImages ?? undefined,
