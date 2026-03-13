@@ -50,6 +50,11 @@ async function generateContentWithRetry(
 
 export type DiagramBounds = { top: number; left: number; bottom: number; right: number };
 
+/** Strip leading question number from stem, e.g. "21. Find..." → "Find..." */
+function stripQuestionNumber(stem: string): string {
+  return stem.replace(/^\s*(?:Q\.?\s*)?(\d{1,3})\s*[.)]\s*/i, "").trim();
+}
+
 const DIAGRAM_BOUNDS_INSTRUCTION = `
 - diagram: If the question contains a figure, shape, number line, bar model, table, or any visual element that is NOT just text — return its bounding box as percentages of the full image height/width. Use null if there is no diagram.
   { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 }
@@ -67,6 +72,7 @@ Your task:
 ${DIAGRAM_BOUNDS_INSTRUCTION}
 
 Rules:
+- Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
 - Preserve mathematical notation (e.g. "1/2", "3.5 cm²", "2 × 4")
 - Include units in options if present (e.g. "12 cm", "0.75")
 - Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
@@ -100,7 +106,7 @@ export async function transcribeMathMcqQuestion(
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
   const d = parsed.diagram;
   return {
-    stem: String(parsed.stem ?? ""),
+    stem: stripQuestionNumber(String(parsed.stem ?? "")),
     options: [
       String(parsed.options?.[0] ?? ""),
       String(parsed.options?.[1] ?? ""),
@@ -127,6 +133,7 @@ Your task:
 ${DIAGRAM_BOUNDS_INSTRUCTION}
 
 Rules:
+- Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
 - Preserve all mathematical notation exactly (e.g. "1/2", "3.5 cm²", "2 × 4", "∠ABC")
 - Include units (e.g. "cm", "kg", "m²")
 - Do NOT include blank answer lines or answer boxes in the text
@@ -167,7 +174,7 @@ export async function transcribeMathOpenEndedQuestion(
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
   const d = parsed.diagram;
   return {
-    stem: String(parsed.stem ?? ""),
+    stem: stripQuestionNumber(String(parsed.stem ?? "")),
     subparts: Array.isArray(parsed.subparts)
       ? parsed.subparts.map((p: Record<string, unknown>) => ({
           label: String(p.label ?? ""),
