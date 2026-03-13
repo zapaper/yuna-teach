@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
       userId,
       assignedToId: targetStudentId,
       paperType: "quiz",
+      instantFeedback: true,
       pageCount: 0,
       extractionStatus: "ready",
       totalMarks: String(totalMarks),
