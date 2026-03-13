@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef, useCallback, useImperativeHandle, forwardRef, use } from "react";
+import { Suspense, useEffect, useState, useRef, useImperativeHandle, forwardRef, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 /* ────────────── types ────────────── */
@@ -24,6 +24,7 @@ interface QuizPaper {
   title: string;
   metadata: { quizType: "mcq" | "mcq-oeq" } | null;
   completedAt: string | null;
+  markingStatus: string | null;
   timeSpentSeconds: number;
   questions: QuizQuestion[];
 }
@@ -72,12 +73,10 @@ function QuizContent({ id }: { id: string }) {
   // MCQ answers: questionId -> selected option (1-4)
   const [mcqAnswers, setMcqAnswers] = useState<Record<string, string>>({});
 
-  // OEQ state
-  const [currentOeqIdx, setCurrentOeqIdx] = useState(0);
-  const [oeqTool, setOeqTool] = useState<DrawTool>("pen");
-  const oeqCanvasHandles = useRef<(AnswerCanvasHandle | null)[]>([]);
-  const [oeqHasInk, setOeqHasInk] = useState<boolean[]>([]);
-  const lastDrawnIdx = useRef<number | null>(null);
+  // OEQ drawing
+  const [tool, setTool] = useState<DrawTool>("pen");
+  const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
+  const lastDrawnId = useRef<string | null>(null);
 
   // Submission
   const [submitting, setSubmitting] = useState(false);
@@ -86,9 +85,6 @@ function QuizContent({ id }: { id: string }) {
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // View mode: "mcq" or "oeq" (for MCQ+OEQ quizzes)
-  const [viewMode, setViewMode] = useState<"mcq" | "oeq">("mcq");
 
   useEffect(() => {
     (async () => {
@@ -104,9 +100,6 @@ function QuizContent({ id }: { id: string }) {
             setMarkingDone(true);
           }
         }
-        // Initialize OEQ ink tracking
-        const oeqCount = data.questions.filter((q: QuizQuestion) => !isMcq(q.answer)).length;
-        setOeqHasInk(new Array(oeqCount).fill(false));
       } catch {
         setPaper(null);
       } finally {
@@ -190,15 +183,13 @@ function QuizContent({ id }: { id: string }) {
       if (hasOeq) {
         const form = new FormData();
         form.append("action", "submit");
-        // OEQ questions need canvas submissions
         for (let i = 0; i < oeqQuestions.length; i++) {
-          const handle = oeqCanvasHandles.current[i];
+          const handle = oeqCanvasHandles.current[oeqQuestions[i].id];
           if (handle) {
             const [composite, ink] = await Promise.all([
               handle.exportImage(),
               handle.exportInk(),
             ]);
-            // Page index for OEQ = mcqQuestions.length + i
             const pageIdx = mcqQuestions.length + i;
             form.append(`page_${pageIdx}`, composite, `page_${pageIdx}.jpg`);
             form.append(`page_${pageIdx}_ink`, ink, `page_${pageIdx}_ink.png`);
@@ -247,7 +238,7 @@ function QuizContent({ id }: { id: string }) {
           {hasOeq && (
             markingDone ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4">
-                <p className="text-sm text-green-600 font-medium">OEQ has been marked!</p>
+                <p className="text-sm text-green-600 font-medium">Written answers have been marked!</p>
               </div>
             ) : (
               <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4">
@@ -276,47 +267,46 @@ function QuizContent({ id }: { id: string }) {
     );
   }
 
-  // ─── Quiz taking view ───
+  // ─── Quiz taking view — single scrollable paper ───
+  const answeredCount = Object.keys(mcqAnswers).length;
+
   return (
-    <div className="min-h-screen bg-slate-50 pb-36 select-none" style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
+    <div className="min-h-screen bg-slate-50 pb-24 select-none" style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
       {/* Header */}
       <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
         <div className="min-w-0">
           <h1 className="text-sm font-bold text-slate-800 truncate">{paper.title}</h1>
           <p className="text-[11px] text-slate-400">
-            {quizType === "mcq"
-              ? `${Object.keys(mcqAnswers).length} / ${mcqQuestions.length} answered`
-              : viewMode === "mcq"
-              ? `MCQ: ${Object.keys(mcqAnswers).length} / ${mcqQuestions.length}`
-              : `OEQ: Q${currentOeqIdx + 1} / ${oeqQuestions.length}`}
+            {answeredCount} / {mcqQuestions.length} MCQ answered
+            {hasOeq ? ` + ${oeqQuestions.length} written` : ""}
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0 ml-3">
-          {/* OEQ drawing tools */}
-          {hasOeq && viewMode === "oeq" && (
+        <div className="flex items-center gap-2 shrink-0 ml-3">
+          {/* Drawing tools — only for MCQ+OEQ */}
+          {hasOeq && (
             <div className="flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5">
               <button
-                onClick={() => setOeqTool("pen")}
-                className={`p-1.5 rounded-md transition-colors ${oeqTool === "pen" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400"}`}
+                onClick={() => setTool("pen")}
+                className={`p-1.5 rounded-md transition-colors ${tool === "pen" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400"}`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
                 </svg>
               </button>
               <button
-                onClick={() => setOeqTool("eraser")}
-                className={`p-1.5 rounded-md transition-colors ${oeqTool === "eraser" ? "bg-white text-red-500 shadow-sm" : "text-slate-400"}`}
+                onClick={() => setTool("eraser")}
+                className={`p-1.5 rounded-md transition-colors ${tool === "eraser" ? "bg-white text-red-500 shadow-sm" : "text-slate-400"}`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
                   <path d="M22 21H7" /><path d="m5 11 9 9" />
                 </svg>
               </button>
               <button
-                onClick={() => { if (lastDrawnIdx.current !== null) oeqCanvasHandles.current[lastDrawnIdx.current]?.undo(); }}
+                onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
                 className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
                 </svg>
               </button>
@@ -326,124 +316,60 @@ function QuizContent({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Mode tabs for MCQ+OEQ */}
-      {hasOeq && (
-        <div className="bg-white border-b border-slate-100 px-4 py-2 flex gap-2">
-          <button
-            onClick={() => setViewMode("mcq")}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
-              viewMode === "mcq" ? "bg-primary-500 text-white" : "bg-slate-100 text-slate-500"
-            }`}
-          >
-            MCQ ({mcqQuestions.length})
-          </button>
-          <button
-            onClick={() => setViewMode("oeq")}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors ${
-              viewMode === "oeq" ? "bg-primary-500 text-white" : "bg-slate-100 text-slate-500"
-            }`}
-          >
-            Written ({oeqQuestions.length})
-          </button>
-        </div>
-      )}
+      {/* Single scrollable paper */}
+      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+        {/* Section A: MCQ */}
+        {mcqQuestions.length > 0 && (
+          <>
+            {hasOeq && (
+              <div className="text-center">
+                <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Section A: Multiple Choice</h2>
+                <p className="text-xs text-slate-400">Select one answer for each question</p>
+              </div>
+            )}
+            {mcqQuestions.map((q, idx) => (
+              <McqQuestionCard
+                key={q.id}
+                question={q}
+                index={idx}
+                selected={mcqAnswers[q.id] ?? null}
+                onSelect={(opt) => selectMcqAnswer(q.id, opt)}
+              />
+            ))}
+          </>
+        )}
 
-      {/* MCQ section */}
-      {(quizType === "mcq" || viewMode === "mcq") && (
-        <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-          {mcqQuestions.map((q, idx) => (
-            <McqQuestionCard
-              key={q.id}
-              question={q}
-              index={idx}
-              selected={mcqAnswers[q.id] ?? null}
-              onSelect={(opt) => selectMcqAnswer(q.id, opt)}
-            />
-          ))}
-        </div>
-      )}
+        {/* Section B: Written / OEQ */}
+        {hasOeq && (
+          <>
+            <div className="text-center pt-4">
+              <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Section B: Written Answers</h2>
+              <p className="text-xs text-slate-400">Write your answers in the space provided</p>
+            </div>
+            {oeqQuestions.map((q, idx) => (
+              <OeqQuestionCard
+                key={q.id}
+                question={q}
+                index={mcqQuestions.length + idx}
+                tool={tool}
+                onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
+                onStrokeStart={() => { lastDrawnId.current = q.id; }}
+              />
+            ))}
+          </>
+        )}
+      </div>
 
-      {/* OEQ section */}
-      {hasOeq && viewMode === "oeq" && (
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white">
-            <AnswerCanvas
-              key={currentOeqIdx}
-              ref={(el) => { oeqCanvasHandles.current[currentOeqIdx] = el; }}
-              tool={oeqTool}
-              questionImageSrc={oeqQuestions[currentOeqIdx].imageData}
-              onStrokeStart={() => {
-                lastDrawnIdx.current = currentOeqIdx;
-                setOeqHasInk(prev => {
-                  const next = [...prev];
-                  next[currentOeqIdx] = true;
-                  return next;
-                });
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Bottom bar */}
+      {/* Bottom bar — submit */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 z-10">
         <div className="max-w-2xl mx-auto">
-          {/* OEQ dots */}
-          {hasOeq && viewMode === "oeq" && (
-            <div className="flex justify-center gap-1.5 mb-3">
-              {oeqQuestions.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentOeqIdx(i)}
-                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                    i === currentOeqIdx ? "bg-primary-500" : oeqHasInk[i] ? "bg-green-400" : "bg-slate-200"
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            {/* OEQ navigation */}
-            {hasOeq && viewMode === "oeq" && (
-              <>
-                <button
-                  onClick={() => setCurrentOeqIdx(i => Math.max(0, i - 1))}
-                  disabled={currentOeqIdx === 0}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 disabled:opacity-30 text-sm"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setCurrentOeqIdx(i => Math.min(oeqQuestions.length - 1, i + 1))}
-                  disabled={currentOeqIdx === oeqQuestions.length - 1}
-                  className="flex-1 py-2.5 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-700 disabled:opacity-30 text-sm"
-                >
-                  Next
-                </button>
-              </>
-            )}
-
-            {/* Submit button */}
-            {(!hasOeq || viewMode === "mcq") && (
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="flex-1 py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 text-sm"
-              >
-                {submitting ? "Submitting..." : "Submit Quiz"}
-              </button>
-            )}
-            {hasOeq && viewMode === "oeq" && currentOeqIdx === oeqQuestions.length - 1 && (
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="flex-1 py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 text-sm"
-              >
-                {submitting ? "Submitting..." : "Submit Quiz"}
-              </button>
-            )}
-          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 text-sm"
+          >
+            {submitting ? "Submitting..." : "Submit Quiz"}
+          </button>
         </div>
       </div>
     </div>
@@ -469,7 +395,6 @@ function McqQuestionCard({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-      {/* Question number + stem */}
       <div className="mb-3">
         <span className="inline-block bg-primary-50 text-primary-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
           Q{index + 1}
@@ -481,7 +406,6 @@ function McqQuestionCard({
         )}
       </div>
 
-      {/* Diagram */}
       {question.diagramImageData && (
         <div className="mb-3 flex justify-center">
           <img
@@ -492,10 +416,8 @@ function McqQuestionCard({
         </div>
       )}
 
-      {/* Options */}
       <div className="space-y-2">
         {hasImageOptions ? (
-          // Image-based options
           [0, 1, 2, 3].map(i => {
             const optVal = String(i + 1);
             const isSelected = selected === optVal;
@@ -505,16 +427,12 @@ function McqQuestionCard({
                 key={i}
                 onClick={() => onSelect(optVal)}
                 className={`w-full flex items-center gap-3 p-2 rounded-xl border-2 transition-all ${
-                  isSelected
-                    ? "border-primary-500 bg-primary-50"
-                    : "border-slate-100 hover:border-slate-200"
+                  isSelected ? "border-primary-500 bg-primary-50" : "border-slate-100 hover:border-slate-200"
                 }`}
               >
                 <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                   isSelected ? "bg-primary-500 text-white" : "bg-slate-100 text-slate-500"
-                }`}>
-                  ({i + 1})
-                </span>
+                }`}>({i + 1})</span>
                 {imgSrc ? (
                   <img src={`data:image/jpeg;base64,${imgSrc}`} alt={`Option ${i + 1}`} className="max-h-16 rounded" />
                 ) : (
@@ -524,7 +442,6 @@ function McqQuestionCard({
             );
           })
         ) : (
-          // Text-based options
           [0, 1, 2, 3].map(i => {
             const optVal = String(i + 1);
             const isSelected = selected === optVal;
@@ -534,16 +451,12 @@ function McqQuestionCard({
                 key={i}
                 onClick={() => onSelect(optVal)}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-                  isSelected
-                    ? "border-primary-500 bg-primary-50"
-                    : "border-slate-100 hover:border-slate-200"
+                  isSelected ? "border-primary-500 bg-primary-50" : "border-slate-100 hover:border-slate-200"
                 }`}
               >
                 <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                   isSelected ? "bg-primary-500 text-white" : "bg-slate-100 text-slate-500"
-                }`}>
-                  ({i + 1})
-                </span>
+                }`}>({i + 1})</span>
                 <span className={`text-sm ${isSelected ? "text-primary-700 font-medium" : "text-slate-700"}`}>
                   {text}
                 </span>
@@ -556,7 +469,77 @@ function McqQuestionCard({
   );
 }
 
-/* ────────────── Answer Canvas (for OEQ) ────────────── */
+/* ────────────── OEQ Question Card ────────────── */
+
+function OeqQuestionCard({
+  question,
+  index,
+  tool,
+  onCanvasRef,
+  onStrokeStart,
+}: {
+  question: QuizQuestion;
+  index: number;
+  tool: DrawTool;
+  onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
+  onStrokeStart: () => void;
+}) {
+  const subparts = question.transcribedSubparts as { label: string; text: string }[] | null;
+
+  return (
+    <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+      {/* Question text */}
+      <div className="p-4 pb-2">
+        <span className="inline-block bg-amber-50 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
+          Q{index + 1}
+        </span>
+        {question.transcribedStem && (
+          <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
+            {question.transcribedStem}
+          </p>
+        )}
+
+        {/* Diagram */}
+        {question.diagramImageData && (
+          <div className="mt-2 flex justify-center">
+            <img
+              src={`data:image/jpeg;base64,${question.diagramImageData}`}
+              alt="Diagram"
+              className="max-h-48 rounded-lg border border-slate-100"
+            />
+          </div>
+        )}
+
+        {/* Sub-parts */}
+        {subparts && subparts.length > 0 && (
+          <div className="mt-2 space-y-1">
+            {subparts.map(sp => (
+              <p key={sp.label} className="text-sm text-slate-700">
+                <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {question.marksAvailable && (
+          <p className="text-xs text-slate-400 mt-2 text-right">[{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]</p>
+        )}
+      </div>
+
+      {/* Drawing canvas for answer */}
+      <div className="border-t border-amber-100">
+        <BlankCanvas
+          ref={onCanvasRef}
+          tool={tool}
+          onStrokeStart={onStrokeStart}
+          height={250}
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ────────────── Blank Canvas (for writing answers) ────────────── */
 
 const PEN_CURSOR =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ccircle cx='2' cy='2' r='2' fill='%232563eb'/%3E%3C/svg%3E\") 2 2, crosshair";
@@ -567,49 +550,65 @@ interface AnswerCanvasHandle {
   undo(): void;
 }
 
-const AnswerCanvas = forwardRef<
+const BlankCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; questionImageSrc: string; onStrokeStart: () => void }
->(function AnswerCanvas({ tool, questionImageSrc, onStrokeStart }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; height: number }
+>(function BlankCanvas({ tool, onStrokeStart, height }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const bgImageRef = useRef<HTMLImageElement | null>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
   const pendingSnapshot = useRef<ImageData | null>(null);
   const snapshotTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [canvasSize, setCanvasSize] = useState<{ w: number; h: number } | null>(null);
+  const [ready, setReady] = useState(false);
+
+  // Canvas dimensions: full width, fixed height
+  const CANVAS_W = 800;
+  const CANVAS_H = height * 2; // retina-ish
 
   useEffect(() => {
-    const img = new window.Image();
-    img.onload = () => {
-      bgImageRef.current = img;
-      const w = img.naturalWidth;
-      const h = img.naturalHeight;
-      setCanvasSize({ w, h });
-      const canvas = canvasRef.current;
-      if (canvas) {
-        canvas.width = w;
-        canvas.height = h;
-        canvas.getContext("2d", { desynchronized: true })!.drawImage(img, 0, 0, w, h);
-      }
-      const inkCanvas = document.createElement("canvas");
-      inkCanvas.width = w;
-      inkCanvas.height = h;
-      inkCanvasRef.current = inkCanvas;
-    };
-    img.src = questionImageSrc;
-  }, [questionImageSrc]);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
+    const ctx = canvas.getContext("2d", { desynchronized: true })!;
+    // White background with faint ruled lines
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+    for (let y = 40; y < CANVAS_H; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(CANVAS_W, y);
+      ctx.stroke();
+    }
+
+    const inkCanvas = document.createElement("canvas");
+    inkCanvas.width = CANVAS_W;
+    inkCanvas.height = CANVAS_H;
+    inkCanvasRef.current = inkCanvas;
+    setReady(true);
+  }, [CANVAS_W, CANVAS_H]);
 
   function redrawComposite() {
     const canvas = canvasRef.current;
-    const bg = bgImageRef.current;
     const inkCanvas = inkCanvasRef.current;
-    if (!canvas || !bg) return;
+    if (!canvas) return;
     const ctx = canvas.getContext("2d", { desynchronized: true })!;
     ctx.globalCompositeOperation = "source-over";
-    ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+    // Redraw white + lines
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1;
+    for (let y = 40; y < CANVAS_H; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(CANVAS_W, y);
+      ctx.stroke();
+    }
     if (inkCanvas) ctx.drawImage(inkCanvas, 0, 0);
   }
 
@@ -686,6 +685,7 @@ const AnswerCanvas = forwardRef<
   onStrokeStartRef.current = onStrokeStart;
 
   useEffect(() => {
+    if (!ready) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { desynchronized: true })!;
@@ -787,7 +787,7 @@ const AnswerCanvas = forwardRef<
       canvas.removeEventListener("contextmenu", handleContextMenu);
       cancelPendingCapture();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ touchAction: "none" }}>
@@ -795,7 +795,7 @@ const AnswerCanvas = forwardRef<
         ref={canvasRef}
         className="w-full border-0"
         style={{
-          aspectRatio: canvasSize ? `${canvasSize.w} / ${canvasSize.h}` : "4 / 3",
+          height: `${height}px`,
           cursor: tool === "pen" ? PEN_CURSOR : "cell",
           touchAction: "none",
         }}
