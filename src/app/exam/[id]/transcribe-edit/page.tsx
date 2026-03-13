@@ -415,6 +415,11 @@ function TranscribeEditContent({ id }: { id: string }) {
                   optionImages: null,
                   subparts: q.type === "open" ? null : q.subparts,
                 })}
+                onDelete={async () => {
+                  if (!confirm(`Delete Q${q.questionNum}? This cannot be undone.`)) return;
+                  await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
+                  setQuestions(qs => qs.filter(x => x.id !== q.id));
+                }}
               />
             ))}
           </div>
@@ -460,6 +465,7 @@ function QuestionCard({
   onRemoveDiagram,
   onToggleOptionImages,
   onToggleType,
+  onDelete,
 }: {
   question: EditQuestion;
   cropping: string | null;
@@ -471,6 +477,7 @@ function QuestionCard({
   onRemoveDiagram: () => void;
   onToggleOptionImages: (imageMode: boolean) => void;
   onToggleType: () => void;  // MCQ <-> OEQ
+  onDelete: () => void;
 }) {
   const isMcq = q.type === "mcq";
   const imageOptionsMode = !!(q.optionImages);
@@ -521,6 +528,17 @@ function QuestionCard({
             placeholder={isMcq ? "1-4" : "answer"}
           />
         </span>
+        <button
+          onClick={onDelete}
+          title="Remove question"
+          className="ml-auto p-1 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+          </svg>
+        </button>
       </div>
 
       {q.error ? (
