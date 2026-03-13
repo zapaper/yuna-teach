@@ -60,9 +60,18 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  // Deduplicate by transcribedStem — keep only one per unique stem (last wins)
+  const stemMap = new Map<string, typeof allQuestions[number]>();
+  for (const q of allQuestions) {
+    const stem = (q.transcribedStem ?? "").trim();
+    if (!stem) continue; // skip empty stems
+    stemMap.set(stem, q); // last one wins (latest saved)
+  }
+  const uniqueQuestions = [...stemMap.values()];
+
   // Split into MCQ and OEQ pools
-  const mcqPool = allQuestions.filter(q => isMcq(q.answer));
-  const oeqPool = allQuestions.filter(q => !isMcq(q.answer));
+  const mcqPool = uniqueQuestions.filter(q => isMcq(q.answer));
+  const oeqPool = uniqueQuestions.filter(q => !isMcq(q.answer));
 
   // Shuffle
   const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
