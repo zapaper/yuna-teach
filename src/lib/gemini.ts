@@ -70,24 +70,33 @@ Your task:
 2. Extract all four answer options exactly as printed
 3. Detect any diagram/figure in the question
 ${DIAGRAM_BOUNDS_INSTRUCTION}
+4. Check if the answer options are IMAGE-BASED (shapes, diagrams, figures, bar models, number lines, visual patterns, etc. that cannot be fully represented as text). If so, return bounding boxes for each option in "optionBounds".
 
 Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
 - Preserve mathematical notation (e.g. "1/2", "3.5 cm²", "2 × 4")
 - Include units in options if present (e.g. "12 cm", "0.75")
 - Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
+- If an option IS a visual/image (shape, diagram, figure), put a brief text description in options (e.g. "Triangle with sides 3cm, 4cm") AND provide its bounding box in optionBounds
+- optionBounds: array of 4 bounding boxes (one per option), each as { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 } or null if that option is text-only. Set entire array to null if ALL options are plain text.
 
 Return ONLY valid JSON, no markdown fences:
 {
   "stem": "full question text here",
   "options": ["option 1 text", "option 2 text", "option 3 text", "option 4 text"],
-  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 }
+  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 },
+  "optionBounds": [{ "top": 60, "left": 5, "bottom": 70, "right": 45 }, null, null, null]
 }
-(set "diagram" to null if no diagram)`;
+(set "diagram" to null if no diagram, set "optionBounds" to null if all options are plain text)`;
 
 export async function transcribeMathMcqQuestion(
   imageBase64: string
-): Promise<{ stem: string; options: [string, string, string, string]; diagram: DiagramBounds | null }> {
+): Promise<{
+  stem: string;
+  options: [string, string, string, string];
+  diagram: DiagramBounds | null;
+  optionBounds: (DiagramBounds | null)[] | null;
+}> {
   const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
     contents: [
@@ -105,6 +114,7 @@ export async function transcribeMathMcqQuestion(
   const text = response.text ?? "";
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
   const d = parsed.diagram;
+  const ob = parsed.optionBounds;
   return {
     stem: stripQuestionNumber(String(parsed.stem ?? "")),
     options: [
@@ -114,6 +124,9 @@ export async function transcribeMathMcqQuestion(
       String(parsed.options?.[3] ?? ""),
     ],
     diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
+    optionBounds: Array.isArray(ob)
+      ? ob.map((b: unknown) => (b && typeof b === "object") ? { top: +(b as DiagramBounds).top, left: +(b as DiagramBounds).left, bottom: +(b as DiagramBounds).bottom, right: +(b as DiagramBounds).right } : null)
+      : null,
   };
 }
 

@@ -137,6 +137,17 @@ export async function POST(
           const diagramBase64 = transcribed.diagram
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
+
+          // Auto-crop option images when Gemini returns option bounding boxes
+          let optionImages: (string | null)[] | null = null;
+          if (transcribed.optionBounds && transcribed.optionBounds.some(b => b !== null)) {
+            optionImages = await Promise.all(
+              transcribed.optionBounds.map(b =>
+                b ? cropDiagram(base64, b).catch(() => null) : null
+              )
+            );
+          }
+
           return {
             id: q.id,
             type: "mcq" as const,
@@ -145,7 +156,8 @@ export async function POST(
             syllabusTopic: q.syllabusTopic,
             marksAvailable: q.marksAvailable,
             stem: transcribed.stem,
-            options: transcribed.options,
+            options: optionImages ? null : transcribed.options,
+            optionImages,
             subparts: null,
             diagramBounds: transcribed.diagram ?? null,
             diagramBase64,
@@ -165,6 +177,7 @@ export async function POST(
             marksAvailable: q.marksAvailable,
             stem: transcribed.stem,
             options: null,
+            optionImages: null,
             subparts: transcribed.subparts,
             diagramBounds: transcribed.diagram ?? null,
             diagramBase64,
@@ -182,6 +195,7 @@ export async function POST(
           marksAvailable: q.marksAvailable,
           stem: null,
           options: null,
+          optionImages: null,
           subparts: null,
           diagramBounds: null,
           diagramBase64: null,

@@ -183,9 +183,10 @@ function TranscribeEditContent({ id }: { id: string }) {
       }
 
       setQuestions(
-        (genData.questions as EditQuestion[]).map(q => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (genData.questions as any[]).map(q => ({
           ...q,
-          optionImages: null,
+          optionImages: q.optionImages ?? null,
           imageData: imgMap[q.id],
         }))
       );
