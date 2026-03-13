@@ -72,15 +72,18 @@ export default function ExamPaperCard({
   }
 
   const isFocused = paper.paperType === "focused";
+  const isQuiz = paper.paperType === "quiz";
 
   // Parents: if extraction just finished (ready), go to edit for review; otherwise overview
-  // Students: review (if released) or practice; focused tests go to focused page
+  // Students: review (if released) or practice; focused tests go to focused page; quizzes go to quiz page
   const examHref = isExtracting
     ? "#"
     : userRole === "PARENT"
     ? `/exam/${paper.id}/overview?userId=${userId}`
     : paper.markingStatus === "released" || (paper.instantFeedback && paper.markingStatus === "complete")
     ? `/exam/${paper.id}/review?userId=${userId}`
+    : isQuiz
+    ? `/quiz/${paper.id}?userId=${userId}`
     : isFocused
     ? `/exam/${paper.id}/focused?userId=${userId}`
     : `/exam/${paper.id}?userId=${userId}`;
@@ -199,7 +202,11 @@ export default function ExamPaperCard({
               {paper.title}
             </h3>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {isFocused ? (
+              {isQuiz ? (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                  Quiz
+                </span>
+              ) : isFocused ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
                   Focused Test
                 </span>

@@ -137,6 +137,9 @@ export default function HomePage({
   const isAdmin = user?.name?.toLowerCase() === "admin";
   const hasLinkedStudents = (user?.linkedStudents?.length ?? 0) > 0;
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
+  const [showQuizSetup, setShowQuizSetup] = useState(false);
+  const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
+  const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
   const [sendingFeedback, setSendingFeedback] = useState(false);
@@ -303,6 +306,14 @@ export default function HomePage({
         >
           Scan Spelling / 听写
         </Link>
+        {!isAdmin && !isParent && (
+          <button
+            onClick={() => setShowQuizSetup(true)}
+            className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+          >
+            Daily 20min Quiz
+          </button>
+        )}
         {isAdmin ? (
           <>
             <Link
@@ -598,6 +609,87 @@ export default function HomePage({
           );
         })()}
       </div>
+
+      {/* Quiz setup modal */}
+      {showQuizSetup && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+            <h3 className="font-semibold text-lg mb-1">Daily 20min Quiz</h3>
+            <p className="text-xs text-slate-400 mb-4">Subject: Mathematics</p>
+
+            <label className="text-sm font-medium text-slate-600 mb-2 block">Quiz Type</label>
+            <div className="space-y-2 mb-5">
+              <button
+                onClick={() => setQuizType("mcq")}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                  quizType === "mcq" ? "border-emerald-500 bg-emerald-50" : "border-slate-100 hover:border-slate-200"
+                }`}
+              >
+                <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                  quizType === "mcq" ? "border-emerald-500" : "border-slate-300"
+                }`}>
+                  {quizType === "mcq" && <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                </span>
+                <div>
+                  <p className={`text-sm font-medium ${quizType === "mcq" ? "text-emerald-700" : "text-slate-700"}`}>MCQ Only</p>
+                  <p className="text-xs text-slate-400">20 multiple choice questions</p>
+                </div>
+              </button>
+              <button
+                onClick={() => setQuizType("mcq-oeq")}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                  quizType === "mcq-oeq" ? "border-emerald-500 bg-emerald-50" : "border-slate-100 hover:border-slate-200"
+                }`}
+              >
+                <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                  quizType === "mcq-oeq" ? "border-emerald-500" : "border-slate-300"
+                }`}>
+                  {quizType === "mcq-oeq" && <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />}
+                </span>
+                <div>
+                  <p className={`text-sm font-medium ${quizType === "mcq-oeq" ? "text-emerald-700" : "text-slate-700"}`}>MCQ + Written</p>
+                  <p className="text-xs text-slate-400">10 MCQ + 5 open-ended questions</p>
+                </div>
+              </button>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowQuizSetup(false)}
+                className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setCreatingQuiz(true);
+                  try {
+                    const res = await fetch("/api/daily-quiz", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ userId, quizType }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      alert(data.error || "Failed to create quiz");
+                      return;
+                    }
+                    router.push(`/quiz/${data.id}?userId=${userId}`);
+                  } catch {
+                    alert("Something went wrong");
+                  } finally {
+                    setCreatingQuiz(false);
+                  }
+                }}
+                disabled={creatingQuiz}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50"
+              >
+                {creatingQuiz ? "Creating..." : "Start Quiz"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Feedback button */}
       <div className="text-center py-6">
