@@ -199,6 +199,144 @@ export async function transcribeMathOpenEndedQuestion(
 }
 
 // ---------------------------------------------------------------------------
+// Science MCQ transcription
+// ---------------------------------------------------------------------------
+
+const SCIENCE_MCQ_TRANSCRIPTION_PROMPT = `You are transcribing a Singapore primary school Science MCQ question from an exam paper image.
+
+The image shows ONE question with a question stem and four answer options labeled (1), (2), (3), (4).
+
+Your task:
+1. Extract the FULL question stem — include all context, labels, descriptions
+2. Extract all four answer options exactly as printed
+3. Detect any diagram/figure in the question
+${DIAGRAM_BOUNDS_INSTRUCTION}
+4. Check if the answer options are IMAGE-BASED (diagrams of apparatus, animals, plants, life cycles, food chains, graphs, etc. that cannot be fully represented as text). If so, return bounding boxes for each option in "optionBounds".
+
+Rules:
+- Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
+- Preserve all scientific terms exactly (e.g. "photosynthesis", "condensation", "Newton", "km/h")
+- Include units in options if present (e.g. "60 km/h", "200 g")
+- Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
+- If an option IS a visual/image (diagram, apparatus, organism, graph), put a brief text description in options (e.g. "Diagram showing water cycle") AND provide its bounding box in optionBounds
+- optionBounds: array of 4 bounding boxes, each as { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 } or null if that option is text-only. Set entire array to null if ALL options are plain text.
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "stem": "full question text here",
+  "options": ["option 1 text", "option 2 text", "option 3 text", "option 4 text"],
+  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 },
+  "optionBounds": null
+}
+(set "diagram" to null if no diagram, set "optionBounds" to null if all options are plain text)`;
+
+export async function transcribeScienceMcqQuestion(
+  imageBase64: string
+): Promise<{
+  stem: string;
+  options: [string, string, string, string];
+  diagram: DiagramBounds | null;
+  optionBounds: (DiagramBounds | null)[] | null;
+}> {
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: SCIENCE_MCQ_TRANSCRIPTION_PROMPT },
+        ],
+      },
+    ],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  });
+
+  const text = response.text ?? "";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const d = parsed.diagram;
+  const ob = parsed.optionBounds;
+  return {
+    stem: stripQuestionNumber(String(parsed.stem ?? "")),
+    options: [
+      String(parsed.options?.[0] ?? ""),
+      String(parsed.options?.[1] ?? ""),
+      String(parsed.options?.[2] ?? ""),
+      String(parsed.options?.[3] ?? ""),
+    ],
+    diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
+    optionBounds: Array.isArray(ob)
+      ? ob.map((b: unknown) => (b && typeof b === "object") ? { top: +(b as DiagramBounds).top, left: +(b as DiagramBounds).left, bottom: +(b as DiagramBounds).bottom, right: +(b as DiagramBounds).right } : null)
+      : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Science open-ended transcription
+// ---------------------------------------------------------------------------
+
+const SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT = `You are transcribing a Singapore primary school Science open-ended question from an exam paper image.
+
+The image shows ONE question. It may have sub-parts labeled (a), (b), (c), etc., or it may be a single question with no sub-parts.
+
+Your task:
+1. Extract the FULL question stem — everything before any sub-parts begin
+2. Extract each sub-part label and its text separately
+3. If there are NO sub-parts, leave the subparts array empty and put the full question in stem
+4. Detect any diagram/figure in the question
+${DIAGRAM_BOUNDS_INSTRUCTION}
+
+Rules:
+- Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
+- Preserve all scientific terms exactly (e.g. "photosynthesis", "condensation", "food chain", "life cycle")
+- Include units (e.g. "g", "cm", "°C", "km/h")
+- Do NOT include blank answer lines or answer boxes in the text
+- Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "stem": "main question text (context, given info, or the question itself if no sub-parts)",
+  "subparts": [
+    { "label": "a", "text": "sub-question text here" },
+    { "label": "b", "text": "sub-question text here" }
+  ],
+  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 }
+}
+(set "diagram" to null if no diagram; if no sub-parts use "subparts": [])`;
+
+export async function transcribeScienceOpenEndedQuestion(
+  imageBase64: string
+): Promise<TranscribedOpenEnded> {
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT },
+        ],
+      },
+    ],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  });
+
+  const text = response.text ?? "";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const d = parsed.diagram;
+  return {
+    stem: stripQuestionNumber(String(parsed.stem ?? "")),
+    subparts: Array.isArray(parsed.subparts)
+      ? parsed.subparts.map((p: Record<string, unknown>) => ({
+          label: String(p.label ?? ""),
+          text: String(p.text ?? ""),
+        }))
+      : [],
+    diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
 
 const EXTRACTION_PROMPT = `You are an expert at reading OCR text from primary school spelling test documents.
 

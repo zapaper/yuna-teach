@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { prisma } from "@/lib/db";
-import { transcribeMathMcqQuestion, transcribeMathOpenEndedQuestion, DiagramBounds } from "@/lib/gemini";
+import {
+  transcribeMathMcqQuestion, transcribeMathOpenEndedQuestion,
+  transcribeScienceMcqQuestion, transcribeScienceOpenEndedQuestion,
+  DiagramBounds,
+} from "@/lib/gemini";
 
 /** Normalize answer string to bare digit, e.g. "(2)" → "2" */
 function normalizeMcqAnswer(ans: string | null): string {
@@ -115,8 +119,9 @@ export async function POST(
   if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
 
   const subjectLower = (paper.subject ?? "").toLowerCase();
-  if (!subjectLower.includes("math")) {
-    return NextResponse.json({ error: "Only Math papers supported for now" }, { status: 400 });
+  const isScience = subjectLower.includes("science");
+  if (!subjectLower.includes("math") && !isScience) {
+    return NextResponse.json({ error: "Clean extraction is supported for Math and Science papers" }, { status: 400 });
   }
 
   const questions = await prisma.examQuestion.findMany({
@@ -133,7 +138,7 @@ export async function POST(
       const mcq = isMathMcq(q.answer);
       try {
         if (mcq) {
-          const transcribed = await transcribeMathMcqQuestion(base64);
+          const transcribed = await (isScience ? transcribeScienceMcqQuestion(base64) : transcribeMathMcqQuestion(base64));
           const diagramBase64 = transcribed.diagram
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
@@ -164,7 +169,7 @@ export async function POST(
             error: null,
           };
         } else {
-          const transcribed = await transcribeMathOpenEndedQuestion(base64);
+          const transcribed = await (isScience ? transcribeScienceOpenEndedQuestion(base64) : transcribeMathOpenEndedQuestion(base64));
           const diagramBase64 = transcribed.diagram
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
