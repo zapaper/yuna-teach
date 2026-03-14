@@ -139,6 +139,7 @@ export default function HomePage({
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
+  const [quizSubject, setQuizSubject] = useState<"math" | "science">("math");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -615,7 +616,21 @@ export default function HomePage({
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
             <h3 className="font-semibold text-lg mb-1">Daily 20min Quiz</h3>
-            <p className="text-xs text-slate-400 mb-4">Subject: Mathematics</p>
+
+            <label className="text-sm font-medium text-slate-600 mb-2 block">Subject</label>
+            <div className="flex gap-2 mb-4">
+              {(["math", "science"] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setQuizSubject(s)}
+                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                    quizSubject === s ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-100 text-slate-600 hover:border-slate-200"
+                  }`}
+                >
+                  {s === "math" ? "Mathematics" : "Science"}
+                </button>
+              ))}
+            </div>
 
             <label className="text-sm font-medium text-slate-600 mb-2 block">Quiz Type</label>
             <div className="space-y-2 mb-5">
@@ -667,7 +682,7 @@ export default function HomePage({
                     const res = await fetch("/api/daily-quiz", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ userId, quizType }),
+                      body: JSON.stringify({ userId, quizType, subject: quizSubject }),
                     });
                     const data = await res.json();
                     if (!res.ok) {

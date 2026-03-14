@@ -12,10 +12,11 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType } = await request.json() as {
+  const { userId, studentId, quizType, subject } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
+    subject?: "math" | "science";
   };
 
   if (!userId || !quizType) {
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       examPaper: {
         sourceExamId: null,          // master papers only
         paperType: null,             // exclude focused tests / quizzes
-        subject: { contains: "math", mode: "insensitive" },
+        subject: { contains: subject === "science" ? "science" : "math", mode: "insensitive" },
         ...(levelFilter ? { level: levelFilter } : {}),
       },
     },
@@ -100,8 +101,8 @@ export async function POST(request: NextRequest) {
 
   const paper = await prisma.examPaper.create({
     data: {
-      title: `${levelLabel}Daily Quiz (${quizType === "mcq" ? "MCQ" : "MCQ + OEQ"})`,
-      subject: "Mathematics",
+      title: `${levelLabel}Daily Quiz – ${subject === "science" ? "Science" : "Math"} (${quizType === "mcq" ? "MCQ" : "MCQ + OEQ"})`,
+      subject: subject === "science" ? "Science" : "Mathematics",
       level: levelFilter || null,
       userId,
       assignedToId: targetStudentId,
