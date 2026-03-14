@@ -496,8 +496,11 @@ function OeqQuestionCard({
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
   onStrokeStart: () => void;
 }) {
-  const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null }[] | null;
-  const subparts = allSubparts ? allSubparts.filter(sp => sp.label !== "_drawable") : null;
+  const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
+  // rebuild ref image map from sentinels
+  const subRefMap: Record<string, string> = {};
+  if (allSubparts) for (const sp of allSubparts) if (sp.label.startsWith("_subref-")) subRefMap[sp.label.slice(8)] = sp.diagramBase64 ?? "";
+  const subparts = allSubparts ? allSubparts.filter(sp => !sp.label.startsWith("_")).map(sp => ({ ...sp, refImageBase64: subRefMap[sp.label] ?? sp.refImageBase64 ?? null })) : null;
   const drawableDiagramBase64 = allSubparts?.find(sp => sp.label === "_drawable")?.diagramBase64 ?? null;
   const hasSubparts = subparts && subparts.length > 0;
 
@@ -578,6 +581,13 @@ function OeqQuestionCard({
                 <p className="text-sm text-slate-700">
                   <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
                 </p>
+                {sp.refImageBase64 && (
+                  <img
+                    src={`data:image/jpeg;base64,${sp.refImageBase64}`}
+                    alt={`(${sp.label}) diagram`}
+                    className="mt-2 max-w-full rounded border border-slate-200"
+                  />
+                )}
               </div>
               <div className="border-t border-amber-100">
                 <BlankCanvas

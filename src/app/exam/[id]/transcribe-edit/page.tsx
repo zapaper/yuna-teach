@@ -6,9 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type DiagramBounds = { top: number; left: number; bottom: number; right: number };
-type DrawTarget = "diagram" | "drawable" | 0 | 1 | 2 | 3 | `sub-${string}`;
+type DrawTarget = "diagram" | "drawable" | 0 | 1 | 2 | 3 | `sub-${string}` | `subref-${string}`;
 
-type SubpartData = { label: string; text: string; diagramBase64?: string | null };
+type SubpartData = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
 
 type EditQuestion = {
   id: string;
@@ -164,6 +164,7 @@ function TranscribeEditContent({ id }: { id: string }) {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [paperTitle, setPaperTitle] = useState("");
+  const [paperSubject, setPaperSubject] = useState("");
   const [cropping, setCropping] = useState<string | null>(null); // "questionId-target"
 
   // Generate from AI
@@ -216,6 +217,7 @@ function TranscribeEditContent({ id }: { id: string }) {
         if (paperRes.ok) {
           const pd = await paperRes.json();
           setPaperTitle(pd.title ?? "");
+          setPaperSubject((pd.subject ?? "").toLowerCase());
           for (const q of pd.questions ?? []) {
             if (q.id && q.imageData) imgMap[q.id] = q.imageData;
           }
@@ -251,7 +253,14 @@ function TranscribeEditContent({ id }: { id: string }) {
                   optionImages: q.transcribedOptionImages ?? null,
                   subparts: (() => {
                     const subs = (q.transcribedSubparts as SubpartData[] | null) ?? null;
-                    return subs ? subs.filter(sp => sp.label !== "_drawable") : null;
+                    if (!subs) return null;
+                    // strip sentinel entries; attach refImageBase64 back to real subparts
+                    const refMap: Record<string, string> = {};
+                    for (const sp of subs) {
+                      if (sp.label.startsWith("_subref-")) refMap[sp.label.slice(8)] = sp.diagramBase64 ?? "";
+                    }
+                    const real = subs.filter(sp => !sp.label.startsWith("_") );
+                    return real.length === 0 ? null : real.map(sp => ({ ...sp, refImageBase64: refMap[sp.label] ?? null }));
                   })(),
                   drawableDiagramBase64: (() => {
                     const subs = (q.transcribedSubparts as SubpartData[] | null) ?? null;
@@ -295,6 +304,13 @@ function TranscribeEditContent({ id }: { id: string }) {
           return { ...q, diagramBounds: bounds, diagramBase64: data.diagramBase64 };
         } else if (target === "drawable") {
           return { ...q, drawableDiagramBase64: data.diagramBase64 };
+        } else if (typeof target === "string" && target.startsWith("subref-")) {
+          const label = target.slice(7);
+          if (!q.subparts) return q;
+          const newSubs = q.subparts.map(sp =>
+            sp.label === label ? { ...sp, refImageBase64: data.diagramBase64 } : sp
+          );
+          return { ...q, subparts: newSubs };
         } else if (typeof target === "string" && target.startsWith("sub-")) {
           const label = target.slice(4);
           if (!q.subparts) return q;
@@ -330,9 +346,18 @@ function TranscribeEditContent({ id }: { id: string }) {
             stem: q.stem,
             options: q.optionImages ? null : q.options,
             optionImages: q.optionImages ?? null,
-            subparts: q.type === "open" && (!q.subparts || q.subparts.length === 0) && q.drawableDiagramBase64
-              ? [{ label: "_drawable", text: "", diagramBase64: q.drawableDiagramBase64 }]
-              : q.subparts,
+            subparts: (() => {
+              const base = q.subparts ?? [];
+              const sentinels: SubpartData[] = [];
+              if (q.type === "open" && base.length === 0 && q.drawableDiagramBase64)
+                sentinels.push({ label: "_drawable", text: "", diagramBase64: q.drawableDiagramBase64 });
+              // encode per-subpart ref images as sentinels
+              for (const sp of base) {
+                if (sp.refImageBase64)
+                  sentinels.push({ label: `_subref-${sp.label}`, text: "", diagramBase64: sp.refImageBase64 });
+              }
+              return base.length === 0 && sentinels.length === 0 ? null : [...base, ...sentinels];
+            })(),
             diagramBounds: q.diagramBounds,
             diagramImageData: q.diagramBase64,
           })),
@@ -444,6 +469,7 @@ function TranscribeEditContent({ id }: { id: string }) {
                   setQuestions(qs => qs.filter(x => x.id !== q.id));
                 }}
                 onUpdate={(update) => updateQuestion(q.id, update)}
+                isScience={paperSubject.includes("science")}
               />
             ))}
           </div>
@@ -491,6 +517,7 @@ function QuestionCard({
   onToggleType,
   onDelete,
   onUpdate,
+  isScience,
 }: {
   question: EditQuestion;
   cropping: string | null;
@@ -504,6 +531,7 @@ function QuestionCard({
   onToggleType: () => void;  // MCQ <-> OEQ
   onDelete: () => void;
   onUpdate: (update: Partial<EditQuestion>) => void;
+  isScience: boolean;
 }) {
   const isMcq = q.type === "mcq";
   const imageOptionsMode = !!(q.optionImages);
@@ -574,13 +602,19 @@ function QuestionCard({
                 <span className="text-xs text-slate-400">Draw:</span>
                 {(
                   (["diagram", ...(isMcq && imageOptionsMode ? [0, 1, 2, 3] : []),
-                    ...(!isMcq && q.subparts && q.subparts.length > 0 ? q.subparts.map(sp => `sub-${sp.label}`) : []),
+                    ...(!isMcq && q.subparts && q.subparts.length > 0 ? [
+                      ...q.subparts.map(sp => `sub-${sp.label}`),
+                      ...(isScience ? q.subparts.map(sp => `subref-${sp.label}`) : []),
+                    ] : []),
                     ...(!isMcq && (!q.subparts || q.subparts.length === 0) ? ["drawable"] : []),
                   ]) as DrawTarget[]
                 ).map(t => {
                   const key = String(t);
-                  const color = (t === "drawable" || (typeof t === "string" && t.startsWith("sub-"))) ? "#7c3aed" : (TARGET_COLOR[key] ?? "#7c3aed");
-                  const label = t === "drawable" ? "Drawable diagram" : typeof t === "string" && t.startsWith("sub-") ? `(${t.slice(4)}) diagram` : (TARGET_LABEL[key] ?? key);
+                  const color = (t === "drawable" || (typeof t === "string" && (t.startsWith("sub-") || t.startsWith("subref-")))) ? "#7c3aed" : (TARGET_COLOR[key] ?? "#7c3aed");
+                  const label = t === "drawable" ? "Drawable diagram"
+                    : typeof t === "string" && t.startsWith("subref-") ? `(${t.slice(7)}) diagram`
+                    : typeof t === "string" && t.startsWith("sub-") ? `(${t.slice(4)}) draw`
+                    : (TARGET_LABEL[key] ?? key);
                   const active = drawTarget === t;
                   return (
                     <button
@@ -608,7 +642,7 @@ function QuestionCard({
               <DrawableImage
                 src={q.imageData}
                 boxes={boxes}
-                liveColor={(drawTarget === "drawable" || (typeof drawTarget === "string" && drawTarget.startsWith("sub-"))) ? "#7c3aed" : (TARGET_COLOR[String(drawTarget)] ?? "#7c3aed")}
+                liveColor={(drawTarget === "drawable" || (typeof drawTarget === "string" && (drawTarget.startsWith("sub-") || drawTarget.startsWith("subref-")))) ? "#7c3aed" : (TARGET_COLOR[String(drawTarget)] ?? "#7c3aed")}
                 onDraw={bounds => onDraw(bounds, drawTarget)}
               />
               <p className="text-xs text-slate-400 mt-1 text-center">Drag on image to set crop region</p>
@@ -755,34 +789,38 @@ function QuestionCard({
                       className="flex-1 text-sm bg-transparent focus:outline-none resize-none"
                     />
                   </div>
-                  {/* Drawable diagram for this subpart */}
-                  <div className="mt-1 flex items-center gap-2">
+                  {/* Per-subpart actions */}
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    {/* Static reference diagram (Science only) */}
+                    {isScience && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onDraw({ top: 0, left: 0, bottom: 50, right: 50 }, `subref-${sp.label}` as DrawTarget)}
+                          className="text-[10px] px-2 py-0.5 rounded-md bg-sky-50 text-sky-600 hover:bg-sky-100"
+                        >
+                          {sp.refImageBase64 ? "Redraw diagram" : "Add diagram"}
+                        </button>
+                        {sp.refImageBase64 && (
+                          <>
+                            <img src={`data:image/jpeg;base64,${sp.refImageBase64}`} alt={`(${sp.label}) ref`} className="h-12 rounded border border-sky-200" />
+                            <button type="button" onClick={() => { const n = q.subparts!.map((s,j) => j===i ? {...s, refImageBase64: null} : s); onUpdate({ subparts: n }); }} className="text-[10px] text-red-400 hover:text-red-600">Remove</button>
+                          </>
+                        )}
+                      </>
+                    )}
+                    {/* Drawable diagram */}
                     <button
                       type="button"
                       onClick={() => onDraw({ top: 0, left: 0, bottom: 50, right: 50 }, `sub-${sp.label}` as DrawTarget)}
                       className="text-[10px] px-2 py-0.5 rounded-md bg-violet-50 text-violet-600 hover:bg-violet-100"
                     >
-                      {sp.diagramBase64 ? "Redraw diagram" : "Add drawable diagram"}
+                      {sp.diagramBase64 ? "Redraw canvas bg" : "Add drawable diagram"}
                     </button>
                     {sp.diagramBase64 && (
                       <>
-                        <img
-                          src={`data:image/jpeg;base64,${sp.diagramBase64}`}
-                          alt={`(${sp.label}) diagram`}
-                          className="h-12 rounded border border-violet-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newSubs = q.subparts!.map((s, j) =>
-                              j === i ? { ...s, diagramBase64: null } : s
-                            );
-                            onUpdate({ subparts: newSubs });
-                          }}
-                          className="text-[10px] text-red-400 hover:text-red-600"
-                        >
-                          Remove
-                        </button>
+                        <img src={`data:image/jpeg;base64,${sp.diagramBase64}`} alt={`(${sp.label}) draw`} className="h-12 rounded border border-violet-200" />
+                        <button type="button" onClick={() => { const n = q.subparts!.map((s,j) => j===i ? {...s, diagramBase64: null} : s); onUpdate({ subparts: n }); }} className="text-[10px] text-red-400 hover:text-red-600">Remove</button>
                       </>
                     )}
                   </div>
