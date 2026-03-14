@@ -944,8 +944,8 @@ function ExamOverviewContent({ id }: { id: string }) {
         ) : null}
       </Section>
 
-      {/* Admin: Math question transcription preview */}
-      {isAdmin && paper.subject?.toLowerCase().includes("math") && (
+      {/* Admin: Math / Science question transcription preview */}
+      {isAdmin && (paper.subject?.toLowerCase().includes("math") || paper.subject?.toLowerCase().includes("science")) && (
         <Section title="Quiz Question Preview (Admin)">
           <p className="text-xs text-slate-500 mb-3">
             Transcribes all question images (MCQ + open-ended) into clean text using AI.
