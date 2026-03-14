@@ -17,13 +17,12 @@ interface QuizQuestion {
   diagramImageData: string | null;
   marksAvailable: number | null;
   syllabusTopic: string | null;
-  elaboration: string | null;
 }
 
 interface QuizPaper {
   id: string;
   title: string;
-  metadata: { quizType: "mcq" | "mcq-oeq" } | null;
+  metadata: { quizType: "mcq" | "mcq-oeq"; sourceLabels?: Record<string, string | null> } | null;
   completedAt: string | null;
   markingStatus: string | null;
   timeSpentSeconds: number;
@@ -336,6 +335,7 @@ function QuizContent({ id }: { id: string }) {
                 key={q.id}
                 question={q}
                 index={idx}
+                sourceLabel={paper?.metadata?.sourceLabels?.[q.questionNum] ?? null}
                 selected={mcqAnswers[q.id] ?? null}
                 onSelect={(opt) => selectMcqAnswer(q.id, opt)}
               />
@@ -355,6 +355,7 @@ function QuizContent({ id }: { id: string }) {
                 key={q.id}
                 question={q}
                 index={mcqQuestions.length + idx}
+                sourceLabel={paper?.metadata?.sourceLabels?.[q.questionNum] ?? null}
                 tool={tool}
                 onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
                 onStrokeStart={() => { lastDrawnId.current = q.id; }}
@@ -385,11 +386,13 @@ function QuizContent({ id }: { id: string }) {
 function McqQuestionCard({
   question,
   index,
+  sourceLabel,
   selected,
   onSelect,
 }: {
   question: QuizQuestion;
   index: number;
+  sourceLabel: string | null;
   selected: string | null;
   onSelect: (option: string) => void;
 }) {
@@ -399,8 +402,8 @@ function McqQuestionCard({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-      {question.elaboration && (
-        <p className="text-[10px] text-slate-400 mb-1">{question.elaboration}</p>
+      {sourceLabel && (
+        <p className="text-[10px] text-slate-400 mb-1">{sourceLabel}</p>
       )}
       <div className="mb-3">
         <span className="inline-block bg-primary-50 text-primary-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
@@ -481,12 +484,14 @@ function McqQuestionCard({
 function OeqQuestionCard({
   question,
   index,
+  sourceLabel,
   tool,
   onCanvasRef,
   onStrokeStart,
 }: {
   question: QuizQuestion;
   index: number;
+  sourceLabel: string | null;
   tool: DrawTool;
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
   onStrokeStart: () => void;
@@ -500,11 +505,7 @@ function OeqQuestionCard({
   // Expose a combined handle that stitches all sub-canvases into one image
   useEffect(() => {
     if (!hasSubparts) return;
-    // All canvas labels: diagram (if exists) + subpart labels
-    const allLabels = [
-      ...(question.diagramImageData ? ["__diagram"] : []),
-      ...subparts!.map(s => s.label),
-    ];
+    const allLabels = subparts!.map(s => s.label);
     const combinedHandle: AnswerCanvasHandle = {
       async exportImage() {
         const blobs: Blob[] = [];
@@ -538,8 +539,8 @@ function OeqQuestionCard({
     <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
       {/* Question text */}
       <div className="p-4 pb-2">
-        {question.elaboration && (
-          <p className="text-[10px] text-slate-400 mb-1">{question.elaboration}</p>
+        {sourceLabel && (
+          <p className="text-[10px] text-slate-400 mb-1">{sourceLabel}</p>
         )}
         <span className="inline-block bg-amber-50 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
           Q{index + 1}
@@ -565,24 +566,6 @@ function OeqQuestionCard({
           <p className="text-xs text-slate-400 mt-2 text-right">[{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]</p>
         )}
       </div>
-
-      {/* Drawable diagram canvas (if diagram exists, add a draw-on-diagram area) */}
-      {question.diagramImageData && (
-        <div className="px-4 pb-1">
-          <p className="text-[10px] text-slate-400 italic">Draw on diagram below if needed:</p>
-        </div>
-      )}
-      {question.diagramImageData && (
-        <div className="border-t border-amber-100">
-          <BlankCanvas
-            ref={hasSubparts ? (h) => { subCanvasRefs.current["__diagram"] = h; } : undefined}
-            tool={tool}
-            onStrokeStart={onStrokeStart}
-            height={250}
-            backgroundImage={question.diagramImageData}
-          />
-        </div>
-      )}
 
       {/* Sub-parts with individual canvases */}
       {hasSubparts ? (

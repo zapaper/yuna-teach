@@ -110,29 +110,32 @@ export async function POST(request: NextRequest) {
       pageCount: 0,
       extractionStatus: "ready",
       totalMarks: String(totalMarks),
-      metadata: { quizType },
+      metadata: {
+        quizType,
+        sourceLabels: Object.fromEntries(
+          selected.map((q, i) => {
+            const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);
+            return [String(i + 1), parts.length > 0 ? parts.join(" ") : null];
+          })
+        ),
+      },
       questions: {
-        create: selected.map((q, i) => {
-          const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);
-          const sourceLabel = parts.length > 0 ? parts.join(" ") : null;
-          return {
-            questionNum: String(i + 1),
-            imageData: q.imageData,
-            answer: q.answer,
-            answerImageData: q.answerImageData,
-            marksAvailable: q.marksAvailable ?? 1,
-            syllabusTopic: q.syllabusTopic,
-            elaboration: sourceLabel,
-            pageIndex: 0,
-            orderIndex: i,
-            transcribedStem: q.transcribedStem,
-            transcribedOptions: q.transcribedOptions ?? undefined,
-            transcribedOptionImages: q.transcribedOptionImages ?? undefined,
-            transcribedSubparts: q.transcribedSubparts ?? undefined,
-            diagramImageData: q.diagramImageData,
-            diagramBounds: q.diagramBounds ?? undefined,
-          };
-        }),
+        create: selected.map((q, i) => ({
+          questionNum: String(i + 1),
+          imageData: q.imageData,
+          answer: q.answer,
+          answerImageData: q.answerImageData,
+          marksAvailable: q.marksAvailable ?? 1,
+          syllabusTopic: q.syllabusTopic,
+          pageIndex: 0,
+          orderIndex: i,
+          transcribedStem: q.transcribedStem,
+          transcribedOptions: q.transcribedOptions ?? undefined,
+          transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+          transcribedSubparts: q.transcribedSubparts ?? undefined,
+          diagramImageData: q.diagramImageData,
+          diagramBounds: q.diagramBounds ?? undefined,
+        })),
       },
     },
   });
