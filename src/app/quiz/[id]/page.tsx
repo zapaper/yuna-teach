@@ -496,7 +496,9 @@ function OeqQuestionCard({
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
   onStrokeStart: () => void;
 }) {
-  const subparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null }[] | null;
+  const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null }[] | null;
+  const subparts = allSubparts ? allSubparts.filter(sp => sp.label !== "_drawable") : null;
+  const drawableDiagramBase64 = allSubparts?.find(sp => sp.label === "_drawable")?.diagramBase64 ?? null;
   const hasSubparts = subparts && subparts.length > 0;
 
   // For subparts: one canvas per subpart, stitched on export
@@ -595,7 +597,8 @@ function OeqQuestionCard({
             ref={onCanvasRef}
             tool={tool}
             onStrokeStart={onStrokeStart}
-            height={250}
+            height={drawableDiagramBase64 ? 320 : 250}
+            backgroundImage={drawableDiagramBase64}
           />
         </div>
       )}

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type DiagramBounds = { top: number; left: number; bottom: number; right: number };
-type DrawTarget = "diagram" | 0 | 1 | 2 | 3 | `sub-${string}`;
+type DrawTarget = "diagram" | "drawable" | 0 | 1 | 2 | 3 | `sub-${string}`;
 
 type SubpartData = { label: string; text: string; diagramBase64?: string | null };
 
@@ -23,6 +23,7 @@ type EditQuestion = {
   subparts: SubpartData[] | null;
   diagramBounds: DiagramBounds | null;
   diagramBase64: string | null;
+  drawableDiagramBase64: string | null; // for OEQ without subparts — canvas background in quiz
   imageData?: string; // original question image for drawing/cropping
   error: string | null;
 };
@@ -189,6 +190,7 @@ function TranscribeEditContent({ id }: { id: string }) {
         (genData.questions as any[]).map(q => ({
           ...q,
           optionImages: q.optionImages ?? null,
+          drawableDiagramBase64: null,
           imageData: imgMap[q.id],
         }))
       );
@@ -247,7 +249,14 @@ function TranscribeEditContent({ id }: { id: string }) {
                   stem: q.transcribedStem ?? "",
                   options: q.transcribedOptions as [string, string, string, string] | null,
                   optionImages: q.transcribedOptionImages ?? null,
-                  subparts: q.transcribedSubparts ?? null,
+                  subparts: (() => {
+                    const subs = (q.transcribedSubparts as SubpartData[] | null) ?? null;
+                    return subs ? subs.filter(sp => sp.label !== "_drawable") : null;
+                  })(),
+                  drawableDiagramBase64: (() => {
+                    const subs = (q.transcribedSubparts as SubpartData[] | null) ?? null;
+                    return subs?.find(sp => sp.label === "_drawable")?.diagramBase64 ?? null;
+                  })(),
                   diagramBounds: q.diagramBounds ?? null,
                   diagramBase64: q.diagramImageData ?? null,
                   imageData: imgMap[q.id],
@@ -284,6 +293,8 @@ function TranscribeEditContent({ id }: { id: string }) {
         if (q.id !== questionId) return q;
         if (target === "diagram") {
           return { ...q, diagramBounds: bounds, diagramBase64: data.diagramBase64 };
+        } else if (target === "drawable") {
+          return { ...q, drawableDiagramBase64: data.diagramBase64 };
         } else if (typeof target === "string" && target.startsWith("sub-")) {
           const label = target.slice(4);
           if (!q.subparts) return q;
@@ -319,7 +330,9 @@ function TranscribeEditContent({ id }: { id: string }) {
             stem: q.stem,
             options: q.optionImages ? null : q.options,
             optionImages: q.optionImages ?? null,
-            subparts: q.subparts,
+            subparts: q.type === "open" && (!q.subparts || q.subparts.length === 0) && q.drawableDiagramBase64
+              ? [{ label: "_drawable", text: "", diagramBase64: q.drawableDiagramBase64 }]
+              : q.subparts,
             diagramBounds: q.diagramBounds,
             diagramImageData: q.diagramBase64,
           })),
@@ -499,12 +512,7 @@ function QuestionCard({
   // Build overlay boxes for the drawable image
   const boxes: { bounds: DiagramBounds; color: string; label: string }[] = [];
   if (q.diagramBounds) boxes.push({ bounds: q.diagramBounds, color: TARGET_COLOR.diagram, label: "Diagram" });
-  if (q.optionImages) {
-    q.optionImages.forEach((_, i) => {
-      // We don't store option bounds separately — just show the drawn area isn't tracked here
-      // (option images are cropped directly, bounds aren't persisted)
-    });
-  }
+  // Option bounds aren't stored separately; option images are cropped directly
 
   function isCropping(target: DrawTarget) {
     return cropping === `${q.id}-${String(target)}`;
@@ -566,12 +574,13 @@ function QuestionCard({
                 <span className="text-xs text-slate-400">Draw:</span>
                 {(
                   (["diagram", ...(isMcq && imageOptionsMode ? [0, 1, 2, 3] : []),
-                    ...(!isMcq && q.subparts ? q.subparts.map(sp => `sub-${sp.label}`) : []),
+                    ...(!isMcq && q.subparts && q.subparts.length > 0 ? q.subparts.map(sp => `sub-${sp.label}`) : []),
+                    ...(!isMcq && (!q.subparts || q.subparts.length === 0) ? ["drawable"] : []),
                   ]) as DrawTarget[]
                 ).map(t => {
                   const key = String(t);
-                  const color = typeof t === "string" && t.startsWith("sub-") ? "#7c3aed" : (TARGET_COLOR[key] ?? "#7c3aed");
-                  const label = typeof t === "string" && t.startsWith("sub-") ? `(${t.slice(4)}) diagram` : (TARGET_LABEL[key] ?? key);
+                  const color = (t === "drawable" || (typeof t === "string" && t.startsWith("sub-"))) ? "#7c3aed" : (TARGET_COLOR[key] ?? "#7c3aed");
+                  const label = t === "drawable" ? "Drawable diagram" : typeof t === "string" && t.startsWith("sub-") ? `(${t.slice(4)}) diagram` : (TARGET_LABEL[key] ?? key);
                   const active = drawTarget === t;
                   return (
                     <button
@@ -599,7 +608,7 @@ function QuestionCard({
               <DrawableImage
                 src={q.imageData}
                 boxes={boxes}
-                liveColor={typeof drawTarget === "string" && drawTarget.startsWith("sub-") ? "#7c3aed" : (TARGET_COLOR[String(drawTarget)] ?? "#7c3aed")}
+                liveColor={(drawTarget === "drawable" || (typeof drawTarget === "string" && drawTarget.startsWith("sub-"))) ? "#7c3aed" : (TARGET_COLOR[String(drawTarget)] ?? "#7c3aed")}
                 onDraw={bounds => onDraw(bounds, drawTarget)}
               />
               <p className="text-xs text-slate-400 mt-1 text-center">Drag on image to set crop region</p>
@@ -704,6 +713,29 @@ function QuestionCard({
                 )) : (
                   <p className="text-xs text-slate-400 italic">No text options — switch to Images mode to draw them</p>
                 )
+              )}
+            </div>
+          )}
+
+          {/* Drawable diagram for OEQ without subparts */}
+          {!isMcq && (!q.subparts || q.subparts.length === 0) && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Drawable diagram</span>
+              {q.drawableDiagramBase64 ? (
+                <>
+                  <img
+                    src={`data:image/jpeg;base64,${q.drawableDiagramBase64}`}
+                    alt="drawable diagram"
+                    className="h-14 rounded border border-violet-200"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onUpdate({ drawableDiagramBase64: null })}
+                    className="text-[10px] text-red-400 hover:text-red-600"
+                  >Remove</button>
+                </>
+              ) : (
+                <span className="text-xs text-slate-400 italic">Select "Drawable diagram" above and drag on the image</span>
               )}
             </div>
           )}

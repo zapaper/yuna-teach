@@ -31,8 +31,13 @@ export async function POST(
       marksAwarded: true,
       markingNotes: true,
       imageData: true,
+      diagramImageData: true,
       studentAnswer: true,
       elaboration: true,
+      transcribedStem: true,
+      transcribedOptions: true,
+      transcribedSubparts: true,
+      examPaper: { select: { paperType: true } },
     },
   });
 
@@ -45,18 +50,45 @@ export async function POST(
     return NextResponse.json({ elaboration: question.elaboration });
   }
 
+  const isQuiz = question.examPaper?.paperType === "quiz";
   const parts: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [];
 
-  // Include the question image if available
-  if (question.imageData) {
-    const match = question.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
-    if (match) {
-      parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+  if (isQuiz && question.transcribedStem) {
+    // For quiz questions, use clean transcribed text to avoid Gemini reading school/year from exam paper header
+    const opts = question.transcribedOptions as string[] | null;
+    const subs = question.transcribedSubparts as { label: string; text: string }[] | null;
+    let questionText = question.transcribedStem;
+    if (opts && opts.length > 0) {
+      questionText += "\n" + opts.map((o, i) => `(${i + 1}) ${o}`).join("\n");
     }
-  }
+    if (subs && subs.length > 0) {
+      questionText += "\n" + subs.filter(s => s.label !== "_drawable").map(s => `(${s.label}) ${s.text}`).join("\n");
+    }
+    // Include diagram image only (cropped, no headers)
+    if (question.diagramImageData) {
+      const match = question.diagramImageData.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+    }
+    parts.push({
+      text: `You are a helpful tutor for a primary/secondary school student.
 
-  parts.push({
-    text: `You are a helpful tutor for a primary/secondary school student.
+Here is the question:
+${questionText}
+
+Correct answer: ${question.answer ?? "Not provided"}
+
+Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
+
+Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language.`,
+    });
+  } else {
+    // For regular exam papers, use the raw question image
+    if (question.imageData) {
+      const match = question.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+    }
+    parts.push({
+      text: `You are a helpful tutor for a primary/secondary school student.
 
 Here is an exam question the student needs help with.
 
@@ -66,7 +98,8 @@ Correct answer: ${question.answer ?? "Not provided"}
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
 Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. If the question image is provided, reference the actual question content.`,
-  });
+    });
+  }
 
   try {
     const response = await getAI().models.generateContent({
