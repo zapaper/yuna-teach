@@ -428,7 +428,8 @@ function McqQuestionCard({
 
       <div className="space-y-2">
         {hasImageOptions ? (
-          [0, 1, 2, 3].map(i => {
+          <div className="grid grid-cols-2 gap-2">
+          {[0, 1, 2, 3].map(i => {
             const optVal = String(i + 1);
             const isSelected = selected === optVal;
             const imgSrc = optionImages?.[i];
@@ -436,21 +437,22 @@ function McqQuestionCard({
               <button
                 key={i}
                 onClick={() => onSelect(optVal)}
-                className={`w-full flex items-center gap-3 p-2 rounded-xl border-2 transition-all ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${
                   isSelected ? "border-primary-500 bg-primary-50" : "border-slate-100 hover:border-slate-200"
                 }`}
               >
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
                   isSelected ? "bg-primary-500 text-white" : "bg-slate-100 text-slate-500"
                 }`}>({i + 1})</span>
                 {imgSrc ? (
-                  <img src={`data:image/jpeg;base64,${imgSrc}`} alt={`Option ${i + 1}`} className="max-h-16 rounded" />
+                  <img src={`data:image/jpeg;base64,${imgSrc}`} alt={`Option ${i + 1}`} className="w-full rounded" />
                 ) : (
                   <span className="text-sm text-slate-400">No image</span>
                 )}
               </button>
             );
-          })
+          })}
+          </div>
         ) : (
           [0, 1, 2, 3].map(i => {
             const optVal = String(i + 1);

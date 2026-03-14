@@ -691,8 +691,8 @@ function QuestionCard({
               </div>
 
               {imageOptionsMode ? (
-                // Image options: draw boxes on the question image
-                <div className="space-y-2">
+                // Image options: 2×2 grid (options 1&2 on row 1, 3&4 on row 2)
+                <div className="grid grid-cols-2 gap-2">
                   {[0, 1, 2, 3].map(i => {
                     const imgData = q.optionImages?.[i] ?? null;
                     const optColor = TARGET_COLOR[String(i)];
@@ -702,7 +702,7 @@ function QuestionCard({
                         <div className="flex items-center gap-1.5 mb-1.5">
                           <span className="text-xs font-bold text-white px-1.5 py-0.5 rounded-md"
                             style={{ backgroundColor: optColor }}>({i + 1})</span>
-                          {isThisAnswer && <span className="text-xs text-green-600 font-medium">Correct answer</span>}
+                          {isThisAnswer && <span className="text-xs text-green-600 font-medium">✓</span>}
                           <button
                             onClick={() => setDrawTarget(i as DrawTarget)}
                             className="ml-auto text-xs px-2 py-0.5 rounded-lg transition-colors"
@@ -711,7 +711,7 @@ function QuestionCard({
                               color: drawTarget === i ? "white" : optColor,
                             }}
                           >
-                            {isCropping(i as DrawTarget) ? "Cropping…" : drawTarget === i ? "Drawing this" : "Draw this"}
+                            {isCropping(i as DrawTarget) ? "…" : drawTarget === i ? "Drawing" : "Draw"}
                           </button>
                         </div>
                         {imgData ? (
