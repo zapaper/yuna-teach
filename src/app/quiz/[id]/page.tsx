@@ -13,7 +13,7 @@ interface QuizQuestion {
   transcribedStem: string | null;
   transcribedOptions: string[] | null;
   transcribedOptionImages: string[] | null;
-  transcribedSubparts: { label: string; text: string }[] | null;
+  transcribedSubparts: { label: string; text: string; diagramBase64?: string | null }[] | null;
   diagramImageData: string | null;
   marksAvailable: number | null;
   syllabusTopic: string | null;
@@ -496,7 +496,7 @@ function OeqQuestionCard({
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
   onStrokeStart: () => void;
 }) {
-  const subparts = question.transcribedSubparts as { label: string; text: string }[] | null;
+  const subparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null }[] | null;
   const hasSubparts = subparts && subparts.length > 0;
 
   // For subparts: one canvas per subpart, stitched on export
@@ -582,7 +582,8 @@ function OeqQuestionCard({
                   ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
                   tool={tool}
                   onStrokeStart={onStrokeStart}
-                  height={200}
+                  height={sp.diagramBase64 ? 300 : 200}
+                  backgroundImage={sp.diagramBase64 ?? null}
                 />
               </div>
             </div>

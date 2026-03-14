@@ -6,7 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type DiagramBounds = { top: number; left: number; bottom: number; right: number };
-type DrawTarget = "diagram" | 0 | 1 | 2 | 3;
+type DrawTarget = "diagram" | 0 | 1 | 2 | 3 | `sub-${string}`;
+
+type SubpartData = { label: string; text: string; diagramBase64?: string | null };
 
 type EditQuestion = {
   id: string;
@@ -18,7 +20,7 @@ type EditQuestion = {
   stem: string;
   options: [string, string, string, string] | null;   // text options
   optionImages: (string | null)[] | null;              // image options (null = not drawn yet)
-  subparts: { label: string; text: string }[] | null;
+  subparts: SubpartData[] | null;
   diagramBounds: DiagramBounds | null;
   diagramBase64: string | null;
   imageData?: string; // original question image for drawing/cropping
@@ -282,6 +284,13 @@ function TranscribeEditContent({ id }: { id: string }) {
         if (q.id !== questionId) return q;
         if (target === "diagram") {
           return { ...q, diagramBounds: bounds, diagramBase64: data.diagramBase64 };
+        } else if (typeof target === "string" && target.startsWith("sub-")) {
+          const label = target.slice(4);
+          if (!q.subparts) return q;
+          const newSubs = q.subparts.map(sp =>
+            sp.label === label ? { ...sp, diagramBase64: data.diagramBase64 } : sp
+          );
+          return { ...q, subparts: newSubs };
         } else {
           const imgs = [...(q.optionImages ?? [null, null, null, null])];
           imgs[target as number] = data.diagramBase64;
@@ -421,6 +430,7 @@ function TranscribeEditContent({ id }: { id: string }) {
                   await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
                   setQuestions(qs => qs.filter(x => x.id !== q.id));
                 }}
+                onUpdate={(update) => updateQuestion(q.id, update)}
               />
             ))}
           </div>
@@ -467,6 +477,7 @@ function QuestionCard({
   onToggleOptionImages,
   onToggleType,
   onDelete,
+  onUpdate,
 }: {
   question: EditQuestion;
   cropping: string | null;
@@ -479,6 +490,7 @@ function QuestionCard({
   onToggleOptionImages: (imageMode: boolean) => void;
   onToggleType: () => void;  // MCQ <-> OEQ
   onDelete: () => void;
+  onUpdate: (update: Partial<EditQuestion>) => void;
 }) {
   const isMcq = q.type === "mcq";
   const imageOptionsMode = !!(q.optionImages);
@@ -552,10 +564,14 @@ function QuestionCard({
               {/* Draw target selector */}
               <div className="flex items-center gap-1.5 mb-2 flex-wrap">
                 <span className="text-xs text-slate-400">Draw:</span>
-                {(["diagram", 0, 1, 2, 3] as DrawTarget[]).filter(t =>
-                  t === "diagram" || (isMcq && imageOptionsMode)
+                {(
+                  (["diagram", ...(isMcq && imageOptionsMode ? [0, 1, 2, 3] : []),
+                    ...(!isMcq && q.subparts ? q.subparts.map(sp => `sub-${sp.label}`) : []),
+                  ]) as DrawTarget[]
                 ).map(t => {
                   const key = String(t);
+                  const color = typeof t === "string" && t.startsWith("sub-") ? "#7c3aed" : (TARGET_COLOR[key] ?? "#7c3aed");
+                  const label = typeof t === "string" && t.startsWith("sub-") ? `(${t.slice(4)}) diagram` : (TARGET_LABEL[key] ?? key);
                   const active = drawTarget === t;
                   return (
                     <button
@@ -563,12 +579,12 @@ function QuestionCard({
                       onClick={() => setDrawTarget(t)}
                       className="text-xs px-2 py-0.5 rounded-full font-medium transition-colors"
                       style={{
-                        backgroundColor: active ? TARGET_COLOR[key] : `${TARGET_COLOR[key]}22`,
-                        color: active ? "white" : TARGET_COLOR[key],
-                        border: `1px solid ${TARGET_COLOR[key]}`,
+                        backgroundColor: active ? color : `${color}22`,
+                        color: active ? "white" : color,
+                        border: `1px solid ${color}`,
                       }}
                     >
-                      {TARGET_LABEL[key]}
+                      {label}
                     </button>
                   );
                 })}
@@ -583,7 +599,7 @@ function QuestionCard({
               <DrawableImage
                 src={q.imageData}
                 boxes={boxes}
-                liveColor={TARGET_COLOR[String(drawTarget)]}
+                liveColor={typeof drawTarget === "string" && drawTarget.startsWith("sub-") ? "#7c3aed" : (TARGET_COLOR[String(drawTarget)] ?? "#7c3aed")}
                 onDraw={bounds => onDraw(bounds, drawTarget)}
               />
               <p className="text-xs text-slate-400 mt-1 text-center">Drag on image to set crop region</p>
@@ -697,14 +713,47 @@ function QuestionCard({
             <div className="space-y-2 mt-2">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Sub-parts</label>
               {q.subparts.map((sp, i) => (
-                <div key={sp.label} className="flex items-start gap-2 rounded-xl bg-white border border-amber-100 px-3 py-2">
-                  <span className="font-mono text-xs text-amber-600 mt-2 shrink-0">({sp.label})</span>
-                  <textarea
-                    value={sp.text}
-                    onChange={e => onUpdateSubpart(i, e.target.value)}
-                    rows={2}
-                    className="flex-1 text-sm bg-transparent focus:outline-none resize-none"
-                  />
+                <div key={sp.label} className="rounded-xl bg-white border border-amber-100 px-3 py-2">
+                  <div className="flex items-start gap-2">
+                    <span className="font-mono text-xs text-amber-600 mt-2 shrink-0">({sp.label})</span>
+                    <textarea
+                      value={sp.text}
+                      onChange={e => onUpdateSubpart(i, e.target.value)}
+                      rows={2}
+                      className="flex-1 text-sm bg-transparent focus:outline-none resize-none"
+                    />
+                  </div>
+                  {/* Drawable diagram for this subpart */}
+                  <div className="mt-1 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onDraw({ top: 0, left: 0, bottom: 50, right: 50 }, `sub-${sp.label}` as DrawTarget)}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-violet-50 text-violet-600 hover:bg-violet-100"
+                    >
+                      {sp.diagramBase64 ? "Redraw diagram" : "Add drawable diagram"}
+                    </button>
+                    {sp.diagramBase64 && (
+                      <>
+                        <img
+                          src={`data:image/jpeg;base64,${sp.diagramBase64}`}
+                          alt={`(${sp.label}) diagram`}
+                          className="h-12 rounded border border-violet-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSubs = q.subparts!.map((s, j) =>
+                              j === i ? { ...s, diagramBase64: null } : s
+                            );
+                            onUpdate({ subparts: newSubs });
+                          }}
+                          className="text-[10px] text-red-400 hover:text-red-600"
+                        >
+                          Remove
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
