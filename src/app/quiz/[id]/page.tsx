@@ -17,6 +17,7 @@ interface QuizQuestion {
   diagramImageData: string | null;
   marksAvailable: number | null;
   syllabusTopic: string | null;
+  elaboration: string | null;
 }
 
 interface QuizPaper {
@@ -398,6 +399,9 @@ function McqQuestionCard({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+      {question.elaboration && (
+        <p className="text-[10px] text-slate-400 mb-1">{question.elaboration}</p>
+      )}
       <div className="mb-3">
         <span className="inline-block bg-primary-50 text-primary-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
           Q{index + 1}
@@ -488,11 +492,52 @@ function OeqQuestionCard({
   onStrokeStart: () => void;
 }) {
   const subparts = question.transcribedSubparts as { label: string; text: string }[] | null;
+  const hasSubparts = subparts && subparts.length > 0;
+
+  // For subparts: one canvas per subpart, stitched on export
+  const subCanvasRefs = useRef<Record<string, AnswerCanvasHandle | null>>({});
+
+  // Expose a combined handle that stitches all sub-canvases into one image
+  useEffect(() => {
+    if (!hasSubparts) return;
+    const combinedHandle: AnswerCanvasHandle = {
+      async exportImage() {
+        const blobs: Blob[] = [];
+        for (const sp of subparts!) {
+          const h = subCanvasRefs.current[sp.label];
+          if (h) blobs.push(await h.exportImage());
+        }
+        return await stitchBlobs(blobs);
+      },
+      async exportInk() {
+        const blobs: Blob[] = [];
+        for (const sp of subparts!) {
+          const h = subCanvasRefs.current[sp.label];
+          if (h) blobs.push(await h.exportInk());
+        }
+        return await stitchBlobs(blobs);
+      },
+      undo() {
+        // Undo on last drawn sub-canvas (best effort)
+        const labels = subparts!.map(s => s.label);
+        for (let i = labels.length - 1; i >= 0; i--) {
+          const h = subCanvasRefs.current[labels[i]];
+          if (h) { h.undo(); break; }
+        }
+      },
+    };
+    onCanvasRef(combinedHandle);
+    return () => onCanvasRef(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasSubparts]);
 
   return (
     <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
       {/* Question text */}
       <div className="p-4 pb-2">
+        {question.elaboration && (
+          <p className="text-[10px] text-slate-400 mb-1">{question.elaboration}</p>
+        )}
         <span className="inline-block bg-amber-50 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
           Q{index + 1}
         </span>
@@ -513,33 +558,75 @@ function OeqQuestionCard({
           </div>
         )}
 
-        {/* Sub-parts */}
-        {subparts && subparts.length > 0 && (
-          <div className="mt-2 space-y-1">
-            {subparts.map(sp => (
-              <p key={sp.label} className="text-sm text-slate-700">
-                <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
-              </p>
-            ))}
-          </div>
-        )}
-
         {question.marksAvailable && (
           <p className="text-xs text-slate-400 mt-2 text-right">[{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]</p>
         )}
       </div>
 
-      {/* Drawing canvas for answer */}
-      <div className="border-t border-amber-100">
-        <BlankCanvas
-          ref={onCanvasRef}
-          tool={tool}
-          onStrokeStart={onStrokeStart}
-          height={250}
-        />
-      </div>
+      {/* Sub-parts with individual canvases */}
+      {hasSubparts ? (
+        <div>
+          {subparts!.map(sp => (
+            <div key={sp.label}>
+              <div className="px-4 pt-2 pb-1">
+                <p className="text-sm text-slate-700">
+                  <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
+                </p>
+              </div>
+              <div className="border-t border-amber-100">
+                <BlankCanvas
+                  ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
+                  tool={tool}
+                  onStrokeStart={onStrokeStart}
+                  height={200}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="border-t border-amber-100">
+          <BlankCanvas
+            ref={onCanvasRef}
+            tool={tool}
+            onStrokeStart={onStrokeStart}
+            height={250}
+          />
+        </div>
+      )}
     </div>
   );
+}
+
+/** Stitch multiple image blobs vertically into one */
+async function stitchBlobs(blobs: Blob[]): Promise<Blob> {
+  if (blobs.length === 0) return new Blob([], { type: "image/jpeg" });
+  if (blobs.length === 1) return blobs[0];
+
+  const images = await Promise.all(blobs.map(b => {
+    return new Promise<HTMLImageElement>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.src = URL.createObjectURL(b);
+    });
+  }));
+
+  const width = Math.max(...images.map(i => i.width));
+  const totalHeight = images.reduce((sum, i) => sum + i.height, 0);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = totalHeight;
+  const ctx = canvas.getContext("2d")!;
+  let y = 0;
+  for (const img of images) {
+    ctx.drawImage(img, 0, y);
+    y += img.height;
+    URL.revokeObjectURL(img.src);
+  }
+
+  return new Promise<Blob>((resolve) => {
+    canvas.toBlob(b => resolve(b!), "image/jpeg", 0.9);
+  });
 }
 
 /* ────────────── Blank Canvas (for writing answers) ────────────── */
