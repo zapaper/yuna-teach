@@ -500,28 +500,31 @@ function OeqQuestionCard({
   // Expose a combined handle that stitches all sub-canvases into one image
   useEffect(() => {
     if (!hasSubparts) return;
+    // All canvas labels: diagram (if exists) + subpart labels
+    const allLabels = [
+      ...(question.diagramImageData ? ["__diagram"] : []),
+      ...subparts!.map(s => s.label),
+    ];
     const combinedHandle: AnswerCanvasHandle = {
       async exportImage() {
         const blobs: Blob[] = [];
-        for (const sp of subparts!) {
-          const h = subCanvasRefs.current[sp.label];
+        for (const label of allLabels) {
+          const h = subCanvasRefs.current[label];
           if (h) blobs.push(await h.exportImage());
         }
         return await stitchBlobs(blobs);
       },
       async exportInk() {
         const blobs: Blob[] = [];
-        for (const sp of subparts!) {
-          const h = subCanvasRefs.current[sp.label];
+        for (const label of allLabels) {
+          const h = subCanvasRefs.current[label];
           if (h) blobs.push(await h.exportInk());
         }
         return await stitchBlobs(blobs);
       },
       undo() {
-        // Undo on last drawn sub-canvas (best effort)
-        const labels = subparts!.map(s => s.label);
-        for (let i = labels.length - 1; i >= 0; i--) {
-          const h = subCanvasRefs.current[labels[i]];
+        for (let i = allLabels.length - 1; i >= 0; i--) {
+          const h = subCanvasRefs.current[allLabels[i]];
           if (h) { h.undo(); break; }
         }
       },
@@ -547,7 +550,7 @@ function OeqQuestionCard({
           </p>
         )}
 
-        {/* Diagram */}
+        {/* Diagram — show as static reference unless it's a draw-on-diagram question */}
         {question.diagramImageData && (
           <div className="mt-2 flex justify-center">
             <img
@@ -562,6 +565,24 @@ function OeqQuestionCard({
           <p className="text-xs text-slate-400 mt-2 text-right">[{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]</p>
         )}
       </div>
+
+      {/* Drawable diagram canvas (if diagram exists, add a draw-on-diagram area) */}
+      {question.diagramImageData && (
+        <div className="px-4 pb-1">
+          <p className="text-[10px] text-slate-400 italic">Draw on diagram below if needed:</p>
+        </div>
+      )}
+      {question.diagramImageData && (
+        <div className="border-t border-amber-100">
+          <BlankCanvas
+            ref={hasSubparts ? (h) => { subCanvasRefs.current["__diagram"] = h; } : undefined}
+            tool={tool}
+            onStrokeStart={onStrokeStart}
+            height={250}
+            backgroundImage={question.diagramImageData}
+          />
+        </div>
+      )}
 
       {/* Sub-parts with individual canvases */}
       {hasSubparts ? (
@@ -642,10 +663,11 @@ interface AnswerCanvasHandle {
 
 const BlankCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; height: number }
->(function BlankCanvas({ tool, onStrokeStart, height }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null }
+>(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const bgImageRef = useRef<HTMLImageElement | null>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const history = useRef<ImageData[]>([]);
@@ -657,30 +679,57 @@ const BlankCanvas = forwardRef<
   const CANVAS_W = 800;
   const CANVAS_H = height * 2; // retina-ish
 
+  function drawBackground(ctx: CanvasRenderingContext2D) {
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    if (bgImageRef.current) {
+      // Draw diagram centered, scaled to fit
+      const img = bgImageRef.current;
+      const scale = Math.min(CANVAS_W / img.width, CANVAS_H / img.height, 1);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      const x = (CANVAS_W - w) / 2;
+      const y = (CANVAS_H - h) / 2;
+      ctx.drawImage(img, x, y, w, h);
+    } else {
+      // Ruled lines
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      for (let y = 40; y < CANVAS_H; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(CANVAS_W, y);
+        ctx.stroke();
+      }
+    }
+  }
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     canvas.width = CANVAS_W;
     canvas.height = CANVAS_H;
-    const ctx = canvas.getContext("2d", { desynchronized: true })!;
-    // White background with faint ruled lines
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 1;
-    for (let y = 40; y < CANVAS_H; y += 40) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(CANVAS_W, y);
-      ctx.stroke();
-    }
 
     const inkCanvas = document.createElement("canvas");
     inkCanvas.width = CANVAS_W;
     inkCanvas.height = CANVAS_H;
     inkCanvasRef.current = inkCanvas;
-    setReady(true);
-  }, [CANVAS_W, CANVAS_H]);
+
+    function init() {
+      const ctx = canvas!.getContext("2d", { desynchronized: true })!;
+      drawBackground(ctx);
+      setReady(true);
+    }
+
+    if (backgroundImage) {
+      const img = new Image();
+      img.onload = () => { bgImageRef.current = img; init(); };
+      img.src = backgroundImage.startsWith("data:") ? backgroundImage : `data:image/jpeg;base64,${backgroundImage}`;
+    } else {
+      init();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [CANVAS_W, CANVAS_H, backgroundImage]);
 
   function redrawComposite() {
     const canvas = canvasRef.current;
@@ -688,17 +737,7 @@ const BlankCanvas = forwardRef<
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { desynchronized: true })!;
     ctx.globalCompositeOperation = "source-over";
-    // Redraw white + lines
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 1;
-    for (let y = 40; y < CANVAS_H; y += 40) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(CANVAS_W, y);
-      ctx.stroke();
-    }
+    drawBackground(ctx);
     if (inkCanvas) ctx.drawImage(inkCanvas, 0, 0);
   }
 
