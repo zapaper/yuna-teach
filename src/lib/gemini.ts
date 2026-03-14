@@ -45,6 +45,41 @@ async function generateContentWithRetry(
 }
 
 // ---------------------------------------------------------------------------
+// Auto-detect question type from image
+// ---------------------------------------------------------------------------
+
+const AUTO_DETECT_PROMPT = `Look at this exam question image.
+Determine if it is an MCQ (Multiple Choice Question) or an OEQ (Open-Ended / Written Question).
+
+An MCQ has exactly four answer options clearly labeled (1), (2), (3), (4) OR (A), (B), (C), (D).
+An OEQ has no such labeled options — the student must write their own answer.
+
+Return ONLY valid JSON:
+{ "type": "mcq" }
+or
+{ "type": "oeq" }`;
+
+export async function detectQuestionType(imageBase64: string): Promise<"mcq" | "oeq"> {
+  try {
+    const response = await generateContentWithRetry({
+      model: "gemini-2.5-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: AUTO_DETECT_PROMPT },
+        ],
+      }],
+      config: { responseMimeType: "application/json", temperature: 0 },
+    });
+    const parsed = JSON.parse((response.text ?? "{}").replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+    return parsed.type === "mcq" ? "mcq" : "oeq";
+  } catch {
+    return "oeq"; // fallback: treat as OEQ if detection fails
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Math MCQ transcription — converts a cropped question image to clean text
 // ---------------------------------------------------------------------------
 

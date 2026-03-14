@@ -4,18 +4,20 @@ import { prisma } from "@/lib/db";
 import {
   transcribeMathMcqQuestion, transcribeMathOpenEndedQuestion,
   transcribeScienceMcqQuestion, transcribeScienceOpenEndedQuestion,
+  detectQuestionType,
   DiagramBounds,
 } from "@/lib/gemini";
 
-/** Normalize answer string to bare digit, e.g. "(2)" → "2" */
+/** Normalize MCQ answer to bare digit "1"–"4", handling A/B/C/D and (2) formats */
 function normalizeMcqAnswer(ans: string | null): string {
   if (!ans) return "";
-  return ans.trim().replace(/[().]/g, "").trim();
-}
-
-function isMathMcq(answer: string | null): boolean {
-  const n = normalizeMcqAnswer(answer);
-  return n === "1" || n === "2" || n === "3" || n === "4";
+  const n = ans.trim().replace(/[().]/g, "").trim().toUpperCase();
+  // Convert A/B/C/D → 1/2/3/4
+  if (n === "A") return "1";
+  if (n === "B") return "2";
+  if (n === "C") return "3";
+  if (n === "D") return "4";
+  return n;
 }
 
 /** Crop the diagram bounding box from a base64 question image and return enhanced base64 */
@@ -135,7 +137,9 @@ export async function POST(
   const results = await Promise.all(
     questions.map(async (q) => {
       const base64 = q.imageData.replace(/^data:image\/\w+;base64,/, "");
-      const mcq = isMathMcq(q.answer);
+      // Detect MCQ vs OEQ from the image itself — more reliable than answer field alone
+      const detectedType = await detectQuestionType(base64);
+      const mcq = detectedType === "mcq";
       try {
         if (mcq) {
           const transcribed = await (isScience ? transcribeScienceMcqQuestion(base64) : transcribeMathMcqQuestion(base64));
