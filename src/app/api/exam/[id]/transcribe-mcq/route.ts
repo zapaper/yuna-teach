@@ -129,14 +129,65 @@ export async function POST(
   const questions = await prisma.examQuestion.findMany({
     where: { examPaperId: id },
     orderBy: { orderIndex: "asc" },
-    select: { id: true, questionNum: true, answer: true, imageData: true, syllabusTopic: true, marksAvailable: true },
+    select: { id: true, questionNum: true, orderIndex: true, answer: true, imageData: true, syllabusTopic: true, marksAvailable: true },
   });
 
   console.log(`[transcribe] Paper ${id}: transcribing ${questions.length} questions (MCQ + open-ended)`);
 
+  /** Strip trailing letters from questionNum to get the base, e.g. "35c" → "35", "35ab" → "35" */
+  function baseQNum(questionNum: string) {
+    return questionNum.replace(/[a-zA-Z]+$/, "");
+  }
+
+  /**
+   * For Science OEQ follow-up parts (e.g. Q35c when Q35a/35b exist earlier),
+   * prepend the first part's image so Gemini can see the preamble/context.
+   * Returns the (possibly stitched) base64 JPEG string.
+   */
+  async function getContextualBase64(q: typeof questions[number]): Promise<string> {
+    const raw = q.imageData.replace(/^data:image\/\w+;base64,/, "");
+    if (!isScience) return raw;
+
+    const base = baseQNum(q.questionNum);
+    // Find the earliest sibling in this group that appears before this question
+    const siblings = questions.filter(s =>
+      s.id !== q.id &&
+      baseQNum(s.questionNum) === base &&
+      s.orderIndex < q.orderIndex
+    );
+    if (siblings.length === 0) return raw;
+
+    // Stitch the first sibling's image on top of the current image
+    const firstSibling = siblings.sort((a, b) => a.orderIndex - b.orderIndex)[0];
+    const sibBase64 = firstSibling.imageData.replace(/^data:image\/\w+;base64,/, "");
+
+    const topBuf = Buffer.from(sibBase64, "base64");
+    const botBuf = Buffer.from(raw, "base64");
+    const topMeta = await sharp(topBuf).metadata();
+    const botMeta = await sharp(botBuf).metadata();
+
+    const w = Math.max(topMeta.width ?? 0, botMeta.width ?? 0);
+    const topResized = await sharp(topBuf).resize({ width: w, fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } }).toBuffer();
+    const botResized = await sharp(botBuf).resize({ width: w, fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } }).toBuffer();
+    const topH = (await sharp(topResized).metadata()).height ?? 0;
+    const botH = (await sharp(botResized).metadata()).height ?? 0;
+
+    const stitched = await sharp({
+      create: { width: w, height: topH + botH, channels: 3, background: { r: 255, g: 255, b: 255 } },
+    })
+      .composite([
+        { input: topResized, top: 0, left: 0 },
+        { input: botResized, top: topH, left: 0 },
+      ])
+      .jpeg({ quality: 90 })
+      .toBuffer();
+
+    return stitched.toString("base64");
+  }
+
   const results = await Promise.all(
     questions.map(async (q) => {
-      const base64 = q.imageData.replace(/^data:image\/\w+;base64,/, "");
+      const base64 = await getContextualBase64(q);
       // Detect MCQ vs OEQ from the image itself — more reliable than answer field alone
       const detectedType = await detectQuestionType(base64);
       const mcq = detectedType === "mcq";
