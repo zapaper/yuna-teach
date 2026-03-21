@@ -145,6 +145,21 @@ export default function HomePage({
   const [feedbackMsg, setFeedbackMsg] = useState("");
   const [sendingFeedback, setSendingFeedback] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+
+  // Show guide on first visit for parents
+  useEffect(() => {
+    if (!user || user.role !== "PARENT") return;
+    const key = `guide-dismissed-${userId}`;
+    if (!localStorage.getItem(key)) {
+      setShowGuide(true);
+    }
+  }, [user, userId]);
+
+  function dismissGuide() {
+    localStorage.setItem(`guide-dismissed-${userId}`, "1");
+    setShowGuide(false);
+  }
 
   async function handleGenerateCode() {
     setGeneratingCode(true);
@@ -195,25 +210,36 @@ export default function HomePage({
   return (
     <div className="p-6 pb-24">
       {/* Header */}
-      <button
-        onClick={() => router.push("/")}
-        className="flex items-center gap-1 text-slate-500 mb-4 hover:text-slate-700"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={() => router.push("/")}
+          className="flex items-center gap-1 text-slate-500 hover:text-slate-700"
         >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        Switch User
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
+          Switch User
+        </button>
+        {isParent && (
+          <button
+            onClick={() => setShowGuide(true)}
+            className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-sm font-bold hover:bg-primary-200 transition-colors"
+            title="Help Guide"
+          >
+            ?
+          </button>
+        )}
+      </div>
 
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-slate-800">
@@ -769,6 +795,53 @@ export default function HomePage({
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Parent Welcome Guide */}
+      {showGuide && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={dismissGuide}>
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="text-center mb-5">
+              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600">
+                  <path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3Z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-slate-800">Welcome to Mark for You!</h2>
+            </div>
+
+            <p className="text-sm text-slate-600 leading-relaxed mb-4">
+              This is your AI assistant to help you be super effective and efficient in guiding your child&apos;s work.
+              We encourage you to stay in charge of your child&apos;s learning, but let the AI do the tedious work for you.
+            </p>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                <p className="text-sm text-slate-600"><strong>Upload exam papers</strong> — Scan or photograph your child&apos;s exam papers. The AI will extract and organise all the questions automatically.</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                <p className="text-sm text-slate-600"><strong>AI marks the paper</strong> — Written answers are marked instantly by AI, with detailed feedback and model solutions for every question.</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                <p className="text-sm text-slate-600"><strong>Review and guide</strong> — Check the AI&apos;s marking, review your child&apos;s mistakes, and use the progress tracker to spot weak areas.</p>
+              </div>
+              <div className="flex gap-3 items-start">
+                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+                <p className="text-sm text-slate-600"><strong>Focused practice</strong> — Generate targeted worksheets on topics your child needs more practice on. The AI handles the repetitive work so you can focus on coaching.</p>
+              </div>
+            </div>
+
+            <button
+              onClick={dismissGuide}
+              className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors"
+            >
+              Got it!
+            </button>
           </div>
         </div>
       )}
