@@ -146,6 +146,8 @@ export default function HomePage({
   const [sendingFeedback, setSendingFeedback] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [guidePage, setGuidePage] = useState(0);
+  const GUIDE_PAGES = 3; // 0: welcome, 1: spelling, 2: exam papers
 
   // Show guide on first visit for parents
   useEffect(() => {
@@ -159,6 +161,7 @@ export default function HomePage({
   function dismissGuide() {
     localStorage.setItem(`guide-dismissed-${userId}`, "1");
     setShowGuide(false);
+    setGuidePage(0);
   }
 
   async function handleGenerateCode() {
@@ -799,49 +802,140 @@ export default function HomePage({
         </div>
       )}
 
-      {/* Parent Welcome Guide */}
+      {/* Parent Welcome Guide (multi-page) */}
       {showGuide && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={dismissGuide}>
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl" onClick={e => e.stopPropagation()}>
-            <div className="text-center mb-5">
-              <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600">
-                  <path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3Z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-slate-800">Welcome to Mark for You!</h2>
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+
+            {/* Page dots */}
+            <div className="flex justify-center gap-1.5 mb-4">
+              {Array.from({ length: GUIDE_PAGES }).map((_, i) => (
+                <button key={i} onClick={() => setGuidePage(i)}
+                  className={`w-2 h-2 rounded-full transition-colors ${i === guidePage ? "bg-primary-500" : "bg-slate-200"}`} />
+              ))}
             </div>
 
-            <p className="text-sm text-slate-600 leading-relaxed mb-4">
-              This is your AI assistant to help you be super effective and efficient in guiding your child&apos;s work.
-              We encourage you to stay in charge of your child&apos;s learning, but let the AI do the tedious work for you.
-            </p>
+            {guidePage === 0 && (
+              <>
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600">
+                      <path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3Z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800">Welcome to Mark for You!</h2>
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                  This is your AI assistant to help you be super effective and efficient in guiding your child&apos;s work.
+                  We encourage you to stay in charge of your child&apos;s learning, but let the AI do the tedious work for you.
+                </p>
+                <div className="space-y-3 mb-6">
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                    <p className="text-sm text-slate-600"><strong>Upload exam papers</strong> — Scan or photograph your child&apos;s exam papers. The AI will extract and organise all the questions automatically.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                    <p className="text-sm text-slate-600"><strong>AI marks the paper</strong> — Written answers are marked instantly by AI, with detailed feedback and model solutions for every question.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                    <p className="text-sm text-slate-600"><strong>Review and guide</strong> — Check the AI&apos;s marking, review your child&apos;s mistakes, and use the progress tracker to spot weak areas.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+                    <p className="text-sm text-slate-600"><strong>Focused practice</strong> — Generate targeted worksheets on topics your child needs more practice on. The AI handles the repetitive work so you can focus on coaching.</p>
+                  </div>
+                </div>
+              </>
+            )}
 
-            <div className="space-y-3 mb-6">
-              <div className="flex gap-3 items-start">
-                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
-                <p className="text-sm text-slate-600"><strong>Upload exam papers</strong> — Scan or photograph your child&apos;s exam papers. The AI will extract and organise all the questions automatically.</p>
-              </div>
-              <div className="flex gap-3 items-start">
-                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
-                <p className="text-sm text-slate-600"><strong>AI marks the paper</strong> — Written answers are marked instantly by AI, with detailed feedback and model solutions for every question.</p>
-              </div>
-              <div className="flex gap-3 items-start">
-                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
-                <p className="text-sm text-slate-600"><strong>Review and guide</strong> — Check the AI&apos;s marking, review your child&apos;s mistakes, and use the progress tracker to spot weak areas.</p>
-              </div>
-              <div className="flex gap-3 items-start">
-                <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
-                <p className="text-sm text-slate-600"><strong>Focused practice</strong> — Generate targeted worksheets on topics your child needs more practice on. The AI handles the repetitive work so you can focus on coaching.</p>
-              </div>
+            {guidePage === 1 && (
+              <>
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-2xl">&#x1F4D6;</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800">Spelling / &#x542C;&#x5199;</h2>
+                  <p className="text-xs text-slate-400 mt-1">Feature Guide</p>
+                </div>
+                <div className="space-y-3 mb-6">
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                    <p className="text-sm text-slate-600">Your child can <strong>take a picture of their spelling list</strong>. The AI will read and generate the list automatically.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                    <p className="text-sm text-slate-600"><strong>Tap each word</strong> for the AI to read out the &#x62FC;&#x97F3;, meaning and a short example sentence.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                    <p className="text-sm text-slate-600">Press <strong>&ldquo;Begin Test&rdquo;</strong> for the AI to read out the &#x542C;&#x5199; slowly, one word at a time.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+                    <p className="text-sm text-slate-600">We encourage you to <strong>check your child for any &#x9519;&#x5B57;</strong> and go through their mistakes with them.</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {guidePage === 2 && (
+              <>
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-2xl">&#x1F4DD;</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800">Exam Papers</h2>
+                  <p className="text-xs text-slate-400 mt-1">Feature Guide</p>
+                </div>
+                <div className="space-y-3 mb-6">
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                    <p className="text-sm text-slate-600"><strong>Upload a past-year paper</strong> — Take photos or upload a PDF of the exam paper and its answer key.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                    <p className="text-sm text-slate-600"><strong>Assign to your child</strong> — The paper appears on their home page as a &ldquo;To Do&rdquo; task.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                    <p className="text-sm text-slate-600"><strong>AI marks it</strong> — Once submitted, MCQ is auto-scored and written answers are marked by AI with feedback and model solutions.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+                    <p className="text-sm text-slate-600"><strong>Review together</strong> — Go through the results with your child. You can flag any question for re-marking or override the AI&apos;s score.</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Navigation buttons */}
+            <div className="flex gap-2">
+              {guidePage > 0 && (
+                <button
+                  onClick={() => setGuidePage(p => p - 1)}
+                  className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors"
+                >
+                  Back
+                </button>
+              )}
+              {guidePage < GUIDE_PAGES - 1 ? (
+                <button
+                  onClick={() => setGuidePage(p => p + 1)}
+                  className="flex-1 py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  onClick={dismissGuide}
+                  className="flex-1 py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors"
+                >
+                  Got it!
+                </button>
+              )}
             </div>
-
-            <button
-              onClick={dismissGuide}
-              className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors"
-            >
-              Got it!
-            </button>
           </div>
         </div>
       )}
