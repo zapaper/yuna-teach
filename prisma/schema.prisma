@@ -16,12 +16,19 @@ model User {
   level     Int?     // Primary 1-6, only for students
   createdAt DateTime @default(now())
 
+  // Email verification & subscription
+  emailVerified         Boolean  @default(false)
+  stripeCustomerId      String?  @unique
+  stripeSubscriptionId  String?
+  subscriptionStatus    String?  // "active" | "canceled" | "past_due" | null (free)
+
   tests              SpellingTest[]
   examPapers         ExamPaper[]    @relation("UploadedPapers")
   assignedExamPapers ExamPaper[]    @relation("AssignedPapers")
   parentLinks        ParentStudent[] @relation("ParentLinks")
   studentLinks       ParentStudent[] @relation("StudentLinks")
   inviteCodes        InviteCode[]
+  emailCodes         EmailVerification[]
 
   @@map("users")
 }
@@ -162,6 +169,18 @@ model Feedback {
   createdAt DateTime @default(now())
 
   @@map("feedback")
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  code      String   // 4-digit code
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verifications")
 }
 
 enum Language {

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
+import { canUse } from "@/lib/usage";
+import { prisma } from "@/lib/db";
 import { readFileSync } from "fs";
 import path from "path";
 
@@ -24,9 +26,18 @@ const SCIENCE_TOPICS = loadTopics("science-topics.txt");
 const ENGLISH_TOPICS = loadTopics("english-topics.txt");
 
 export async function POST(request: NextRequest) {
-  const { imageBase64 } = await request.json();
+  const { imageBase64, userId } = await request.json();
   if (!imageBase64) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
+  }
+
+  // Free-tier limit check
+  if (userId) {
+    const parentLink = await prisma.parentStudent.findFirst({ where: { studentId: userId } });
+    const parentId = parentLink?.parentId ?? userId;
+    if (!(await canUse(parentId, "solver"))) {
+      return NextResponse.json({ error: "Free tier limit reached. Upgrade to Premium for unlimited AI Solver." }, { status: 403 });
+    }
   }
 
   const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");

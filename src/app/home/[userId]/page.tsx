@@ -149,6 +149,22 @@ export default function HomePage({
   const [guidePage, setGuidePage] = useState(0);
   const GUIDE_PAGES = 5; // 0: welcome, 1: spelling, 2: exam papers, 3: focused practice, 4: daily quiz
 
+  // Subscription state
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [verifyStep, setVerifyStep] = useState<"idle" | "sending" | "sent" | "verifying">("idle");
+  const [verifyCode, setVerifyCode] = useState("");
+  const [verifyError, setVerifyError] = useState("");
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const isPaid = user?.subscriptionStatus === "active";
+
+  // Refresh user data when returning from Stripe checkout
+  useEffect(() => {
+    if (searchParams.get("subscribed") === "1") {
+      // Reload page to pick up updated subscription status
+      window.location.href = `/home/${userId}`;
+    }
+  }, [searchParams, userId]);
+
   // Show guide on first visit for parents
   useEffect(() => {
     if (!user || user.role !== "PARENT") return;
@@ -269,6 +285,39 @@ export default function HomePage({
           </p>
         ) : null}
       </div>
+
+      {/* Subscription banner for parents */}
+      {isParent && !isPaid && (
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Free Plan</p>
+              <p className="text-xs text-amber-600 mt-0.5">1 exam, 1 quiz, 1 spelling, 3 solver per month</p>
+            </div>
+            <button
+              onClick={() => setShowUpgrade(true)}
+              className="px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors shadow-sm"
+            >
+              Upgrade
+            </button>
+          </div>
+        </div>
+      )}
+      {isParent && isPaid && (
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-3 flex items-center justify-between">
+          <p className="text-sm font-medium text-emerald-700">Premium Plan — Unlimited access</p>
+          <button
+            onClick={async () => {
+              const res = await fetch(`/api/subscribe?userId=${userId}`);
+              const data = await res.json();
+              if (data.portalUrl) window.location.href = data.portalUrl;
+            }}
+            className="text-xs text-emerald-600 hover:text-emerald-800 underline"
+          >
+            Manage
+          </button>
+        </div>
+      )}
 
       {/* Invite / Connect section */}
       <div className="mb-6">
@@ -798,6 +847,143 @@ export default function HomePage({
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Upgrade Modal */}
+      {showUpgrade && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setShowUpgrade(false)}>
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-bold text-slate-800 text-center mb-2">Upgrade to Premium</h2>
+            <div className="text-center mb-5">
+              <span className="text-3xl font-bold text-primary-600">S$5</span>
+              <span className="text-slate-400 text-sm">/month</span>
+            </div>
+            <div className="space-y-2 mb-5">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span className="text-green-500">&#x2713;</span> Unlimited exam papers
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span className="text-green-500">&#x2713;</span> Unlimited daily quizzes
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span className="text-green-500">&#x2713;</span> Unlimited spelling tests
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span className="text-green-500">&#x2713;</span> Unlimited AI Solver
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span className="text-green-500">&#x2713;</span> Focused practice worksheets
+              </div>
+            </div>
+
+            {/* Step 1: Verify email (if not verified) */}
+            {!user?.emailVerified ? (
+              <div className="space-y-3">
+                <p className="text-xs text-slate-500 text-center">Verify your email to continue</p>
+                {verifyStep === "idle" && (
+                  <button
+                    onClick={async () => {
+                      setVerifyStep("sending");
+                      setVerifyError("");
+                      try {
+                        const res = await fetch("/api/email-verify", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ userId }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error);
+                        setMaskedEmail(data.email);
+                        setVerifyStep("sent");
+                      } catch (err) {
+                        setVerifyError(err instanceof Error ? err.message : "Failed");
+                        setVerifyStep("idle");
+                      }
+                    }}
+                    className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600"
+                  >
+                    Send verification code to {user?.email?.replace(/(.{2})(.*)(@.*)/, "$1***$3")}
+                  </button>
+                )}
+                {verifyStep === "sending" && (
+                  <div className="text-center text-sm text-slate-400">Sending code...</div>
+                )}
+                {verifyStep === "sent" && (
+                  <>
+                    <p className="text-xs text-slate-500 text-center">Code sent to {maskedEmail}</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        maxLength={4}
+                        value={verifyCode}
+                        onChange={e => setVerifyCode(e.target.value.replace(/\D/g, ""))}
+                        placeholder="4-digit code"
+                        className="flex-1 text-center text-lg font-mono tracking-widest border border-slate-200 rounded-xl px-3 py-2"
+                      />
+                      <button
+                        onClick={async () => {
+                          if (verifyCode.length !== 4) return;
+                          setVerifyStep("verifying");
+                          setVerifyError("");
+                          try {
+                            const res = await fetch("/api/email-verify", {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ userId, code: verifyCode }),
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error);
+                            // Update local user state
+                            setUser(u => u ? { ...u, emailVerified: true } : u);
+                          } catch (err) {
+                            setVerifyError(err instanceof Error ? err.message : "Failed");
+                            setVerifyStep("sent");
+                          }
+                        }}
+                        disabled={verifyCode.length !== 4}
+                        className="px-4 py-2 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 disabled:opacity-50"
+                      >
+                        Verify
+                      </button>
+                    </div>
+                  </>
+                )}
+                {verifyStep === "verifying" && (
+                  <div className="text-center text-sm text-slate-400">Verifying...</div>
+                )}
+                {verifyError && <p className="text-xs text-red-500 text-center">{verifyError}</p>}
+              </div>
+            ) : (
+              /* Step 2: Stripe checkout */
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/subscribe", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ userId }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    if (data.url) window.location.href = data.url;
+                  } catch (err) {
+                    alert(err instanceof Error ? err.message : "Failed to start checkout");
+                  }
+                }}
+                className="w-full py-3 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors"
+              >
+                Subscribe — S$5/month
+              </button>
+            )}
+
+            <button
+              onClick={() => { setShowUpgrade(false); setVerifyStep("idle"); setVerifyCode(""); setVerifyError(""); }}
+              className="w-full mt-3 py-2 text-sm text-slate-400 hover:text-slate-600"
+            >
+              Maybe later
+            </button>
           </div>
         </div>
       )}

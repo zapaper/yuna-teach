@@ -43,6 +43,8 @@ export async function POST(request: NextRequest) {
     role: user.role,
     level: user.level,
     createdAt: user.createdAt.toISOString(),
+    emailVerified: user.emailVerified,
+    subscriptionStatus: user.subscriptionStatus || "free",
     linkedStudents: user.parentLinks.map((l) => l.student),
     linkedParents: user.studentLinks.map((l) => l.parent),
   });

@@ -8,6 +8,8 @@ export interface User {
   role: Role;
   level: number | null;
   createdAt: string;
+  emailVerified?: boolean;
+  subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
   linkedStudents: { id: string; name: string }[];
   linkedParents: { id: string; name: string }[];
 }
