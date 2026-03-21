@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { canUse } from "@/lib/usage";
 
 function normalizeMcqAnswer(ans: string | null): string {
   if (!ans) return "";
@@ -22,13 +21,6 @@ export async function POST(request: NextRequest) {
 
   if (!userId || !quizType) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
-
-  // Free-tier limit check (find parent userId)
-  const parentLink = await prisma.parentStudent.findFirst({ where: { studentId: userId } });
-  const parentId = parentLink?.parentId ?? userId;
-  if (!(await canUse(parentId, "quiz"))) {
-    return NextResponse.json({ error: "Free tier limit reached. Upgrade to Premium for unlimited quizzes." }, { status: 403 });
   }
 
   const targetStudentId = studentId || userId;
