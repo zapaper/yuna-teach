@@ -421,7 +421,7 @@ function McqQuestionCard({
           <img
             src={`data:image/jpeg;base64,${question.diagramImageData}`}
             alt="Diagram"
-            className="max-h-48 rounded-lg border border-slate-100"
+            className="w-full rounded-lg border border-slate-100"
           />
         </div>
       )}
@@ -564,7 +564,7 @@ function OeqQuestionCard({
             <img
               src={`data:image/jpeg;base64,${question.diagramImageData}`}
               alt="Diagram"
-              className="max-h-48 rounded-lg border border-slate-100"
+              className="w-full rounded-lg border border-slate-100"
             />
           </div>
         )}
