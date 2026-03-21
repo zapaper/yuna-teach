@@ -19,7 +19,7 @@ interface ReviewQuestion {
   // Quiz-specific transcription fields
   transcribedStem?: string | null;
   transcribedOptions?: string[] | null;
-  transcribedSubparts?: { label: string; text: string }[] | null;
+  transcribedSubparts?: { label: string; text: string; refImageBase64?: string | null; diagramBase64?: string | null }[] | null;
   diagramImageData?: string | null;
 }
 
@@ -473,12 +473,12 @@ function ExamReviewContent({ id }: { id: string }) {
                       {currentQ.transcribedStem}
                     </p>
                     {currentQ.diagramImageData ? (
-                      <div className="flex justify-center">
+                      <div>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={`data:image/jpeg;base64,${currentQ.diagramImageData}`}
                           alt="Diagram"
-                          className="max-h-48 rounded-lg border border-slate-100"
+                          className="w-full rounded-lg border border-slate-100"
                         />
                       </div>
                     ) : null}
@@ -514,11 +514,21 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     ) : null}
                     {currentQ.transcribedSubparts && currentQ.transcribedSubparts.length > 0 ? (
-                      <div className="space-y-1 mt-1">
+                      <div className="space-y-2 mt-1">
                         {currentQ.transcribedSubparts.map((sp) => (
-                          <p key={sp.label} className="text-sm text-slate-700">
-                            <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
-                          </p>
+                          <div key={sp.label}>
+                            <p className="text-sm text-slate-700">
+                              <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
+                            </p>
+                            {sp.refImageBase64 && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={`data:image/jpeg;base64,${sp.refImageBase64}`}
+                                alt={`(${sp.label}) diagram`}
+                                className="w-full rounded-lg border border-slate-100 mt-1"
+                              />
+                            )}
+                          </div>
                         ))}
                       </div>
                     ) : null}
