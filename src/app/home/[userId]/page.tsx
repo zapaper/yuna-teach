@@ -147,7 +147,7 @@ export default function HomePage({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [guidePage, setGuidePage] = useState(0);
-  const GUIDE_PAGES = 4; // 0: welcome, 1: spelling, 2: exam papers, 3: focused practice
+  const GUIDE_PAGES = 5; // 0: welcome, 1: spelling, 2: exam papers, 3: focused practice, 4: daily quiz
 
   // Show guide on first visit for parents
   useEffect(() => {
@@ -934,6 +934,36 @@ export default function HomePage({
                   <div className="flex gap-3 items-start">
                     <span className="text-lg shrink-0 mt-0.5">&#x1F469;&#x200D;&#x1F3EB;</span>
                     <p className="text-sm text-slate-600">We encourage you to <strong>go through your child&apos;s mistakes</strong> and clarify any gaps in understanding.</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {guidePage === 4 && (
+              <>
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-2xl">&#x23F1;&#xFE0F;</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800">Daily Quiz</h2>
+                  <p className="text-xs text-slate-400 mt-1">Feature Guide</p>
+                </div>
+                <div className="space-y-3 mb-6">
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F4AA;</span>
+                    <p className="text-sm text-slate-600">Daily quizzes are a great way to get <strong>habitual bite-size practices</strong>.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F3EB;</span>
+                    <p className="text-sm text-slate-600">Questions are drawn from our <strong>top-school question banks</strong> appropriate for that level and semester.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x2705;</span>
+                    <p className="text-sm text-slate-600">You can choose <strong>MCQ-only quiz</strong> or <strong>MCQ + open-ended quiz</strong> (requires stylus).</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F469;&#x200D;&#x1F3EB;</span>
+                    <p className="text-sm text-slate-600">Again, we encourage you to <strong>go through the mistakes with your child</strong>.</p>
                   </div>
                 </div>
               </>
