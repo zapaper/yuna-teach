@@ -460,7 +460,7 @@ function TranscribeEditContent({ id }: { id: string }) {
                 onRemoveDiagram={() => updateQuestion(q.id, { diagramBounds: null, diagramBase64: null })}
                 onToggleOptionImages={(imageMode) => updateQuestion(q.id, {
                   optionImages: imageMode ? [null, null, null, null] : null,
-                  options: imageMode ? null : q.options,
+                  options: imageMode ? null : (q.options || ["", "", "", ""]),
                 })}
                 onToggleType={() => updateQuestion(q.id, {
                   type: q.type === "mcq" ? "open" : "mcq",
