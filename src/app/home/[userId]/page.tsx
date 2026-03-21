@@ -886,25 +886,24 @@ export default function HomePage({
                   <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
                     <span className="text-2xl">&#x1F4DD;</span>
                   </div>
-                  <h2 className="text-xl font-bold text-slate-800">Exam Papers</h2>
+                  <h2 className="text-xl font-bold text-slate-800">Assign Past Year Papers</h2>
                   <p className="text-xs text-slate-400 mt-1">Feature Guide</p>
                 </div>
+                <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                  These are past year papers from top schools. The AI will automatically mark and grade within 5 minutes of submission.
+                </p>
                 <div className="space-y-3 mb-6">
                   <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
-                    <p className="text-sm text-slate-600"><strong>Upload a past-year paper</strong> — Take photos or upload a PDF of the exam paper and its answer key.</p>
+                    <span className="text-lg shrink-0 mt-0.5">&#x270D;&#xFE0F;</span>
+                    <p className="text-sm text-slate-600">We encourage students to <strong>write with a stylus on the tablet</strong>. It takes a couple of minutes to get used to it.</p>
                   </div>
                   <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
-                    <p className="text-sm text-slate-600"><strong>Assign to your child</strong> — The paper appears on their home page as a &ldquo;To Do&rdquo; task.</p>
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F5A8;&#xFE0F;</span>
+                    <p className="text-sm text-slate-600">You can also choose to <strong>download &rarr; print &rarr; write &rarr; scan &rarr; submit</strong> the paper. If so, please make sure you scan the cover pages as well.</p>
                   </div>
                   <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
-                    <p className="text-sm text-slate-600"><strong>AI marks it</strong> — Once submitted, MCQ is auto-scored and written answers are marked by AI with feedback and model solutions.</p>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
-                    <p className="text-sm text-slate-600"><strong>Review together</strong> — Go through the results with your child. You can flag any question for re-marking or override the AI&apos;s score.</p>
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F469;&#x200D;&#x1F3EB;</span>
+                    <p className="text-sm text-slate-600">We encourage you to <strong>go through the mistakes with your child</strong>. Use &ldquo;AI explanation&rdquo; if you would like a more detailed explanation of the solution.</p>
                   </div>
                 </div>
               </>
