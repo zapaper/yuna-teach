@@ -28,6 +28,11 @@ type EditQuestion = {
   error: string | null;
 };
 
+/** Normalize an MCQ answer for comparison: "(2)" / "2." / " 2 " → "2" */
+function normalizeAnswer(ans: string): string {
+  return ans.trim().replace(/[().]/g, "").trim();
+}
+
 // Colors per draw target
 const TARGET_COLOR: Record<string, string> = {
   diagram: "#7c3aed",
@@ -696,7 +701,7 @@ function QuestionCard({
                   {[0, 1, 2, 3].map(i => {
                     const imgData = q.optionImages?.[i] ?? null;
                     const optColor = TARGET_COLOR[String(i)];
-                    const isThisAnswer = String(i + 1) === q.answer;
+                    const isThisAnswer = String(i + 1) === normalizeAnswer(q.answer);
                     return (
                       <div key={i} className={`rounded-xl border p-2 ${isThisAnswer ? "border-green-300 bg-green-50" : "border-slate-200 bg-white"}`}>
                         <div className="flex items-center gap-1.5 mb-1.5">
@@ -735,7 +740,7 @@ function QuestionCard({
               ) : (
                 // Text options
                 q.options ? q.options.map((opt, i) => (
-                  <div key={i} className={`flex items-start gap-2 rounded-xl px-3 py-2 border ${String(i + 1) === q.answer ? "border-green-300 bg-green-50" : "border-slate-200 bg-white"}`}>
+                  <div key={i} className={`flex items-start gap-2 rounded-xl px-3 py-2 border ${String(i + 1) === normalizeAnswer(q.answer) ? "border-green-300 bg-green-50" : "border-slate-200 bg-white"}`}>
                     <span className="font-mono text-xs text-slate-400 mt-2 shrink-0 w-5">({i + 1})</span>
                     <textarea
                       value={opt}
