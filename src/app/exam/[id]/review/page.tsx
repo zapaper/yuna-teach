@@ -626,10 +626,37 @@ function ExamReviewContent({ id }: { id: string }) {
                           <div>
                             <p className="text-xs font-semibold text-teal-500 uppercase tracking-wide mb-1">
                               AI Elaboration
+                              {!isStudent && (
+                                <button
+                                  onClick={async () => {
+                                    const updated = elaborations[currentQ.id];
+                                    if (!updated) return;
+                                    try {
+                                      await fetch(`/api/exam/questions/${currentQ.id}`, {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ elaboration: updated }),
+                                      });
+                                    } catch { /* ignore */ }
+                                  }}
+                                  className="ml-2 text-[10px] font-normal text-teal-400 hover:text-teal-600 normal-case"
+                                >
+                                  Save
+                                </button>
+                              )}
                             </p>
-                            <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3">
-                              {elaborations[currentQ.id]}
-                            </div>
+                            {!isStudent ? (
+                              <textarea
+                                value={elaborations[currentQ.id]}
+                                onChange={e => setElaborations(prev => ({ ...prev, [currentQ.id]: e.target.value }))}
+                                rows={6}
+                                className="w-full text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3 focus:outline-none focus:border-teal-400 resize-y"
+                              />
+                            ) : (
+                              <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3">
+                                {elaborations[currentQ.id]}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <button

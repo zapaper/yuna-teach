@@ -21,6 +21,7 @@ export async function PATCH(
   if ("markingNotes" in body) data.markingNotes = body.markingNotes ?? null;
   if ("syllabusTopic" in body) data.syllabusTopic = body.syllabusTopic ?? null;
   if ("studentAnswer" in body) data.studentAnswer = body.studentAnswer ?? null;
+  if ("elaboration" in body) data.elaboration = body.elaboration ?? null;
 
   let question;
   try {
