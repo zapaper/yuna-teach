@@ -39,11 +39,11 @@ export async function POST(request: NextRequest) {
   if (currentMonth <= 3) {
     allowedExamTypes = ["WA1"];
   } else if (currentMonth <= 6) {
-    allowedExamTypes = ["WA1", "WA2", "SA1"];
+    allowedExamTypes = ["WA1", "WA2", "SA1"];  // SA1 covers WA1+WA2 scope
   } else if (currentMonth <= 8) {
     allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
   }
-  // Sep-Dec: all types allowed (null = no filter)
+  // Sep-Dec: all types allowed including SA2, Prelim, End of Year etc.
 
   // Find all clean-extracted questions from master papers (matching level + semester)
   const allQuestions = await prisma.examQuestion.findMany({
