@@ -147,7 +147,7 @@ export default function HomePage({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [guidePage, setGuidePage] = useState(0);
-  const GUIDE_PAGES = 3; // 0: welcome, 1: spelling, 2: exam papers
+  const GUIDE_PAGES = 4; // 0: welcome, 1: spelling, 2: exam papers, 3: focused practice
 
   // Show guide on first visit for parents
   useEffect(() => {
@@ -904,6 +904,36 @@ export default function HomePage({
                   <div className="flex gap-3 items-start">
                     <span className="text-lg shrink-0 mt-0.5">&#x1F469;&#x200D;&#x1F3EB;</span>
                     <p className="text-sm text-slate-600">We encourage you to <strong>go through the mistakes with your child</strong>. Use &ldquo;AI explanation&rdquo; if you would like a more detailed explanation of the solution.</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {guidePage === 3 && (
+              <>
+                <div className="text-center mb-5">
+                  <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-3">
+                    <span className="text-2xl">&#x1F3AF;</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-800">Focused Practice</h2>
+                  <p className="text-xs text-slate-400 mt-1">Feature Guide</p>
+                </div>
+                <div className="space-y-3 mb-6">
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F4CA;</span>
+                    <p className="text-sm text-slate-600">All your child&apos;s work and performance is stored in the server. <strong>Click your child&apos;s name</strong> on your homepage to access the details.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F50D;</span>
+                    <p className="text-sm text-slate-600">The AI will show <strong>which topics your child is weak in</strong>, and you can assign &ldquo;focused practice&rdquo; on that weak topic.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F4DA;</span>
+                    <p className="text-sm text-slate-600">The AI will assign questions on that topic, <strong>drawn from our top school question bank</strong>. This will be auto-marked within 2 minutes of your child&apos;s submission.</p>
+                  </div>
+                  <div className="flex gap-3 items-start">
+                    <span className="text-lg shrink-0 mt-0.5">&#x1F469;&#x200D;&#x1F3EB;</span>
+                    <p className="text-sm text-slate-600">We encourage you to <strong>go through your child&apos;s mistakes</strong> and clarify any gaps in understanding.</p>
                   </div>
                 </div>
               </>
