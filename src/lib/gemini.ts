@@ -174,7 +174,12 @@ const MATH_OPEN_ENDED_TRANSCRIPTION_PROMPT = `You are transcribing a Singapore p
 The image shows ONE question. It may have sub-parts labeled (a), (b), (c), etc., or it may be a single question with no sub-parts.
 
 Your task:
-1. Extract the FULL question stem — everything before any sub-parts begin
+1. Extract the FULL question stem — this is ALL the text that appears BEFORE any sub-part labels like (a), (b), (c). This preamble/context is CRITICAL — it sets up the question and gives context to the sub-parts. Do NOT skip it.
+   Examples of stems:
+   - "The table below shows the number of apples sold over 4 days."
+   - "Ali had 120 stickers. He gave 1/3 of them to Ben."
+   - "A rectangular tank measures 30 cm by 20 cm by 15 cm."
+   If the question goes straight from the question number into (a) with NO preamble text, use an empty string for stem.
 2. Extract each sub-part label and its text separately
 3. If there are NO sub-parts, leave the subparts array empty and put the full question in stem
 4. Detect any diagram/figure in the question
@@ -182,6 +187,7 @@ ${DIAGRAM_BOUNDS_INSTRUCTION}
 
 Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
+- ALWAYS include ALL preamble/context text before (a) in the stem — never skip introductory sentences, given information, or setup text
 - Preserve all mathematical notation exactly (e.g. "1/2", "3.5 cm²", "2 × 4", "∠ABC")
 - Include units (e.g. "cm", "kg", "m²")
 - Do NOT include blank answer lines or answer boxes in the text
@@ -189,7 +195,7 @@ Rules:
 
 Return ONLY valid JSON, no markdown fences:
 {
-  "stem": "main question text (context, given info, or the question itself if no sub-parts)",
+  "stem": "ALL preamble/context text before the sub-parts (e.g. 'The table shows the number of students in each class.')",
   "subparts": [
     { "label": "a", "text": "sub-question text here" },
     { "label": "b", "text": "sub-question text here" }
@@ -315,7 +321,12 @@ const SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT = `You are transcribing a Singapor
 The image shows ONE question. It may have sub-parts labeled (a), (b), (c), etc., or it may be a single question with no sub-parts.
 
 Your task:
-1. Extract the FULL question stem — everything before any sub-parts begin
+1. Extract the FULL question stem — this is ALL the text that appears BEFORE any sub-part labels like (a), (b), (c). This preamble/context is CRITICAL — it sets up the question and gives context to the sub-parts. Do NOT skip it.
+   Examples of stems:
+   - "The diagram below shows a food chain in a pond."
+   - "John carried out an experiment to find out how light affects plant growth. He placed Plant A near a window and Plant B in a dark cupboard for 2 weeks."
+   - "Study the table below which shows the temperature of water at different times."
+   If the question goes straight from the question number into (a) with NO preamble text, use an empty string for stem.
 2. Extract each sub-part label and its text separately
 3. If there are NO sub-parts, leave the subparts array empty and put the full question in stem
 4. Detect any diagram/figure in the question
@@ -323,6 +334,7 @@ ${DIAGRAM_BOUNDS_INSTRUCTION}
 
 Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
+- ALWAYS include ALL preamble/context text before (a) in the stem — never skip introductory sentences, given information, experiment descriptions, or setup text
 - Preserve all scientific terms exactly (e.g. "photosynthesis", "condensation", "food chain", "life cycle")
 - Include units (e.g. "g", "cm", "°C", "km/h")
 - Do NOT include blank answer lines or answer boxes in the text
@@ -330,7 +342,7 @@ Rules:
 
 Return ONLY valid JSON, no markdown fences:
 {
-  "stem": "main question text (context, given info, or the question itself if no sub-parts)",
+  "stem": "ALL preamble/context text before the sub-parts (e.g. 'The diagram below shows a food chain in a pond.')",
   "subparts": [
     { "label": "a", "text": "sub-question text here" },
     { "label": "b", "text": "sub-question text here" }
