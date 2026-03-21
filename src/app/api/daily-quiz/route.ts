@@ -130,7 +130,22 @@ export async function POST(request: NextRequest) {
     const allSubparts: Subpart[] = [];
     for (const q of group) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
-      allSubparts.push(...subs.filter(s => !s.label.startsWith("_")));
+      const realSubs = subs.filter(s => !s.label.startsWith("_"));
+
+      // If this is NOT the first question in the group and it has its own diagram,
+      // attach that diagram to its subparts so they display it in the quiz
+      if (q !== first && q.diagramImageData && realSubs.length > 0) {
+        // Only attach to the first subpart of this group member (avoid repeating)
+        const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
+        const enriched = realSubs.map((sp, idx) =>
+          idx === 0 && !sp.refImageBase64
+            ? { ...sp, refImageBase64: diagramData }
+            : sp
+        );
+        allSubparts.push(...enriched);
+      } else {
+        allSubparts.push(...realSubs);
+      }
     }
     // Collect sentinels from all parts
     const sentinels: Subpart[] = [];
@@ -142,11 +157,17 @@ export async function POST(request: NextRequest) {
     const stems = group.map(q => (q.transcribedStem ?? "").trim()).filter(Boolean);
     const combinedStem = [...new Set(stems)].join("\n");
 
+    // Use the first question's diagram, or fall back to any later question's diagram
+    const diagramImageData = first.diagramImageData
+      || group.find(q => q.diagramImageData)?.diagramImageData
+      || null;
+
     return {
       ...first,
       transcribedStem: combinedStem,
       transcribedSubparts: allSubparts.length > 0 ? [...allSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
+      diagramImageData,
       // sourceLabel uses first question's paper info
     };
   }
