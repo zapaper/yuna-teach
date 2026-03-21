@@ -1552,7 +1552,7 @@ Keep the tone warm, positive, and age-appropriate for a primary school child. To
 
 // ── Focused test marking (handwritten answers, one submission page per question) ─
 
-const FOCUSED_MARKING_PROMPT = `You are marking a primary school student's handwritten answer for a math question. Be concise.
+const FOCUSED_MARKING_PROMPT = `You are marking a primary school student's handwritten answer for a math/science question. Be concise.
 
 HOW TO READ THE IMAGES:
 - Image 1: The printed question.
@@ -1564,15 +1564,16 @@ Marks available: {MARKS_AVAILABLE}
 
 Instructions:
 1. Read the student's blue-ink handwritten answer from Image 2.
-2. Compare against the expected answer.
+2. If the question has multiple sub-parts (a), (b), (c), mark EACH sub-part separately against its corresponding expected answer. Report marks and notes per sub-part.
+3. Compare against the expected answer.
    - If correct → FULL MARKS.
    - For written/worked answers: check if working/steps are partially correct → award PARTIAL marks.
    - If wrong with no correct working → ZERO marks.
    - For MCQ (single option answer): no partial marks.
-3. Record what you detected.
+4. Record what you detected.
 
 Return ONLY valid JSON (no markdown fences):
-{"questionId": "{QUESTION_ID}", "marksAvailable": {MARKS_AVAILABLE}, "marksAwarded": <number>, "studentAnswer": "<what the student wrote>", "notes": "<brief 1-sentence explanation or empty if full marks>"}`;
+{"questionId": "{QUESTION_ID}", "marksAvailable": {MARKS_AVAILABLE}, "marksAwarded": <number>, "studentAnswer": "<what the student wrote — for multi-part: (a) ... (b) ...>", "notes": "<for multi-part questions, give feedback per sub-part, e.g. '(a) Correct. (b) Wrong — should be 3/4 not 2/3.'>"}`;
 
 export async function markFocusedTest(paperId: string): Promise<void> {
   console.log(`[focused-marking] Starting for ${paperId}`);
@@ -1769,9 +1770,18 @@ export async function markQuizPaper(paperId: string): Promise<void> {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const parts: any[] = [];
 
-        // Use transcribed stem as the question text
+        // Use transcribed stem + subparts as the question text
         if (q.transcribedStem) {
-          parts.push({ text: `Question: ${q.transcribedStem}` });
+          let questionText = `Question: ${q.transcribedStem}`;
+          // Include subpart details so AI marks each part separately
+          const subparts = q.transcribedSubparts as { label: string; text: string }[] | null;
+          if (subparts && subparts.length > 0) {
+            const subpartTexts = subparts
+              .filter(sp => !sp.label.startsWith("_"))
+              .map(sp => `(${sp.label}) ${sp.text}`);
+            questionText += "\n" + subpartTexts.join("\n");
+          }
+          parts.push({ text: questionText });
         }
 
         // Add question image if available

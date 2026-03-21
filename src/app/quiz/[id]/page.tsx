@@ -321,6 +321,17 @@ function QuizContent({ id }: { id: string }) {
 
       {/* Single scrollable paper */}
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+        {/* Top submit button for MCQ+OEQ */}
+        {hasOeq && (
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 text-sm"
+          >
+            {submitting ? "Submitting..." : "Submit Quiz"}
+          </button>
+        )}
+
         {/* Section A: MCQ */}
         {mcqQuestions.length > 0 && (
           <>
