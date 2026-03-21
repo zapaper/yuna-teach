@@ -32,7 +32,20 @@ export async function POST(request: NextRequest) {
   });
   const levelFilter = student?.level ? `Primary ${student.level}` : undefined;
 
-  // Find all clean-extracted questions from master papers (Math, matching level)
+  // Determine which exam types are appropriate based on current month
+  // Jan-Mar: WA1 only | Apr-Jun: WA1, WA2 | Jul-Aug: WA1, WA2, WA3 | Sep-Dec: all
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+  let allowedExamTypes: string[] | null = null; // null = allow all
+  if (currentMonth <= 3) {
+    allowedExamTypes = ["WA1"];
+  } else if (currentMonth <= 6) {
+    allowedExamTypes = ["WA1", "WA2", "SA1"];
+  } else if (currentMonth <= 8) {
+    allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
+  }
+  // Sep-Dec: all types allowed (null = no filter)
+
+  // Find all clean-extracted questions from master papers (matching level + semester)
   const allQuestions = await prisma.examQuestion.findMany({
     where: {
       transcribedStem: { not: null },
@@ -42,6 +55,7 @@ export async function POST(request: NextRequest) {
         paperType: null,             // exclude focused tests / quizzes
         subject: { contains: subject === "science" ? "science" : "math", mode: "insensitive" },
         ...(levelFilter ? { level: levelFilter } : {}),
+        ...(allowedExamTypes ? { examType: { in: allowedExamTypes } } : {}),
       },
     },
     select: {
