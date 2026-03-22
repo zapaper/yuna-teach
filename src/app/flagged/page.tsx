@@ -17,6 +17,11 @@ interface FlaggedItem {
   paperTitle: string;
   subject: string | null;
   level: string | null;
+  school: string | null;
+  year: string | null;
+  examType: string | null;
+  transcribedStem: string | null;
+  syllabusTopic: string | null;
   studentName: string | null;
   parentName: string | null;
 }
@@ -72,22 +77,46 @@ export default function FlaggedPage() {
               }}
               className="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:border-primary-200 transition-colors"
             >
-              {/* Top row: paper info */}
-              <div className="px-4 py-2.5 border-b border-slate-50 flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-700 truncate">{item.paperTitle}</p>
-                  <p className="text-xs text-slate-400">
-                    {[item.subject, item.level].filter(Boolean).join(" · ")}
-                    {item.studentName ? ` · ${item.studentName}` : ""}
-                  </p>
+              {/* Top row: question identity */}
+              <div className="px-4 py-2.5 border-b border-slate-50">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-bold text-slate-800">
+                    Q{item.questionNum}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {item.year && (
+                      <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                        {item.year}
+                      </span>
+                    )}
+                    {item.examType && (
+                      <span className="text-[10px] font-medium text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">
+                        {item.examType}
+                      </span>
+                    )}
+                    {item.school && (
+                      <span className="text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
+                        {item.school}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span className="shrink-0 ml-2 text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                  Q{item.questionNum}
-                </span>
+                <p className="text-xs text-slate-400">
+                  {[item.subject, item.level].filter(Boolean).join(" · ")}
+                  {item.studentName ? ` · ${item.studentName}` : ""}
+                </p>
+                {item.syllabusTopic && (
+                  <p className="text-[10px] text-slate-400 mt-0.5">Topic: {item.syllabusTopic}</p>
+                )}
               </div>
 
               {/* Content */}
               <div className="px-4 py-2.5 space-y-1.5">
+                {/* Question text */}
+                {item.transcribedStem && (
+                  <p className="text-xs text-slate-600 line-clamp-2">{item.transcribedStem}</p>
+                )}
+
                 {/* Marks */}
                 <div className="flex items-center gap-3 text-xs">
                   <span className="text-slate-400">Marks:</span>
