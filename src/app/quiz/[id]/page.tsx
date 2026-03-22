@@ -316,22 +316,18 @@ function QuizContent({ id }: { id: string }) {
             </div>
           )}
           <span className="text-xs font-mono text-slate-400 tabular-nums">{formatTime(elapsed)}</span>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="px-3 py-1 rounded-lg bg-green-500 text-white text-xs font-medium hover:bg-green-600 disabled:opacity-50"
+          >
+            {submitting ? "..." : "Submit"}
+          </button>
         </div>
       </div>
 
       {/* Single scrollable paper */}
       <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-        {/* Top submit button for MCQ+OEQ */}
-        {hasOeq && (
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="w-full py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 text-sm"
-          >
-            {submitting ? "Submitting..." : "Submit Quiz"}
-          </button>
-        )}
-
         {/* Section A: MCQ */}
         {mcqQuestions.length > 0 && (
           <>
@@ -375,32 +371,7 @@ function QuizContent({ id }: { id: string }) {
           </>
         )}
 
-        {/* Inline submit at bottom for MCQ+OEQ */}
-        {hasOeq && (
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="w-full py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 text-sm mt-4"
-          >
-            {submitting ? "Submitting..." : "Submit Quiz"}
-          </button>
-        )}
       </div>
-
-      {/* Bottom bar — submit (MCQ-only; MCQ+OEQ has top button instead) */}
-      {!hasOeq && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-4 py-3 z-10">
-          <div className="max-w-2xl mx-auto">
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="w-full py-2.5 rounded-xl bg-green-500 text-white font-medium hover:bg-green-600 disabled:opacity-50 text-sm"
-            >
-              {submitting ? "Submitting..." : "Submit Quiz"}
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
