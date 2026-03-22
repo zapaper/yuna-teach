@@ -832,7 +832,7 @@ export default function HomePage({
                 <div className="space-y-3 mb-6">
                   <div className="flex gap-3 items-start">
                     <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
-                    <p className="text-sm text-slate-600"><strong>Upload exam papers</strong> — Scan or photograph your child&apos;s exam papers. The AI will extract and organise all the questions automatically.</p>
+                    <p className="text-sm text-slate-600"><strong>Spelling / &#x542C;&#x5199; helper</strong> — Let AI help explain and test your child.</p>
                   </div>
                   <div className="flex gap-3 items-start">
                     <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
