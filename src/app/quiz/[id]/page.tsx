@@ -268,7 +268,7 @@ function QuizContent({ id }: { id: string }) {
               onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
               className="flex-1 px-4 py-3 rounded-2xl bg-primary-500 text-white font-semibold hover:bg-primary-600"
             >
-              View Answers
+              Review Answers
             </button>
             <button
               onClick={() => router.push(`/home/${userId}`)}
