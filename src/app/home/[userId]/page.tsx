@@ -149,6 +149,20 @@ export default function HomePage({
   const [guidePage, setGuidePage] = useState(0);
   const GUIDE_PAGES = 5; // 0: welcome, 1: spelling, 2: exam papers, 3: focused practice, 4: daily quiz
 
+  // Badge system
+  const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number } | null>(null);
+
+  // Fetch quiz badge for students
+  useEffect(() => {
+    if (!user || isAdmin || isParent) return;
+    fetch(`/api/user/${userId}/quiz-badge`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.badge) setQuizBadge({ badge: data.badge, image: data.badgeImage, count: data.completedQuizzes });
+      })
+      .catch(() => {});
+  }, [user, userId, isAdmin, isParent]);
+
   // Show guide on first visit for parents
   useEffect(() => {
     if (!user || user.role !== "PARENT") return;
@@ -337,12 +351,20 @@ export default function HomePage({
           Scan Spelling / 听写
         </Link>
         {!isAdmin && !isParent && (
-          <button
-            onClick={() => setShowQuizSetup(true)}
-            className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-          >
-            Daily 20min Quiz
-          </button>
+          <div>
+            <button
+              onClick={() => setShowQuizSetup(true)}
+              className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+            >
+              Daily 20min Quiz
+            </button>
+            {quizBadge && (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
+                <span className="text-xs text-slate-500">{quizBadge.badge} ({quizBadge.count} completed)</span>
+              </div>
+            )}
+          </div>
         )}
         {isAdmin ? (
           <>

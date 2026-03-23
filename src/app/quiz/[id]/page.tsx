@@ -86,6 +86,9 @@ function QuizContent({ id }: { id: string }) {
   const [markingDone, setMarkingDone] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // Badge system
+  const [badgePopup, setBadgePopup] = useState<{ badge: string; image: string; message: string } | null>(null);
+
   useEffect(() => {
     (async () => {
       try {
@@ -209,6 +212,15 @@ function QuizContent({ id }: { id: string }) {
       await fetch(`/api/exam/${id}/mark`, { method: "POST" });
       if (hasOeq) setMarkingOeq(true);
 
+      // Check for badge milestone
+      try {
+        const badgeRes = await fetch(`/api/user/${userId}/quiz-badge`);
+        if (badgeRes.ok) {
+          const badgeData = await badgeRes.json();
+          if (badgeData.newBadge) setBadgePopup(badgeData.newBadge);
+        }
+      } catch { /* badge check is non-critical */ }
+
       setSubmitted(true);
     } finally {
       setSubmitting(false);
@@ -266,6 +278,28 @@ function QuizContent({ id }: { id: string }) {
             </button>
           </div>
         </div>
+
+        {/* Badge milestone popup */}
+        {badgePopup && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setBadgePopup(null)}>
+            <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center animate-bounce-in"
+              onClick={e => e.stopPropagation()}>
+              <div className="relative mx-auto w-28 h-28 mb-4">
+                <div className="absolute inset-0 animate-ping rounded-full bg-yellow-200 opacity-30" />
+                <img src={badgePopup.image} alt={badgePopup.badge} className="relative w-28 h-28 object-contain drop-shadow-lg" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Congratulations!</h2>
+              <p className="text-sm text-slate-600 leading-relaxed mb-5">{badgePopup.message}</p>
+              <button
+                onClick={() => setBadgePopup(null)}
+                className="px-6 py-2.5 rounded-2xl bg-primary-500 text-white font-semibold hover:bg-primary-600"
+              >
+                Awesome!
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
