@@ -401,13 +401,13 @@ const ShareableReport = forwardRef<
         {/* Header with branding */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, paddingBottom: 24, borderBottom: "3px solid #3b82f6" }}>
           <div>
-            <div style={{ fontSize: 32, fontWeight: 800, color: "#3b82f6" }}>MarkForYou.com</div>
-            <div style={{ fontSize: 14, color: "#94a3b8", marginTop: 4 }}>AI-Powered Learning Progress Report</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 24, fontWeight: 700, color: "#1e293b" }}>{data.student?.name}</div>
             <div style={{ fontSize: 14, color: "#64748b", marginTop: 2 }}>{subject}</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>Generated {new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 32, fontWeight: 800, color: "#3b82f6" }}>MarkForYou.com</div>
+            <div style={{ fontSize: 14, color: "#94a3b8", marginTop: 4 }}>AI-Powered Learning Progress Report</div>
           </div>
         </div>
 
