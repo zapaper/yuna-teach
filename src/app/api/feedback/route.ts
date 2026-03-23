@@ -7,9 +7,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Message is required" }, { status: 400 });
   }
 
+  // Look up user name and email
+  let userName: string | null = null;
+  let userEmail: string | null = null;
+  if (userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true },
+    });
+    userName = user?.name ?? null;
+    userEmail = user?.email ?? null;
+  }
+
   await prisma.feedback.create({
     data: {
       userId: userId || null,
+      userName,
+      userEmail,
       message: message.trim(),
     },
   });

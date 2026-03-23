@@ -165,6 +165,8 @@ model InviteCode {
 model Feedback {
   id        String   @id @default(cuid())
   userId    String?
+  userName  String?
+  userEmail String?
   message   String
   createdAt DateTime @default(now())
 
