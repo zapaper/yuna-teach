@@ -70,6 +70,7 @@ export interface ExamPaperSummary {
   paperType: string | null;
   examType: string | null;
   syllabusTagged: boolean;
+  cleanExtracted: boolean;
   flaggedCount: number;
   unreleasedAssignmentCount: number;
   pendingReviewCount: number;

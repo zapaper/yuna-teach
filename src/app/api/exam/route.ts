@@ -101,7 +101,11 @@ export async function GET(request: NextRequest) {
     include: {
       _count: { select: { questions: true, clones: true } },
       assignedTo: { select: { id: true, name: true } },
-      questions: { where: { syllabusTopic: { not: null } }, select: { id: true }, take: 1 },
+      questions: {
+        where: { OR: [{ syllabusTopic: { not: null } }, { transcribedStem: { not: null } }] },
+        select: { id: true, transcribedStem: true },
+        take: 1,
+      },
       clones: {
         where: linkedStudentIds !== null ? { assignedToId: { in: linkedStudentIds } } : undefined,
         select: {
@@ -133,6 +137,7 @@ export async function GET(request: NextRequest) {
       paperType: p.paperType ?? null,
       examType: p.examType ?? null,
       syllabusTagged: p.questions.length > 0,
+      cleanExtracted: p.questions.some(q => !!q.transcribedStem),
       flaggedCount: p.clones.reduce((sum, c) => sum + c._count.questions, 0),
       unreleasedAssignmentCount: p.clones.filter((c) => c.markingStatus !== "released").length,
       pendingReviewCount: p.clones.filter((c) => c.markingStatus === "complete").length,

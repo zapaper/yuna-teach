@@ -202,6 +202,11 @@ export default function ExamPaperCard({
               {paper.title}
             </h3>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
+              {isAdmin && paper.cleanExtracted && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-teal-50 text-teal-600 border border-teal-200">
+                  Clean Extracted
+                </span>
+              )}
               {isQuiz ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
                   Quiz
