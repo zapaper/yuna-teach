@@ -265,6 +265,11 @@ export default function HomePage({
         {user?.role === "STUDENT" && user.level ? (
           <p className="text-slate-500 text-sm mt-1">Primary {user.level}</p>
         ) : null}
+        {quizBadge && (
+          <div className="flex items-center justify-center gap-1.5 mt-2">
+            <img src={quizBadge.image} alt={quizBadge.badge} className="w-7 h-7 object-contain" />
+          </div>
+        )}
 
         {/* Linked users info */}
         {isParent && user?.linkedStudents && user.linkedStudents.length > 0 ? (
@@ -351,20 +356,12 @@ export default function HomePage({
           Scan Spelling / 听写
         </Link>
         {!isAdmin && !isParent && (
-          <div>
-            <button
-              onClick={() => setShowQuizSetup(true)}
-              className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-            >
-              Daily 20min Quiz
-            </button>
-            {quizBadge && (
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
-                <span className="text-xs text-slate-500">{quizBadge.badge} ({quizBadge.count} completed)</span>
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => setShowQuizSetup(true)}
+            className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+          >
+            Daily 20min Quiz
+          </button>
         )}
         {isAdmin ? (
           <>
