@@ -45,39 +45,33 @@ const TOPIC_COLORS = [
   "#f97316", "#ec4899", "#14b8a6", "#84cc16", "#a855f7", "#0ea5e9",
 ];
 
-/** Generate a 1-paragraph AI-like summary from topic data */
-function generateSummary(
+/** Generate a structured summary for ONE subject */
+function generateSubjectSummary(
   studentName: string,
-  subjects: Record<string, SubjectData>
-): string {
-  const parts: string[] = [];
+  subject: string,
+  sd: SubjectData
+): { headline: string; strong: string | null; gaps: string | null } {
+  const topicEntries = Object.entries(sd.topics).filter(([t]) => t !== "Untagged");
+  if (topicEntries.length === 0) return { headline: "No data yet.", strong: null, gaps: null };
 
-  for (const [subject, sd] of Object.entries(subjects)) {
-    const topicEntries = Object.entries(sd.topics).filter(([t]) => t !== "Untagged");
-    if (topicEntries.length === 0) continue;
+  const totalEarned = topicEntries.reduce((s, [, t]) => s + t.earned, 0);
+  const totalAvailable = topicEntries.reduce((s, [, t]) => s + t.available, 0);
+  const overallPct = totalAvailable > 0 ? Math.round((totalEarned / totalAvailable) * 100) : 0;
 
-    const totalEarned = topicEntries.reduce((s, [, t]) => s + t.earned, 0);
-    const totalAvailable = topicEntries.reduce((s, [, t]) => s + t.available, 0);
-    const overallPct = totalAvailable > 0 ? Math.round((totalEarned / totalAvailable) * 100) : 0;
+  const weak = topicEntries
+    .filter(([, t]) => t.available > 0 && (t.earned / t.available) < 0.6)
+    .sort(([, a], [, b]) => (a.earned / a.available) - (b.earned / b.available))
+    .map(([name]) => name);
+  const strong = topicEntries
+    .filter(([, t]) => t.available > 0 && (t.earned / t.available) >= 0.8)
+    .map(([name]) => name);
 
-    // Find weak topics (< 60%) and strong topics (>= 80%)
-    const weak = topicEntries
-      .filter(([, t]) => t.available > 0 && (t.earned / t.available) < 0.6)
-      .sort(([, a], [, b]) => (a.earned / a.available) - (b.earned / b.available))
-      .map(([name]) => name);
-    const strong = topicEntries
-      .filter(([, t]) => t.available > 0 && (t.earned / t.available) >= 0.8)
-      .map(([name]) => name);
-
-    let line = `${subject}: Overall ${overallPct}% across ${sd.examCount} exam${sd.examCount !== 1 ? "s" : ""}.`;
-    if (strong.length > 0) line += ` Strong in ${strong.slice(0, 3).join(", ")}.`;
-    if (weak.length > 0) line += ` Gaps in ${weak.slice(0, 3).join(", ")}.`;
-    else line += " No significant gaps detected.";
-    parts.push(line);
-  }
-
-  if (parts.length === 0) return "No exam data available yet. Assign exams to start tracking progress.";
-  return `${studentName}'s Performance Summary: ${parts.join(" ")}`;
+  const headline = `${studentName}'s ${subject}: Overall ${overallPct}% across ${sd.examCount} exam${sd.examCount !== 1 ? "s" : ""}.`;
+  return {
+    headline,
+    strong: strong.length > 0 ? strong.slice(0, 4).join(", ") : null,
+    gaps: weak.length > 0 ? weak.slice(0, 4).join(", ") : null,
+  };
 }
 
 function ProgressContent({ studentId }: { studentId: string }) {
@@ -183,7 +177,9 @@ function ProgressContent({ studentId }: { studentId: string }) {
   const subjects = data ? Object.keys(data.subjects) : [];
   const currentSubject = activeSubject && data?.subjects[activeSubject];
   const currentTimeline = activeSubject && data?.timeline[activeSubject];
-  const summary = data ? generateSummary(data.student?.name ?? "Student", data.subjects) : "";
+  const subjectSummary = (activeSubject && currentSubject && data)
+    ? generateSubjectSummary(data.student?.name ?? "Student", activeSubject, currentSubject)
+    : null;
 
   return (
     <div className="p-6 pb-24 max-w-2xl mx-auto">
@@ -198,13 +194,11 @@ function ProgressContent({ studentId }: { studentId: string }) {
         Home
       </button>
 
-      {/* Header card */}
-      <div className="rounded-2xl bg-gradient-to-br from-primary-500 to-primary-700 text-white p-5 mb-5 shadow-lg">
-        <div className="flex items-center justify-between mb-3">
+      {/* Header */}
+      <div className="mb-5">
+        <div className="rounded-t-2xl bg-gradient-to-r from-primary-500 to-primary-700 text-white px-5 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">
-              {data?.student?.name || "Student"}
-            </h1>
+            <h1 className="text-2xl font-bold">{data?.student?.name || "Student"}</h1>
             <p className="text-primary-100 text-sm mt-0.5">Learning Progress Report</p>
           </div>
           <button
@@ -220,10 +214,23 @@ function ProgressContent({ studentId }: { studentId: string }) {
             {sharing ? "..." : "Share"}
           </button>
         </div>
-        {summary && (
-          <p className="text-sm text-primary-50 leading-relaxed bg-white/10 rounded-xl p-3">
-            {summary}
-          </p>
+        {subjectSummary && (
+          <div className="rounded-b-2xl border border-t-0 border-slate-200 bg-white px-5 py-4">
+            <p className="text-sm text-slate-700 leading-relaxed">{subjectSummary.headline}</p>
+            {subjectSummary.strong && (
+              <p className="text-sm text-slate-700 leading-relaxed mt-2">
+                <strong className="text-green-700">Strong in:</strong> {subjectSummary.strong}
+              </p>
+            )}
+            {subjectSummary.gaps && (
+              <p className="text-sm text-slate-700 leading-relaxed mt-1">
+                <strong className="text-red-600">Gaps in:</strong> {subjectSummary.gaps}
+              </p>
+            )}
+            {!subjectSummary.gaps && !subjectSummary.strong && (
+              <p className="text-sm text-slate-400 mt-2">Not enough data to identify strengths or gaps yet.</p>
+            )}
+          </div>
         )}
       </div>
 
@@ -350,9 +357,15 @@ function ProgressContent({ studentId }: { studentId: string }) {
       )}
 
       {/* ── Hidden shareable report (off-screen, rendered for html2canvas) ── */}
-      {data && subjects.length > 0 && (
+      {data && activeSubject && currentSubject && (
         <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
-          <ShareableReport ref={reportRef} data={data} summary={summary} />
+          <ShareableReport
+            ref={reportRef}
+            data={data}
+            subject={activeSubject}
+            subjectData={currentSubject}
+            summary={subjectSummary!}
+          />
         </div>
       )}
     </div>
@@ -365,9 +378,14 @@ function ProgressContent({ studentId }: { studentId: string }) {
 
 import { forwardRef } from "react";
 
-const ShareableReport = forwardRef<HTMLDivElement, { data: ProgressData; summary: string }>(
-  function ShareableReport({ data, summary }, ref) {
-    const subjects = Object.entries(data.subjects);
+const ShareableReport = forwardRef<
+  HTMLDivElement,
+  { data: ProgressData; subject: string; subjectData: SubjectData; summary: { headline: string; strong: string | null; gaps: string | null } }
+>(
+  function ShareableReport({ data, subject, subjectData, summary }, ref) {
+    const topicEntries = Object.entries(subjectData.topics)
+      .filter(([t]) => t !== "Untagged")
+      .sort(([, a], [, b]) => (a.available > 0 ? a.earned / a.available : 0) - (b.available > 0 ? b.earned / b.available : 0));
 
     return (
       <div
@@ -388,64 +406,62 @@ const ShareableReport = forwardRef<HTMLDivElement, { data: ProgressData; summary
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 24, fontWeight: 700, color: "#1e293b" }}>{data.student?.name}</div>
+            <div style={{ fontSize: 14, color: "#64748b", marginTop: 2 }}>{subject}</div>
             <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>Generated {new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })}</div>
           </div>
         </div>
 
         {/* Summary */}
-        <div style={{ background: "linear-gradient(135deg, #eff6ff, #dbeafe)", borderRadius: 16, padding: 24, marginBottom: 32 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#3b82f6", marginBottom: 8 }}>Performance Summary</div>
-          <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.6 }}>{summary}</div>
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.7 }}>{summary.headline}</div>
+          {summary.strong && (
+            <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.7, marginTop: 8 }}>
+              <span style={{ fontWeight: 700, color: "#15803d" }}>Strong in: </span>{summary.strong}
+            </div>
+          )}
+          {summary.gaps && (
+            <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.7, marginTop: 4 }}>
+              <span style={{ fontWeight: 700, color: "#dc2626" }}>Gaps in: </span>{summary.gaps}
+            </div>
+          )}
         </div>
 
-        {/* Subject sections */}
-        {subjects.map(([subject, sd]) => {
-          const topicEntries = Object.entries(sd.topics)
-            .filter(([t]) => t !== "Untagged")
-            .sort(([, a], [, b]) => (a.available > 0 ? a.earned / a.available : 0) - (b.available > 0 ? b.earned / b.available : 0));
-
-          return (
-            <div key={subject} style={{ marginBottom: 32 }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: "#1e293b", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                {subject}
-                <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 400 }}>
-                  ({sd.examCount} exam{sd.examCount !== 1 ? "s" : ""})
-                </span>
+        {/* Topic cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 32 }}>
+          {topicEntries.map(([topic, td]) => {
+            const pct = td.available > 0 ? Math.round((td.earned / td.available) * 100) : 0;
+            const barColor = pct >= 70 ? "#22c55e" : pct >= 40 ? "#f59e0b" : "#ef4444";
+            const badgeBg = pct >= 70 ? "#f0fdf4" : pct >= 40 ? "#fffbeb" : "#fef2f2";
+            const badgeColor = pct >= 70 ? "#15803d" : pct >= 40 ? "#b45309" : "#dc2626";
+            return (
+              <div key={topic} style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#ffffff" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#1e293b" }}>{topic}</span>
+                  <span style={{
+                    fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+                    backgroundColor: badgeBg, color: badgeColor,
+                  }}>
+                    {pct}%
+                  </span>
+                </div>
+                <div style={{ height: 8, backgroundColor: "#f1f5f9", borderRadius: 999, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, backgroundColor: barColor, borderRadius: 999 }} />
+                </div>
+                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
+                  {td.earned}/{td.available} marks &middot; {td.count} questions
+                </div>
               </div>
+            );
+          })}
+        </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {topicEntries.map(([topic, td]) => {
-                  const pct = td.available > 0 ? Math.round((td.earned / td.available) * 100) : 0;
-                  const barColor = pct >= 70 ? "#22c55e" : pct >= 40 ? "#f59e0b" : "#ef4444";
-                  const badgeBg = pct >= 70 ? "#f0fdf4" : pct >= 40 ? "#fffbeb" : "#fef2f2";
-                  const badgeColor = pct >= 70 ? "#15803d" : pct >= 40 ? "#b45309" : "#dc2626";
-                  return (
-                    <div key={topic} style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#ffffff" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: "#1e293b" }}>{topic}</span>
-                        <span style={{
-                          fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
-                          backgroundColor: badgeBg, color: badgeColor,
-                        }}>
-                          {pct}%
-                        </span>
-                      </div>
-                      <div style={{ height: 8, backgroundColor: "#f1f5f9", borderRadius: 999, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${pct}%`, backgroundColor: barColor, borderRadius: 999 }} />
-                      </div>
-                      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-                        {td.earned}/{td.available} marks &middot; {td.count} questions
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+        {/* CTA */}
+        <div style={{ fontSize: 14, color: "#3b82f6", fontWeight: 500, textAlign: "center", marginBottom: 32 }}>
+          Visit MarkForYou.com to create personalised practices for identified gaps.
+        </div>
 
         {/* Footer branding */}
-        <div style={{ marginTop: 32, paddingTop: 24, borderTop: "3px solid #3b82f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ paddingTop: 24, borderTop: "3px solid #3b82f6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 24, fontWeight: 800, color: "#3b82f6" }}>MarkForYou.com</div>
           <div style={{ fontSize: 12, color: "#94a3b8" }}>AI-powered exam marking &middot; Personalised learning gaps analysis &middot; Focused practice</div>
         </div>
