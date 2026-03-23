@@ -829,23 +829,12 @@ export default function HomePage({
                   This is your AI assistant to help you be super effective and efficient in guiding your child&apos;s work.
                   We encourage you to stay in charge of your child&apos;s learning, but let the AI do the tedious work for you.
                 </p>
-                <div className="space-y-3 mb-6">
-                  <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
-                    <p className="text-sm text-slate-600"><strong>Spelling / &#x542C;&#x5199; helper</strong> — Let AI help explain and test your child.</p>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
-                    <p className="text-sm text-slate-600"><strong>AI marks the paper</strong> — Written answers are marked instantly by AI, with detailed feedback and model solutions for every question.</p>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
-                    <p className="text-sm text-slate-600"><strong>Review and guide</strong> — Check the AI&apos;s marking, review your child&apos;s mistakes, and use the progress tracker to spot weak areas.</p>
-                  </div>
-                  <div className="flex gap-3 items-start">
-                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
-                    <p className="text-sm text-slate-600"><strong>Focused practice</strong> — Generate targeted worksheets on topics your child needs more practice on. The AI handles the repetitive work so you can focus on coaching.</p>
-                  </div>
+                <div className="bg-blue-50 rounded-xl p-4 mb-4">
+                  <p className="text-sm text-slate-700 leading-relaxed">
+                    <strong>We recommend you start by</strong> creating a child account, linking it, and letting your child do <strong>1–2 daily quizzes</strong> (20 mins each).
+                    From there the AI will automatically mark and diagnose gaps to improve.
+                    You can then move on to <strong>customised focused practice</strong> or <strong>assign past-year papers</strong>.
+                  </p>
                 </div>
               </>
             )}
