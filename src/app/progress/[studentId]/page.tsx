@@ -66,7 +66,7 @@ function generateSubjectSummary(
     .filter(([, t]) => t.available > 0 && (t.earned / t.available) >= 0.8)
     .map(([name]) => name);
 
-  const headline = `${studentName}'s ${subject}: Overall ${overallPct}% across ${sd.examCount} exam${sd.examCount !== 1 ? "s" : ""}.`;
+  const headline = `${studentName}'s ${subject}: Overall ${overallPct}th Percentile across ${sd.examCount} exam${sd.examCount !== 1 ? "s" : ""}.`;
   return {
     headline,
     strong: strong.length > 0 ? strong.slice(0, 4).join(", ") : null,
@@ -310,7 +310,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="font-semibold text-slate-800">{topic}</h3>
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
-                            {pct}%
+                            {pct}th Percentile
                           </span>
                         </div>
                         <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-3">
@@ -441,7 +441,7 @@ const ShareableReport = forwardRef<
                     fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
                     backgroundColor: badgeBg, color: badgeColor,
                   }}>
-                    {pct}%
+                    {pct}th Pctl
                   </span>
                 </div>
                 <div style={{ height: 8, backgroundColor: "#f1f5f9", borderRadius: 999, overflow: "hidden" }}>
