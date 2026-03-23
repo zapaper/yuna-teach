@@ -271,7 +271,7 @@ export default function HomePage({
           <div className="flex flex-wrap justify-center gap-2 mt-3">
             {user.linkedStudents.map((s) => (
               <Link key={s.id} href={`/progress/${s.id}?parentId=${userId}`}
-                className="inline-flex items-center px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-medium hover:bg-primary-100 transition-colors">
+                className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 text-primary-800 text-base font-bold hover:bg-primary-200 transition-colors shadow-sm">
                 {s.name}
               </Link>
             ))}
