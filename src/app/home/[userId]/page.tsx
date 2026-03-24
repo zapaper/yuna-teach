@@ -299,34 +299,7 @@ export default function HomePage({
         ) : null}
       </div>
 
-      {/* Parent dashboard summary cards */}
-      {isParent && hasLinkedStudents && examPapers.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 mb-6">
-          {(() => {
-            const pending = examPapers.filter(p => p.pendingReviewCount > 0).length;
-            const lastMarked = examPapers.find(p => p.score != null);
-            const totalCompleted = examPapers.filter(p => p.completedAt).length;
-            return (
-              <>
-                <div className="bg-amber-50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-amber-600">{pending}</p>
-                  <p className="text-[10px] text-amber-700 font-medium mt-0.5">Pending Review</p>
-                </div>
-                <div className="bg-green-50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-green-600">
-                    {lastMarked?.score != null ? `${lastMarked.score}${lastMarked.totalMarks ? `/${lastMarked.totalMarks}` : ""}` : "—"}
-                  </p>
-                  <p className="text-[10px] text-green-700 font-medium mt-0.5">Last Score</p>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-3 text-center">
-                  <p className="text-2xl font-bold text-blue-600">{totalCompleted}</p>
-                  <p className="text-[10px] text-blue-700 font-medium mt-0.5">Completed</p>
-                </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
+
 
       {/* Invite / Connect section */}
       <div className="mb-6">
