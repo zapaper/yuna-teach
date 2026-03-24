@@ -18,14 +18,13 @@ export async function GET(
 ) {
   const { userId } = await params;
 
-  // Count completed quizzes (paperType = "quiz" with a completedAt)
-  const count = await prisma.examPaper.count({
-    where: {
-      assignedToId: userId,
-      paperType: "quiz",
-      completedAt: { not: null },
-    },
+  // Single query: get completed quiz dates (used for count, badge, and streak)
+  const completedQuizzes = await prisma.examPaper.findMany({
+    where: { assignedToId: userId, paperType: "quiz", completedAt: { not: null } },
+    select: { completedAt: true },
+    orderBy: { completedAt: "desc" },
   });
+  const count = completedQuizzes.length;
 
   // Determine current badge tier
   let badge: string | null = null;
@@ -66,20 +65,13 @@ export async function GET(
   const newBadge = milestones.find(m => m.count === count) ?? null;
 
   // Calculate streak — count consecutive days with at least one completed quiz
-  const recentQuizzes = await prisma.examPaper.findMany({
-    where: { assignedToId: userId, paperType: "quiz", completedAt: { not: null } },
-    select: { completedAt: true },
-    orderBy: { completedAt: "desc" },
-    take: 60, // check up to 60 most recent
-  });
-
   let streak = 0;
-  if (recentQuizzes.length > 0) {
+  if (completedQuizzes.length > 0) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const dayMs = 86400000;
     const quizDays = new Set(
-      recentQuizzes.map(q => {
+      completedQuizzes.map(q => {
         const d = new Date(q.completedAt!);
         d.setHours(0, 0, 0, 0);
         return d.getTime();
