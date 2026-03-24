@@ -137,6 +137,7 @@ export default function HomePage({
   const isAdmin = user?.name?.toLowerCase() === "admin";
   const hasLinkedStudents = (user?.linkedStudents?.length ?? 0) > 0;
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
+  const [showAllPapers, setShowAllPapers] = useState(false);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science">("math");
@@ -455,204 +456,21 @@ export default function HomePage({
       </div>
 
       {/* Exam papers list */}
-      <div className="mt-8" id="exam-papers-section">
-        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
-          Exam Papers
-        </h2>
-
-        {/* Level filter — for parents/admin */}
-        {(() => {
-          const levels = [...new Set(examPapers.map((p) => p.level).filter(Boolean))] as string[];
-          if (levels.length === 0) return null;
-          levels.sort();
-          return (
-            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
-              <button
-                onClick={() => setLevelFilter(null)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                  levelFilter === null
-                    ? "bg-green-500 text-white"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}
-              >
-                All Levels
-              </button>
-              {levels.map((l) => (
-                <button
-                  key={l}
-                  onClick={() => setLevelFilter(l)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                    levelFilter === l
-                      ? "bg-green-500 text-white"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                  }`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-          );
-        })()}
-
-        {/* Subject tabs */}
-        {(() => {
-          const subjects = [...new Set(examPapers.map((p) => p.subject).filter(Boolean))] as string[];
-          if (subjects.length === 0) return null;
-          return (
-            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
-              <button
-                onClick={() => setSubjectFilter(null)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                  subjectFilter === null
-                    ? "bg-primary-500 text-white"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}
-              >
-                All Subjects
-              </button>
-              {subjects.sort().map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSubjectFilter(s)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                    subjectFilter === s
-                      ? "bg-primary-500 text-white"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          );
-        })()}
-
-        {/* Exam type tabs */}
-        {(() => {
-          const types = [...new Set(examPapers.map((p) => p.examType).filter(Boolean))] as string[];
-          if (types.length === 0) return null;
-          const order = ["Preliminary", "WA1", "WA2", "WA3", "End of Year"];
-          types.sort((a, b) => {
-            const ia = order.indexOf(a), ib = order.indexOf(b);
-            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-          });
-          return (
-            <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
-              <button
-                onClick={() => setExamTypeFilter(null)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                  examTypeFilter === null
-                    ? "bg-purple-500 text-white"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}
-              >
-                All Types
-              </button>
-              {types.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setExamTypeFilter(t)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                    examTypeFilter === t
-                      ? "bg-purple-500 text-white"
-                      : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          );
-        })()}
-
-        {(() => {
-          let filtered = examPapers;
-          if (levelFilter) filtered = filtered.filter((p) => p.level === levelFilter);
-          if (subjectFilter) filtered = filtered.filter((p) => p.subject === subjectFilter);
-          if (examTypeFilter) filtered = filtered.filter((p) => p.examType === examTypeFilter);
-
-          // Split into assigned/pending and regular/completed papers
-          const assignedPapers = isParent
-            ? filtered.filter((p) => p.pendingReviewCount > 0)
-            : !isAdmin
-            ? filtered.filter((p) => !p.completedAt)
-            : [];
-          const regularPapers = isParent
-            ? filtered.filter((p) => p.pendingReviewCount === 0)
-            : !isAdmin
-            ? filtered.filter((p) => p.completedAt)
-            : filtered;
-
-          return loading ? null : filtered.length === 0 ? (
-            <div className="text-center py-10 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
-              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
-              </div>
-              <p className="text-slate-600 font-medium">
-                {examPapers.length === 0 ? "No exam papers yet" : "No matching papers"}
-              </p>
-              <p className="text-slate-400 text-sm mt-1">
-                {examPapers.length === 0
-                  ? isParent ? "Assign a past-year paper to get started" : !isAdmin ? "Take a daily quiz while waiting!" : null
-                  : "Try changing your filters"}
-              </p>
-              {!isAdmin && !isParent && examPapers.length === 0 && (
-                <button onClick={() => setShowQuizSetup(true)} className="inline-block mt-3 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-medium hover:opacity-90">
-                  Start a Quiz
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              {/* Assigned / To Do section */}
-              {assignedPapers.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-3">
-                    {isParent ? "Pending Review" : "To Do"}
-                  </h3>
-                  <div className="space-y-3">
-                    {assignedPapers.map((paper) => (
-                      <ExamPaperCard
-                        key={paper.id}
-                        paper={paper}
-                        userId={userId}
-                        userRole={user?.role}
-                        isAdmin={isAdmin}
-                        onDelete={isAdmin || (isParent && paper.paperType === "focused") || (!isParent && !isAdmin && paper.paperType === "quiz") ? handleDeleteExam : undefined}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Regular / Completed Exam Papers */}
-              {regularPapers.length > 0 ? (
-                <div className="space-y-3">
-                  {(isParent || (!isAdmin && assignedPapers.length > 0)) && (
-                    <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                      {isParent ? "Exams" : "Completed"}
-                    </h3>
-                  )}
-                  {regularPapers.map((paper) => (
-                    <ExamPaperCard
-                      key={paper.id}
-                      paper={paper}
-                      userId={userId}
-                      userRole={user?.role}
-                      isAdmin={isAdmin}
-                      onDelete={isAdmin || (isParent && paper.paperType === "focused") || (!isParent && !isAdmin && paper.paperType === "quiz") ? handleDeleteExam : undefined}
-                    />
-                  ))}
-                </div>
-              ) : assignedPapers.length === 0 ? (
-                <div className="text-center py-8 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
-                  <p className="text-slate-500">No exam papers yet.</p>
-                </div>
-              ) : null}
-            </>
-          );
-        })()}
-      </div>
+      <ExamPapersSection
+        examPapers={examPapers}
+        loading={loading}
+        isParent={isParent}
+        isAdmin={isAdmin}
+        userId={userId}
+        userRole={user?.role}
+        showAllPapers={showAllPapers}
+        setShowAllPapers={setShowAllPapers}
+        levelFilter={levelFilter} setLevelFilter={setLevelFilter}
+        subjectFilter={subjectFilter} setSubjectFilter={setSubjectFilter}
+        examTypeFilter={examTypeFilter} setExamTypeFilter={setExamTypeFilter}
+        onDeleteExam={handleDeleteExam}
+        onStartQuiz={() => setShowQuizSetup(true)}
+      />
 
       {/* Quiz setup modal */}
       {showQuizSetup && (
@@ -1060,6 +878,189 @@ export default function HomePage({
             )}
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/*  ExamPapersSection — extracted for cleaner structure                       */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+function ExamPapersSection({
+  examPapers, loading, isParent, isAdmin, userId, userRole,
+  showAllPapers, setShowAllPapers,
+  levelFilter, setLevelFilter,
+  subjectFilter, setSubjectFilter,
+  examTypeFilter, setExamTypeFilter,
+  onDeleteExam, onStartQuiz,
+}: {
+  examPapers: ExamPaperSummary[];
+  loading: boolean;
+  isParent: boolean;
+  isAdmin: boolean;
+  userId: string;
+  userRole?: "PARENT" | "STUDENT";
+  showAllPapers: boolean;
+  setShowAllPapers: (fn: (v: boolean) => boolean) => void;
+  levelFilter: string | null; setLevelFilter: (v: string | null) => void;
+  subjectFilter: string | null; setSubjectFilter: (v: string | null) => void;
+  examTypeFilter: string | null; setExamTypeFilter: (v: string | null) => void;
+  onDeleteExam: (id: string) => void;
+  onStartQuiz: () => void;
+}) {
+  const [showCompleted, setShowCompleted] = useState(false);
+
+  // Apply filters
+  let filtered = examPapers;
+  if (levelFilter) filtered = filtered.filter(p => p.level === levelFilter);
+  if (subjectFilter) filtered = filtered.filter(p => p.subject === subjectFilter);
+  if (examTypeFilter) filtered = filtered.filter(p => p.examType === examTypeFilter);
+
+  // Split papers by role
+  const pendingPapers = isParent ? filtered.filter(p => p.pendingReviewCount > 0) : [];
+  const todoPapers = !isParent && !isAdmin ? filtered.filter(p => !p.completedAt) : [];
+  const completedPapers = !isParent && !isAdmin ? filtered.filter(p => p.completedAt) : [];
+  const allPapers = isParent ? filtered : isAdmin ? filtered : [];
+
+  function canDelete(paper: ExamPaperSummary) {
+    return isAdmin || (isParent && paper.paperType === "focused") || (!isParent && !isAdmin && paper.paperType === "quiz");
+  }
+
+  // Filter buttons helper
+  function FilterButtons({ items, active, onSelect, color }: { items: string[]; active: string | null; onSelect: (v: string | null) => void; color: string }) {
+    if (items.length === 0) return null;
+    return (
+      <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
+        <button onClick={() => onSelect(null)}
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${active === null ? `bg-${color}-500 text-white` : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+          All
+        </button>
+        {items.map(item => (
+          <button key={item} onClick={() => onSelect(item)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${active === item ? `bg-${color}-500 text-white` : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}>
+            {item}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  const levels = [...new Set(examPapers.map(p => p.level).filter(Boolean))].sort() as string[];
+  const subjects = [...new Set(examPapers.map(p => p.subject).filter(Boolean))].sort() as string[];
+  const examTypes = (() => {
+    const types = [...new Set(examPapers.map(p => p.examType).filter(Boolean))] as string[];
+    const order = ["Preliminary", "WA1", "WA2", "WA3", "End of Year"];
+    types.sort((a, b) => (order.indexOf(a) === -1 ? 99 : order.indexOf(a)) - (order.indexOf(b) === -1 ? 99 : order.indexOf(b)));
+    return types;
+  })();
+
+  const filtersSection = (
+    <>
+      <FilterButtons items={levels} active={levelFilter} onSelect={setLevelFilter} color="green" />
+      <FilterButtons items={subjects} active={subjectFilter} onSelect={setSubjectFilter} color="primary" />
+      <FilterButtons items={examTypes} active={examTypeFilter} onSelect={setExamTypeFilter} color="purple" />
+    </>
+  );
+
+  const emptyState = (
+    <div className="text-center py-10 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
+      <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+      </div>
+      <p className="text-slate-600 font-medium">{examPapers.length === 0 ? "No exam papers yet" : "No matching papers"}</p>
+      <p className="text-slate-400 text-sm mt-1">
+        {examPapers.length === 0
+          ? isParent ? "Assign a past-year paper to get started" : !isAdmin ? "Take a daily quiz while waiting!" : null
+          : "Try changing your filters"}
+      </p>
+      {!isAdmin && !isParent && examPapers.length === 0 && (
+        <button onClick={onStartQuiz} className="inline-block mt-3 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-medium hover:opacity-90">Start a Quiz</button>
+      )}
+    </div>
+  );
+
+  function PaperList({ papers }: { papers: ExamPaperSummary[] }) {
+    return (
+      <div className="space-y-3">
+        {papers.map(paper => (
+          <ExamPaperCard key={paper.id} paper={paper} userId={userId} userRole={userRole} isAdmin={isAdmin}
+            onDelete={canDelete(paper) ? onDeleteExam : undefined} />
+        ))}
+      </div>
+    );
+  }
+
+  if (loading) return null;
+
+  return (
+    <div className="mt-8" id="exam-papers-section">
+      <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
+        {isParent ? "Your Child\u2019s Work" : "Exam Papers"}
+      </h2>
+
+      {/* ─── PARENT VIEW ─── */}
+      {isParent && (
+        <>
+          {/* Always show pending review */}
+          {pendingPapers.length > 0 && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-3">Pending Review</h3>
+              <PaperList papers={pendingPapers} />
+            </div>
+          )}
+
+          {/* Toggle to show full list with filters */}
+          <button
+            onClick={() => setShowAllPapers(v => !v)}
+            className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 text-slate-500 font-medium hover:border-primary-300 hover:text-primary-600 transition-colors mb-4"
+          >
+            {showAllPapers ? "Hide exam papers" : "Assign new exam paper"}
+          </button>
+
+          {showAllPapers && (
+            <>
+              {filtersSection}
+              {filtered.length === 0 ? emptyState : <PaperList papers={filtered} />}
+            </>
+          )}
+        </>
+      )}
+
+      {/* ─── STUDENT VIEW ─── */}
+      {!isParent && !isAdmin && (
+        <>
+          {/* To Do — always visible */}
+          {todoPapers.length > 0 && (
+            <div className="mb-5">
+              <h3 className="text-sm font-semibold text-amber-600 uppercase tracking-wider mb-3">To Do</h3>
+              <PaperList papers={todoPapers} />
+            </div>
+          )}
+
+          {/* Completed — hidden behind toggle */}
+          {completedPapers.length > 0 && (
+            <>
+              <button
+                onClick={() => setShowCompleted(v => !v)}
+                className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-400 text-sm font-medium hover:text-slate-600 hover:border-slate-300 transition-colors mb-3"
+              >
+                {showCompleted ? "Hide completed" : `Show completed papers (${completedPapers.length})`}
+              </button>
+              {showCompleted && <PaperList papers={completedPapers} />}
+            </>
+          )}
+
+          {todoPapers.length === 0 && completedPapers.length === 0 && emptyState}
+        </>
+      )}
+
+      {/* ─── ADMIN VIEW ─── */}
+      {isAdmin && (
+        <>
+          {filtersSection}
+          {filtered.length === 0 ? emptyState : <PaperList papers={allPapers} />}
+        </>
       )}
     </div>
   );
