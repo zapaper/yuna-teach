@@ -391,6 +391,18 @@ export default function HomePage({
         </div>
       )}
 
+      {/* Student action buttons */}
+      {!isAdmin && !isParent && (
+        <div className="space-y-3 mb-6">
+          <button
+            onClick={() => setShowQuizSetup(true)}
+            className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
+          >
+            Daily 20min Quiz
+          </button>
+        </div>
+      )}
+
       {/* Prompt to create student account */}
       {showLinkPrompt ? (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
