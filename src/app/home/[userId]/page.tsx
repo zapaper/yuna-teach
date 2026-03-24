@@ -152,6 +152,7 @@ export default function HomePage({
 
   // Badge system
   const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
+  const [badgeToast, setBadgeToast] = useState(false);
 
   // Fetch quiz badge for students
   useEffect(() => {
@@ -274,10 +275,23 @@ export default function HomePage({
           <p className="text-slate-500 text-sm mt-0.5">Primary {user.level}</p>
         ) : null}
         {quizBadge && (
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <img src={quizBadge.image} alt={quizBadge.badge} className="w-7 h-7 object-contain" />
-            {quizBadge.streak > 0 && (
-              <span className="text-xs font-bold text-amber-500">{quizBadge.streak}-day streak</span>
+          <div className="flex flex-col items-center mt-2">
+            <button
+              onClick={() => {
+                setBadgeToast(true);
+                setTimeout(() => setBadgeToast(false), 2500);
+              }}
+              className="flex items-center gap-2 hover:scale-110 transition-transform"
+            >
+              <img src={quizBadge.image} alt={quizBadge.badge} className="w-7 h-7 object-contain" />
+              {quizBadge.streak > 0 && (
+                <span className="text-xs font-bold text-amber-500">{quizBadge.streak}-day streak</span>
+              )}
+            </button>
+            {badgeToast && (
+              <span className="mt-1 text-xs font-medium text-primary-600 animate-fade-in-up">
+                {quizBadge.badge}: completed {quizBadge.count} quizzes
+              </span>
             )}
           </div>
         )}
