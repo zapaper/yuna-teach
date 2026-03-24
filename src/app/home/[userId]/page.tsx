@@ -283,20 +283,39 @@ export default function HomePage({
 
         {/* Linked users info */}
         {isParent && user?.linkedStudents && user.linkedStudents.length > 0 ? (
-          <div className="flex flex-wrap justify-center gap-2 mt-3">
+          <div className="flex flex-wrap justify-center items-center gap-2 mt-3">
             {user.linkedStudents.map((s) => (
               <Link key={s.id} href={`/progress/${s.id}?parentId=${userId}`}
                 className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 text-primary-800 text-base font-bold hover:bg-primary-200 transition-colors shadow-sm">
                 {s.name}
               </Link>
             ))}
+            <button
+              onClick={() => {
+                if (!showInvite) handleGenerateCode();
+                else setShowInvite(false);
+              }}
+              disabled={generatingCode}
+              className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:bg-primary-100 hover:text-primary-600 flex items-center justify-center text-lg font-bold transition-colors disabled:opacity-50"
+              title="Add another student"
+            >
+              +
+            </button>
           </div>
         ) : null}
-        {!isParent && user?.linkedParents && user.linkedParents.length > 0 ? (
+        {!isParent && (
           <p className="text-slate-400 text-xs mt-2">
-            Linked to: {user.linkedParents.map((p) => p.name).join(", ")}
+            {user?.linkedParents && user.linkedParents.length > 0
+              ? <>Linked to: {user.linkedParents.map((p) => p.name).join(", ")} &middot; </>
+              : null}
+            <button
+              onClick={() => { setShowConnect(!showConnect); setConnectError(""); setConnectSuccess(""); }}
+              className="text-primary-500 hover:text-primary-700 font-medium"
+            >
+              {showConnect ? "Cancel" : "Connect to Parent"}
+            </button>
           </p>
-        ) : null}
+        )}
       </div>
 
 
@@ -305,16 +324,19 @@ export default function HomePage({
       <div className="mb-6">
         {isParent ? (
           <>
-            <button
-              onClick={() => {
-                if (!showInvite) handleGenerateCode();
-                else setShowInvite(false);
-              }}
-              disabled={generatingCode}
-              className="w-full py-3 rounded-xl border-2 border-primary-200 text-primary-600 font-semibold hover:bg-primary-50 transition-colors disabled:opacity-50"
-            >
-              {generatingCode ? "Generating..." : showInvite ? "Hide Code" : "Invite Student"}
-            </button>
+            {/* Show full-width Invite button only if no students linked yet */}
+            {!hasLinkedStudents && (
+              <button
+                onClick={() => {
+                  if (!showInvite) handleGenerateCode();
+                  else setShowInvite(false);
+                }}
+                disabled={generatingCode}
+                className="w-full py-3 rounded-xl border-2 border-primary-200 text-primary-600 font-semibold hover:bg-primary-50 transition-colors disabled:opacity-50"
+              >
+                {generatingCode ? "Generating..." : showInvite ? "Hide Code" : "Invite Student"}
+              </button>
+            )}
             {showInvite && inviteCode ? (
               <div className="mt-3 rounded-2xl bg-primary-50 border border-primary-100 p-4 text-center">
                 <p className="text-xs text-slate-400 mb-2">Share this code with your student</p>
@@ -325,14 +347,8 @@ export default function HomePage({
           </>
         ) : (
           <>
-            <button
-              onClick={() => { setShowConnect(!showConnect); setConnectError(""); setConnectSuccess(""); }}
-              className="w-full py-3 rounded-xl border-2 border-primary-200 text-primary-600 font-semibold hover:bg-primary-50 transition-colors"
-            >
-              {showConnect ? "Cancel" : "Connect to Parent"}
-            </button>
             {showConnect ? (
-              <div className="mt-3 rounded-2xl bg-slate-50 border border-slate-100 p-4">
+              <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4">
                 <p className="text-xs text-slate-400 mb-2">Enter the code from your parent</p>
                 <div className="flex gap-2">
                   <input
