@@ -66,7 +66,7 @@ function generateSubjectSummary(
     .filter(([, t]) => t.available > 0 && (t.earned / t.available) >= 0.8)
     .map(([name]) => name);
 
-  const headline = `${studentName}'s ${subject}: Overall ${overallPct}th Percentile across ${sd.examCount} exam${sd.examCount !== 1 ? "s" : ""}.`;
+  const headline = `${studentName}'s ${subject}: Overall ${overallPct}th %tile across ${sd.examCount} exam${sd.examCount !== 1 ? "s" : ""}.`;
   return {
     headline,
     strong: strong.length > 0 ? strong.slice(0, 4).join(", ") : null,
@@ -310,7 +310,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="font-semibold text-slate-800">{topic}</h3>
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
-                            {pct}th Percentile
+                            {pct}th %tile
                           </span>
                         </div>
                         <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-3">
@@ -391,7 +391,7 @@ const ShareableReport = forwardRef<
       <div
         ref={ref}
         style={{
-          width: 1200,
+          width: 900,
           padding: 48,
           fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
           backgroundColor: "#ffffff",
@@ -401,9 +401,9 @@ const ShareableReport = forwardRef<
         {/* Header with branding */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, paddingBottom: 24, borderBottom: "3px solid #3b82f6" }}>
           <div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "#1e293b" }}>{data.student?.name}</div>
-            <div style={{ fontSize: 14, color: "#64748b", marginTop: 2 }}>{subject}</div>
-            <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>Generated {new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })}</div>
+            <div style={{ fontSize: 32, fontWeight: 800, color: "#1e293b" }}>{data.student?.name}</div>
+            <div style={{ fontSize: 16, color: "#64748b", marginTop: 4 }}>{subject}</div>
+            <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 4 }}>Generated {new Date().toLocaleDateString("en-SG", { day: "numeric", month: "long", year: "numeric" })}</div>
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: "#3b82f6" }}>MarkForYou.com</div>
@@ -413,14 +413,14 @@ const ShareableReport = forwardRef<
 
         {/* Summary */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.7 }}>{summary.headline}</div>
+          <div style={{ fontSize: 18, color: "#334155", lineHeight: 1.7 }}>{summary.headline}</div>
           {summary.strong && (
-            <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.7, marginTop: 8 }}>
+            <div style={{ fontSize: 17, color: "#334155", lineHeight: 1.7, marginTop: 10 }}>
               <span style={{ fontWeight: 700, color: "#15803d" }}>Strong in: </span>{summary.strong}
             </div>
           )}
           {summary.gaps && (
-            <div style={{ fontSize: 15, color: "#334155", lineHeight: 1.7, marginTop: 4 }}>
+            <div style={{ fontSize: 17, color: "#334155", lineHeight: 1.7, marginTop: 6 }}>
               <span style={{ fontWeight: 700, color: "#dc2626" }}>Gaps in: </span>{summary.gaps}
             </div>
           )}
@@ -436,18 +436,18 @@ const ShareableReport = forwardRef<
             return (
               <div key={topic} style={{ border: "1px solid #e2e8f0", borderRadius: 12, padding: 16, background: "#ffffff" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "#1e293b" }}>{topic}</span>
+                  <span style={{ fontSize: 16, fontWeight: 600, color: "#1e293b" }}>{topic}</span>
                   <span style={{
-                    fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
+                    fontSize: 14, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
                     backgroundColor: badgeBg, color: badgeColor,
                   }}>
-                    {pct}th Pctl
+                    {pct}th %tile
                   </span>
                 </div>
                 <div style={{ height: 8, backgroundColor: "#f1f5f9", borderRadius: 999, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${pct}%`, backgroundColor: barColor, borderRadius: 999 }} />
                 </div>
-                <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
+                <div style={{ fontSize: 13, color: "#94a3b8", marginTop: 8 }}>
                   {td.earned}/{td.available} marks &middot; {td.count} questions
                 </div>
               </div>
@@ -456,7 +456,7 @@ const ShareableReport = forwardRef<
         </div>
 
         {/* CTA */}
-        <div style={{ fontSize: 14, color: "#3b82f6", fontWeight: 500, textAlign: "center", marginBottom: 32 }}>
+        <div style={{ fontSize: 16, color: "#3b82f6", fontWeight: 500, textAlign: "center", marginBottom: 32 }}>
           Visit MarkForYou.com to create personalised practices for identified gaps.
         </div>
 
