@@ -65,10 +65,45 @@ export async function GET(
 
   const newBadge = milestones.find(m => m.count === count) ?? null;
 
+  // Calculate streak — count consecutive days with at least one completed quiz
+  const recentQuizzes = await prisma.examPaper.findMany({
+    where: { assignedToId: userId, paperType: "quiz", completedAt: { not: null } },
+    select: { completedAt: true },
+    orderBy: { completedAt: "desc" },
+    take: 60, // check up to 60 most recent
+  });
+
+  let streak = 0;
+  if (recentQuizzes.length > 0) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayMs = 86400000;
+    const quizDays = new Set(
+      recentQuizzes.map(q => {
+        const d = new Date(q.completedAt!);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+      })
+    );
+    // Check if today or yesterday has a quiz (to start the streak)
+    let checkDay = today.getTime();
+    if (!quizDays.has(checkDay)) {
+      checkDay = today.getTime() - dayMs; // allow yesterday
+      if (!quizDays.has(checkDay)) checkDay = 0; // no streak
+    }
+    if (checkDay > 0) {
+      while (quizDays.has(checkDay)) {
+        streak++;
+        checkDay -= dayMs;
+      }
+    }
+  }
+
   return NextResponse.json({
     completedQuizzes: count,
     badge,
     badgeImage: image,
+    streak,
     newBadge: newBadge ? { badge: newBadge.badge, image: newBadge.image, message: newBadge.message } : null,
   });
 }

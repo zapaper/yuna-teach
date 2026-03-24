@@ -150,7 +150,7 @@ export default function HomePage({
   const GUIDE_PAGES = 5; // 0: welcome, 1: spelling, 2: exam papers, 3: focused practice, 4: daily quiz
 
   // Badge system
-  const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number } | null>(null);
+  const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
 
   // Fetch quiz badge for students
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function HomePage({
     fetch(`/api/user/${userId}/quiz-badge`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.badge) setQuizBadge({ badge: data.badge, image: data.badgeImage, count: data.completedQuizzes });
+        if (data?.badge) setQuizBadge({ badge: data.badge, image: data.badgeImage, count: data.completedQuizzes, streak: data.streak ?? 0 });
       })
       .catch(() => {});
   }, [user, userId, isAdmin, isParent]);
@@ -225,7 +225,7 @@ export default function HomePage({
   }
 
   return (
-    <div className="p-6 pb-24">
+    <div className="p-6 pb-28 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
@@ -258,16 +258,26 @@ export default function HomePage({
         )}
       </div>
 
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
+        <p className="text-sm text-slate-400 mb-0.5">
+          {(() => {
+            const h = new Date().getHours();
+            return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+          })()},{" "}
+          {new Date().toLocaleDateString("en-SG", { weekday: "long", day: "numeric", month: "short" })}
+        </p>
         <h1 className="text-2xl font-bold text-slate-800">
-          {user?.name ? `${user.name}'s Page` : "Home"}
+          {user?.name || "Home"}
         </h1>
         {user?.role === "STUDENT" && user.level ? (
-          <p className="text-slate-500 text-sm mt-1">Primary {user.level}</p>
+          <p className="text-slate-500 text-sm mt-0.5">Primary {user.level}</p>
         ) : null}
         {quizBadge && (
-          <div className="flex items-center justify-center gap-1.5 mt-2">
+          <div className="flex items-center justify-center gap-2 mt-2">
             <img src={quizBadge.image} alt={quizBadge.badge} className="w-7 h-7 object-contain" />
+            {quizBadge.streak > 0 && (
+              <span className="text-xs font-bold text-amber-500">{quizBadge.streak}-day streak</span>
+            )}
           </div>
         )}
 
@@ -288,6 +298,35 @@ export default function HomePage({
           </p>
         ) : null}
       </div>
+
+      {/* Parent dashboard summary cards */}
+      {isParent && hasLinkedStudents && examPapers.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          {(() => {
+            const pending = examPapers.filter(p => p.pendingReviewCount > 0).length;
+            const lastMarked = examPapers.find(p => p.score != null);
+            const totalCompleted = examPapers.filter(p => p.completedAt).length;
+            return (
+              <>
+                <div className="bg-amber-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-amber-600">{pending}</p>
+                  <p className="text-[10px] text-amber-700 font-medium mt-0.5">Pending Review</p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-green-600">
+                    {lastMarked?.score != null ? `${lastMarked.score}${lastMarked.totalMarks ? `/${lastMarked.totalMarks}` : ""}` : "—"}
+                  </p>
+                  <p className="text-[10px] text-green-700 font-medium mt-0.5">Last Score</p>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-3 text-center">
+                  <p className="text-2xl font-bold text-blue-600">{totalCompleted}</p>
+                  <p className="text-[10px] text-blue-700 font-medium mt-0.5">Completed</p>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       {/* Invite / Connect section */}
       <div className="mb-6">
@@ -347,60 +386,20 @@ export default function HomePage({
         )}
       </div>
 
-      {/* Action buttons */}
-      <div className="space-y-3 mb-8">
-        <Link
-          href={`/scan?userId=${userId}`}
-          className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-        >
-          Scan Spelling / 听写
-        </Link>
-        {!isAdmin && !isParent && (
-          <button
-            onClick={() => setShowQuizSetup(true)}
-            className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-          >
-            Daily 20min Quiz
-          </button>
-        )}
-        {isAdmin ? (
-          <>
-            <Link
-              href={`/exam/upload?userId=${userId}`}
-              className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-            >
-              Upload Exam Paper
-            </Link>
-            <Link
-              href="/flagged"
-              className="block w-full bg-amber-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-            >
-              Review Flagged Q&amp;A
-            </Link>
-          </>
-        ) : isParent ? (
-          <>
-            <button
-              onClick={() => {
-                if (hasLinkedStudents) {
-                  document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" });
-                } else {
-                  setShowLinkPrompt(true);
-                }
-              }}
-              className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-            >
-              Assign Papers
-            </button>
-            <Link
-              href={`/solver?userId=${userId}`}
-              className="block w-full bg-teal-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
-            >
-              AI Solver
-            </Link>
-          </>
-        ) : null}
-      </div>
+      {/* Admin keeps full-width action buttons */}
+      {isAdmin && (
+        <div className="space-y-3 mb-8">
+          <Link href={`/scan?userId=${userId}`} className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
+            Scan Spelling / 听写
+          </Link>
+          <Link href={`/exam/upload?userId=${userId}`} className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
+            Upload Exam Paper
+          </Link>
+          <Link href="/flagged" className="block w-full bg-amber-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
+            Review Flagged Q&amp;A
+          </Link>
+        </div>
+      )}
 
       {/* Prompt to create student account */}
       {showLinkPrompt ? (
@@ -442,12 +441,15 @@ export default function HomePage({
             <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-200 border-t-primary-500" />
           </div>
         ) : tests.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-4xl mb-3">📝</div>
-            <p className="text-slate-500">No spelling tests yet.</p>
-            <p className="text-slate-400 text-sm">
-              Scan your first one to get started!
-            </p>
+          <div className="text-center py-10 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19v20H6.5a2.5 2.5 0 0 1 0-5H19" /></svg>
+            </div>
+            <p className="text-slate-600 font-medium">No spelling tests yet</p>
+            <p className="text-slate-400 text-sm mt-1 mb-3">Take a photo of your spelling list to get started</p>
+            <Link href={`/scan?userId=${userId}`} className="inline-block px-4 py-2 rounded-xl bg-accent-orange text-white text-sm font-medium hover:opacity-90">
+              Scan Spelling List
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">
@@ -593,18 +595,23 @@ export default function HomePage({
             : filtered;
 
           return loading ? null : filtered.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-4xl mb-3">📄</div>
-              <p className="text-slate-500">
-                {examPapers.length === 0 ? "No exam papers yet." : "No matching papers."}
+            <div className="text-center py-10 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
+              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+              </div>
+              <p className="text-slate-600 font-medium">
+                {examPapers.length === 0 ? "No exam papers yet" : "No matching papers"}
               </p>
-              <p className="text-slate-400 text-sm">
+              <p className="text-slate-400 text-sm mt-1">
                 {examPapers.length === 0
-                  ? isParent
-                    ? "Upload a PDF exam paper to get started!"
-                    : "No exam papers have been assigned to you yet."
-                  : null}
+                  ? isParent ? "Assign a past-year paper to get started" : !isAdmin ? "Take a daily quiz while waiting!" : null
+                  : "Try changing your filters"}
               </p>
+              {!isAdmin && !isParent && examPapers.length === 0 && (
+                <button onClick={() => setShowQuizSetup(true)} className="inline-block mt-3 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-medium hover:opacity-90">
+                  Start a Quiz
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -649,8 +656,7 @@ export default function HomePage({
                   ))}
                 </div>
               ) : assignedPapers.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="text-4xl mb-3">📄</div>
+                <div className="text-center py-8 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200">
                   <p className="text-slate-500">No exam papers yet.</p>
                 </div>
               ) : null}
@@ -1003,6 +1009,66 @@ export default function HomePage({
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom tab bar — students and parents */}
+      {!isAdmin && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40">
+          <div className="max-w-lg mx-auto flex">
+            {/* Home tab */}
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="flex-1 flex flex-col items-center py-2 text-primary-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3Z" /></svg>
+              <span className="text-[10px] font-medium mt-0.5">Home</span>
+            </button>
+
+            {/* Spelling tab */}
+            <Link href={`/scan?userId=${userId}`} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-accent-orange transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19v20H6.5a2.5 2.5 0 0 1 0-5H19" /></svg>
+              <span className="text-[10px] font-medium mt-0.5">听写</span>
+            </Link>
+
+            {/* Quiz tab — students only */}
+            {!isParent && (
+              <button onClick={() => setShowQuizSetup(true)} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-emerald-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span className="text-[10px] font-medium mt-0.5">Quiz</span>
+              </button>
+            )}
+
+            {/* Papers tab — parents */}
+            {isParent && (
+              <button
+                onClick={() => {
+                  if (hasLinkedStudents) document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" });
+                  else setShowLinkPrompt(true);
+                }}
+                className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-purple-500 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+                <span className="text-[10px] font-medium mt-0.5">Papers</span>
+              </button>
+            )}
+
+            {/* Solver tab — parents only */}
+            {isParent && (
+              <Link href={`/solver?userId=${userId}`} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-teal-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10h16V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z"/></svg>
+                <span className="text-[10px] font-medium mt-0.5">Solver</span>
+              </Link>
+            )}
+
+            {/* Progress tab — parents with linked students */}
+            {isParent && hasLinkedStudents && user?.linkedStudents?.[0] && (
+              <Link href={`/progress/${user.linkedStudents[0].id}?parentId=${userId}`} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-primary-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                <span className="text-[10px] font-medium mt-0.5">Progress</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

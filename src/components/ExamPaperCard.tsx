@@ -194,7 +194,12 @@ export default function ExamPaperCard({
     <div className="relative">
       <Link
         href={examHref}
-        className="block rounded-2xl border-2 border-slate-100 bg-white p-4 shadow-sm transition-all active:scale-[0.98] hover:border-primary-200 hover:shadow-md"
+        className={`block rounded-2xl border bg-white p-4 shadow-sm transition-all active:scale-[0.98] hover:shadow-md ${
+          paper.subject?.toLowerCase().includes("math") ? "border-l-4 border-l-blue-400 border-slate-100" :
+          paper.subject?.toLowerCase().includes("science") ? "border-l-4 border-l-green-400 border-slate-100" :
+          paper.subject?.toLowerCase().includes("chinese") ? "border-l-4 border-l-orange-400 border-slate-100" :
+          "border-slate-100"
+        }`}
       >
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
