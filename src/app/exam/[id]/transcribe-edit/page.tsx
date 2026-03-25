@@ -174,6 +174,8 @@ function TranscribeEditContent({ id }: { id: string }) {
   const [recropQ, setRecropQ] = useState<string | null>(null); // question ID being recropped
   const [recropPageImg, setRecropPageImg] = useState<string | null>(null); // rendered page image
   const [recropLoading, setRecropLoading] = useState(false);
+  const [recropPages, setRecropPages] = useState<string[]>([]); // all rendered pages
+  const [recropPageIdx, setRecropPageIdx] = useState(0);
 
   // Generate from AI
   const handleGenerate = useCallback(async () => {
@@ -407,6 +409,7 @@ function TranscribeEditContent({ id }: { id: string }) {
     setRecropQ(questionId);
     setRecropLoading(true);
     setRecropPageImg(null);
+    setRecropPages([]);
     try {
       // Fetch the question's pageIndex
       const paperRes = await fetch(`/api/exam/${id}`);
@@ -415,7 +418,7 @@ function TranscribeEditContent({ id }: { id: string }) {
       if (!question) { alert("Question not found"); return; }
       const pageIndex = question.pageIndex ?? 0;
 
-      // Fetch and render the PDF page
+      // Fetch and render ALL PDF pages
       const pdfRes = await fetch(`/api/exam/${id}/pdf`);
       if (!pdfRes.ok) { alert("PDF not available for this paper"); setRecropQ(null); return; }
       const pdfBlob = await pdfRes.blob();
@@ -423,9 +426,11 @@ function TranscribeEditContent({ id }: { id: string }) {
 
       const { renderPdfToImages } = await import("@/lib/pdf");
       const pages = await renderPdfToImages(pdfFile, 2048, 0.9);
-      const pageImg = pages[pageIndex];
-      if (!pageImg) { alert("Page not found"); setRecropQ(null); return; }
-      setRecropPageImg(pageImg);
+      if (pages.length === 0) { alert("No pages found"); setRecropQ(null); return; }
+      setRecropPages(pages);
+      const idx = Math.min(pageIndex, pages.length - 1);
+      setRecropPageIdx(idx);
+      setRecropPageImg(pages[idx]);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to load PDF page");
       setRecropQ(null);
@@ -555,7 +560,7 @@ function TranscribeEditContent({ id }: { id: string }) {
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 shadow-xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-slate-800">Choose question zone</h3>
-              <button onClick={() => { setRecropQ(null); setRecropPageImg(null); }} className="text-slate-400 hover:text-slate-600 text-sm">Cancel</button>
+              <button onClick={() => { setRecropQ(null); setRecropPageImg(null); setRecropPages([]); }} className="text-slate-400 hover:text-slate-600 text-sm">Cancel</button>
             </div>
             {recropLoading && (
               <div className="flex justify-center py-12">
@@ -564,6 +569,26 @@ function TranscribeEditContent({ id }: { id: string }) {
             )}
             {recropPageImg && (
               <>
+                {/* Page navigation */}
+                {recropPages.length > 1 && (
+                  <div className="flex items-center justify-center gap-3 mb-2">
+                    <button
+                      onClick={() => { const idx = Math.max(0, recropPageIdx - 1); setRecropPageIdx(idx); setRecropPageImg(recropPages[idx]); }}
+                      disabled={recropPageIdx === 0}
+                      className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200 disabled:opacity-30"
+                    >
+                      &larr; Prev
+                    </button>
+                    <span className="text-xs text-slate-500">Page {recropPageIdx + 1} / {recropPages.length}</span>
+                    <button
+                      onClick={() => { const idx = Math.min(recropPages.length - 1, recropPageIdx + 1); setRecropPageIdx(idx); setRecropPageImg(recropPages[idx]); }}
+                      disabled={recropPageIdx === recropPages.length - 1}
+                      className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200 disabled:opacity-30"
+                    >
+                      Next &rarr;
+                    </button>
+                  </div>
+                )}
                 <p className="text-xs text-slate-400 mb-2 text-center">Drag on the page to select the question area</p>
                 <DrawableImage
                   src={recropPageImg}
