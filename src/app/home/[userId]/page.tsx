@@ -147,6 +147,19 @@ export default function HomePage({
   const [sendingFeedback, setSendingFeedback] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+
+  // Parent recommendations
+  type Rec = { type: string; studentId: string; studentName: string; studentLevel: number | null; message: string; topics?: string[]; subject?: string; examType?: string };
+  const [recommendations, setRecommendations] = useState<Rec[]>([]);
+  const [recDismissed, setRecDismissed] = useState<Set<number>>(new Set());
+  const [recActing, setRecActing] = useState<number | null>(null);
+
+  // Parent quiz assignment
+  const [showParentQuiz, setShowParentQuiz] = useState(false);
+  const [parentQuizStudent, setParentQuizStudent] = useState<string>("");
+  const [parentQuizType, setParentQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
+  const [parentQuizSubject, setParentQuizSubject] = useState<"math" | "science">("math");
+  const [creatingParentQuiz, setCreatingParentQuiz] = useState(false);
   const [guidePage, setGuidePage] = useState(0);
   const GUIDE_PAGES = 5; // 0: welcome, 1: spelling, 2: exam papers, 3: focused practice, 4: daily quiz
 
@@ -164,6 +177,23 @@ export default function HomePage({
       })
       .catch(() => {});
   }, [user, userId, isAdmin, isParent]);
+
+  // Fetch parent recommendations (once per day)
+  useEffect(() => {
+    if (!user || !isParent || !hasLinkedStudents) return;
+    const key = `recs-fetched-${userId}`;
+    const today = new Date().toDateString();
+    if (localStorage.getItem(key) === today) return; // already fetched today
+    fetch(`/api/parent-recommendations?parentId=${userId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.recommendations?.length) {
+          setRecommendations(data.recommendations);
+          localStorage.setItem(key, today);
+        }
+      })
+      .catch(() => {});
+  }, [user, userId, isParent, hasLinkedStudents]);
 
   // Show guide on first visit for parents
   useEffect(() => {
@@ -445,6 +475,157 @@ export default function HomePage({
           </div>
         </div>
       ) : null}
+
+      {/* AI Recommendations for parents */}
+      {isParent && recommendations.length > 0 && (
+        <div className="mb-6 space-y-3">
+          <h2 className="text-sm font-semibold text-primary-500 uppercase tracking-wider flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10h16V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z"/></svg>
+            Recommended for you
+          </h2>
+          {recommendations.map((rec, i) => {
+            if (recDismissed.has(i)) return null;
+            return (
+              <div key={i} className="rounded-2xl border border-primary-100 bg-primary-50/50 p-4">
+                <p className="text-sm text-slate-700 leading-relaxed mb-3">{rec.message}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {rec.type === "focused-gap" && (
+                    <button
+                      disabled={recActing === i}
+                      onClick={async () => {
+                        setRecActing(i);
+                        try {
+                          for (const topic of (rec.topics ?? [])) {
+                            await fetch("/api/focused-test", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ parentId: userId, studentId: rec.studentId, subject: rec.subject, topic }),
+                            });
+                          }
+                          setRecDismissed(s => new Set(s).add(i));
+                          fetchData.current?.();
+                        } finally { setRecActing(null); }
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50"
+                    >
+                      {recActing === i ? "Creating..." : "Let\u2019s do that"}
+                    </button>
+                  )}
+                  {rec.type === "exam-coming" && (
+                    <button
+                      onClick={() => {
+                        setShowAllPapers(() => true);
+                        if (rec.examType) setExamTypeFilter(rec.examType);
+                        if (rec.studentLevel) setLevelFilter(`Primary ${rec.studentLevel}`);
+                        setRecDismissed(s => new Set(s).add(i));
+                        setTimeout(() => document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" }), 200);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-medium hover:bg-primary-600"
+                    >
+                      Show papers for {rec.studentName}
+                    </button>
+                  )}
+                  {rec.type === "daily-quiz" && (
+                    <button
+                      onClick={() => {
+                        setParentQuizStudent(rec.studentId);
+                        setShowParentQuiz(true);
+                        setRecDismissed(s => new Set(s).add(i));
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600"
+                    >
+                      Let&apos;s do that
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setRecDismissed(s => new Set(s).add(i))}
+                    className="text-xs text-slate-400 hover:text-slate-600"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Parent quiz assignment modal */}
+      {showParentQuiz && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => setShowParentQuiz(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-semibold text-lg mb-3">Assign Daily Quiz</h3>
+
+            {/* Student selector */}
+            {user?.linkedStudents && user.linkedStudents.length > 1 && (
+              <>
+                <label className="text-sm font-medium text-slate-600 mb-2 block">Student</label>
+                <div className="flex gap-2 mb-4 flex-wrap">
+                  {user.linkedStudents.map(s => (
+                    <button key={s.id} onClick={() => setParentQuizStudent(s.id)}
+                      className={`px-3 py-1.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                        parentQuizStudent === s.id ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-100 text-slate-600 hover:border-slate-200"
+                      }`}>
+                      {s.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            <label className="text-sm font-medium text-slate-600 mb-2 block">Subject</label>
+            <div className="flex gap-2 mb-4">
+              {(["math", "science"] as const).map(s => (
+                <button key={s} onClick={() => setParentQuizSubject(s)}
+                  className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                    parentQuizSubject === s ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-100 text-slate-600"
+                  }`}>
+                  {s === "math" ? "Mathematics" : "Science"}
+                </button>
+              ))}
+            </div>
+
+            <label className="text-sm font-medium text-slate-600 mb-2 block">Type</label>
+            <div className="flex gap-2 mb-5">
+              <button onClick={() => setParentQuizType("mcq")}
+                className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                  parentQuizType === "mcq" ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-100 text-slate-600"
+                }`}>MCQ Only</button>
+              <button onClick={() => setParentQuizType("mcq-oeq")}
+                className={`flex-1 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
+                  parentQuizType === "mcq-oeq" ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-100 text-slate-600"
+                }`}>MCQ + Written</button>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setShowParentQuiz(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50">
+                Cancel
+              </button>
+              <button
+                disabled={creatingParentQuiz || !parentQuizStudent}
+                onClick={async () => {
+                  setCreatingParentQuiz(true);
+                  try {
+                    const res = await fetch("/api/daily-quiz", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ userId: parentQuizStudent, quizType: parentQuizType, subject: parentQuizSubject }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) { alert(data.error || "Failed"); return; }
+                    setShowParentQuiz(false);
+                    fetchData.current?.();
+                  } catch { alert("Something went wrong"); }
+                  finally { setCreatingParentQuiz(false); }
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50">
+                {creatingParentQuiz ? "Creating..." : "Assign Quiz"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Test list */}
       <div>
