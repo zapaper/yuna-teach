@@ -150,8 +150,9 @@ export default function HomePage({
 
   // Parent recommendations
   type SubjectGap = { subject: string; topics: string[] };
-  type Rec = { type: string; message: string; studentId?: string; studentName?: string; studentLevel?: number | null; gaps?: SubjectGap[]; students?: { id: string; name: string; level: number | null }[]; examType?: string };
-  const [recommendations, setRecommendations] = useState<Rec[]>([]);
+  type RecAction = { type: string; studentId?: string; studentName?: string; studentLevel?: number | null; gaps?: SubjectGap[]; students?: { id: string; name: string; level: number | null }[]; examType?: string };
+  const [aiGreeting, setAiGreeting] = useState<string>("");
+  const [recActions, setRecActions] = useState<RecAction[]>([]);
   const [recDismissed, setRecDismissed] = useState<Set<number>>(new Set());
   const [recActing, setRecActing] = useState<number | null>(null);
 
@@ -188,10 +189,9 @@ export default function HomePage({
     fetch(`/api/parent-recommendations?parentId=${userId}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.recommendations?.length) {
-          setRecommendations(data.recommendations);
-          localStorage.setItem(key, today);
-        }
+        if (data?.greeting) setAiGreeting(data.greeting);
+        if (data?.actions?.length) setRecActions(data.actions);
+        if (data?.greeting || data?.actions?.length) localStorage.setItem(key, today);
       })
       .catch(() => {});
   }, [user, userId, isParent, hasLinkedStudents]);
@@ -478,21 +478,23 @@ export default function HomePage({
       ) : null}
 
       {/* AI Recommendations for parents */}
-      {isParent && recommendations.length > 0 && (
-        <div className="mb-6 space-y-3">
-          <h2 className="text-sm font-semibold text-primary-500 uppercase tracking-wider flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-            Recommended for you
-          </h2>
-          {recommendations.map((rec, i) => {
-            if (recDismissed.has(i)) return null;
-            return (
-              <div key={i} className="rounded-2xl border border-primary-100 bg-primary-50/50 p-4">
-                {/* ─── Focused gap: per-subject buttons inline ─── */}
-                {rec.type === "focused-gap" && (
-                  <>
-                    <span className="text-sm text-slate-700 leading-relaxed">{rec.message} </span>
-                    {(rec.gaps ?? []).map((gap, gi) => (
+      {isParent && (aiGreeting || recActions.length > 0) && (
+        <div className="mb-6">
+          {/* AI greeting */}
+          {aiGreeting && (
+            <div className="rounded-2xl bg-primary-50/60 border border-primary-100 p-4 mb-3">
+              <p className="text-sm text-slate-700 leading-relaxed">{aiGreeting}</p>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          {recActions.length > 0 && (
+            <div className="space-y-2">
+              {recActions.map((rec: RecAction, i: number) => {
+                if (recDismissed.has(i)) return null;
+                return (
+                  <div key={i} className="flex items-center gap-2 flex-wrap">
+                    {rec.type === "focused-gap" && (rec.gaps ?? []).map((gap: SubjectGap, gi: number) => (
                       <button
                         key={gi}
                         disabled={recActing === i}
@@ -506,29 +508,19 @@ export default function HomePage({
                                 body: JSON.stringify({ parentId: userId, studentId: rec.studentId, subject: gap.subject, topic }),
                               });
                             }
-                            // Remove this gap from the rec
-                            const newGaps = (rec.gaps ?? []).filter((_, j) => j !== gi);
+                            const newGaps = (rec.gaps ?? []).filter((_: SubjectGap, j: number) => j !== gi);
                             if (newGaps.length === 0) setRecDismissed(s => new Set(s).add(i));
-                            else {
-                              setRecommendations(rs => rs.map((r, ri) => ri === i ? { ...r, gaps: newGaps } : r));
-                            }
+                            else setRecActions(rs => rs.map((r: RecAction, ri: number) => ri === i ? { ...r, gaps: newGaps } : r));
                             fetchData.current?.();
                           } finally { setRecActing(null); }
                         }}
-                        className="inline-block mx-1 px-2.5 py-1 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50 align-middle"
+                        className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50"
                       >
-                        {recActing === i ? "..." : `Let\u2019s do ${gap.subject}`}
+                        {recActing === i ? "..." : `Practice ${rec.studentName}\u2019s ${gap.subject}`}
                       </button>
                     ))}
-                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="inline-block ml-1 text-xs text-slate-400 hover:text-slate-600 align-middle">Dismiss</button>
-                  </>
-                )}
 
-                {/* ─── Exam coming: per-student buttons inline ─── */}
-                {rec.type === "exam-coming" && (
-                  <>
-                    <span className="text-sm text-slate-700 leading-relaxed">{rec.message} </span>
-                    {(rec.students ?? []).map(s => (
+                    {rec.type === "exam-coming" && (rec.students ?? []).map((s: { id: string; name: string; level: number | null }) => (
                       <button
                         key={s.id}
                         onClick={() => {
@@ -538,36 +530,32 @@ export default function HomePage({
                           setRecDismissed(prev => new Set(prev).add(i));
                           setTimeout(() => document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" }), 200);
                         }}
-                        className="inline-block mx-1 px-2.5 py-1 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 align-middle"
+                        className="px-3 py-1.5 rounded-xl bg-purple-500 text-white text-xs font-medium hover:bg-purple-600"
                       >
-                        {s.name}
+                        {rec.examType} paper for {s.name}
                       </button>
                     ))}
-                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="inline-block ml-1 text-xs text-slate-400 hover:text-slate-600 align-middle">Dismiss</button>
-                  </>
-                )}
 
-                {/* ─── Daily quiz: single inline button ─── */}
-                {rec.type === "daily-quiz" && (
-                  <>
-                    <span className="text-sm text-slate-700 leading-relaxed">{rec.message} </span>
-                    <button
-                      onClick={() => {
-                        const firstStudent = rec.students?.[0];
-                        if (firstStudent) setParentQuizStudent(firstStudent.id);
-                        setShowParentQuiz(true);
-                        setRecDismissed(s => new Set(s).add(i));
-                      }}
-                      className="inline-block mx-1 px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600 align-middle"
-                    >
-                      Let&apos;s do that
-                    </button>
-                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="inline-block ml-1 text-xs text-slate-400 hover:text-slate-600 align-middle">Dismiss</button>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                    {rec.type === "daily-quiz" && (
+                      <button
+                        onClick={() => {
+                          const firstStudent = (rec.students ?? [])[0];
+                          if (firstStudent) setParentQuizStudent(firstStudent.id);
+                          setShowParentQuiz(true);
+                          setRecDismissed(s => new Set(s).add(i));
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600"
+                      >
+                        Assign daily quiz
+                      </button>
+                    )}
+
+                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="text-[10px] text-slate-400 hover:text-slate-600">dismiss</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
