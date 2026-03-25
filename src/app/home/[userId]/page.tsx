@@ -149,7 +149,8 @@ export default function HomePage({
   const [showGuide, setShowGuide] = useState(false);
 
   // Parent recommendations
-  type Rec = { type: string; studentId: string; studentName: string; studentLevel: number | null; message: string; topics?: string[]; subject?: string; examType?: string };
+  type SubjectGap = { subject: string; topics: string[] };
+  type Rec = { type: string; message: string; studentId?: string; studentName?: string; studentLevel?: number | null; gaps?: SubjectGap[]; students?: { id: string; name: string; level: number | null }[]; examType?: string };
   const [recommendations, setRecommendations] = useState<Rec[]>([]);
   const [recDismissed, setRecDismissed] = useState<Set<number>>(new Set());
   const [recActing, setRecActing] = useState<number | null>(null);
@@ -480,70 +481,90 @@ export default function HomePage({
       {isParent && recommendations.length > 0 && (
         <div className="mb-6 space-y-3">
           <h2 className="text-sm font-semibold text-primary-500 uppercase tracking-wider flex items-center gap-1.5">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10h16V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
             Recommended for you
           </h2>
           {recommendations.map((rec, i) => {
             if (recDismissed.has(i)) return null;
             return (
               <div key={i} className="rounded-2xl border border-primary-100 bg-primary-50/50 p-4">
-                <p className="text-sm text-slate-700 leading-relaxed mb-3">{rec.message}</p>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {rec.type === "focused-gap" && (
-                    <button
-                      disabled={recActing === i}
-                      onClick={async () => {
-                        setRecActing(i);
-                        try {
-                          for (const topic of (rec.topics ?? [])) {
-                            await fetch("/api/focused-test", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ parentId: userId, studentId: rec.studentId, subject: rec.subject, topic }),
-                            });
-                          }
-                          setRecDismissed(s => new Set(s).add(i));
-                          fetchData.current?.();
-                        } finally { setRecActing(null); }
-                      }}
-                      className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50"
-                    >
-                      {recActing === i ? "Creating..." : "Let\u2019s do that"}
-                    </button>
-                  )}
-                  {rec.type === "exam-coming" && (
+                {/* ─── Focused gap: per-subject buttons inline ─── */}
+                {rec.type === "focused-gap" && (
+                  <>
+                    <span className="text-sm text-slate-700 leading-relaxed">{rec.message} </span>
+                    {(rec.gaps ?? []).map((gap, gi) => (
+                      <button
+                        key={gi}
+                        disabled={recActing === i}
+                        onClick={async () => {
+                          setRecActing(i);
+                          try {
+                            for (const topic of gap.topics) {
+                              await fetch("/api/focused-test", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ parentId: userId, studentId: rec.studentId, subject: gap.subject, topic }),
+                              });
+                            }
+                            // Remove this gap from the rec
+                            const newGaps = (rec.gaps ?? []).filter((_, j) => j !== gi);
+                            if (newGaps.length === 0) setRecDismissed(s => new Set(s).add(i));
+                            else {
+                              setRecommendations(rs => rs.map((r, ri) => ri === i ? { ...r, gaps: newGaps } : r));
+                            }
+                            fetchData.current?.();
+                          } finally { setRecActing(null); }
+                        }}
+                        className="inline-block mx-1 px-2.5 py-1 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50 align-middle"
+                      >
+                        {recActing === i ? "..." : `Let\u2019s do ${gap.subject}`}
+                      </button>
+                    ))}
+                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="inline-block ml-1 text-xs text-slate-400 hover:text-slate-600 align-middle">Dismiss</button>
+                  </>
+                )}
+
+                {/* ─── Exam coming: per-student buttons inline ─── */}
+                {rec.type === "exam-coming" && (
+                  <>
+                    <span className="text-sm text-slate-700 leading-relaxed">{rec.message} </span>
+                    {(rec.students ?? []).map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          setShowAllPapers(() => true);
+                          if (rec.examType) setExamTypeFilter(rec.examType!);
+                          if (s.level) setLevelFilter(`Primary ${s.level}`);
+                          setRecDismissed(prev => new Set(prev).add(i));
+                          setTimeout(() => document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" }), 200);
+                        }}
+                        className="inline-block mx-1 px-2.5 py-1 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 align-middle"
+                      >
+                        {s.name}
+                      </button>
+                    ))}
+                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="inline-block ml-1 text-xs text-slate-400 hover:text-slate-600 align-middle">Dismiss</button>
+                  </>
+                )}
+
+                {/* ─── Daily quiz: single inline button ─── */}
+                {rec.type === "daily-quiz" && (
+                  <>
+                    <span className="text-sm text-slate-700 leading-relaxed">{rec.message} </span>
                     <button
                       onClick={() => {
-                        setShowAllPapers(() => true);
-                        if (rec.examType) setExamTypeFilter(rec.examType);
-                        if (rec.studentLevel) setLevelFilter(`Primary ${rec.studentLevel}`);
-                        setRecDismissed(s => new Set(s).add(i));
-                        setTimeout(() => document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" }), 200);
-                      }}
-                      className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-medium hover:bg-primary-600"
-                    >
-                      Show papers for {rec.studentName}
-                    </button>
-                  )}
-                  {rec.type === "daily-quiz" && (
-                    <button
-                      onClick={() => {
-                        setParentQuizStudent(rec.studentId);
+                        const firstStudent = rec.students?.[0];
+                        if (firstStudent) setParentQuizStudent(firstStudent.id);
                         setShowParentQuiz(true);
                         setRecDismissed(s => new Set(s).add(i));
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600"
+                      className="inline-block mx-1 px-2.5 py-1 rounded-lg bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600 align-middle"
                     >
                       Let&apos;s do that
                     </button>
-                  )}
-                  <button
-                    onClick={() => setRecDismissed(s => new Set(s).add(i))}
-                    className="text-xs text-slate-400 hover:text-slate-600"
-                  >
-                    Dismiss
-                  </button>
-                </div>
+                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="inline-block ml-1 text-xs text-slate-400 hover:text-slate-600 align-middle">Dismiss</button>
+                  </>
+                )}
               </div>
             );
           })}
