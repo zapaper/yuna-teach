@@ -185,7 +185,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
     <div className="p-6 pb-24 max-w-2xl mx-auto">
       {/* Back */}
       <button
-        onClick={() => router.push(`/home/${parentId}`)}
+        onClick={() => parentId ? router.push(`/home/${parentId}`) : router.back()}
         className="flex items-center gap-1 text-slate-500 mb-4 hover:text-slate-700"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
