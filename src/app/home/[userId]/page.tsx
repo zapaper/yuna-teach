@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import TestCard from "@/components/TestCard";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
-import { useRef } from "react";
 
 export default function HomePage({
   params,
@@ -153,8 +152,7 @@ export default function HomePage({
   type RecAction = { type: string; studentId?: string; studentName?: string; studentLevel?: number | null; gaps?: SubjectGap[]; students?: { id: string; name: string; level: number | null }[]; examType?: string };
   const [aiGreeting, setAiGreeting] = useState<string>("");
   const [recActions, setRecActions] = useState<RecAction[]>([]);
-  const [recDismissed, setRecDismissed] = useState<Set<number>>(new Set());
-  const [recActing, setRecActing] = useState<number | null>(null);
+  const [recActing, setRecActing] = useState<string | null>(null);
 
   // Parent quiz assignment
   const [showParentQuiz, setShowParentQuiz] = useState(false);
@@ -180,21 +178,29 @@ export default function HomePage({
       .catch(() => {});
   }, [user, userId, isAdmin, isParent]);
 
-  // Fetch parent recommendations (once per day)
-  useEffect(() => {
-    if (!user || !isParent || !hasLinkedStudents) return;
+  // Fetch parent recommendations (once per day, or on demand via Tips)
+  const recFetchingRef = useRef(false);
+  const fetchRecommendations = useCallback((force = false) => {
+    if (recFetchingRef.current) return;
     const key = `recs-fetched-${userId}`;
     const today = new Date().toDateString();
-    if (localStorage.getItem(key) === today) return; // already fetched today
-    fetch(`/api/parent-recommendations?parentId=${userId}`)
+    if (!force && localStorage.getItem(key) === today) return;
+    recFetchingRef.current = true;
+    const hour = new Date().getHours();
+    fetch(`/api/parent-recommendations?parentId=${userId}&hour=${hour}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.greeting) setAiGreeting(data.greeting);
         if (data?.actions?.length) setRecActions(data.actions);
         if (data?.greeting || data?.actions?.length) localStorage.setItem(key, today);
       })
-      .catch(() => {});
-  }, [user, userId, isParent, hasLinkedStudents]);
+      .catch(() => {})
+      .finally(() => { recFetchingRef.current = false; });
+  }, [userId]);
+  useEffect(() => {
+    if (!user || !isParent || !hasLinkedStudents) return;
+    fetchRecommendations(false);
+  }, [user, isParent, hasLinkedStudents, fetchRecommendations]);
 
   // Show guide on first visit for parents
   useEffect(() => {
@@ -329,23 +335,31 @@ export default function HomePage({
 
         {/* Linked users info */}
         {isParent && user?.linkedStudents && user.linkedStudents.length > 0 ? (
-          <div className="flex flex-wrap justify-center items-center gap-2 mt-3">
-            {user.linkedStudents.map((s) => (
-              <Link key={s.id} href={`/progress/${s.id}?parentId=${userId}`}
-                className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 text-primary-800 text-base font-bold hover:bg-primary-200 transition-colors shadow-sm">
-                {s.name}
-              </Link>
-            ))}
+          <div className="flex flex-col items-center gap-1 mt-3">
+            <div className="flex flex-wrap justify-center items-center gap-2">
+              {user.linkedStudents.map((s) => (
+                <Link key={s.id} href={`/progress/${s.id}?parentId=${userId}`}
+                  className="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 text-primary-800 text-base font-bold hover:bg-primary-200 transition-colors shadow-sm">
+                  {s.name}
+                </Link>
+              ))}
+              <button
+                onClick={() => {
+                  if (!showInvite) handleGenerateCode();
+                  else setShowInvite(false);
+                }}
+                disabled={generatingCode}
+                className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:bg-primary-100 hover:text-primary-600 flex items-center justify-center text-lg font-bold transition-colors disabled:opacity-50"
+                title="Add another student"
+              >
+                +
+              </button>
+            </div>
             <button
-              onClick={() => {
-                if (!showInvite) handleGenerateCode();
-                else setShowInvite(false);
-              }}
-              disabled={generatingCode}
-              className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:bg-primary-100 hover:text-primary-600 flex items-center justify-center text-lg font-bold transition-colors disabled:opacity-50"
-              title="Add another student"
+              onClick={() => fetchRecommendations(true)}
+              className="text-xs text-primary-500 hover:text-primary-700 underline mt-0.5"
             >
-              +
+              Tips
             </button>
           </div>
         ) : null}
@@ -479,82 +493,93 @@ export default function HomePage({
 
       {/* AI Recommendations for parents */}
       {isParent && (aiGreeting || recActions.length > 0) && (
-        <div className="mb-6">
-          {/* AI greeting */}
+        <div className="mb-6 rounded-2xl bg-primary-50/60 border border-primary-100 p-4">
           {aiGreeting && (
-            <div className="rounded-2xl bg-primary-50/60 border border-primary-100 p-4 mb-3">
-              <p className="text-sm text-slate-700 leading-relaxed">{aiGreeting}</p>
-            </div>
+            <p className="text-sm text-slate-700 leading-relaxed mb-3">{aiGreeting}</p>
           )}
-
-          {/* Action buttons */}
           {recActions.length > 0 && (
-            <div className="space-y-2">
-              {recActions.map((rec: RecAction, i: number) => {
-                if (recDismissed.has(i)) return null;
-                return (
-                  <div key={i} className="flex items-center gap-2 flex-wrap">
-                    {rec.type === "focused-gap" && (rec.gaps ?? []).map((gap: SubjectGap, gi: number) => (
+            <ul className="space-y-2">
+              {recActions.flatMap((rec: RecAction, i: number) => {
+                if (rec.type === "focused-gap") {
+                  return (rec.gaps ?? []).flatMap((gap: SubjectGap, gi: number) =>
+                    gap.topics.map((topic: string, ti: number) => {
+                      const key = `fg-${i}-${gi}-${ti}`;
+                      return (
+                        <li key={key} className="flex items-center gap-2">
+                          <span className="flex-1 text-sm text-slate-700">
+                            • Focused practice on <strong>{topic}</strong> ({gap.subject}) for {rec.studentName}
+                          </span>
+                          <button
+                            disabled={recActing === key}
+                            onClick={async () => {
+                              setRecActing(key);
+                              try {
+                                await fetch("/api/focused-test", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ parentId: userId, studentId: rec.studentId, subject: gap.subject, topic }),
+                                });
+                                // Remove this bullet by removing the topic
+                                setRecActions(rs => rs.map((r: RecAction, ri: number) => {
+                                  if (ri !== i) return r;
+                                  const newGaps = (r.gaps ?? []).map((g: SubjectGap, gj: number) =>
+                                    gj !== gi ? g : { ...g, topics: g.topics.filter((_: string, tj: number) => tj !== ti) }
+                                  ).filter((g: SubjectGap) => g.topics.length > 0);
+                                  return { ...r, gaps: newGaps };
+                                }));
+                                fetchData.current?.();
+                              } finally { setRecActing(null); }
+                            }}
+                            className="px-3 py-1 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50 shrink-0"
+                          >
+                            {recActing === key ? "..." : "Go →"}
+                          </button>
+                        </li>
+                      );
+                    })
+                  );
+                }
+                if (rec.type === "exam-coming") {
+                  return (rec.students ?? []).map((s: { id: string; name: string; level: number | null }) => (
+                    <li key={`ec-${i}-${s.id}`} className="flex items-center gap-2">
+                      <span className="flex-1 text-sm text-slate-700">
+                        • {rec.examType} exam revision for <strong>{s.name}</strong>
+                      </span>
                       <button
-                        key={gi}
-                        disabled={recActing === i}
-                        onClick={async () => {
-                          setRecActing(i);
-                          try {
-                            for (const topic of gap.topics) {
-                              await fetch("/api/focused-test", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ parentId: userId, studentId: rec.studentId, subject: gap.subject, topic }),
-                              });
-                            }
-                            const newGaps = (rec.gaps ?? []).filter((_: SubjectGap, j: number) => j !== gi);
-                            if (newGaps.length === 0) setRecDismissed(s => new Set(s).add(i));
-                            else setRecActions(rs => rs.map((r: RecAction, ri: number) => ri === i ? { ...r, gaps: newGaps } : r));
-                            fetchData.current?.();
-                          } finally { setRecActing(null); }
-                        }}
-                        className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50"
-                      >
-                        {recActing === i ? "..." : `Practice ${rec.studentName}\u2019s ${gap.subject}`}
-                      </button>
-                    ))}
-
-                    {rec.type === "exam-coming" && (rec.students ?? []).map((s: { id: string; name: string; level: number | null }) => (
-                      <button
-                        key={s.id}
                         onClick={() => {
-                          setShowAllPapers(() => true);
+                          setShowAllPapers(true);
                           if (rec.examType) setExamTypeFilter(rec.examType!);
                           if (s.level) setLevelFilter(`Primary ${s.level}`);
-                          setRecDismissed(prev => new Set(prev).add(i));
                           setTimeout(() => document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" }), 200);
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-purple-500 text-white text-xs font-medium hover:bg-purple-600"
+                        className="px-3 py-1 rounded-lg bg-purple-500 text-white text-xs font-medium hover:bg-purple-600 shrink-0"
                       >
-                        {rec.examType} paper for {s.name}
+                        Go →
                       </button>
-                    ))}
-
-                    {rec.type === "daily-quiz" && (
+                    </li>
+                  ));
+                }
+                if (rec.type === "daily-quiz") {
+                  return (rec.students ?? []).map((s: { id: string; name: string; level: number | null }) => (
+                    <li key={`dq-${i}-${s.id}`} className="flex items-center gap-2">
+                      <span className="flex-1 text-sm text-slate-700">
+                        • Assign a daily quiz for <strong>{s.name}</strong>
+                      </span>
                       <button
                         onClick={() => {
-                          const firstStudent = (rec.students ?? [])[0];
-                          if (firstStudent) setParentQuizStudent(firstStudent.id);
+                          setParentQuizStudent(s.id);
                           setShowParentQuiz(true);
-                          setRecDismissed(s => new Set(s).add(i));
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600"
+                        className="px-3 py-1 rounded-lg bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600 shrink-0"
                       >
-                        Assign daily quiz
+                        Go →
                       </button>
-                    )}
-
-                    <button onClick={() => setRecDismissed(s => new Set(s).add(i))} className="text-[10px] text-slate-400 hover:text-slate-600">dismiss</button>
-                  </div>
-                );
+                    </li>
+                  ));
+                }
+                return [];
               })}
-            </div>
+            </ul>
           )}
         </div>
       )}

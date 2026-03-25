@@ -17,6 +17,7 @@ type Action =
 
 export async function GET(req: NextRequest) {
   const parentId = req.nextUrl.searchParams.get("parentId");
+  const clientHour = parseInt(req.nextUrl.searchParams.get("hour") ?? "-1", 10);
   if (!parentId) return NextResponse.json({ greeting: "", actions: [] });
 
   const parent = await prisma.user.findUnique({
@@ -136,34 +137,28 @@ export async function GET(req: NextRequest) {
   }
 
   // ─── Generate AI greeting via Gemini ───
+  const hour = clientHour >= 0 ? clientHour : new Date().getHours();
+  const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   let greeting = "";
   try {
     const prompt = `You are a warm, empathetic AI teaching assistant for a parent in Singapore. Your name is Mark (from MarkForYou.com).
 
 Context:
-- Today is ${dayOfWeek}, ${day}/${month}.
+- It is ${timeOfDay} on ${dayOfWeek}, ${day}/${month}.
 - Parent's name: ${parentName}
 - ${examContext || "No major exams coming up soon."}
 - Students: ${studentSummaries.join(" ")}
 
-Available actions you can suggest (DO NOT list them as bullet points — weave them naturally into your message):
-${actions.map(a => {
-  if (a.type === "focused-gap") return `- Create focused practice for ${a.studentName} on ${a.gaps.map(g => `${g.subject}: ${g.topics.join(", ")}`).join(" and ")}`;
-  if (a.type === "exam-coming") return `- Assign past-year ${a.examType} paper practice for ${a.students.map(s => s.name).join(", ")}`;
-  if (a.type === "daily-quiz") return `- Assign a daily quiz for ${a.students.map(s => s.name).join(", ")}`;
-  return "";
-}).join("\n")}
-
-Write a short, warm greeting (2-4 sentences). Be conversational, not formulaic. Include:
-1. A brief empathetic or encouraging opening relevant to the time/context (e.g. exam season stress, weekend rest, weekday routine)
-2. A natural suggestion of what to do today based on the actions above
+Write a short, warm greeting (2-3 sentences). Be conversational, not formulaic.
+1. Open with a warm good-${timeOfDay} to ${parentName} that shows genuine care — acknowledge the time of day, the season (e.g. exam pressure, school term), or a general encouraging note for the parent.
+2. Then naturally lead into a suggestion that there are some things worth looking at today (e.g. "Looks like there are a few areas worth working on..." or "Exams are coming up soon..." depending on context).
 
 Rules:
 - Do NOT use bullet points or numbered lists
 - Do NOT mention "MarkForYou" or "Mark" in the greeting
-- Do NOT repeat the student data verbatim — summarise naturally
-- Keep it under 60 words
-- Be warm but concise — like a helpful friend, not a robot
+- Do NOT enumerate specific topics or paper names — that comes separately
+- Keep it under 55 words
+- Be warm but concise — like a caring tutor checking in, not a robot
 - Use the parent's first name if available`;
 
     const response = await getAI().models.generateContent({
@@ -175,8 +170,7 @@ Rules:
   } catch (e) {
     console.error("[recommendations] Gemini greeting failed:", e);
     // Fallback to a simple greeting
-    const h = new Date().getHours();
-    const timeGreeting = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+    const timeGreeting = `Good ${timeOfDay}`;
     greeting = `${timeGreeting}, ${parentName}! Here are some suggestions for today.`;
   }
 
