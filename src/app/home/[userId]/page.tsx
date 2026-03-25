@@ -501,13 +501,18 @@ export default function HomePage({
             <ul className="space-y-2">
               {recActions.flatMap((rec: RecAction, i: number) => {
                 if (rec.type === "focused-gap") {
-                  return (rec.gaps ?? []).flatMap((gap: SubjectGap, gi: number) =>
+                  const header = (
+                    <li key={`fg-header-${i}`} className="text-xs text-slate-500 italic pt-1">
+                      {rec.studentName} scored below 75% on these topics in recent papers:
+                    </li>
+                  );
+                  return [header, ...(rec.gaps ?? []).flatMap((gap: SubjectGap, gi: number) =>
                     gap.topics.map((topic: string, ti: number) => {
                       const key = `fg-${i}-${gi}-${ti}`;
                       return (
                         <li key={key} className="flex items-center gap-2">
                           <span className="flex-1 text-sm text-slate-700">
-                            • Focused practice on <strong>{topic}</strong> ({gap.subject}) for {rec.studentName}
+                            • Focused practice on <strong>{topic}</strong> ({gap.subject})
                           </span>
                           <button
                             disabled={recActing === key}
@@ -537,7 +542,7 @@ export default function HomePage({
                         </li>
                       );
                     })
-                  );
+                  )];
                 }
                 if (rec.type === "exam-coming") {
                   return (rec.students ?? []).map((s: { id: string; name: string; level: number | null }) => (
