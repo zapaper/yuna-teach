@@ -560,14 +560,13 @@ export default function HomePage({
                   ));
                 }
                 if (rec.type === "daily-quiz") {
-                  return (rec.students ?? []).map((s: { id: string; name: string; level: number | null }) => (
-                    <li key={`dq-${i}-${s.id}`} className="flex items-center gap-2">
-                      <span className="flex-1 text-sm text-slate-700">
-                        • Assign a daily quiz for <strong>{s.name}</strong>
-                      </span>
+                  const firstStudent = (rec.students ?? [])[0];
+                  return [(
+                    <li key={`dq-${i}`} className="flex items-center gap-2">
+                      <span className="flex-1 text-sm text-slate-700">• Assign daily quiz</span>
                       <button
                         onClick={() => {
-                          setParentQuizStudent(s.id);
+                          if (firstStudent) setParentQuizStudent(firstStudent.id);
                           setShowParentQuiz(true);
                         }}
                         className="px-3 py-1 rounded-lg bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600 shrink-0"
@@ -575,7 +574,7 @@ export default function HomePage({
                         Go →
                       </button>
                     </li>
-                  ));
+                  )];
                 }
                 return [];
               })}
