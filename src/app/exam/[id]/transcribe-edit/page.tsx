@@ -171,6 +171,9 @@ function TranscribeEditContent({ id }: { id: string }) {
   const [paperTitle, setPaperTitle] = useState("");
   const [paperSubject, setPaperSubject] = useState("");
   const [cropping, setCropping] = useState<string | null>(null); // "questionId-target"
+  const [recropQ, setRecropQ] = useState<string | null>(null); // question ID being recropped
+  const [recropPageImg, setRecropPageImg] = useState<string | null>(null); // rendered page image
+  const [recropLoading, setRecropLoading] = useState(false);
 
   // Generate from AI
   const handleGenerate = useCallback(async () => {
@@ -399,6 +402,70 @@ function TranscribeEditContent({ id }: { id: string }) {
     }));
   }
 
+  // Recrop: fetch PDF page, render it, show overlay for user to draw crop zone
+  async function startRecrop(questionId: string) {
+    setRecropQ(questionId);
+    setRecropLoading(true);
+    setRecropPageImg(null);
+    try {
+      // Fetch the question's pageIndex
+      const paperRes = await fetch(`/api/exam/${id}`);
+      const paperData = await paperRes.json();
+      const question = paperData.questions?.find((q: { id: string }) => q.id === questionId);
+      if (!question) { alert("Question not found"); return; }
+      const pageIndex = question.pageIndex ?? 0;
+
+      // Fetch and render the PDF page
+      const pdfRes = await fetch(`/api/exam/${id}/pdf`);
+      if (!pdfRes.ok) { alert("PDF not available for this paper"); setRecropQ(null); return; }
+      const pdfBlob = await pdfRes.blob();
+      const pdfFile = new File([pdfBlob], "exam.pdf", { type: "application/pdf" });
+
+      const { renderPdfToImages } = await import("@/lib/pdf");
+      const pages = await renderPdfToImages(pdfFile, 2048, 0.9);
+      const pageImg = pages[pageIndex];
+      if (!pageImg) { alert("Page not found"); setRecropQ(null); return; }
+      setRecropPageImg(pageImg);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Failed to load PDF page");
+      setRecropQ(null);
+    } finally {
+      setRecropLoading(false);
+    }
+  }
+
+  function handleRecropDone(bounds: DiagramBounds) {
+    if (!recropQ || !recropPageImg) return;
+    // Crop the selected region from the page image
+    const img = new Image();
+    img.onload = () => {
+      const x = Math.floor((bounds.left / 100) * img.width);
+      const y = Math.floor((bounds.top / 100) * img.height);
+      const w = Math.ceil(((bounds.right - bounds.left) / 100) * img.width);
+      const h = Math.ceil(((bounds.bottom - bounds.top) / 100) * img.height);
+
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, x, y, w, h, 0, 0, w, h);
+      const croppedDataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+      // Update question imageData and persist to DB
+      setQuestions(qs => qs.map(q => q.id === recropQ ? { ...q, imageData: croppedDataUrl } : q));
+      // Save to DB
+      fetch(`/api/exam/questions/${recropQ}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageData: croppedDataUrl }),
+      }).catch(() => {});
+
+      setRecropQ(null);
+      setRecropPageImg(null);
+    };
+    img.src = recropPageImg;
+  }
+
   const backPath = userId ? `/exam/${id}/overview?userId=${userId}` : `/exam/${id}/overview`;
 
   if (loading) {
@@ -474,11 +541,40 @@ function TranscribeEditContent({ id }: { id: string }) {
                   setQuestions(qs => qs.filter(x => x.id !== q.id));
                 }}
                 onUpdate={(update) => updateQuestion(q.id, update)}
+                onRecrop={() => startRecrop(q.id)}
                 isScience={paperSubject.includes("science")}
               />
             ))}
           </div>
         </>
+      )}
+
+      {/* Recrop modal — draw crop zone on PDF page */}
+      {recropQ && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setRecropQ(null); setRecropPageImg(null); }}>
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-4 shadow-xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-slate-800">Choose question zone</h3>
+              <button onClick={() => { setRecropQ(null); setRecropPageImg(null); }} className="text-slate-400 hover:text-slate-600 text-sm">Cancel</button>
+            </div>
+            {recropLoading && (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-200 border-t-primary-500" />
+              </div>
+            )}
+            {recropPageImg && (
+              <>
+                <p className="text-xs text-slate-400 mb-2 text-center">Drag on the page to select the question area</p>
+                <DrawableImage
+                  src={recropPageImg}
+                  boxes={[]}
+                  liveColor="#3b82f6"
+                  onDraw={handleRecropDone}
+                />
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Sticky save bar */}
@@ -522,6 +618,7 @@ function QuestionCard({
   onToggleType,
   onDelete,
   onUpdate,
+  onRecrop,
   isScience,
 }: {
   question: EditQuestion;
@@ -536,6 +633,7 @@ function QuestionCard({
   onToggleType: () => void;  // MCQ <-> OEQ
   onDelete: () => void;
   onUpdate: (update: Partial<EditQuestion>) => void;
+  onRecrop: () => void;
   isScience: boolean;
 }) {
   const isMcq = q.type === "mcq";
@@ -583,9 +681,16 @@ function QuestionCard({
           />
         </span>
         <button
+          onClick={onRecrop}
+          title="Choose question zone from PDF"
+          className="ml-auto text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+        >
+          Recrop
+        </button>
+        <button
           onClick={onDelete}
           title="Remove question"
-          className="ml-auto p-1 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+          className="p-1 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
             fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
