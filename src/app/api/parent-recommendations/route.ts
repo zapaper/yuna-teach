@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
     // Find weak topics (< 60%) without recent focused practice
     for (const [subject, topics] of Object.entries(topicPerf)) {
       const weakTopics = Object.entries(topics)
-        .filter(([, v]) => v.available > 0 && (v.earned / v.available) < 0.6)
+        .filter(([, v]) => v.available > 0 && (v.earned / v.available) < 0.75)
         .filter(([name]) => !recentFocusedTopics.has(name))
         .sort(([, a], [, b]) => (a.earned / a.available) - (b.earned / b.available))
         .map(([name]) => name)
