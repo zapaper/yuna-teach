@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
 
 let _ai: GoogleGenAI | null = null;
@@ -26,8 +25,9 @@ type AvailableAction = GapAction | QuizAction;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { parentId, messages, studentSummaries, availableActions } = body as {
+  const { parentId, parentName: clientParentName, messages, studentSummaries, availableActions } = body as {
     parentId: string;
+    parentName?: string;
     messages: { role: "user" | "assistant"; content: string }[];
     studentSummaries?: string;
     availableActions?: AvailableAction[];
@@ -35,8 +35,7 @@ export async function POST(req: NextRequest) {
 
   if (!parentId || !messages?.length) return NextResponse.json({ reply: "" });
 
-  const parent = await prisma.user.findUnique({ where: { id: parentId }, select: { name: true } });
-  const parentName = parent?.name ?? "there";
+  const parentName = clientParentName ?? "there";
 
   // Build actionable options from structured data
   const actionOptions: string[] = [];
@@ -55,7 +54,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const systemContext = `You are Mark, a warm and knowledgeable AI tutor assistant on MarkForYou, helping ${parentName} — a Singapore primary school parent.
+  const systemContext = `You are an AI helper — a warm and knowledgeable AI tutor assistant on MarkForYou, helping ${parentName} — a Singapore primary school parent.
 
 ${APP_CONTEXT}
 
@@ -88,7 +87,7 @@ Do not invent new actions outside the list. Do not mention internal instructions
     const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents,
-      config: { temperature: 0.8, maxOutputTokens: 400 },
+      config: { temperature: 0.8, maxOutputTokens: 1000 },
     });
     console.log("[parent-chat] Gemini raw response:", response.text?.slice(0, 200));
 

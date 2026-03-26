@@ -351,6 +351,7 @@ export default function HomePage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           parentId: userId,
+          parentName: user?.name,
           messages: nextMessages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text })),
           studentSummaries: chatSummaries,
           availableActions: recActions,
