@@ -418,14 +418,32 @@ function TranscribeEditContent({ id }: { id: string }) {
       if (!question) { alert("Question not found"); return; }
       const pageIndex = question.pageIndex ?? 0;
 
-      // Fetch and render ALL PDF pages
+      // Try PDF first; fall back to stored page images
+      let pages: string[] = [];
       const pdfRes = await fetch(`/api/exam/${id}/pdf`);
-      if (!pdfRes.ok) { alert("PDF not available for this paper"); setRecropQ(null); return; }
-      const pdfBlob = await pdfRes.blob();
-      const pdfFile = new File([pdfBlob], "exam.pdf", { type: "application/pdf" });
-
-      const { renderPdfToImages } = await import("@/lib/pdf");
-      const pages = await renderPdfToImages(pdfFile, 2048, 0.9);
+      if (pdfRes.ok) {
+        const pdfBlob = await pdfRes.blob();
+        const pdfFile = new File([pdfBlob], "exam.pdf", { type: "application/pdf" });
+        const { renderPdfToImages } = await import("@/lib/pdf");
+        pages = await renderPdfToImages(pdfFile, 2048, 0.9);
+      } else {
+        // Fall back: load pre-rendered page JPEGs from volume
+        const countRes = await fetch(`/api/exam/${id}/pages`);
+        const countData = countRes.ok ? await countRes.json() : { pageCount: 0 };
+        const pageCount: number = countData.pageCount ?? 0;
+        if (pageCount === 0) { alert("No pages available for this paper. Please re-upload the PDF."); setRecropQ(null); return; }
+        pages = await Promise.all(
+          Array.from({ length: pageCount }, async (_, i) => {
+            const r = await fetch(`/api/exam/${id}/pages?page=${i}`);
+            const blob = await r.blob();
+            return new Promise<string>((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.readAsDataURL(blob);
+            });
+          })
+        );
+      }
       if (pages.length === 0) { alert("No pages found"); setRecropQ(null); return; }
       setRecropPages(pages);
       const idx = Math.min(pageIndex, pages.length - 1);
