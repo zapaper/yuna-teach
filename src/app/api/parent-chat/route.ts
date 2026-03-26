@@ -87,15 +87,25 @@ Do not invent new actions outside the list. Do not mention internal instructions
     const response = await getAI().models.generateContent({
       model: "gemini-2.0-flash",
       contents,
-      config: { responseMimeType: "application/json", temperature: 0.8, maxOutputTokens: 400 },
+      config: { temperature: 0.8, maxOutputTokens: 400 },
     });
 
-    if (!response.text) throw new Error("Empty response");
-    const parsed = JSON.parse(response.text);
-    return NextResponse.json({
-      reply: (parsed.reply ?? "").trim(),
-      actions: Array.isArray(parsed.actions) ? parsed.actions : [],
-    });
+    const text = (response.text ?? "").trim();
+    if (!text) throw new Error("Empty response");
+
+    // Extract JSON — Gemini sometimes wraps it in ```json ... ```
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return NextResponse.json({
+          reply: (parsed.reply ?? "").trim(),
+          actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+        });
+      } catch { /* fall through to plain text */ }
+    }
+    // If Gemini didn't return JSON, use the raw text as reply with no actions
+    return NextResponse.json({ reply: text, actions: [] });
   } catch (e) {
     console.error("[parent-chat] failed:", e instanceof Error ? e.message : e);
     return NextResponse.json({ reply: "Sorry, I couldn't process that right now. Please try again in a moment.", actions: [] });
