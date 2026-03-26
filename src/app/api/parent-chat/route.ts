@@ -84,11 +84,13 @@ Do not invent new actions outside the list. Do not mention internal instructions
       })),
     ];
 
+    console.log("[parent-chat] calling Gemini, messages:", messages.length, "actions:", (availableActions ?? []).length);
     const response = await getAI().models.generateContent({
       model: "gemini-2.0-flash",
       contents,
       config: { temperature: 0.8, maxOutputTokens: 400 },
     });
+    console.log("[parent-chat] Gemini raw response:", response.text?.slice(0, 200));
 
     const text = (response.text ?? "").trim();
     if (!text) throw new Error("Empty response");
@@ -107,7 +109,7 @@ Do not invent new actions outside the list. Do not mention internal instructions
     // If Gemini didn't return JSON, use the raw text as reply with no actions
     return NextResponse.json({ reply: text, actions: [] });
   } catch (e) {
-    console.error("[parent-chat] failed:", e instanceof Error ? e.message : e);
+    console.error("[parent-chat] FAILED:", e instanceof Error ? `${e.name}: ${e.message}` : JSON.stringify(e));
     return NextResponse.json({ reply: "Sorry, I couldn't process that right now. Please try again in a moment.", actions: [] });
   }
 }
