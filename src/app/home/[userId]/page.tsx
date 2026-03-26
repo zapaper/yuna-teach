@@ -159,7 +159,7 @@ export default function HomePage({
   const [chatSummaries, setChatSummaries] = useState("");
   const [recActions, setRecActions] = useState<RecAction[]>([]);
   const [recActing, setRecActing] = useState<string | null>(null);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Parent quiz assignment
   const [showParentQuiz, setShowParentQuiz] = useState(false);
@@ -330,9 +330,10 @@ export default function HomePage({
     finally { setChatLoading(false); }
   }
 
-  // Auto-scroll chat to bottom when messages change
+  // Scroll chat container to bottom when messages change (not the whole page)
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = chatScrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [chatMessages, chatLoading]);
 
   return (
@@ -567,10 +568,10 @@ export default function HomePage({
       {isParent && chatMessages.length > 0 && (
         <div className="mb-6 rounded-2xl border border-primary-100 overflow-hidden bg-white shadow-sm">
           {/* Message thread */}
-          <div className="p-4 space-y-3 max-h-72 overflow-y-auto">
+          <div ref={chatScrollRef} className="p-4 space-y-3 max-h-72 overflow-y-auto">
             {chatMessages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-base leading-relaxed ${
                   msg.role === "user"
                     ? "bg-primary-500 text-white rounded-tr-sm"
                     : "bg-primary-50 text-slate-700 rounded-tl-sm"
@@ -653,7 +654,6 @@ export default function HomePage({
               </div>
             )}
 
-            <div ref={chatEndRef} />
           </div>
 
           {/* Chat input */}
