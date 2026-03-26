@@ -4,7 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 
 let _ai: GoogleGenAI | null = null;
 function getAI() {
-  if (!_ai) _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!, httpOptions: { timeout: 30000 } });
+  if (!_ai) _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!, httpOptions: { timeout: 60000 } });
   return _ai;
 }
 
@@ -47,22 +47,35 @@ export async function GET(req: NextRequest) {
   const quizStudents: { id: string; name: string; level: number | null }[] = [];
   const studentSummaries: string[] = [];
 
-  for (const student of linkedStudents) {
+  await Promise.all(linkedStudents.map(async (student) => {
     const studentName = student.name ?? "Student";
     const levelStr = student.level ? `Primary ${student.level}` : "";
 
-    // Get performance data
-    const markedPapers = await prisma.examPaper.findMany({
-      where: {
-        assignedToId: student.id,
-        markingStatus: { in: ["complete", "released"] },
-        paperType: { not: "focused" },
-      },
-      select: {
-        subject: true,
-        questions: { select: { syllabusTopic: true, marksAwarded: true, marksAvailable: true } },
-      },
-    });
+    // Run all 3 DB queries for this student in parallel
+    const [markedPapers, recentFocused, recentQuizCount] = await Promise.all([
+      prisma.examPaper.findMany({
+        where: {
+          assignedToId: student.id,
+          markingStatus: { in: ["complete", "released"] },
+          paperType: { not: "focused" },
+        },
+        select: {
+          subject: true,
+          questions: { select: { syllabusTopic: true, marksAwarded: true, marksAvailable: true } },
+        },
+      }),
+      prisma.examPaper.findMany({
+        where: { assignedToId: student.id, paperType: "focused", createdAt: { gte: new Date(Date.now() - 14 * 86400000) } },
+        select: { title: true },
+      }),
+      prisma.examPaper.count({
+        where: { assignedToId: student.id, paperType: "quiz", completedAt: { not: null }, createdAt: { gte: new Date(Date.now() - 7 * 86400000) } },
+      }),
+    ]);
+
+    const recentFocusedTopics = new Set(
+      recentFocused.map(f => f.title.replace(/^P\d+ Focused: /, "").replace(/^Focused: /, ""))
+    );
 
     const topicPerf: Record<string, Record<string, { earned: number; available: number }>> = {};
     for (const paper of markedPapers) {
@@ -76,19 +89,6 @@ export async function GET(req: NextRequest) {
         topicPerf[subj][topic].available += q.marksAvailable;
       }
     }
-
-    const recentFocused = await prisma.examPaper.findMany({
-      where: { assignedToId: student.id, paperType: "focused", createdAt: { gte: new Date(Date.now() - 14 * 86400000) } },
-      select: { title: true },
-    });
-    const recentFocusedTopics = new Set(
-      recentFocused.map(f => f.title.replace(/^P\d+ Focused: /, "").replace(/^Focused: /, ""))
-    );
-
-    // Recent quiz count
-    const recentQuizCount = await prisma.examPaper.count({
-      where: { assignedToId: student.id, paperType: "quiz", completedAt: { not: null }, createdAt: { gte: new Date(Date.now() - 7 * 86400000) } },
-    });
 
     const gaps: SubjectGap[] = [];
     const strongTopics: string[] = [];
@@ -107,7 +107,6 @@ export async function GET(req: NextRequest) {
       strongTopics.push(...strong.slice(0, 2));
     }
 
-    // Build student context for AI
     let summary = `${studentName} (${levelStr}): ${markedPapers.length} papers marked.`;
     if (strongTopics.length > 0) summary += ` Strong in: ${strongTopics.join(", ")}.`;
     if (gaps.length > 0) summary += ` Gaps in: ${gaps.map(g => `${g.subject}: ${g.topics.join(", ")}`).join("; ")}.`;
@@ -116,7 +115,6 @@ export async function GET(req: NextRequest) {
     if (recentFocused.length > 0) summary += ` Recent focused practice: ${recentFocused.map(f => f.title).join(", ")}.`;
     studentSummaries.push(summary);
 
-    // Build actions
     if (gaps.length > 0) {
       actions.push({ type: "focused-gap", studentId: student.id, studentName, studentLevel: student.level, gaps });
     }
@@ -126,7 +124,7 @@ export async function GET(req: NextRequest) {
     if (!examType && gaps.length === 0) {
       quizStudents.push({ id: student.id, name: studentName, level: student.level });
     }
-  }
+  }));
 
   if (examType && examComingStudents.length > 0) {
     actions.push({ type: "exam-coming", students: examComingStudents, examType });
@@ -163,9 +161,10 @@ Rules:
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { temperature: 0.9, maxOutputTokens: 200 },
     });
-    greeting = (response.text ?? "").trim();
+    if (!response.text) throw new Error("Empty Gemini response");
+    greeting = response.text.trim();
   } catch (e) {
-    console.error("[recommendations] Gemini greeting failed:", e);
+    console.error("[recommendations] Gemini greeting failed:", e instanceof Error ? e.message : e);
     // Build a specific fallback from the structured data
     const gapLines = (actions as Action[])
       .filter((a): a is Extract<Action, { type: "focused-gap" }> => a.type === "focused-gap")
