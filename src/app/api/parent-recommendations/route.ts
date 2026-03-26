@@ -166,9 +166,17 @@ Rules:
     greeting = (response.text ?? "").trim();
   } catch (e) {
     console.error("[recommendations] Gemini greeting failed:", e);
-    // Fallback to a simple greeting
-    const timeGreeting = `Good ${timeOfDay}`;
-    greeting = `${timeGreeting}, ${parentName}! Here are some suggestions for today.`;
+    // Build a specific fallback from the structured data
+    const gapLines = (actions as Action[])
+      .filter((a): a is Extract<Action, { type: "focused-gap" }> => a.type === "focused-gap")
+      .map(a => `${a.studentName} on ${a.gaps.flatMap(g => g.topics).slice(0, 2).join(" and ")} (${a.gaps[0]?.subject ?? ""})`);
+    if (gapLines.length > 0) {
+      greeting = `Good ${timeOfDay}, ${parentName}! I've been looking at the recent results and noticed some gaps for ${gapLines.join(", ")}. Would you like to set up some focused practice tests, or assign a daily quiz to keep things moving?`;
+    } else if (examType) {
+      greeting = `Good ${timeOfDay}, ${parentName}! ${examType} exams are coming up — would you like to assign some past-year paper practice, or set up a daily quiz to review key topics?`;
+    } else {
+      greeting = `Good ${timeOfDay}, ${parentName}! Things are looking good — want to keep the momentum going with a daily quiz today?`;
+    }
   }
 
   return NextResponse.json({ greeting, actions, summaries: studentSummaries.join(" ") });
