@@ -33,7 +33,6 @@ export async function GET(req: NextRequest) {
 
   const actions: Action[] = [];
   const month = new Date().getMonth() + 1;
-  const day = new Date().getDate();
   const dayOfWeek = new Date().toLocaleDateString("en-SG", { weekday: "long" });
 
   // Exam schedule context
@@ -141,30 +140,28 @@ export async function GET(req: NextRequest) {
   const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   let greeting = "";
   try {
-    const prompt = `You are a warm, empathetic AI teaching assistant for a parent in Singapore. Your name is Mark (from MarkForYou.com).
+    const prompt = `You are a warm AI tutor assistant for ${parentName}, a Singapore primary school parent.
 
-Context:
-- It is ${timeOfDay} on ${dayOfWeek}, ${day}/${month}.
-- Parent's name: ${parentName}
-- ${examContext || "No major exams coming up soon."}
-- Students: ${studentSummaries.join(" ")}
+Student diagnostic:
+${studentSummaries.join("\n")}
+${examContext ? `Note: ${examContext}` : ""}
 
-Write a short, warm greeting (2-3 sentences). Be conversational, not formulaic.
-1. Open with a warm good-${timeOfDay} to ${parentName} that shows genuine care — acknowledge the time of day, the season (e.g. exam pressure, school term), or a general encouraging note for the parent.
-2. Then naturally lead into a suggestion that there are some things worth looking at today (e.g. "Looks like there are a few areas worth working on..." or "Exams are coming up soon..." depending on context).
+Write a conversational check-in message (3-4 sentences) as if you've just reviewed the child's work:
+1. Greet ${parentName} with "Good ${timeOfDay}" — acknowledge it's ${dayOfWeek}
+2. Specifically mention BY NAME which student(s) are struggling and WHICH topics (e.g. "David is having some difficulty with Fractions and Speed in Math")
+3. Offer two options naturally: focused practice tests to target the weak topics, OR a daily quiz for general review
+4. End with an open invitation ("Feel free to ask me anything too!")
 
 Rules:
-- Do NOT use bullet points or numbered lists
-- Do NOT mention "MarkForYou" or "Mark" in the greeting
-- Do NOT enumerate specific topics or paper names — that comes separately
-- Keep it under 55 words
-- Be warm but concise — like a caring tutor checking in, not a robot
-- Use the parent's first name if available`;
+- Do NOT use bullet points
+- Mention the specific topic names from the diagnostic — do not be vague
+- Keep under 90 words
+- Sound like a caring tutor who has just looked at the child's papers, not a robot`;
 
     const response = await getAI().models.generateContent({
       model: "gemini-2.0-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { temperature: 0.9, maxOutputTokens: 150 },
+      config: { temperature: 0.9, maxOutputTokens: 200 },
     });
     greeting = (response.text ?? "").trim();
   } catch (e) {
@@ -174,5 +171,5 @@ Rules:
     greeting = `${timeGreeting}, ${parentName}! Here are some suggestions for today.`;
   }
 
-  return NextResponse.json({ greeting, actions });
+  return NextResponse.json({ greeting, actions, summaries: studentSummaries.join(" ") });
 }

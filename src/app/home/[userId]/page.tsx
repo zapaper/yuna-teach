@@ -147,12 +147,19 @@ export default function HomePage({
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
 
-  // Parent recommendations
+  // Parent recommendations / chat panel
   type SubjectGap = { subject: string; topics: string[] };
   type RecAction = { type: string; studentId?: string; studentName?: string; studentLevel?: number | null; gaps?: SubjectGap[]; students?: { id: string; name: string; level: number | null }[]; examType?: string };
-  const [aiGreeting, setAiGreeting] = useState<string>("");
+  type ChatMsg = { role: "ai" | "user"; text: string };
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
+  const [chatPhase, setChatPhase] = useState<"initial" | "focused" | null>(null);
+  const [focusedRec, setFocusedRec] = useState<RecAction | null>(null);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatSummaries, setChatSummaries] = useState("");
   const [recActions, setRecActions] = useState<RecAction[]>([]);
   const [recActing, setRecActing] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Parent quiz assignment
   const [showParentQuiz, setShowParentQuiz] = useState(false);
@@ -190,8 +197,12 @@ export default function HomePage({
     fetch(`/api/parent-recommendations?parentId=${userId}&hour=${hour}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data?.greeting) setAiGreeting(data.greeting);
+        if (data?.greeting) {
+          setChatMessages([{ role: "ai", text: data.greeting }]);
+          setChatPhase("initial");
+        }
         if (data?.actions?.length) setRecActions(data.actions);
+        if (data?.summaries) setChatSummaries(data.summaries);
         if (data?.greeting || data?.actions?.length) localStorage.setItem(key, today);
       })
       .catch(() => {})
@@ -262,6 +273,67 @@ export default function HomePage({
       setConnecting(false);
     }
   }
+
+  function handleFocusedSelect(rec: RecAction) {
+    setChatMessages(prev => [
+      ...prev,
+      { role: "user", text: `Focused practice for ${rec.studentName}` },
+      { role: "ai", text: `Sure! Based on ${rec.studentName}'s recent results, here are the topics scoring below 75%. Tap Go to create a focused 10-question practice test:` },
+    ]);
+    setFocusedRec(rec);
+    setChatPhase("focused");
+  }
+
+  function handleExamComingChat(rec: RecAction) {
+    setChatMessages(prev => [
+      ...prev,
+      { role: "user", text: `Practice ${rec.examType} papers` },
+      { role: "ai", text: `I've filtered the exam papers list for ${rec.examType} — you can assign a past-year paper from there.` },
+    ]);
+    setShowAllPapers(true);
+    if (rec.examType) setExamTypeFilter(rec.examType!);
+    setChatPhase(null);
+    setTimeout(() => document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" }), 200);
+  }
+
+  function handleDailyQuizChat() {
+    const quizRec = recActions.find(r => r.type === "daily-quiz");
+    const firstStudent = quizRec?.students?.[0] ?? recActions.find(r => r.type === "focused-gap");
+    setChatMessages(prev => [...prev, { role: "user", text: "Assign daily quiz" }]);
+    if (firstStudent && "id" in firstStudent) setParentQuizStudent((firstStudent as { id: string }).id);
+    else if (firstStudent && "studentId" in firstStudent && firstStudent.studentId) setParentQuizStudent(firstStudent.studentId);
+    setShowParentQuiz(true);
+    setChatPhase(null);
+  }
+
+  async function handleChatSend() {
+    if (!chatInput.trim() || chatLoading) return;
+    const userText = chatInput.trim();
+    setChatInput("");
+    const nextMessages: ChatMsg[] = [...chatMessages, { role: "user", text: userText }];
+    setChatMessages(nextMessages);
+    setChatPhase(null);
+    setChatLoading(true);
+    try {
+      const res = await fetch("/api/parent-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          parentId: userId,
+          messages: nextMessages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text })),
+          studentSummaries: chatSummaries,
+        }),
+      });
+      const data = await res.json();
+      if (data?.reply) setChatMessages(prev => [...prev, { role: "ai", text: data.reply }]);
+    } catch { /* ignore */ }
+    finally { setChatLoading(false); }
+  }
+
+  // Auto-scroll chat to bottom when messages change
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, chatLoading]);
 
   return (
     <div className="p-6 pb-28 animate-fade-in-up">
@@ -491,100 +563,117 @@ export default function HomePage({
         </div>
       ) : null}
 
-      {/* AI Recommendations for parents */}
-      {isParent && (aiGreeting || recActions.length > 0) && (
-        <div className="mb-6 rounded-2xl bg-primary-50/60 border border-primary-100 p-4">
-          {aiGreeting && (
-            <p className="text-sm text-slate-700 leading-relaxed mb-3">{aiGreeting}</p>
-          )}
-          {recActions.length > 0 && (
-            <ul className="space-y-2">
-              {recActions.flatMap((rec: RecAction, i: number) => {
-                if (rec.type === "focused-gap") {
-                  const header = (
-                    <li key={`fg-header-${i}`} className="text-xs text-slate-500 italic pt-1">
-                      {rec.studentName} scored below 75% on these topics in recent papers:
-                    </li>
-                  );
-                  return [header, ...(rec.gaps ?? []).flatMap((gap: SubjectGap, gi: number) =>
-                    gap.topics.map((topic: string, ti: number) => {
-                      const key = `fg-${i}-${gi}-${ti}`;
-                      return (
-                        <li key={key} className="flex items-center gap-2">
-                          <span className="flex-1 text-sm text-slate-700">
-                            • Focused practice on <strong>{topic}</strong> ({gap.subject})
-                          </span>
-                          <button
-                            disabled={recActing === key}
-                            onClick={async () => {
-                              setRecActing(key);
-                              try {
-                                await fetch("/api/focused-test", {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ parentId: userId, studentId: rec.studentId, subject: gap.subject, topic }),
-                                });
-                                // Remove this bullet by removing the topic
-                                setRecActions(rs => rs.map((r: RecAction, ri: number) => {
-                                  if (ri !== i) return r;
-                                  const newGaps = (r.gaps ?? []).map((g: SubjectGap, gj: number) =>
-                                    gj !== gi ? g : { ...g, topics: g.topics.filter((_: string, tj: number) => tj !== ti) }
-                                  ).filter((g: SubjectGap) => g.topics.length > 0);
-                                  return { ...r, gaps: newGaps };
-                                }));
-                                fetchData.current?.();
-                              } finally { setRecActing(null); }
-                            }}
-                            className="px-3 py-1 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50 shrink-0"
-                          >
-                            {recActing === key ? "..." : "Go →"}
-                          </button>
-                        </li>
-                      );
-                    })
-                  )];
-                }
-                if (rec.type === "exam-coming") {
-                  return (rec.students ?? []).map((s: { id: string; name: string; level: number | null }) => (
-                    <li key={`ec-${i}-${s.id}`} className="flex items-center gap-2">
-                      <span className="flex-1 text-sm text-slate-700">
-                        • {rec.examType} exam revision for <strong>{s.name}</strong>
-                      </span>
-                      <button
-                        onClick={() => {
-                          setShowAllPapers(true);
-                          if (rec.examType) setExamTypeFilter(rec.examType!);
-                          if (s.level) setLevelFilter(`Primary ${s.level}`);
-                          setTimeout(() => document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" }), 200);
-                        }}
-                        className="px-3 py-1 rounded-lg bg-purple-500 text-white text-xs font-medium hover:bg-purple-600 shrink-0"
-                      >
-                        Go →
-                      </button>
-                    </li>
-                  ));
-                }
-                if (rec.type === "daily-quiz") {
-                  const firstStudent = (rec.students ?? [])[0];
-                  return [(
-                    <li key={`dq-${i}`} className="flex items-center gap-2">
-                      <span className="flex-1 text-sm text-slate-700">• Assign daily quiz</span>
-                      <button
-                        onClick={() => {
-                          if (firstStudent) setParentQuizStudent(firstStudent.id);
-                          setShowParentQuiz(true);
-                        }}
-                        className="px-3 py-1 rounded-lg bg-emerald-500 text-white text-xs font-medium hover:bg-emerald-600 shrink-0"
-                      >
-                        Go →
-                      </button>
-                    </li>
-                  )];
-                }
-                return [];
-              })}
-            </ul>
-          )}
+      {/* AI Chat Panel for parents */}
+      {isParent && chatMessages.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-primary-100 overflow-hidden bg-white shadow-sm">
+          {/* Message thread */}
+          <div className="p-4 space-y-3 max-h-72 overflow-y-auto">
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                  msg.role === "user"
+                    ? "bg-primary-500 text-white rounded-tr-sm"
+                    : "bg-primary-50 text-slate-700 rounded-tl-sm"
+                }`}>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {/* Thinking indicator */}
+            {chatLoading && (
+              <div className="flex justify-start">
+                <div className="bg-primary-50 rounded-2xl rounded-tl-sm px-4 py-2 text-slate-400 text-sm">
+                  <span className="animate-pulse">...</span>
+                </div>
+              </div>
+            )}
+
+            {/* Initial-phase option buttons */}
+            {!chatLoading && chatPhase === "initial" && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {recActions.filter(r => r.type === "focused-gap").map((rec, i) => (
+                  <button key={`fp-${i}`} onClick={() => handleFocusedSelect(rec)}
+                    className="px-3 py-1.5 rounded-xl bg-primary-500 text-white text-sm font-medium hover:bg-primary-600 active:scale-95 transition-transform">
+                    Focused practice for {rec.studentName}
+                  </button>
+                ))}
+                {recActions.filter(r => r.type === "exam-coming").map((rec, i) => (
+                  <button key={`ec-${i}`} onClick={() => handleExamComingChat(rec)}
+                    className="px-3 py-1.5 rounded-xl bg-purple-500 text-white text-sm font-medium hover:bg-purple-600 active:scale-95 transition-transform">
+                    Practice {rec.examType} papers
+                  </button>
+                ))}
+                <button onClick={handleDailyQuizChat}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 active:scale-95 transition-transform">
+                  Assign daily quiz
+                </button>
+              </div>
+            )}
+
+            {/* Focused-phase topic list */}
+            {!chatLoading && chatPhase === "focused" && focusedRec && (
+              <div className="space-y-1.5 pt-1">
+                {(focusedRec.gaps ?? []).flatMap((gap: SubjectGap, gi: number) =>
+                  gap.topics.map((topic: string, ti: number) => {
+                    const key = `${gi}-${ti}`;
+                    return (
+                      <div key={key} className="flex items-center gap-2">
+                        <span className="flex-1 text-sm text-slate-700">
+                          • <strong>{topic}</strong> <span className="text-slate-400">({gap.subject})</span>
+                        </span>
+                        <button
+                          disabled={recActing === key}
+                          onClick={async () => {
+                            setRecActing(key);
+                            try {
+                              await fetch("/api/focused-test", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ parentId: userId, studentId: focusedRec.studentId, subject: gap.subject, topic }),
+                              });
+                              setFocusedRec(prev => {
+                                if (!prev) return null;
+                                const newGaps = (prev.gaps ?? []).map((g: SubjectGap, gj: number) =>
+                                  gj !== gi ? g : { ...g, topics: g.topics.filter((_: string, tj: number) => tj !== ti) }
+                                ).filter((g: SubjectGap) => g.topics.length > 0);
+                                return { ...prev, gaps: newGaps };
+                              });
+                              fetchData.current?.();
+                            } finally { setRecActing(null); }
+                          }}
+                          className="px-3 py-1 rounded-lg bg-primary-500 text-white text-xs font-medium hover:bg-primary-600 disabled:opacity-50 shrink-0"
+                        >
+                          {recActing === key ? "..." : "Go →"}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Chat input */}
+          <div className="border-t border-slate-100 p-3 flex gap-2 bg-slate-50/50">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") handleChatSend(); }}
+              placeholder="Ask me anything..."
+              className="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-primary-300 bg-white"
+            />
+            <button
+              onClick={handleChatSend}
+              disabled={!chatInput.trim() || chatLoading}
+              className="px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-medium hover:bg-primary-600 disabled:opacity-50"
+            >
+              Send
+            </button>
+          </div>
         </div>
       )}
 
