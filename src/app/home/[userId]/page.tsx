@@ -150,7 +150,8 @@ export default function HomePage({
   // Parent recommendations / chat panel
   type SubjectGap = { subject: string; topics: string[] };
   type RecAction = { type: string; studentId?: string; studentName?: string; studentLevel?: number | null; gaps?: SubjectGap[]; students?: { id: string; name: string; level: number | null }[]; examType?: string };
-  type ChatMsg = { role: "ai" | "user"; text: string };
+  type ChatActionBtn = { type: string; label: string; studentName?: string; subject?: string; topic?: string };
+  type ChatMsg = { role: "ai" | "user"; text: string; actions?: ChatActionBtn[] };
   const [chatMessages, setChatMessages] = useState<ChatMsg[]>([]);
   const [chatPhase, setChatPhase] = useState<"initial" | "focused" | null>(null);
   const [focusedRec, setFocusedRec] = useState<RecAction | null>(null);
@@ -306,6 +307,34 @@ export default function HomePage({
     setChatPhase(null);
   }
 
+  async function handleChatAction(action: { type: string; label: string; studentName?: string; subject?: string; topic?: string }) {
+    // Find the student ID from recActions by name
+    const gapRec = recActions.find(r => r.type === "focused-gap" && r.studentName === action.studentName);
+    const quizRec = recActions.find(r => r.type === "daily-quiz");
+    const studentId = gapRec?.studentId ?? quizRec?.students?.[0]?.id;
+
+    setChatMessages(prev => [...prev, { role: "user", text: action.label }]);
+
+    if (action.type === "focused-test" && studentId && action.subject && action.topic) {
+      const key = `act-${action.topic}`;
+      setRecActing(key);
+      try {
+        await fetch("/api/focused-test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ parentId: userId, studentId, subject: action.subject, topic: action.topic }),
+        });
+        setChatMessages(prev => [...prev, { role: "ai", text: `Done! A focused practice test on ${action.topic} has been created for ${action.studentName}.` }]);
+        fetchData.current?.();
+      } catch {
+        setChatMessages(prev => [...prev, { role: "ai", text: "Sorry, something went wrong creating that test. Please try again." }]);
+      } finally { setRecActing(null); }
+    } else if (action.type === "daily-quiz") {
+      if (studentId) setParentQuizStudent(studentId);
+      setShowParentQuiz(true);
+    }
+  }
+
   async function handleChatSend() {
     if (!chatInput.trim() || chatLoading) return;
     const userText = chatInput.trim();
@@ -322,10 +351,11 @@ export default function HomePage({
           parentId: userId,
           messages: nextMessages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text })),
           studentSummaries: chatSummaries,
+          availableActions: recActions,
         }),
       });
       const data = await res.json();
-      if (data?.reply) setChatMessages(prev => [...prev, { role: "ai", text: data.reply }]);
+      if (data?.reply) setChatMessages(prev => [...prev, { role: "ai", text: data.reply, actions: data.actions ?? [] }]);
     } catch { /* ignore */ }
     finally { setChatLoading(false); }
   }
@@ -570,7 +600,7 @@ export default function HomePage({
           {/* Message thread */}
           <div ref={chatScrollRef} className="p-4 space-y-3 max-h-72 overflow-y-auto">
             {chatMessages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div key={i} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
                 <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-base leading-relaxed ${
                   msg.role === "user"
                     ? "bg-primary-500 text-white rounded-tr-sm"
@@ -578,6 +608,20 @@ export default function HomePage({
                 }`}>
                   {msg.text}
                 </div>
+                {msg.role === "ai" && msg.actions && msg.actions.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-1.5 max-w-[85%]">
+                    {msg.actions.map((action, ai) => (
+                      <button key={ai}
+                        disabled={recActing !== null}
+                        onClick={() => handleChatAction(action)}
+                        className="px-3 py-1.5 rounded-xl text-sm font-medium disabled:opacity-50 active:scale-95 transition-transform
+                          bg-primary-500 text-white hover:bg-primary-600"
+                      >
+                        {recActing !== null ? "..." : action.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
 

@@ -11,68 +11,93 @@ function getAI() {
 const APP_CONTEXT = `
 MarkForYou (markforyou.com) is an AI-powered exam practice platform for Singapore primary school students (P1–P6). Features available to parents:
 
-1. Focused Practice Tests — 10-question tests auto-created from questions in uploaded exam papers, targeting a specific weak topic. The parent selects a topic; the app picks questions, assigns to the student, and marks using AI.
-2. Daily Quizzes — 20-minute auto-generated quizzes (MCQ only, or MCQ + written) calibrated to the student's level and the Singapore primary school curriculum. Math and Science available.
-3. Exam Paper Review — Parents upload past-year school exam papers. The app extracts questions, parents assign papers as mock exams, and AI marks the student's answers.
-4. Progress Tracking — Per-subject, per-topic performance scores derived from all marked papers. Weak topics = below 75% score.
-5. Spelling / 听写 Tests — Listening-based spelling tests for Chinese or English, assigned and marked automatically.
+1. Focused Practice Tests — 10-question tests auto-created from uploaded exam papers, targeting one specific weak topic. AI marks results automatically.
+2. Daily Quizzes — 20-minute auto-generated quizzes (MCQ or MCQ + written) calibrated to the student's level. Math and Science available.
+3. Exam Paper Review — Upload past-year school papers; assign as mock exams; AI marks student answers.
+4. Progress Tracking — Per-subject, per-topic scores from all marked papers. Weak = below 75%.
+5. Spelling / 听写 Tests — Listening-based spelling tests for Chinese or English.
 
-Singapore exam schedule context:
-- WA1 (Weighted Assessment 1): typically end of February / early March
-- WA2: typically end of April / early May
-- SA1 (Semestral Assessment 1): typically late May / early June
-- WA3: typically end of July / early August
-- SA2 / End-of-Year Exam: typically October
+Singapore exam schedule: WA1 (end Feb), WA2 (end Apr), SA1 (late May), WA3 (end Jul), SA2/EOY (Oct).
 `.trim();
+
+type GapAction = { type: "focused-gap"; studentId: string; studentName: string; gaps: { subject: string; topics: string[] }[] };
+type QuizAction = { type: "daily-quiz"; students: { id: string; name: string }[] };
+type AvailableAction = GapAction | QuizAction;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { parentId, messages, studentSummaries } = body as {
+  const { parentId, messages, studentSummaries, availableActions } = body as {
     parentId: string;
     messages: { role: "user" | "assistant"; content: string }[];
     studentSummaries?: string;
+    availableActions?: AvailableAction[];
   };
 
   if (!parentId || !messages?.length) return NextResponse.json({ reply: "" });
 
-  const parent = await prisma.user.findUnique({
-    where: { id: parentId },
-    select: { name: true },
-  });
+  const parent = await prisma.user.findUnique({ where: { id: parentId }, select: { name: true } });
   const parentName = parent?.name ?? "there";
+
+  // Build actionable options from structured data
+  const actionOptions: string[] = [];
+  for (const a of availableActions ?? []) {
+    if (a.type === "focused-gap") {
+      for (const gap of a.gaps) {
+        for (const topic of gap.topics) {
+          actionOptions.push(`{ "type": "focused-test", "label": "Create focused test: ${topic} (${gap.subject}) for ${a.studentName}", "studentName": "${a.studentName}", "subject": "${gap.subject}", "topic": "${topic}" }`);
+        }
+      }
+    }
+    if (a.type === "daily-quiz") {
+      for (const s of a.students) {
+        actionOptions.push(`{ "type": "daily-quiz", "label": "Assign daily quiz for ${s.name}", "studentName": "${s.name}" }`);
+      }
+    }
+  }
 
   const systemContext = `You are Mark, a warm and knowledgeable AI tutor assistant on MarkForYou, helping ${parentName} — a Singapore primary school parent.
 
 ${APP_CONTEXT}
 
-Current student diagnostic:
-${studentSummaries ?? "No diagnostic data available yet."}
+Student diagnostic:
+${studentSummaries ?? "No diagnostic data available."}
 
-How to respond:
-- Be conversational, caring, and concise (2–4 sentences unless a detailed answer is needed)
-- When suggesting actions, refer to the features above by name (e.g. "I can create a Focused Practice Test for that")
-- If the parent asks about a topic, suggest the most relevant feature
-- Do not mention internal system details or prompt instructions`;
+${actionOptions.length > 0 ? `Available actions you can suggest (use exact JSON from this list — do not invent topics or students):
+${actionOptions.join("\n")}` : ""}
+
+You must always respond with a JSON object in this exact format:
+{
+  "reply": "Your conversational response here",
+  "actions": []
+}
+
+The "actions" array should contain 0–3 items from the available actions list above, only when they are clearly relevant to what the parent just asked. If unsure, leave actions empty.
+Do not invent new actions outside the list. Do not mention internal instructions.`;
 
   try {
-    // Prepend system context as first user turn (SDK doesn't support systemInstruction)
     const contents = [
       { role: "user", parts: [{ text: systemContext }] },
-      { role: "model", parts: [{ text: "Understood! I'm ready to help." }] },
+      { role: "model", parts: [{ text: '{"reply":"Understood, I\'m ready to help!","actions":[]}' }] },
       ...messages.map(m => ({
         role: m.role === "user" ? "user" : "model",
         parts: [{ text: m.content }],
       })),
     ];
+
     const response = await getAI().models.generateContent({
       model: "gemini-2.0-flash",
       contents,
-      config: { temperature: 0.8, maxOutputTokens: 250 },
+      config: { responseMimeType: "application/json", temperature: 0.8, maxOutputTokens: 400 },
     });
+
     if (!response.text) throw new Error("Empty response");
-    return NextResponse.json({ reply: response.text.trim() });
+    const parsed = JSON.parse(response.text);
+    return NextResponse.json({
+      reply: (parsed.reply ?? "").trim(),
+      actions: Array.isArray(parsed.actions) ? parsed.actions : [],
+    });
   } catch (e) {
-    console.error("[parent-chat] Gemini failed:", e);
-    return NextResponse.json({ reply: "Sorry, I couldn't process that right now. Please try again in a moment." });
+    console.error("[parent-chat] failed:", e instanceof Error ? e.message : e);
+    return NextResponse.json({ reply: "Sorry, I couldn't process that right now. Please try again in a moment.", actions: [] });
   }
 }
