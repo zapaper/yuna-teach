@@ -190,6 +190,55 @@ export default function ExamPaperCard({
     );
   }
 
+  // ── Student-friendly card ──────────────────────────────────────────────
+  const isStudentView = !isAdmin && userRole !== "PARENT";
+  if (isStudentView) {
+    let friendlyTitle = paper.title;
+    if (isFocused) {
+      const topic = paper.title.replace(/^P\d+ Focused: /i, "").replace(/^Focused: /i, "");
+      friendlyTitle = `Focused practice on ${topic}`;
+    } else if (isQuiz) {
+      friendlyTitle = paper.subject ? `Daily ${paper.subject} Quiz` : "Daily Quiz";
+    } else {
+      const subj = paper.subject ?? "";
+      const exam = paper.examType ?? "";
+      friendlyTitle = `Practice paper${subj || exam ? " for" : ""}${subj ? ` ${subj}` : ""}${exam ? ` ${exam}` : ""}`;
+    }
+
+    const bannerColor = isFocused ? "bg-orange-400" : isQuiz ? "bg-emerald-500"
+      : paper.subject?.toLowerCase().includes("math") ? "bg-blue-500"
+      : paper.subject?.toLowerCase().includes("science") ? "bg-green-500"
+      : paper.subject?.toLowerCase().includes("chinese") ? "bg-orange-500"
+      : "bg-primary-500";
+
+    const isCompleted = paper.markingStatus === "released" || (paper.instantFeedback && paper.markingStatus === "complete");
+    const isSubmitted = !!paper.completedAt && !isCompleted;
+    const isMarking = paper.markingStatus === "in_progress";
+
+    const metaParts = [paper.school, paper.level, paper.examType].filter(Boolean);
+
+    return (
+      <Link href={examHref} className="block rounded-2xl overflow-hidden shadow-sm active:scale-[0.98] transition-transform">
+        <div className={`${bannerColor} px-4 py-5`}>
+          <p className="text-white font-bold text-lg leading-snug">{friendlyTitle}</p>
+          {isCompleted && paper.score != null && (
+            <p className="text-white/80 text-sm mt-0.5">
+              Score: {paper.score}{paper.totalMarks ? `/${paper.totalMarks}` : ""}
+            </p>
+          )}
+        </div>
+        <div className="bg-white px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-xs text-slate-400 truncate">{metaParts.join(" · ") || "\u00A0"}</p>
+          <span className={`shrink-0 px-4 py-1.5 rounded-xl text-sm font-semibold text-white ${
+            isCompleted ? "bg-emerald-500" : isSubmitted || isMarking ? "bg-slate-300" : "bg-primary-500"
+          }`}>
+            {isCompleted ? "View results →" : isMarking ? "Marking…" : isSubmitted ? "Submitted" : "Let's start!"}
+          </span>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <div className="relative">
       <Link
