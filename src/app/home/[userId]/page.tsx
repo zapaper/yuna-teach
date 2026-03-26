@@ -158,6 +158,7 @@ export default function HomePage({
   const [chatInput, setChatInput] = useState("");
   const [chatLoading, setChatLoading] = useState(false);
   const [chatSummaries, setChatSummaries] = useState("");
+  const [recLoading, setRecLoading] = useState(false);
   const [recActions, setRecActions] = useState<RecAction[]>([]);
   const [recActing, setRecActing] = useState<string | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
@@ -194,6 +195,7 @@ export default function HomePage({
     const today = new Date().toDateString();
     if (!force && localStorage.getItem(key) === today) return;
     recFetchingRef.current = true;
+    setRecLoading(true);
     const hour = new Date().getHours();
     fetch(`/api/parent-recommendations?parentId=${userId}&hour=${hour}`)
       .then(r => r.ok ? r.json() : null)
@@ -207,7 +209,7 @@ export default function HomePage({
         if (data?.greeting || data?.actions?.length) localStorage.setItem(key, today);
       })
       .catch(() => {})
-      .finally(() => { recFetchingRef.current = false; });
+      .finally(() => { recFetchingRef.current = false; setRecLoading(false); });
   }, [userId]);
   useEffect(() => {
     if (!user || !isParent || !hasLinkedStudents) return;
@@ -401,13 +403,6 @@ export default function HomePage({
       </div>
 
       <div className="text-center mb-6">
-        <p className="text-sm text-slate-400 mb-0.5">
-          {(() => {
-            const h = new Date().getHours();
-            return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
-          })()},{" "}
-          {new Date().toLocaleDateString("en-SG", { weekday: "long", day: "numeric", month: "short" })}
-        </p>
         <h1 className="text-2xl font-bold text-slate-800">
           {user?.name || "Home"}
         </h1>
@@ -460,9 +455,9 @@ export default function HomePage({
             </div>
             <button
               onClick={() => fetchRecommendations(true)}
-              className="flex items-center gap-1 text-xs text-primary-500 hover:text-primary-700 font-medium mt-0.5"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-100 text-primary-600 hover:bg-primary-200 font-semibold text-sm mt-1 transition-colors"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
               </svg>
               AI Assist
@@ -598,7 +593,7 @@ export default function HomePage({
       ) : null}
 
       {/* AI Chat Panel for parents */}
-      {isParent && chatMessages.length > 0 && (
+      {isParent && (chatMessages.length > 0 || recLoading) && (
         <div className="mb-6 rounded-2xl border border-primary-100 overflow-hidden bg-white shadow-sm">
           {/* Message thread */}
           <div ref={chatScrollRef} className="p-4 space-y-3 max-h-72 overflow-y-auto">
@@ -628,8 +623,8 @@ export default function HomePage({
               </div>
             ))}
 
-            {/* Thinking indicator */}
-            {chatLoading && (
+            {/* Loading indicator — initial fetch or chat response */}
+            {(chatLoading || recLoading) && (
               <div className="flex justify-start">
                 <div className="bg-primary-50 rounded-2xl rounded-tl-sm px-4 py-2 text-slate-400 text-sm">
                   <span className="animate-pulse">...</span>
