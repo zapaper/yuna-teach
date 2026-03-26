@@ -86,7 +86,7 @@ Do not invent new actions outside the list. Do not mention internal instructions
 
     console.log("[parent-chat] calling Gemini, messages:", messages.length, "actions:", (availableActions ?? []).length);
     const response = await getAI().models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents,
       config: { temperature: 0.8, maxOutputTokens: 400 },
     });

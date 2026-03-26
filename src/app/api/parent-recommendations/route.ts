@@ -157,7 +157,7 @@ Rules:
 - Sound like a caring tutor who has just looked at the child's papers, not a robot`;
 
     const response = await getAI().models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { temperature: 0.9, maxOutputTokens: 200 },
     });
