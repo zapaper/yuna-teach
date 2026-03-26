@@ -460,9 +460,12 @@ export default function HomePage({
             </div>
             <button
               onClick={() => fetchRecommendations(true)}
-              className="text-xs text-primary-500 hover:text-primary-700 underline mt-0.5"
+              className="flex items-center gap-1 text-xs text-primary-500 hover:text-primary-700 font-medium mt-0.5"
             >
-              Tips
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+              </svg>
+              AI Assist
             </button>
           </div>
         ) : null}
