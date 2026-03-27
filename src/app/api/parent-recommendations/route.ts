@@ -149,22 +149,24 @@ Student diagnostic:
 ${studentSummaries.join("\n")}
 ${examContext ? `Note: ${examContext}` : ""}
 
-Write a conversational check-in message (3-4 sentences) as if you've just reviewed the child's work:
+Write a warm, conversational check-in message (4-5 sentences):
 1. Greet ${parentName} with "Good ${timeOfDay}" — acknowledge it's ${dayOfWeek}
-2. Specifically mention BY NAME which student(s) are struggling and WHICH topics (e.g. "David is having some difficulty with Fractions and Speed in Math")
-3. Offer two options naturally: focused practice tests to target the weak topics, OR a daily quiz for general review
-4. End with an open invitation ("Feel free to ask me anything too!")
+2. ONE sentence of genuine empathy — acknowledge the effort involved in keeping up with the child's learning (e.g. "I know keeping up with everything can be a lot.")
+3. Transition naturally into what you noticed — mention BY NAME which student(s) and WHICH specific topics they're finding difficult (e.g. "I've been looking at Emily's recent work and she seems to be finding Fractions and Speed a bit tricky.")
+4. Offer two options naturally: focused practice tests to target the weak topics, OR a daily quiz for general review
+5. End with an open invitation ("Feel free to ask me anything too!")
 
 Rules:
 - Do NOT use bullet points
+- Do NOT skip the empathy sentence — it must come before the topic feedback
 - Mention the specific topic names from the diagnostic — do not be vague
-- Keep under 90 words
-- Sound like a caring tutor who has just looked at the child's papers, not a robot`;
+- Keep under 110 words
+- Sound like a caring tutor talking to a busy parent, not a robot`;
 
     const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { temperature: 0.9, maxOutputTokens: 200 },
+      config: { temperature: 0.9, maxOutputTokens: 280 },
     });
     if (!response.text) throw new Error("Empty Gemini response");
     greeting = response.text.trim();
