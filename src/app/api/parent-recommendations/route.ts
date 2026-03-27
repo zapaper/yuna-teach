@@ -92,14 +92,18 @@ export async function GET(req: NextRequest) {
 
     const gaps: SubjectGap[] = [];
     const strongTopics: string[] = [];
+    const allWeakBySubject: SubjectGap[] = [];
     for (const [subject, topics] of Object.entries(topicPerf)) {
-      const weakTopics = Object.entries(topics)
+      const allWeak = Object.entries(topics)
         .filter(([, v]) => v.available > 0 && (v.earned / v.available) < 0.75)
-        .filter(([name]) => !recentFocusedTopics.has(name))
         .sort(([, a], [, b]) => (a.earned / a.available) - (b.earned / b.available))
         .map(([name]) => name)
         .slice(0, 3);
-      if (weakTopics.length > 0) gaps.push({ subject, topics: weakTopics });
+      if (allWeak.length > 0) allWeakBySubject.push({ subject, topics: allWeak });
+
+      // Action gaps: exclude recently practiced topics (to avoid re-suggesting them)
+      const actionWeak = allWeak.filter(name => !recentFocusedTopics.has(name));
+      if (actionWeak.length > 0) gaps.push({ subject, topics: actionWeak });
 
       const strong = Object.entries(topics)
         .filter(([, v]) => v.available > 0 && (v.earned / v.available) >= 0.8)
@@ -107,9 +111,10 @@ export async function GET(req: NextRequest) {
       strongTopics.push(...strong.slice(0, 2));
     }
 
+    // Summary uses raw weak topics (not filtered by recent practice) so AI has accurate picture
     let summary = `${studentName} (${levelStr}): ${markedPapers.length} papers marked.`;
     if (strongTopics.length > 0) summary += ` Strong in: ${strongTopics.join(", ")}.`;
-    if (gaps.length > 0) summary += ` Gaps in: ${gaps.map(g => `${g.subject}: ${g.topics.join(", ")}`).join("; ")}.`;
+    if (allWeakBySubject.length > 0) summary += ` Weak topics: ${allWeakBySubject.map(g => `${g.subject}: ${g.topics.join(", ")}`).join("; ")}.`;
     else summary += " No significant gaps.";
     summary += ` ${recentQuizCount} quizzes this week.`;
     if (recentFocused.length > 0) summary += ` Recent focused practice: ${recentFocused.map(f => f.title).join(", ")}.`;
