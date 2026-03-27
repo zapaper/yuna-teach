@@ -82,10 +82,8 @@ export default function ExamPaperCard({
     ? `/exam/${paper.id}/overview?userId=${userId}`
     : paper.markingStatus === "released" || (paper.instantFeedback && paper.markingStatus === "complete")
     ? `/exam/${paper.id}/review?userId=${userId}`
-    : isQuiz
+    : isQuiz || isFocused
     ? `/quiz/${paper.id}?userId=${userId}`
-    : isFocused
-    ? `/exam/${paper.id}/focused?userId=${userId}`
     : `/exam/${paper.id}?userId=${userId}`;
 
   if (isExtracting) {
