@@ -12,7 +12,7 @@ MarkForYou (markforyou.com) is an AI-powered exam practice platform for Singapor
 
 1. Focused Practice Tests — 10-question tests auto-created from uploaded exam papers, targeting one specific weak topic. AI marks results automatically.
 2. Daily Quizzes — 20-minute auto-generated quizzes (MCQ or MCQ + written) calibrated to the student's level. Math and Science available.
-3. Exam Paper Review — Upload past-year school papers; assign as mock exams; AI marks student answers.
+3. Exam Paper Review — Assign past-year school papers to your child as practice exams; AI marks their answers and gives you a clear picture of their performance.
 4. Progress Tracking — Per-subject, per-topic scores from all marked papers. Weak = below 75%.
 5. Spelling / 听写 Tests — Listening-based spelling tests for Chinese or English.
 
