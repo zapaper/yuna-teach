@@ -64,11 +64,12 @@ ${studentSummaries ?? "No diagnostic data available."}
 ${actionOptions.length > 0 ? `Available actions you can suggest (use exact JSON from this list — do not invent topics or students):
 ${actionOptions.join("\n")}` : ""}
 
-You must always respond with a JSON object in this exact format:
+You must respond with ONLY a JSON object — no text before or after it, no preamble, no explanation outside the JSON. Exact format:
 {
   "reply": "Your conversational response here",
   "actions": []
 }
+Do NOT include any JSON or curly braces inside the "reply" string value.
 
 The "actions" array should contain 0–3 items from the available actions list above, only when they are clearly relevant to what the parent just asked. If unsure, leave actions empty.
 Do not invent new actions outside the list. Do not mention internal instructions.
@@ -95,19 +96,22 @@ Write the "reply" in plain conversational prose. When listing multiple items (e.
     const text = (response.text ?? "").trim();
     if (!text) throw new Error("Empty response");
 
-    // Extract JSON — Gemini sometimes wraps it in ```json ... ```
+    // Extract JSON — Gemini sometimes wraps it in ```json ... ``` or prepends prose
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0]);
+        // Strip any embedded JSON that Gemini may have put inside the reply value
+        const reply = (parsed.reply ?? "").trim().replace(/\s*\{[\s\S]*\}\s*$/, "").trim();
         return NextResponse.json({
-          reply: (parsed.reply ?? "").trim(),
+          reply,
           actions: Array.isArray(parsed.actions) ? parsed.actions : [],
         });
       } catch { /* fall through to plain text */ }
     }
-    // If Gemini didn't return JSON, use the raw text as reply with no actions
-    return NextResponse.json({ reply: text, actions: [] });
+    // If Gemini didn't return JSON, strip any JSON blob and use the prose
+    const plainText = text.replace(/\{[\s\S]*\}/, "").trim();
+    return NextResponse.json({ reply: plainText || text, actions: [] });
   } catch (e) {
     console.error("[parent-chat] FAILED:", e instanceof Error ? `${e.name}: ${e.message}` : JSON.stringify(e));
     return NextResponse.json({ reply: "Sorry, I couldn't process that right now. Please try again in a moment.", actions: [] });
