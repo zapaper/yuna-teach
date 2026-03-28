@@ -14,6 +14,7 @@ interface FlaggedItem {
   flaggedAt: string | null;
   paperId: string;
   cloneId: string | null;
+  paperType: string | null;
   paperTitle: string;
   subject: string | null;
   level: string | null;
@@ -73,7 +74,8 @@ export default function FlaggedPage() {
               key={item.questionId}
               onClick={() => {
                 const examId = item.cloneId ?? item.paperId;
-                router.push(`/exam/${examId}/overview`);
+                const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
+                router.push(isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`);
               }}
               className="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:border-primary-200 transition-colors"
             >
@@ -83,7 +85,12 @@ export default function FlaggedPage() {
                   <span className="text-sm font-bold text-slate-800">
                     Q{item.questionNum}
                   </span>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    {(item.paperType === "quiz" || item.paperType === "focused") && (
+                      <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                        {item.paperType === "focused" ? "Focused" : "Quiz"}
+                      </span>
+                    )}
                     {item.year && (
                       <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
                         {item.year}
@@ -101,6 +108,7 @@ export default function FlaggedPage() {
                     )}
                   </div>
                 </div>
+                <p className="text-xs text-slate-600 font-medium truncate">{item.paperTitle}</p>
                 <p className="text-xs text-slate-400">
                   {[item.subject, item.level].filter(Boolean).join(" · ")}
                   {item.studentName ? ` · ${item.studentName}` : ""}
