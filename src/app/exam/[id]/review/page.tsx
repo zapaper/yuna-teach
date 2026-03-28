@@ -331,7 +331,14 @@ function ExamReviewContent({ id }: { id: string }) {
             {data.score ?? 0}
             {totalMarks ? <span className="text-2xl font-normal text-slate-400"> / {totalMarks}</span> : null}
           </p>
-          <p className="text-sm text-slate-400 mt-1">Total Score</p>
+          <p className="text-sm text-slate-400 mt-1">
+            Total Score
+            {isQuiz && totalMarks && Number(totalMarks) > 0 ? (
+              <span className="ml-2 text-primary-500 font-semibold">
+                ({Math.round(((data.score ?? 0) / Number(totalMarks)) * 100)}%)
+              </span>
+            ) : null}
+          </p>
           {data.bookletScores && data.bookletScores.length > 0 && (
             <div className="flex justify-center flex-wrap gap-3 mt-2">
               {data.bookletScores.map((b) => (
@@ -473,69 +480,82 @@ function ExamReviewContent({ id }: { id: string }) {
                 {/* Quiz question text — show transcribed stem, diagram, options/subparts */}
                 {isQuiz && currentQ.transcribedStem ? (
                   <div className="border-b border-slate-100 px-4 py-3 space-y-2">
-                    <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
-                      {currentQ.transcribedStem}
-                    </p>
-                    {currentQ.diagramImageData ? (
-                      <div>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={`data:image/jpeg;base64,${currentQ.diagramImageData}`}
-                          alt="Diagram"
-                          className="w-full rounded-lg border border-slate-100"
-                        />
-                      </div>
-                    ) : null}
-                    {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 ? (
-                      <div className="space-y-1">
-                        {currentQ.transcribedOptions.map((opt, i) => {
-                          const optNum = String(i + 1);
-                          const isCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
-                          const isSelected = currentQ.studentAnswer === optNum;
-                          return (
-                            <div
-                              key={i}
-                              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
-                                isCorrect
-                                  ? "bg-green-50 border border-green-200 text-green-800 font-medium"
-                                  : isSelected
-                                  ? "bg-red-50 border border-red-200 text-red-700"
-                                  : "text-slate-600"
-                              }`}
-                            >
-                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                                isCorrect ? "bg-green-500 text-white" : isSelected ? "bg-red-400 text-white" : "bg-slate-100 text-slate-500"
-                              }`}>
-                                {i + 1}
-                              </span>
-                              <span>{opt}</span>
-                              {isCorrect && isSelected ? <span className="ml-auto text-xs text-green-600">Correct</span> : null}
-                              {isCorrect && !isSelected ? <span className="ml-auto text-xs text-green-600">Answer</span> : null}
-                              {!isCorrect && isSelected ? <span className="ml-auto text-xs text-red-500">Your pick</span> : null}
+                    {(() => {
+                      // Process sentinels from transcribedSubparts (same logic as quiz page)
+                      type SubpartEntry = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
+                      const allSubs = currentQ.transcribedSubparts as SubpartEntry[] | null;
+                      const subRefMap: Record<string, string> = {};
+                      if (allSubs) for (const sp of allSubs) if (sp.label.startsWith("_subref-")) subRefMap[sp.label.slice(8)] = sp.diagramBase64 ?? "";
+                      const drawableDiagram = allSubs?.find(sp => sp.label === "_drawable")?.diagramBase64 ?? null;
+                      const realSubs = allSubs
+                        ? allSubs.filter(sp => !sp.label.startsWith("_")).map(sp => ({ ...sp, refImageBase64: subRefMap[sp.label] ?? sp.refImageBase64 ?? null }))
+                        : null;
+                      const toSrc = (b64: string) => b64.startsWith("data:") ? b64 : `data:image/jpeg;base64,${b64}`;
+                      return (
+                        <>
+                          <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
+                            {currentQ.transcribedStem}
+                          </p>
+                          {currentQ.diagramImageData ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-lg border border-slate-100" />
+                          ) : null}
+                          {drawableDiagram ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={toSrc(drawableDiagram)} alt="Diagram" className="w-full rounded-lg border border-slate-100" />
+                          ) : null}
+                          {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 ? (
+                            <div className="space-y-1">
+                              {currentQ.transcribedOptions.map((opt, i) => {
+                                const optNum = String(i + 1);
+                                const isCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                                const isSelected = currentQ.studentAnswer === optNum;
+                                return (
+                                  <div
+                                    key={i}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
+                                      isCorrect
+                                        ? "bg-green-50 border border-green-200 text-green-800 font-medium"
+                                        : isSelected
+                                        ? "bg-red-50 border border-red-200 text-red-700"
+                                        : "text-slate-600"
+                                    }`}
+                                  >
+                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                      isCorrect ? "bg-green-500 text-white" : isSelected ? "bg-red-400 text-white" : "bg-slate-100 text-slate-500"
+                                    }`}>
+                                      {i + 1}
+                                    </span>
+                                    <span>{opt}</span>
+                                    {isCorrect && isSelected ? <span className="ml-auto text-xs text-green-600">Correct</span> : null}
+                                    {isCorrect && !isSelected ? <span className="ml-auto text-xs text-green-600">Answer</span> : null}
+                                    {!isCorrect && isSelected ? <span className="ml-auto text-xs text-red-500">Your pick</span> : null}
+                                  </div>
+                                );
+                              })}
                             </div>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                    {currentQ.transcribedSubparts && currentQ.transcribedSubparts.length > 0 ? (
-                      <div className="space-y-2 mt-1">
-                        {currentQ.transcribedSubparts.map((sp) => (
-                          <div key={sp.label}>
-                            <p className="text-sm text-slate-700">
-                              <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
-                            </p>
-                            {sp.refImageBase64 && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={`data:image/jpeg;base64,${sp.refImageBase64}`}
-                                alt={`(${sp.label}) diagram`}
-                                className="w-full rounded-lg border border-slate-100 mt-1"
-                              />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
+                          ) : null}
+                          {realSubs && realSubs.length > 0 ? (
+                            <div className="space-y-2 mt-1">
+                              {realSubs.map((sp) => {
+                                const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
+                                return (
+                                  <div key={sp.label}>
+                                    <p className="text-sm text-slate-700">
+                                      <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
+                                    </p>
+                                    {imgSrc ? (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-lg border border-slate-100 mt-1" />
+                                    ) : null}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                        </>
+                      );
+                    })()}
                   </div>
                 ) : !isStudent && currentQ.imageData ? (
                   /* Extracted question image — shown to parents only for regular exams */
