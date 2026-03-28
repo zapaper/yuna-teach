@@ -296,7 +296,11 @@ function ExamReviewContent({ id }: { id: string }) {
   function renderWithNewlines(text: string) {
     return text.split("|").map((part, i, arr) => (
       <span key={i}>
-        {part.trim()}
+        {part.trim().split(/(\*\*[^*]+\*\*)/).map((seg, j) =>
+          seg.startsWith("**") && seg.endsWith("**")
+            ? <strong key={j}>{seg.slice(2, -2)}</strong>
+            : seg
+        )}
         {i < arr.length - 1 ? <br /> : null}
       </span>
     ));

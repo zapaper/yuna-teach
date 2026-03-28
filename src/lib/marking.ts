@@ -360,7 +360,13 @@ function scienceCommandWordRules(subject: string | null | undefined): string {
     Award PARTIAL marks if the student captures some but not all key details — even if only 1 mark is available, award 0 if the description is too vague or missing the key detail.
     In notes, clearly state which details were present and which were missing.
   - "Explain" questions: treat the same as "Describe" — detail and reasoning are required.
-  - All other command words (Name, Give, Identify, etc.): treat like "State" — short, specific answer expected.`;
+  - All other command words (Name, Give, Identify, etc.): treat like "State" — short, specific answer expected.
+
+  KEY TERM EMPHASIS IN NOTES (Science only):
+  - Identify the specific scientific key terms required by the answer (e.g. "photosynthesis", "potential energy", "evaporation", "chlorophyll").
+  - If the student's answer is missing one or more of these key terms, wrap each missing term in **double asterisks** in the notes field.
+  - Example: "Student described the process correctly but did not use the term **photosynthesis**. The word **chlorophyll** was also absent."
+  - Only bold terms that are genuinely absent from the student's answer — do not bold terms the student did use.`;
 }
 
 function mathMarkingRules(subject: string | null | undefined): string {
