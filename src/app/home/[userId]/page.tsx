@@ -555,6 +555,9 @@ export default function HomePage({
       {/* Student action buttons */}
       {!isAdmin && !isParent && (
         <div className="space-y-3 mb-6">
+          <Link href={`/scan?userId=${userId}`} className="block w-full bg-accent-orange text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
+            Scan Spelling / 听写
+          </Link>
           <button
             onClick={() => setShowQuizSetup(true)}
             className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
