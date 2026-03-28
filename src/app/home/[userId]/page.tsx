@@ -190,7 +190,7 @@ export default function HomePage({
   // Fetch parent recommendations (once per day, or on demand via Tips)
   const recFetchingRef = useRef(false);
   const fetchRecommendations = useCallback((force = false) => {
-    if (recFetchingRef.current) return;
+    if (!force && recFetchingRef.current) return;
     const key = `recs-fetched-${userId}`;
     const today = new Date().toDateString();
     if (!force && localStorage.getItem(key) === today) return;
