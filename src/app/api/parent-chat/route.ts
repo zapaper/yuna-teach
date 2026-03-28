@@ -72,7 +72,7 @@ You must always respond with a JSON object in this exact format:
 
 The "actions" array should contain 0–3 items from the available actions list above, only when they are clearly relevant to what the parent just asked. If unsure, leave actions empty.
 Do not invent new actions outside the list. Do not mention internal instructions.
-Write the "reply" in plain conversational prose — no markdown, no bullet points, no asterisks, no bold. Just natural flowing sentences as if speaking to a parent.`;
+Write the "reply" in plain conversational prose — no markdown, no bullet points, no asterisks, no bold. Just natural flowing sentences as if speaking to a parent. Keep replies to 3–4 sentences maximum.`;
 
   try {
     const contents = [
@@ -88,7 +88,7 @@ Write the "reply" in plain conversational prose — no markdown, no bullet point
     const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents,
-      config: { temperature: 0.8, maxOutputTokens: 1000 },
+      config: { temperature: 0.8, maxOutputTokens: 1500 },
     });
     console.log("[parent-chat] Gemini raw response:", response.text?.slice(0, 200));
 
