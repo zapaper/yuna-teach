@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface FlaggedItem {
   questionId: string;
@@ -25,6 +26,8 @@ interface FlaggedItem {
   syllabusTopic: string | null;
   studentName: string | null;
   parentName: string | null;
+  sourcePaperId: string | null;
+  sourceQuestionNum: string | null;
 }
 
 export default function FlaggedPage() {
@@ -166,6 +169,24 @@ export default function FlaggedPage() {
                   <p className="text-[10px] text-slate-300">
                     Flagged {new Date(item.flaggedAt).toLocaleDateString()}
                   </p>
+                )}
+
+                {/* Source question link — for editing Q or A */}
+                {item.sourcePaperId && (
+                  <div className="pt-1">
+                    <Link
+                      href={`/exam/${item.sourcePaperId}?highlight=${item.sourceQuestionNum ?? ""}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-1 text-[10px] font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded hover:bg-primary-100 transition-colors"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                      Edit source Q{item.sourceQuestionNum} in original paper
+                    </Link>
+                  </div>
                 )}
               </div>
             </button>

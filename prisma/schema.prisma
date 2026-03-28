@@ -132,6 +132,9 @@ model ExamQuestion {
   diagramBounds           Json?    // {top, left, bottom, right} percentages
   diagramImageData        String?  // base64 cropped diagram
 
+  // Source tracking: for quiz/focused questions copied from master papers
+  sourceQuestionId        String?  // ID of the original ExamQuestion this was copied from
+
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 
   @@map("exam_questions")

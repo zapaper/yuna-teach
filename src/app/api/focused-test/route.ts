@@ -169,6 +169,7 @@ export async function POST(request: NextRequest) {
           transcribedSubparts: q.transcribedSubparts ?? undefined,
           diagramImageData: q.diagramImageData,
           diagramBounds: q.diagramBounds ?? undefined,
+          sourceQuestionId: q.id,
         })),
       },
     },
