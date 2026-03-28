@@ -28,6 +28,7 @@ export async function GET(_request: NextRequest) {
           year: true,
           examType: true,
           paperType: true,
+          metadata: true,
           sourceExamId: true,
           assignedTo: { select: { id: true, name: true } },
           user: { select: { id: true, name: true } },
@@ -61,6 +62,28 @@ export async function GET(_request: NextRequest) {
 
   const items = flagged.map((q) => {
     const src = q.sourceQuestionId ? sourceMap[q.sourceQuestionId] : null;
+
+    // Fallback: parse sourceLabels from quiz paper metadata (for questions created before sourceQuestionId was added)
+    const meta = q.examPaper.metadata as { sourceLabels?: Record<string, string | null> } | null;
+    const sourceLabel = meta?.sourceLabels?.[q.questionNum] ?? null;
+    // sourceLabel format: "2023 WA1 Nanyang Primary School" — split into year/examType/school
+    let labelYear: string | null = null;
+    let labelExamType: string | null = null;
+    let labelSchool: string | null = null;
+    if (sourceLabel && !src) {
+      const parts = sourceLabel.split(" ");
+      // First token that looks like a year (4 digits)
+      const yearIdx = parts.findIndex(p => /^\d{4}$/.test(p));
+      if (yearIdx >= 0) labelYear = parts[yearIdx];
+      // Known exam types
+      const knownTypes = ["WA1", "WA2", "WA3", "SA1", "SA2", "EOY", "Prelim", "End of Year"];
+      const typeToken = parts.find(p => knownTypes.some(t => t.toLowerCase() === p.toLowerCase()));
+      if (typeToken) labelExamType = typeToken;
+      // Remaining tokens = school name
+      const schoolParts = parts.filter(p => p !== labelYear && p !== labelExamType);
+      if (schoolParts.length > 0) labelSchool = schoolParts.join(" ");
+    }
+
     return {
       questionId: q.id,
       questionNum: q.questionNum,
@@ -76,15 +99,16 @@ export async function GET(_request: NextRequest) {
       paperTitle: q.examPaper.title,
       subject: q.examPaper.subject,
       level: q.examPaper.level,
-      // For quiz/focused: use source paper's school/year/examType; fall back to paper's own fields
-      school: src?.school ?? q.examPaper.school,
-      year: src?.year ?? q.examPaper.year,
-      examType: src?.examType ?? q.examPaper.examType,
+      // Priority: sourceQuestionId lookup → sourceLabels metadata → paper's own fields
+      school: src?.school ?? labelSchool ?? q.examPaper.school,
+      year: src?.year ?? labelYear ?? q.examPaper.year,
+      examType: src?.examType ?? labelExamType ?? q.examPaper.examType,
+      sourceLabel,  // raw label string for display fallback
       transcribedStem: q.transcribedStem,
       syllabusTopic: q.syllabusTopic,
       studentName: q.examPaper.assignedTo?.name ?? null,
       parentName: q.examPaper.user?.name ?? null,
-      // Source question link (for editing)
+      // Source question link (for editing) — only available when sourceQuestionId is set
       sourcePaperId: src?.paperId ?? null,
       sourceQuestionNum: src?.questionNum ?? null,
     };

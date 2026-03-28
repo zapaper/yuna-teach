@@ -28,6 +28,7 @@ interface FlaggedItem {
   parentName: string | null;
   sourcePaperId: string | null;
   sourceQuestionNum: string | null;
+  sourceLabel: string | null;
 }
 
 export default function FlaggedPage() {
@@ -107,6 +108,12 @@ export default function FlaggedPage() {
                     {item.school && (
                       <span className="text-[10px] font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
                         {item.school}
+                      </span>
+                    )}
+                    {/* Fallback: show raw sourceLabel if individual fields are still missing */}
+                    {!item.school && !item.year && !item.examType && item.sourceLabel && (
+                      <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                        {item.sourceLabel}
                       </span>
                     )}
                   </div>
