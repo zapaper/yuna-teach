@@ -1596,34 +1596,69 @@ export async function markFocusedTest(paperId: string): Promise<void> {
     });
     if (!paper) throw new Error("Paper not found");
 
+    // Separate MCQ (already marked client-side) and OEQ (need AI marking with submission images)
+    const isMcqQ = (answer: string | null) => {
+      const n = (answer ?? "").trim().replace(/[().]/g, "").trim();
+      return n === "1" || n === "2" || n === "3" || n === "4";
+    };
+    const mcqQuestions = paper.questions.filter(q => isMcqQ(q.answer));
+    const oeqQuestions = paper.questions.filter(q => !isMcqQ(q.answer));
+
+    let totalAwarded = mcqQuestions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
+    const updates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+
+    if (oeqQuestions.length === 0) {
+      // All MCQ — just finalise
+      await prisma.$transaction([
+        prisma.examPaper.update({
+          where: { id: paperId },
+          data: { score: totalAwarded, markingStatus: "complete" },
+        }),
+      ]);
+      await generateFeedbackSummary(paperId);
+      console.log(`[focused-marking] Paper ${paperId} done (MCQ only). Score: ${totalAwarded}`);
+      return;
+    }
+
     const subDir = path.join(SUBMISSIONS_DIR, paperId);
     const ai = getAI();
-    let totalAwarded = 0;
-    const updates = [];
 
-    for (let i = 0; i < paper.questions.length; i++) {
-      const q = paper.questions[i];
+    for (let i = 0; i < oeqQuestions.length; i++) {
+      const q = oeqQuestions[i];
       const expectedAnswer = q.answer || "?";
       const marksAvailable = q.marksAvailable ?? 1;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [];
 
-      // Image 1: question image (from DB)
+      // Question text from transcribed stem
+      if (q.transcribedStem) {
+        let questionText = `Question: ${q.transcribedStem}`;
+        const subparts = q.transcribedSubparts as { label: string; text: string }[] | null;
+        if (subparts && subparts.length > 0) {
+          const subpartTexts = subparts
+            .filter(sp => !sp.label.startsWith("_"))
+            .map(sp => `(${sp.label}) ${sp.text}`);
+          questionText += "\n" + subpartTexts.join("\n");
+        }
+        parts.push({ text: questionText });
+      }
+
+      // Question image (from DB)
       if (q.imageData && q.imageData.startsWith("data:image")) {
         const match = q.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
         if (match) {
-          parts.push({ text: "Image 1 — The question:" });
+          parts.push({ text: "Question image:" });
           parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
         }
       }
 
-      // Image 2: student's handwritten answer (from submission files)
+      // Student's handwritten answer — OEQ-only sequential index (page_0, page_1, ...)
       let hasSubmission = false;
       try {
         const pagePath = path.join(subDir, `page_${i}.jpg`);
         const pageBuffer = await fs.readFile(pagePath);
-        parts.push({ text: "Image 2 — Student's handwritten answer:" });
+        parts.push({ text: "Student's handwritten answer:" });
         parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
         hasSubmission = true;
       } catch {
