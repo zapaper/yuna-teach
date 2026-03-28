@@ -166,7 +166,7 @@ Rules:
     const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { temperature: 0.9, maxOutputTokens: 800 },
+      config: { temperature: 0.9 },
     });
     if (!response.text) throw new Error("Empty Gemini response");
     greeting = response.text.trim();
