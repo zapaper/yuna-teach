@@ -146,10 +146,9 @@ function QuizContent({ id }: { id: string }) {
     return <div className="p-6 text-center py-24"><p className="text-slate-500">Quiz not found</p></div>;
   }
 
-  const quizType = paper.metadata?.quizType ?? "mcq";
   const mcqQuestions = paper.questions.filter(q => isMcq(q.answer));
   const oeqQuestions = paper.questions.filter(q => !isMcq(q.answer));
-  const hasOeq = quizType === "mcq-oeq" && oeqQuestions.length > 0;
+  const hasOeq = oeqQuestions.length > 0;
 
   function selectMcqAnswer(questionId: string, option: string) {
     setMcqAnswers(prev => ({ ...prev, [questionId]: option }));
@@ -314,8 +313,9 @@ function QuizContent({ id }: { id: string }) {
         <div className="min-w-0">
           <h1 className="text-sm font-bold text-slate-800 truncate">{paper.title}</h1>
           <p className="text-[11px] text-slate-400">
-            {answeredCount} / {mcqQuestions.length} MCQ answered
-            {hasOeq ? ` + ${oeqQuestions.length} written` : ""}
+            {mcqQuestions.length > 0 ? `${answeredCount} / ${mcqQuestions.length} MCQ` : ""}
+            {mcqQuestions.length > 0 && hasOeq ? " · " : ""}
+            {hasOeq ? `${oeqQuestions.length} written` : ""}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-3">
