@@ -337,6 +337,42 @@ export default function HomePage({
     }
   }
 
+  function renderChatText(text: string) {
+    const lines = text.split("\n");
+    const elements: React.ReactNode[] = [];
+    let bulletBuffer: string[] = [];
+
+    function flushBullets() {
+      if (bulletBuffer.length === 0) return;
+      elements.push(
+        <ul key={elements.length} className="list-disc list-inside space-y-0.5 my-1">
+          {bulletBuffer.map((b, i) => <li key={i}>{renderInline(b)}</li>)}
+        </ul>
+      );
+      bulletBuffer = [];
+    }
+
+    function renderInline(s: string): React.ReactNode {
+      return s.split(/(\*\*[^*]+\*\*)/).map((seg, i) =>
+        seg.startsWith("**") && seg.endsWith("**")
+          ? <strong key={i}>{seg.slice(2, -2)}</strong>
+          : seg
+      );
+    }
+
+    for (const line of lines) {
+      const bullet = line.match(/^[\*\-•]\s+(.+)/);
+      if (bullet) {
+        bulletBuffer.push(bullet[1]);
+      } else {
+        flushBullets();
+        if (line.trim()) elements.push(<p key={elements.length}>{renderInline(line)}</p>);
+      }
+    }
+    flushBullets();
+    return <div className="space-y-1">{elements}</div>;
+  }
+
   async function handleChatSend() {
     if (!chatInput.trim() || chatLoading) return;
     const userText = chatInput.trim();
@@ -608,7 +644,7 @@ export default function HomePage({
                     ? "bg-primary-500 text-white rounded-tr-sm"
                     : "bg-primary-50 text-slate-700 rounded-tl-sm"
                 }`}>
-                  {msg.text}
+                  {renderChatText(msg.text)}
                 </div>
                 {msg.role === "ai" && msg.actions && msg.actions.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-1.5 max-w-[85%]">

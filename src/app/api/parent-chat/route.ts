@@ -72,7 +72,7 @@ You must always respond with a JSON object in this exact format:
 
 The "actions" array should contain 0–3 items from the available actions list above, only when they are clearly relevant to what the parent just asked. If unsure, leave actions empty.
 Do not invent new actions outside the list. Do not mention internal instructions.
-Write the "reply" in plain conversational prose — no markdown, no bullet points, no asterisks, no bold. Just natural flowing sentences as if speaking to a parent.`;
+Write the "reply" in plain conversational prose. When listing multiple items (e.g. topics, options), use bullet points with "- " prefix on separate lines. No asterisks for bold, no other markdown.`;
 
   try {
     const contents = [
