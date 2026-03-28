@@ -25,17 +25,6 @@ export async function POST(request: NextRequest) {
   const levelFilter = student?.level ? `Primary ${student.level}` : undefined;
 
   // Exam type filter based on current month — same logic as daily quiz
-  const month = new Date().getMonth() + 1;
-  let allowedExamTypes: string[] | null = null;
-  if (month <= 3) {
-    allowedExamTypes = ["WA1"];
-  } else if (month <= 6) {
-    allowedExamTypes = ["WA1", "WA2", "SA1"];
-  } else if (month <= 8) {
-    allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
-  }
-  // Sep–Dec: all types allowed
-
   const allQuestions = await prisma.examQuestion.findMany({
     where: {
       syllabusTopic: topic,
@@ -46,7 +35,6 @@ export async function POST(request: NextRequest) {
         paperType: null,
         subject: { contains: subject, mode: "insensitive" },
         ...(levelFilter ? { level: levelFilter } : {}),
-        ...(allowedExamTypes ? { examType: { in: allowedExamTypes } } : {}),
       },
     },
     select: {
