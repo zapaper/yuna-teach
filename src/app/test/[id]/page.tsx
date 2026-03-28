@@ -140,6 +140,10 @@ function TestPageContent({ id }: { id: string }) {
         if (wordRes.ok) {
           const wordAudio = await wordRes.arrayBuffer();
           await playWithContext(ctx, wordAudio, sourceRef, abort.signal);
+        } else {
+          const errBody = await wordRes.text().catch(() => "");
+          console.error(`TTS API error ${wordRes.status}:`, errBody);
+          throw new Error(`TTS failed (${wordRes.status}): ${errBody}`);
         }
 
         if (abort.signal.aborted) return;
