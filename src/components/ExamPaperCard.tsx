@@ -203,7 +203,7 @@ export default function ExamPaperCard({
       friendlyTitle = `Practice paper${subj || exam ? " for" : ""}${subj ? ` ${subj}` : ""}${exam ? ` ${exam}` : ""}`;
     }
 
-    const bannerColor = isFocused ? "bg-orange-400" : isQuiz ? "bg-emerald-500"
+    const bannerColor = isFocused ? "bg-blue-500" : isQuiz ? "bg-emerald-500"
       : paper.subject?.toLowerCase().includes("math") ? "bg-blue-500"
       : paper.subject?.toLowerCase().includes("science") ? "bg-green-500"
       : paper.subject?.toLowerCase().includes("chinese") ? "bg-orange-500"
