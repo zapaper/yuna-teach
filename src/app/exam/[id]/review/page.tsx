@@ -91,7 +91,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
           setInstantFeedback(paper.instantFeedback === true);
-          paperIsQuiz = paper.paperType === "quiz";
+          paperIsQuiz = paper.paperType === "quiz" || paper.paperType === "focused";
           setIsQuiz(paperIsQuiz);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setPageCount(paper.pageCount ?? 0);
