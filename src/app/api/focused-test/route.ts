@@ -152,14 +152,14 @@ export async function POST(request: NextRequest) {
       instantFeedback: true,
       pageCount: 0,
       extractionStatus: "ready",
-      totalMarks: String(allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0)),
+      totalMarks: String(allSelected.reduce((sum, q) => sum + (isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1)), 0)),
       questions: {
         create: allSelected.map((q, i) => ({
           questionNum: String(i + 1),
           imageData: q.imageData,
           answer: q.answer,
           answerImageData: q.answerImageData,
-          marksAvailable: q.marksAvailable ?? 1,
+          marksAvailable: isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1),
           syllabusTopic: q.syllabusTopic,
           pageIndex: 0,
           orderIndex: i,

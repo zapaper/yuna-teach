@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
   }
 
   const allSelected = [...selectedMcq, ...selectedOeq];
-  const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
+  const totalMarks = allSelected.reduce((sum, q) => sum + (isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1)), 0);
   const levelLabel = levelFilter ? `P${student!.level} ` : "";
 
   const paper = await prisma.examPaper.create({
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
           imageData: q.imageData,
           answer: q.answer,
           answerImageData: q.answerImageData,
-          marksAvailable: q.marksAvailable ?? 1,
+          marksAvailable: isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1),
           syllabusTopic: q.syllabusTopic,
           pageIndex: 0,
           orderIndex: i,
