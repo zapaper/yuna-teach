@@ -112,8 +112,10 @@ export async function POST(request: NextRequest) {
     }
     const sentinels = group.flatMap(q => ((q.transcribedSubparts as Subpart[] | null) ?? []).filter(s => s.label.startsWith("_")));
     const stems = [...new Set(group.map(q => (q.transcribedStem ?? "").trim()).filter(Boolean))];
+    const combinedAnswer = [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
     return {
       ...first,
+      answer: combinedAnswer || first.answer,
       transcribedStem: stems.join("\n"),
       transcribedSubparts: allSubparts.length > 0 ? [...allSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),

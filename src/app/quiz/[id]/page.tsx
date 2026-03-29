@@ -27,6 +27,7 @@ interface QuizPaper {
   markingStatus: string | null;
   timeSpentSeconds: number;
   questions: QuizQuestion[];
+  requesterIsAdmin?: boolean;
 }
 
 type DrawTool = "pen" | "eraser";
@@ -92,7 +93,7 @@ function QuizContent({ id }: { id: string }) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`/api/exam/${id}`);
+        const res = await fetch(`/api/exam/${id}${userId ? `?userId=${userId}` : ""}`);
         if (!res.ok) throw new Error("Not found");
         const data = await res.json();
         setPaper(data);
@@ -376,7 +377,6 @@ function QuizContent({ id }: { id: string }) {
                 key={q.id}
                 question={q}
                 index={idx}
-                sourceLabel={paper?.metadata?.sourceLabels?.[q.questionNum] ?? null}
                 selected={mcqAnswers[q.id] ?? null}
                 onSelect={(opt) => selectMcqAnswer(q.id, opt)}
               />
@@ -396,7 +396,6 @@ function QuizContent({ id }: { id: string }) {
                 key={q.id}
                 question={q}
                 index={mcqQuestions.length + idx}
-                sourceLabel={paper?.metadata?.sourceLabels?.[q.questionNum] ?? null}
                 tool={tool}
                 onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
                 onStrokeStart={() => { lastDrawnId.current = q.id; }}
@@ -415,13 +414,11 @@ function QuizContent({ id }: { id: string }) {
 function McqQuestionCard({
   question,
   index,
-  sourceLabel,
   selected,
   onSelect,
 }: {
   question: QuizQuestion;
   index: number;
-  sourceLabel: string | null;
   selected: string | null;
   onSelect: (option: string) => void;
 }) {
@@ -431,9 +428,6 @@ function McqQuestionCard({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-      {sourceLabel && (
-        <p className="text-[10px] text-slate-400 mb-1">{sourceLabel}</p>
-      )}
       <div className="mb-3">
         <span className="inline-block bg-primary-50 text-primary-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
           Q{index + 1}
@@ -515,14 +509,12 @@ function McqQuestionCard({
 function OeqQuestionCard({
   question,
   index,
-  sourceLabel,
   tool,
   onCanvasRef,
   onStrokeStart,
 }: {
   question: QuizQuestion;
   index: number;
-  sourceLabel: string | null;
   tool: DrawTool;
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
   onStrokeStart: () => void;
@@ -575,9 +567,6 @@ function OeqQuestionCard({
     <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
       {/* Question text */}
       <div className="p-4 pb-2">
-        {sourceLabel && (
-          <p className="text-[10px] text-slate-400 mb-1">{sourceLabel}</p>
-        )}
         <span className="inline-block bg-amber-50 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
           Q{index + 1}
         </span>
@@ -788,6 +777,8 @@ const BlankCanvas = forwardRef<
     undo() {
       const inkCanvas = inkCanvasRef.current;
       if (!inkCanvas || history.current.length === 0) return;
+      cancelPendingCapture();
+      pendingSnapshot.current = null;
       inkCanvas.getContext("2d")!.putImageData(history.current.pop()!, 0, 0);
       redrawComposite();
     },

@@ -45,38 +45,42 @@ export async function POST(request: NextRequest) {
   }
   // Sep-Dec: all types allowed including SA2, Prelim, End of Year etc.
 
+  const questionWhere = (lf: string | null, examTypeFilter: string[] | null) => ({
+    transcribedStem: { not: null as null },
+    answer: { not: null as null },
+    examPaper: {
+      sourceExamId: null,
+      paperType: null,
+      subject: { contains: subject === "science" ? "science" : "math", mode: "insensitive" as const },
+      ...(lf ? { level: lf } : {}),
+      ...(examTypeFilter ? { examType: { in: examTypeFilter } } : {}),
+    },
+  });
+
+  const questionSelect = {
+    id: true,
+    questionNum: true,
+    examPaperId: true,
+    imageData: true,
+    answer: true,
+    answerImageData: true,
+    marksAvailable: true,
+    syllabusTopic: true,
+    transcribedStem: true,
+    transcribedOptions: true,
+    transcribedOptionImages: true,
+    transcribedSubparts: true,
+    diagramImageData: true,
+    diagramBounds: true,
+    examPaper: {
+      select: { id: true, year: true, examType: true, school: true },
+    },
+  };
+
   // Find all clean-extracted questions from master papers (matching level + semester)
   const allQuestions = await prisma.examQuestion.findMany({
-    where: {
-      transcribedStem: { not: null },
-      answer: { not: null },
-      examPaper: {
-        sourceExamId: null,          // master papers only
-        paperType: null,             // exclude focused tests / quizzes
-        subject: { contains: subject === "science" ? "science" : "math", mode: "insensitive" },
-        ...(levelFilter ? { level: levelFilter } : {}),
-        ...(allowedExamTypes ? { examType: { in: allowedExamTypes } } : {}),
-      },
-    },
-    select: {
-      id: true,
-      questionNum: true,
-      examPaperId: true,
-      imageData: true,
-      answer: true,
-      answerImageData: true,
-      marksAvailable: true,
-      syllabusTopic: true,
-      transcribedStem: true,
-      transcribedOptions: true,
-      transcribedOptionImages: true,
-      transcribedSubparts: true,
-      diagramImageData: true,
-      diagramBounds: true,
-      examPaper: {
-        select: { id: true, year: true, examType: true, school: true },
-      },
-    },
+    where: questionWhere(levelFilter ?? null, allowedExamTypes),
+    select: questionSelect,
   });
 
   type Q = typeof allQuestions[number];
@@ -86,41 +90,64 @@ export async function POST(request: NextRequest) {
     return questionNum.replace(/[a-zA-Z]+$/, "");
   }
 
-  // ── MCQ pool: deduplicate by stem ────────────────────────────────────────
-  const mcqStemMap = new Map<string, Q>();
-  for (const q of allQuestions) {
-    if (!isMcq(q.answer)) continue;
-    const stem = (q.transcribedStem ?? "").trim();
-    if (!stem) continue;
-    mcqStemMap.set(stem, q);
-  }
-  const mcqPool = [...mcqStemMap.values()];
+  function buildPools(questions: Q[]) {
+    // ── MCQ pool: deduplicate by stem ──────────────────────────────────────
+    const mcqStemMap = new Map<string, Q>();
+    for (const q of questions) {
+      if (!isMcq(q.answer)) continue;
+      const stem = (q.transcribedStem ?? "").trim();
+      if (!stem) continue;
+      mcqStemMap.set(stem, q);
+    }
 
-  // ── OEQ pool: group by (paperId, baseNum) then deduplicate groups by lead stem ─
-  // Step 1: collect all OEQ, grouped by paper+baseNum
-  const oeqGroupMap = new Map<string, Q[]>();
-  for (const q of allQuestions) {
-    if (isMcq(q.answer)) continue;
-    const stem = (q.transcribedStem ?? "").trim();
-    if (!stem) continue;
-    const key = `${q.examPaperId}:${baseNum(q.questionNum)}`;
-    if (!oeqGroupMap.has(key)) oeqGroupMap.set(key, []);
-    oeqGroupMap.get(key)!.push(q);
+    // ── OEQ pool: group by (paperId, baseNum), deduplicate by lead stem ────
+    const oeqGroupMap = new Map<string, Q[]>();
+    for (const q of questions) {
+      if (isMcq(q.answer)) continue;
+      const stem = (q.transcribedStem ?? "").trim();
+      if (!stem) continue;
+      const key = `${q.examPaperId}:${baseNum(q.questionNum)}`;
+      if (!oeqGroupMap.has(key)) oeqGroupMap.set(key, []);
+      oeqGroupMap.get(key)!.push(q);
+    }
+    for (const group of oeqGroupMap.values()) {
+      group.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+    }
+    const oeqLeadStemMap = new Map<string, Q[]>();
+    for (const group of oeqGroupMap.values()) {
+      const leadStem = (group[0].transcribedStem ?? "").trim();
+      if (!leadStem) continue;
+      oeqLeadStemMap.set(leadStem, group);
+    }
+
+    return { mcqPool: [...mcqStemMap.values()], oeqPool: [...oeqLeadStemMap.values()] };
   }
 
-  // Sort each group by questionNum so parts are in order (35a, 35b, 35c…)
-  for (const group of oeqGroupMap.values()) {
-    group.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
-  }
+  const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
 
-  // Step 2: deduplicate groups by the lead question's stem (last paper wins)
-  const oeqLeadStemMap = new Map<string, Q[]>();
-  for (const group of oeqGroupMap.values()) {
-    const leadStem = (group[0].transcribedStem ?? "").trim();
-    if (!leadStem) continue;
-    oeqLeadStemMap.set(leadStem, group);
+  const { mcqPool: mcqCurrent, oeqPool: oeqCurrent } = buildPools(allQuestions);
+  shuffle(mcqCurrent);
+  shuffle(oeqCurrent);
+
+  const mcqTarget = quizType === "mcq" ? 20 : 10;
+  const oeqTarget = 5;
+
+  // Top up from level-1 if current level doesn't have enough
+  let mcqPool = mcqCurrent;
+  let oeqPool = oeqCurrent;
+  if (student?.level && student.level > 1 && (mcqPool.length < mcqTarget || oeqPool.length < oeqTarget)) {
+    const prevLevelFilter = `Primary ${student.level - 1}`;
+    const prevLevelQuestions = await prisma.examQuestion.findMany({
+      where: questionWhere(prevLevelFilter, allowedExamTypes),
+      select: questionSelect,
+    });
+    const { mcqPool: mcqPrev, oeqPool: oeqPrev } = buildPools(prevLevelQuestions);
+    shuffle(mcqPrev);
+    shuffle(oeqPrev);
+    // Append level-1 questions after current level (current level has priority)
+    mcqPool = [...mcqCurrent, ...mcqPrev];
+    oeqPool = [...oeqCurrent, ...oeqPrev];
   }
-  const oeqPool = [...oeqLeadStemMap.values()];
 
   // Merge a group of OEQ question records into one combined question for the quiz
   function mergeOeqGroup(group: Q[]) {
@@ -162,20 +189,17 @@ export async function POST(request: NextRequest) {
       || group.find(q => q.diagramImageData)?.diagramImageData
       || null;
 
+    const combinedAnswer = [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
+
     return {
       ...first,
+      answer: combinedAnswer || first.answer,
       transcribedStem: combinedStem,
       transcribedSubparts: allSubparts.length > 0 ? [...allSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
       diagramImageData,
-      // sourceLabel uses first question's paper info
     };
   }
-
-  // Shuffle
-  const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
-  shuffle(mcqPool);
-  shuffle(oeqPool);
 
   type MergedQ = ReturnType<typeof mergeOeqGroup>;
   let selectedMcq: Q[];

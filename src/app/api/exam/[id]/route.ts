@@ -15,40 +15,49 @@ export async function GET(
 ) {
   const { id } = await params;
   const summary = request.nextUrl.searchParams.get("summary") === "true";
+  const requestingUserId = request.nextUrl.searchParams.get("userId");
 
-  const paper = await prisma.examPaper.findUnique({
-    where: { id },
-    include: {
-      questions: {
-        orderBy: { orderIndex: "asc" },
-        select: summary
-          ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, yStartPct: true, yEndPct: true, marksAwarded: true, marksAvailable: true, markingNotes: true, syllabusTopic: true }
-          : undefined,
-      },
-      assignedTo: { select: { id: true, name: true } },
-      clones: {
-        select: {
-          id: true,
-          assignedToId: true,
-          completedAt: true,
-          score: true,
-          markingStatus: true,
-          feedbackSummary: true,
-          timeSpentSeconds: true,
-          instantFeedback: true,
-          assignedTo: { select: { id: true, name: true } },
+  const [paper, requester] = await Promise.all([
+    prisma.examPaper.findUnique({
+      where: { id },
+      include: {
+        questions: {
+          orderBy: { orderIndex: "asc" },
+          select: summary
+            ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, yStartPct: true, yEndPct: true, marksAwarded: true, marksAvailable: true, markingNotes: true, syllabusTopic: true }
+            : undefined,
         },
-        orderBy: { createdAt: "asc" },
+        assignedTo: { select: { id: true, name: true } },
+        clones: {
+          select: {
+            id: true,
+            assignedToId: true,
+            completedAt: true,
+            score: true,
+            markingStatus: true,
+            feedbackSummary: true,
+            timeSpentSeconds: true,
+            instantFeedback: true,
+            assignedTo: { select: { id: true, name: true } },
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
-    },
-  });
+    }),
+    requestingUserId
+      ? prisma.user.findUnique({ where: { id: requestingUserId }, select: { name: true } })
+      : Promise.resolve(null),
+  ]);
 
   if (!paper) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const requesterIsAdmin = requester?.name?.toLowerCase() === "admin";
+
   return NextResponse.json({
     ...paper,
+    requesterIsAdmin,
     assignedToName: paper.assignedTo?.name ?? null,
     clones: paper.clones.map((c) => ({
       id: c.id,
