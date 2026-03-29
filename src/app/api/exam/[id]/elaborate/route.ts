@@ -103,7 +103,7 @@ Keep the explanation concise (under 200 words), age-appropriate, and encouraging
 
   try {
     const response = await getAI().models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.1-pro-preview",
       contents: [{ role: "user", parts }],
     });
 
