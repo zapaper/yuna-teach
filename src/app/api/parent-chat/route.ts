@@ -107,11 +107,20 @@ Write the "reply" in plain conversational prose. When listing multiple items (e.
           reply,
           actions: Array.isArray(parsed.actions) ? parsed.actions : [],
         });
-      } catch { /* fall through to plain text */ }
+      } catch {
+        // JSON.parse failed — try extracting "reply" value with a targeted regex
+        const replyMatch = jsonMatch[0].match(/"reply"\s*:\s*"([\s\S]*?)(?<!\\)",\s*"actions"/);
+        if (replyMatch) {
+          try {
+            const reply = JSON.parse(`"${replyMatch[1]}"`);
+            return NextResponse.json({ reply, actions: [] });
+          } catch { /* fall through */ }
+        }
+      }
     }
-    // If Gemini didn't return JSON, strip any JSON blob and use the prose
+    // Last resort: strip any JSON blob and use surrounding prose
     const plainText = text.replace(/\{[\s\S]*\}/, "").trim();
-    return NextResponse.json({ reply: plainText || text, actions: [] });
+    return NextResponse.json({ reply: plainText || "I had trouble formatting my response. Please try again.", actions: [] });
   } catch (e) {
     console.error("[parent-chat] FAILED:", e instanceof Error ? `${e.name}: ${e.message}` : JSON.stringify(e));
     return NextResponse.json({ reply: "Sorry, I couldn't process that right now. Please try again in a moment.", actions: [] });
