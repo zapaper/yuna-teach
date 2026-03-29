@@ -1243,28 +1243,28 @@ export default function HomePage({
 
       {/* Bottom tab bar — students and parents */}
       {!isAdmin && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-200 z-40 shadow-[0_-2px_12px_rgba(0,0,0,0.08)]">
           <div className="max-w-lg mx-auto flex">
             {/* Home tab */}
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="flex-1 flex flex-col items-center py-2 text-primary-600"
+              className="flex-1 flex flex-col items-center py-3 text-primary-600"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3Z" /></svg>
-              <span className="text-[10px] font-medium mt-0.5">Home</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3 2 12h3v8h6v-6h2v6h6v-8h3Z" /></svg>
+              <span className="text-[11px] font-semibold mt-1">Home</span>
             </button>
 
             {/* Spelling tab */}
-            <Link href={`/scan?userId=${userId}`} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-accent-orange transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19v20H6.5a2.5 2.5 0 0 1 0-5H19" /></svg>
-              <span className="text-[10px] font-medium mt-0.5">听写</span>
+            <Link href={`/scan?userId=${userId}`} className="flex-1 flex flex-col items-center py-3 text-slate-400 hover:text-accent-orange transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19v20H6.5a2.5 2.5 0 0 1 0-5H19" /></svg>
+              <span className="text-[11px] font-semibold mt-1">听写</span>
             </Link>
 
             {/* Quiz tab — students only */}
             {!isParent && (
-              <button onClick={() => setShowQuizSetup(true)} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-emerald-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span className="text-[10px] font-medium mt-0.5">Quiz</span>
+              <button onClick={() => setShowQuizSetup(true)} className="flex-1 flex flex-col items-center py-3 text-slate-400 hover:text-emerald-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span className="text-[11px] font-semibold mt-1">Quiz</span>
               </button>
             )}
 
@@ -1275,26 +1275,26 @@ export default function HomePage({
                   if (hasLinkedStudents) document.getElementById("exam-papers-section")?.scrollIntoView({ behavior: "smooth" });
                   else setShowLinkPrompt(true);
                 }}
-                className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-purple-500 transition-colors"
+                className="flex-1 flex flex-col items-center py-3 text-slate-400 hover:text-purple-500 transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
-                <span className="text-[10px] font-medium mt-0.5">Papers</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>
+                <span className="text-[11px] font-semibold mt-1">Papers</span>
               </button>
             )}
 
             {/* Solver tab — parents only */}
             {isParent && (
-              <Link href={`/solver?userId=${userId}`} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-teal-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10h16V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z"/></svg>
-                <span className="text-[10px] font-medium mt-0.5">Solver</span>
+              <Link href={`/solver?userId=${userId}`} className="flex-1 flex flex-col items-center py-3 text-slate-400 hover:text-teal-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10h16V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4Z"/></svg>
+                <span className="text-[11px] font-semibold mt-1">Solver</span>
               </Link>
             )}
 
             {/* Progress tab — parents with linked students */}
             {isParent && hasLinkedStudents && user?.linkedStudents?.[0] && (
-              <Link href={`/progress/${user.linkedStudents[0].id}?parentId=${userId}`} className="flex-1 flex flex-col items-center py-2 text-slate-400 hover:text-primary-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-                <span className="text-[10px] font-medium mt-0.5">Progress</span>
+              <Link href={`/progress/${user.linkedStudents[0].id}?parentId=${userId}`} className="flex-1 flex flex-col items-center py-3 text-slate-400 hover:text-primary-500 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                <span className="text-[11px] font-semibold mt-1">Progress</span>
               </Link>
             )}
           </div>
