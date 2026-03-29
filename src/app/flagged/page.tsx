@@ -35,6 +35,7 @@ export default function FlaggedPage() {
   const router = useRouter();
   const [items, setItems] = useState<FlaggedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/flagged")
@@ -42,6 +43,23 @@ export default function FlaggedPage() {
       .then((data) => setItems(data))
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleDelete(item: FlaggedItem, e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!confirm("Remove this flag?")) return;
+    setDeleting(item.questionId);
+    try {
+      const examId = item.cloneId ?? item.paperId;
+      await fetch(`/api/exam/${examId}/flag`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: item.questionId }),
+      });
+      setItems(prev => prev.filter(i => i.questionId !== item.questionId));
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -74,14 +92,14 @@ export default function FlaggedPage() {
       ) : (
         <div className="px-4 py-3 space-y-3">
           {items.map((item) => (
-            <button
+            <div
               key={item.questionId}
               onClick={() => {
                 const examId = item.cloneId ?? item.paperId;
                 const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
                 router.push(isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`);
               }}
-              className="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:border-primary-200 transition-colors"
+              className="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:border-primary-200 transition-colors cursor-pointer"
             >
               {/* Top row: question identity */}
               <div className="px-4 py-2.5 border-b border-slate-50">
@@ -90,6 +108,22 @@ export default function FlaggedPage() {
                     Q{item.questionNum}
                   </span>
                   <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    <button
+                      onClick={(e) => handleDelete(item, e)}
+                      disabled={deleting === item.questionId}
+                      className="p-1 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                      title="Remove flag"
+                    >
+                      {deleting === item.questionId ? (
+                        <span className="animate-spin rounded-full h-4 w-4 border-2 border-red-200 border-t-red-500 inline-block" />
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                          fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      )}
+                    </button>
                     {(item.paperType === "quiz" || item.paperType === "focused") && (
                       <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
                         {item.paperType === "focused" ? "Focused" : "Quiz"}
@@ -196,7 +230,7 @@ export default function FlaggedPage() {
                   </div>
                 )}
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}
