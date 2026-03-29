@@ -19,6 +19,7 @@ interface ReviewQuestion {
   // Quiz-specific transcription fields
   transcribedStem?: string | null;
   transcribedOptions?: string[] | null;
+  transcribedOptionImages?: string[] | null;
   transcribedSubparts?: { label: string; text: string; refImageBase64?: string | null; diagramBase64?: string | null }[] | null;
   diagramImageData?: string | null;
 }
@@ -115,6 +116,7 @@ function ExamReviewContent({ id }: { id: string }) {
               if (paperIsQuiz) {
                 q.transcribedStem = pq.transcribedStem ?? null;
                 q.transcribedOptions = pq.transcribedOptions ?? null;
+                q.transcribedOptionImages = pq.transcribedOptionImages ?? null;
                 q.transcribedSubparts = pq.transcribedSubparts ?? null;
                 q.diagramImageData = pq.diagramImageData ?? null;
               }
@@ -505,31 +507,42 @@ function ExamReviewContent({ id }: { id: string }) {
                             <img src={toSrc(drawableDiagram)} alt="Diagram" className="w-full rounded-lg border border-slate-100" />
                           ) : null}
                           {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 ? (
-                            <div className="space-y-1">
+                            <div className="space-y-1.5">
                               {currentQ.transcribedOptions.map((opt, i) => {
                                 const optNum = String(i + 1);
                                 const isCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
                                 const isSelected = currentQ.studentAnswer === optNum;
+                                const optImg = currentQ.transcribedOptionImages?.[i] ?? null;
                                 return (
                                   <div
                                     key={i}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm ${
+                                    className={`rounded-lg px-3 py-2 text-sm ${
                                       isCorrect
                                         ? "bg-green-50 border border-green-200 text-green-800 font-medium"
                                         : isSelected
                                         ? "bg-red-50 border border-red-200 text-red-700"
-                                        : "text-slate-600"
+                                        : "border border-transparent text-slate-600"
                                     }`}
                                   >
-                                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                                      isCorrect ? "bg-green-500 text-white" : isSelected ? "bg-red-400 text-white" : "bg-slate-100 text-slate-500"
-                                    }`}>
-                                      {i + 1}
-                                    </span>
-                                    <span>{opt}</span>
-                                    {isCorrect && isSelected ? <span className="ml-auto text-xs text-green-600">Correct</span> : null}
-                                    {isCorrect && !isSelected ? <span className="ml-auto text-xs text-green-600">Answer</span> : null}
-                                    {!isCorrect && isSelected ? <span className="ml-auto text-xs text-red-500">Your pick</span> : null}
+                                    <div className="flex items-center gap-2">
+                                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                        isCorrect ? "bg-green-500 text-white" : isSelected ? "bg-red-400 text-white" : "bg-slate-100 text-slate-500"
+                                      }`}>
+                                        {i + 1}
+                                      </span>
+                                      {opt ? <span className="flex-1">{opt}</span> : <span className="flex-1 text-slate-300 text-xs italic">Image option</span>}
+                                      {isCorrect && isSelected ? <span className="text-xs text-green-600">Correct</span> : null}
+                                      {isCorrect && !isSelected ? <span className="text-xs text-green-600">Answer</span> : null}
+                                      {!isCorrect && isSelected ? <span className="text-xs text-red-500">Your pick</span> : null}
+                                    </div>
+                                    {optImg ? (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img
+                                        src={optImg.startsWith("data:") ? optImg : `data:image/jpeg;base64,${optImg}`}
+                                        alt={`Option ${i + 1}`}
+                                        className="mt-1.5 w-full max-w-[240px] rounded border border-slate-100"
+                                      />
+                                    ) : null}
                                   </div>
                                 );
                               })}
