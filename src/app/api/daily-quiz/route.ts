@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
   if (student?.level && student.level > 1 && (mcqPool.length < mcqTarget || oeqPool.length < oeqTarget)) {
     const prevLevelFilter = `Primary ${student.level - 1}`;
     const prevLevelQuestions = await prisma.examQuestion.findMany({
-      where: questionWhere(prevLevelFilter, allowedExamTypes),
+      where: questionWhere(prevLevelFilter, null),
       select: questionSelect,
     });
     const { mcqPool: mcqPrev, oeqPool: oeqPrev } = buildPools(prevLevelQuestions);
