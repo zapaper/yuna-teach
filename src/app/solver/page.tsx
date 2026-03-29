@@ -25,6 +25,7 @@ function SolverContent() {
   const [error, setError] = useState<string | null>(null);
   const [creatingTest, setCreatingTest] = useState(false);
   const [noStudentLinked, setNoStudentLinked] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   function compressImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -112,6 +113,121 @@ function SolverContent() {
       setError("Failed to create focused test");
     } finally {
       setCreatingTest(false);
+    }
+  }
+
+  async function handleShare() {
+    if (!imageDataUrl || !solution) return;
+    setSharing(true);
+    try {
+      const W = 390;
+      const PADDING = 20;
+      const FONT = "system-ui, -apple-system, sans-serif";
+
+      // Load question image
+      const img = new Image();
+      img.src = imageDataUrl;
+      await new Promise<void>(resolve => { img.onload = () => resolve(); });
+
+      const imgAspect = img.naturalHeight / img.naturalWidth;
+      const imgH = Math.round(Math.min(W * imgAspect, W * 0.65));
+
+      // Measure solution text lines
+      const measureCanvas = document.createElement("canvas");
+      const mCtx = measureCanvas.getContext("2d")!;
+      mCtx.font = `14px ${FONT}`;
+      const maxLineW = W - PADDING * 2;
+      const words = solution.split(" ");
+      const lines: string[] = [];
+      let current = "";
+      for (const word of words) {
+        // handle newlines in solution
+        for (const part of word.split("\n")) {
+          const test = current ? `${current} ${part}` : part;
+          if (mCtx.measureText(test).width > maxLineW) {
+            if (current) lines.push(current);
+            current = part;
+          } else {
+            current = test;
+          }
+          if (word.includes("\n") && part !== word.split("\n").at(-1)) {
+            lines.push(current);
+            current = "";
+          }
+        }
+      }
+      if (current) lines.push(current);
+
+      const LINE_H = 22;
+      const SOLUTION_HEADER_H = 44;
+      const SOLUTION_PADDING_BOTTOM = 24;
+      const solutionH = SOLUTION_HEADER_H + lines.length * LINE_H + SOLUTION_PADDING_BOTTOM;
+      const LOGO_H = 52;
+      const totalH = imgH + solutionH + LOGO_H;
+
+      const canvas = document.createElement("canvas");
+      canvas.width = W;
+      canvas.height = totalH;
+      const ctx = canvas.getContext("2d")!;
+
+      // Question image
+      ctx.drawImage(img, 0, 0, W, imgH);
+
+      // Thin separator line
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(0, imgH, W, 1);
+
+      // Solution background
+      const grad = ctx.createLinearGradient(0, imgH, 0, imgH + solutionH);
+      grad.addColorStop(0, "#eff6ff");
+      grad.addColorStop(1, "#dbeafe");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, imgH + 1, W, solutionH);
+
+      // "SOLUTION" label
+      ctx.fillStyle = "#6b7280";
+      ctx.font = `bold 10px ${FONT}`;
+      ctx.letterSpacing = "1px";
+      ctx.fillText("SOLUTION", PADDING, imgH + 26);
+      ctx.letterSpacing = "0px";
+
+      // Solution text
+      ctx.fillStyle = "#1e293b";
+      ctx.font = `14px ${FONT}`;
+      lines.forEach((line, i) => {
+        ctx.fillText(line, PADDING, imgH + SOLUTION_HEADER_H + i * LINE_H);
+      });
+
+      // Logo bar
+      const logoY = imgH + solutionH;
+      ctx.fillStyle = "#1d4ed8";
+      ctx.fillRect(0, logoY, W, LOGO_H);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold 18px ${FONT}`;
+      ctx.textAlign = "center";
+      ctx.fillText("MarkForYou.com", W / 2, logoY + 20);
+      ctx.font = `12px ${FONT}`;
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      ctx.fillText("AI-powered exam practice for Singapore students", W / 2, logoY + 40);
+      ctx.textAlign = "left";
+
+      // Share or download
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], "markforyou-solution.png", { type: "image/png" });
+        if (navigator.canShare?.({ files: [file] })) {
+          await navigator.share({ files: [file], title: "Check out this solution on MarkForYou.com" });
+        } else {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "markforyou-solution.png";
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      }, "image/png");
+    } finally {
+      setSharing(false);
     }
   }
 
@@ -216,6 +332,22 @@ function SolverContent() {
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
               <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">{solution}</p>
             </div>
+
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              disabled={sharing}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {sharing ? (
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+              )}
+              {sharing ? "Preparing..." : "Share Solution"}
+            </button>
 
             {/* Focused test prompt */}
             {topic && (
