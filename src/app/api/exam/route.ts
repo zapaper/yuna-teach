@@ -42,12 +42,13 @@ export async function GET(request: NextRequest) {
           { level: { contains: String(n) } },
         ]);
         if (isAdminUser) {
-          // Admin sees all master papers + own focused tests (no level filter)
+          // Admin sees all master papers; focused tests only if admin created them for themselves
           where = {
             sourceExamId: null,
             OR: [
               { paperType: null },
-              { paperType: "focused", userId },
+              { paperType: "focused", userId, assignedToId: null },
+              { paperType: "focused", userId, assignedToId: userId },
             ],
           };
         } else {
@@ -75,7 +76,8 @@ export async function GET(request: NextRequest) {
           sourceExamId: null,
           OR: [
             { paperType: null },
-            { paperType: "focused", userId },
+            { paperType: "focused", userId, assignedToId: null },
+            { paperType: "focused", userId, assignedToId: userId },
           ],
         };
       } else {
