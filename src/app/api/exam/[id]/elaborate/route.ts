@@ -79,7 +79,7 @@ Correct answer: ${question.answer ?? "Not provided"}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
-Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language.`,
+Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). Do not use LaTeX or any special math notation.`,
     });
   } else {
     // For regular exam papers, use the raw question image
@@ -97,13 +97,13 @@ Correct answer: ${question.answer ?? "Not provided"}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
-Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. If the question image is provided, reference the actual question content.`,
+Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). Do not use LaTeX or any special math notation. If the question image is provided, reference the actual question content.`,
     });
   }
 
   try {
     const response = await getAI().models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-2.5-flash",
       contents: [{ role: "user", parts }],
     });
 

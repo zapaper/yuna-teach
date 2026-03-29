@@ -154,10 +154,12 @@ Write a warm, conversational check-in message of 4-5 flowing sentences. Do NOT n
 Start by greeting ${parentName} with "Good ${timeOfDay}" and acknowledging it's ${dayOfWeek}. Then add one genuine empathy sentence about the effort of keeping up with a child's learning. Then naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review. End with "Feel free to ask me anything too!"
 
 Rules:
-- No bullet points, no numbered lists, no asterisks — plain flowing prose only
+- No bullet points, no numbered lists
 - Empathy sentence must come before the topic feedback
 - Mention specific topic names from the diagnostic — do not be vague
-- Sound like a caring tutor talking to a busy parent, not a robot`;
+- Sound like a caring tutor talking to a busy parent, not a robot
+- Use **double asterisks** around student names and topic names to bold them (e.g. **David**, **Fractions**)
+- No other markdown or formatting`;
 
     const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
