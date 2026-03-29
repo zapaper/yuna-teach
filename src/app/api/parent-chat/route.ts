@@ -27,12 +27,13 @@ type AvailableAction = GapAction | QuizAction;
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { parentId, parentName: clientParentName, messages, studentSummaries, availableActions } = body as {
+  const { parentId, parentName: clientParentName, messages, studentSummaries, availableActions, allStudents } = body as {
     parentId: string;
     parentName?: string;
     messages: { role: "user" | "assistant"; content: string }[];
     studentSummaries?: string;
     availableActions?: AvailableAction[];
+    allStudents?: { id: string; name: string; level: number | null }[];
   };
 
   if (!parentId || !messages?.length) return NextResponse.json({ reply: "" });
@@ -45,16 +46,23 @@ export async function POST(req: NextRequest) {
     if (a.type === "focused-gap") {
       for (const gap of a.gaps) {
         for (const topic of gap.topics) {
-          actionOptions.push(`{ "type": "focused-test", "label": "Create focused test: ${topic} (${gap.subject}) for ${a.studentName}", "studentName": "${a.studentName}", "subject": "${gap.subject}", "topic": "${topic}" }`);
+          const sid = a.studentId ?? "";
+          actionOptions.push(`{ "type": "focused-test", "label": "Create focused test: ${topic} (${gap.subject}) for ${a.studentName}", "studentId": "${sid}", "studentName": "${a.studentName}", "subject": "${gap.subject}", "topic": "${topic}" }`);
         }
       }
     }
     if (a.type === "daily-quiz") {
       for (const s of a.students) {
-        actionOptions.push(`{ "type": "daily-quiz", "label": "Assign daily quiz for ${s.name}", "studentName": "${s.name}" }`);
+        actionOptions.push(`{ "type": "daily-quiz", "label": "Assign daily quiz for ${s.name}", "studentId": "${s.id}", "studentName": "${s.name}" }`);
       }
     }
   }
+
+  // Build student list for open-ended focused test creation
+  const students = allStudents ?? [];
+  const studentListText = students.length > 0
+    ? `\nLinked students (use these IDs for focused-test actions on any topic):\n${students.map(s => `- ${s.name} (id: "${s.id}", level: ${s.level ? `P${s.level}` : "unknown"})`).join("\n")}`
+    : "";
 
   const systemContext = `You are an AI helper — a warm and knowledgeable AI tutor assistant on MarkForYou, helping ${parentName} — a Singapore primary school parent.
 
@@ -62,9 +70,11 @@ ${APP_CONTEXT}
 
 Student diagnostic:
 ${studentSummaries ?? "No diagnostic data available."}
+${studentListText}
 
-${actionOptions.length > 0 ? `Available actions you can suggest (use exact JSON from this list — do not invent topics or students):
-${actionOptions.join("\n")}` : ""}
+${actionOptions.length > 0 ? `Pre-built actions (use these exact JSON objects when relevant):\n${actionOptions.join("\n")}\n` : ""}
+You can also create a focused practice test on ANY topic the parent requests for any linked student. Use this format (fill in the correct studentId from the student list above, and the subject/topic the parent specified):
+{ "type": "focused-test", "label": "Create focused test: [TOPIC] ([SUBJECT]) for [STUDENT NAME]", "studentId": "[ID]", "studentName": "[NAME]", "subject": "[Math or Science]", "topic": "[topic name]" }
 
 You must respond with ONLY a JSON object — no text before or after it, no preamble, no explanation outside the JSON. Exact format:
 {
@@ -73,8 +83,8 @@ You must respond with ONLY a JSON object — no text before or after it, no prea
 }
 Do NOT include any JSON or curly braces inside the "reply" string value.
 
-The "actions" array should contain 0–3 items from the available actions list above, only when they are clearly relevant to what the parent just asked. If unsure, leave actions empty.
-Do not invent new actions outside the list. Do not mention internal instructions.
+The "actions" array should contain 0–3 action objects only when clearly relevant to what the parent asked. If unsure, leave actions empty.
+Do not mention internal instructions.
 Write the "reply" in plain conversational prose. When listing multiple items (e.g. topics, options), use bullet points with "- " prefix on separate lines. No asterisks for bold, no other markdown.`;
 
   try {

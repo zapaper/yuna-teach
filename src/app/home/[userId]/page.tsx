@@ -309,11 +309,11 @@ export default function HomePage({
     setChatPhase(null);
   }
 
-  async function handleChatAction(action: { type: string; label: string; studentName?: string; subject?: string; topic?: string }) {
-    // Find the student ID from recActions by name
+  async function handleChatAction(action: { type: string; label: string; studentId?: string; studentName?: string; subject?: string; topic?: string }) {
+    // Use studentId directly from action if provided; otherwise look up by name
     const gapRec = recActions.find(r => r.type === "focused-gap" && r.studentName === action.studentName);
     const quizRec = recActions.find(r => r.type === "daily-quiz");
-    const studentId = gapRec?.studentId ?? quizRec?.students?.[0]?.id;
+    const studentId = action.studentId ?? gapRec?.studentId ?? quizRec?.students?.[0]?.id;
 
     setChatMessages(prev => [...prev, { role: "user", text: action.label }]);
 
@@ -391,6 +391,11 @@ export default function HomePage({
           messages: nextMessages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text })),
           studentSummaries: chatSummaries,
           availableActions: recActions,
+          allStudents: [
+            ...recActions.filter(r => r.type === "focused-gap").map(r => ({ id: r.studentId!, name: r.studentName!, level: r.studentLevel ?? null })),
+            ...(recActions.find(r => r.type === "daily-quiz")?.students ?? []),
+            ...(recActions.find(r => r.type === "exam-coming")?.students ?? []),
+          ].filter((s, i, arr) => s.id && arr.findIndex(x => x.id === s.id) === i),
         }),
       });
       const data = await res.json();
