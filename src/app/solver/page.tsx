@@ -120,98 +120,110 @@ function SolverContent() {
     if (!imageDataUrl || !solution) return;
     setSharing(true);
     try {
-      const W = 390;
-      const PADDING = 20;
+      // Fixed 9:16 canvas (1080×1920)
+      const W = 1080;
+      const H = 1920;
+      const PADDING = 56;
+      const LOGO_H = 130;
       const FONT = "system-ui, -apple-system, sans-serif";
 
-      // Load question image
       const img = new Image();
       img.src = imageDataUrl;
       await new Promise<void>(resolve => { img.onload = () => resolve(); });
 
+      // Image takes up top 42% max, letterboxed with white bg
+      const MAX_IMG_H = Math.round(H * 0.42);
       const imgAspect = img.naturalHeight / img.naturalWidth;
-      const imgH = Math.round(Math.min(W * imgAspect, W * 0.65));
+      const imgDrawW = W;
+      const imgDrawH = Math.min(Math.round(W * imgAspect), MAX_IMG_H);
+      const IMG_SECTION_H = imgDrawH;
 
-      // Measure solution text lines
-      const measureCanvas = document.createElement("canvas");
-      const mCtx = measureCanvas.getContext("2d")!;
-      mCtx.font = `14px ${FONT}`;
-      const maxLineW = W - PADDING * 2;
-      const words = solution.split(" ");
-      const lines: string[] = [];
-      let current = "";
-      for (const word of words) {
-        // handle newlines in solution
-        for (const part of word.split("\n")) {
-          const test = current ? `${current} ${part}` : part;
-          if (mCtx.measureText(test).width > maxLineW) {
-            if (current) lines.push(current);
-            current = part;
-          } else {
-            current = test;
+      const solutionAreaH = H - IMG_SECTION_H - LOGO_H;
+
+      // Helper: wrap text at given font size, returns lines
+      function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number, fontSize: number): string[] {
+        ctx.font = `${fontSize}px ${FONT}`;
+        const result: string[] = [];
+        for (const paragraph of text.split("\n")) {
+          if (!paragraph.trim()) { result.push(""); continue; }
+          const words = paragraph.split(" ");
+          let line = "";
+          for (const word of words) {
+            const test = line ? `${line} ${word}` : word;
+            if (ctx.measureText(test).width > maxW) {
+              if (line) result.push(line);
+              line = word;
+            } else {
+              line = test;
+            }
           }
-          if (word.includes("\n") && part !== word.split("\n").at(-1)) {
-            lines.push(current);
-            current = "";
-          }
+          if (line) result.push(line);
         }
+        return result;
       }
-      if (current) lines.push(current);
-
-      const LINE_H = 22;
-      const SOLUTION_HEADER_H = 44;
-      const SOLUTION_PADDING_BOTTOM = 24;
-      const solutionH = SOLUTION_HEADER_H + lines.length * LINE_H + SOLUTION_PADDING_BOTTOM;
-      const LOGO_H = 52;
-      const totalH = imgH + solutionH + LOGO_H;
 
       const canvas = document.createElement("canvas");
       canvas.width = W;
-      canvas.height = totalH;
+      canvas.height = H;
       const ctx = canvas.getContext("2d")!;
 
-      // Question image
-      ctx.drawImage(img, 0, 0, W, imgH);
+      // White background
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, W, H);
 
-      // Thin separator line
+      // Question image (centred horizontally, top-aligned)
+      ctx.drawImage(img, 0, 0, imgDrawW, imgDrawH);
+
+      // Separator
       ctx.fillStyle = "#e2e8f0";
-      ctx.fillRect(0, imgH, W, 1);
+      ctx.fillRect(0, IMG_SECTION_H, W, 2);
 
-      // Solution background
-      const grad = ctx.createLinearGradient(0, imgH, 0, imgH + solutionH);
+      // Solution background gradient
+      const grad = ctx.createLinearGradient(0, IMG_SECTION_H, 0, H - LOGO_H);
       grad.addColorStop(0, "#eff6ff");
       grad.addColorStop(1, "#dbeafe");
       ctx.fillStyle = grad;
-      ctx.fillRect(0, imgH + 1, W, solutionH);
+      ctx.fillRect(0, IMG_SECTION_H + 2, W, solutionAreaH - 2);
 
       // "SOLUTION" label
+      const LABEL_SIZE = 28;
+      const LABEL_H = LABEL_SIZE + 16;
       ctx.fillStyle = "#6b7280";
-      ctx.font = `bold 10px ${FONT}`;
-      ctx.letterSpacing = "1px";
-      ctx.fillText("SOLUTION", PADDING, imgH + 26);
-      ctx.letterSpacing = "0px";
+      ctx.font = `bold ${LABEL_SIZE}px ${FONT}`;
+      ctx.fillText("SOLUTION", PADDING, IMG_SECTION_H + LABEL_H);
 
-      // Solution text
+      // Auto-size solution font to fit available height
+      const textAreaH = solutionAreaH - LABEL_H - PADDING;
+      let fontSize = 32;
+      let lines: string[] = [];
+      while (fontSize >= 18) {
+        lines = wrapText(ctx, solution, W - PADDING * 2, fontSize);
+        const lineH = Math.round(fontSize * 1.55);
+        if (lines.length * lineH <= textAreaH) break;
+        fontSize -= 1;
+      }
+      const LINE_H = Math.round(fontSize * 1.55);
+
       ctx.fillStyle = "#1e293b";
-      ctx.font = `14px ${FONT}`;
+      ctx.font = `${fontSize}px ${FONT}`;
+      const textStartY = IMG_SECTION_H + LABEL_H + 16;
       lines.forEach((line, i) => {
-        ctx.fillText(line, PADDING, imgH + SOLUTION_HEADER_H + i * LINE_H);
+        ctx.fillText(line, PADDING, textStartY + i * LINE_H);
       });
 
       // Logo bar
-      const logoY = imgH + solutionH;
+      const logoY = H - LOGO_H;
       ctx.fillStyle = "#1d4ed8";
       ctx.fillRect(0, logoY, W, LOGO_H);
       ctx.fillStyle = "#ffffff";
-      ctx.font = `bold 18px ${FONT}`;
+      ctx.font = `bold 52px ${FONT}`;
       ctx.textAlign = "center";
-      ctx.fillText("MarkForYou.com", W / 2, logoY + 20);
-      ctx.font = `12px ${FONT}`;
-      ctx.fillStyle = "rgba(255,255,255,0.75)";
-      ctx.fillText("AI-powered exam practice for Singapore students", W / 2, logoY + 40);
+      ctx.fillText("MarkForYou.com", W / 2, logoY + 58);
+      ctx.font = `30px ${FONT}`;
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
+      ctx.fillText("AI-powered exam practice for Singapore students", W / 2, logoY + 100);
       ctx.textAlign = "left";
 
-      // Share or download
       canvas.toBlob(async (blob) => {
         if (!blob) return;
         const file = new File([blob], "markforyou-solution.png", { type: "image/png" });
