@@ -10,13 +10,15 @@ function getAI() {
 const APP_CONTEXT = `
 MarkForYou (markforyou.com) is an AI-powered exam practice platform for Singapore primary school students (P1–P6). Features available to parents:
 
-1. Focused Practice Tests — 10-question tests auto-created from uploaded exam papers, targeting one specific weak topic. AI marks results automatically.
-2. Daily Quizzes — 20-minute auto-generated quizzes (MCQ or MCQ + written) calibrated to the student's level. Math and Science available.
-3. Exam Paper Review — Assign past-year school papers to your child as practice exams; AI marks their answers and gives you a clear picture of their performance.
+1. Focused Practice Tests — 10-question tests targeting one specific weak topic, auto-created from the question bank. AI marks results automatically. Suggest this when a student has a weak topic.
+2. Daily Quizzes — 20-minute auto-generated quizzes (MCQ or MCQ + written) calibrated to the student's level. Math and Science available. Suggest this for general review.
+3. Past-Year Paper Practice — Assign past-year school papers from the library to your child as practice exams; AI marks their answers. Suggest this for exam preparation.
 4. Progress Tracking — Per-subject, per-topic scores from all marked papers. Weak = below 75%.
 5. Spelling / 听写 Tests — Listening-based spelling tests for Chinese or English.
 
 Singapore exam schedule: WA1 (end Feb), WA2 (end Apr), SA1 (late May), WA3 (end Jul), SA2/EOY (Oct).
+
+IMPORTANT: Do NOT mention or suggest uploading exam papers. Uploading is done by the admin only. Parents cannot upload papers. When a parent wants to help with a topic or exam, suggest Focused Practice Tests or Past-Year Paper Practice instead.
 `.trim();
 
 type GapAction = { type: "focused-gap"; studentId: string; studentName: string; gaps: { subject: string; topics: string[] }[] };
