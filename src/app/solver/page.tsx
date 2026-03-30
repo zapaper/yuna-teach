@@ -126,25 +126,26 @@ function SolverContent() {
     setSharing(true);
     try {
       const W = 1080;
-      const H = 1920;
       const PADDING = 56;
-      const LOGO_H = 130;
+      const LOGO_H = 80;
       const FONT = "system-ui, -apple-system, sans-serif";
+      const MIN_FONT = 18;
+      const LABEL_SIZE = 28;
+      const LABEL_H = LABEL_SIZE + 16;
 
       const img = new Image();
       img.src = imageDataUrl;
       await new Promise<void>(resolve => { img.onload = () => resolve(); });
 
-      const MAX_IMG_H = Math.round(H * 0.42);
       const imgAspect = img.naturalHeight / img.naturalWidth;
-      const imgDrawH = Math.min(Math.round(W * imgAspect), MAX_IMG_H);
+      const imgDrawH = Math.min(Math.round(W * imgAspect), Math.round(1920 * 0.42));
 
       // Diagram drawing constants
-      const D_ROW_H = 76;
-      const D_ROW_GAP = 18;
-      const D_SECTION_LABEL_H = 56;
-      const D_STEP_TITLE_H = 36;
-      const D_STEP_GAP = 24;
+      const D_ROW_H = 60;
+      const D_ROW_GAP = 12;
+      const D_SECTION_LABEL_H = 48;
+      const D_STEP_TITLE_H = 30;
+      const D_STEP_GAP = 20;
 
       function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number, fontSize: number): string[] {
         ctx.font = `${fontSize}px ${FONT}`;
@@ -171,6 +172,22 @@ function SolverContent() {
         ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
         ctx.closePath();
       }
+
+      // Compute dynamic canvas height so content never clips
+      const measureCanvas = document.createElement("canvas");
+      measureCanvas.width = W;
+      const mCtx = measureCanvas.getContext("2d")!;
+      const solutionLines = wrapText(mCtx, solution, W - PADDING * 2, MIN_FONT);
+      const solutionLineH = Math.round(MIN_FONT * 1.55);
+      const diagramStepsH = diagrams.length > 0
+        ? D_SECTION_LABEL_H + diagrams.reduce((s, d, i) =>
+            s + (d.title ? D_STEP_TITLE_H : 0) + d.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP
+            + (d.unitValue ? 56 : 24) + (i < diagrams.length - 1 ? D_STEP_GAP : 0), 0) + 18
+        : 0;
+      const H = Math.max(1920,
+        imgDrawH + 2 + diagramStepsH + (diagramStepsH > 0 ? 2 : 0)
+        + LABEL_H + 16 + solutionLines.length * solutionLineH + PADDING + LOGO_H
+      );
 
       const canvas = document.createElement("canvas");
       canvas.width = W; canvas.height = H;
@@ -290,8 +307,6 @@ function SolverContent() {
       ctx.fillStyle = grad;
       ctx.fillRect(0, curY, W, H - LOGO_H - curY);
 
-      const LABEL_SIZE = 28;
-      const LABEL_H = LABEL_SIZE + 16;
       ctx.fillStyle = "#6b7280";
       ctx.font = `bold ${LABEL_SIZE}px ${FONT}`;
       ctx.textAlign = "left";
@@ -302,7 +317,7 @@ function SolverContent() {
       const textAreaH = solutionAreaH - LABEL_H - PADDING;
       let fontSize = 32;
       let lines: string[] = [];
-      while (fontSize >= 14) {
+      while (fontSize >= 18) {
         lines = wrapText(ctx, solution, W - PADDING * 2, fontSize);
         const lineH = Math.round(fontSize * 1.55);
         if (lines.length * lineH <= textAreaH) break;
@@ -322,12 +337,12 @@ function SolverContent() {
       ctx.fillStyle = "#1d4ed8";
       ctx.fillRect(0, logoY, W, LOGO_H);
       ctx.fillStyle = "#ffffff";
-      ctx.font = `bold 52px ${FONT}`;
+      ctx.font = `bold 38px ${FONT}`;
       ctx.textAlign = "center";
-      ctx.fillText("MarkForYou.com", W / 2, logoY + 58);
-      ctx.font = `30px ${FONT}`;
+      ctx.fillText("MarkForYou.com", W / 2, logoY + 36);
+      ctx.font = `22px ${FONT}`;
       ctx.fillStyle = "rgba(255,255,255,0.8)";
-      ctx.fillText("Practice with more similar questions", W / 2, logoY + 100);
+      ctx.fillText("Practice with more similar questions", W / 2, logoY + 64);
 
       canvas.toBlob(async (blob) => {
         if (!blob) return;
