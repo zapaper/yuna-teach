@@ -86,7 +86,7 @@ Respond with ONLY valid JSON (no markdown fences):
     // Step 1: detect geometry and describe the diagram if needed
     let geometryContext = "";
     const describeRes = await getAI().models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: "gemini-2.0-flash",
       contents: [{ role: "user", parts: [
         imagePart,
         { text: `Look at this question image. Does it contain a geometric diagram — including any shapes, angles, lines, measurements, coordinates, circles, arcs, or composite figures?
