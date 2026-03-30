@@ -65,6 +65,7 @@ Steps:
 Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
 - Do NOT invent or paraphrase topic names.
+- Write ALL math in plain text only. No LaTeX, no markdown. Use: 3/5 (not \frac{3}{5}), x or * for multiply, ÷ for divide, ^ for powers. Never use $, \, {, } in the solution.
 
 Respond with ONLY valid JSON (no markdown fences):
 {
