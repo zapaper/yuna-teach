@@ -329,7 +329,7 @@ function SolverContent() {
       ctx.fillText("MarkForYou.com", W / 2, logoY + 58);
       ctx.font = `30px ${FONT}`;
       ctx.fillStyle = "rgba(255,255,255,0.8)";
-      ctx.fillText("Practice more with similar questions", W / 2, logoY + 100);
+      ctx.fillText("Practice with more similar questions", W / 2, logoY + 100);
 
       canvas.toBlob(async (blob) => {
         if (!blob) return;
