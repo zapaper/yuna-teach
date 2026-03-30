@@ -125,7 +125,6 @@ function SolverContent() {
     if (!imageDataUrl || !solution) return;
     setSharing(true);
     try {
-      // Fixed 9:16 canvas (1080×1920)
       const W = 1080;
       const H = 1920;
       const PADDING = 56;
@@ -136,16 +135,20 @@ function SolverContent() {
       img.src = imageDataUrl;
       await new Promise<void>(resolve => { img.onload = () => resolve(); });
 
-      // Image takes up top 42% max, letterboxed with white bg
       const MAX_IMG_H = Math.round(H * 0.42);
       const imgAspect = img.naturalHeight / img.naturalWidth;
-      const imgDrawW = W;
       const imgDrawH = Math.min(Math.round(W * imgAspect), MAX_IMG_H);
-      const IMG_SECTION_H = imgDrawH;
 
-      const solutionAreaH = H - IMG_SECTION_H - LOGO_H;
+      // Diagram section height
+      const D_ROW_H = 76;
+      const D_ROW_GAP = 18;
+      const D_LABEL_H = 56;
+      const diagramH = diagram
+        ? D_LABEL_H + diagram.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP + (diagram.unitValue ? 56 : 24) + 16
+        : 0;
 
-      // Helper: wrap text at given font size, returns lines
+      const solutionAreaH = H - imgDrawH - 2 - diagramH - (diagramH > 0 ? 2 : 0) - LOGO_H;
+
       function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number, fontSize: number): string[] {
         ctx.font = `${fontSize}px ${FONT}`;
         const result: string[] = [];
@@ -155,49 +158,123 @@ function SolverContent() {
           let line = "";
           for (const word of words) {
             const test = line ? `${line} ${word}` : word;
-            if (ctx.measureText(test).width > maxW) {
-              if (line) result.push(line);
-              line = word;
-            } else {
-              line = test;
-            }
+            if (ctx.measureText(test).width > maxW) { if (line) result.push(line); line = word; }
+            else { line = test; }
           }
           if (line) result.push(line);
         }
         return result;
       }
 
+      function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+      }
+
       const canvas = document.createElement("canvas");
-      canvas.width = W;
-      canvas.height = H;
+      canvas.width = W; canvas.height = H;
       const ctx = canvas.getContext("2d")!;
 
-      // White background
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, W, H);
 
-      // Question image (centred horizontally, top-aligned)
-      ctx.drawImage(img, 0, 0, imgDrawW, imgDrawH);
-
-      // Separator
+      // Question image
+      ctx.drawImage(img, 0, 0, W, imgDrawH);
       ctx.fillStyle = "#e2e8f0";
-      ctx.fillRect(0, IMG_SECTION_H, W, 2);
+      ctx.fillRect(0, imgDrawH, W, 2);
 
-      // Solution background gradient
-      const grad = ctx.createLinearGradient(0, IMG_SECTION_H, 0, H - LOGO_H);
-      grad.addColorStop(0, "#eff6ff");
-      grad.addColorStop(1, "#dbeafe");
+      let curY = imgDrawH + 2;
+
+      // Bar model diagram
+      if (diagram && diagram.rows.length > 0) {
+        const D_LABEL_W = 240;
+        const D_BAR_W = W - PADDING * 2 - D_LABEL_W - 160;
+        const D_VALUE_X = PADDING + D_LABEL_W + D_BAR_W + 14;
+        const maxUnits = Math.max(...diagram.rows.map(r => r.units), 1);
+        const unitW = D_BAR_W / maxUnits;
+        const D_COLORS = [
+          { fill: "#dbeafe", stroke: "#60a5fa", text: "#1d4ed8" },
+          { fill: "#ede9fe", stroke: "#a78bfa", text: "#6d28d9" },
+          { fill: "#d1fae5", stroke: "#34d399", text: "#065f46" },
+          { fill: "#fef3c7", stroke: "#fbbf24", text: "#92400e" },
+          { fill: "#fce7f3", stroke: "#f472b6", text: "#9d174d" },
+        ];
+
+        ctx.fillStyle = "#6b7280";
+        ctx.font = `bold 28px ${FONT}`;
+        ctx.textAlign = "left";
+        ctx.fillText("MODEL DIAGRAM", PADDING, curY + 40);
+        curY += D_LABEL_H;
+
+        for (let i = 0; i < diagram.rows.length; i++) {
+          const row = diagram.rows[i];
+          const col = D_COLORS[i % D_COLORS.length];
+          const barX = PADDING + D_LABEL_W;
+          const rowY = curY + i * (D_ROW_H + D_ROW_GAP);
+
+          ctx.fillStyle = "#475569";
+          ctx.font = `500 28px ${FONT}`;
+          ctx.textAlign = "right";
+          ctx.fillText(row.label, PADDING + D_LABEL_W - 12, rowY + D_ROW_H / 2 + 10);
+
+          ctx.fillStyle = "#f1f5f9";
+          roundRect(ctx, barX, rowY, D_BAR_W, D_ROW_H, 8);
+          ctx.fill();
+          ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 2; ctx.stroke();
+
+          ctx.fillStyle = col.fill;
+          roundRect(ctx, barX, rowY, row.units * unitW, D_ROW_H, 8);
+          ctx.fill();
+          ctx.strokeStyle = col.stroke; ctx.lineWidth = 3; ctx.stroke();
+
+          ctx.strokeStyle = col.stroke; ctx.lineWidth = 2; ctx.globalAlpha = 0.6;
+          for (let j = 1; j < row.units; j++) {
+            ctx.beginPath();
+            ctx.moveTo(barX + j * unitW, rowY + 10);
+            ctx.lineTo(barX + j * unitW, rowY + D_ROW_H - 10);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+
+          if (row.value) {
+            ctx.fillStyle = col.text;
+            ctx.font = `bold 28px ${FONT}`;
+            ctx.textAlign = "left";
+            ctx.fillText(row.value, D_VALUE_X, rowY + D_ROW_H / 2 + 10);
+          }
+        }
+
+        if (diagram.unitValue) {
+          const footerY = curY + diagram.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP + 40;
+          ctx.fillStyle = "#64748b";
+          ctx.font = `24px ${FONT}`;
+          ctx.textAlign = "left";
+          ctx.fillText(`1 unit = ${diagram.unitValue}`, PADDING + D_LABEL_W, footerY);
+        }
+
+        curY += diagramH;
+        ctx.fillStyle = "#e2e8f0";
+        ctx.fillRect(0, curY, W, 2);
+        curY += 2;
+      }
+
+      // Solution gradient
+      const grad = ctx.createLinearGradient(0, curY, 0, H - LOGO_H);
+      grad.addColorStop(0, "#eff6ff"); grad.addColorStop(1, "#dbeafe");
       ctx.fillStyle = grad;
-      ctx.fillRect(0, IMG_SECTION_H + 2, W, solutionAreaH - 2);
+      ctx.fillRect(0, curY, W, H - LOGO_H - curY);
 
-      // "SOLUTION" label
       const LABEL_SIZE = 28;
       const LABEL_H = LABEL_SIZE + 16;
       ctx.fillStyle = "#6b7280";
       ctx.font = `bold ${LABEL_SIZE}px ${FONT}`;
-      ctx.fillText("SOLUTION", PADDING, IMG_SECTION_H + LABEL_H);
+      ctx.textAlign = "left";
+      ctx.fillText("SOLUTION", PADDING, curY + LABEL_H);
 
-      // Auto-size solution font to fit available height
       const textAreaH = solutionAreaH - LABEL_H - PADDING;
       let fontSize = 32;
       let lines: string[] = [];
@@ -208,13 +285,10 @@ function SolverContent() {
         fontSize -= 1;
       }
       const LINE_H = Math.round(fontSize * 1.55);
-
       ctx.fillStyle = "#1e293b";
       ctx.font = `${fontSize}px ${FONT}`;
-      const textStartY = IMG_SECTION_H + LABEL_H + 16;
-      lines.forEach((line, i) => {
-        ctx.fillText(line, PADDING, textStartY + i * LINE_H);
-      });
+      const textStartY = curY + LABEL_H + 16;
+      lines.forEach((line, i) => { ctx.fillText(line, PADDING, textStartY + i * LINE_H); });
 
       // Logo bar
       const logoY = H - LOGO_H;
@@ -226,8 +300,7 @@ function SolverContent() {
       ctx.fillText("MarkForYou.com", W / 2, logoY + 58);
       ctx.font = `30px ${FONT}`;
       ctx.fillStyle = "rgba(255,255,255,0.8)";
-      ctx.fillText("AI-powered exam practice for Singapore students", W / 2, logoY + 100);
-      ctx.textAlign = "left";
+      ctx.fillText("Practice more with similar questions", W / 2, logoY + 100);
 
       canvas.toBlob(async (blob) => {
         if (!blob) return;
@@ -237,9 +310,7 @@ function SolverContent() {
         } else {
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
-          a.href = url;
-          a.download = "markforyou-solution.png";
-          a.click();
+          a.href = url; a.download = "markforyou-solution.png"; a.click();
           URL.revokeObjectURL(url);
         }
       }, "image/png");
