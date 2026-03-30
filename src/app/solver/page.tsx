@@ -302,17 +302,20 @@ function SolverContent() {
       const textAreaH = solutionAreaH - LABEL_H - PADDING;
       let fontSize = 32;
       let lines: string[] = [];
-      while (fontSize >= 18) {
+      while (fontSize >= 14) {
         lines = wrapText(ctx, solution, W - PADDING * 2, fontSize);
         const lineH = Math.round(fontSize * 1.55);
         if (lines.length * lineH <= textAreaH) break;
         fontSize -= 1;
       }
       const LINE_H = Math.round(fontSize * 1.55);
+      // Cap lines to what physically fits, avoiding any overflow
+      const maxLines = Math.max(1, Math.floor(textAreaH / LINE_H));
+      const displayLines = lines.slice(0, maxLines);
       ctx.fillStyle = "#1e293b";
       ctx.font = `${fontSize}px ${FONT}`;
       const textStartY = curY + LABEL_H + 16;
-      lines.forEach((line, i) => { ctx.fillText(line, PADDING, textStartY + i * LINE_H); });
+      displayLines.forEach((line, i) => { ctx.fillText(line, PADDING, textStartY + i * LINE_H); });
 
       // Logo bar
       const logoY = H - LOGO_H;
