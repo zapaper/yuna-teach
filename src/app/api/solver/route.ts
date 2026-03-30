@@ -93,7 +93,8 @@ Respond with ONLY valid JSON (no markdown fences):
 Respond in JSON only (no markdown):
 {
   "isGeometry": true or false,
-  "description": "<if true: (1) describe every shape including circles (state radius, diameter, circumference if labelled), all angles, lengths, and spatial relationships. (2) If this is a composite area or circumference problem, explain how to break the figure into simpler parts using imaginary lines — e.g. 'cut the figure into a semicircle and a rectangle', 'subtract the circle from the square'. List each part and its known measurements. Else null>"
+  "description": "<if true: describe every shape, all labelled angles/lengths/measurements and their spatial relationships; else null>",
+  "decomposition": "<if composite area or circumference problem: numbered steps describing (a) where to draw dividing lines to cut the figure into simpler parts, (b) the name and shape type of each resulting part, (c) the known measurements of each part (e.g. 'Part 1: semicircle, radius = 7 cm, top-left region. Part 2: rectangle, 14 cm x 7 cm, centre.') — be specific enough that someone looking at the original diagram can identify each part precisely; else null>"
 }` },
       ]}],
       config: { temperature: 0 },
@@ -102,7 +103,10 @@ Respond in JSON only (no markdown):
       const dRaw = (describeRes.text ?? "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
       const d = JSON.parse(dRaw);
       if (d.isGeometry && d.description) {
-        geometryContext = `\nDiagram analysis (use this to ensure accuracy):\n${d.description}\n`;
+        geometryContext = `\nDiagram analysis — use this to ensure accuracy:\n${d.description}\n`;
+        if (d.decomposition) {
+          geometryContext += `\nHow to annotate and break up this diagram:\n${d.decomposition}\nImagine these dividing lines drawn on the diagram. Solve each labelled part separately, then combine.\n`;
+        }
       }
     } catch { /* ignore parse errors — fall through to solve without context */ }
     console.log("[solver] step 1 done, isGeometry:", !!geometryContext, "— starting step 2");
