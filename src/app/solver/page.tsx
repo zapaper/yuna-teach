@@ -428,12 +428,21 @@ function SolverContent() {
 
 // ─── Bar model diagram (Singapore model method) ──────────────────────────────
 
+function splitLabel(label: string): [string, string | null] {
+  // ~10 chars fits comfortably in LABEL_W at fontSize 12; split longer labels
+  if (label.length <= 11) return [label, null];
+  const mid = Math.ceil(label.length / 2);
+  const spaceIdx = label.lastIndexOf(" ", mid + 4);
+  if (spaceIdx > 0) return [label.slice(0, spaceIdx), label.slice(spaceIdx + 1)];
+  return [label.slice(0, 11), label.slice(11)];
+}
+
 function BarModel({ diagram }: { diagram: DiagramData }) {
-  const ROW_H = 40;
+  const ROW_H = 44;
   const ROW_GAP = 10;
-  const LABEL_W = 84;
-  const BAR_AREA_W = 200;
-  const VALUE_W = 60;
+  const LABEL_W = 100;
+  const BAR_AREA_W = 190;
+  const VALUE_W = 62;
   const PAD_X = 8;
   const PAD_Y = 8;
   const TOTAL_W = PAD_X + LABEL_W + BAR_AREA_W + VALUE_W + PAD_X;
@@ -459,13 +468,23 @@ function BarModel({ diagram }: { diagram: DiagramData }) {
         const barX = PAD_X + LABEL_W;
         const barW = row.units * unitW;
         const col = COLORS[i % COLORS.length];
+        const [line1, line2] = splitLabel(row.label);
+        const labelX = PAD_X + LABEL_W - 6;
 
         return (
           <g key={i}>
-            <text x={PAD_X + LABEL_W - 6} y={y + ROW_H / 2 + 4} textAnchor="end"
-              fontSize="12" fontFamily="system-ui,sans-serif" fontWeight="500" fill="#475569">
-              {row.label}
-            </text>
+            {line2 ? (
+              <text x={labelX} textAnchor="end"
+                fontSize="11" fontFamily="system-ui,sans-serif" fontWeight="500" fill="#475569">
+                <tspan x={labelX} y={y + ROW_H / 2 - 3}>{line1}</tspan>
+                <tspan x={labelX} dy="14">{line2}</tspan>
+              </text>
+            ) : (
+              <text x={labelX} y={y + ROW_H / 2 + 4} textAnchor="end"
+                fontSize="12" fontFamily="system-ui,sans-serif" fontWeight="500" fill="#475569">
+                {line1}
+              </text>
+            )}
             <rect x={barX} y={y} width={BAR_AREA_W} height={ROW_H} rx={4}
               fill="#f1f5f9" stroke="#e2e8f0" strokeWidth={1} />
             <rect x={barX} y={y} width={barW} height={ROW_H} rx={4}
