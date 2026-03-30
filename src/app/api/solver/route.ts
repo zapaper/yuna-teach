@@ -75,14 +75,41 @@ Respond with ONLY valid JSON (no markdown fences):
   "diagrams": [{ "title": "...", "rows": [...], "unitValue": "..." }]
 }`;
 
+  const imagePart = { inlineData: { mimeType: "image/jpeg" as const, data: base64Data } };
+
   try {
+    // Step 1: detect geometry and describe the diagram if needed
+    let geometryContext = "";
+    const describeRes = await getAI().models.generateContent({
+      model: "gemini-3.1-pro-preview",
+      contents: [{ role: "user", parts: [
+        imagePart,
+        { text: `Look at this question image. Does it contain a geometric diagram (shapes, angles, lines, measurements, coordinates)?
+Respond in JSON only (no markdown):
+{ "isGeometry": true or false, "description": "<if true: list every shape, all labelled angles/lengths/coordinates and their exact positions and relationships; else null>" }` },
+      ]}],
+      config: { temperature: 0 },
+    });
+    try {
+      const dRaw = (describeRes.text ?? "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      const d = JSON.parse(dRaw);
+      if (d.isGeometry && d.description) {
+        geometryContext = `\nDiagram analysis (use this to ensure accuracy):\n${d.description}\n`;
+      }
+    } catch { /* ignore parse errors — fall through to solve without context */ }
+
+    // Step 2: solve (with geometry context injected if detected)
+    const solvePrompt = geometryContext
+      ? prompt.replace("Respond with ONLY valid JSON", geometryContext + "\nRespond with ONLY valid JSON")
+      : prompt;
+
     const response = await getAI().models.generateContent({
       model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
         parts: [
-          { inlineData: { mimeType: "image/jpeg" as const, data: base64Data } },
-          { text: prompt },
+          imagePart,
+          { text: solvePrompt },
         ],
       }],
       config: { temperature: 0.2 },
