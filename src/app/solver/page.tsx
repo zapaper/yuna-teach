@@ -139,19 +139,12 @@ function SolverContent() {
       const imgAspect = img.naturalHeight / img.naturalWidth;
       const imgDrawH = Math.min(Math.round(W * imgAspect), MAX_IMG_H);
 
-      // Diagram section height
+      // Diagram drawing constants
       const D_ROW_H = 76;
       const D_ROW_GAP = 18;
       const D_SECTION_LABEL_H = 56;
       const D_STEP_TITLE_H = 36;
       const D_STEP_GAP = 24;
-      const stepH = (step: DiagramStep) =>
-        (step.title ? D_STEP_TITLE_H : 0) + step.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP + (step.unitValue ? 56 : 24);
-      const diagramH = diagrams.length > 0
-        ? D_SECTION_LABEL_H + diagrams.reduce((s, d, i) => s + stepH(d) + (i < diagrams.length - 1 ? D_STEP_GAP : 0), 0) + 16
-        : 0;
-
-      const solutionAreaH = H - imgDrawH - 2 - diagramH - (diagramH > 0 ? 2 : 0) - LOGO_H;
 
       function wrapText(ctx: CanvasRenderingContext2D, text: string, maxW: number, fontSize: number): string[] {
         ctx.font = `${fontSize}px ${FONT}`;
@@ -304,6 +297,8 @@ function SolverContent() {
       ctx.textAlign = "left";
       ctx.fillText("SOLUTION", PADDING, curY + LABEL_H);
 
+      // Derive actual available height from real curY position
+      const solutionAreaH = H - LOGO_H - curY;
       const textAreaH = solutionAreaH - LABEL_H - PADDING;
       let fontSize = 32;
       let lines: string[] = [];
