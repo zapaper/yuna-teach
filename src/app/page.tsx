@@ -116,10 +116,14 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-6 pb-24">
-      <div className="max-w-sm mx-auto">
+    <div className="min-h-screen bg-white pb-24">
+      {/* Cover image */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/coverpage.png" alt="Mark for You" className="w-full object-cover" />
+
+      <div className="max-w-sm mx-auto px-6">
         {/* Header */}
-        <div className="text-center mb-8 pt-8">
+        <div className="text-center mb-8 pt-6">
           <div className="flex items-center justify-center gap-3 mb-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Mark for You" width={48} height={48} />
