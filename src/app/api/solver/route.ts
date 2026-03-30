@@ -67,6 +67,8 @@ Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
 - Do NOT invent or paraphrase topic names.
 - Write ALL math in plain text only. No LaTeX, no markdown. Use: 3/5 (not \\frac{3}{5}), x or * for multiply, ÷ for divide, ^ for powers. Never use $, \\, {, } in the solution.
+- For circle problems: use π = 22/7 unless the question specifies otherwise. Circumference = 2 x 22/7 x r = 2πr. Area = 22/7 x r x r. Diameter = 2 x radius. Always state which value (radius or diameter) you are using.
+- For geometry: identify the shape clearly, state all given measurements, then apply the correct formula step by step.
 
 Respond with ONLY valid JSON (no markdown fences):
 {
@@ -86,9 +88,9 @@ Respond with ONLY valid JSON (no markdown fences):
       model: "gemini-3.1-pro-preview",
       contents: [{ role: "user", parts: [
         imagePart,
-        { text: `Look at this question image. Does it contain a geometric diagram (shapes, angles, lines, measurements, coordinates)?
+        { text: `Look at this question image. Does it contain a geometric diagram — including any shapes, angles, lines, measurements, coordinates, circles, arcs, or figures?
 Respond in JSON only (no markdown):
-{ "isGeometry": true or false, "description": "<if true: list every shape, all labelled angles/lengths/coordinates and their exact positions and relationships; else null>" }` },
+{ "isGeometry": true or false, "description": "<if true: describe every shape (including circles — state radius, diameter, or circumference if labelled), all angles, lengths, coordinates, and their exact positions and relationships; else null>" }` },
       ]}],
       config: { temperature: 0 },
     });
