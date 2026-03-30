@@ -24,6 +24,7 @@ const SCIENCE_TOPICS = loadTopics("science-topics.txt");
 const ENGLISH_TOPICS = loadTopics("english-topics.txt");
 
 export async function POST(request: NextRequest) {
+  console.log("[solver] route hit");
   const { imageBase64 } = await request.json();
   if (!imageBase64) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
@@ -78,6 +79,7 @@ Respond with ONLY valid JSON (no markdown fences):
   const imagePart = { inlineData: { mimeType: "image/jpeg" as const, data: base64Data } };
 
   try {
+    console.log("[solver] starting step 1 (geometry detection)");
     // Step 1: detect geometry and describe the diagram if needed
     let geometryContext = "";
     const describeRes = await getAI().models.generateContent({
@@ -97,6 +99,7 @@ Respond in JSON only (no markdown):
         geometryContext = `\nDiagram analysis (use this to ensure accuracy):\n${d.description}\n`;
       }
     } catch { /* ignore parse errors — fall through to solve without context */ }
+    console.log("[solver] step 1 done, isGeometry:", !!geometryContext, "— starting step 2");
 
     // Step 2: solve (with geometry context injected if detected)
     const solvePrompt = geometryContext
@@ -148,6 +151,7 @@ Respond in JSON only (no markdown):
       solution: parsed.solution ?? "",
       diagrams,
     });
+    console.log("[solver] step 2 done");
   } catch (err) {
     console.error("[solver] Gemini error:", err);
     return NextResponse.json({ error: "Failed to solve question" }, { status: 500 });
