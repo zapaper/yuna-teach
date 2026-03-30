@@ -164,6 +164,14 @@ function SolverContent() {
         return result;
       }
 
+      function splitCanvasLabel(label: string): [string, string | null] {
+        if (label.length <= 11) return [label, null];
+        const mid = Math.ceil(label.length / 2);
+        const spaceIdx = label.lastIndexOf(" ", mid + 4);
+        if (spaceIdx > 0) return [label.slice(0, spaceIdx), label.slice(spaceIdx + 1)];
+        return [label.slice(0, 11), label.slice(11)];
+      }
+
       function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
         ctx.beginPath();
         ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
@@ -236,16 +244,25 @@ function SolverContent() {
             curY += D_STEP_TITLE_H;
           }
 
+          const D_LABEL_FONT = 20;
           for (let i = 0; i < step.rows.length; i++) {
             const row = step.rows[i];
             const col = D_COLORS[i % D_COLORS.length];
             const barX = PADDING + D_LABEL_W;
             const rowY = curY + i * (D_ROW_H + D_ROW_GAP);
+            const labelX = PADDING + D_LABEL_W - 12;
 
+            // Draw row label — split to two lines if long
             ctx.fillStyle = "#475569";
-            ctx.font = `500 28px ${FONT}`;
+            ctx.font = `500 ${D_LABEL_FONT}px ${FONT}`;
             ctx.textAlign = "right";
-            ctx.fillText(row.label, PADDING + D_LABEL_W - 12, rowY + D_ROW_H / 2 + 10);
+            const [lbl1, lbl2] = splitCanvasLabel(row.label);
+            if (lbl2) {
+              ctx.fillText(lbl1, labelX, rowY + D_ROW_H / 2);
+              ctx.fillText(lbl2, labelX, rowY + D_ROW_H / 2 + D_LABEL_FONT + 2);
+            } else {
+              ctx.fillText(lbl1, labelX, rowY + D_ROW_H / 2 + 7);
+            }
 
             ctx.fillStyle = "#f1f5f9";
             roundRect(ctx, barX, rowY, D_BAR_W, D_ROW_H, 8);
@@ -268,9 +285,9 @@ function SolverContent() {
 
             if (row.value) {
               ctx.fillStyle = col.text;
-              ctx.font = `bold 28px ${FONT}`;
+              ctx.font = `bold ${D_LABEL_FONT + 2}px ${FONT}`;
               ctx.textAlign = "left";
-              ctx.fillText(row.value, D_VALUE_X, rowY + D_ROW_H / 2 + 10);
+              ctx.fillText(row.value, D_VALUE_X, rowY + D_ROW_H / 2 + 7);
             }
           }
 
@@ -326,7 +343,7 @@ function SolverContent() {
       const LINE_H = Math.round(fontSize * 1.55);
       ctx.fillStyle = "#1e293b";
       ctx.font = `${fontSize}px ${FONT}`;
-      const textStartY = curY + LABEL_H + 16;
+      const textStartY = curY + LABEL_H + 32;
       lines.forEach((line, i) => { ctx.fillText(line, PADDING, textStartY + i * LINE_H); });
 
       // Logo bar
