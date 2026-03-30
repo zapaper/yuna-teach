@@ -119,7 +119,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white pb-24">
       {/* Cover image */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/coverpage.png" alt="Mark for You" className="w-full object-cover" />
+      <img src="/coverpage2.jpg" alt="Mark for You" className="w-full object-cover" />
 
       <div className="max-w-sm mx-auto px-6">
         {/* Header */}
