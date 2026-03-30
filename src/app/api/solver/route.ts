@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import { readFileSync } from "fs";
 import path from "path";
 
 function getAI() {
-  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 }
 
 function loadTopics(filename: string): string[] {
@@ -28,8 +28,6 @@ export async function POST(request: NextRequest) {
   if (!imageBase64) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
-
-  const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
 
   const prompt = `You are an expert primary school tutor. Analyse this question image and respond in JSON.
 
@@ -65,7 +63,7 @@ Steps:
 Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
 - Do NOT invent or paraphrase topic names.
-- Write ALL math in plain text only. No LaTeX, no markdown. Use: 3/5 (not \frac{3}{5}), x or * for multiply, ÷ for divide, ^ for powers. Never use $, \, {, } in the solution.
+- Write ALL math in plain text only. No LaTeX, no markdown. Use: 3/5 (not \\frac{3}{5}), x or * for multiply, ÷ for divide, ^ for powers. Never use $, \\, {, } in the solution.
 
 Respond with ONLY valid JSON (no markdown fences):
 {
@@ -76,19 +74,20 @@ Respond with ONLY valid JSON (no markdown fences):
 }`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: [{
+    const ai = getAI();
+    const response = await ai.chat.completions.create({
+      model: "gpt-5.4",
+      messages: [{
         role: "user",
-        parts: [
-          { inlineData: { mimeType: "image/jpeg" as const, data: base64Data } },
-          { text: prompt },
+        content: [
+          { type: "image_url", image_url: { url: imageBase64, detail: "high" } },
+          { type: "text", text: prompt },
         ],
       }],
-      config: { temperature: 0.2 },
+      temperature: 0.2,
     });
 
-    const text = (response.text ?? "").trim();
+    const text = (response.choices[0]?.message?.content ?? "").trim();
     const jsonStr = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
     const parsed = JSON.parse(jsonStr);
 
@@ -122,7 +121,7 @@ Respond with ONLY valid JSON (no markdown fences):
       diagrams,
     });
   } catch (err) {
-    console.error("[solver] Gemini error:", err);
+    console.error("[solver] OpenAI error:", err);
     return NextResponse.json({ error: "Failed to solve question" }, { status: 500 });
   }
 }
