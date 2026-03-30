@@ -129,6 +129,7 @@ export default function HomePage() {
             <img src="/logo.png" alt="Mark for You" width={48} height={48} />
             <h1 className="text-3xl font-bold text-slate-800">Mark for You</h1>
           </div>
+          <span className="inline-block text-xs font-semibold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full mb-1">Beta</span>
           <TypingSubheader />
         </div>
 
