@@ -154,7 +154,7 @@ export default function FlaggedPage() {
                 </div>
                 <p className="text-xs text-slate-600 font-medium truncate">{item.paperTitle}</p>
                 <p className="text-xs text-slate-400">
-                  {[item.subject, item.level].filter(Boolean).join(" · ")}
+                  {[item.subject, item.level ? (/^\d+$/.test(item.level) ? `Primary ${item.level}` : item.level) : null].filter(Boolean).join(" · ")}
                   {item.studentName ? ` · ${item.studentName}` : ""}
                 </p>
                 {item.syllabusTopic && (

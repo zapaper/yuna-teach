@@ -44,6 +44,7 @@ function ExamEditContent({ id }: { id: string }) {
   const [paper, setPaper] = useState<ExamPaperDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [pageImages, setPageImages] = useState<string[]>([]);
   const [loadingPdf, setLoadingPdf] = useState(false);
   const [selectTarget, setSelectTarget] = useState<SelectTarget | null>(null);
@@ -154,12 +155,18 @@ function ExamEditContent({ id }: { id: string }) {
     value: string | number | null
   ) {
     setSaving(questionId + field);
+    setSaveError(null);
     try {
-      await fetch(`/api/exam/questions/${questionId}`, {
+      const res = await fetch(`/api/exam/questions/${questionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [field]: value }),
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        setSaveError(`Save failed (${res.status}): ${errData.error ?? "Unknown error"}`);
+        return;
+      }
       setPaper((prev) =>
         prev
           ? {
@@ -327,11 +334,14 @@ function ExamEditContent({ id }: { id: string }) {
       const botPad = Math.round(0.02 * natH);
       const cropTop = Math.max(0, Math.floor((result.yStartPct / 100) * natH) - topPad);
       const cropBottom = Math.min(natH, Math.ceil((result.yEndPct / 100) * natH) + botPad);
-      canvas.width = natW;
-      canvas.height = cropBottom - cropTop;
+      const MAX_W = 1200;
+      const outW = Math.min(natW, MAX_W);
+      const outH = Math.round((cropBottom - cropTop) * (outW / natW));
+      canvas.width = outW;
+      canvas.height = outH;
       const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, cropTop, natW, canvas.height, 0, 0, natW, canvas.height);
-      const newImageData = canvas.toDataURL("image/jpeg", 0.92);
+      ctx.drawImage(img, 0, cropTop, natW, cropBottom - cropTop, 0, 0, outW, outH);
+      const newImageData = canvas.toDataURL("image/jpeg", 0.78);
 
       // Save cropped image + updated coordinates + page
       const updates: Record<string, unknown> = {
@@ -341,11 +351,16 @@ function ExamEditContent({ id }: { id: string }) {
       };
       if (actualPage !== pageIdx) updates.pageIndex = actualPage;
 
-      await fetch(`/api/exam/questions/${questionId}`, {
+      const saveRes = await fetch(`/api/exam/questions/${questionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
+      if (!saveRes.ok) {
+        const errData = await saveRes.json().catch(() => ({}));
+        setSaveError(`Redo save failed (${saveRes.status}): ${errData.error ?? "Unknown error"}`);
+        return;
+      }
       setPaper((prev) =>
         prev
           ? {
@@ -481,6 +496,11 @@ function ExamEditContent({ id }: { id: string }) {
       </div>
 
       {/* Save & Exit */}
+      {saveError && (
+        <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mt-4">
+          {saveError}
+        </p>
+      )}
       <button
         onClick={async () => {
           // Clear "extraction failed" status since admin has manually reviewed Q&A
@@ -493,9 +513,10 @@ function ExamEditContent({ id }: { id: string }) {
           }
           router.push(backPath);
         }}
-        className="w-full mt-6 py-3 rounded-2xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors shadow-md"
+        disabled={!!saving}
+        className="w-full mt-4 py-3 rounded-2xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Save &amp; Exit
+        {saving ? "Saving…" : "Save & Exit"}
       </button>
       <p className="text-center text-[10px] text-slate-400 mt-2 mb-4">
         All changes are saved automatically when you leave a field.
@@ -514,19 +535,25 @@ function ExamEditContent({ id }: { id: string }) {
             if (field === "imageData") {
               // Save image + page + boundaries in one PATCH
               setSaving(qId + field);
+              setSaveError(null);
               try {
-                await fetch(`/api/exam/questions/${qId}`, {
+                const res = await fetch(`/api/exam/questions/${qId}`, {
                   method: "PATCH",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct }),
                 });
-                setPaper((prev) =>
-                  prev
-                    ? { ...prev, questions: prev.questions.map((qq) =>
-                        qq.id === qId ? { ...qq, imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct } : qq
-                      ) }
-                    : prev
-                );
+                if (!res.ok) {
+                  const errData = await res.json().catch(() => ({}));
+                  setSaveError(`Save failed (${res.status}): ${errData.error ?? "Unknown error"}`);
+                } else {
+                  setPaper((prev) =>
+                    prev
+                      ? { ...prev, questions: prev.questions.map((qq) =>
+                          qq.id === qId ? { ...qq, imageData: croppedDataUrl, pageIndex: selectedPage, yStartPct, yEndPct } : qq
+                        ) }
+                      : prev
+                  );
+                }
               } finally {
                 setSaving(null);
               }
@@ -1152,10 +1179,21 @@ function PageSelectionModal({
     const ctx = canvas.getContext("2d")!;
     ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
+    // Scale down to max 1200px wide before encoding (keeps payload small)
+    const MAX_W = 1200;
+    let outCanvas = canvas;
+    if (canvas.width > MAX_W) {
+      outCanvas = document.createElement("canvas");
+      const scale = MAX_W / canvas.width;
+      outCanvas.width = MAX_W;
+      outCanvas.height = Math.round(canvas.height * scale);
+      outCanvas.getContext("2d")!.drawImage(canvas, 0, 0, outCanvas.width, outCanvas.height);
+    }
+
     // Convert selection y-coordinates to percentage of page height
     const yStartPct = Math.round(selection.y * 1000) / 10;       // e.g. 0.175 → 17.5
     const yEndPct = Math.round((selection.y + selection.h) * 1000) / 10;
-    onConfirm(canvas.toDataURL("image/jpeg", 0.92), pageIndex, yStartPct, yEndPct);
+    onConfirm(outCanvas.toDataURL("image/jpeg", 0.78), pageIndex, yStartPct, yEndPct);
   }, [selection, onConfirm, pageIndex]);
 
   const hasSelection = selection && selection.w > 0.01 && selection.h > 0.01;

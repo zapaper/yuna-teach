@@ -31,6 +31,7 @@ export async function PATCH(
       include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
     });
   } catch (err: unknown) {
+    console.error("[questions PATCH] error for id:", id, "fields:", Object.keys(data), err);
     if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
