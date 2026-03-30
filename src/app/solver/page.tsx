@@ -4,7 +4,7 @@ import { Suspense, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface DiagramRow { label: string; units: number; value: string | null; }
-interface DiagramData { type: "bar"; rows: DiagramRow[]; unitValue: string | null; }
+interface DiagramStep { title: string | null; rows: DiagramRow[]; unitValue: string | null; }
 
 export default function SolverPage() {
   return (
@@ -25,7 +25,7 @@ function SolverContent() {
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [solution, setSolution] = useState("");
-  const [diagram, setDiagram] = useState<DiagramData | null>(null);
+  const [diagrams, setDiagrams] = useState<DiagramStep[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [creatingTest, setCreatingTest] = useState(false);
   const [noStudentLinked, setNoStudentLinked] = useState(false);
@@ -78,7 +78,7 @@ function SolverContent() {
       setSubject(data.subject);
       setTopic(data.topic ?? "");
       setSolution(data.solution);
-      setDiagram(data.diagram ?? null);
+      setDiagrams(data.diagrams ?? []);
       setStep("result");
     } catch {
       setError("Something went wrong. Please try again.");
@@ -142,9 +142,13 @@ function SolverContent() {
       // Diagram section height
       const D_ROW_H = 76;
       const D_ROW_GAP = 18;
-      const D_LABEL_H = 56;
-      const diagramH = diagram
-        ? D_LABEL_H + diagram.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP + (diagram.unitValue ? 56 : 24) + 16
+      const D_SECTION_LABEL_H = 56;
+      const D_STEP_TITLE_H = 36;
+      const D_STEP_GAP = 24;
+      const stepH = (step: DiagramStep) =>
+        (step.title ? D_STEP_TITLE_H : 0) + step.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP + (step.unitValue ? 56 : 24);
+      const diagramH = diagrams.length > 0
+        ? D_SECTION_LABEL_H + diagrams.reduce((s, d, i) => s + stepH(d) + (i < diagrams.length - 1 ? D_STEP_GAP : 0), 0) + 16
         : 0;
 
       const solutionAreaH = H - imgDrawH - 2 - diagramH - (diagramH > 0 ? 2 : 0) - LOGO_H;
@@ -189,13 +193,11 @@ function SolverContent() {
 
       let curY = imgDrawH + 2;
 
-      // Bar model diagram
-      if (diagram && diagram.rows.length > 0) {
+      // Bar model diagrams
+      if (diagrams.length > 0) {
         const D_LABEL_W = 240;
         const D_BAR_W = W - PADDING * 2 - D_LABEL_W - 160;
         const D_VALUE_X = PADDING + D_LABEL_W + D_BAR_W + 14;
-        const maxUnits = Math.max(...diagram.rows.map(r => r.units), 1);
-        const unitW = D_BAR_W / maxUnits;
         const D_COLORS = [
           { fill: "#dbeafe", stroke: "#60a5fa", text: "#1d4ed8" },
           { fill: "#ede9fe", stroke: "#a78bfa", text: "#6d28d9" },
@@ -208,55 +210,82 @@ function SolverContent() {
         ctx.font = `bold 28px ${FONT}`;
         ctx.textAlign = "left";
         ctx.fillText("MODEL DIAGRAM", PADDING, curY + 40);
-        curY += D_LABEL_H;
+        curY += D_SECTION_LABEL_H;
 
-        for (let i = 0; i < diagram.rows.length; i++) {
-          const row = diagram.rows[i];
-          const col = D_COLORS[i % D_COLORS.length];
-          const barX = PADDING + D_LABEL_W;
-          const rowY = curY + i * (D_ROW_H + D_ROW_GAP);
+        for (let si = 0; si < diagrams.length; si++) {
+          const step = diagrams[si];
+          const maxUnits = Math.max(...step.rows.map(r => r.units), 1);
+          const unitW = D_BAR_W / maxUnits;
 
-          ctx.fillStyle = "#475569";
-          ctx.font = `500 28px ${FONT}`;
-          ctx.textAlign = "right";
-          ctx.fillText(row.label, PADDING + D_LABEL_W - 12, rowY + D_ROW_H / 2 + 10);
-
-          ctx.fillStyle = "#f1f5f9";
-          roundRect(ctx, barX, rowY, D_BAR_W, D_ROW_H, 8);
-          ctx.fill();
-          ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 2; ctx.stroke();
-
-          ctx.fillStyle = col.fill;
-          roundRect(ctx, barX, rowY, row.units * unitW, D_ROW_H, 8);
-          ctx.fill();
-          ctx.strokeStyle = col.stroke; ctx.lineWidth = 3; ctx.stroke();
-
-          ctx.strokeStyle = col.stroke; ctx.lineWidth = 2; ctx.globalAlpha = 0.6;
-          for (let j = 1; j < row.units; j++) {
-            ctx.beginPath();
-            ctx.moveTo(barX + j * unitW, rowY + 10);
-            ctx.lineTo(barX + j * unitW, rowY + D_ROW_H - 10);
-            ctx.stroke();
-          }
-          ctx.globalAlpha = 1;
-
-          if (row.value) {
-            ctx.fillStyle = col.text;
-            ctx.font = `bold 28px ${FONT}`;
+          // Step title
+          if (step.title) {
+            ctx.fillStyle = "#2563eb";
+            ctx.font = `bold 26px ${FONT}`;
             ctx.textAlign = "left";
-            ctx.fillText(row.value, D_VALUE_X, rowY + D_ROW_H / 2 + 10);
+            ctx.fillText(step.title, PADDING, curY + 26);
+            curY += D_STEP_TITLE_H;
+          }
+
+          for (let i = 0; i < step.rows.length; i++) {
+            const row = step.rows[i];
+            const col = D_COLORS[i % D_COLORS.length];
+            const barX = PADDING + D_LABEL_W;
+            const rowY = curY + i * (D_ROW_H + D_ROW_GAP);
+
+            ctx.fillStyle = "#475569";
+            ctx.font = `500 28px ${FONT}`;
+            ctx.textAlign = "right";
+            ctx.fillText(row.label, PADDING + D_LABEL_W - 12, rowY + D_ROW_H / 2 + 10);
+
+            ctx.fillStyle = "#f1f5f9";
+            roundRect(ctx, barX, rowY, D_BAR_W, D_ROW_H, 8);
+            ctx.fill();
+            ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 2; ctx.stroke();
+
+            ctx.fillStyle = col.fill;
+            roundRect(ctx, barX, rowY, row.units * unitW, D_ROW_H, 8);
+            ctx.fill();
+            ctx.strokeStyle = col.stroke; ctx.lineWidth = 3; ctx.stroke();
+
+            ctx.strokeStyle = col.stroke; ctx.lineWidth = 2; ctx.globalAlpha = 0.6;
+            for (let j = 1; j < row.units; j++) {
+              ctx.beginPath();
+              ctx.moveTo(barX + j * unitW, rowY + 10);
+              ctx.lineTo(barX + j * unitW, rowY + D_ROW_H - 10);
+              ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+
+            if (row.value) {
+              ctx.fillStyle = col.text;
+              ctx.font = `bold 28px ${FONT}`;
+              ctx.textAlign = "left";
+              ctx.fillText(row.value, D_VALUE_X, rowY + D_ROW_H / 2 + 10);
+            }
+          }
+
+          curY += step.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP;
+
+          if (step.unitValue) {
+            curY += 40;
+            ctx.fillStyle = "#64748b";
+            ctx.font = `24px ${FONT}`;
+            ctx.textAlign = "left";
+            ctx.fillText(`1 unit = ${step.unitValue}`, PADDING + D_LABEL_W, curY);
+            curY += 16;
+          } else {
+            curY += 24;
+          }
+
+          // Divider between steps
+          if (si < diagrams.length - 1) {
+            ctx.fillStyle = "#e2e8f0";
+            ctx.fillRect(PADDING, curY, W - PADDING * 2, 1);
+            curY += D_STEP_GAP;
           }
         }
 
-        if (diagram.unitValue) {
-          const footerY = curY + diagram.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP + 40;
-          ctx.fillStyle = "#64748b";
-          ctx.font = `24px ${FONT}`;
-          ctx.textAlign = "left";
-          ctx.fillText(`1 unit = ${diagram.unitValue}`, PADDING + D_LABEL_W, footerY);
-        }
-
-        curY += diagramH;
+        curY += 16;
         ctx.fillStyle = "#e2e8f0";
         ctx.fillRect(0, curY, W, 2);
         curY += 2;
@@ -415,11 +444,19 @@ function SolverContent() {
               )}
             </div>
 
-            {/* Bar model diagram */}
-            {diagram && (
-              <div className="rounded-2xl bg-white border border-slate-100 p-4">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Model Diagram</p>
-                <BarModel diagram={diagram} />
+            {/* Bar model diagrams */}
+            {diagrams.length > 0 && (
+              <div className="rounded-2xl bg-white border border-slate-100 p-4 space-y-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Model Diagram</p>
+                {diagrams.map((step, i) => (
+                  <div key={i}>
+                    {step.title && (
+                      <p className="text-xs font-semibold text-primary-600 mb-2">{step.title}</p>
+                    )}
+                    <BarModel diagram={step} />
+                    {i < diagrams.length - 1 && <div className="border-t border-slate-100 mt-4" />}
+                  </div>
+                ))}
               </div>
             )}
 
@@ -485,7 +522,7 @@ function SolverContent() {
 
             {/* Try another */}
             <button
-              onClick={() => { setStep("capture"); setImageDataUrl(null); setError(null); setNoStudentLinked(false); setDiagram(null); }}
+              onClick={() => { setStep("capture"); setImageDataUrl(null); setError(null); setNoStudentLinked(false); setDiagrams([]); }}
               className="w-full py-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors"
             >
               Solve another question
@@ -508,7 +545,7 @@ function splitLabel(label: string): [string, string | null] {
   return [label.slice(0, 11), label.slice(11)];
 }
 
-function BarModel({ diagram }: { diagram: DiagramData }) {
+function BarModel({ diagram }: { diagram: DiagramStep }) {
   const ROW_H = 44;
   const ROW_GAP = 10;
   const LABEL_W = 100;
