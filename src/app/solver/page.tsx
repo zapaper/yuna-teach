@@ -3,6 +3,9 @@
 import { Suspense, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+interface DiagramRow { label: string; units: number; value: string | null; }
+interface DiagramData { type: "bar"; rows: DiagramRow[]; unitValue: string | null; }
+
 export default function SolverPage() {
   return (
     <Suspense>
@@ -22,6 +25,7 @@ function SolverContent() {
   const [subject, setSubject] = useState("");
   const [topic, setTopic] = useState("");
   const [solution, setSolution] = useState("");
+  const [diagram, setDiagram] = useState<DiagramData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [creatingTest, setCreatingTest] = useState(false);
   const [noStudentLinked, setNoStudentLinked] = useState(false);
@@ -74,6 +78,7 @@ function SolverContent() {
       setSubject(data.subject);
       setTopic(data.topic ?? "");
       setSolution(data.solution);
+      setDiagram(data.diagram ?? null);
       setStep("result");
     } catch {
       setError("Something went wrong. Please try again.");
@@ -339,6 +344,14 @@ function SolverContent() {
               )}
             </div>
 
+            {/* Bar model diagram */}
+            {diagram && (
+              <div className="rounded-2xl bg-white border border-slate-100 p-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">Model Diagram</p>
+                <BarModel diagram={diagram} />
+              </div>
+            )}
+
             {/* Solution */}
             <div className="rounded-2xl bg-gradient-to-br from-primary-50 to-blue-50 border border-slate-100 p-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
@@ -401,7 +414,7 @@ function SolverContent() {
 
             {/* Try another */}
             <button
-              onClick={() => { setStep("capture"); setImageDataUrl(null); setError(null); setNoStudentLinked(false); }}
+              onClick={() => { setStep("capture"); setImageDataUrl(null); setError(null); setNoStudentLinked(false); setDiagram(null); }}
               className="w-full py-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors"
             >
               Solve another question
@@ -410,5 +423,74 @@ function SolverContent() {
         )}
       </div>
     </div>
+  );
+}
+
+// ─── Bar model diagram (Singapore model method) ──────────────────────────────
+
+function BarModel({ diagram }: { diagram: DiagramData }) {
+  const ROW_H = 40;
+  const ROW_GAP = 10;
+  const LABEL_W = 84;
+  const BAR_AREA_W = 200;
+  const VALUE_W = 60;
+  const PAD_X = 8;
+  const PAD_Y = 8;
+  const TOTAL_W = PAD_X + LABEL_W + BAR_AREA_W + VALUE_W + PAD_X;
+
+  const maxUnits = Math.max(...diagram.rows.map((r) => r.units), 1);
+  const unitW = BAR_AREA_W / maxUnits;
+
+  const FOOTER_H = diagram.unitValue ? 26 : 0;
+  const totalH = PAD_Y + diagram.rows.length * (ROW_H + ROW_GAP) - ROW_GAP + FOOTER_H + PAD_Y;
+
+  const COLORS = [
+    { fill: "#dbeafe", stroke: "#60a5fa", text: "#1d4ed8" },
+    { fill: "#ede9fe", stroke: "#a78bfa", text: "#6d28d9" },
+    { fill: "#d1fae5", stroke: "#34d399", text: "#065f46" },
+    { fill: "#fef3c7", stroke: "#fbbf24", text: "#92400e" },
+    { fill: "#fce7f3", stroke: "#f472b6", text: "#9d174d" },
+  ];
+
+  return (
+    <svg viewBox={`0 0 ${TOTAL_W} ${totalH}`} width="100%" style={{ display: "block", maxWidth: TOTAL_W }}>
+      {diagram.rows.map((row, i) => {
+        const y = PAD_Y + i * (ROW_H + ROW_GAP);
+        const barX = PAD_X + LABEL_W;
+        const barW = row.units * unitW;
+        const col = COLORS[i % COLORS.length];
+
+        return (
+          <g key={i}>
+            <text x={PAD_X + LABEL_W - 6} y={y + ROW_H / 2 + 4} textAnchor="end"
+              fontSize="12" fontFamily="system-ui,sans-serif" fontWeight="500" fill="#475569">
+              {row.label}
+            </text>
+            <rect x={barX} y={y} width={BAR_AREA_W} height={ROW_H} rx={4}
+              fill="#f1f5f9" stroke="#e2e8f0" strokeWidth={1} />
+            <rect x={barX} y={y} width={barW} height={ROW_H} rx={4}
+              fill={col.fill} stroke={col.stroke} strokeWidth={1.5} />
+            {Array.from({ length: row.units - 1 }, (_, j) => (
+              <line key={j}
+                x1={barX + (j + 1) * unitW} y1={y + 6}
+                x2={barX + (j + 1) * unitW} y2={y + ROW_H - 6}
+                stroke={col.stroke} strokeWidth={1} opacity={0.6} />
+            ))}
+            {row.value && (
+              <text x={barX + BAR_AREA_W + 6} y={y + ROW_H / 2 + 4}
+                fontSize="13" fontFamily="system-ui,sans-serif" fontWeight="700" fill={col.text}>
+                {row.value}
+              </text>
+            )}
+          </g>
+        );
+      })}
+      {diagram.unitValue && (
+        <text x={PAD_X + LABEL_W} y={PAD_Y + diagram.rows.length * (ROW_H + ROW_GAP) - ROW_GAP + 20}
+          fontSize="11" fontFamily="system-ui,sans-serif" fill="#64748b">
+          1 unit = {diagram.unitValue}
+        </text>
+      )}
+    </svg>
   );
 }

@@ -43,6 +43,20 @@ Steps:
    English topics:
    ${ENGLISH_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
 3. Provide a clear, step-by-step solution suitable for a primary school student.
+4. If the question involves ratio, fractions, percentages, or comparing/sharing quantities between people or groups, ALSO return a "diagram" field with a Singapore model method bar diagram:
+   {
+     "type": "bar",
+     "rows": [{ "label": "<name or quantity>", "units": <integer 1-10>, "value": "<known value, '?' if unknown, or null>" }],
+     "unitValue": "<value of 1 unit if determinable, else null>"
+   }
+   Rules for diagram:
+   - Each row = one person/quantity being compared (e.g. one row per person in ratio, or "Shaded"/"Unshaded" for fractions)
+   - "units" = the ratio or fraction number (e.g. ratio 3:5 → units 3 and 5)
+   - "value" = the actual quantity if known/solved, "?" if the question asks for it, null if not relevant
+   - Optionally add a final "Total" row if it helps understanding
+   - "unitValue" = value of 1 unit after solving (e.g. if 8 units = 320, unitValue = "40")
+   - Maximum 5 rows, units must be 1-10
+   For all other question types, set "diagram": null.
 
 Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
@@ -52,7 +66,8 @@ Respond with ONLY valid JSON (no markdown fences):
 {
   "subject": "Math" or "Science" or "English",
   "topic": "<exact topic from list, or null>",
-  "solution": "<step-by-step solution, use \\n for line breaks>"
+  "solution": "<step-by-step solution, use \\n for line breaks>",
+  "diagram": { "type": "bar", "rows": [...], "unitValue": "..." } or null
 }`;
 
   try {
@@ -77,10 +92,26 @@ Respond with ONLY valid JSON (no markdown fences):
     const rawTopic: string | null = parsed.topic ?? null;
     const validTopic = rawTopic && allTopics.includes(rawTopic) ? rawTopic : null;
 
+    // Validate diagram if present
+    let diagram: object | null = null;
+    const raw = parsed.diagram;
+    if (raw && raw.type === "bar" && Array.isArray(raw.rows) && raw.rows.length > 0) {
+      const validRows = raw.rows.filter(
+        (r: { label?: unknown; units?: unknown; value?: unknown }) =>
+          typeof r.label === "string" &&
+          typeof r.units === "number" &&
+          r.units >= 1 && r.units <= 10
+      );
+      if (validRows.length > 0) {
+        diagram = { type: "bar", rows: validRows, unitValue: typeof raw.unitValue === "string" ? raw.unitValue : null };
+      }
+    }
+
     return NextResponse.json({
       subject: parsed.subject ?? "Math",
       topic: validTopic,
       solution: parsed.solution ?? "",
+      diagram,
     });
   } catch (err) {
     console.error("[solver] Gemini error:", err);
