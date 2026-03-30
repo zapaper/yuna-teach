@@ -177,6 +177,8 @@ function ExamEditContent({ id }: { id: string }) {
             }
           : prev
       );
+    } catch (err) {
+      setSaveError(`Save failed: ${err instanceof Error ? err.message : "Network error"}`);
     } finally {
       setSaving(null);
     }
@@ -373,6 +375,8 @@ function ExamEditContent({ id }: { id: string }) {
             }
           : prev
       );
+    } catch (err) {
+      setSaveError(`Redo failed: ${err instanceof Error ? err.message : "Network error"}`);
     } finally {
       setSaving(null);
     }
@@ -445,6 +449,16 @@ function ExamEditContent({ id }: { id: string }) {
         </div>
       )}
 
+      {/* Save error banner */}
+      {saveError && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 mb-4 flex items-center justify-between gap-3">
+          <p className="text-sm text-red-600">{saveError}</p>
+          <button onClick={() => setSaveError(null)} className="text-red-400 hover:text-red-600 shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      )}
+
       {/* PDF loader */}
       <PdfLoader
         loaded={pageImages.length > 0}
@@ -496,11 +510,6 @@ function ExamEditContent({ id }: { id: string }) {
       </div>
 
       {/* Save & Exit */}
-      {saveError && (
-        <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mt-4">
-          {saveError}
-        </p>
-      )}
       <button
         onClick={async () => {
           // Clear "extraction failed" status since admin has manually reviewed Q&A
@@ -554,6 +563,8 @@ function ExamEditContent({ id }: { id: string }) {
                       : prev
                   );
                 }
+              } catch (err) {
+                setSaveError(`Save failed: ${err instanceof Error ? err.message : "Network error"}`);
               } finally {
                 setSaving(null);
               }
