@@ -26,6 +26,7 @@ function SolverContent() {
   const [topic, setTopic] = useState("");
   const [solution, setSolution] = useState("");
   const [diagrams, setDiagrams] = useState<DiagramStep[]>([]);
+  const [hint, setHint] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [creatingTest, setCreatingTest] = useState(false);
   const [noStudentLinked, setNoStudentLinked] = useState(false);
@@ -67,7 +68,7 @@ function SolverContent() {
       const res = await fetch("/api/solver", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: dataUrl }),
+        body: JSON.stringify({ imageBase64: dataUrl, hint: hint.trim() || undefined }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -410,6 +411,18 @@ function SolverContent() {
               className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
             />
+
+            {/* Additional context */}
+            <div className="mb-5">
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Additional context <span className="text-slate-400 font-normal">(optional)</span></label>
+              <textarea
+                value={hint}
+                onChange={(e) => setHint(e.target.value)}
+                placeholder="e.g. This is about area of composite shapes. The shaded region is outside the circle."
+                rows={3}
+                className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 focus:outline-none text-sm text-slate-700 resize-none"
+              />
+            </div>
 
             <button
               onClick={() => { if (fileInputRef.current) { fileInputRef.current.removeAttribute("capture"); fileInputRef.current.click(); } }}

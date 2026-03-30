@@ -25,7 +25,7 @@ const ENGLISH_TOPICS = loadTopics("english-topics.txt");
 
 export async function POST(request: NextRequest) {
   console.log("[solver] route hit");
-  const { imageBase64 } = await request.json();
+  const { imageBase64, hint } = await request.json();
   if (!imageBase64) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
@@ -68,7 +68,7 @@ Steps:
    - Maximum 5 rows per step, units must be 1-10.
    For all other question types, set "diagrams": [].
 
-Rules:
+${hint ? `Additional context from the user: ${hint}\n` : ""}Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
 - Do NOT invent or paraphrase topic names.
 - Write ALL math in plain text only. No LaTeX, no markdown. Use: 3/5 (not \\frac{3}{5}), x or * for multiply, ÷ for divide, ^ for powers. Never use $, \\, {, } in the solution.
