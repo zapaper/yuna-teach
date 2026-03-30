@@ -192,10 +192,8 @@ function SolverContent() {
             s + (d.title ? D_STEP_TITLE_H : 0) + d.rows.length * (D_ROW_H + D_ROW_GAP) - D_ROW_GAP
             + (d.unitValue ? 56 : 24) + (i < diagrams.length - 1 ? D_STEP_GAP : 0), 0) + 18
         : 0;
-      const H = Math.max(1920,
-        imgDrawH + 2 + diagramStepsH + (diagramStepsH > 0 ? 2 : 0)
-        + LABEL_H + 16 + solutionLines.length * solutionLineH + PADDING + LOGO_H + 200
-      );
+      const H = imgDrawH + 2 + diagramStepsH + (diagramStepsH > 0 ? 2 : 0)
+        + LABEL_H + 16 + solutionLines.length * solutionLineH + PADDING + LOGO_H + 60;
 
       const canvas = document.createElement("canvas");
       canvas.width = W; canvas.height = H;
