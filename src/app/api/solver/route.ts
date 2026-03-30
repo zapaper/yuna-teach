@@ -43,8 +43,13 @@ Steps:
    ${SCIENCE_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
    English topics:
    ${ENGLISH_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
-3. Provide a clear, step-by-step solution suitable for a primary school student.
-4. If the question involves ratio, fractions, percentages, or comparing/sharing quantities between people or groups, ALSO return a "diagrams" field — an array of Singapore model method bar diagram steps:
+3. If the question contains a geometric diagram (shapes, angles, circles, composite figures):
+   a. First describe every shape, all labelled angles/lengths/measurements and their spatial relationships.
+   b. If it is a composite area or circumference problem, identify how to break the figure into simpler parts (e.g. "draw a vertical line to split into a semicircle and a rectangle"). Name each part and state its measurements.
+   c. Then solve each part separately and combine.
+   Include this geometric analysis at the start of your "solution" field before the working steps.
+4. Provide a clear, step-by-step solution suitable for a primary school student.
+5. If the question involves ratio, fractions, percentages, or comparing/sharing quantities between people or groups, ALSO return a "diagrams" field — an array of Singapore model method bar diagram steps:
    [
      {
        "title": "<e.g. 'Step 1: Initial ratio' or 'Step 2: After transfer', or null for single-step>",
@@ -79,50 +84,15 @@ Respond with ONLY valid JSON (no markdown fences):
   "diagrams": [{ "title": "...", "rows": [...], "unitValue": "..." }]
 }`;
 
-  const imagePart = { inlineData: { mimeType: "image/jpeg" as const, data: base64Data } };
-
   try {
-    console.log("[solver] starting step 1 (geometry detection)");
-    // Step 1: detect geometry and describe the diagram if needed
-    let geometryContext = "";
-    const describeRes = await getAI().models.generateContent({
-      model: "gemini-3.1-pro-preview",
-      contents: [{ role: "user", parts: [
-        imagePart,
-        { text: `Look at this question image. Does it contain a geometric diagram — including any shapes, angles, lines, measurements, coordinates, circles, arcs, or composite figures?
-Respond in JSON only (no markdown):
-{
-  "isGeometry": true or false,
-  "description": "<if true: describe every shape, all labelled angles/lengths/measurements and their spatial relationships; else null>",
-  "decomposition": "<if composite area or circumference problem: numbered steps describing (a) where to draw dividing lines to cut the figure into simpler parts, (b) the name and shape type of each resulting part, (c) the known measurements of each part (e.g. 'Part 1: semicircle, radius = 7 cm, top-left region. Part 2: rectangle, 14 cm x 7 cm, centre.') — be specific enough that someone looking at the original diagram can identify each part precisely; else null>"
-}` },
-      ]}],
-      config: { temperature: 0 },
-    });
-    try {
-      const dRaw = (describeRes.text ?? "").trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-      const d = JSON.parse(dRaw);
-      if (d.isGeometry && d.description) {
-        geometryContext = `\nDiagram analysis — use this to ensure accuracy:\n${d.description}\n`;
-        if (d.decomposition) {
-          geometryContext += `\nHow to annotate and break up this diagram:\n${d.decomposition}\nImagine these dividing lines drawn on the diagram. Solve each labelled part separately, then combine.\n`;
-        }
-      }
-    } catch { /* ignore parse errors — fall through to solve without context */ }
-    console.log("[solver] step 1 done, isGeometry:", !!geometryContext, "— starting step 2");
-
-    // Step 2: solve (with geometry context injected if detected)
-    const solvePrompt = geometryContext
-      ? prompt.replace("Respond with ONLY valid JSON", geometryContext + "\nRespond with ONLY valid JSON")
-      : prompt;
-
+    console.log("[solver] calling Gemini");
     const response = await getAI().models.generateContent({
       model: "gemini-3.1-pro-preview",
       contents: [{
         role: "user",
         parts: [
-          imagePart,
-          { text: solvePrompt },
+          { inlineData: { mimeType: "image/jpeg" as const, data: base64Data } },
+          { text: prompt },
         ],
       }],
       config: { temperature: 0.2 },
@@ -155,13 +125,13 @@ Respond in JSON only (no markdown):
       })
       .filter(Boolean);
 
+    console.log("[solver] done");
     return NextResponse.json({
       subject: parsed.subject ?? "Math",
       topic: validTopic,
       solution: parsed.solution ?? "",
       diagrams,
     });
-    console.log("[solver] step 2 done");
   } catch (err) {
     console.error("[solver] Gemini error:", err);
     return NextResponse.json({ error: "Failed to solve question" }, { status: 500 });
