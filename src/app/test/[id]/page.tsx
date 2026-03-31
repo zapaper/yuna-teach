@@ -316,10 +316,6 @@ function TestPageContent({ id }: { id: string }) {
             <p className="text-[#43474f] text-sm leading-relaxed max-w-lg">
               {test.subtitle || "Tap any word to hear it and see its meaning. When you're ready, begin the test."}
             </p>
-            <button className="shrink-0 flex items-center gap-1.5 px-4 py-2 bg-[#e5eeff] text-[#001e40] font-bold text-xs rounded-xl hover:bg-[#dce9ff] transition-colors">
-              <span className="material-symbols-outlined text-sm">add</span>
-              Add Words
-            </button>
           </div>
         </div>
 
