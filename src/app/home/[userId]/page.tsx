@@ -425,6 +425,14 @@ export default function HomePage({
     if (el) el.scrollTop = el.scrollHeight;
   }, [chatMessages, chatLoading]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary-200 border-t-primary-500" />
+      </div>
+    );
+  }
+
   if (isParent && user) {
     return <ParentDashboard userId={userId} user={user} />;
   }
