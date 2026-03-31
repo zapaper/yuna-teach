@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import TestCard from "@/components/TestCard";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
+import ParentDashboard from "./ParentDashboard";
 
 export default function HomePage({
   params,
@@ -423,6 +424,10 @@ export default function HomePage({
     const el = chatScrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [chatMessages, chatLoading]);
+
+  if (isParent && user) {
+    return <ParentDashboard userId={userId} user={user} />;
+  }
 
   return (
     <div className="p-6 pb-28 animate-fade-in-up">

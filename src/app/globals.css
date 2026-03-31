@@ -14,6 +14,10 @@
   --color-accent-pink: #f472b6;
 }
 
+.font-headline {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
