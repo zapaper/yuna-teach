@@ -138,13 +138,13 @@ function QuizContent({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-24">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-200 border-t-primary-500" />
+      <div className="flex justify-center py-24 bg-[#f8f9ff] min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#dce9ff] border-t-[#001e40]" />
       </div>
     );
   }
   if (!paper) {
-    return <div className="p-6 text-center py-24"><p className="text-slate-500">Quiz not found</p></div>;
+    return <div className="p-6 text-center py-24"><p className="text-[#43474f]">Quiz not found</p></div>;
   }
 
   const mcqQuestions = paper.questions.filter(q => isMcq(q.answer));
@@ -230,35 +230,32 @@ function QuizContent({ id }: { id: string }) {
   // ─── Post-submission view ───
   if (submitted) {
     return (
-      <div className="p-6 pb-24 max-w-lg mx-auto text-center">
-        <div className="py-12">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
+      <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6">
+        <div className="bg-white rounded-3xl shadow-xl max-w-md w-full p-10 text-center">
+          <div className="w-20 h-20 rounded-full bg-[#6cf8bb]/30 flex items-center justify-center mx-auto mb-6">
+            <span className="material-symbols-outlined text-4xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
           </div>
-          <h2 className="text-xl font-bold text-slate-800 mb-2">Quiz Complete!</h2>
-          <p className="text-sm text-slate-500 mb-2">Time: {formatTime(elapsed)}</p>
+          <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-1">Quiz Complete!</h2>
+          <p className="text-sm text-[#43474f] mb-6">Time: {formatTime(elapsed)}</p>
 
           {mcqScore && (
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-4">
-              <p className="text-sm text-slate-400 mb-1">MCQ Score</p>
-              <p className="text-4xl font-bold text-primary-600">{mcqScore.correct} / {mcqScore.total}</p>
-              <p className="text-sm text-slate-400 mt-1">
-                {Math.round((mcqScore.correct / mcqScore.total) * 100)}%
-              </p>
+            <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4">
+              <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-2">MCQ Score</p>
+              <p className="font-headline text-5xl font-black text-[#001e40]">{mcqScore.correct}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.total}</span></p>
+              <p className="text-sm font-bold text-[#006c49] mt-2">{Math.round((mcqScore.correct / mcqScore.total) * 100)}%</p>
             </div>
           )}
 
           {hasOeq && (
             markingDone ? (
-              <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4">
-                <p className="text-sm text-green-600 font-medium">Written answers have been marked!</p>
+              <div className="bg-[#6cf8bb]/20 rounded-2xl p-4 mb-4 flex items-center gap-3">
+                <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
+                <p className="text-sm font-semibold text-[#006c49]">Written answers marked!</p>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-200 border-t-primary-500 mx-auto mb-2" />
-                <p className="text-sm text-slate-400">AI is marking your written answers...</p>
+              <div className="bg-[#eff4ff] rounded-2xl p-4 mb-4 flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#dce9ff] border-t-[#003366] shrink-0" />
+                <p className="text-sm text-[#43474f]">AI is marking your written answers…</p>
               </div>
             )
           )}
@@ -266,13 +263,13 @@ function QuizContent({ id }: { id: string }) {
           <div className="flex gap-3 mt-6">
             <button
               onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
-              className="flex-1 px-4 py-3 rounded-2xl bg-primary-500 text-white font-semibold hover:bg-primary-600"
+              className="flex-1 px-4 py-3 rounded-2xl bg-[#001e40] text-white font-bold text-sm hover:bg-[#003366] transition-colors"
             >
               Review Answers
             </button>
             <button
               onClick={() => router.push(`/home/${userId}`)}
-              className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50"
+              className="flex-1 px-4 py-3 rounded-2xl bg-[#eff4ff] text-[#001e40] font-bold text-sm hover:bg-[#dce9ff] transition-colors"
             >
               Home
             </button>
@@ -283,17 +280,17 @@ function QuizContent({ id }: { id: string }) {
         {badgePopup && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={() => setBadgePopup(null)}>
-            <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center animate-bounce-in"
+            <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center"
               onClick={e => e.stopPropagation()}>
               <div className="relative mx-auto w-28 h-28 mb-4">
                 <div className="absolute inset-0 animate-ping rounded-full bg-yellow-200 opacity-30" />
                 <img src={badgePopup.image} alt={badgePopup.badge} className="relative w-28 h-28 object-contain drop-shadow-lg" />
               </div>
-              <h2 className="text-xl font-bold text-slate-800 mb-2">Congratulations!</h2>
-              <p className="text-sm text-slate-600 leading-relaxed mb-5">{badgePopup.message}</p>
+              <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Congratulations!</h2>
+              <p className="text-sm text-[#43474f] leading-relaxed mb-5">{badgePopup.message}</p>
               <button
                 onClick={() => setBadgePopup(null)}
-                className="px-6 py-2.5 rounded-2xl bg-primary-500 text-white font-semibold hover:bg-primary-600"
+                className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
               >
                 Awesome!
               </button>
@@ -308,102 +305,163 @@ function QuizContent({ id }: { id: string }) {
   const answeredCount = Object.keys(mcqAnswers).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 select-none" style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center justify-between sticky top-0 z-20">
-        <div className="min-w-0">
-          <h1 className="text-sm font-bold text-slate-800 truncate">{paper.title}</h1>
-          <p className="text-[11px] text-slate-400">
-            {mcqQuestions.length > 0 ? `${answeredCount} / ${mcqQuestions.length} MCQ` : ""}
-            {mcqQuestions.length > 0 && hasOeq ? " · " : ""}
-            {hasOeq ? `${oeqQuestions.length} written` : ""}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0 ml-3">
-          {/* Drawing tools — only for MCQ+OEQ */}
-          {hasOeq && (
-            <div className="flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5">
-              <button
-                onClick={() => setTool("pen")}
-                className={`p-1.5 rounded-md transition-colors ${tool === "pen" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400"}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setTool("eraser")}
-                className={`p-1.5 rounded-md transition-colors ${tool === "eraser" ? "bg-white text-red-500 shadow-sm" : "text-slate-400"}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
-                  <path d="M22 21H7" /><path d="m5 11 9 9" />
-                </svg>
-              </button>
-              <button
-                onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
-                className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                </svg>
-              </button>
-            </div>
-          )}
-          <span className="text-xs font-mono text-slate-400 tabular-nums">{formatTime(elapsed)}</span>
+    <div className="min-h-screen bg-[#f8f9ff] pb-24 select-none" style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
+      {/* ── Mobile Top Bar (floating pill) ── */}
+      <header className="lg:hidden fixed top-0 w-full z-50 px-6 py-4 flex justify-center bg-[#f8f9ff]/80 backdrop-blur-md">
+        <div className="bg-white/90 backdrop-blur-xl rounded-full px-2 py-1.5 flex items-center gap-0.5 shadow-lg border border-white/30">
+          <button
+            onClick={() => setTool("pen")}
+            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "text-[#001e40]" : "text-[#43474f]"}`}
+          >
+            <span className="material-symbols-outlined text-xl">edit</span>
+            <span>Write</span>
+          </button>
+          {hasOeq && <>
+            <button
+              onClick={() => setTool("eraser")}
+              className={`p-3 rounded-full transition-colors ${tool === "eraser" ? "text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
+            >
+              <span className="material-symbols-outlined text-xl">ink_eraser</span>
+            </button>
+            <button
+              onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
+              className="p-3 rounded-full text-[#737780] hover:text-[#001e40] transition-colors"
+            >
+              <span className="material-symbols-outlined text-xl">undo</span>
+            </button>
+          </>}
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="px-3 py-1 rounded-lg bg-green-500 text-white text-xs font-medium hover:bg-green-600 disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-[#003366] text-white rounded-full px-5 py-3 ml-1 font-headline font-bold text-sm hover:scale-105 transition-transform disabled:opacity-50"
           >
-            {submitting ? "..." : "Submit"}
+            <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            {submitting ? "…" : "Submit"}
           </button>
         </div>
-      </div>
+      </header>
+
+      {/* ── Desktop Top App Bar ── */}
+      <header className="hidden lg:flex fixed top-0 left-0 w-full z-50 items-center justify-between px-6 py-3 bg-[#f8f9ff] shadow-sm">
+        <div className="flex items-center gap-6">
+          <h1 className="font-headline text-lg font-bold text-[#001e40]">QuizWorkspace</h1>
+          <div className="h-6 w-px bg-[#c3c6d1]/40" />
+          <div className="flex items-center gap-4">
+            <span className="font-headline text-sm font-semibold text-[#001e40]">{paper.title}</span>
+            {mcqQuestions.length > 0 && (
+              <span className="px-3 py-1 bg-[#dce9ff] rounded-full font-label text-xs font-bold text-[#001e40]">
+                {answeredCount} / {mcqQuestions.length} MCQ
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          {/* Drawing tools */}
+          <div className="flex items-center bg-[#eff4ff] rounded-lg p-1 border border-[#c3c6d1]/10">
+            <button
+              onClick={() => setTool("pen")}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "pen" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
+            >
+              <span className="material-symbols-outlined text-xl">edit</span>
+              Pen
+            </button>
+            <button
+              onClick={() => setTool("eraser")}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "eraser" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
+            >
+              <span className="material-symbols-outlined text-xl">ink_eraser</span>
+              Erase
+            </button>
+            <button
+              onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[#737780] hover:bg-[#dce9ff] transition-colors font-headline text-[10px] uppercase tracking-wider font-bold"
+            >
+              <span className="material-symbols-outlined text-xl">undo</span>
+              Undo
+            </button>
+          </div>
+          <div className="h-8 w-px bg-[#c3c6d1]/20 mx-1" />
+          <div className="flex items-center gap-2 px-4 py-1.5 bg-[#eff4ff] rounded-lg">
+            <span className="material-symbols-outlined text-[#001e40] text-lg">timer</span>
+            <span className="font-headline font-bold text-[#001e40] tabular-nums">{formatTime(elapsed)}</span>
+          </div>
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="bg-[#001e40] text-white px-6 py-2 rounded-lg font-headline font-bold text-sm hover:scale-95 active:scale-90 transition-transform shadow-md disabled:opacity-50"
+          >
+            {submitting ? "…" : "Submit"}
+          </button>
+        </div>
+      </header>
 
       {/* Single scrollable paper */}
-      <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+      <div className="pt-24 pb-8 max-w-4xl mx-auto px-4 lg:px-16">
+
+        {/* Mobile progress bar */}
+        {mcqQuestions.length > 0 && (
+          <div className="lg:hidden mb-8">
+            <div className="flex justify-between items-end mb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#43474f] opacity-70">Progress</span>
+                <h2 className="font-headline text-2xl font-extrabold text-[#001e40]">{answeredCount} / {mcqQuestions.length} MCQ</h2>
+              </div>
+              <span className="font-headline font-bold text-[#001e40] tabular-nums text-sm flex items-center gap-1">
+                <span className="material-symbols-outlined text-base">timer</span>
+                {formatTime(elapsed)}
+              </span>
+            </div>
+            <div className="h-3 w-full bg-[#dce9ff] rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-[#006c49] to-[#4edea3] rounded-full transition-all duration-500"
+                style={{ width: `${mcqQuestions.length > 0 ? (answeredCount / mcqQuestions.length) * 100 : 0}%` }} />
+            </div>
+          </div>
+        )}
+
         {/* Section A: MCQ */}
         {mcqQuestions.length > 0 && (
           <>
-            {hasOeq && (
-              <div className="text-center">
-                <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Section A: Multiple Choice</h2>
-                <p className="text-xs text-slate-400">Select one answer for each question</p>
-              </div>
-            )}
-            {mcqQuestions.map((q, idx) => (
-              <McqQuestionCard
-                key={q.id}
-                question={q}
-                index={idx}
-                selected={mcqAnswers[q.id] ?? null}
-                onSelect={(opt) => selectMcqAnswer(q.id, opt)}
-              />
-            ))}
+            <div className="hidden lg:block mb-10 mt-4">
+              <span className="inline-block py-1 px-3 bg-[#6cf8bb]/30 text-[#00714d] rounded font-label text-[10px] font-extrabold tracking-widest uppercase mb-3">Assessment Phase</span>
+              <h2 className="font-headline text-2xl lg:text-3xl font-extrabold text-[#001e40] tracking-tight">SECTION A: MULTIPLE CHOICE</h2>
+              <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
+            </div>
+            <div className="space-y-10">
+              {mcqQuestions.map((q, idx) => (
+                <McqQuestionCard
+                  key={q.id}
+                  question={q}
+                  index={idx}
+                  selected={mcqAnswers[q.id] ?? null}
+                  onSelect={(opt) => selectMcqAnswer(q.id, opt)}
+                />
+              ))}
+            </div>
           </>
         )}
 
         {/* Section B: Written / OEQ */}
         {hasOeq && (
           <>
-            <div className="text-center pt-4">
-              <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider">Section B: Written Answers</h2>
-              <p className="text-xs text-slate-400">Write your answers in the space provided</p>
+            <div className={`hidden lg:block mb-10 ${mcqQuestions.length > 0 ? "mt-16" : "mt-4"}`}>
+              <span className="inline-block py-1 px-3 bg-[#ffddb4]/40 text-[#633f00] rounded font-label text-[10px] font-extrabold tracking-widest uppercase mb-3">Examination Module</span>
+              <h2 className="font-headline text-3xl font-extrabold text-[#001e40] tracking-tight">SECTION B: WRITTEN ANSWERS</h2>
+              <p className="text-[#737780] mt-1 text-sm">Show all workings clearly. Partial marks may be awarded for correct methodology.</p>
             </div>
-            {oeqQuestions.map((q, idx) => (
-              <OeqQuestionCard
-                key={q.id}
-                question={q}
-                index={mcqQuestions.length + idx}
-                tool={tool}
-                onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
-                onStrokeStart={() => { lastDrawnId.current = q.id; }}
-              />
-            ))}
+            <div className="space-y-12">
+              {oeqQuestions.map((q, idx) => (
+                <OeqQuestionCard
+                  key={q.id}
+                  question={q}
+                  index={mcqQuestions.length + idx}
+                  tool={tool}
+                  onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
+                  onStrokeStart={() => { lastDrawnId.current = q.id; }}
+                />
+              ))}
+            </div>
           </>
         )}
-
       </div>
     </div>
   );
@@ -426,81 +484,108 @@ function McqQuestionCard({
   const optionImages = question.transcribedOptionImages as string[] | null;
   const hasImageOptions = optionImages && optionImages.some(img => img);
 
+  const numStr = String(index + 1).padStart(2, "0");
+
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-      <div className="mb-3">
-        <span className="inline-block bg-primary-50 text-primary-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
-          Q{index + 1}
-        </span>
-        {question.transcribedStem && (
-          <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
-            {question.transcribedStem}
-          </p>
-        )}
-      </div>
+    /* Desktop: relative with big background number; mobile: simple card */
+    <article className="relative group">
+      {/* Big background number — desktop only */}
+      <div className="hidden lg:block absolute -left-12 top-0 text-[#d3e4fe] font-headline text-6xl font-black opacity-60 select-none leading-none">{numStr}</div>
 
-      {question.diagramImageData && (
-        <div className="mb-3 flex justify-center">
-          <img
-            src={`data:image/jpeg;base64,${question.diagramImageData}`}
-            alt="Diagram"
-            className="w-full rounded-lg border border-slate-100"
-          />
+      {/* Card */}
+      <div className="bg-white lg:rounded-xl rounded-3xl shadow-sm lg:shadow-[0_20px_40px_rgba(11,28,48,0.04)] overflow-hidden transition-all hover:shadow-lg relative">
+        {/* Mobile: left accent bar */}
+        <div className="lg:hidden absolute top-0 left-0 w-1 h-full bg-[#003366]" />
+
+        <div className="p-5 lg:p-8">
+          <span className="font-headline font-bold text-sm text-[#001e40] mb-3 lg:mb-5 block">
+            Question {numStr}
+          </span>
+
+          {question.transcribedStem && (
+            <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">
+              {question.transcribedStem}
+            </p>
+          )}
+
+          {question.diagramImageData && (
+            <div className="mb-5 lg:mb-6">
+              <img
+                src={`data:image/jpeg;base64,${question.diagramImageData}`}
+                alt="Diagram"
+                className="w-full rounded-xl border border-[#e5eeff]"
+              />
+            </div>
+          )}
+
+          {/* Options */}
+          {hasImageOptions ? (
+            <div className="grid grid-cols-2 gap-3 lg:gap-4">
+              {[0, 1, 2, 3].map(i => {
+                const optVal = String(i + 1);
+                const isSelected = selected === optVal;
+                const imgSrc = optionImages?.[i];
+                return (
+                  <button
+                    key={i}
+                    onClick={() => onSelect(optVal)}
+                    className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                      isSelected
+                        ? "bg-[#dce9ff] border-2 border-[#001e40]/20 ring-2 ring-[#001e40]/10"
+                        : "bg-[#eff4ff] border-2 border-transparent hover:bg-[#dce9ff]"
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      isSelected ? "bg-[#001e40] text-white" : "bg-white border border-[#c3c6d1]/30 text-[#001e40]"
+                    }`}>{i + 1}</span>
+                    {imgSrc ? (
+                      <img src={`data:image/jpeg;base64,${imgSrc}`} alt={`Option ${i + 1}`} className="w-full rounded" />
+                    ) : (
+                      <span className="text-sm text-[#737780]">No image</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            /* Mobile: full-width tap-friendly; Desktop: 2-col grid */
+            <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4">
+              {[0, 1, 2, 3].map(i => {
+                const optVal = String(i + 1);
+                const isSelected = selected === optVal;
+                const text = options?.[i] ?? `Option ${i + 1}`;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => onSelect(optVal)}
+                    className={`w-full flex items-center justify-between gap-4 p-4 lg:p-4 rounded-2xl transition-all text-left ${
+                      isSelected
+                        ? "bg-[#dce9ff] border-2 border-[#001e40]/20 ring-2 ring-[#001e40]/10 scale-[1.02] shadow-sm"
+                        : "bg-[#eff4ff] border-2 border-transparent hover:bg-[#dce9ff]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span className={`w-10 h-10 rounded-full flex items-center justify-center font-headline font-bold text-sm shrink-0 ${
+                        isSelected ? "bg-[#001e40] text-white" : "bg-white border border-[#c3c6d1]/30 text-[#001e40]"
+                      }`}>{i + 1}</span>
+                      <span className={`font-headline font-semibold text-base ${isSelected ? "text-[#001e40] font-bold" : "text-[#0b1c30]"}`}>
+                        {text}
+                      </span>
+                    </div>
+                    {isSelected && (
+                      <span className="material-symbols-outlined text-[#006c49] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    )}
+                    {!isSelected && (
+                      <div className="w-6 h-6 rounded-full border-2 border-[#c3c6d1] shrink-0" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
-      )}
-
-      <div className="space-y-2">
-        {hasImageOptions ? (
-          <div className="grid grid-cols-2 gap-2">
-          {[0, 1, 2, 3].map(i => {
-            const optVal = String(i + 1);
-            const isSelected = selected === optVal;
-            const imgSrc = optionImages?.[i];
-            return (
-              <button
-                key={i}
-                onClick={() => onSelect(optVal)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${
-                  isSelected ? "border-primary-500 bg-primary-50" : "border-slate-100 hover:border-slate-200"
-                }`}
-              >
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                  isSelected ? "bg-primary-500 text-white" : "bg-slate-100 text-slate-500"
-                }`}>({i + 1})</span>
-                {imgSrc ? (
-                  <img src={`data:image/jpeg;base64,${imgSrc}`} alt={`Option ${i + 1}`} className="w-full rounded" />
-                ) : (
-                  <span className="text-sm text-slate-400">No image</span>
-                )}
-              </button>
-            );
-          })}
-          </div>
-        ) : (
-          [0, 1, 2, 3].map(i => {
-            const optVal = String(i + 1);
-            const isSelected = selected === optVal;
-            const text = options?.[i] ?? `Option ${i + 1}`;
-            return (
-              <button
-                key={i}
-                onClick={() => onSelect(optVal)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
-                  isSelected ? "border-primary-500 bg-primary-50" : "border-slate-100 hover:border-slate-200"
-                }`}
-              >
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                  isSelected ? "bg-primary-500 text-white" : "bg-slate-100 text-slate-500"
-                }`}>({i + 1})</span>
-                <span className={`text-sm ${isSelected ? "text-primary-700 font-medium" : "text-slate-700"}`}>
-                  {text}
-                </span>
-              </button>
-            );
-          })
-        )}
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -563,76 +648,87 @@ function OeqQuestionCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSubparts]);
 
+  const numStr = String(index + 1).padStart(2, "0");
+
   return (
-    <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
-      {/* Question text */}
-      <div className="p-4 pb-2">
-        <span className="inline-block bg-amber-50 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-lg mb-2">
-          Q{index + 1}
-        </span>
-        {question.transcribedStem && (
-          <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
-            {question.transcribedStem}
-          </p>
-        )}
-
-        {/* Diagram — show as static reference unless it's a draw-on-diagram question */}
-        {question.diagramImageData && (
-          <div className="mt-2 flex justify-center">
-            <img
-              src={`data:image/jpeg;base64,${question.diagramImageData}`}
-              alt="Diagram"
-              className="w-full rounded-lg border border-slate-100"
-            />
+    <section className="group">
+      <div className="flex flex-col lg:flex-row gap-5 lg:gap-8 items-start">
+        {/* Number badge */}
+        <div className="flex-none">
+          <div className="w-12 h-12 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-headline font-bold text-xl shadow-lg">
+            {index + 1}
           </div>
-        )}
+        </div>
 
-        {question.marksAvailable && (
-          <p className="text-xs text-slate-400 mt-2 text-right">[{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]</p>
-        )}
-      </div>
-
-      {/* Sub-parts with individual canvases */}
-      {hasSubparts ? (
-        <div>
-          {subparts!.map(sp => (
-            <div key={sp.label}>
-              <div className="px-4 pt-2 pb-1">
-                <p className="text-sm text-slate-700">
-                  <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
+        {/* Content */}
+        <div className="flex-grow space-y-4 lg:space-y-6 w-full min-w-0">
+          {/* Question header */}
+          <div className="flex justify-between items-start gap-4">
+            <div className="flex-1 min-w-0">
+              {question.transcribedStem && (
+                <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
+                  {question.transcribedStem}
                 </p>
-                {sp.refImageBase64 && (
+              )}
+              {question.diagramImageData && (
+                <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
                   <img
-                    src={`data:image/jpeg;base64,${sp.refImageBase64}`}
-                    alt={`(${sp.label}) diagram`}
-                    className="mt-2 max-w-full rounded border border-slate-200"
+                    src={`data:image/jpeg;base64,${question.diagramImageData}`}
+                    alt="Diagram"
+                    className="w-full rounded-lg"
                   />
-                )}
-              </div>
-              <div className="border-t border-amber-100">
-                <BlankCanvas
-                  ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
-                  tool={tool}
-                  onStrokeStart={onStrokeStart}
-                  height={sp.diagramBase64 ? 300 : 200}
-                  backgroundImage={sp.diagramBase64 ?? null}
-                />
-              </div>
+                </div>
+              )}
             </div>
-          ))}
+            {question.marksAvailable && (
+              <span className="bg-[#d3e4fe] text-[#003366] px-3 py-1 rounded-md text-xs font-bold uppercase tracking-widest whitespace-nowrap shrink-0">
+                [{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]
+              </span>
+            )}
+          </div>
+
+          {/* Sub-parts with individual canvases */}
+          {hasSubparts ? (
+            <div className="space-y-4">
+              {subparts!.map(sp => (
+                <div key={sp.label} className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20">
+                  <div className="px-5 pt-4 pb-2">
+                    <p className="text-base text-[#0b1c30]">
+                      <span className="font-bold text-[#001e40]">({sp.label})</span> {sp.text}
+                    </p>
+                    {sp.refImageBase64 && (
+                      <img
+                        src={`data:image/jpeg;base64,${sp.refImageBase64}`}
+                        alt={`(${sp.label}) diagram`}
+                        className="mt-2 max-w-full rounded border border-[#e5eeff]"
+                      />
+                    )}
+                  </div>
+                  <BlankCanvas
+                    ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
+                    tool={tool}
+                    onStrokeStart={onStrokeStart}
+                    height={sp.diagramBase64 ? 300 : 220}
+                    backgroundImage={sp.diagramBase64 ?? null}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative">
+              <div className="absolute top-0 left-12 h-full w-px bg-[#ba1a1a]/10" />
+              <BlankCanvas
+                ref={onCanvasRef}
+                tool={tool}
+                onStrokeStart={onStrokeStart}
+                height={drawableDiagramBase64 ? 320 : 260}
+                backgroundImage={drawableDiagramBase64}
+              />
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="border-t border-amber-100">
-          <BlankCanvas
-            ref={onCanvasRef}
-            tool={tool}
-            onStrokeStart={onStrokeStart}
-            height={drawableDiagramBase64 ? 320 : 250}
-            backgroundImage={drawableDiagramBase64}
-          />
-        </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
 }
 

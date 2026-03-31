@@ -753,7 +753,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
             {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-[#43474f]">{user.name}</span>
+            <span className="text-sm font-semibold text-[#001e40]">{user.name}</span>
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(v => !v)}
@@ -790,6 +790,8 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
             <span className="material-symbols-outlined text-[#001e40]">notifications</span>
             {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
           </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-[#001e40]">{user.name}</span>
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(v => !v)}
@@ -808,6 +810,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                 </button>
               </div>
             )}
+          </div>
           </div>
         </div>
       </header>
@@ -874,7 +877,16 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
               <AiInsightCard />
 
               <section>
-                <h3 className="font-headline font-bold text-lg mb-5 text-[#001e40]">Performance Analysis</h3>
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="font-headline font-bold text-lg text-[#001e40]">Performance Analysis</h3>
+                  <button
+                    onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
+                    className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">bar_chart</span>
+                    Full Report
+                  </button>
+                </div>
                 <PerformanceCards />
               </section>
 
