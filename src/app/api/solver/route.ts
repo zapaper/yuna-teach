@@ -3,8 +3,13 @@ import { GoogleGenAI } from "@google/genai";
 import { readFileSync } from "fs";
 import path from "path";
 
+export const maxDuration = 120;
+
 function getAI() {
-  return new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
+  return new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY!,
+    httpOptions: { timeout: 110_000 },
+  });
 }
 
 function loadTopics(filename: string): string[] {
