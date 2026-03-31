@@ -489,9 +489,6 @@ function McqQuestionCard({
   return (
     /* Desktop: relative with big background number; mobile: simple card */
     <article className="relative group">
-      {/* Big background number — desktop only */}
-      <div className="hidden lg:block absolute -left-12 top-0 text-[#d3e4fe] font-headline text-6xl font-black opacity-60 select-none leading-none">{numStr}</div>
-
       {/* Card */}
       <div className="bg-white lg:rounded-xl rounded-3xl shadow-sm lg:shadow-[0_20px_40px_rgba(11,28,48,0.04)] overflow-hidden transition-all hover:shadow-lg relative">
         {/* Mobile: left accent bar */}
