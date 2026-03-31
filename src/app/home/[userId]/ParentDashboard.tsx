@@ -616,7 +616,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                 const pct = scorePct(paper);
                 return (
                   <div key={paper.id}
-                    onClick={() => { router.push(`/exam/${paper.id}/overview?userId=${userId}`); setShowPendingReview(false); }}
+                    onClick={() => { const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused"; router.push(isQuizOrFocused ? `/exam/${paper.id}/review?userId=${userId}` : `/exam/${paper.id}/overview?userId=${userId}`); setShowPendingReview(false); }}
                     className="flex items-center gap-4 p-4 bg-[#fff8f6] border border-[#ffdad6] rounded-2xl cursor-pointer hover:border-[#ba1a1a]/40 transition-colors"
                   >
                     <div className="w-10 h-10 rounded-xl bg-[#ffdad6] flex items-center justify-center shrink-0">
