@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
               { paperType: null },
               { paperType: "focused", userId, assignedToId: null },
               { paperType: "focused", userId, assignedToId: userId },
+              { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
             ],
           };
         } else {
@@ -67,6 +68,7 @@ export async function GET(request: NextRequest) {
                 ...(adminUser ? { userId: adminUser.id } : {}),
               },
               { paperType: "focused", userId },
+              { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
             ],
           };
         }
