@@ -47,6 +47,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
   const [connectSuccess, setConnectSuccess] = useState("");
   const [showConnect, setShowConnect] = useState(false);
   const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz">("home");
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const fetchData = useRef<() => void>(undefined);
   fetchData.current = () => {
@@ -198,13 +199,24 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 {user.level ? `Primary ${user.level} Student` : "Student"} · Let&apos;s improve your score today.
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <button onClick={() => router.push("/")} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <span className="material-symbols-outlined text-xl">logout</span>
-              </button>
-              <div className="w-11 h-11 rounded-2xl bg-[#d3e4fe] border-2 border-white shadow-md flex items-center justify-center cursor-default">
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(v => !v)}
+                className="w-11 h-11 rounded-2xl bg-[#d3e4fe] border-2 border-white shadow-md flex items-center justify-center hover:bg-[#c3d9fe] transition-colors"
+              >
                 <span className="font-headline font-extrabold text-[#003366] text-base">{initials(user.name)}</span>
-              </div>
+              </button>
+              {showProfileMenu && (
+                <div className="absolute right-0 top-13 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
+                  <button
+                    onClick={() => { setShowProfileMenu(false); router.push("/"); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">logout</span>
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </header>
 
@@ -429,9 +441,25 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 Connect to Parent
               </button>
             )}
-            <button onClick={() => router.push("/")} className="text-slate-400 p-1 text-xs">
-              <span className="material-symbols-outlined text-xl">logout</span>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(v => !v)}
+                className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center"
+              >
+                <span className="font-headline font-extrabold text-[#003366] text-xs">{initials(user.name)}</span>
+              </button>
+              {showProfileMenu && (
+                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
+                  <button
+                    onClick={() => { setShowProfileMenu(false); router.push("/"); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">logout</span>
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>

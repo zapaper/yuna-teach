@@ -92,6 +92,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
   const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   const [showPendingReview, setShowPendingReview] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Filters for papers view
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
@@ -753,8 +754,24 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-[#43474f]">{user.name}</span>
-            <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold">
-              {initials(user.name)}
+            <div className="relative">
+              <button
+                onClick={() => setShowProfileMenu(v => !v)}
+                className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold hover:bg-[#003366]/80 transition-colors"
+              >
+                {initials(user.name)}
+              </button>
+              {showProfileMenu && (
+                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
+                  <button
+                    onClick={() => { setShowProfileMenu(false); router.push("/"); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">logout</span>
+                    Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -773,8 +790,24 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
             <span className="material-symbols-outlined text-[#001e40]">notifications</span>
             {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
           </div>
-          <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold">
-            {initials(user.name)}
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileMenu(v => !v)}
+              className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold"
+            >
+              {initials(user.name)}
+            </button>
+            {showProfileMenu && (
+              <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
+                <button
+                  onClick={() => { setShowProfileMenu(false); router.push("/"); }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">logout</span>
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
