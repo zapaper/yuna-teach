@@ -77,6 +77,8 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
 
   // Modals
   const [showFocused, setShowFocused] = useState(false);
+  const [focusedSubject, setFocusedSubject] = useState<"math" | "science">("math");
+  const [focusedType, setFocusedType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [recActing, setRecActing] = useState<string | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizStudentId, setQuizStudentId] = useState(user.linkedStudents[0]?.id ?? "");
@@ -89,6 +91,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
   const [sendingFeedback, setSendingFeedback] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
+  const [showPendingReview, setShowPendingReview] = useState(false);
 
   // Filters for papers view
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
@@ -215,21 +218,51 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
 
   // ── Modals ────────────────────────────────────────────────────────────────
 
-  const FocusedModal = () => !showFocused ? null : (
-    <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl">
-        <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-1">Focused Practice</h3>
-        <p className="text-sm text-[#43474f] mb-4">Create a 10-question focused test for a weak topic.</p>
-        {focusedGapRec?.gaps && focusedGapRec.gaps.length > 0 ? (
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {focusedGapRec.gaps.flatMap((gap, gi) =>
-              gap.topics.map((topic, ti) => {
-                const key = `${gi}-${ti}`;
+  const FocusedModal = () => {
+    if (!showFocused) return null;
+    const subjectTopics = allTopics
+      .filter(t => t.subject.toLowerCase().includes(focusedSubject === "math" ? "math" : "science") && t.pct < 65)
+      .slice(0, 3);
+    const targetStudentId = focusedGapRec?.studentId ?? selectedStudentId ?? user.linkedStudents[0]?.id;
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowFocused(false)}>
+        <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-1">Focused Practice</h3>
+          <p className="text-sm text-[#43474f] mb-4">Create a 10-question test on a weak topic.</p>
+
+          {/* Subject toggle */}
+          <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
+          <div className="flex gap-2 mb-4">
+            {(["math", "science"] as const).map(s => (
+              <button key={s} onClick={() => setFocusedSubject(s)}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${focusedSubject === s ? "border-[#003366] bg-[#eff4ff] text-[#003366]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                {s === "math" ? "Mathematics" : "Science"}
+              </button>
+            ))}
+          </div>
+
+          {/* Type toggle */}
+          <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Question Type</p>
+          <div className="flex gap-2 mb-5">
+            {(["mcq", "mcq-oeq"] as const).map(t => (
+              <button key={t} onClick={() => setFocusedType(t)}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${focusedType === t ? "border-[#003366] bg-[#eff4ff] text-[#003366]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                {t === "mcq" ? "MCQ" : "MCQ + OEQ"}
+              </button>
+            ))}
+          </div>
+
+          {/* Top 3 weak topics */}
+          <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Weakest Topics</p>
+          {subjectTopics.length > 0 ? (
+            <div className="space-y-2">
+              {subjectTopics.map((t) => {
+                const key = `${t.subject}-${t.topic}`;
                 return (
                   <div key={key} className="flex items-center gap-3 p-3 bg-[#eff4ff] rounded-xl">
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-[#001e40]">{topic}</p>
-                      <p className="text-xs text-[#43474f]">{gap.subject}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-[#001e40] truncate">{t.topic}</p>
+                      <p className="text-xs text-[#43474f]">{t.pct}% mastery</p>
                     </div>
                     <button
                       disabled={recActing === key}
@@ -239,27 +272,29 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                           await fetch("/api/focused-test", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ parentId: userId, studentId: focusedGapRec.studentId, subject: gap.subject, topic }),
+                            body: JSON.stringify({ parentId: userId, studentId: targetStudentId, subject: t.subject, topic: t.topic, type: focusedType }),
                           });
                           await refreshPapers();
+                          setShowFocused(false);
                         } finally { setRecActing(null); }
                       }}
                       className="px-3 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold disabled:opacity-50 shrink-0"
                     >
-                      {recActing === key ? "..." : "Go →"}
+                      {recActing === key ? "…" : "Assign →"}
                     </button>
                   </div>
                 );
-              })
-            )}
-          </div>
-        ) : (
-          <p className="text-sm text-[#43474f] py-4 text-center">No weak topics identified yet. Complete more papers to get recommendations.</p>
-        )}
-        <button onClick={() => setShowFocused(false)} className="w-full mt-4 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold text-sm">Close</button>
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-[#43474f] py-3 text-center">No weak topics for this subject yet. Complete more papers to get recommendations.</p>
+          )}
+
+          <button onClick={() => setShowFocused(false)} className="w-full mt-4 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold text-sm">Close</button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const QuizModal = () => !showQuiz ? null : (
     <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowQuiz(false)}>
@@ -435,10 +470,10 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
           <span className="text-sm font-medium text-[#43474f] mb-1">done</span>
         </div>
         {pendingRelease.length > 0 && (
-          <p className="text-[10px] mt-2 font-extrabold text-[#ba1a1a] flex items-center gap-1">
+          <button onClick={() => setShowPendingReview(true)} className="text-[10px] mt-2 font-extrabold text-[#ba1a1a] flex items-center gap-1 hover:underline">
             <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>error</span>
-            {pendingRelease.length} PENDING RELEASE
-          </p>
+            {pendingRelease.length} PENDING REVIEW
+          </button>
         )}
       </div>
     </div>
@@ -461,10 +496,16 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
           {recLoading ? "" : insightForCard}
         </p>
         <button
-          onClick={() => { if (focusedGapRec) setShowFocused(true); else setShowQuiz(true); }}
+          onClick={() => setShowFocused(true)}
           className="w-full bg-white text-[#001e40] font-bold py-3.5 rounded-xl active:scale-95 transition-transform shadow-lg"
         >
           Assign Focused Practice
+        </button>
+        <button
+          onClick={() => setShowQuiz(true)}
+          className="w-full bg-white/10 text-white font-bold py-3.5 rounded-xl active:scale-95 transition-transform mt-2 border border-white/20"
+        >
+          Assign Daily Quiz
         </button>
       </div>
     </div>
@@ -560,6 +601,44 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
       <QuizModal />
       <FeedbackModal />
       <AdminNotifModal />
+
+      {/* Pending Review modal */}
+      {showPendingReview && (
+        <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowPendingReview(false)}>
+          <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-md p-6 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-headline text-lg font-extrabold text-[#001e40]">Pending Review</h3>
+              <span className="text-xs font-bold text-[#ba1a1a] bg-[#ffdad6] px-2.5 py-1 rounded-full">{pendingRelease.length} papers</span>
+            </div>
+            <p className="text-sm text-[#43474f] mb-4">These papers have been marked but not yet released to the student.</p>
+            <div className="space-y-3 overflow-y-auto flex-1">
+              {pendingRelease.map(paper => {
+                const pct = scorePct(paper);
+                return (
+                  <div key={paper.id}
+                    onClick={() => { router.push(`/exam/${paper.id}/overview?userId=${userId}`); setShowPendingReview(false); }}
+                    className="flex items-center gap-4 p-4 bg-[#fff8f6] border border-[#ffdad6] rounded-2xl cursor-pointer hover:border-[#ba1a1a]/40 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#ffdad6] flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[#93000a] text-base">{activityIcon(paper)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[#001e40] text-sm truncate">{paper.title}</p>
+                      <p className="text-xs text-[#43474f]">{paper.completedAt ? relativeDate(paper.completedAt) : "Completed"}</p>
+                    </div>
+                    {pct !== null && (
+                      <span className={`text-sm font-extrabold shrink-0 ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>
+                        {pct}%
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <button onClick={() => setShowPendingReview(false)} className="w-full mt-4 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold text-sm">Close</button>
+          </div>
+        </div>
+      )}
 
       {/* ════════════════════════════════════════════════════════════════════ */}
       {/* DESKTOP SIDEBAR                                                     */}
@@ -758,13 +837,19 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                     </h2>
                     <p className="text-[#799dd6] text-base max-w-md leading-relaxed">{insightForCard}</p>
                   </div>
-                  <div className="mt-8">
+                  <div className="mt-8 flex gap-3">
                     <button
-                      onClick={() => { if (focusedGapRec) setShowFocused(true); else setShowQuiz(true); }}
+                      onClick={() => setShowFocused(true)}
                       className="bg-gradient-to-r from-[#006c49] to-[#4edea3] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:-translate-y-0.5 transition-all shadow-lg"
                     >
-                      Assign Focused Practice
+                      Focused Practice
                       <span className="material-symbols-outlined text-xl">arrow_forward</span>
+                    </button>
+                    <button
+                      onClick={() => setShowQuiz(true)}
+                      className="bg-white/10 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:-translate-y-0.5 transition-all border border-white/20"
+                    >
+                      Daily Quiz
                     </button>
                   </div>
                 </div>
@@ -802,24 +887,32 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                       <h3 className="font-headline text-3xl font-black text-[#001e40]">{completedPapers.length} <span className="text-sm font-semibold text-[#43474f]">Total</span></h3>
                     </div>
                     <div className="w-px h-12 bg-[#c3c6d1]/40" />
-                    <div className="flex-1">
-                      <p className="font-medium text-[#ba1a1a] mb-1">Pending Release</p>
+                    <button className="flex-1 text-left hover:opacity-80 transition-opacity" onClick={() => setShowPendingReview(true)}>
+                      <p className="font-medium text-[#ba1a1a] mb-1">Pending Review</p>
                       <h3 className="font-headline text-3xl font-black text-[#ba1a1a]">{pendingRelease.length.toString().padStart(2, "0")}</h3>
-                    </div>
+                    </button>
                   </div>
                 </div>
               </div>
 
               {/* Bento grid */}
-              <div className="grid grid-cols-3 gap-8">
-                {/* Left 2 cols */}
-                <div className="col-span-2 space-y-8">
+              <div className="space-y-8">
+                <div>
                   {/* Skill analysis */}
                   <div className="bg-white rounded-3xl p-8 shadow-sm">
-                    <h4 className="font-headline text-xl font-extrabold text-[#001e40] mb-7 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[#ffb952]" style={{ fontVariationSettings: "'FILL' 1" }}>analytics</span>
-                      Skill Profile Analysis
-                    </h4>
+                    <div className="flex items-center justify-between mb-7">
+                      <h4 className="font-headline text-xl font-extrabold text-[#001e40] flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[#ffb952]" style={{ fontVariationSettings: "'FILL' 1" }}>analytics</span>
+                        Skill Profile Analysis
+                      </h4>
+                      <button
+                        onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
+                        className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">bar_chart</span>
+                        Full Report
+                      </button>
+                    </div>
                     {loadingProgress ? (
                       <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-6 w-6 border-2 border-[#dce9ff] border-t-[#003366]" /></div>
                     ) : (
@@ -901,84 +994,6 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                         );
                       })}
                     </div>
-                  </div>
-                </div>
-
-                {/* Right col */}
-                <div className="space-y-6">
-                  {/* Focus topics */}
-                  <div className="bg-[#dce9ff] rounded-3xl p-6 relative overflow-hidden">
-                    <h4 className="font-headline text-lg font-extrabold text-[#001e40] mb-3">Focus Topics</h4>
-                    <p className="text-sm text-[#43474f] mb-5">Based on {selectedStudent?.name ?? "your child"}&apos;s current progress.</p>
-                    <div className="space-y-3">
-                      {weakTopics.length > 0 ? weakTopics.map(t => (
-                        <div key={t.topic} className="bg-white p-4 rounded-2xl cursor-pointer hover:-translate-y-0.5 transition-all shadow-sm"
-                          onClick={() => setShowFocused(true)}>
-                          <span className="text-[10px] font-extrabold text-[#006c49] tracking-widest uppercase mb-1 block">Focused Practice</span>
-                          <p className="font-bold text-[#001e40] text-sm">{t.topic}</p>
-                          <p className="text-xs text-[#43474f]">{t.subject} · {t.pct}%</p>
-                        </div>
-                      )) : (
-                        <div className="bg-white p-4 rounded-2xl shadow-sm">
-                          <p className="text-sm text-[#43474f]">{allTopics.length > 0 ? "No weak topics — great job!" : "Complete more papers to see focus topics."}</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute -bottom-8 -right-8 opacity-10">
-                      <span className="material-symbols-outlined text-[100px] text-[#001e40]">school</span>
-                    </div>
-                  </div>
-
-                  {/* Weekly schedule */}
-                  <div className="bg-white rounded-3xl p-6 shadow-sm">
-                    <h4 className="font-headline text-lg font-extrabold text-[#001e40] mb-4">Weekly Schedule</h4>
-                    <div className="flex justify-between gap-1">
-                      {weekDays.map((d, i) => (
-                        <div key={i} className="flex flex-col items-center gap-1.5">
-                          <span className="text-[10px] font-extrabold text-[#43474f]">{DAY_LABELS[i]}</span>
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-extrabold ${
-                            isToday(d) ? "bg-[#003366] text-white ring-2 ring-[#003366] ring-offset-2" : "bg-[#dce9ff] text-[#43474f]"
-                          }`}>
-                            {d.getDate()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    {pendingRelease.length > 0 && (
-                      <div className="mt-5 p-3 bg-[#eff4ff] rounded-2xl">
-                        <p className="text-xs font-extrabold text-[#001e40] flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-[#ba1a1a] shrink-0" />
-                          {pendingRelease.length} paper{pendingRelease.length > 1 ? "s" : ""} pending release
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Student switcher */}
-                  <div className="p-6 bg-gradient-to-br from-[#001e40] to-[#003366] rounded-3xl text-white">
-                    <p className="text-xs font-extrabold text-[#799dd6] uppercase tracking-widest mb-4">Manage Students</p>
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white font-extrabold">
-                        {initials(selectedStudent?.name ?? "?")}
-                      </div>
-                      <div>
-                        <h5 className="font-bold">{selectedStudent?.name}</h5>
-                        <p className="text-xs text-[#799dd6]">Active Session</p>
-                      </div>
-                    </div>
-                    {user.linkedStudents.length > 1 && (
-                      <button onClick={() => setShowStudentMenu(true)}
-                        className="w-full py-3 bg-white/10 hover:bg-white/20 transition-colors rounded-xl font-bold text-sm flex items-center justify-center gap-2 border border-white/10">
-                        <span className="material-symbols-outlined text-sm">swap_horiz</span>
-                        Switch Student
-                      </button>
-                    )}
-                    <button
-                      onClick={() => window.open(`/register/student?parentId=${userId}`, "_blank")}
-                      className="w-full mt-3 py-3 bg-white/10 hover:bg-white/20 transition-colors rounded-xl font-bold text-sm flex items-center justify-center gap-2 border border-white/10">
-                      <span className="material-symbols-outlined text-sm">add</span>
-                      Add Student
-                    </button>
                   </div>
                 </div>
               </div>
