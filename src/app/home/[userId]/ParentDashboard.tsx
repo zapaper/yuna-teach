@@ -566,11 +566,9 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
       {/* ════════════════════════════════════════════════════════════════════ */}
       <aside className="hidden lg:flex fixed left-0 top-0 w-72 h-screen bg-slate-50 border-r border-[#c3c6d1]/20 flex-col p-6 z-50">
         {/* Logo */}
-        <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-8 h-8 rounded-xl bg-[#003366] flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-base" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
-          </div>
-          <span className="font-headline text-xl font-extrabold text-[#001e40]">Markforyou</span>
+        <div className="flex items-center gap-3 mb-8">
+          <img src="/logo.png" alt="Owl" className="w-9 h-9 object-contain" />
+          <img src="/markforyou.png" alt="Markforyou" className="h-7 object-contain" />
         </div>
 
         {/* Student card */}
@@ -650,10 +648,8 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
       {/* ════════════════════════════════════════════════════════════════════ */}
       <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#003366] flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>school</span>
-          </div>
-          <span className="font-headline font-extrabold text-lg text-[#001e40]">Markforyou</span>
+          <img src="/logo.png" alt="Owl" className="w-7 h-7 object-contain" />
+          <img src="/markforyou.png" alt="Markforyou" className="h-6 object-contain" />
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
