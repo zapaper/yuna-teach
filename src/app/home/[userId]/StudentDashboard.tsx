@@ -198,16 +198,35 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
     try {
       const dataUrl = await compressSolverImage(file);
       setSolverImageData(dataUrl);
+      await runSolver(dataUrl);
+    } catch (err) {
+      setSolverError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setSolverStep("capture");
+    }
+  }
+
+  async function runSolver(dataUrl: string, retried = false): Promise<void> {
+    try {
       const res = await fetch("/api/solver", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: dataUrl, hint: solverContext.trim() || undefined }),
       });
       const data = await res.json();
-      if (!res.ok) { setSolverError(data.error || "Failed to solve"); setSolverStep("capture"); return; }
+      if (!res.ok) throw new Error(data.error || "Failed to solve");
       setSolverResult({ subject: data.subject, topic: data.topic ?? null, solution: data.solution, diagrams: data.diagrams ?? [] });
       setSolverStep("result");
-    } catch { setSolverError("Something went wrong. Please try again."); setSolverStep("capture"); }
+    } catch (err) {
+      // Retry once only for request-killed errors (tab switch on mobile drops the connection)
+      // "Failed to fetch" = Chrome/Android, "Load failed" = iOS Safari
+      const msg = err instanceof TypeError ? err.message : "";
+      const wasKilled = msg === "Failed to fetch" || msg === "Load failed";
+      if (!retried && wasKilled) {
+        await runSolver(dataUrl, true);
+      } else {
+        throw err;
+      }
+    }
   }
 
   async function handleConnect() {
@@ -351,9 +370,9 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(v => !v)}
-                className="w-11 h-11 rounded-2xl bg-[#d3e4fe] border-2 border-white shadow-md flex items-center justify-center hover:bg-[#c3d9fe] transition-colors"
+                className="w-11 h-11 rounded-2xl bg-[#d3e4fe] border-2 border-white shadow-md flex items-center justify-center hover:bg-[#c3d9fe] transition-colors overflow-hidden"
               >
-                <span className="font-headline font-extrabold text-[#003366] text-base">{initials(user.name)}</span>
+                <span className="material-symbols-outlined text-[#003366] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-13 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
@@ -557,9 +576,9 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(v => !v)}
-                className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center overflow-hidden"
               >
-                <span className="font-headline font-extrabold text-[#003366] text-xs">{initials(user.name)}</span>
+                <span className="material-symbols-outlined text-[#003366] text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
@@ -666,7 +685,15 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 )}
                 <div className="rounded-2xl bg-gradient-to-br from-[#eff6ff] to-[#eff4ff] border border-slate-100 p-4">
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
-                  <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">{solverResult.solution}</p>
+                  <div className="text-sm text-slate-800 leading-relaxed">
+                    {solverResult.solution.split("\n").map((line, i) =>
+                      line.trimStart().startsWith("Answer:") ? (
+                        <p key={i} className="mt-3 font-extrabold text-[#001e40] text-base">{line}</p>
+                      ) : (
+                        <p key={i} className={line.trim() === "" ? "mt-2" : ""}>{line}</p>
+                      )
+                    )}
+                  </div>
                 </div>
                 <button onClick={openSolver} className="w-full py-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
                   Solve another question

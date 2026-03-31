@@ -2,7 +2,6 @@
 
 import { Suspense, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import WordReviewList from "@/components/WordReviewList";
 import { ExtractedTest } from "@/types";
 
 type Step = "capture" | "processing" | "review";
@@ -26,10 +25,11 @@ function ScanPageContent() {
   const [guidance, setGuidance] = useState("");
   const [imageData, setImageData] = useState<string | null>(null);
   const [tests, setTests] = useState<ExtractedTest[]>([]);
-  const [toggledOff, setToggledOff] = useState<Set<string>>(new Set());
   const [processingStep, setProcessingStep] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [newWordText, setNewWordText] = useState("");
+  const [addingToTest, setAddingToTest] = useState<number | null>(null);
 
   function compressImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -106,17 +106,28 @@ function ScanPageContent() {
     }
   }
 
-  function handleToggleWord(testIndex: number, wordIndex: number) {
-    const key = `${testIndex}-${wordIndex}`;
-    setToggledOff((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
+  function handleDeleteWord(testIdx: number, wordIdx: number) {
+    setTests((prev) =>
+      prev.map((t, i) =>
+        i === testIdx
+          ? { ...t, words: t.words.filter((_, wi) => wi !== wordIdx) }
+          : t
+      )
+    );
+  }
+
+  function handleAddWord(testIdx: number) {
+    const text = newWordText.trim();
+    if (!text) return;
+    setTests((prev) =>
+      prev.map((t, i) =>
+        i === testIdx
+          ? { ...t, words: [...t.words, { text, orderIndex: t.words.length + 1 }] }
+          : t
+      )
+    );
+    setNewWordText("");
+    setAddingToTest(null);
   }
 
   function handleUpdateTitle(testIndex: number, title: string) {
@@ -130,13 +141,11 @@ function ScanPageContent() {
     try {
       for (let testIdx = 0; testIdx < tests.length; testIdx++) {
         const test = tests[testIdx];
-        const words = test.words
-          .filter((_, wordIdx) => !toggledOff.has(`${testIdx}-${wordIdx}`))
-          .map((w) => ({
-            text: w.text,
-            orderIndex: w.orderIndex,
-            enabled: true,
-          }));
+        const words = test.words.map((w, idx) => ({
+          text: w.text,
+          orderIndex: idx + 1,
+          enabled: true,
+        }));
 
         if (words.length === 0) continue;
 
@@ -188,21 +197,176 @@ function ScanPageContent() {
 
       {/* ── Review ── */}
       {step === "review" && (
-        <div className="p-6 max-w-lg mx-auto">
-          <button onClick={() => setStep("capture")}
-            className="flex items-center gap-2 text-[#43474f] mb-6 hover:text-[#001e40] transition-colors">
-            <span className="material-symbols-outlined text-xl">arrow_back</span>
-            <span className="text-sm font-medium">Back</span>
-          </button>
-          <h1 className="text-xl font-headline font-bold text-[#001e40] mb-2">Review Words</h1>
-          <p className="text-sm text-[#43474f] mb-6">Uncheck any words you don&apos;t want to include.</p>
-          <WordReviewList tests={tests} onToggleWord={handleToggleWord} onUpdateTitle={handleUpdateTitle} toggledOff={toggledOff} />
-          {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mt-4">{error}</p>}
-          <div className="mt-6 pb-6">
-            <button onClick={handleSaveAll} disabled={saving}
-              className="w-full bg-[#006c49] text-white rounded-2xl py-4 px-6 text-base font-bold shadow-md active:scale-[0.98] transition-transform disabled:opacity-50">
-              {saving ? "Saving…" : "Save All Tests"}
+        <div className="min-h-screen">
+          {/* Mobile sticky top bar */}
+          <div className="lg:hidden sticky top-0 z-10 bg-[#eff4ff] px-4 py-3 flex items-center gap-3 border-b border-[#d3e4fe]">
+            <button
+              onClick={() => setStep("capture")}
+              className="p-2 -ml-2 rounded-full hover:bg-[#d3e4fe] transition-colors"
+            >
+              <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
             </button>
+            <span className="font-headline font-bold text-[#001e40] text-lg">Verification</span>
+          </div>
+
+          <div className="max-w-4xl mx-auto px-4 lg:px-8 py-6 lg:py-10 pb-40 lg:pb-8">
+            {/* Desktop back button */}
+            <button
+              onClick={() => setStep("capture")}
+              className="hidden lg:flex items-center gap-2 text-[#43474f] mb-6 hover:text-[#001e40] transition-colors"
+            >
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+              <span className="text-sm font-medium">Back</span>
+            </button>
+
+            {tests.map((test, testIdx) => (
+              <div key={testIdx} className={testIdx > 0 ? "mt-10" : ""}>
+                {/* Section header */}
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="inline-flex items-center gap-1.5 bg-[#006c49]/10 text-[#006c49] text-xs font-bold px-3 py-1.5 rounded-full">
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      AI Scan Complete
+                    </span>
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                      test.language === "CHINESE"
+                        ? "bg-red-100 text-red-700"
+                        : test.language === "JAPANESE"
+                        ? "bg-pink-100 text-pink-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}>
+                      {test.language === "CHINESE" ? "中文" : test.language === "JAPANESE" ? "日本語" : "English"}
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={test.title}
+                    onChange={(e) => handleUpdateTitle(testIdx, e.target.value)}
+                    className="w-full text-2xl lg:text-3xl font-headline font-extrabold text-[#001e40] bg-transparent border-none outline-none tracking-tight"
+                  />
+                  <p className="text-sm text-[#43474f] mt-1">
+                    Tap the delete icon to remove a word, or add any missing ones.
+                  </p>
+                </div>
+
+                {/* Word cards grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+                  {test.words.map((word, wordIdx) => (
+                    <div
+                      key={wordIdx}
+                      className="group bg-white rounded-2xl border border-[#e8eaf0] px-5 py-4 flex items-center justify-between hover:border-[#a7c8ff] hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-sm font-bold text-[#001e40]/20 group-hover:text-[#001e40]/60 transition-colors w-7 shrink-0 tabular-nums">
+                          {String(wordIdx + 1).padStart(2, "0")}
+                        </span>
+                        <span className="font-headline font-bold text-xl text-[#001e40] truncate">
+                          {word.text}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteWord(testIdx, wordIdx)}
+                        className="shrink-0 ml-2 w-8 h-8 rounded-full flex items-center justify-center text-[#43474f] opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
+                        aria-label="Delete word"
+                      >
+                        <span className="material-symbols-outlined text-lg">delete</span>
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Add word — inline input card */}
+                  {addingToTest === testIdx ? (
+                    <div className="bg-white rounded-2xl border-2 border-[#003366] px-5 py-4 flex items-center gap-3">
+                      <span className="text-sm font-bold text-[#001e40]/40 w-7 shrink-0 tabular-nums">
+                        {String(test.words.length + 1).padStart(2, "0")}
+                      </span>
+                      <input
+                        autoFocus
+                        type="text"
+                        value={newWordText}
+                        onChange={(e) => setNewWordText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleAddWord(testIdx);
+                          if (e.key === "Escape") { setAddingToTest(null); setNewWordText(""); }
+                        }}
+                        placeholder="Type word…"
+                        className="flex-1 font-headline font-bold text-xl text-[#001e40] bg-transparent outline-none placeholder:text-[#737780] placeholder:font-normal placeholder:text-base"
+                      />
+                      <button
+                        onClick={() => handleAddWord(testIdx)}
+                        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[#006c49] hover:bg-[#006c49]/10 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-lg">check</span>
+                      </button>
+                    </div>
+                  ) : (
+                    /* Desktop dashed add card — hidden on mobile (mobile uses fixed bottom sheet) */
+                    <button
+                      onClick={() => setAddingToTest(testIdx)}
+                      className="hidden lg:flex bg-white rounded-2xl border-2 border-dashed border-[#d0d5e0] px-5 py-4 items-center gap-3 text-[#43474f] hover:border-[#003366] hover:text-[#001e40] hover:bg-[#eff4ff] transition-all"
+                    >
+                      <span className="material-symbols-outlined text-xl">add_circle</span>
+                      <span className="font-medium text-sm">Add Word</span>
+                    </button>
+                  )}
+
+                  {/* Mobile — dashed add placeholder card (always visible in list) */}
+                  {addingToTest !== testIdx && (
+                    <button
+                      onClick={() => setAddingToTest(testIdx)}
+                      className="lg:hidden bg-white rounded-2xl border-2 border-dashed border-[#d0d5e0] px-5 py-4 flex items-center gap-3 text-[#43474f] active:bg-[#eff4ff] transition-all"
+                    >
+                      <span className="material-symbols-outlined text-xl">add_circle</span>
+                      <span className="font-medium text-sm">Add word…</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {error && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3 mt-6">
+                {error}
+              </p>
+            )}
+
+            {/* Desktop footer */}
+            <div className="hidden lg:flex items-center justify-between mt-8 pt-6 border-t border-[#e8eaf0]">
+              <button
+                onClick={() => setAddingToTest(0)}
+                className="flex items-center gap-2 px-6 py-3 rounded-2xl border-2 border-[#003366] text-[#001e40] font-bold hover:bg-[#eff4ff] transition-colors"
+              >
+                <span className="material-symbols-outlined">add</span>
+                Add Word
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={saving}
+                className="px-8 py-3 rounded-2xl bg-gradient-to-r from-[#001e40] to-[#006c49] text-white font-bold shadow-lg hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                {saving ? "Saving…" : "Finalize List"}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile fixed bottom action sheet */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-t border-[#e8eaf0] px-4 pt-3 pb-6 safe-area-bottom">
+            <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto">
+              <button
+                onClick={() => setAddingToTest(0)}
+                className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl border-2 border-[#003366] text-[#001e40] font-bold hover:bg-[#eff4ff] active:bg-[#d3e4fe] transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">add</span>
+                Add Word
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={saving}
+                className="px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#001e40] to-[#006c49] text-white font-bold shadow-md active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                {saving ? "Saving…" : "Finalize List"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -220,11 +384,11 @@ function ScanPageContent() {
             </button>
 
             {/* Content */}
-            <div className="p-10 lg:p-12 text-center">
+            <div className="pt-14 pb-10 px-10 lg:px-12 text-center">
 
               {/* Header */}
               <div className="mb-10">
-                <h2 className="text-3xl lg:text-4xl font-headline font-extrabold text-[#001e40] mb-4 tracking-tight">
+                <h2 className="text-2xl lg:text-3xl font-headline font-extrabold text-[#001e40] mb-4 tracking-tight">
                   Scan Spelling / 听写
                 </h2>
                 <p className="text-[#43474f] text-base lg:text-lg leading-relaxed max-w-md mx-auto">
