@@ -119,18 +119,8 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
   const [connectError, setConnectError] = useState("");
   const [connectSuccess, setConnectSuccess] = useState("");
   const [showConnect, setShowConnect] = useState(false);
-  const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz" | "solver">("home");
+  const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz">("home");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-
-  // AI Solver
-  const [showAiSolver, setShowAiSolver] = useState(false);
-  const [solverStep, setSolverStep] = useState<"capture" | "solving" | "result">("capture");
-  const [solverImageData, setSolverImageData] = useState<string | null>(null);
-  const [solverContext, setSolverContext] = useState("");
-  const [solverResult, setSolverResult] = useState<{ subject: string; topic: string | null; solution: string; diagrams: DiagramStep[] } | null>(null);
-  const [solverError, setSolverError] = useState<string | null>(null);
-  const solverFileInputRef = useRef<HTMLInputElement>(null);
-  const solverCameraRef = useRef<HTMLInputElement>(null);
 
   const fetchData = useRef<() => void>(undefined);
   fetchData.current = () => {
@@ -162,72 +152,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
       setAiTip(`${name}, start by scanning your spelling list — AI will correct it in seconds!`);
     }
   }, [tests, examPapers, user.name]);
-
-  function openSolver() {
-    setSolverStep("capture"); setSolverImageData(null); setSolverContext(""); setSolverResult(null); setSolverError(null);
-    setShowAiSolver(true);
-  }
-
-  function compressSolverImage(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const maxDim = 2048;
-          let { width, height } = img;
-          if (width > maxDim || height > maxDim) {
-            if (width > height) { height = (height / width) * maxDim; width = maxDim; }
-            else { width = (width / height) * maxDim; height = maxDim; }
-          }
-          canvas.width = width; canvas.height = height;
-          canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.85));
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function handleSolverFile(file: File) {
-    setSolverError(null); setSolverStep("solving");
-    try {
-      const dataUrl = await compressSolverImage(file);
-      setSolverImageData(dataUrl);
-      await runSolver(dataUrl);
-    } catch (err) {
-      setSolverError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
-      setSolverStep("capture");
-    }
-  }
-
-  async function runSolver(dataUrl: string, retried = false): Promise<void> {
-    try {
-      const res = await fetch("/api/solver", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: dataUrl, hint: solverContext.trim() || undefined }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to solve");
-      setSolverResult({ subject: data.subject, topic: data.topic ?? null, solution: data.solution, diagrams: data.diagrams ?? [] });
-      setSolverStep("result");
-    } catch (err) {
-      // Retry once only for request-killed errors (tab switch on mobile drops the connection)
-      // "Failed to fetch" = Chrome/Android, "Load failed" = iOS Safari
-      const msg = err instanceof TypeError ? err.message : "";
-      const wasKilled = msg === "Failed to fetch" || msg === "Load failed";
-      if (!retried && wasKilled) {
-        await runSolver(dataUrl, true);
-      } else {
-        throw err;
-      }
-    }
-  }
 
   async function handleConnect() {
     if (connectCode.length < 6) return;
@@ -316,11 +240,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-semibold ${activeNav === "quiz" ? "bg-[#003366] text-white shadow-sm" : "text-[#003366] hover:bg-[#003366]/10"}`}>
               <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
               Daily Quiz
-            </button>
-            <button onClick={openSolver}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-semibold ${showAiSolver ? "bg-[#d3e4fe] text-[#001e40] shadow-sm" : "text-[#003366] hover:bg-[#003366]/10"}`}>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: showAiSolver ? "'FILL' 1" : "'FILL' 0" }}>psychology</span>
-              AI Solver
             </button>
           </nav>
 
@@ -558,7 +477,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
       <div className="lg:hidden pb-32">
 
       {/* ── Top Nav ─────────────────────────────────────────────────────────── */}
-      {activeNav !== "solver" && <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
+      <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
         <div className="flex items-center justify-between px-6 w-full py-3 max-w-lg mx-auto">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Owl" className="w-7 h-7 object-contain" />
@@ -594,118 +513,10 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
             </div>
           </div>
         </div>
-      </nav>}
-
-      {/* ── Mobile AI Solver View ───────────────────────────────────────────── */}
-      {activeNav === "solver" && (
-        <div className="min-h-screen bg-[#f8f9ff]">
-          {/* Top App Bar */}
-          <header className="sticky top-0 z-50 bg-[#eff4ff] flex justify-between items-center px-6 py-4">
-            <div className="flex items-center gap-4">
-              <button onClick={() => setActiveNav("home")} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#d3e4fe] transition-colors">
-                <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
-              </button>
-              <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="Owl" className="w-8 h-8 object-contain" />
-                <span className="text-xl font-headline font-extrabold text-[#001e40]">AI Solver</span>
-              </div>
-            </div>
-            <span className="material-symbols-outlined text-slate-400">account_circle</span>
-          </header>
-
-          <main className="px-6 pt-4 pb-32 max-w-md mx-auto">
-            {/* Hero */}
-            {solverStep !== "result" && (
-              <section className="mb-10 text-center">
-                <div className="inline-flex items-center justify-center p-4 mb-6 rounded-3xl bg-[#d3e4fe] relative">
-                  <span className="material-symbols-outlined text-5xl text-[#001e40]" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
-                  <span className="absolute -top-2 -right-2 bg-[#006c49] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">AI</span>
-                </div>
-                <h1 className="text-2xl font-headline font-extrabold text-[#001e40] mb-3 leading-tight tracking-tight">Capture &amp; Solve</h1>
-                <p className="text-[#43474f] text-sm px-4 leading-relaxed">Take a photo or upload an image of a question and let AI solve it.</p>
-              </section>
-            )}
-
-            {solverStep === "capture" && (
-              <div className="space-y-6">
-                {solverError && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{solverError}</div>}
-                <div className="grid grid-cols-2 gap-4">
-                  <button onClick={() => solverCameraRef.current?.click()}
-                    className="flex flex-col items-center justify-center bg-[#001e40] p-8 rounded-[2rem] text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#001e40] to-[#003366] opacity-50" />
-                    <span className="material-symbols-outlined text-4xl mb-3 relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>photo_camera</span>
-                    <span className="font-headline font-bold text-sm relative z-10">Take Photo</span>
-                  </button>
-                  <button onClick={() => solverFileInputRef.current?.click()}
-                    className="flex flex-col items-center justify-center bg-[#d3e4fe] p-8 rounded-[2rem] text-[#001e40] border-2 border-transparent hover:border-[#003366]/20 transition-all hover:scale-[1.02] active:scale-95">
-                    <span className="material-symbols-outlined text-4xl mb-3 text-[#799dd6]">upload_file</span>
-                    <span className="font-headline font-bold text-sm">Upload Photo</span>
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  <label className="block text-xs font-bold text-[#001e40] uppercase tracking-widest px-1">Additional context (optional)</label>
-                  <div className="relative group">
-                    <textarea value={solverContext} onChange={e => setSolverContext(e.target.value)}
-                      className="w-full h-32 bg-white border-none rounded-2xl p-4 text-sm text-[#0b1c30] placeholder:text-[#737780] focus:ring-2 focus:ring-[#003366]/30 transition-all shadow-sm resize-none"
-                      placeholder="e.g. 'Solve for x' or 'Explain this concept simply'..." />
-                    <div className="absolute bottom-3 right-3 opacity-20 group-focus-within:opacity-100 transition-opacity">
-                      <span className="material-symbols-outlined text-[#001e40] text-lg">edit_note</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {solverStep === "solving" && (
-              <div className="flex flex-col items-center justify-center py-16 gap-6">
-                {solverImageData && <img src={solverImageData} alt="Question" className="w-full max-h-48 object-contain rounded-2xl shadow-sm border border-slate-100" />}
-                <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#003366]/20 border-t-[#003366]" />
-                <p className="text-sm font-medium text-[#43474f]">AI is working on it…</p>
-              </div>
-            )}
-
-            {solverStep === "result" && solverResult && (
-              <div className="space-y-4">
-                {solverImageData && <img src={solverImageData} alt="Question" className="w-full rounded-xl border border-slate-100" />}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${solverResult.subject === "Science" ? "bg-green-100 text-green-700" : solverResult.subject === "English" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{solverResult.subject}</span>
-                  {solverResult.topic && <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">{solverResult.topic}</span>}
-                </div>
-                {solverResult.diagrams.length > 0 && (
-                  <div className="rounded-2xl bg-white border border-slate-100 p-4 space-y-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Model Diagram</p>
-                    {solverResult.diagrams.map((step, i) => (
-                      <div key={i}>
-                        {step.title && <p className="text-xs font-semibold text-blue-600 mb-2">{step.title}</p>}
-                        <BarModel diagram={step} />
-                        {i < solverResult.diagrams.length - 1 && <div className="border-t border-slate-100 mt-4" />}
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="rounded-2xl bg-gradient-to-br from-[#eff6ff] to-[#eff4ff] border border-slate-100 p-4">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
-                  <div className="text-sm text-slate-800 leading-relaxed">
-                    {solverResult.solution.split("\n").map((line, i) =>
-                      line.trimStart().startsWith("Answer:") ? (
-                        <p key={i} className="mt-3 font-extrabold text-[#001e40] text-base">{line}</p>
-                      ) : (
-                        <p key={i} className={line.trim() === "" ? "mt-2" : ""}>{line}</p>
-                      )
-                    )}
-                  </div>
-                </div>
-                <button onClick={openSolver} className="w-full py-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
-                  Solve another question
-                </button>
-              </div>
-            )}
-          </main>
-        </div>
-      )}
+      </nav>
 
       {/* ── Main Content ─────────────────────────────────────────────────────── */}
-      {activeNav !== "solver" && <main className="mt-20 px-6 max-w-lg mx-auto">
+      <main className="mt-20 px-6 max-w-lg mx-auto">
 
         {/* Connect to parent panel */}
         {showConnect && (
@@ -963,15 +774,9 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           </div>
         </section>
 
-      </main>}
+      </main>
 
       </div>{/* end lg:hidden mobile wrapper */}
-
-      {/* ── Hidden file inputs ───────────────────────────────────────────────── */}
-      <input ref={solverFileInputRef} type="file" accept="image/*" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleSolverFile(f); e.target.value = ""; }} />
-      <input ref={solverCameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-        onChange={e => { const f = e.target.files?.[0]; if (f) handleSolverFile(f); e.target.value = ""; }} />
 
       {/* ── Quiz Setup Modal ─────────────────────────────────────────────── */}
       {showQuizSetup && (
@@ -1036,140 +841,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
           <span className="text-[10px] font-medium">Quiz</span>
         </button>
-        <button
-          onClick={() => { setActiveNav("solver"); openSolver(); }}
-          className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "solver" ? "text-[#001e40]" : "text-slate-400"}`}
-        >
-          <span className={`material-symbols-outlined text-2xl ${activeNav === "solver" ? "bg-[#d3e4fe] rounded-2xl px-3 py-1" : ""}`}
-            style={{ fontVariationSettings: activeNav === "solver" ? "'FILL' 1" : "'FILL' 0" }}>psychology</span>
-          <span className="text-[10px] font-medium">Solver</span>
-        </button>
       </nav>
-      {/* ── Desktop AI Solver Modal ──────────────────────────────────────────── */}
-      {showAiSolver && (
-        <div className="hidden lg:flex fixed inset-0 z-[60] items-center justify-center p-4" onClick={() => setShowAiSolver(false)}>
-          <div className="absolute inset-0 bg-[#001e40]/40 backdrop-blur-sm" />
-          <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-[0_20px_40px_rgba(11,28,48,0.15)] overflow-hidden" onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="px-8 pt-8 pb-4 flex justify-between items-start">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-[#001e40] to-[#003366] rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="material-symbols-outlined text-white text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
-                </div>
-                <div>
-                  <h2 className="text-2xl font-headline font-extrabold text-[#001e40] tracking-tight">AI Solver</h2>
-                  <p className="text-[#43474f] text-sm mt-1">Smart cognitive assistance</p>
-                </div>
-              </div>
-              <button onClick={() => setShowAiSolver(false)} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="px-8 py-6 max-h-[70vh] overflow-y-auto">
-              {solverStep === "capture" && (
-                <>
-                  <p className="text-lg font-medium text-[#0b1c30] leading-relaxed mb-8">
-                    Take a photo or upload an image of a question and let AI solve it.
-                  </p>
-                  {solverError && <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{solverError}</div>}
-                  <div className="grid grid-cols-2 gap-4 mb-8">
-                    <button onClick={() => solverFileInputRef.current?.click()}
-                      className="group flex flex-col items-center justify-center p-6 bg-[#eff4ff] rounded-3xl border-2 border-transparent hover:border-[#003366]/20 hover:bg-[#dce9ff] transition-all">
-                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined text-[#001e40] text-2xl">upload_file</span>
-                      </div>
-                      <span className="font-bold text-[#001e40]">Upload Photo</span>
-                    </button>
-                    <button onClick={() => solverCameraRef.current?.click()}
-                      className="group flex flex-col items-center justify-center p-6 bg-[#001e40] text-white rounded-3xl shadow-xl hover:shadow-[#001e40]/30 transition-all hover:-translate-y-1 active:translate-y-0">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                        <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>photo_camera</span>
-                      </div>
-                      <span className="font-bold">Take Photo</span>
-                    </button>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-xs font-bold text-[#43474f] uppercase tracking-widest px-1">Additional context (optional)</label>
-                    <div className="relative">
-                      <textarea value={solverContext} onChange={e => setSolverContext(e.target.value)}
-                        className="w-full bg-[#eff4ff] border-none rounded-2xl p-5 text-[#0b1c30] placeholder:text-[#737780] focus:ring-2 focus:ring-[#003366]/20 transition-all resize-none"
-                        placeholder="e.g. This is about area of composite shapes. The shaded region is outside the circle." rows={4} />
-                      <div className="absolute -bottom-3 -right-3 px-4 py-2 bg-white/80 backdrop-blur-xl rounded-full shadow-lg border border-white/50 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[#006c49] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                        <span className="text-[10px] font-bold text-[#0b1c30] tracking-tight">AI READY</span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {solverStep === "solving" && (
-                <div className="flex flex-col items-center justify-center py-12 gap-5">
-                  {solverImageData && <img src={solverImageData} alt="Question" className="w-full max-h-48 object-contain rounded-xl border border-slate-100" />}
-                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#003366]/20 border-t-[#003366]" />
-                  <p className="text-slate-500 text-sm">Solving question…</p>
-                </div>
-              )}
-
-              {solverStep === "result" && solverResult && (
-                <div className="space-y-4 pb-2">
-                  {solverImageData && <img src={solverImageData} alt="Question" className="w-full rounded-xl border border-slate-100" />}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${solverResult.subject === "Science" ? "bg-green-100 text-green-700" : solverResult.subject === "English" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{solverResult.subject}</span>
-                    {solverResult.topic && <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">{solverResult.topic}</span>}
-                  </div>
-                  {solverResult.diagrams.length > 0 && (
-                    <div className="rounded-2xl bg-white border border-slate-100 p-4 space-y-4">
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Model Diagram</p>
-                      {solverResult.diagrams.map((step, i) => (
-                        <div key={i}>
-                          {step.title && <p className="text-xs font-semibold text-blue-600 mb-2">{step.title}</p>}
-                          <BarModel diagram={step} />
-                          {i < solverResult.diagrams.length - 1 && <div className="border-t border-slate-100 mt-4" />}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="rounded-2xl bg-gradient-to-br from-[#eff6ff] to-[#eff4ff] border border-slate-100 p-4">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
-                    <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">{solverResult.solution}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-8 pb-10 pt-4 flex gap-4">
-              {solverStep === "result" ? (
-                <>
-                  <button onClick={openSolver}
-                    className="flex-1 py-4 px-6 rounded-xl font-bold border-2 border-slate-200/30 text-[#43474f] hover:bg-[#eff4ff] transition-all">
-                    Solve Another
-                  </button>
-                  <button onClick={() => setShowAiSolver(false)}
-                    className="flex-1 py-4 px-6 rounded-xl font-bold bg-[#001e40] text-white shadow-lg hover:opacity-90 transition-all">
-                    Done
-                  </button>
-                </>
-              ) : solverStep === "capture" ? (
-                <>
-                  <button onClick={() => setShowAiSolver(false)}
-                    className="flex-1 py-4 px-6 rounded-xl font-bold border-2 border-slate-300/30 text-[#43474f] hover:bg-[#eff4ff] transition-all">
-                    Cancel
-                  </button>
-                  <button onClick={() => solverFileInputRef.current?.click()}
-                    className="flex-1 py-4 px-6 rounded-xl font-bold bg-[#001e40] text-white shadow-lg hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
-                    Start Solving
-                    <span className="material-symbols-outlined text-lg">arrow_forward</span>
-                  </button>
-                </>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

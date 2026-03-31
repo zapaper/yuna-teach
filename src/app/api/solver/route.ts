@@ -3,12 +3,12 @@ import { GoogleGenAI } from "@google/genai";
 import { readFileSync } from "fs";
 import path from "path";
 
-export const maxDuration = 120;
+export const maxDuration = 180;
 
 function getAI() {
   return new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY!,
-    httpOptions: { timeout: 110_000 },
+    httpOptions: { timeout: 170_000 },
   });
 }
 
