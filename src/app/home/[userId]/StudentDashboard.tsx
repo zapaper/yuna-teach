@@ -22,6 +22,13 @@ function relativeDate(iso: string) {
   return d.toLocaleDateString();
 }
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return "Good morning";
+  if (h >= 12 && h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 function scorePct(paper: ExamPaperSummary): number | null {
   if (paper.score === null || !paper.totalMarks || parseFloat(paper.totalMarks) === 0) return null;
   return Math.round((paper.score / parseFloat(paper.totalMarks)) * 100);
@@ -193,11 +200,25 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           <header className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-headline font-extrabold text-2xl text-[#003366] leading-tight">
-                Good morning, {user.name.split(" ")[0]}!
+                {greeting()}, {user.name.split(" ")[0]}!
               </h2>
-              <p className="text-sm text-slate-500 font-medium">
+              <p className="text-sm text-slate-500 font-medium mb-3">
                 {user.level ? `Primary ${user.level} Student` : "Student"} · Let&apos;s improve your score today.
               </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                {quizBadge && quizBadge.streak > 0 && (
+                  <span className="flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-100 px-3 py-1 rounded-full text-xs font-bold">
+                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+                    {quizBadge.streak}-Day Streak
+                  </span>
+                )}
+                {quizBadge && (
+                  <span className="flex items-center gap-1.5 bg-yellow-400 text-white px-3 py-1 rounded-full text-xs font-bold">
+                    <img src={quizBadge.image} alt={quizBadge.badge} className="w-3.5 h-3.5 object-contain" />
+                    {quizBadge.badge}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="relative">
               <button
@@ -258,15 +279,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                   </div>
                   <h3 className="text-white font-headline font-extrabold text-xl mb-1">Daily 20min Quiz</h3>
                   <p className="text-white/70 text-sm">Master exam topics daily</p>
-                  <div className="mt-4 flex items-center gap-2">
-                    <div className="flex-1 bg-white/20 rounded-full h-1.5">
-                      <div className="bg-white rounded-full h-1.5 transition-all"
-                        style={{ width: studentPapers.length > 0 ? `${Math.round(completedPapers.length / studentPapers.length * 100)}%` : "30%" }} />
-                    </div>
-                    <span className="text-white/70 text-xs font-medium">
-                      {studentPapers.length > 0 ? `${Math.round(completedPapers.length / studentPapers.length * 100)}%` : "Start"}
-                    </span>
-                  </div>
                 </button>
 
                 {/* Scan Spelling */}
@@ -283,64 +295,9 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 </button>
               </div>
 
-              {/* Recent Spelling */}
+              {/* Exam Papers */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <h4 className="font-headline font-bold text-base text-[#003366] mb-4">Recent Spelling / 听写</h4>
-                {recentTests.length === 0 ? (
-                  <div className="text-center py-6">
-                    <span className="material-symbols-outlined text-3xl text-slate-300 block mb-2">spellcheck</span>
-                    <p className="text-sm text-slate-400">No spelling tests yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {recentTests.map(test => {
-                      return (
-                        <div key={test.id} onClick={() => router.push(`/spelling/${test.id}?userId=${userId}`)}
-                          className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#003366]/5">
-                            <span className="material-symbols-outlined text-base text-[#003366]">spellcheck</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-[#003366] truncate">{test.title || "Spelling Test"}</p>
-                            <p className="text-xs text-slate-400">{relativeDate(test.createdAt)}</p>
-                          </div>
-                          <div className="shrink-0">
-                            <span className="text-xs text-slate-400">{test.wordCount} words</span>
-                          </div>
-                          {false && (
-                            <div className="flex items-center gap-3 shrink-0">
-                              <div className="w-20 bg-slate-100 rounded-full h-1.5">
-                                <div className="rounded-full h-1.5 bg-[#003366]" style={{ width: "0%" }} />
-                              </div>
-                              <span className="text-xs font-bold w-8 text-right text-slate-400">-</span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* AI Study Tip */}
-              {aiTip && (
-                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-start gap-3">
-                  <div className="bg-amber-100 p-2 rounded-xl shrink-0">
-                    <span className="material-symbols-outlined text-amber-700 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-amber-800 mb-0.5">AI Study Tip</p>
-                    <p className="text-xs text-[#003366] font-medium leading-relaxed">{aiTip}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right column (4 cols) — Exam Papers */}
-            <div className="col-span-4">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sticky top-6">
                 <h4 className="font-headline font-bold text-base text-[#003366] mb-4">Exam Papers</h4>
-
                 {todoPapers.length === 0 && completedPapers.length === 0 ? (
                   <div className="text-center py-6">
                     <span className="material-symbols-outlined text-3xl text-slate-300 block mb-2">description</span>
@@ -380,7 +337,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                         </div>
                       </div>
                     )}
-
                     {completedPapers.length > 0 && (
                       <div>
                         <div className="flex items-center gap-2 mb-3">
@@ -412,6 +368,35 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right column (4 cols) — Recent Spelling */}
+            <div className="col-span-4">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sticky top-6">
+                <h4 className="font-headline font-bold text-base text-[#003366] mb-4">Recent Spelling / 听写</h4>
+                {recentTests.length === 0 ? (
+                  <div className="text-center py-6">
+                    <span className="material-symbols-outlined text-3xl text-slate-300 block mb-2">spellcheck</span>
+                    <p className="text-sm text-slate-400">No spelling tests yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {recentTests.map(test => (
+                      <div key={test.id} onClick={() => router.push(`/spelling/${test.id}?userId=${userId}`)}
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#003366]/5">
+                          <span className="material-symbols-outlined text-base text-[#003366]">spellcheck</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-[#003366] truncate">{test.title || "Spelling Test"}</p>
+                          <p className="text-xs text-slate-400">{relativeDate(test.createdAt)}</p>
+                        </div>
+                        <span className="text-xs text-slate-400 shrink-0">{test.wordCount}w</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -492,7 +477,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
 
         {/* ── Student Profile Header ──────────────────────────────────────── */}
         <header className="mb-8 pt-4">
-          <div className="flex items-center gap-4 mb-3">
+          <div className="flex items-center gap-4 mb-4">
             <div className="relative">
               <div className="w-16 h-16 rounded-2xl bg-[#d3e4fe] border-2 border-white shadow-md flex items-center justify-center">
                 <span className="font-headline font-extrabold text-[#003366] text-xl">{initials(user.name)}</span>
@@ -511,8 +496,11 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
             </div>
           </div>
 
+          <h2 className="text-3xl font-headline font-extrabold text-[#003366] tracking-tight leading-tight">{greeting()}, {user.name.split(" ")[0]}!</h2>
+          <p className="text-[#43474f] mt-1 text-sm mb-4">Let&apos;s improve your score together.</p>
+
           {/* Badges */}
-          <div className="flex items-center gap-3 mb-6 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             {quizBadge && quizBadge.streak > 0 && (
               <button
                 onClick={() => { setBadgeToast(true); setTimeout(() => setBadgeToast(false), 2500); }}
@@ -537,9 +525,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
               </span>
             )}
           </div>
-
-          <h2 className="text-3xl font-headline font-extrabold text-[#003366] tracking-tight leading-tight">Ready for today&apos;s goals?</h2>
-          <p className="text-[#43474f] mt-2 text-sm">Let&apos;s improve your score together.</p>
         </header>
 
         {/* ── Primary Action Buttons ──────────────────────────────────────── */}
@@ -560,20 +545,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 <h3 className="text-[#003366] font-headline font-bold text-xl">Daily 20min Quiz</h3>
                 <p className="text-[#43474f] text-sm mt-1">Master exam topics daily</p>
               </div>
-              <div className="w-14 h-14 relative shrink-0">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 56 56">
-                  <circle className="text-[#006c49]/10" cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4" />
-                  <circle className="text-[#006c49]" cx="28" cy="28" r="24" fill="transparent" stroke="currentColor" strokeWidth="4"
-                    strokeDasharray="150.7"
-                    strokeDashoffset={completedPapers.length > 0 && studentPapers.length > 0 ? 150.7 * (1 - completedPapers.length / Math.max(studentPapers.length, 1)) : 150.7 * 0.7}
-                  />
-                </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#006c49]">
-                  {completedPapers.length > 0 && studentPapers.length > 0
-                    ? `${Math.round(completedPapers.length / studentPapers.length * 100)}%`
-                    : "Go!"}
-                </span>
-              </div>
+              <span className="material-symbols-outlined text-[#006c49]/40 text-2xl">arrow_forward</span>
             </div>
           </button>
 
@@ -736,18 +708,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           </div>
         </section>
 
-        {/* ── AI Study Tip ─────────────────────────────────────────────────── */}
-        {aiTip && (
-          <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-100 shadow-sm mb-6 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="bg-amber-100 p-1.5 rounded-lg inline-flex">
-                <span className="material-symbols-outlined text-amber-700 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-              </div>
-              <span className="text-xs font-bold text-amber-800">AI Study Tip</span>
-            </div>
-            <p className="text-[11px] text-[#003366] font-medium leading-relaxed">{aiTip}</p>
-          </div>
-        )}
       </main>
 
       </div>{/* end lg:hidden mobile wrapper */}
