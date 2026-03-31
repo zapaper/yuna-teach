@@ -123,6 +123,9 @@ model ExamQuestion {
   flagged         Boolean @default(false)
   flaggedAt       DateTime?
   flaggedByUserId String?
+  adminReply      String?
+  adminRepliedAt  DateTime?
+  adminReplyRead  Boolean  @default(false)
 
   // Clean question transcription (quiz mode)
   transcribedStem         String?

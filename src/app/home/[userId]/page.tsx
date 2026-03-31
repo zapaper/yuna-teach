@@ -176,6 +176,20 @@ export default function HomePage({
   const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
   const [badgeToast, setBadgeToast] = useState(false);
 
+  // Admin reply notifications
+  type AdminNotif = { questionId: string; questionNum: string; adminReply: string; adminRepliedAt: string; paperTitle: string; paperId: string; cloneId: string | null; paperType: string | null };
+  const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
+  const [showAdminNotifs, setShowAdminNotifs] = useState(false);
+  useEffect(() => {
+    if (!userId || isAdmin) return;
+    fetch(`/api/notifications?userId=${userId}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: AdminNotif[]) => {
+        if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); }
+      })
+      .catch(() => {});
+  }, [userId, isAdmin]);
+
   // Fetch quiz badge for students
   useEffect(() => {
     if (!user || isAdmin || isParent) return;
@@ -587,7 +601,7 @@ export default function HomePage({
           <Link href={`/exam/upload?userId=${userId}`} className="block w-full bg-purple-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
             Upload Exam Paper
           </Link>
-          <Link href="/flagged" className="block w-full bg-amber-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
+          <Link href={`/flagged?userId=${userId}`} className="block w-full bg-amber-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
             Review Flagged Q&amp;A
           </Link>
           <Link href={`/admin/feedback?userId=${userId}`} className="block w-full bg-slate-600 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
@@ -1002,6 +1016,37 @@ export default function HomePage({
       </div>
 
       {/* Feedback modal */}
+      {/* Admin reply notification popup */}
+      {showAdminNotifs && adminNotifs.length > 0 && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">💬</span>
+              <h3 className="font-semibold text-lg text-slate-800">Reply from Admin</h3>
+            </div>
+            {adminNotifs.map((n) => (
+              <div key={n.questionId} className="bg-slate-50 rounded-xl px-4 py-3 space-y-1">
+                <p className="text-xs text-slate-400 font-medium">{n.paperTitle} · Q{n.questionNum}</p>
+                <p className="text-sm text-slate-700 whitespace-pre-wrap">{n.adminReply}</p>
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                setShowAdminNotifs(false);
+                fetch("/api/notifications", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ userId, questionIds: adminNotifs.map(n => n.questionId) }),
+                }).catch(() => {});
+              }}
+              className="w-full py-2.5 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition-colors"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+
       {showFeedback && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">

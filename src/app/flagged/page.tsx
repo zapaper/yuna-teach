@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface FlaggedItem {
@@ -32,10 +32,24 @@ interface FlaggedItem {
 }
 
 export default function FlaggedPage() {
+  return (
+    <Suspense>
+      <FlaggedContent />
+    </Suspense>
+  );
+}
+
+function FlaggedContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("userId") ?? "";
+
   const [items, setItems] = useState<FlaggedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState<Record<string, string>>({});
+  const [replying, setReplying] = useState<string | null>(null);
+  const [replySent, setReplySent] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetch("/api/flagged")
@@ -58,6 +72,24 @@ export default function FlaggedPage() {
       setItems(prev => prev.filter(i => i.questionId !== item.questionId));
     } finally {
       setDeleting(null);
+    }
+  }
+
+  async function handleReply(item: FlaggedItem, e: React.MouseEvent) {
+    e.stopPropagation();
+    const message = replyDraft[item.questionId]?.trim();
+    if (!message) return;
+    setReplying(item.questionId);
+    try {
+      await fetch(`/api/exam/questions/${item.questionId}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminUserId: userId, message }),
+      });
+      setReplySent(prev => ({ ...prev, [item.questionId]: true }));
+      setReplyDraft(prev => ({ ...prev, [item.questionId]: "" }));
+    } finally {
+      setReplying(null);
     }
   }
 
@@ -227,6 +259,32 @@ export default function FlaggedPage() {
                       </svg>
                       Edit source Q{item.sourceQuestionNum} in original paper
                     </Link>
+                  </div>
+                )}
+
+                {/* Admin reply box */}
+                {userId && (
+                  <div className="pt-2 border-t border-slate-50" onClick={(e) => e.stopPropagation()}>
+                    {replySent[item.questionId] ? (
+                      <p className="text-[11px] text-green-600 font-medium">Reply sent ✓</p>
+                    ) : (
+                      <div className="flex gap-2 items-start">
+                        <textarea
+                          value={replyDraft[item.questionId] ?? ""}
+                          onChange={(e) => setReplyDraft(prev => ({ ...prev, [item.questionId]: e.target.value }))}
+                          placeholder="Reply to student (e.g. Answer key was wrong — amended. Thank you!)"
+                          rows={2}
+                          className="flex-1 text-xs rounded-lg border border-slate-200 px-2.5 py-1.5 resize-none focus:outline-none focus:border-primary-400 placeholder:text-slate-300"
+                        />
+                        <button
+                          onClick={(e) => handleReply(item, e)}
+                          disabled={!replyDraft[item.questionId]?.trim() || replying === item.questionId}
+                          className="shrink-0 text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-primary-500 text-white hover:bg-primary-600 disabled:opacity-40 transition-colors"
+                        >
+                          {replying === item.questionId ? "…" : "Send"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
