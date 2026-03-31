@@ -517,7 +517,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 ) : (
                   <div className="space-y-2">
                     {recentTests.map(test => (
-                      <div key={test.id} onClick={() => router.push(`/spelling/${test.id}?userId=${userId}`)}
+                      <div key={test.id} onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
                         className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
                         <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#003366]/5">
                           <span className="material-symbols-outlined text-base text-[#003366]">spellcheck</span>
@@ -809,7 +809,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 {recentTests.map(test => (
                   <div
                     key={test.id}
-                    onClick={() => router.push(`/spelling/${test.id}?userId=${userId}`)}
+                    onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
                     className="min-w-[200px] bg-white p-5 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-[#003366]/20 transition-colors"
                   >
                     <div className="flex justify-between items-start mb-4">
