@@ -975,8 +975,8 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
 
       {/* ── Quiz Setup Modal ─────────────────────────────────────────────── */}
       {showQuizSetup && (
-        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4" onClick={() => setShowQuizSetup(false)}>
-          <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-20" onClick={() => setShowQuizSetup(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Daily 20min Quiz</h3>
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
             <div className="flex gap-2 mb-4">
