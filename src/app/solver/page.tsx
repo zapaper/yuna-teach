@@ -18,7 +18,6 @@ function SolverContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<"capture" | "solving" | "result">("capture");
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
@@ -374,200 +373,135 @@ function SolverContent() {
     }
   }
 
+  const fileUploadRef = useRef<HTMLInputElement>(null);
+  const cameraCaptureRef = useRef<HTMLInputElement>(null);
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
-        <button
-          onClick={() => router.push(`/home/${userId}`)}
-          className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <h1 className="text-base font-semibold text-slate-800">AI Solver</h1>
-      </div>
+    <div className="min-h-screen bg-[#f8f9ff] font-body text-[#0b1c30] antialiased">
+      {/* Hidden file inputs */}
+      <input ref={fileUploadRef} type="file" accept="image/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
+      <input ref={cameraCaptureRef} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }} />
 
-      <div className="p-4 max-w-lg mx-auto">
-        {step === "capture" && (
-          <div className="mt-8">
-            <p className="text-sm text-slate-500 text-center mb-6">
-              Take a photo or upload an image of a question and let AI solve it.
-            </p>
+      {/* Top App Bar */}
+      <header className="sticky top-0 z-50 bg-[#eff4ff] flex justify-between items-center px-6 py-4">
+        <div className="flex items-center gap-4">
+          <button onClick={() => router.push(`/home/${userId}`)}
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#d3e4fe] transition-colors">
+            <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Owl" className="w-8 h-8 object-contain" />
+            <span className="text-xl font-headline font-extrabold text-[#001e40]">AI Solver</span>
+          </div>
+        </div>
+        <span className="material-symbols-outlined text-slate-400">account_circle</span>
+      </header>
 
-            {error && (
-              <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
-                {error}
-              </div>
-            )}
-
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-            />
-
-            {/* Additional context */}
-            <div className="mb-5">
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Additional context <span className="text-slate-400 font-normal">(optional)</span></label>
-              <textarea
-                value={hint}
-                onChange={(e) => setHint(e.target.value)}
-                placeholder="e.g. This is about area of composite shapes. The shaded region is outside the circle."
-                rows={3}
-                className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 focus:border-primary-400 focus:outline-none text-sm text-slate-700 resize-none"
-              />
+      <main className="px-6 pt-4 pb-16 max-w-md mx-auto">
+        {/* Hero */}
+        {step !== "result" && (
+          <section className="mb-10 text-center">
+            <div className="inline-flex items-center justify-center p-4 mb-6 rounded-3xl bg-[#d3e4fe] relative">
+              <span className="material-symbols-outlined text-5xl text-[#001e40]" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+              <span className="absolute -top-2 -right-2 bg-[#006c49] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">AI</span>
             </div>
+            <h1 className="text-2xl font-headline font-extrabold text-[#001e40] mb-3 leading-tight tracking-tight">Capture &amp; Solve</h1>
+            <p className="text-[#43474f] text-sm px-4 leading-relaxed">Take a photo or upload an image of a question and let AI solve it.</p>
+          </section>
+        )}
 
-            <button
-              onClick={() => { if (fileInputRef.current) { fileInputRef.current.removeAttribute("capture"); fileInputRef.current.click(); } }}
-              className="w-full flex items-center justify-center gap-3 bg-primary-500 text-white rounded-2xl py-5 text-lg font-semibold shadow-lg active:scale-[0.98] transition-transform mb-4"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="12" cy="12" r="4" />
-                <line x1="12" y1="2" x2="12" y2="4" />
-              </svg>
-              Upload Photo
-            </button>
-
-            <button
-              onClick={() => { if (fileInputRef.current) { fileInputRef.current.setAttribute("capture", "environment"); fileInputRef.current.click(); } }}
-              className="w-full flex items-center justify-center gap-3 border-2 border-primary-200 text-primary-600 rounded-2xl py-5 text-lg font-semibold active:scale-[0.98] transition-transform"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
-              Take Photo
-            </button>
+        {step === "capture" && (
+          <div className="space-y-6">
+            {error && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>}
+            <div className="grid grid-cols-2 gap-4">
+              <button onClick={() => cameraCaptureRef.current?.click()}
+                className="flex flex-col items-center justify-center bg-[#001e40] p-8 rounded-[2rem] text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#001e40] to-[#003366] opacity-50" />
+                <span className="material-symbols-outlined text-4xl mb-3 relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>photo_camera</span>
+                <span className="font-headline font-bold text-sm relative z-10">Take Photo</span>
+              </button>
+              <button onClick={() => fileUploadRef.current?.click()}
+                className="flex flex-col items-center justify-center bg-[#d3e4fe] p-8 rounded-[2rem] text-[#001e40] border-2 border-transparent hover:border-[#003366]/20 transition-all hover:scale-[1.02] active:scale-95">
+                <span className="material-symbols-outlined text-4xl mb-3 text-[#799dd6]">upload_file</span>
+                <span className="font-headline font-bold text-sm">Upload Photo</span>
+              </button>
+            </div>
+            <div className="space-y-3">
+              <label className="block text-xs font-bold text-[#001e40] uppercase tracking-widest px-1">Additional context (optional)</label>
+              <div className="relative group">
+                <textarea value={hint} onChange={(e) => setHint(e.target.value)}
+                  className="w-full h-32 bg-white border-none rounded-2xl p-4 text-sm text-[#0b1c30] placeholder:text-[#737780] focus:ring-2 focus:ring-[#003366]/30 transition-all shadow-sm resize-none"
+                  placeholder="e.g. 'Solve for x' or 'Explain this concept simply'..." />
+                <div className="absolute bottom-3 right-3 opacity-20 group-focus-within:opacity-100 transition-opacity">
+                  <span className="material-symbols-outlined text-[#001e40] text-lg">edit_note</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
         {step === "solving" && (
-          <div className="mt-16 flex flex-col items-center gap-4">
-            {imageDataUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageDataUrl} alt="Question" className="w-full max-h-64 object-contain rounded-xl border border-slate-100" />
-            )}
-            <div className="animate-spin rounded-full h-10 w-10 border-4 border-primary-200 border-t-primary-500 mt-4" />
-            <p className="text-slate-500 text-sm">Solving question...</p>
+          <div className="flex flex-col items-center justify-center py-16 gap-6">
+            {imageDataUrl && <img src={imageDataUrl} alt="Question" className="w-full max-h-48 object-contain rounded-2xl shadow-sm border border-slate-100" />}
+            <div className="animate-spin rounded-full h-10 w-10 border-4 border-[#003366]/20 border-t-[#003366]" />
+            <p className="text-sm font-medium text-[#43474f]">AI is working on it…</p>
           </div>
         )}
 
         {step === "result" && (
-          <div className="mt-4 space-y-4">
-            {/* Question image */}
-            {imageDataUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageDataUrl} alt="Question" className="w-full rounded-xl border border-slate-100" />
-            )}
-
-            {/* Subject + topic tag */}
+          <div className="space-y-4 pt-4">
+            {imageDataUrl && <img src={imageDataUrl} alt="Question" className="w-full rounded-xl border border-slate-100" />}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${subject === "Science" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-                {subject}
-              </span>
-              {topic && (
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">
-                  {topic}
-                </span>
-              )}
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${subject === "Science" ? "bg-green-100 text-green-700" : subject === "English" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>{subject}</span>
+              {topic && <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600">{topic}</span>}
             </div>
-
-            {/* Bar model diagrams */}
             {diagrams.length > 0 && (
               <div className="rounded-2xl bg-white border border-slate-100 p-4 space-y-4">
                 <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Model Diagram</p>
-                {diagrams.map((step, i) => (
+                {diagrams.map((d, i) => (
                   <div key={i}>
-                    {step.title && (
-                      <p className="text-xs font-semibold text-primary-600 mb-2">{step.title}</p>
-                    )}
-                    <BarModel diagram={step} />
+                    {d.title && <p className="text-xs font-semibold text-blue-600 mb-2">{d.title}</p>}
+                    <BarModel diagram={d} />
                     {i < diagrams.length - 1 && <div className="border-t border-slate-100 mt-4" />}
                   </div>
                 ))}
               </div>
             )}
-
-            {/* Solution */}
-            <div className="rounded-2xl bg-gradient-to-br from-primary-50 to-blue-50 border border-slate-100 p-4">
+            <div className="rounded-2xl bg-gradient-to-br from-[#eff6ff] to-[#eff4ff] border border-slate-100 p-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
               <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">{solution}</p>
             </div>
-
-            {/* Share button */}
-            <button
-              onClick={handleShare}
-              disabled={sharing}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              {sharing ? (
-                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
-              ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
-                </svg>
-              )}
-              {sharing ? "Preparing..." : "Share Solution"}
+            <button onClick={handleShare} disabled={sharing}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-[#001e40] text-white text-sm font-semibold hover:opacity-90 transition-colors disabled:opacity-50">
+              {sharing ? <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" /> : <span className="material-symbols-outlined text-base">share</span>}
+              {sharing ? "Preparing…" : "Share Solution"}
             </button>
-
-            {/* Focused test prompt */}
             {topic && (
-              <div className="rounded-2xl border border-slate-200 p-4">
-                <p className="text-sm text-slate-700 font-medium mb-3">
-                  Create a focused test on <span className="text-primary-600 font-semibold">{topic}</span> for your child?
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-sm text-[#0b1c30] font-medium mb-3">
+                  Create a focused test on <span className="text-[#003366] font-semibold">{topic}</span> for your child?
                 </p>
-
-                {noStudentLinked ? (
-                  <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                    Please link a student to your account first.
-                  </p>
-                ) : error ? (
-                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>
-                ) : null}
-
-                <div className="flex gap-3 mt-3">
-                  <button
-                    onClick={() => router.push(`/home/${userId}`)}
-                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
-                  >
-                    No
-                  </button>
-                  <button
-                    onClick={createFocusedTest}
-                    disabled={creatingTest}
-                    className="flex-1 py-2.5 rounded-xl bg-primary-500 text-white text-sm font-semibold hover:bg-primary-600 transition-colors disabled:opacity-50"
-                  >
-                    {creatingTest ? (
-                      <span className="inline-flex items-center justify-center gap-2">
-                        <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
-                        Creating...
-                      </span>
-                    ) : "Yes, Create Test"}
+                {noStudentLinked && <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3">Please link a student to your account first.</p>}
+                {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3">{error}</p>}
+                <div className="flex gap-3">
+                  <button onClick={() => router.push(`/home/${userId}`)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">No</button>
+                  <button onClick={createFocusedTest} disabled={creatingTest}
+                    className="flex-1 py-2.5 rounded-xl bg-[#003366] text-white text-sm font-semibold hover:bg-[#003366]/90 transition-colors disabled:opacity-50">
+                    {creatingTest ? "Creating…" : "Yes, Create Test"}
                   </button>
                 </div>
               </div>
             )}
-
-            {/* Try another */}
-            <button
-              onClick={() => { setStep("capture"); setImageDataUrl(null); setError(null); setNoStudentLinked(false); setDiagrams([]); }}
-              className="w-full py-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors"
-            >
+            <button onClick={() => { setStep("capture"); setImageDataUrl(null); setError(null); setNoStudentLinked(false); setDiagrams([]); }}
+              className="w-full py-3 rounded-xl border border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
               Solve another question
             </button>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
