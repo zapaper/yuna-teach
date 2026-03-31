@@ -647,7 +647,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
         {/* Logo */}
         <div className="flex items-center gap-3 mb-8">
           <img src="/logo.png" alt="Owl" className="w-9 h-9 object-contain" />
-          <img src="/markforyou.png" alt="Markforyou" className="h-7 object-contain" />
+          <img src="/markforyou2.png" alt="Markforyou" className="h-7 object-contain" />
         </div>
 
         {/* Student card */}
@@ -728,7 +728,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
       <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
           <img src="/logo.png" alt="Owl" className="w-7 h-7 object-contain" />
-          <img src="/markforyou.png" alt="Markforyou" className="h-6 object-contain" />
+          <img src="/markforyou2.png" alt="Markforyou" className="h-6 object-contain" />
         </div>
         <div className="flex items-center gap-4">
           <div className="relative">
