@@ -392,7 +392,7 @@ function SolverContent() {
             <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
           </button>
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Owl" className="w-8 h-8 object-contain" />
+            <img src="/logo_t.png" alt="Owl" className="w-8 h-8 object-contain" />
             <span className="text-xl font-headline font-extrabold text-[#001e40]">AI Solver</span>
           </div>
         </div>

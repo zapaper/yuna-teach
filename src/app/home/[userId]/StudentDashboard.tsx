@@ -204,7 +204,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
         <aside className="fixed left-0 top-0 h-full w-64 bg-[#eff4ff] flex flex-col z-40 border-r border-[#003366]/10">
           {/* Logo */}
           <div className="px-6 pt-6 pb-4 flex items-center gap-2">
-            <img src="/logo.png" alt="Owl" className="w-8 h-8 object-contain" />
+            <img src="/logo_t.png" alt="Owl" className="w-8 h-8 object-contain" />
             <img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" />
           </div>
 
@@ -480,7 +480,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
       <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
         <div className="flex items-center justify-between px-6 w-full py-3 max-w-lg mx-auto">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Owl" className="w-7 h-7 object-contain" />
+            <img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" />
             <img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" />
           </div>
           <div className="flex items-center gap-2">

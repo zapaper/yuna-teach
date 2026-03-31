@@ -126,7 +126,7 @@ export default function HomePage() {
         <div className="text-center mb-8 pt-6">
           <div className="flex items-center justify-center gap-3 mb-1">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Mark for You" width={48} height={48} />
+            <img src="/logo_t.png" alt="Mark for You" width={48} height={48} />
             <h1 className="text-3xl font-bold text-slate-800">Mark for You</h1>
           </div>
           <span className="inline-block text-xs font-semibold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full mb-1">Beta</span>
