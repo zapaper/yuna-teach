@@ -351,7 +351,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                     </div>
                     <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Recommended</span>
                   </div>
-                  <h3 className="text-white font-headline font-extrabold text-xl mb-1">Daily 20min Quiz</h3>
+                  <h3 className="text-white font-headline font-extrabold text-xl mb-1">Daily Quiz</h3>
                   <p className="text-white/70 text-sm">Master exam topics daily</p>
                 </button>
 
@@ -616,7 +616,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                   </span>
                   <span className="bg-[#006c49] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Recommended</span>
                 </div>
-                <h3 className="text-[#003366] font-headline font-bold text-xl">Daily 20min Quiz</h3>
+                <h3 className="text-[#003366] font-headline font-bold text-xl">Daily Quiz</h3>
                 <p className="text-[#43474f] text-sm mt-1">Master exam topics daily</p>
               </div>
               <span className="material-symbols-outlined text-[#006c49]/40 text-2xl">arrow_forward</span>
@@ -797,7 +797,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
       {showQuizSetup && (
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-20" onClick={() => setShowQuizSetup(false)}>
           <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Daily 20min Quiz</h3>
+            <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Daily Quiz</h3>
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
             <div className="flex gap-2 mb-4">
               {(["math", "science"] as const).map(s => (

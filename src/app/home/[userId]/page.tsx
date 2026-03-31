@@ -638,7 +638,7 @@ export default function HomePage({
             onClick={() => setShowQuizSetup(true)}
             className="block w-full bg-emerald-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform"
           >
-            Daily 20min Quiz
+            Daily Quiz
           </button>
         </div>
       )}
@@ -932,7 +932,7 @@ export default function HomePage({
       {showQuizSetup && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
-            <h3 className="font-semibold text-lg mb-1">Daily 20min Quiz</h3>
+            <h3 className="font-semibold text-lg mb-1">Daily Quiz</h3>
 
             <label className="text-sm font-medium text-slate-600 mb-2 block">Subject</label>
             <div className="flex gap-2 mb-4">
