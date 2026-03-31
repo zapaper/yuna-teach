@@ -173,6 +173,12 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
   const strongTopics = allTopics.filter(t => t.pct >= 75).slice(0, 2);
   const weakTopics = allTopics.filter(t => t.pct < 65).slice(0, 2);
 
+  const threeDaysAgo = new Date(); threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  const recentQuizCount = completedPapers.filter(p =>
+    (p.paperType === "quiz" || p.paperType === "focused") &&
+    p.completedAt && new Date(p.completedAt) >= threeDaysAgo
+  ).length;
+
   const focusedGapRec = recActions.find(r => r.type === "focused-gap" && r.studentId === selectedStudentId)
     ?? recActions.find(r => r.type === "focused-gap");
 
@@ -492,9 +498,41 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
             ? `Recommended: ${focusedGapRec.gaps?.[0]?.topics?.[0] ?? "Focused Practice"}`
             : "Your child's progress overview"}
         </h3>
-        <p className="text-[#799dd6] text-sm leading-relaxed mb-6">
+        <p className="text-[#799dd6] text-sm leading-relaxed mb-4">
           {recLoading ? "" : insightForCard}
         </p>
+        {!recLoading && (
+          <div className="space-y-2 mb-5">
+            {/* Quiz activity */}
+            <div className="flex items-center gap-2.5 bg-white/10 rounded-xl px-3 py-2">
+              <span className="material-symbols-outlined text-[#4edea3] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>quiz</span>
+              <span className="text-sm text-white">
+                <span className="font-bold">{recentQuizCount}</span>
+                <span className="text-[#799dd6]"> quiz{recentQuizCount !== 1 ? "zes" : ""} completed in last 3 days</span>
+              </span>
+            </div>
+            {/* Strong area */}
+            {strongTopics.length > 0 && (
+              <div className="flex items-center gap-2.5 bg-white/10 rounded-xl px-3 py-2">
+                <span className="material-symbols-outlined text-[#4edea3] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>trending_up</span>
+                <span className="text-sm text-white">
+                  <span className="text-[#799dd6]">Strong: </span>
+                  <span className="font-bold">{strongTopics.map(t => t.topic).join(", ")}</span>
+                </span>
+              </div>
+            )}
+            {/* Weak area */}
+            {weakTopics.length > 0 && (
+              <div className="flex items-center gap-2.5 bg-white/10 rounded-xl px-3 py-2">
+                <span className="material-symbols-outlined text-[#ffb952] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>trending_down</span>
+                <span className="text-sm text-white">
+                  <span className="text-[#799dd6]">Needs work: </span>
+                  <span className="font-bold">{weakTopics.map(t => t.topic).join(", ")}</span>
+                </span>
+              </div>
+            )}
+          </div>
+        )}
         <button
           onClick={() => setShowFocused(true)}
           className="w-full bg-white text-[#001e40] font-bold py-3.5 rounded-xl active:scale-95 transition-transform shadow-lg"
