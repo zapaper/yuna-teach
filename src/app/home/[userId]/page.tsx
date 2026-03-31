@@ -7,6 +7,7 @@ import TestCard from "@/components/TestCard";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
 import ParentDashboard from "./ParentDashboard";
+import StudentDashboard from "./StudentDashboard";
 
 export default function HomePage({
   params,
@@ -435,6 +436,10 @@ export default function HomePage({
 
   if (isParent && user) {
     return <ParentDashboard userId={userId} user={user} />;
+  }
+
+  if (!isAdmin && user) {
+    return <StudentDashboard userId={userId} user={user} />;
   }
 
   return (
