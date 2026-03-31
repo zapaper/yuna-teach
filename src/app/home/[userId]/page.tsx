@@ -590,6 +590,9 @@ export default function HomePage({
           <Link href="/flagged" className="block w-full bg-amber-500 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
             Review Flagged Q&amp;A
           </Link>
+          <Link href={`/admin/feedback?userId=${userId}`} className="block w-full bg-slate-600 text-white rounded-2xl py-4 px-6 text-lg font-semibold text-center shadow-lg active:scale-[0.98] transition-transform">
+            View User Feedback
+          </Link>
         </div>
       )}
 
