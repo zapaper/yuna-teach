@@ -169,6 +169,14 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
     finally { setConnecting(false); }
   }
 
+  async function handleDeleteTest(e: React.MouseEvent, testId: string) {
+    e.stopPropagation();
+    try {
+      await fetch(`/api/tests/${testId}`, { method: "DELETE" });
+      setTests(prev => prev.filter(t => t.id !== testId));
+    } catch { /* silent fail */ }
+  }
+
   async function startQuiz() {
     setCreatingQuiz(true);
     try {
@@ -651,8 +659,15 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                   <div
                     key={test.id}
                     onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
-                    className="min-w-[200px] bg-white p-5 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-[#003366]/20 transition-colors"
+                    className="relative min-w-[200px] bg-white p-5 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-[#003366]/20 transition-colors group"
                   >
+                    <button
+                      onClick={e => handleDeleteTest(e, test.id)}
+                      className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-slate-300 opacity-40 hover:opacity-100 hover:bg-red-50 hover:text-red-500 active:text-red-500 transition-all"
+                      aria-label="Delete"
+                    >
+                      <span className="material-symbols-outlined text-base">delete</span>
+                    </button>
                     <div className="flex justify-between items-start mb-4">
                       <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#003366]/5 text-[#003366]">
                         <span className="material-symbols-outlined">spellcheck</span>
