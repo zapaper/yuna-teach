@@ -887,9 +887,9 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                       <h3 className="font-headline text-3xl font-black text-[#001e40]">{completedPapers.length} <span className="text-sm font-semibold text-[#43474f]">Total</span></h3>
                     </div>
                     <div className="w-px h-12 bg-[#c3c6d1]/40" />
-                    <button className="flex-1 text-left hover:opacity-80 transition-opacity" onClick={() => setShowPendingReview(true)}>
-                      <p className="font-medium text-[#ba1a1a] mb-1">Pending Review</p>
-                      <h3 className="font-headline text-3xl font-black text-[#ba1a1a]">{pendingRelease.length.toString().padStart(2, "0")}</h3>
+                    <button className="flex-1 text-left hover:opacity-80 transition-opacity" onClick={() => pendingRelease.length > 0 && setShowPendingReview(true)}>
+                      <p className={`font-medium mb-1 ${pendingRelease.length === 0 ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>Pending Review</p>
+                      <h3 className={`font-headline text-3xl font-black ${pendingRelease.length === 0 ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>{pendingRelease.length}</h3>
                     </button>
                   </div>
                 </div>
