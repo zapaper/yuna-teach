@@ -266,7 +266,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           {/* Logo */}
           <div className="px-6 pt-6 pb-4 flex items-center gap-2">
             <img src="/logo.png" alt="Owl" className="w-8 h-8 object-contain" />
-            <img src="/markforyou2.png" alt="Markforyou" className="h-5 object-contain" />
+            <img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" />
           </div>
 
           {/* Streak + Badge pills */}
@@ -547,7 +547,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
         <div className="flex items-center justify-between px-6 w-full py-3 max-w-lg mx-auto">
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="Owl" className="w-7 h-7 object-contain" />
-            <img src="/markforyou2.png" alt="Markforyou" className="h-5 object-contain" />
+            <img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" />
           </div>
           <div className="flex items-center gap-2">
             {!hasParent && (
