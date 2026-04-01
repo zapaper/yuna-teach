@@ -247,38 +247,40 @@ function ExamReviewContent({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-24">
-        <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-200 border-t-primary-500" />
+      <div className="flex justify-center py-24 bg-[#f8f9ff] min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-[#dce9ff] border-t-[#001e40]" />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="p-6 text-center py-24">
-        <p className="text-slate-500">Could not load results.</p>
-        <button onClick={() => router.push(backPath)} className="mt-4 text-primary-500 underline">
-          Go Home
-        </button>
+      <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6 text-center">
+        <div>
+          <p className="text-[#43474f] mb-4">Could not load results.</p>
+          <button onClick={() => router.push(backPath)} className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold text-sm">
+            Go Home
+          </button>
+        </div>
       </div>
     );
   }
 
   if (data.markingStatus !== "released" && !(instantFeedback && data.markingStatus === "complete")) {
     return (
-      <div className="p-6 text-center py-24">
-        <p className="text-slate-500">Results are not available yet.</p>
-        <button onClick={() => router.push(backPath)} className="mt-4 text-primary-500 underline">
-          Go Home
-        </button>
+      <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6 text-center">
+        <div>
+          <p className="text-[#43474f] mb-4">Results are not available yet.</p>
+          <button onClick={() => router.push(backPath)} className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold text-sm">
+            Go Home
+          </button>
+        </div>
       </div>
     );
   }
 
   const isStudent = userId === assignedToId;
 
-  // For students, only show questions that were actually marked (have a marking result)
-  // For quizzes, show all questions since they're all marked (MCQ instantly, OEQ by AI)
   const writtenQuestions = isStudent && !isQuiz
     ? data.questions.filter((q) => q.marksAwarded !== null)
     : data.questions;
@@ -291,9 +293,19 @@ function ExamReviewContent({ id }: { id: string }) {
   const displayQuestions = showAll ? writtenQuestions : incorrectQuestions;
   const currentQ = displayQuestions[currentIdx] ?? null;
 
-  // Compute the effective submission page for the current question
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
+
+  const totalM = totalMarks ? Number(totalMarks) : null;
+  const pct = totalM && totalM > 0 ? Math.round(((data.score ?? 0) / totalM) * 100) : null;
+  const scoreBorderColor = pct === null ? "#d3e4fe"
+    : pct >= 75 ? "#6cf8bb"
+    : pct >= 50 ? "#ffb952"
+    : "#ffdad6";
+  const scoreTextColor = pct === null ? "#001e40"
+    : pct >= 75 ? "#006c49"
+    : pct >= 50 ? "#633f00"
+    : "#ba1a1a";
 
   function renderWithNewlines(text: string) {
     return text.split("|").map((part, i, arr) => (
@@ -309,447 +321,467 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Sticky header */}
-      <div className="bg-white border-b border-slate-100 px-4 py-3 flex items-center gap-3">
-        <button
-          onClick={() => router.push(backPath)}
-          className="p-1.5 -ml-1 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 shrink-0"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 truncate">{paperTitle}</p>
-        </div>
-      </div>
-
-      <div className="p-4 pb-24 w-full">
-        {/* Score — large and prominent */}
-        <div className="text-center py-4 mb-2">
-          <p className="text-5xl font-extrabold text-primary-600">
-            {data.score ?? 0}
-            {totalMarks ? <span className="text-2xl font-normal text-slate-400"> / {totalMarks}</span> : null}
-          </p>
-          <p className="text-sm text-slate-400 mt-1">
-            Total Score
-            {isQuiz && totalMarks && Number(totalMarks) > 0 ? (
-              <span className="ml-2 text-primary-500 font-semibold">
-                ({Math.round(((data.score ?? 0) / Number(totalMarks)) * 100)}%)
-              </span>
-            ) : null}
-          </p>
-          {data.bookletScores && data.bookletScores.length > 0 && (
-            <div className="flex justify-center flex-wrap gap-3 mt-2">
-              {data.bookletScores.map((b) => (
-                <span key={b.label} className="text-xs text-slate-500">
-                  {b.label}: <span className="font-semibold text-slate-700">{b.awarded}/{b.available}</span>
-                </span>
-              ))}
-            </div>
-          )}
+    <div className="min-h-screen bg-[#f8f9ff]">
+      {/* ── Top bar ── */}
+      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm">
+        <div className="flex items-center justify-between px-4 lg:px-8 py-3 max-w-5xl mx-auto">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => router.push(backPath)}
+              className="p-2 rounded-xl text-[#43474f] hover:bg-[#eff4ff] transition-colors shrink-0"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+            <p className="font-headline font-bold text-[#001e40] truncate">{paperTitle}</p>
+          </div>
           {!isQuiz && (
             <button
               onClick={downloadPdf}
               disabled={downloading}
-              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#c3c6d1] text-sm font-semibold text-[#43474f] hover:bg-[#eff4ff] transition-colors disabled:opacity-50 shrink-0"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              {downloading ? "Downloading..." : "Download my paper"}
+              <span className="material-symbols-outlined text-base">download</span>
+              <span className="hidden sm:inline">{downloading ? "Downloading…" : "Download"}</span>
             </button>
           )}
         </div>
+      </header>
 
-        {/* Incorrect / All toggle */}
-        <div className="flex justify-end mb-3">
-          <div className="inline-flex rounded-lg border border-slate-200 overflow-hidden text-xs font-medium">
+      <div className="pt-16 pb-24 max-w-5xl mx-auto px-4 lg:px-8">
+
+        {/* ── Hero Score Section ── */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 my-6 lg:my-10">
+          {/* Large score card */}
+          <div className="md:col-span-2 bg-white rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 lg:gap-8 relative overflow-hidden shadow-sm">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
+            {/* Score circle */}
+            <div
+              className="relative z-10 flex flex-col items-center justify-center w-36 h-36 lg:w-44 lg:h-44 rounded-full shrink-0"
+              style={{ border: `10px solid ${scoreBorderColor}` }}
+            >
+              <span className="font-headline text-4xl lg:text-5xl font-extrabold" style={{ color: scoreTextColor }}>
+                {pct !== null ? `${pct}%` : `${data.score ?? 0}`}
+              </span>
+              <span className="text-xs font-medium text-[#43474f] mt-1">
+                {pct !== null ? `${data.score ?? 0} / ${totalMarks}` : "Score"}
+              </span>
+            </div>
+            {/* Text */}
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="font-headline text-2xl lg:text-3xl font-extrabold text-[#001e40] mb-2">
+                {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
+              </h1>
+              {data.feedbackSummary ? (
+                isStudent ? (
+                  <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line line-clamp-3 mb-4">{data.feedbackSummary}</p>
+                ) : (
+                  <details className="text-left mb-4">
+                    <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none">Summary</summary>
+                    <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2">{data.feedbackSummary}</p>
+                  </details>
+                )
+              ) : null}
+              {data.bookletScores && data.bookletScores.length > 0 && (
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                  {data.bookletScores.map((b) => (
+                    <span key={b.label} className="px-3 py-1 bg-[#eff4ff] rounded-full text-xs font-bold text-[#001e40]">
+                      {b.label}: {b.awarded}/{b.available}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick stats */}
+          <div className="flex flex-col gap-4">
+            <div className="bg-white rounded-3xl p-5 flex items-center gap-4 shadow-sm flex-1">
+              <div className="w-12 h-12 rounded-2xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0">
+                <span className="material-symbols-outlined">quiz</span>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#43474f] uppercase tracking-wider font-bold">Questions</p>
+                <p className="font-headline text-xl font-bold text-[#001e40]">{writtenQuestions.length}</p>
+              </div>
+            </div>
+            <div className="bg-white rounded-3xl p-5 flex items-center gap-4 shadow-sm flex-1">
+              <div className="w-12 h-12 rounded-2xl bg-[#ffdad6] flex items-center justify-center text-[#ba1a1a] shrink-0">
+                <span className="material-symbols-outlined">cancel</span>
+              </div>
+              <div>
+                <p className="text-[10px] text-[#43474f] uppercase tracking-wider font-bold">To Review</p>
+                <p className="font-headline text-xl font-bold text-[#ba1a1a]">{incorrectQuestions.length}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Advisory — parents only */}
+        {!isStudent && (
+          <div className="rounded-2xl bg-[#ffddb4]/40 border border-[#ffb952]/30 px-4 py-3 mb-6 flex items-start gap-3">
+            <span className="material-symbols-outlined text-[#633f00] shrink-0 mt-0.5">info</span>
+            <p className="text-sm text-[#633f00] leading-relaxed">
+              We encourage you to review your child&apos;s mistakes together and discuss the correct approach.
+            </p>
+          </div>
+        )}
+
+        {/* ── Tabs ── */}
+        <div className="mb-6">
+          <div className="flex items-center gap-1 p-1 bg-white rounded-2xl w-fit shadow-sm">
             <button
               onClick={() => { setShowAll(false); setCurrentIdx(0); setSubmissionPageOverride(null); }}
-              className={`px-3 py-1.5 transition-colors ${!showAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${!showAll ? "bg-[#001e40] text-white shadow-sm" : "text-[#43474f] hover:bg-[#eff4ff]"}`}
             >
               Incorrect ({incorrectQuestions.length})
             </button>
             <button
               onClick={() => { setShowAll(true); setCurrentIdx(0); setSubmissionPageOverride(null); }}
-              className={`px-3 py-1.5 transition-colors ${showAll ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${showAll ? "bg-[#001e40] text-white shadow-sm" : "text-[#43474f] hover:bg-[#eff4ff]"}`}
             >
               All ({writtenQuestions.length})
             </button>
           </div>
         </div>
 
-        {/* Advisory message — parents only */}
-        {!isStudent && (
-          <div className="rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 mb-4">
-            <p className="text-xs text-amber-700 leading-relaxed">
-              We encourage you to verify and understand where your child has made mistakes, and go through with him/her the mistakes.
-            </p>
-          </div>
-        )}
-
-        {/* Feedback summary — prominent for students, collapsible for parents */}
-        {data.feedbackSummary ? (
-          isStudent ? (
-            <div className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 mb-6 px-4 py-4">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Summary</p>
-              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                {data.feedbackSummary}
-              </p>
-            </div>
-          ) : (
-            <details className="rounded-2xl bg-gradient-to-r from-primary-50 to-blue-50 border border-slate-100 mb-6 overflow-hidden">
-              <summary className="px-4 py-3 cursor-pointer text-xs font-semibold text-slate-400 uppercase tracking-wide select-none hover:text-slate-600">
-                Summary
-              </summary>
-              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line px-4 pb-4">
-                {data.feedbackSummary}
-              </p>
-            </details>
-          )
-        ) : null}
-
-        {/* Questions to review — flip-through */}
+        {/* ── Question Review ── */}
         {displayQuestions.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-16 bg-white rounded-3xl shadow-sm">
             {incorrectQuestions.length === 0 ? (
               <>
-                <p className="text-3xl mb-3">&#127881;</p>
-                <p className="text-slate-600 font-medium">Perfect score!</p>
-                <p className="text-slate-400 text-sm mt-1">You got every question right.</p>
+                <div className="text-5xl mb-4">🎉</div>
+                <p className="font-headline text-xl font-extrabold text-[#001e40] mb-1">Perfect score!</p>
+                <p className="text-sm text-[#43474f]">You got every question right.</p>
               </>
             ) : (
-              <p className="text-slate-400 text-sm">No questions to show.</p>
+              <p className="text-sm text-[#43474f]">No questions to show.</p>
             )}
           </div>
         ) : (
           <div>
             {/* Navigation header */}
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                {showAll ? "All Questions" : "Questions to Review"}
-              </h2>
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40]">Question Review</h2>
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => { setCurrentIdx((i) => Math.max(0, i - 1)); setSubmissionPageOverride(null); }}
                   disabled={currentIdx === 0}
-                  className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="w-10 h-10 rounded-full border border-[#c3c6d1]/40 flex items-center justify-center text-[#001e40] hover:bg-[#eff4ff] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m15 18-6-6 6-6" />
-                  </svg>
+                  <span className="material-symbols-outlined">chevron_left</span>
                 </button>
-                <span className="text-xs font-medium text-slate-500 min-w-[3rem] text-center">
-                  {currentIdx + 1} / {displayQuestions.length}
+                <span className="text-sm font-bold text-[#001e40] tabular-nums">
+                  {String(currentIdx + 1).padStart(2, "0")} of {String(displayQuestions.length).padStart(2, "0")}
                 </span>
                 <button
                   onClick={() => { setCurrentIdx((i) => Math.min(displayQuestions.length - 1, i + 1)); setSubmissionPageOverride(null); }}
                   disabled={currentIdx === displayQuestions.length - 1}
-                  className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  className="w-10 h-10 rounded-full border border-[#c3c6d1]/40 flex items-center justify-center text-[#001e40] hover:bg-[#eff4ff] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m9 18 6-6-6-6" />
-                  </svg>
+                  <span className="material-symbols-outlined">chevron_right</span>
                 </button>
               </div>
             </div>
 
             {/* Current question card */}
-            {currentQ ? (
-              <div>
-              <div className="rounded-2xl border border-slate-100 bg-white shadow-sm overflow-hidden">
-                {/* Question header */}
-                <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-100">
-                  <span className="text-sm font-semibold text-slate-700">
-                    Question {currentQ.questionNum}
-                  </span>
-                  <span className={`text-sm font-bold ${
-                    (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0) ? "text-green-600" :
-                    (currentQ.marksAwarded ?? 0) === 0 ? "text-red-500" : "text-amber-600"
-                  }`}>
-                    {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable ?? 0}
-                  </span>
-                </div>
+            {currentQ && (() => {
+              const isCorrect = (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 1);
+              const isPartial = !isCorrect && (currentQ.marksAwarded ?? 0) > 0;
+              const badgeBg = isCorrect ? "#d1fae5" : isPartial ? "#fef3c7" : "#ffdad6";
+              const badgeText = isCorrect ? "#006c49" : isPartial ? "#633f00" : "#ba1a1a";
 
-                {/* Quiz question text — show transcribed stem, diagram, options/subparts */}
-                {isQuiz && currentQ.transcribedStem ? (
-                  <div className="border-b border-slate-100 px-4 py-3 space-y-2">
-                    {(() => {
-                      // Process sentinels from transcribedSubparts (same logic as quiz page)
-                      type SubpartEntry = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
-                      const allSubs = currentQ.transcribedSubparts as SubpartEntry[] | null;
-                      const subRefMap: Record<string, string> = {};
-                      if (allSubs) for (const sp of allSubs) if (sp.label.startsWith("_subref-")) subRefMap[sp.label.slice(8)] = sp.diagramBase64 ?? "";
-                      const drawableDiagram = allSubs?.find(sp => sp.label === "_drawable")?.diagramBase64 ?? null;
-                      const realSubs = allSubs
-                        ? allSubs.filter(sp => !sp.label.startsWith("_")).map(sp => ({ ...sp, refImageBase64: subRefMap[sp.label] ?? sp.refImageBase64 ?? null }))
-                        : null;
-                      const toSrc = (b64: string) => b64.startsWith("data:") ? b64 : `data:image/jpeg;base64,${b64}`;
-                      return (
-                        <>
-                          <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">
-                            {currentQ.transcribedStem}
-                          </p>
-                          {currentQ.diagramImageData ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-lg border border-slate-100" />
-                          ) : null}
-                          {drawableDiagram ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={toSrc(drawableDiagram)} alt="Diagram" className="w-full rounded-lg border border-slate-100" />
-                          ) : null}
-                          {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 ? (
-                            <div className="space-y-1.5">
-                              {currentQ.transcribedOptions.map((opt, i) => {
-                                const optNum = String(i + 1);
-                                const isCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
-                                const isSelected = currentQ.studentAnswer === optNum;
-                                const optImg = currentQ.transcribedOptionImages?.[i] ?? null;
-                                return (
-                                  <div
-                                    key={i}
-                                    className={`rounded-lg px-3 py-2 text-sm ${
-                                      isCorrect
-                                        ? "bg-green-50 border border-green-200 text-green-800 font-medium"
-                                        : isSelected
-                                        ? "bg-red-50 border border-red-200 text-red-700"
-                                        : "border border-transparent text-slate-600"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                                        isCorrect ? "bg-green-500 text-white" : isSelected ? "bg-red-400 text-white" : "bg-slate-100 text-slate-500"
-                                      }`}>
-                                        {i + 1}
-                                      </span>
-                                      {opt ? <span className="flex-1">{opt}</span> : <span className="flex-1 text-slate-300 text-xs italic">Image option</span>}
-                                      {isCorrect && isSelected ? <span className="text-xs text-green-600">Correct</span> : null}
-                                      {isCorrect && !isSelected ? <span className="text-xs text-green-600">Answer</span> : null}
-                                      {!isCorrect && isSelected ? <span className="text-xs text-red-500">Your pick</span> : null}
-                                    </div>
-                                    {optImg ? (
-                                      // eslint-disable-next-line @next/next/no-img-element
-                                      <img
-                                        src={optImg.startsWith("data:") ? optImg : `data:image/jpeg;base64,${optImg}`}
-                                        alt={`Option ${i + 1}`}
-                                        className="mt-1.5 w-full max-w-[240px] rounded border border-slate-100"
-                                      />
-                                    ) : null}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                          {realSubs && realSubs.length > 0 ? (
-                            <div className="space-y-2 mt-1">
-                              {realSubs.map((sp) => {
-                                const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
-                                return (
-                                  <div key={sp.label}>
-                                    <p className="text-sm text-slate-700">
-                                      <span className="font-medium text-amber-700">({sp.label})</span> {sp.text}
-                                    </p>
-                                    {imgSrc ? (
-                                      // eslint-disable-next-line @next/next/no-img-element
-                                      <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-lg border border-slate-100 mt-1" />
-                                    ) : null}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </>
-                      );
-                    })()}
+              return (
+              <div className="relative bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff]">
+                <div className="flex flex-col md:flex-row gap-5 lg:gap-8">
+                  {/* Number badge */}
+                  <div
+                    className="w-12 h-12 rounded-full flex items-center justify-center font-headline font-bold text-lg shrink-0"
+                    style={{ backgroundColor: badgeBg, color: badgeText }}
+                  >
+                    {currentQ.questionNum}
                   </div>
-                ) : !isStudent && currentQ.imageData ? (
-                  /* Extracted question image — shown to parents only for regular exams */
-                  <div className="border-b border-slate-100 bg-slate-50 px-2 py-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={currentQ.imageData}
-                      alt={`Question ${currentQ.questionNum}`}
-                      className="w-full h-auto rounded-lg"
-                    />
-                  </div>
-                ) : null}
 
-                {/* Side-by-side on wide screens, stacked on mobile */}
-                <div className="md:flex">
-                  {/* Submission page image with page navigation — not shown for quizzes */}
-                  {!isQuiz && (
-                  <div className="border-b border-slate-100 md:border-b-0 md:border-r md:w-1/2 md:shrink-0 relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={`/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
-                      alt={`Submission page for Q${currentQ.questionNum}`}
-                      className="w-full h-auto"
-                    />
-                    {/* Page navigation overlay */}
-                    {submissionPageCount > 1 && (
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 rounded-full px-2 py-1">
-                        <button
-                          onClick={() => setSubmissionPageOverride(Math.max(0, effectiveSubmissionPage - 1))}
-                          disabled={effectiveSubmissionPage === 0}
-                          className="text-white/80 hover:text-white disabled:text-white/30 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m15 18-6-6 6-6" />
-                          </svg>
-                        </button>
-                        <span className="text-[10px] text-white/80 min-w-[2.5rem] text-center">
-                          {effectiveSubmissionPage + 1} / {submissionPageCount}
+                  <div className="flex-1 min-w-0">
+                    {/* Topic + marks */}
+                    <div className="flex items-center gap-3 mb-4 flex-wrap">
+                      {currentQ.marksAvailable !== null && (
+                        <span className="px-3 py-1 bg-white rounded-full text-xs font-bold text-[#001e40] shadow-sm">
+                          {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable} marks
                         </span>
-                        <button
-                          onClick={() => setSubmissionPageOverride(Math.min(submissionPageCount - 1, effectiveSubmissionPage + 1))}
-                          disabled={effectiveSubmissionPage === submissionPageCount - 1}
-                          className="text-white/80 hover:text-white disabled:text-white/30 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m9 18 6-6-6-6" />
-                          </svg>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  )}
+                      )}
+                      {isCorrect && (
+                        <span className="flex items-center gap-1 text-xs font-bold text-[#006c49]">
+                          <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          Correct
+                        </span>
+                      )}
+                      {!isCorrect && !isPartial && (
+                        <span className="flex items-center gap-1 text-xs font-bold text-[#ba1a1a]">
+                          <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
+                          Incorrect
+                        </span>
+                      )}
+                      {isPartial && (
+                        <span className="flex items-center gap-1 text-xs font-bold text-[#633f00]">
+                          <span className="material-symbols-outlined text-base">remove_circle</span>
+                          Partial
+                        </span>
+                      )}
+                    </div>
 
-                  {/* Solutions panel */}
-                  <div className="px-4 py-3 space-y-3 md:flex-1 md:overflow-y-auto md:max-h-[70vh]">
-                    {/* Student's answer — for quiz OEQ (MCQ already shown in options above) */}
-                    {isQuiz && currentQ.studentAnswer && !currentQ.transcribedOptions ? (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                          Your Answer
-                        </p>
-                        <div className={`text-sm leading-relaxed rounded-lg p-3 border ${
-                          (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 0)
-                            ? "bg-green-50 border-green-200 text-green-800"
-                            : "bg-red-50 border-red-200 text-red-800"
-                        }`}>
-                          {currentQ.studentAnswer}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Correct answer — skip for quiz MCQs (already shown inline in options) */}
-                    {currentQ.answer && !(isQuiz && currentQ.transcribedOptions) ? (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                          Correct Answer
-                        </p>
-                        <div className="text-sm text-slate-800 leading-relaxed max-h-48 overflow-y-auto rounded-lg bg-slate-50 p-3 border border-slate-100">
-                          {renderWithNewlines(currentQ.answer)}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Marking notes */}
-                    {currentQ.markingNotes ? (
-                      <div>
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">
-                          Marking Notes
-                        </p>
-                        <p className="text-sm text-slate-600 leading-relaxed">
-                          {renderWithNewlines(currentQ.markingNotes)}
-                        </p>
-                      </div>
-                    ) : null}
-
-                    {/* AI Elaboration — available for all marked questions */}
-                    {currentQ.marksAwarded !== null && (
-                      <div>
-                        {elaborations[currentQ.id] ? (
-                          <div>
-                            <p className="text-xs font-semibold text-teal-500 uppercase tracking-wide mb-1">
-                              AI Elaboration
-                              {!isStudent && (
-                                <button
-                                  onClick={async () => {
-                                    const updated = elaborations[currentQ.id];
-                                    if (!updated) return;
-                                    try {
-                                      await fetch(`/api/exam/questions/${currentQ.id}`, {
-                                        method: "PATCH",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ elaboration: updated }),
-                                      });
-                                    } catch { /* ignore */ }
-                                  }}
-                                  className="ml-2 text-[10px] font-normal text-teal-400 hover:text-teal-600 normal-case"
-                                >
-                                  Save
-                                </button>
+                    {/* Quiz question text */}
+                    {isQuiz && currentQ.transcribedStem ? (
+                      <div className="space-y-3 mb-5">
+                        {(() => {
+                          type SubpartEntry = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
+                          const allSubs = currentQ.transcribedSubparts as SubpartEntry[] | null;
+                          const subRefMap: Record<string, string> = {};
+                          if (allSubs) for (const sp of allSubs) if (sp.label.startsWith("_subref-")) subRefMap[sp.label.slice(8)] = sp.diagramBase64 ?? "";
+                          const drawableDiagram = allSubs?.find(sp => sp.label === "_drawable")?.diagramBase64 ?? null;
+                          const realSubs = allSubs
+                            ? allSubs.filter(sp => !sp.label.startsWith("_")).map(sp => ({ ...sp, refImageBase64: subRefMap[sp.label] ?? sp.refImageBase64 ?? null }))
+                            : null;
+                          const toSrc = (b64: string) => b64.startsWith("data:") ? b64 : `data:image/jpeg;base64,${b64}`;
+                          return (
+                            <>
+                              <h3 className="font-headline text-lg lg:text-xl font-semibold text-[#001e40] leading-relaxed whitespace-pre-wrap">
+                                {currentQ.transcribedStem}
+                              </h3>
+                              {currentQ.diagramImageData && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
                               )}
+                              {drawableDiagram && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={toSrc(drawableDiagram)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
+                              )}
+                              {/* MCQ options */}
+                              {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                                  {currentQ.transcribedOptions.map((opt, i) => {
+                                    const optNum = String(i + 1);
+                                    const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                                    const isSelected = currentQ.studentAnswer === optNum;
+                                    const optImg = currentQ.transcribedOptionImages?.[i] ?? null;
+                                    return (
+                                      <div
+                                        key={i}
+                                        className={`p-4 rounded-2xl flex items-center justify-between gap-3 ${
+                                          isOptCorrect
+                                            ? "bg-[#6cf8bb]/20 border border-[#006c49]/20"
+                                            : isSelected
+                                            ? "bg-[#ffdad6] border border-[#ba1a1a]/20"
+                                            : "bg-white border border-[#e5eeff]"
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          <span className={`w-10 h-10 rounded-full flex items-center justify-center font-headline font-bold shrink-0 ${
+                                            isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-[#eff4ff] text-[#001e40]"
+                                          }`}>{i + 1}</span>
+                                          <div className="min-w-0">
+                                            {opt ? <span className={`font-headline font-semibold text-base ${isOptCorrect ? "text-[#001e40]" : isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}>{opt}</span>
+                                              : <span className="text-sm text-[#43474f] italic">Image option</span>}
+                                            {optImg && (
+                                              // eslint-disable-next-line @next/next/no-img-element
+                                              <img src={optImg.startsWith("data:") ? optImg : `data:image/jpeg;base64,${optImg}`} alt={`Option ${i + 1}`} className="mt-2 w-full max-w-[200px] rounded" />
+                                            )}
+                                          </div>
+                                        </div>
+                                        {isOptCorrect && isSelected && <span className="text-xs font-bold text-[#006c49] shrink-0">Correct</span>}
+                                        {isOptCorrect && !isSelected && <span className="material-symbols-outlined text-[#006c49] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
+                                        {!isOptCorrect && isSelected && <span className="material-symbols-outlined text-[#ba1a1a] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {/* Subparts */}
+                              {realSubs && realSubs.length > 0 && (
+                                <div className="space-y-2 mt-2">
+                                  {realSubs.map((sp) => {
+                                    const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
+                                    return (
+                                      <div key={sp.label}>
+                                        <p className="text-sm text-[#0b1c30]">
+                                          <span className="font-bold text-[#001e40]">({sp.label})</span> {sp.text}
+                                        </p>
+                                        {imgSrc && (
+                                          // eslint-disable-next-line @next/next/no-img-element
+                                          <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-xl border border-[#e5eeff] mt-1" />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    ) : !isStudent && currentQ.imageData ? (
+                      <div className="mb-5 rounded-2xl overflow-hidden border border-[#e5eeff]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={currentQ.imageData} alt={`Question ${currentQ.questionNum}`} className="w-full h-auto" />
+                      </div>
+                    ) : null}
+
+                    {/* Submission image + solution side-by-side */}
+                    <div className="md:flex gap-5">
+                      {!isQuiz && (
+                        <div className="md:w-1/2 md:shrink-0 mb-4 md:mb-0 rounded-2xl overflow-hidden border border-[#e5eeff] relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
+                            alt={`Submission page for Q${currentQ.questionNum}`}
+                            className="w-full h-auto"
+                          />
+                          {submissionPageCount > 1 && (
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 rounded-full px-3 py-1">
+                              <button
+                                onClick={() => setSubmissionPageOverride(Math.max(0, effectiveSubmissionPage - 1))}
+                                disabled={effectiveSubmissionPage === 0}
+                                className="text-white/80 hover:text-white disabled:text-white/30"
+                              >
+                                <span className="material-symbols-outlined text-sm">chevron_left</span>
+                              </button>
+                              <span className="text-[10px] text-white/80 min-w-[2rem] text-center">{effectiveSubmissionPage + 1}/{submissionPageCount}</span>
+                              <button
+                                onClick={() => setSubmissionPageOverride(Math.min(submissionPageCount - 1, effectiveSubmissionPage + 1))}
+                                disabled={effectiveSubmissionPage === submissionPageCount - 1}
+                                className="text-white/80 hover:text-white disabled:text-white/30"
+                              >
+                                <span className="material-symbols-outlined text-sm">chevron_right</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Solutions panel */}
+                      <div className="flex-1 space-y-4">
+                        {/* OEQ typed answer */}
+                        {isQuiz && currentQ.studentAnswer && !currentQ.transcribedOptions && (
+                          <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Your Answer</p>
+                            <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
+                              isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                            }`}>
+                              {currentQ.studentAnswer}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Correct answer */}
+                        {currentQ.answer && !(isQuiz && currentQ.transcribedOptions) && (
+                          <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Correct Answer</p>
+                            <div className="text-sm text-[#0b1c30] leading-relaxed max-h-48 overflow-y-auto rounded-2xl bg-white p-4 border border-[#e5eeff]">
+                              {renderWithNewlines(currentQ.answer)}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Marking notes */}
+                        {currentQ.markingNotes && (
+                          <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
+                            <p className="text-sm text-[#43474f] leading-relaxed">
+                              {renderWithNewlines(currentQ.markingNotes)}
                             </p>
-                            {!isStudent ? (
-                              <textarea
-                                value={elaborations[currentQ.id]}
-                                onChange={e => setElaborations(prev => ({ ...prev, [currentQ.id]: e.target.value }))}
-                                rows={6}
-                                className="w-full text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3 focus:outline-none focus:border-teal-400 resize-y"
-                              />
-                            ) : (
-                              <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3">
-                                {elaborations[currentQ.id]}
+                          </div>
+                        )}
+
+                        {/* AI Elaboration */}
+                        {currentQ.marksAwarded !== null && (
+                          <div>
+                            {elaborations[currentQ.id] ? (
+                              <div>
+                                {/* Glass insight panel */}
+                                <div className="p-4 lg:p-5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/40 shadow-sm flex gap-3 items-start mb-4">
+                                  <div className="w-10 h-10 rounded-xl bg-[#001e40] text-white flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-base">psychology</span>
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold text-[#001e40] mb-1 flex items-center gap-2">
+                                      AI Insight
+                                      {!isStudent && (
+                                        <button
+                                          onClick={async () => {
+                                            const updated = elaborations[currentQ.id];
+                                            if (!updated) return;
+                                            try {
+                                              await fetch(`/api/exam/questions/${currentQ.id}`, {
+                                                method: "PATCH",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({ elaboration: updated }),
+                                              });
+                                            } catch { /* ignore */ }
+                                          }}
+                                          className="text-[10px] font-normal text-[#003366] hover:underline normal-case"
+                                        >
+                                          Save
+                                        </button>
+                                      )}
+                                    </p>
+                                    {!isStudent ? (
+                                      <textarea
+                                        value={elaborations[currentQ.id]}
+                                        onChange={e => setElaborations(prev => ({ ...prev, [currentQ.id]: e.target.value }))}
+                                        rows={5}
+                                        className="w-full text-sm text-[#43474f] leading-relaxed rounded-xl bg-[#eff4ff] border border-[#c3c6d1] p-3 focus:outline-none focus:border-[#001e40] resize-y"
+                                      />
+                                    ) : (
+                                      <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line">{elaborations[currentQ.id]}</p>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
+                            ) : (
+                              /* AI Elaboration button */
+                              <button
+                                onClick={() => fetchElaboration(currentQ.id)}
+                                disabled={elaborating === currentQ.id}
+                                className="w-full bg-[#003366] hover:bg-[#001e40] text-white py-4 px-6 rounded-2xl flex items-center justify-center gap-3 font-headline font-semibold transition-all shadow-sm disabled:opacity-50"
+                              >
+                                <span className="material-symbols-outlined">lightbulb</span>
+                                {elaborating === currentQ.id ? (
+                                  <span className="flex items-center gap-2">
+                                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
+                                    Generating…
+                                  </span>
+                                ) : "AI Elaboration"}
+                              </button>
                             )}
                           </div>
-                        ) : (
-                          <button
-                            onClick={() => fetchElaboration(currentQ.id)}
-                            disabled={elaborating === currentQ.id}
-                            className="w-full py-2.5 rounded-xl border border-teal-200 bg-teal-50 text-teal-600 text-xs font-semibold hover:bg-teal-100 transition-colors disabled:opacity-50"
-                          >
-                            {elaborating === currentQ.id ? (
-                              <span className="inline-flex items-center gap-2">
-                                <span className="animate-spin rounded-full h-3 w-3 border-2 border-teal-200 border-t-teal-600 inline-block" />
-                                Generating...
-                              </span>
-                            ) : (
-                              "AI Elaboration"
-                            )}
-                          </button>
                         )}
                       </div>
-                    )}
+                    </div>
+
+                    {/* Flag toggle — bottom center */}
+                    <div className="mt-6 pt-5 border-t border-[#e5eeff] flex justify-center">
+                      <button
+                        onClick={() => toggleFlag(currentQ.id)}
+                        disabled={flagging === currentQ.id}
+                        className={`flex flex-col items-center gap-1 transition-colors disabled:opacity-50 ${
+                          flaggedIds.has(currentQ.id) ? "text-[#ba1a1a]" : "text-[#43474f] hover:text-[#001e40]"
+                        }`}
+                      >
+                        <span
+                          className="material-symbols-outlined text-3xl"
+                          style={flaggedIds.has(currentQ.id) ? { fontVariationSettings: "'FILL' 1" } : {}}
+                        >
+                          flag
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">
+                          {flaggedIds.has(currentQ.id) ? "Flagged" : "Flag for Review"}
+                        </span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Flag button — below card, bottom-left */}
-              <div className="mt-2 flex items-center gap-1.5">
-                <button
-                  onClick={() => toggleFlag(currentQ.id)}
-                  disabled={flagging === currentQ.id}
-                  className="p-1 rounded-lg transition-colors disabled:opacity-50 hover:bg-slate-100"
-                  title={flaggedIds.has(currentQ.id) ? "Unflag this question" : "Flag incorrect Q&A"}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                    fill={flaggedIds.has(currentQ.id) ? "#eab308" : "none"}
-                    stroke={flaggedIds.has(currentQ.id) ? "#eab308" : "#94a3b8"}
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </button>
-                <span className="text-xs text-slate-400">
-                  {flaggedIds.has(currentQ.id) ? "Flagged" : "Flag Q&A for improvement"}
-                </span>
-              </div>
-              </div>
-            ) : null}
+              );
+            })()}
           </div>
         )}
       </div>
