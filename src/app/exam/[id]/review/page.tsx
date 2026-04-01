@@ -690,37 +690,48 @@ function ExamReviewContent({ id }: { id: string }) {
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
                               )}
-                              {/* MCQ options */}
+                              {/* MCQ options — image grid */}
+                              {currentQ.transcribedOptionImages && currentQ.transcribedOptionImages.some(img => img) && (
+                                <div className="grid grid-cols-2 gap-3 mt-2">
+                                  {[0, 1, 2, 3].map(i => {
+                                    const optNum = String(i + 1);
+                                    const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                                    const isSelected = currentQ.studentAnswer === optNum;
+                                    const imgSrc = currentQ.transcribedOptionImages![i];
+                                    return (
+                                      <div key={i} className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 ${
+                                        isOptCorrect ? "bg-[#6cf8bb]/20 border-[#006c49]/40" : isSelected ? "bg-[#ffdad6] border-[#ba1a1a]/40" : "bg-[#eff4ff] border-transparent"
+                                      }`}>
+                                        <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                          isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-white border border-[#c3c6d1]/30 text-[#001e40]"
+                                        }`}>{i + 1}</span>
+                                        {imgSrc ? (
+                                          // eslint-disable-next-line @next/next/no-img-element
+                                          <img src={`data:image/jpeg;base64,${imgSrc}`} alt={`Option ${i + 1}`} className="w-full rounded" />
+                                        ) : null}
+                                        {isOptCorrect && <span className="text-[10px] font-bold text-[#006c49]">Correct</span>}
+                                        {!isOptCorrect && isSelected && <span className="text-[10px] font-bold text-[#ba1a1a]">Your answer</span>}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {/* MCQ options — text list */}
                               {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                                   {currentQ.transcribedOptions.map((opt, i) => {
                                     const optNum = String(i + 1);
                                     const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
                                     const isSelected = currentQ.studentAnswer === optNum;
-                                    const optImg = currentQ.transcribedOptionImages?.[i] ?? null;
                                     return (
-                                      <div
-                                        key={i}
-                                        className={`p-4 rounded-2xl flex items-center justify-between gap-3 ${
-                                          isOptCorrect
-                                            ? "bg-[#6cf8bb]/20 border border-[#006c49]/20"
-                                            : isSelected
-                                            ? "bg-[#ffdad6] border border-[#ba1a1a]/20"
-                                            : "bg-white border border-[#e5eeff]"
-                                        }`}
-                                      >
+                                      <div key={i} className={`p-4 rounded-2xl flex items-center justify-between gap-3 ${
+                                        isOptCorrect ? "bg-[#6cf8bb]/20 border border-[#006c49]/20" : isSelected ? "bg-[#ffdad6] border border-[#ba1a1a]/20" : "bg-white border border-[#e5eeff]"
+                                      }`}>
                                         <div className="flex items-center gap-3 min-w-0">
                                           <span className={`w-10 h-10 rounded-full flex items-center justify-center font-headline font-bold shrink-0 ${
                                             isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-[#eff4ff] text-[#001e40]"
                                           }`}>{i + 1}</span>
-                                          <div className="min-w-0">
-                                            {opt ? <span className={`font-headline font-semibold text-base ${isOptCorrect ? "text-[#001e40]" : isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}>{opt}</span>
-                                              : null}
-                                            {optImg && (
-                                              // eslint-disable-next-line @next/next/no-img-element
-                                              <img src={optImg.startsWith("data:") ? optImg : `data:image/jpeg;base64,${optImg}`} alt={`Option ${i + 1}`} className="mt-2 w-full max-w-[200px] rounded" />
-                                            )}
-                                          </div>
+                                          <span className={`font-headline font-semibold text-base ${isOptCorrect || isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}>{opt}</span>
                                         </div>
                                         {isOptCorrect && isSelected && <span className="text-xs font-bold text-[#006c49] shrink-0">Correct</span>}
                                         {isOptCorrect && !isSelected && <span className="material-symbols-outlined text-[#006c49] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
