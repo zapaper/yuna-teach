@@ -98,6 +98,14 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
   const [showPendingReview, setShowPendingReview] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [assigningPaperId, setAssigningPaperId] = useState<string | null>(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkTab, setLinkTab] = useState<"share" | "enter">("share");
+  const [myCode, setMyCode] = useState<string | null>(null);
+  const [myCodeLoading, setMyCodeLoading] = useState(false);
+  const [enterCode, setEnterCode] = useState("");
+  const [enterLoading, setEnterLoading] = useState(false);
+  const [enterError, setEnterError] = useState("");
+  const [enterSuccess, setEnterSuccess] = useState(false);
 
   // Filters for papers view
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
@@ -160,6 +168,46 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
       .then((data: AdminNotif[]) => { if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); } })
       .catch(() => {});
   }, [userId]);
+
+  // ── Link modal helpers ────────────────────────────────────────────────────
+
+  async function fetchMyCode() {
+    setMyCodeLoading(true);
+    try {
+      let res = await fetch(`/api/invite?userId=${userId}`);
+      let data = await res.json();
+      if (!data.code) {
+        res = await fetch("/api/invite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId }) });
+        data = await res.json();
+      }
+      setMyCode(data.code ?? null);
+    } catch { /* silent */ }
+    finally { setMyCodeLoading(false); }
+  }
+
+  function openLinkModal(tab: "share" | "enter" = "share") {
+    setShowLinkModal(true);
+    setLinkTab(tab);
+    setEnterCode(""); setEnterError(""); setEnterSuccess(false);
+    if (tab === "share" && !myCode) fetchMyCode();
+  }
+
+  async function handleEnterCode() {
+    if (enterCode.length < 6) return;
+    setEnterLoading(true); setEnterError("");
+    try {
+      const res = await fetch("/api/link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: enterCode.toUpperCase(), userId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setEnterError(data.error || "Invalid code"); return; }
+      setEnterSuccess(true);
+      setTimeout(() => { setShowLinkModal(false); router.refresh(); }, 1500);
+    } catch { setEnterError("Something went wrong"); }
+    finally { setEnterLoading(false); }
+  }
 
   // ── Derived metrics ───────────────────────────────────────────────────────
 
@@ -510,6 +558,13 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
         </div>
         <span className="text-sm font-medium text-[#001e40]">Add Student</span>
       </button>
+      <button onClick={() => { setShowStudentMenu(false); openLinkModal("share"); }}
+        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#eff4ff] border-t border-[#c3c6d1]/30">
+        <div className="w-8 h-8 rounded-full bg-[#eff4ff] flex items-center justify-center shrink-0">
+          <span className="material-symbols-outlined text-[#001e40] text-base">link</span>
+        </div>
+        <span className="text-sm font-medium text-[#001e40]">Link Student</span>
+      </button>
     </div>
   );
 
@@ -701,6 +756,73 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
       <QuizModal />
       <FeedbackModal />
       <AdminNotifModal />
+
+      {/* Link Student Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-6" onClick={() => setShowLinkModal(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Link with Student</h3>
+              <button onClick={() => setShowLinkModal(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <span className="material-symbols-outlined text-slate-500 text-base">close</span>
+              </button>
+            </div>
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-5">
+              {(["share", "enter"] as const).map(t => (
+                <button key={t} onClick={() => { setLinkTab(t); if (t === "share" && !myCode) fetchMyCode(); }}
+                  className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${linkTab === t ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500"}`}>
+                  {t === "share" ? "My Code" : "Enter Code"}
+                </button>
+              ))}
+            </div>
+            {linkTab === "share" ? (
+              <div className="text-center">
+                <p className="text-xs text-slate-400 mb-4">Share this code with your student so they can link with you.</p>
+                {myCodeLoading ? (
+                  <div className="h-16 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-slate-200 border-t-[#003366]" />
+                  </div>
+                ) : myCode ? (
+                  <>
+                    <div className="bg-[#eff4ff] rounded-2xl py-5 px-6 mb-4">
+                      <p className="font-mono text-4xl font-extrabold text-[#003366] tracking-[0.3em]">{myCode}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => navigator.clipboard.writeText(myCode)}
+                        className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 flex items-center justify-center gap-1.5">
+                        <span className="material-symbols-outlined text-base">content_copy</span>Copy
+                      </button>
+                      <button onClick={() => { setMyCode(null); fetchMyCode(); }}
+                        className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 flex items-center justify-center gap-1.5">
+                        <span className="material-symbols-outlined text-base">refresh</span>Refresh
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-300 mt-3">Code expires in 24 hours</p>
+                  </>
+                ) : (
+                  <button onClick={fetchMyCode} className="px-6 py-3 rounded-xl bg-[#003366] text-white text-sm font-bold">Generate Code</button>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-slate-400 mb-3">Enter the code from your student.</p>
+                <div className="flex gap-2 mb-3">
+                  <input type="text" value={enterCode}
+                    onChange={e => { setEnterCode(e.target.value.toUpperCase()); setEnterError(""); }}
+                    placeholder="XXXXXX" maxLength={6}
+                    className="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#003366] focus:outline-none text-center font-mono text-2xl tracking-widest uppercase" />
+                  <button onClick={handleEnterCode} disabled={enterLoading || enterCode.length < 6}
+                    className="px-5 rounded-xl bg-[#003366] text-white font-bold disabled:opacity-50">
+                    {enterLoading ? "..." : "Link"}
+                  </button>
+                </div>
+                {enterError && <p className="text-xs text-red-500">{enterError}</p>}
+                {enterSuccess && <p className="text-xs text-[#006c49] font-semibold">Linked successfully!</p>}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Pending Review modal */}
       {showPendingReview && (

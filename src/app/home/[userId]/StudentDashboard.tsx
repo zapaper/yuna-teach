@@ -114,11 +114,14 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
-  const [connectCode, setConnectCode] = useState("");
-  const [connecting, setConnecting] = useState(false);
-  const [connectError, setConnectError] = useState("");
-  const [connectSuccess, setConnectSuccess] = useState("");
-  const [showConnect, setShowConnect] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkTab, setLinkTab] = useState<"share" | "enter">("share");
+  const [myCode, setMyCode] = useState<string | null>(null);
+  const [myCodeLoading, setMyCodeLoading] = useState(false);
+  const [enterCode, setEnterCode] = useState("");
+  const [enterLoading, setEnterLoading] = useState(false);
+  const [enterError, setEnterError] = useState("");
+  const [enterSuccess, setEnterSuccess] = useState(false);
   const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz">("home");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
@@ -153,20 +156,42 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
     }
   }, [tests, examPapers, user.name]);
 
-  async function handleConnect() {
-    if (connectCode.length < 6) return;
-    setConnecting(true); setConnectError(""); setConnectSuccess("");
+  async function fetchMyCode() {
+    setMyCodeLoading(true);
     try {
-      const res = await fetch("/api/link-student", {
+      let res = await fetch(`/api/invite?userId=${userId}`);
+      let data = await res.json();
+      if (!data.code) {
+        res = await fetch("/api/invite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId }) });
+        data = await res.json();
+      }
+      setMyCode(data.code ?? null);
+    } catch { /* silent */ }
+    finally { setMyCodeLoading(false); }
+  }
+
+  function openLinkModal(tab: "share" | "enter" = "share") {
+    setShowLinkModal(true);
+    setLinkTab(tab);
+    setEnterCode(""); setEnterError(""); setEnterSuccess(false);
+    if (tab === "share" && !myCode) fetchMyCode();
+  }
+
+  async function handleEnterCode() {
+    if (enterCode.length < 6) return;
+    setEnterLoading(true); setEnterError("");
+    try {
+      const res = await fetch("/api/link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ studentId: userId, code: connectCode }),
+        body: JSON.stringify({ code: enterCode.toUpperCase(), userId }),
       });
       const data = await res.json();
-      if (!res.ok) { setConnectError(data.error || "Invalid code"); return; }
-      setConnectSuccess("Linked successfully!"); setShowConnect(false);
-    } catch { setConnectError("Something went wrong"); }
-    finally { setConnecting(false); }
+      if (!res.ok) { setEnterError(data.error || "Invalid code"); return; }
+      setEnterSuccess(true);
+      setTimeout(() => { setShowLinkModal(false); router.refresh(); }, 1500);
+    } catch { setEnterError("Something went wrong"); }
+    finally { setEnterLoading(false); }
   }
 
   async function handleDeleteTest(e: React.MouseEvent, testId: string) {
@@ -258,11 +283,20 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
               <span className="material-symbols-outlined text-base">play_circle</span>
               Start Learning
             </button>
-            {!hasParent && (
-              <button onClick={() => setShowConnect(!showConnect)}
+            {!hasParent ? (
+              <button onClick={() => openLinkModal("share")}
                 className="w-full mt-2 py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
-                Connect to Parent
+                Link Parent
               </button>
+            ) : (
+              <div className="mt-2 px-1">
+                {user.linkedParents.map(p => (
+                  <div key={p.id} className="flex items-center gap-2 py-1.5">
+                    <span className="material-symbols-outlined text-[#006c49] text-sm">family_restroom</span>
+                    <span className="text-xs text-[#003366] font-medium truncate">{p.name}</span>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </aside>
@@ -315,24 +349,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
             </div>
           </header>
 
-          {/* Connect to parent panel */}
-          {showConnect && (
-            <div className="mb-6 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm max-w-md">
-              <p className="text-xs text-slate-400 mb-2">Enter the code from your parent</p>
-              <div className="flex gap-2">
-                <input type="text" value={connectCode}
-                  onChange={e => { setConnectCode(e.target.value.toUpperCase()); setConnectError(""); }}
-                  placeholder="Enter code" maxLength={6}
-                  className="flex-1 px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#003366] focus:outline-none text-center font-mono text-lg tracking-widest uppercase" />
-                <button onClick={handleConnect} disabled={connecting || connectCode.length < 6}
-                  className="px-5 py-2.5 rounded-xl bg-[#003366] text-white font-semibold disabled:opacity-50">
-                  {connecting ? "..." : "Link"}
-                </button>
-              </div>
-              {connectError && <p className="text-xs text-red-500 mt-2">{connectError}</p>}
-              {connectSuccess && <p className="text-xs text-green-600 mt-2">{connectSuccess}</p>}
-            </div>
-          )}
 
           {/* Bento Grid */}
           <div className="grid grid-cols-12 gap-6">
@@ -494,10 +510,10 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           <div className="flex items-center gap-2">
             {!hasParent && (
               <button
-                onClick={() => setShowConnect(!showConnect)}
+                onClick={() => openLinkModal("share")}
                 className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full"
               >
-                Connect to Parent
+                Link Parent
               </button>
             )}
             <div className="relative">
@@ -526,28 +542,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
       {/* ── Main Content ─────────────────────────────────────────────────────── */}
       <main className="mt-20 px-6 max-w-lg mx-auto">
 
-        {/* Connect to parent panel */}
-        {showConnect && (
-          <div className="mb-4 bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-400 mb-2">Enter the code from your parent</p>
-            <div className="flex gap-2">
-              <input
-                type="text" value={connectCode}
-                onChange={e => { setConnectCode(e.target.value.toUpperCase()); setConnectError(""); }}
-                placeholder="Enter code" maxLength={6}
-                className="flex-1 px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-[#003366] focus:outline-none text-center font-mono text-lg tracking-widest uppercase"
-              />
-              <button
-                onClick={handleConnect} disabled={connecting || connectCode.length < 6}
-                className="px-5 py-2.5 rounded-xl bg-[#003366] text-white font-semibold disabled:opacity-50"
-              >
-                {connecting ? "..." : "Link"}
-              </button>
-            </div>
-            {connectError && <p className="text-xs text-red-500 mt-2">{connectError}</p>}
-            {connectSuccess && <p className="text-xs text-green-600 mt-2">{connectSuccess}</p>}
-          </div>
-        )}
 
         {/* ── Student Profile Header ──────────────────────────────────────── */}
         <header className="mb-8 pt-4">
@@ -599,6 +593,24 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
               </span>
             )}
           </div>
+
+          {/* Linked parents or link button */}
+          {hasParent ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {user.linkedParents.map(p => (
+                <span key={p.id} className="flex items-center gap-1.5 bg-[#e8f5e9] text-[#006c49] border border-[#006c49]/20 px-3 py-1 rounded-full text-xs font-semibold">
+                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>family_restroom</span>
+                  {p.name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <button onClick={() => openLinkModal("share")}
+              className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[#003366] bg-[#eff4ff] border border-[#003366]/10 px-4 py-2 rounded-full">
+              <span className="material-symbols-outlined text-sm">link</span>
+              Link Parent
+            </button>
+          )}
         </header>
 
         {/* ── Primary Action Buttons ──────────────────────────────────────── */}
@@ -829,6 +841,74 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 {creatingQuiz ? "Creating..." : "Start Quiz"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Link Parent Modal ────────────────────────────────────────────── */}
+      {showLinkModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-6" onClick={() => setShowLinkModal(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-headline font-extrabold text-lg text-[#003366]">Link with Parent</h3>
+              <button onClick={() => setShowLinkModal(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <span className="material-symbols-outlined text-slate-500 text-base">close</span>
+              </button>
+            </div>
+            {/* Tabs */}
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-5">
+              {(["share", "enter"] as const).map(t => (
+                <button key={t} onClick={() => { setLinkTab(t); if (t === "share" && !myCode) fetchMyCode(); }}
+                  className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${linkTab === t ? "bg-white text-[#003366] shadow-sm" : "text-slate-500"}`}>
+                  {t === "share" ? "My Code" : "Enter Code"}
+                </button>
+              ))}
+            </div>
+            {linkTab === "share" ? (
+              <div className="text-center">
+                <p className="text-xs text-slate-400 mb-4">Share this code with your parent so they can link with you.</p>
+                {myCodeLoading ? (
+                  <div className="h-16 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-slate-200 border-t-[#003366]" />
+                  </div>
+                ) : myCode ? (
+                  <>
+                    <div className="bg-[#eff4ff] rounded-2xl py-5 px-6 mb-4">
+                      <p className="font-mono text-4xl font-extrabold text-[#003366] tracking-[0.3em]">{myCode}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => navigator.clipboard.writeText(myCode)}
+                        className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 flex items-center justify-center gap-1.5">
+                        <span className="material-symbols-outlined text-base">content_copy</span>Copy
+                      </button>
+                      <button onClick={() => { setMyCode(null); fetchMyCode(); }}
+                        className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 flex items-center justify-center gap-1.5">
+                        <span className="material-symbols-outlined text-base">refresh</span>Refresh
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-slate-300 mt-3">Code expires in 24 hours</p>
+                  </>
+                ) : (
+                  <button onClick={fetchMyCode} className="px-6 py-3 rounded-xl bg-[#003366] text-white text-sm font-bold">Generate Code</button>
+                )}
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-slate-400 mb-3">Enter the code from your parent.</p>
+                <div className="flex gap-2 mb-3">
+                  <input type="text" value={enterCode}
+                    onChange={e => { setEnterCode(e.target.value.toUpperCase()); setEnterError(""); }}
+                    placeholder="XXXXXX" maxLength={6}
+                    className="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#003366] focus:outline-none text-center font-mono text-2xl tracking-widest uppercase" />
+                  <button onClick={handleEnterCode} disabled={enterLoading || enterCode.length < 6}
+                    className="px-5 rounded-xl bg-[#003366] text-white font-bold disabled:opacity-50">
+                    {enterLoading ? "..." : "Link"}
+                  </button>
+                </div>
+                {enterError && <p className="text-xs text-red-500">{enterError}</p>}
+                {enterSuccess && <p className="text-xs text-[#006c49] font-semibold">Linked successfully!</p>}
+              </div>
+            )}
           </div>
         </div>
       )}
