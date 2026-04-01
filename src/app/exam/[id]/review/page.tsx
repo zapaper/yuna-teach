@@ -323,8 +323,28 @@ function ExamReviewContent({ id }: { id: string }) {
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
       {/* ── Top bar ── */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm">
-        <div className="flex items-center justify-between px-4 lg:px-8 py-3 max-w-5xl mx-auto">
+      <header className="fixed top-0 w-full z-50 bg-[#f8f9ff] backdrop-blur-xl shadow-sm">
+        {/* Mobile: centered title */}
+        <div className="lg:hidden flex items-center justify-between px-4 h-16">
+          <button
+            onClick={() => router.push(backPath)}
+            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors"
+          >
+            <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
+          </button>
+          <h1 className="font-headline font-bold text-lg text-[#001e40]">Quiz Review</h1>
+          {!isQuiz ? (
+            <button
+              onClick={downloadPdf}
+              disabled={downloading}
+              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[#001e40]">download</span>
+            </button>
+          ) : <div className="w-10" />}
+        </div>
+        {/* Desktop: left-aligned with title + download */}
+        <div className="hidden lg:flex items-center justify-between px-8 py-3 max-w-5xl mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => router.push(backPath)}
@@ -341,7 +361,7 @@ function ExamReviewContent({ id }: { id: string }) {
               className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#c3c6d1] text-sm font-semibold text-[#43474f] hover:bg-[#eff4ff] transition-colors disabled:opacity-50 shrink-0"
             >
               <span className="material-symbols-outlined text-base">download</span>
-              <span className="hidden sm:inline">{downloading ? "Downloading…" : "Download"}</span>
+              {downloading ? "Downloading…" : "Download"}
             </button>
           )}
         </div>
@@ -350,39 +370,78 @@ function ExamReviewContent({ id }: { id: string }) {
       <div className="pt-16 pb-24 max-w-5xl mx-auto px-4 lg:px-8">
 
         {/* ── Hero Score Section ── */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 my-6 lg:my-10">
-          {/* Large score card */}
-          <div className="md:col-span-2 bg-white rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 lg:gap-8 relative overflow-hidden shadow-sm">
+        {/* Mobile: compact single card */}
+        <section className="mt-5 mb-5 lg:hidden">
+          <div className="bg-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#003366]/5 rounded-full blur-2xl" />
+            <div className="flex items-center gap-5">
+              {/* Circular progress ring */}
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center shrink-0"
+                style={{
+                  background: `radial-gradient(closest-side, white 78%, transparent 0% 100%), conic-gradient(${scoreBorderColor} ${pct ?? 0}%, #dce9ff 0)`,
+                }}
+              >
+                <span className="font-headline font-extrabold text-xl" style={{ color: scoreTextColor }}>
+                  {pct !== null ? `${pct}%` : `${data.score ?? 0}`}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="font-headline font-bold text-xl text-[#001e40]">
+                  {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
+                </h2>
+                <p className="text-sm text-[#43474f] font-medium mt-0.5">
+                  {pct !== null ? `${data.score ?? 0} / ${totalMarks} marks` : paperTitle}
+                </p>
+                <div className="flex gap-2 flex-wrap mt-2">
+                  <span className="px-3 py-1 bg-[#eff4ff] rounded-full text-[10px] font-bold text-[#001e40]">{writtenQuestions.length} Qs</span>
+                  <span className="px-3 py-1 bg-[#ffdad6] rounded-full text-[10px] font-bold text-[#ba1a1a]">{incorrectQuestions.length} to review</span>
+                </div>
+              </div>
+            </div>
+            {data.feedbackSummary && isStudent && (
+              <p className="text-sm text-[#43474f] leading-relaxed mt-4 line-clamp-3">{data.feedbackSummary}</p>
+            )}
+            {data.feedbackSummary && !isStudent && (
+              <details className="mt-4">
+                <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer select-none">Summary</summary>
+                <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2">{data.feedbackSummary}</p>
+              </details>
+            )}
+          </div>
+        </section>
+
+        {/* Desktop: bento grid */}
+        <section className="hidden lg:grid grid-cols-3 gap-6 my-10">
+          <div className="col-span-2 bg-white rounded-3xl p-8 flex flex-row items-center gap-8 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-            {/* Score circle */}
             <div
-              className="relative z-10 flex flex-col items-center justify-center w-36 h-36 lg:w-44 lg:h-44 rounded-full shrink-0"
+              className="relative z-10 flex flex-col items-center justify-center w-44 h-44 rounded-full shrink-0"
               style={{ border: `10px solid ${scoreBorderColor}` }}
             >
-              <span className="font-headline text-4xl lg:text-5xl font-extrabold" style={{ color: scoreTextColor }}>
+              <span className="font-headline text-5xl font-extrabold" style={{ color: scoreTextColor }}>
                 {pct !== null ? `${pct}%` : `${data.score ?? 0}`}
               </span>
               <span className="text-xs font-medium text-[#43474f] mt-1">
                 {pct !== null ? `${data.score ?? 0} / ${totalMarks}` : "Score"}
               </span>
             </div>
-            {/* Text */}
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="font-headline text-2xl lg:text-3xl font-extrabold text-[#001e40] mb-2">
+            <div className="flex-1">
+              <h1 className="font-headline text-3xl font-extrabold text-[#001e40] mb-2">
                 {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
               </h1>
               {data.feedbackSummary ? (
                 isStudent ? (
                   <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line line-clamp-3 mb-4">{data.feedbackSummary}</p>
                 ) : (
-                  <details className="text-left mb-4">
+                  <details className="mb-4">
                     <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none">Summary</summary>
                     <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2">{data.feedbackSummary}</p>
                   </details>
                 )
               ) : null}
               {data.bookletScores && data.bookletScores.length > 0 && (
-                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                <div className="flex flex-wrap gap-3">
                   {data.bookletScores.map((b) => (
                     <span key={b.label} className="px-3 py-1 bg-[#eff4ff] rounded-full text-xs font-bold text-[#001e40]">
                       {b.label}: {b.awarded}/{b.available}
@@ -392,8 +451,6 @@ function ExamReviewContent({ id }: { id: string }) {
               )}
             </div>
           </div>
-
-          {/* Quick stats */}
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-3xl p-5 flex items-center gap-4 shadow-sm flex-1">
               <div className="w-12 h-12 rounded-2xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0">
@@ -459,9 +516,9 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         ) : (
           <div>
-            {/* Navigation header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40]">Question Review</h2>
+            {/* Navigation header — desktop */}
+            <div className="hidden lg:flex items-center justify-between mb-4">
+              <h2 className="font-headline text-2xl font-extrabold text-[#001e40]">Question Review</h2>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => { setCurrentIdx((i) => Math.max(0, i - 1)); setSubmissionPageOverride(null); }}
@@ -482,6 +539,30 @@ function ExamReviewContent({ id }: { id: string }) {
                 </button>
               </div>
             </div>
+
+            {/* Navigation — mobile: prominent centered style */}
+            <nav className="lg:hidden flex items-center justify-between px-2 mb-4">
+              <button
+                onClick={() => { setCurrentIdx((i) => Math.max(0, i - 1)); setSubmissionPageOverride(null); }}
+                disabled={currentIdx === 0}
+                className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#eff4ff] text-[#001e40] hover:scale-105 transition-transform disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined">chevron_left</span>
+              </button>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-bold text-[#43474f] tracking-[0.2em] uppercase mb-1">Question</span>
+                <span className="font-headline font-extrabold text-2xl text-[#001e40]">
+                  {currentIdx + 1} <span className="text-[#43474f] font-medium text-lg">of {displayQuestions.length}</span>
+                </span>
+              </div>
+              <button
+                onClick={() => { setCurrentIdx((i) => Math.min(displayQuestions.length - 1, i + 1)); setSubmissionPageOverride(null); }}
+                disabled={currentIdx === displayQuestions.length - 1}
+                className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#eff4ff] text-[#001e40] hover:scale-105 transition-transform disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span className="material-symbols-outlined">chevron_right</span>
+              </button>
+            </nav>
 
             {/* Current question card */}
             {currentQ && (() => {
@@ -696,9 +777,12 @@ function ExamReviewContent({ id }: { id: string }) {
                           <div>
                             {elaborations[currentQ.id] ? (
                               <div>
-                                {/* Glass insight panel */}
-                                <div className="p-4 lg:p-5 bg-white/70 backdrop-blur-md rounded-2xl border border-white/40 shadow-sm flex gap-3 items-start mb-4">
-                                  <div className="w-10 h-10 rounded-xl bg-[#001e40] text-white flex items-center justify-center shrink-0">
+                                {/* AI insight panel — amber left border on mobile, glass on desktop */}
+                                <div className="p-4 lg:p-5 bg-white rounded-2xl shadow-sm flex gap-3 items-start mb-4 border-l-4 border-[#ffb952] lg:border-l-0 lg:bg-white/70 lg:backdrop-blur-md lg:border lg:border-white/40">
+                                  <div className="mt-0.5 p-1.5 bg-[#ffddb4] rounded-lg lg:hidden">
+                                    <span className="material-symbols-outlined text-[#633f00] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
+                                  </div>
+                                  <div className="w-10 h-10 rounded-xl bg-[#001e40] text-white items-center justify-center shrink-0 hidden lg:flex">
                                     <span className="material-symbols-outlined text-base">psychology</span>
                                   </div>
                                   <div>
@@ -741,9 +825,9 @@ function ExamReviewContent({ id }: { id: string }) {
                               <button
                                 onClick={() => fetchElaboration(currentQ.id)}
                                 disabled={elaborating === currentQ.id}
-                                className="w-full bg-[#003366] hover:bg-[#001e40] text-white py-4 px-6 rounded-2xl flex items-center justify-center gap-3 font-headline font-semibold transition-all shadow-sm disabled:opacity-50"
+                                className="w-full h-14 bg-gradient-to-r from-[#001e40] to-[#003366] hover:from-[#003366] hover:to-[#001e40] text-white rounded-2xl flex items-center justify-center gap-3 font-headline font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
                               >
-                                <span className="material-symbols-outlined">lightbulb</span>
+                                <span className="material-symbols-outlined">psychology_alt</span>
                                 {elaborating === currentQ.id ? (
                                   <span className="flex items-center gap-2">
                                     <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
@@ -762,12 +846,19 @@ function ExamReviewContent({ id }: { id: string }) {
                       <button
                         onClick={() => toggleFlag(currentQ.id)}
                         disabled={flagging === currentQ.id}
-                        className={`flex flex-col items-center gap-1 transition-colors disabled:opacity-50 ${
-                          flaggedIds.has(currentQ.id) ? "text-[#ba1a1a]" : "text-[#43474f] hover:text-[#001e40]"
+                        className={`flex flex-col items-center gap-1 transition-all disabled:opacity-50 group ${
+                          flaggedIds.has(currentQ.id) ? "text-[#ba1a1a]" : "text-[#43474f] opacity-60 hover:opacity-100 hover:text-[#001e40]"
                         }`}
                       >
+                        {/* Triangle on mobile, flag on desktop */}
                         <span
-                          className="material-symbols-outlined text-3xl"
+                          className="material-symbols-outlined text-3xl lg:hidden transform rotate-180"
+                          style={flaggedIds.has(currentQ.id) ? { fontVariationSettings: "'FILL' 1" } : {}}
+                        >
+                          change_history
+                        </span>
+                        <span
+                          className="material-symbols-outlined text-3xl hidden lg:block"
                           style={flaggedIds.has(currentQ.id) ? { fontVariationSettings: "'FILL' 1" } : {}}
                         >
                           flag
