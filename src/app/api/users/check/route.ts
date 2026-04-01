@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   }
 
   const existing = await prisma.user.findFirst({
-    where: { name: { equals: name, mode: "insensitive" }, role: "STUDENT" },
+    where: { name: { equals: name, mode: "insensitive" } },
   });
 
   return NextResponse.json({ available: !existing });

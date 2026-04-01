@@ -222,12 +222,12 @@ export default function LoginPage() {
                   <input
                     type="text"
                     value={signupName}
-                    onChange={e => { setSignupName(e.target.value); if (tab === "student") checkName(e.target.value); }}
+                    onChange={e => { setSignupName(e.target.value); checkName(e.target.value); }}
                     placeholder="Choose a username"
                     className="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary-container text-on-surface outline-none"
                   />
                 </div>
-                {tab === "student" && signupName.trim() && (
+                {signupName.trim() && (
                   <p className={`text-xs ml-1 ${checkingName ? "text-outline-variant" : nameAvailable === true ? "text-secondary" : nameAvailable === false ? "text-error" : "text-outline-variant"}`}>
                     {checkingName ? "Checking…" : nameAvailable === true ? "Username available ✓" : nameAvailable === false ? "Username is taken" : ""}
                   </p>
