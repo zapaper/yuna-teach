@@ -127,7 +127,11 @@ export default function LoginPage() {
         return;
       }
       const user = await res.json();
-      router.push(`/home/${user.id}`);
+      if (tab === "parent") {
+        router.push(`/register/student?parentId=${user.id}`);
+      } else {
+        router.push(`/home/${user.id}`);
+      }
     } catch {
       setSignupError("Something went wrong. Please try again.");
     } finally {

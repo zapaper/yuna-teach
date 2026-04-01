@@ -245,9 +245,9 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
     ?? recActions.find(r => r.type === "focused-gap");
 
   const insightForCard = aiInsight
-    || (avgScore !== null
-      ? `${selectedStudent?.name ?? "Your child"} has averaged ${avgScore}% across ${completedPapers.length} completed ${completedPapers.length === 1 ? "paper" : "papers"}.`
-      : `Welcome! Start by assigning a past-year paper or a focused practice test.`);
+    || (completedPapers.length === 0
+      ? `Start assigning a daily quiz for AI to diagnose ${selectedStudent?.name ?? "your child"}'s strengths and gaps.`
+      : `${selectedStudent?.name ?? "Your child"} has averaged ${avgScore}% across ${completedPapers.length} completed ${completedPapers.length === 1 ? "paper" : "papers"}.`);
 
   // Weekly schedule helpers
   const todayDate = new Date();
@@ -283,14 +283,91 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
           <span className="material-symbols-outlined text-white text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>family_restroom</span>
         </div>
         <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">No Student Linked Yet</h2>
-        <p className="text-[#43474f] mb-6 max-w-xs text-sm leading-relaxed">Create your child&apos;s account to start tracking their progress and assigning practice papers.</p>
-        <button
-          onClick={() => window.open(`/register/student?parentId=${userId}`, "_blank")}
-          className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg"
-        >
-          Add Student
-        </button>
-        <Link href="/" className="mt-4 text-sm text-[#43474f] underline">Back to home</Link>
+        <p className="text-[#43474f] mb-6 max-w-xs text-sm leading-relaxed">Create your child&apos;s account or link an existing one to get started.</p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <button
+            onClick={() => router.push(`/register/student?parentId=${userId}`)}
+            className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">person_add</span>
+            Create Student Account
+          </button>
+          <button
+            onClick={() => openLinkModal("share")}
+            className="px-6 py-3 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">link</span>
+            Link Existing Student
+          </button>
+        </div>
+        <Link href="/" className="mt-6 text-sm text-[#43474f] underline">Back to home</Link>
+
+        {/* Link modal */}
+        {showLinkModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-6" onClick={() => setShowLinkModal(false)}>
+            <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Link with Student</h3>
+                <button onClick={() => setShowLinkModal(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-slate-500 text-base">close</span>
+                </button>
+              </div>
+              <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-5">
+                {(["share", "enter"] as const).map(t => (
+                  <button key={t} onClick={() => { setLinkTab(t); if (t === "share" && !myCode) fetchMyCode(); }}
+                    className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${linkTab === t ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500"}`}>
+                    {t === "share" ? "My Code" : "Enter Code"}
+                  </button>
+                ))}
+              </div>
+              {linkTab === "share" ? (
+                <div className="text-center">
+                  <p className="text-xs text-slate-400 mb-4">Share this code with your student so they can link with you.</p>
+                  {myCodeLoading ? (
+                    <div className="h-16 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-2 border-slate-200 border-t-[#003366]" />
+                    </div>
+                  ) : myCode ? (
+                    <>
+                      <div className="bg-[#eff4ff] rounded-2xl py-5 px-6 mb-4">
+                        <p className="font-mono text-4xl font-extrabold text-[#003366] tracking-[0.3em]">{myCode}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => navigator.clipboard.writeText(myCode)}
+                          className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 flex items-center justify-center gap-1.5">
+                          <span className="material-symbols-outlined text-base">content_copy</span>Copy
+                        </button>
+                        <button onClick={() => { setMyCode(null); fetchMyCode(); }}
+                          className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 flex items-center justify-center gap-1.5">
+                          <span className="material-symbols-outlined text-base">refresh</span>Refresh
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-300 mt-3">Code expires in 24 hours</p>
+                    </>
+                  ) : (
+                    <button onClick={fetchMyCode} className="px-6 py-3 rounded-xl bg-[#003366] text-white text-sm font-bold">Generate Code</button>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <p className="text-xs text-slate-400 mb-3">Enter the code from your student.</p>
+                  <div className="flex gap-2 mb-3">
+                    <input type="text" value={enterCode}
+                      onChange={e => { setEnterCode(e.target.value.toUpperCase()); setEnterError(""); }}
+                      placeholder="XXXXXX" maxLength={6}
+                      className="flex-1 px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#003366] focus:outline-none text-center font-mono text-2xl tracking-widest uppercase" />
+                    <button onClick={handleEnterCode} disabled={enterLoading || enterCode.length < 6}
+                      className="px-5 rounded-xl bg-[#003366] text-white font-bold disabled:opacity-50">
+                      {enterLoading ? "..." : "Link"}
+                    </button>
+                  </div>
+                  {enterError && <p className="text-xs text-red-500">{enterError}</p>}
+                  {enterSuccess && <p className="text-xs text-[#006c49] font-semibold">Linked! Refreshing...</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

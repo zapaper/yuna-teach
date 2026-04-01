@@ -68,12 +68,12 @@ function RegisterStudentContent() {
         return;
       }
       const user = await res.json();
-      // Notify parent window to refresh
-      if (window.opener) {
-        window.opener.postMessage({ type: "student-linked", parentId }, "*");
+      // If opened from parent flow, go back to parent dashboard (which now has the linked student)
+      if (parentId) {
+        router.push(`/home/${parentId}`);
+      } else {
+        router.push(`/home/${user.id}`);
       }
-      // Navigate to the student's home page
-      router.push(`/home/${user.id}`);
     } catch {
       setError("Something went wrong");
     } finally {
