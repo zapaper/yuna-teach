@@ -495,7 +495,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
     <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowQuiz(false)}>
       <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-4">Assign Daily Quiz</h3>
-        {user.linkedStudents.length > 1 && (
+        {user.linkedStudents.length >= 1 && (
           <>
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Student</p>
             <div className="flex gap-2 mb-4 flex-wrap">
@@ -959,7 +959,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
               <p className="text-xs text-[#43474f] font-medium">Monitoring Progress</p>
               <p className="font-headline font-extrabold text-[#001e40] text-sm truncate">{selectedStudent?.name ?? "—"}</p>
             </div>
-            {user.linkedStudents.length > 1 && (
+            {user.linkedStudents.length >= 1 && (
               <button onClick={() => setShowStudentMenu(!showStudentMenu)} className="w-7 h-7 rounded-full bg-white/60 flex items-center justify-center hover:bg-white">
                 <span className="material-symbols-outlined text-[#001e40] text-sm">expand_more</span>
               </button>
@@ -1278,7 +1278,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                     <p className="text-[#43474f] text-sm font-medium">Monitoring Progress</p>
                     <h2 className="font-headline font-extrabold text-2xl text-[#001e40] tracking-tight">{selectedStudent?.name ?? "—"}</h2>
                   </div>
-                  {user.linkedStudents.length > 1 && (
+                  {user.linkedStudents.length >= 1 && (
                     <button onClick={() => setShowStudentMenu(!showStudentMenu)}
                       className="ml-auto w-10 h-10 rounded-full bg-[#eff4ff] flex items-center justify-center hover:bg-[#dce9ff] transition-colors">
                       <span className="material-symbols-outlined text-[#001e40]">expand_more</span>
