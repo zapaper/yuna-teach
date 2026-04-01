@@ -69,8 +69,9 @@ export async function GET(req: NextRequest) {
         },
       }),
       prisma.examPaper.findMany({
-        where: { assignedToId: student.id, paperType: "focused", createdAt: { gte: new Date(Date.now() - 14 * 86400000) } },
-        select: { title: true },
+        where: { assignedToId: student.id, paperType: "focused", completedAt: { not: null }, createdAt: { gte: new Date(Date.now() - 14 * 86400000) } },
+        select: { title: true, score: true, totalMarks: true, markingStatus: true },
+        orderBy: { completedAt: "desc" },
       }),
       prisma.examPaper.count({
         where: { assignedToId: student.id, paperType: "quiz", completedAt: { not: null }, createdAt: { gte: new Date(Date.now() - 7 * 86400000) } },
@@ -78,7 +79,7 @@ export async function GET(req: NextRequest) {
     ]);
 
     const recentFocusedTopics = new Set(
-      recentFocused.map(f => f.title.replace(/^P\d+ Focused: /, "").replace(/^Focused: /, ""))
+      recentFocused.map(f => f.title.replace(/^P\d+\s+Focused:\s*/, "").replace(/^Focused:\s*/, ""))
     );
 
     const topicPerf: Record<string, Record<string, { earned: number; available: number }>> = {};
@@ -121,7 +122,19 @@ export async function GET(req: NextRequest) {
     if (allWeakBySubject.length > 0) summary += ` Weak topics: ${allWeakBySubject.map(g => `${g.subject}: ${g.topics.join(", ")}`).join("; ")}.`;
     else summary += " No significant gaps.";
     summary += ` ${recentQuizCount} quizzes this week.`;
-    if (recentFocused.length > 0) summary += ` Recent focused practice: ${recentFocused.map(f => f.title).join(", ")}.`;
+    if (recentFocused.length > 0) {
+      const focusedLines = recentFocused.map(f => {
+        const topic = f.title.replace(/^P\d+ Focused: /, "").replace(/^Focused: /, "");
+        if (f.score !== null && f.totalMarks) {
+          const total = parseFloat(f.totalMarks);
+          const pct = total > 0 ? Math.round((f.score / total) * 100) : null;
+          const verdict = pct === null ? "" : pct >= 80 ? " (did well)" : pct >= 60 ? " (improving)" : " (needs more practice)";
+          return `${topic}${pct !== null ? ` — ${pct}%${verdict}` : ""}`;
+        }
+        return topic;
+      });
+      summary += ` Recent focused practice: ${focusedLines.join("; ")}.`;
+    }
     studentSummaries.push(summary);
 
     if (gaps.length > 0) {
@@ -157,9 +170,10 @@ ${examContext ? `Note: ${examContext}` : ""}
 
 Rules:
 - 2-3 sentences only — no greetings, no sign-offs
+- If the student recently completed focused practice, comment on how they did (e.g. "did well", "improving", "needs more practice") and encourage the parent to praise or motivate them
 - Mention specific topic names from the diagnostic — do not be vague
-- If there are weak topics, name them and suggest focused practice
-- If performing well, acknowledge it and suggest a daily quiz to maintain momentum
+- If there are weak topics not yet practised, name them and suggest focused practice
+- If performing well overall, acknowledge it and suggest a daily quiz to maintain momentum
 - Use **double asterisks** around the child's name and topic names to bold them
 - No bullet points, no numbered lists, no markdown other than **bold**`
       : `You are a warm AI tutor assistant for ${parentName}, a Singapore primary school parent.
@@ -170,10 +184,11 @@ ${examContext ? `Note: ${examContext}` : ""}
 
 Write a warm, conversational check-in message of 3-4 flowing sentences. Do NOT number the sentences.
 
-Start by greeting ${parentName} with "Good ${timeOfDay}". Naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review.
+Start by greeting ${parentName} with "Good ${timeOfDay}". If any student recently completed focused practice, mention how they did and encourage the parent to praise them. Naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review.
 
 Rules:
 - No bullet points, no numbered lists
+- If recent focused practice results are available, always comment on performance and suggest the parent encourage the child
 - Mention specific topic names from the diagnostic — do not be vague
 - Use **double asterisks** around student names and topic names to bold them
 - No other markdown or formatting`;
