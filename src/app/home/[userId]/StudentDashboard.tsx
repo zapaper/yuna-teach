@@ -568,30 +568,31 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           <p className="text-[#43474f] mt-1 text-sm mb-4">Let&apos;s improve your score together.</p>
 
           {/* Badges */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {quizBadge && quizBadge.streak > 0 && (
-              <button
-                onClick={() => { setBadgeToast(true); setTimeout(() => setBadgeToast(false), 2500); }}
-                className="flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-100 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm"
-              >
-                <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                {quizBadge.streak}-Day Streak
-              </button>
-            )}
-            {quizBadge && (
-              <button
-                onClick={() => { setBadgeToast(true); setTimeout(() => setBadgeToast(false), 2500); }}
-                className="flex items-center gap-1.5 bg-yellow-400 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-sm"
-              >
-                <img src={quizBadge.image} alt={quizBadge.badge} className="w-4 h-4 object-contain" />
-                {quizBadge.badge}
-              </button>
-            )}
-            {badgeToast && quizBadge && (
-              <span className="text-xs font-medium text-[#003366] animate-fade-in-up">
-                {quizBadge.badge}: completed {quizBadge.count} quizzes
-              </span>
-            )}
+          <div className="flex items-center gap-3 flex-wrap">
+            {quizBadge ? (
+              <>
+                <button
+                  onClick={() => { setBadgeToast(true); setTimeout(() => setBadgeToast(false), 2500); }}
+                  className="flex items-center gap-2 bg-amber-50 text-amber-800 border border-amber-200 px-4 py-2.5 rounded-2xl font-bold shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+                  <div className="text-left">
+                    <p className="text-lg font-extrabold leading-none">{quizBadge.streak}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide opacity-70">Day Streak</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => { setBadgeToast(true); setTimeout(() => setBadgeToast(false), 2500); }}
+                  className="flex items-center gap-2 bg-yellow-400 text-white px-4 py-2.5 rounded-2xl font-bold shadow-sm"
+                >
+                  <img src={quizBadge.image} alt={quizBadge.badge} className="w-7 h-7 object-contain" />
+                  <div className="text-left">
+                    <p className="text-sm font-extrabold leading-none">{quizBadge.badge}</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80">{quizBadge.count} quizzes</p>
+                  </div>
+                </button>
+              </>
+            ) : null}
           </div>
 
           {/* Linked parents or link button */}

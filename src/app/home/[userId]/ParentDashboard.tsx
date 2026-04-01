@@ -489,7 +489,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
           </>
         ) : (
           <>
-            <h3 className="font-headline font-extrabold text-[#001e40] mb-4">Feedback / Support</h3>
+            <h3 className="font-headline font-extrabold text-[#001e40] mb-4">Give Feedback</h3>
             <textarea value={feedbackMsg} onChange={e => setFeedbackMsg(e.target.value)}
               placeholder="Tell us what you think or what you'd like to see..."
               rows={4} className="w-full border border-[#c3c6d1] rounded-xl px-3 py-2 text-sm resize-none focus:outline-none focus:border-[#003366] mb-3" />
@@ -917,8 +917,11 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
             <span>Settings</span>
           </Link>
           <button onClick={() => setShowFeedback(true)} className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
-            <span className="material-symbols-outlined text-xl">help</span>
-            <span>Support</span>
+            <span className="material-symbols-outlined text-xl">feedback</span>
+            <div className="text-left">
+              <span className="block text-sm font-medium leading-tight">Give Feedback</span>
+              <span className="block text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Beta</span>
+            </div>
           </button>
         </div>
       </aside>
