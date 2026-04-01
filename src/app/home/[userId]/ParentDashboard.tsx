@@ -909,9 +909,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
               <div>
                 <h2 className="font-headline font-extrabold text-xl text-[#001e40]">Set Papers</h2>
                 {selectedStudent && (
-                  <p className="text-xs text-[#43474f] mt-0.5">
-                    {selectedStudent.name} · {selectedStudent.level ? `Primary ${selectedStudent.level}` : ""}
-                  </p>
+                  <p className="text-xs text-[#43474f] mt-0.5">{selectedStudent.name}</p>
                 )}
               </div>
             </div>
