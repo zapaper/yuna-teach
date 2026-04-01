@@ -112,7 +112,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
         alert(err.error || "Failed to create test");
         return;
       }
-      router.push(`/home/${parentId}?t=${Date.now()}`);
+      router.push(`/home/${parentId}?student=${studentId}`);
     } finally {
       setCreating(null);
     }
