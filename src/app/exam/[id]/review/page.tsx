@@ -400,7 +400,7 @@ function ExamReviewContent({ id }: { id: string }) {
               </div>
             </div>
             {data.feedbackSummary && isStudent && (
-              <p className="text-sm text-[#43474f] leading-relaxed mt-4 line-clamp-3">{data.feedbackSummary}</p>
+              <p className="text-sm text-[#43474f] leading-relaxed mt-4 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
             )}
             {data.feedbackSummary && !isStudent && (
               <details className="mt-4">
@@ -432,7 +432,7 @@ function ExamReviewContent({ id }: { id: string }) {
               </h1>
               {data.feedbackSummary ? (
                 isStudent ? (
-                  <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line line-clamp-3 mb-4">{data.feedbackSummary}</p>
+                  <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mb-4 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
                 ) : (
                   <details className="mb-4">
                     <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none">Summary</summary>
