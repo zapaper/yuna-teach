@@ -839,74 +839,71 @@ function ExamReviewContent({ id }: { id: string }) {
                           </div>
                         )}
 
-                        {/* AI Elaboration */}
-                        {currentQ.marksAwarded !== null && (
-                          <div>
-                            {elaborations[currentQ.id] ? (
-                              <div>
-                                {/* AI insight panel — amber left border on mobile, glass on desktop */}
-                                <div className="p-4 lg:p-5 bg-white rounded-2xl shadow-sm flex gap-3 items-start mb-4 border-l-4 border-[#ffb952] lg:border-l-0 lg:bg-white/70 lg:backdrop-blur-md lg:border lg:border-white/40">
-                                  <div className="mt-0.5 p-1.5 bg-[#ffddb4] rounded-lg lg:hidden">
-                                    <span className="material-symbols-outlined text-[#633f00] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
-                                  </div>
-                                  <div className="w-10 h-10 rounded-xl bg-[#001e40] text-white items-center justify-center shrink-0 hidden lg:flex">
-                                    <span className="material-symbols-outlined text-base">psychology</span>
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-bold text-[#001e40] mb-1 flex items-center gap-2">
-                                      AI Insight
-                                      {!isStudent && (
-                                        <button
-                                          onClick={async () => {
-                                            const updated = elaborations[currentQ.id];
-                                            if (!updated) return;
-                                            try {
-                                              await fetch(`/api/exam/questions/${currentQ.id}`, {
-                                                method: "PATCH",
-                                                headers: { "Content-Type": "application/json" },
-                                                body: JSON.stringify({ elaboration: updated }),
-                                              });
-                                            } catch { /* ignore */ }
-                                          }}
-                                          className="text-[10px] font-normal text-[#003366] hover:underline normal-case"
-                                        >
-                                          Save
-                                        </button>
-                                      )}
-                                    </p>
-                                    {!isStudent ? (
-                                      <textarea
-                                        value={elaborations[currentQ.id]}
-                                        onChange={e => setElaborations(prev => ({ ...prev, [currentQ.id]: e.target.value }))}
-                                        rows={5}
-                                        className="w-full text-sm text-[#43474f] leading-relaxed rounded-xl bg-[#eff4ff] border border-[#c3c6d1] p-3 focus:outline-none focus:border-[#001e40] resize-y"
-                                      />
-                                    ) : (
-                                      <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line">{elaborations[currentQ.id]}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              /* AI Elaboration button */
-                              <button
-                                onClick={() => fetchElaboration(currentQ.id)}
-                                disabled={elaborating === currentQ.id}
-                                className="w-full h-14 bg-gradient-to-r from-[#001e40] to-[#003366] hover:from-[#003366] hover:to-[#001e40] text-white rounded-2xl flex items-center justify-center gap-3 font-headline font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
-                              >
-                                <span className="material-symbols-outlined">psychology_alt</span>
-                                {elaborating === currentQ.id ? (
-                                  <span className="flex items-center gap-2">
-                                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
-                                    Generating…
-                                  </span>
-                                ) : "AI Elaboration"}
-                              </button>
-                            )}
-                          </div>
-                        )}
                       </div>
                     </div>
+
+                    {/* AI Elaboration — full width below submission + solutions */}
+                    {currentQ.marksAwarded !== null && (
+                      <div className="mt-4">
+                        {elaborations[currentQ.id] ? (
+                          <div className="p-4 lg:p-5 bg-white rounded-2xl shadow-sm flex gap-3 items-start border-l-4 border-[#ffb952] lg:border-l-0 lg:bg-white/70 lg:backdrop-blur-md lg:border lg:border-white/40">
+                            <div className="mt-0.5 p-1.5 bg-[#ffddb4] rounded-lg lg:hidden">
+                              <span className="material-symbols-outlined text-[#633f00] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
+                            </div>
+                            <div className="w-10 h-10 rounded-xl bg-[#001e40] text-white items-center justify-center shrink-0 hidden lg:flex">
+                              <span className="material-symbols-outlined text-base">psychology</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-[#001e40] mb-1 flex items-center gap-2">
+                                AI Insight
+                                {!isStudent && (
+                                  <button
+                                    onClick={async () => {
+                                      const updated = elaborations[currentQ.id];
+                                      if (!updated) return;
+                                      try {
+                                        await fetch(`/api/exam/questions/${currentQ.id}`, {
+                                          method: "PATCH",
+                                          headers: { "Content-Type": "application/json" },
+                                          body: JSON.stringify({ elaboration: updated }),
+                                        });
+                                      } catch { /* ignore */ }
+                                    }}
+                                    className="text-[10px] font-normal text-[#003366] hover:underline normal-case"
+                                  >
+                                    Save
+                                  </button>
+                                )}
+                              </p>
+                              {!isStudent ? (
+                                <textarea
+                                  value={elaborations[currentQ.id]}
+                                  onChange={e => setElaborations(prev => ({ ...prev, [currentQ.id]: e.target.value }))}
+                                  rows={5}
+                                  className="w-full text-sm text-[#43474f] leading-relaxed rounded-xl bg-[#eff4ff] border border-[#c3c6d1] p-3 focus:outline-none focus:border-[#001e40] resize-y"
+                                />
+                              ) : (
+                                <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line">{elaborations[currentQ.id]}</p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => fetchElaboration(currentQ.id)}
+                            disabled={elaborating === currentQ.id}
+                            className="w-full h-14 bg-gradient-to-r from-[#001e40] to-[#003366] hover:from-[#003366] hover:to-[#001e40] text-white rounded-2xl flex items-center justify-center gap-3 font-headline font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined">psychology_alt</span>
+                            {elaborating === currentQ.id ? (
+                              <span className="flex items-center gap-2">
+                                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
+                                Generating…
+                              </span>
+                            ) : "AI Elaboration"}
+                          </button>
+                        )}
+                      </div>
+                    )}
 
                     {/* Flag toggle — bottom center */}
                     <div className="mt-6 pt-5 border-t border-[#e5eeff] flex justify-center">
