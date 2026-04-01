@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AdminNav from "@/components/AdminNav";
 
 interface FlaggedItem {
   questionId: string;
@@ -103,14 +104,10 @@ function FlaggedContent() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <AdminNav userId={userId} />
+      <div className="lg:ml-56 pb-24 lg:pb-0">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.back()} className="p-1.5 rounded-lg hover:bg-slate-100">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
         <div>
           <h1 className="text-lg font-bold text-slate-800">Flagged Questions</h1>
           <p className="text-xs text-slate-400">{items.length} flagged</p>
@@ -292,6 +289,7 @@ function FlaggedContent() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

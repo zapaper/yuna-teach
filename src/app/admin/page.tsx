@@ -63,6 +63,13 @@ function AdminContent() {
       href: `/admin/feedback?userId=${userId}`,
       color: "bg-amber-50 text-amber-600",
     },
+    {
+      icon: "library_books",
+      label: "Manage Exam Papers",
+      description: "View all master papers, toggle visibility, and delete.",
+      href: `/admin/papers?userId=${userId}`,
+      color: "bg-green-50 text-green-600",
+    },
   ];
 
   return (
