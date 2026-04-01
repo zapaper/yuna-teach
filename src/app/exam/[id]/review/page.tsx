@@ -661,7 +661,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                           }`}>{i + 1}</span>
                                           <div className="min-w-0">
                                             {opt ? <span className={`font-headline font-semibold text-base ${isOptCorrect ? "text-[#001e40]" : isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}>{opt}</span>
-                                              : <span className="text-sm text-[#43474f] italic">Image option</span>}
+                                              : null}
                                             {optImg && (
                                               // eslint-disable-next-line @next/next/no-img-element
                                               <img src={optImg.startsWith("data:") ? optImg : `data:image/jpeg;base64,${optImg}`} alt={`Option ${i + 1}`} className="mt-2 w-full max-w-[200px] rounded" />
