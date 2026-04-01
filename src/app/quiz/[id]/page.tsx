@@ -422,7 +422,6 @@ function QuizContent({ id }: { id: string }) {
         {mcqQuestions.length > 0 && (
           <>
             <div className="hidden lg:block mb-10 mt-4">
-              <span className="inline-block py-1 px-3 bg-[#6cf8bb]/30 text-[#00714d] rounded font-label text-[10px] font-extrabold tracking-widest uppercase mb-3">Assessment Phase</span>
               <h2 className="font-headline text-2xl lg:text-3xl font-extrabold text-[#001e40] tracking-tight">SECTION A: MULTIPLE CHOICE</h2>
               <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
             </div>
@@ -444,7 +443,6 @@ function QuizContent({ id }: { id: string }) {
         {hasOeq && (
           <>
             <div className={`hidden lg:block mb-10 ${mcqQuestions.length > 0 ? "mt-16" : "mt-4"}`}>
-              <span className="inline-block py-1 px-3 bg-[#ffddb4]/40 text-[#633f00] rounded font-label text-[10px] font-extrabold tracking-widest uppercase mb-3">Examination Module</span>
               <h2 className="font-headline text-3xl font-extrabold text-[#001e40] tracking-tight">SECTION B: WRITTEN ANSWERS</h2>
               <p className="text-[#737780] mt-1 text-sm">Show all workings clearly. Partial marks may be awarded for correct methodology.</p>
             </div>
