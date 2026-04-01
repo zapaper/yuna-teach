@@ -220,7 +220,13 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
   // Derived
   const studentPapers = examPapers;
   const todoPapers = studentPapers.filter(p => !p.completedAt && p.markingStatus !== "released");
-  const completedPapers = studentPapers.filter(p => p.completedAt || p.markingStatus === "released");
+  const completedPapers = studentPapers
+    .filter(p => p.completedAt || p.markingStatus === "released")
+    .sort((a, b) => {
+      const aTime = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+      const bTime = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+      return bTime - aTime;
+    });
   const recentTests = tests.slice(0, 6);
 
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
@@ -380,14 +386,14 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 </button>
               </div>
 
-              {/* Exam Papers */}
+              {/* Exam &amp; Quiz */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <h4 className="font-headline font-bold text-base text-[#003366] mb-4">Exam Papers</h4>
+                <h4 className="font-headline font-bold text-base text-[#003366] mb-4">Exam &amp; Quiz</h4>
                 {todoPapers.length === 0 && completedPapers.length === 0 ? (
                   <div className="text-center py-6">
                     <span className="material-symbols-outlined text-3xl text-slate-300 block mb-2">description</span>
                     <p className="text-sm text-slate-400">No papers yet</p>
-                    <p className="text-xs text-slate-300 mt-1">Your parent will assign papers here</p>
+                    <p className="text-xs text-slate-300 mt-1">Your parent will assign papers and quizzes here</p>
                   </div>
                 ) : (
                   <div className="space-y-5">
@@ -429,7 +435,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Completed</span>
                         </div>
                         <div className="space-y-2">
-                          {completedPapers.slice(0, 5).map(paper => {
+                          {completedPapers.slice(0, 10).map(paper => {
                             const pct = scorePct(paper);
                             return (
                               <div key={paper.id}
@@ -704,9 +710,9 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
           )}
         </section>
 
-        {/* ── Exam Papers ─────────────────────────────────────────────────── */}
+        {/* ── Exam &amp; Quiz ─────────────────────────────────────────────────── */}
         <section className="mb-10">
-          <h4 className="font-headline font-bold text-lg text-[#003366] mb-6">Exam Papers</h4>
+          <h4 className="font-headline font-bold text-lg text-[#003366] mb-6">Exam &amp; Quiz</h4>
           <div className="space-y-8">
             {/* To Do */}
             {todoPapers.length > 0 && (
@@ -753,7 +759,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                   <h5 className="text-xs font-bold text-[#43474f] tracking-wider uppercase">Completed</h5>
                 </div>
                 <div className="space-y-3">
-                  {completedPapers.slice(0, 5).map(paper => {
+                  {completedPapers.slice(0, 10).map(paper => {
                     const pct = scorePct(paper);
                     return (
                       <div
