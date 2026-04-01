@@ -278,11 +278,6 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
 
           {/* Footer CTA */}
           <div className="p-4">
-            <button onClick={() => setShowQuizSetup(true)}
-              className="w-full py-3 rounded-xl bg-[#003366] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#003366]/90 transition-colors shadow-sm">
-              <span className="material-symbols-outlined text-base">play_circle</span>
-              Start Learning
-            </button>
             {!hasParent ? (
               <button onClick={() => openLinkModal("share")}
                 className="w-full mt-2 py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
