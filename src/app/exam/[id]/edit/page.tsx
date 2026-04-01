@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail, ExamQuestionItem } from "@/types";
 import Image from "next/image";
 import { renderPdfToImages } from "@/lib/pdf";
+import AdminNav from "@/components/AdminNav";
 
 export default function ExamEditPage({
   params,
@@ -411,7 +412,9 @@ function ExamEditContent({ id }: { id: string }) {
   }
 
   return (
-    <div className="p-6 pb-24 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-slate-50">
+      {userId && <AdminNav userId={userId} />}
+      <div className="lg:ml-56 pb-24 lg:pb-0 p-6 max-w-2xl mx-auto">
       {/* Back */}
       <button
         onClick={() => router.push(backPath)}
@@ -575,6 +578,7 @@ function ExamEditContent({ id }: { id: string }) {
           onClose={() => setSelectTarget(null)}
         />
       )}
+      </div>
     </div>
   );
 }

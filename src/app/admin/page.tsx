@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AdminNav from "@/components/AdminNav";
 
 export default function AdminPage() {
   return (
@@ -14,7 +15,6 @@ export default function AdminPage() {
 
 function AdminContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const userId = searchParams.get("userId") ?? "";
   const [allowed, setAllowed] = useState<boolean | null>(null);
 
@@ -74,18 +74,12 @@ function AdminContent() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <AdminNav userId={userId} />
+      <div className="lg:ml-56 pb-24 lg:pb-0">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => router.push(`/home/${userId}`)} className="p-1.5 rounded-lg hover:bg-slate-100">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button>
-        <div>
-          <h1 className="text-lg font-bold text-slate-800">Admin Panel</h1>
-          <p className="text-xs text-slate-400">MarkForYou management tools</p>
-        </div>
+      <div className="bg-white border-b border-slate-200 px-4 py-3">
+        <h1 className="text-lg font-bold text-slate-800">Admin Panel</h1>
+        <p className="text-xs text-slate-400">MarkForYou management tools</p>
       </div>
 
       {/* Tiles */}
@@ -110,6 +104,7 @@ function AdminContent() {
             </svg>
           </Link>
         ))}
+      </div>
       </div>
     </div>
   );

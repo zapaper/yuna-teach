@@ -3,6 +3,7 @@
 import { Suspense, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { renderPdfToImages } from "@/lib/pdf";
+import AdminNav from "@/components/AdminNav";
 
 type Step = "upload" | "processing";
 
@@ -111,33 +112,14 @@ function ExamUploadContent() {
   }
 
   return (
-    <div className="p-6 pb-24">
-      {/* Header */}
-      <button
-        onClick={() =>
-          router.push(userId ? `/home/${userId}` : "/")
-        }
-        className="flex items-center gap-1 text-slate-500 mb-4 hover:text-slate-700"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
-        Home
-      </button>
-
-      <h1 className="text-xl font-bold text-slate-800 mb-6">
-        Upload Exam Paper
-      </h1>
+    <div className="min-h-screen bg-slate-50">
+      {userId && <AdminNav userId={userId} />}
+      <div className="lg:ml-56 pb-24 lg:pb-0">
+      <div className="bg-white border-b border-slate-200 px-4 py-3">
+        <h1 className="text-lg font-bold text-slate-800">Upload Exam Paper</h1>
+        <p className="text-xs text-slate-400">Upload a PDF with questions and answer key</p>
+      </div>
+      <div className="p-6">
 
       {step === "upload" && (
         <div>
@@ -189,6 +171,8 @@ function ExamUploadContent() {
           </p>
         </div>
       )}
+      </div>
+      </div>
     </div>
   );
 }

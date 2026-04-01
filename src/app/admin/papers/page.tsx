@@ -36,6 +36,8 @@ function AdminPapersContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
+  const [yearFilter, setYearFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -77,10 +79,14 @@ function AdminPapersContent() {
     }
   }
 
-  const subjects = Array.from(new Set(papers.map(p => p.subject).filter(Boolean))) as string[];
+  const subjects = Array.from(new Set(papers.map(p => p.subject).filter(Boolean))).sort() as string[];
+  const years = Array.from(new Set(papers.map(p => p.year).filter(Boolean))).sort((a, b) => b!.localeCompare(a!)) as string[];
+  const examTypes = Array.from(new Set(papers.map(p => p.examType).filter(Boolean))).sort() as string[];
 
   const filtered = papers.filter(p => {
     if (subjectFilter && p.subject !== subjectFilter) return false;
+    if (yearFilter && p.year !== yearFilter) return false;
+    if (typeFilter && p.examType !== typeFilter) return false;
     if (search.trim()) {
       const s = search.toLowerCase();
       return (
@@ -107,28 +113,62 @@ function AdminPapersContent() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-5 space-y-4">
-        {/* Search + filters */}
-        <div className="flex gap-2 flex-wrap">
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search title, school, year…"
-            className="flex-1 min-w-[180px] px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-slate-400"
-          />
-          {subjects.map(s => (
-            <button
-              key={s}
-              onClick={() => setSubjectFilter(subjectFilter === s ? null : s)}
-              className={`px-3 py-2 rounded-xl text-xs font-bold border transition-colors ${
-                subjectFilter === s ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
-              }`}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
+      <div className="max-w-3xl mx-auto px-4 py-5 space-y-3">
+        {/* Search */}
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search title, school…"
+          className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-slate-400"
+        />
+
+        {/* Subject filter */}
+        {subjects.length > 0 && (
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-14 shrink-0">Subject</span>
+            {subjects.map(s => (
+              <button key={s} onClick={() => setSubjectFilter(subjectFilter === s ? null : s)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${subjectFilter === s ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Year filter */}
+        {years.length > 0 && (
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-14 shrink-0">Year</span>
+            {years.map(y => (
+              <button key={y} onClick={() => setYearFilter(yearFilter === y ? null : y)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${yearFilter === y ? "bg-blue-600 text-white border-blue-600" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}>
+                {y}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Exam type filter */}
+        {examTypes.length > 0 && (
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-14 shrink-0">Type</span>
+            {examTypes.map(t => (
+              <button key={t} onClick={() => setTypeFilter(typeFilter === t ? null : t)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${typeFilter === t ? "bg-violet-600 text-white border-violet-600" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}>
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Active filter chips + clear */}
+        {(subjectFilter || yearFilter || typeFilter) && (
+          <button onClick={() => { setSubjectFilter(null); setYearFilter(null); setTypeFilter(null); }}
+            className="text-xs text-slate-400 hover:text-slate-600 underline">
+            Clear all filters
+          </button>
+        )}
 
         {/* Stats row */}
         <div className="flex gap-3 text-xs text-slate-500">
@@ -152,8 +192,8 @@ function AdminPapersContent() {
                 {/* Visibility indicator */}
                 <div className={`w-2 h-2 rounded-full shrink-0 ${paper.visible ? "bg-green-500" : "bg-slate-300"}`} />
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
+                {/* Info — clickable to paper overview */}
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => router.push(`/exam/${paper.id}/overview?userId=${userId}`)}>
                   <p className="text-sm font-semibold text-slate-800 truncate">{paper.title}</p>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {[paper.level, paper.subject, paper.school, paper.year, paper.examType].filter(Boolean).join(" · ")}
@@ -180,6 +220,15 @@ function AdminPapersContent() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
+                  {/* Edit */}
+                  <button
+                    onClick={() => router.push(`/exam/${paper.id}/edit?userId=${userId}`)}
+                    title="Edit paper"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center bg-blue-50 text-blue-500 hover:bg-blue-100 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">edit</span>
+                  </button>
+
                   {/* Toggle visible */}
                   <button
                     onClick={() => toggleVisible(paper)}

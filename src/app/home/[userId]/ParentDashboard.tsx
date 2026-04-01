@@ -1000,6 +1000,23 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
               <span className="block text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Beta</span>
             </div>
           </button>
+          {user.name?.toLowerCase() === "admin" && (
+            <div className="pt-4 mt-2 border-t border-[#c3c6d1]/40 space-y-1">
+              <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Admin</p>
+              <button onClick={() => router.push(`/exam/upload?userId=${userId}`)} className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-red-50 hover:text-red-700 rounded-xl font-medium transition-all hover:translate-x-1">
+                <span className="material-symbols-outlined text-xl">upload_file</span>
+                <span>Upload Papers</span>
+              </button>
+              <button onClick={() => router.push(`/flagged?userId=${userId}`)} className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-red-50 hover:text-red-700 rounded-xl font-medium transition-all hover:translate-x-1">
+                <span className="material-symbols-outlined text-xl">flag</span>
+                <span>Flagged Q&amp;A</span>
+              </button>
+              <button onClick={() => router.push(`/admin/papers?userId=${userId}`)} className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-red-50 hover:text-red-700 rounded-xl font-medium transition-all hover:translate-x-1">
+                <span className="material-symbols-outlined text-xl">library_books</span>
+                <span>Review Papers</span>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 

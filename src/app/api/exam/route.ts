@@ -44,31 +44,36 @@ export async function GET(request: NextRequest) {
         if (isAdminUser) {
           // Admin sees all master papers; focused tests only if admin created them for themselves
           where = {
-            sourceExamId: null,
             OR: [
-              { paperType: null },
-              { paperType: "focused", userId, assignedToId: null },
-              { paperType: "focused", userId, assignedToId: userId },
+              { sourceExamId: null, paperType: null },
+              { sourceExamId: null, paperType: "focused", userId, assignedToId: null },
+              { sourceExamId: null, paperType: "focused", userId, assignedToId: userId },
               { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
+              // Also include regular paper clones assigned to linked students
+              { sourceExamId: { not: null }, paperType: null, assignedToId: { in: linkedStudentIds } },
+              { sourceExamId: { not: null }, paperType: "focused", assignedToId: { in: linkedStudentIds } },
             ],
           };
         } else {
-          // Non-admin parents see admin's master papers + own focused tests
+          // Non-admin parents see admin's master papers + own focused tests + student clones
           const adminUser = await prisma.user.findFirst({
             where: { name: { equals: "admin", mode: "insensitive" } },
             select: { id: true },
           });
           where = {
-            sourceExamId: null,
             OR: [
               {
+                sourceExamId: null,
                 paperType: null,
                 visible: true,
                 OR: levelConditions,
                 ...(adminUser ? { userId: adminUser.id } : {}),
               },
-              { paperType: "focused", userId },
+              { sourceExamId: null, paperType: "focused", userId },
               { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
+              // Also include regular paper clones assigned to linked students
+              { sourceExamId: { not: null }, paperType: null, assignedToId: { in: linkedStudentIds } },
+              { sourceExamId: { not: null }, paperType: "focused", assignedToId: { in: linkedStudentIds } },
             ],
           };
         }
@@ -82,6 +87,7 @@ export async function GET(request: NextRequest) {
             { paperType: "focused", userId, assignedToId: userId },
           ],
         };
+        // linkedStudentIds stays [] so clones include is filtered to none
       } else {
         // No linked students — show no papers
         where = { id: "none" };
