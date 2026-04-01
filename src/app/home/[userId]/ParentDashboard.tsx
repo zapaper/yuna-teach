@@ -543,12 +543,12 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
         <span className="material-symbols-outlined text-[#ffb952] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
         <span className="text-[10px] font-extrabold text-[#001e40] tracking-widest uppercase">AI Insight</span>
       </div>
-      <div className="bg-[#003366] text-white p-7 rounded-[2.5rem] relative overflow-hidden">
+      <div className="bg-[#003366] text-white p-7 rounded-[2.5rem] relative overflow-hidden flex flex-col">
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#006c49]/20 rounded-full blur-3xl -mr-16 -mt-16" />
         <h3 className="font-headline font-bold text-xl mb-3 pr-8 leading-tight">
           {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
         </h3>
-        <p className="text-[#799dd6] text-sm leading-relaxed mb-4">
+        <p className="text-[#799dd6] text-sm leading-relaxed mb-4 flex-1">
           {recLoading ? "" : (aiInsight || insightForCard)}
         </p>
         {!recLoading && (
@@ -955,7 +955,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                 {/* AI insight — 7 cols */}
                 <div className="col-span-7 bg-[#003366] rounded-3xl p-8 text-white relative overflow-hidden flex flex-col justify-between min-h-[300px] shadow-xl">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-[#006c49]/20 rounded-full blur-3xl -mr-20 -mt-20" />
-                  <div>
+                  <div className="flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-5">
                       <div className="px-3 py-1 bg-[#006c49]/20 backdrop-blur-md rounded-full border border-[#006c49]/30 flex items-center gap-2">
                         <span className="material-symbols-outlined text-[#4edea3] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
@@ -965,7 +965,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
                       {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
                     </h2>
-                    <p className="text-[#799dd6] text-base max-w-md leading-relaxed">{aiInsight || insightForCard}</p>
+                    <p className="text-[#799dd6] text-base leading-relaxed flex-1">{aiInsight || insightForCard}</p>
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button
