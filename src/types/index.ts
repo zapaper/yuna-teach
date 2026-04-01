@@ -10,7 +10,7 @@ export interface User {
   createdAt: string;
   emailVerified?: boolean;
   subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
-  linkedStudents: { id: string; name: string }[];
+  linkedStudents: { id: string; name: string; level?: number | null }[];
   linkedParents: { id: string; name: string }[];
 }
 

@@ -104,6 +104,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
   const [showPendingReview, setShowPendingReview] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [assigningPaperId, setAssigningPaperId] = useState<string | null>(null);
+  const [assignToast, setAssignToast] = useState<string | null>(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkTab, setLinkTab] = useState<"share" | "enter">("share");
   const [myCode, setMyCode] = useState<string | null>(null);
@@ -273,10 +274,13 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
   const availableSubjects = Array.from(new Set(masterPapers.map(p => p.subject).filter(Boolean))) as string[];
   const availableExamTypes = Array.from(new Set(masterPapers.map(p => p.examType).filter(Boolean))) as string[];
 
-  // Filtered papers for Set Papers view (subject + examType filters; level auto-applied by API)
+  // Filtered papers for Set Papers view — filter by selected student's level + subject + examType
+  const selectedStudentLevel = selectedStudent?.level ?? null;
   const filteredPapers = masterPapers.filter(p => {
     if (subjectFilter && p.subject !== subjectFilter) return false;
     if (examTypeFilter && p.examType !== examTypeFilter) return false;
+    // Only show papers matching the selected student's level
+    if (selectedStudentLevel && p.level && !p.level.includes(String(selectedStudentLevel))) return false;
     return true;
   });
 
@@ -834,6 +838,14 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
+      {/* Assign toast */}
+      {assignToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] bg-[#001e40] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-fade-in">
+          <span className="material-symbols-outlined text-[#6cf8bb] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          {assignToast}
+        </div>
+      )}
+
       {/* Modals */}
       <FocusedModal />
       <QuizModal />
@@ -1258,7 +1270,9 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ assignedToId: selectedStudentId, instantFeedback: false }),
                           });
-                          router.push(`/progress/${selectedStudentId}?parentId=${userId}`);
+                          await refreshPapers();
+                          setAssignToast(`Paper assigned to ${selectedStudent?.name ?? "student"}`);
+                          setTimeout(() => setAssignToast(null), 3000);
                         } finally {
                           setAssigningPaperId(null);
                         }

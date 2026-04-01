@@ -5,7 +5,7 @@ export async function GET() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
     include: {
-      parentLinks: { include: { student: { select: { id: true, name: true } } } },
+      parentLinks: { include: { student: { select: { id: true, name: true, level: true } } } },
       studentLinks: { include: { parent: { select: { id: true, name: true } } } },
     },
   });
