@@ -1267,11 +1267,15 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                         if (!selectedStudentId || isAssigning) return;
                         setAssigningPaperId(p.id);
                         try {
-                          await fetch(`/api/exam/${p.id}`, {
+                          const res = await fetch(`/api/exam/${p.id}`, {
                             method: "PATCH",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ assignedToId: selectedStudentId, instantFeedback: false }),
                           });
+                          if (!res.ok) {
+                            alert("Failed to assign paper. Please try again.");
+                            return;
+                          }
                           await refreshPapers();
                           setAssignToast(`Paper assigned to ${selectedStudent?.name ?? "student"}`);
                           setTimeout(() => setAssignToast(null), 3000);
