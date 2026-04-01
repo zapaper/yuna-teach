@@ -41,7 +41,7 @@ export default function LoginPage() {
   }
 
   // ── Sign-up state ──
-  const [tab, setTab] = useState<"student" | "parent">("student");
+  const [tab, setTab] = useState<"student" | "parent">("parent");
   const [signupName, setSignupName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
@@ -364,7 +364,7 @@ export default function LoginPage() {
               className="w-full mt-6 py-4 bg-secondary text-on-secondary font-headline font-bold text-lg rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
               style={{ boxShadow: "0 20px 40px rgba(11,28,48,0.06)" }}
             >
-              {signupLoading ? "Creating account…" : "Sign Up"}
+              {signupLoading ? "Creating account…" : "Free Sign Up"}
               {!signupLoading && <span className="material-symbols-outlined">person_add</span>}
             </button>
 
