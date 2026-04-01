@@ -16,6 +16,7 @@ interface ReviewQuestion {
   elaboration: string | null;
   flagged: boolean;
   imageData?: string;
+  answerImageData?: string | null;
   // Quiz-specific transcription fields
   transcribedStem?: string | null;
   transcribedOptions?: string[] | null;
@@ -114,6 +115,7 @@ function ExamReviewContent({ id }: { id: string }) {
             const pq = paperQuestionMap[q.questionNum];
             if (pq) {
               if (pq.imageData) q.imageData = pq.imageData;
+              if (pq.answerImageData) q.answerImageData = pq.answerImageData;
               // For quizzes, also attach transcription data
               if (paperIsQuiz) {
                 q.transcribedStem = pq.transcribedStem ?? null;
@@ -341,17 +343,25 @@ function ExamReviewContent({ id }: { id: string }) {
     ));
   }
 
-  // Renders marking notes: bolds verdict labels like "(a) Correct" / "(b) Incorrect"
+  // Renders marking notes: bolds all verdict labels like "(a) Correct" / "(b) Incorrect"
   function renderMarkingNotes(text: string) {
-    const verdictRe = /^(\([a-zA-Z]\)\s+(?:Partially\s+)?(?:Correct|Incorrect))/i;
+    // Split into pipe-separated sections (e.g. "Detected: X | (a) Correct. (b) Wrong")
     return text.split("|").map((part, i, arr) => {
       const trimmed = part.trim();
-      const match = trimmed.match(verdictRe);
+      // Globally bold every "(x) [Partially] Correct/Incorrect" phrase in each section
+      const verdictRe = /(\([a-zA-Z]\)\s+(?:Partially\s+)?(?:Correct|Incorrect))/gi;
+      const segments: React.ReactNode[] = [];
+      let last = 0;
+      let m: RegExpExecArray | null;
+      while ((m = verdictRe.exec(trimmed)) !== null) {
+        if (m.index > last) segments.push(trimmed.slice(last, m.index));
+        segments.push(<strong key={m.index}>{m[1]}</strong>);
+        last = m.index + m[1].length;
+      }
+      if (last < trimmed.length) segments.push(trimmed.slice(last));
       return (
         <span key={i}>
-          {match ? (
-            <><strong>{match[1]}</strong>{trimmed.slice(match[1].length)}</>
-          ) : trimmed}
+          {segments.length > 0 ? segments : trimmed}
           {i < arr.length - 1 ? <br /> : null}
         </span>
       );
@@ -820,12 +830,21 @@ function ExamReviewContent({ id }: { id: string }) {
                         )}
 
                         {/* Correct answer */}
-                        {currentQ.answer && !(isQuiz && currentQ.transcribedOptions) && (
+                        {(currentQ.answer || currentQ.answerImageData) && !(isQuiz && currentQ.transcribedOptions) && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Correct Answer</p>
-                            <div className="text-sm text-[#0b1c30] leading-relaxed max-h-48 overflow-y-auto rounded-2xl bg-white p-4 border border-[#e5eeff]">
-                              {renderWithNewlines(currentQ.answer)}
-                            </div>
+                            {currentQ.answer && (
+                              <div className="text-sm text-[#0b1c30] leading-relaxed max-h-48 overflow-y-auto rounded-2xl bg-white p-4 border border-[#e5eeff]">
+                                {renderWithNewlines(currentQ.answer)}
+                              </div>
+                            )}
+                            {currentQ.answerImageData && (
+                              <img
+                                src={currentQ.answerImageData}
+                                alt="Answer diagram"
+                                className="mt-2 max-w-full rounded-xl border border-[#e5eeff]"
+                              />
+                            )}
                           </div>
                         )}
 

@@ -245,7 +245,7 @@ function FlaggedContent() {
                 {item.sourcePaperId && (
                   <div className="pt-1">
                     <Link
-                      href={`/exam/${item.sourcePaperId}?highlight=${item.sourceQuestionNum ?? ""}`}
+                      href={`/exam/${item.sourcePaperId}/edit?userId=${userId}`}
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 text-[10px] font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded hover:bg-primary-100 transition-colors"
                     >

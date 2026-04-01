@@ -31,6 +31,12 @@ function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
+function renderBold(text: string) {
+  return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+  );
+}
+
 function relativeDate(dateStr: string) {
   const d = new Date(dateStr);
   const now = new Date();
@@ -693,7 +699,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
           {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
         </h3>
         <p className="text-[#799dd6] text-sm leading-relaxed mb-4 flex-1">
-          {recLoading ? "" : (aiInsight || insightForCard)}
+          {recLoading ? "" : renderBold(aiInsight || insightForCard)}
         </p>
         {!recLoading && (
           <div className="space-y-2 mb-5">
@@ -1348,7 +1354,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
                       {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
                     </h2>
-                    <p className="text-[#799dd6] text-base leading-relaxed flex-1">{aiInsight || insightForCard}</p>
+                    <p className="text-[#799dd6] text-base leading-relaxed flex-1">{renderBold(aiInsight || insightForCard)}</p>
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button
