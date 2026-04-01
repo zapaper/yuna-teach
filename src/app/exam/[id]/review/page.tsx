@@ -310,8 +310,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const displayQuestions = showAll ? writtenQuestions : incorrectQuestions;
   const currentQ = displayQuestions[currentIdx] ?? null;
 
-  // For quiz OEQ: index of currentQ among all OEQ questions (no transcribedOptions)
-  const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions);
+  // For quiz OEQ: index of currentQ among all OEQ questions (no text or image MCQ options)
+  const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions && !q.transcribedOptionImages);
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
 
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
@@ -762,7 +762,7 @@ function ExamReviewContent({ id }: { id: string }) {
 
                     {/* Submission image + solution side-by-side */}
                     <div className="md:flex gap-5">
-                      {(!isQuiz || (isQuiz && currentQOeqIndex >= 0)) && !currentQ.transcribedOptions && (
+                      {(!isQuiz || (isQuiz && currentQOeqIndex >= 0)) && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && (
                         <div className="md:w-1/2 md:shrink-0 mb-4 md:mb-0 rounded-2xl overflow-hidden border border-[#e5eeff] relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
