@@ -97,6 +97,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   const [showPendingReview, setShowPendingReview] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [assigningPaperId, setAssigningPaperId] = useState<string | null>(null);
 
   // Filters for papers view
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
@@ -1008,41 +1009,52 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                     <p className="text-sm text-[#43474f]">No papers match your filters</p>
                   </div>
                 ) : (
-                  <>
-                    {/* Mobile: compact cards; Desktop: ExamPaperCard */}
-                    <div className="lg:hidden space-y-3">
-                      {filteredPapers.map(p => (
+                  <div className="space-y-3">
+                    {filteredPapers.map(p => {
+                      const subjectIcon = (p.subject ?? "").toLowerCase().includes("math") ? "calculate"
+                        : (p.subject ?? "").toLowerCase().includes("science") ? "science" : "description";
+                      const isAssigning = assigningPaperId === p.id;
+                      async function handleAssign() {
+                        if (!selectedStudentId || isAssigning) return;
+                        setAssigningPaperId(p.id);
+                        try {
+                          await fetch(`/api/exam/${p.id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ assignedToId: selectedStudentId, instantFeedback: false }),
+                          });
+                          router.push(`/progress/${selectedStudentId}?parentId=${userId}`);
+                        } finally {
+                          setAssigningPaperId(null);
+                        }
+                      }
+                      return (
                         <button
                           key={p.id}
-                          onClick={() => router.push(`/exam/${p.id}/overview?userId=${userId}`)}
-                          className="w-full bg-white rounded-[1.5rem] p-4 flex items-center gap-3 text-left"
-                          style={{ boxShadow: "0 20px 40px rgba(11,28,48,0.03)" }}
+                          onClick={handleAssign}
+                          disabled={isAssigning}
+                          className="w-full bg-white rounded-[1.5rem] p-4 flex items-center gap-4 text-left hover:bg-[#eff4ff] transition-colors active:scale-[0.98] disabled:opacity-60"
+                          style={{ boxShadow: "0 4px 20px rgba(11,28,48,0.04)" }}
                         >
-                          <div className="w-11 h-11 rounded-2xl bg-[#dce9ff] flex items-center justify-center text-[#001e40] shrink-0">
-                            <span className="material-symbols-outlined text-[20px]">
-                              {(p.subject ?? "").toLowerCase().includes("math") ? "calculate"
-                                : (p.subject ?? "").toLowerCase().includes("science") ? "science" : "description"}
-                            </span>
+                          <div className="w-12 h-12 rounded-2xl bg-[#dce9ff] flex items-center justify-center text-[#001e40] shrink-0">
+                            {isAssigning
+                              ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#dce9ff] border-t-[#003366]" />
+                              : <span className="material-symbols-outlined text-[20px]">{subjectIcon}</span>
+                            }
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-headline font-bold text-[#001e40] text-sm leading-tight truncate">{p.title}</p>
+                            <p className="font-headline font-bold text-[#001e40] text-sm leading-tight">{p.title}</p>
                             <p className="text-xs text-[#737780] font-medium mt-0.5">
                               {[p.subject, p.examType, p.level].filter(Boolean).join(" · ")}
                             </p>
                           </div>
-                          {p.assignmentCount > 0 && (
-                            <span className="material-symbols-outlined text-[#006c49] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          {p.assignmentCount > 0 && !isAssigning && (
+                            <span className="material-symbols-outlined text-[#006c49] shrink-0 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                           )}
                         </button>
-                      ))}
-                    </div>
-                    <div className="hidden lg:block space-y-4">
-                      {filteredPapers.map(p => (
-                        <ExamPaperCard key={p.id} paper={p} userId={userId} userRole="PARENT"
-                          onDelete={id => setExamPapers(prev => prev.filter(x => x.id !== id))} />
-                      ))}
-                    </div>
-                  </>
+                      );
+                    })}
+                  </div>
                 )}
               </>
             )}
