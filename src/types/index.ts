@@ -76,6 +76,7 @@ export interface ExamPaperSummary {
   pendingReviewCount: number;
   instantFeedback: boolean;
   visible: boolean;
+  sourceExamId: string | null;
 }
 
 export interface ExamCloneSummary {

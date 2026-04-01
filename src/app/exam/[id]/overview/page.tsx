@@ -56,6 +56,7 @@ function ExamOverviewContent({ id }: { id: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
+  const openCloneParam = searchParams.get("openClone");
 
   const [paper, setPaper] = useState<ExamPaperDetail | null>(null);
   const [students, setStudents] = useState<User[]>([]);
@@ -216,6 +217,13 @@ function ExamOverviewContent({ id }: { id: string }) {
     fetchAll();
     return () => stopPolling();
   }, [id, userId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-open clone detail when navigated from pending review
+  useEffect(() => {
+    if (openCloneParam && paper && !detailCloneId) {
+      openMarkingDetail(openCloneParam);
+    }
+  }, [openCloneParam, paper]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function startPolling() {
     if (pollRef.current) return;

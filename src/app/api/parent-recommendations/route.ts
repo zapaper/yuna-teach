@@ -170,8 +170,10 @@ ${examContext ? `Note: ${examContext}` : ""}
 
 Rules:
 - 2-3 sentences only — no greetings, no sign-offs
-- If the student recently completed focused practice, comment on how they did (e.g. "did well", "improving", "needs more practice") and encourage the parent to praise or motivate them
-- Mention specific topic names from the diagnostic — do not be vague
+- If the student recently completed focused practice, call it out personally and specifically — e.g. "Emily recently did a focused test on Fractions and did well! Encourage her on her improvement." Use the actual topic name and result (did well / improving / needs more practice).
+- If focused practice score was 80%+, celebrate the achievement and tell the parent to praise the child
+- If focused practice score was 60–79%, say they're improving and encourage continued practice
+- If focused practice score was below 60%, say they need more practice and suggest another focused test
 - If there are weak topics not yet practised, name them and suggest focused practice
 - If performing well overall, acknowledge it and suggest a daily quiz to maintain momentum
 - Use **double asterisks** around the child's name and topic names to bold them
@@ -184,11 +186,12 @@ ${examContext ? `Note: ${examContext}` : ""}
 
 Write a warm, conversational check-in message of 3-4 flowing sentences. Do NOT number the sentences.
 
-Start by greeting ${parentName} with "Good ${timeOfDay}". If any student recently completed focused practice, mention how they did and encourage the parent to praise them. Naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review.
+Start by greeting ${parentName} with "Good ${timeOfDay}". If any student recently completed focused practice, call it out specifically and personally — e.g. "Emily recently did a focused test on Fractions and did well! Encourage her on her improvement." Use the actual student name, topic name, and result. Naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review.
 
 Rules:
 - No bullet points, no numbered lists
-- If recent focused practice results are available, always comment on performance and suggest the parent encourage the child
+- If recent focused practice results are available, ALWAYS call out performance personally (student name + topic + result) and tell the parent to praise/encourage the child
+- If score was 80%+, celebrate and tell parent to praise the child; if 60–79%, say improving; if below 60%, suggest more practice
 - Mention specific topic names from the diagnostic — do not be vague
 - Use **double asterisks** around student names and topic names to bold them
 - No other markdown or formatting`;

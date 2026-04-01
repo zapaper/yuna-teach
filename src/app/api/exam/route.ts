@@ -146,6 +146,7 @@ export async function GET(request: NextRequest) {
       totalMarks: p.totalMarks ?? null,
       paperType: p.paperType ?? null,
       examType: p.examType ?? null,
+      sourceExamId: p.sourceExamId ?? null,
       syllabusTagged: p.questions.length > 0,
       cleanExtracted: p.questions.some(q => !!q.transcribedStem),
       flaggedCount: p.clones.reduce((sum, c) => sum + c._count.questions, 0),
