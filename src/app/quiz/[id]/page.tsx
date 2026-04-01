@@ -685,12 +685,23 @@ function OeqQuestionCard({
           {/* Sub-parts with individual canvases */}
           {hasSubparts ? (
             <div className="space-y-4">
-              {subparts!.map(sp => (
+              {subparts!.map(sp => {
+                const marksMatch = sp.text.match(/\[(\d+)\s*(?:m(?:ark)?s?)?\]$/i);
+                const spMarks = marksMatch ? parseInt(marksMatch[1]) : null;
+                const spText = marksMatch ? sp.text.slice(0, -marksMatch[0].length).trim() : sp.text;
+                return (
                 <div key={sp.label} className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20">
                   <div className="px-5 pt-4 pb-2">
-                    <p className="text-base text-[#0b1c30]">
-                      <span className="font-bold text-[#001e40]">({sp.label})</span> {sp.text}
-                    </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-base text-[#0b1c30]">
+                        <span className="font-bold text-[#001e40]">({sp.label})</span> {spText}
+                      </p>
+                      {spMarks !== null && (
+                        <span className="shrink-0 bg-[#d3e4fe] text-[#003366] px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide whitespace-nowrap">
+                          {spMarks}m
+                        </span>
+                      )}
+                    </div>
                     {sp.refImageBase64 && (
                       <img
                         src={`data:image/jpeg;base64,${sp.refImageBase64}`}
@@ -707,7 +718,8 @@ function OeqQuestionCard({
                     backgroundImage={sp.diagramBase64 ?? null}
                   />
                 </div>
-              ))}
+              );
+              })}
             </div>
           ) : (
             <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative">

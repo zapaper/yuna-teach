@@ -293,6 +293,10 @@ function ExamReviewContent({ id }: { id: string }) {
   const displayQuestions = showAll ? writtenQuestions : incorrectQuestions;
   const currentQ = displayQuestions[currentIdx] ?? null;
 
+  // For quiz OEQ: index of currentQ among all OEQ questions (no transcribedOptions)
+  const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions);
+  const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
+
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
 
@@ -721,11 +725,13 @@ function ExamReviewContent({ id }: { id: string }) {
 
                     {/* Submission image + solution side-by-side */}
                     <div className="md:flex gap-5">
-                      {!isQuiz && (
+                      {(!isQuiz || (isQuiz && currentQOeqIndex >= 0)) && !currentQ.transcribedOptions && (
                         <div className="md:w-1/2 md:shrink-0 mb-4 md:mb-0 rounded-2xl overflow-hidden border border-[#e5eeff] relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={`/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
+                            src={isQuiz
+                              ? `/api/exam/${id}/submission?page=${currentQOeqIndex}`
+                              : `/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
                             alt={`Submission page for Q${currentQ.questionNum}`}
                             className="w-full h-auto"
                           />
