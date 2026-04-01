@@ -14,6 +14,32 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
+  // ── Forgot password state ──
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotDone, setForgotDone] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+
+  async function handleForgot(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotError("");
+    if (!forgotEmail.trim()) { setForgotError("Please enter your email."); return; }
+    setForgotLoading(true);
+    try {
+      await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      });
+      setForgotDone(true);
+    } catch {
+      setForgotError("Something went wrong. Please try again.");
+    } finally {
+      setForgotLoading(false);
+    }
+  }
+
   // ── Sign-up state ──
   const [tab, setTab] = useState<"student" | "parent">("student");
   const [signupName, setSignupName] = useState("");
@@ -154,7 +180,9 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
                 <label className="block font-headline font-bold text-sm text-primary" htmlFor="login-password">Password</label>
-                <a className="text-xs font-semibold text-secondary hover:text-on-secondary-container transition-colors" href="#">Forgot Password?</a>
+                <button type="button" onClick={() => { setForgotOpen(v => !v); setForgotDone(false); setForgotError(""); setForgotEmail(""); }} className="text-xs font-semibold text-secondary hover:text-on-secondary-container transition-colors">
+                  Forgot Password?
+                </button>
               </div>
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">lock</span>
@@ -178,6 +206,39 @@ export default function LoginPage() {
 
             {loginError && (
               <p className="text-sm text-error font-medium">{loginError}</p>
+            )}
+
+            {/* Forgot password inline panel */}
+            {forgotOpen && (
+              <div className="bg-surface-container-low rounded-2xl p-5 space-y-3">
+                {forgotDone ? (
+                  <p className="text-sm text-secondary font-medium text-center">
+                    If that email is registered, we&apos;ve sent the password to it.
+                  </p>
+                ) : (
+                  <form onSubmit={handleForgot} className="space-y-3">
+                    <p className="text-xs text-on-surface-variant font-medium">Enter your registered email and we&apos;ll send your password.</p>
+                    <div className="relative">
+                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant text-sm">mail</span>
+                      <input
+                        type="email"
+                        value={forgotEmail}
+                        onChange={e => setForgotEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        className="w-full pl-11 pr-4 py-3 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary-container text-on-surface text-sm outline-none"
+                      />
+                    </div>
+                    {forgotError && <p className="text-xs text-error">{forgotError}</p>}
+                    <button
+                      type="submit"
+                      disabled={forgotLoading}
+                      className="w-full py-3 bg-primary text-on-primary font-bold text-sm rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-60"
+                    >
+                      {forgotLoading ? "Sending…" : "Send Password"}
+                    </button>
+                  </form>
+                )}
+              </div>
             )}
 
             <button
