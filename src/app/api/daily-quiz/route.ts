@@ -77,6 +77,16 @@ export async function POST(request: NextRequest) {
     },
   };
 
+  // Get source question IDs already used in this student's previous quizzes
+  const previousQuizQuestions = await prisma.examQuestion.findMany({
+    where: {
+      sourceQuestionId: { not: null },
+      examPaper: { assignedToId: targetStudentId, paperType: "quiz" },
+    },
+    select: { sourceQuestionId: true },
+  });
+  const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
+
   // Find all clean-extracted questions from master papers (matching level + semester)
   const allQuestions = await prisma.examQuestion.findMany({
     where: questionWhere(levelFilter ?? null, allowedExamTypes),
@@ -125,29 +135,49 @@ export async function POST(request: NextRequest) {
 
   const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
 
-  const { mcqPool: mcqCurrent, oeqPool: oeqCurrent } = buildPools(allQuestions);
-  shuffle(mcqCurrent);
-  shuffle(oeqCurrent);
+  // Separate fresh (not yet seen) from used questions
+  const freshQuestions = allQuestions.filter(q => !usedSourceIds.has(q.id));
+  const usedQuestions  = allQuestions.filter(q =>  usedSourceIds.has(q.id));
+
+  const { mcqPool: mcqFresh, oeqPool: oeqFresh } = buildPools(freshQuestions);
+  const { mcqPool: mcqUsed,  oeqPool: oeqUsed  } = buildPools(usedQuestions);
+  shuffle(mcqFresh); shuffle(oeqFresh);
+  shuffle(mcqUsed);  shuffle(oeqUsed);
 
   const mcqTarget = quizType === "mcq" ? 20 : 10;
   const oeqTarget = 5;
 
-  // Top up from level-1 if current level doesn't have enough
-  let mcqPool = mcqCurrent;
-  let oeqPool = oeqCurrent;
-  if (student?.level && student.level > 1 && (mcqPool.length < mcqTarget || oeqPool.length < oeqTarget)) {
+  // Top up from level-1 if current level doesn't have enough fresh questions
+  let mcqFreshPool = mcqFresh;
+  let oeqFreshPool = oeqFresh;
+  let mcqUsedPool  = mcqUsed;
+  let oeqUsedPool  = oeqUsed;
+
+  if (student?.level && student.level > 1 && (mcqFreshPool.length < mcqTarget || oeqFreshPool.length < oeqTarget)) {
     const prevLevelFilter = `Primary ${student.level - 1}`;
     const prevLevelQuestions = await prisma.examQuestion.findMany({
       where: questionWhere(prevLevelFilter, null),
       select: questionSelect,
     });
-    const { mcqPool: mcqPrev, oeqPool: oeqPrev } = buildPools(prevLevelQuestions);
-    shuffle(mcqPrev);
-    shuffle(oeqPrev);
-    // Append level-1 questions after current level (current level has priority)
-    mcqPool = [...mcqCurrent, ...mcqPrev];
-    oeqPool = [...oeqCurrent, ...oeqPrev];
+    const prevFresh = prevLevelQuestions.filter(q => !usedSourceIds.has(q.id));
+    const prevUsed  = prevLevelQuestions.filter(q =>  usedSourceIds.has(q.id));
+    const { mcqPool: mcqPF, oeqPool: oeqPF } = buildPools(prevFresh);
+    const { mcqPool: mcqPU, oeqPool: oeqPU } = buildPools(prevUsed);
+    shuffle(mcqPF); shuffle(oeqPF);
+    shuffle(mcqPU); shuffle(oeqPU);
+    mcqFreshPool = [...mcqFreshPool, ...mcqPF];
+    oeqFreshPool = [...oeqFreshPool, ...oeqPF];
+    mcqUsedPool  = [...mcqUsedPool,  ...mcqPU];
+    oeqUsedPool  = [...oeqUsedPool,  ...oeqPU];
   }
+
+  // Use fresh questions first; fall back to previously-seen ones if pool is exhausted
+  const mcqPool = mcqFreshPool.length >= mcqTarget
+    ? mcqFreshPool
+    : [...mcqFreshPool, ...mcqUsedPool];
+  const oeqPool = oeqFreshPool.length >= oeqTarget
+    ? oeqFreshPool
+    : [...oeqFreshPool, ...oeqUsedPool];
 
   // Merge a group of OEQ question records into one combined question for the quiz
   function mergeOeqGroup(group: Q[]) {
