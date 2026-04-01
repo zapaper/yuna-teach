@@ -74,6 +74,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const [flagging, setFlagging] = useState<string | null>(null);
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
+  const [releasing, setReleasing] = useState(false);
+  const [released, setReleased] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -150,6 +152,20 @@ function ExamReviewContent({ id }: { id: string }) {
       }
     }
     return originalPageIdx;
+  }
+
+  async function handleRelease() {
+    setReleasing(true);
+    try {
+      await fetch(`/api/exam/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markingStatus: "released" }),
+      });
+      setReleased(true);
+    } finally {
+      setReleasing(false);
+    }
   }
 
   async function downloadPdf() {
@@ -354,7 +370,15 @@ function ExamReviewContent({ id }: { id: string }) {
             <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
           </button>
           <h1 className="font-headline font-bold text-lg text-[#001e40]">Quiz Review</h1>
-          {!isQuiz ? (
+          {isQuiz && !isStudent ? (
+            <button
+              onClick={handleRelease}
+              disabled={releasing || released}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors disabled:opacity-50 ${released ? "bg-[#6cf8bb]/30 text-[#006c49]" : "bg-[#001e40] text-white"}`}
+            >
+              {released ? "Reviewed ✓" : releasing ? "…" : "Mark Reviewed"}
+            </button>
+          ) : !isQuiz ? (
             <button
               onClick={downloadPdf}
               disabled={downloading}
@@ -375,16 +399,28 @@ function ExamReviewContent({ id }: { id: string }) {
             </button>
             <p className="font-headline font-bold text-[#001e40] truncate">{paperTitle}</p>
           </div>
-          {!isQuiz && (
-            <button
-              onClick={downloadPdf}
-              disabled={downloading}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#c3c6d1] text-sm font-semibold text-[#43474f] hover:bg-[#eff4ff] transition-colors disabled:opacity-50 shrink-0"
-            >
-              <span className="material-symbols-outlined text-base">download</span>
-              {downloading ? "Downloading…" : "Download"}
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {isQuiz && !isStudent && (
+              <button
+                onClick={handleRelease}
+                disabled={releasing || released}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 shrink-0 ${released ? "bg-[#6cf8bb]/30 text-[#006c49] border border-[#6cf8bb]" : "bg-[#001e40] text-white hover:bg-[#003366]"}`}
+              >
+                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>{released ? "task_alt" : "check_circle"}</span>
+                {released ? "Marked as Reviewed" : releasing ? "Saving…" : "Mark as Reviewed"}
+              </button>
+            )}
+            {!isQuiz && (
+              <button
+                onClick={downloadPdf}
+                disabled={downloading}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#c3c6d1] text-sm font-semibold text-[#43474f] hover:bg-[#eff4ff] transition-colors disabled:opacity-50 shrink-0"
+              >
+                <span className="material-symbols-outlined text-base">download</span>
+                {downloading ? "Downloading…" : "Download"}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

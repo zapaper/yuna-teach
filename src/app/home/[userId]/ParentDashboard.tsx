@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExamPaperSummary, User } from "@/types";
@@ -123,23 +123,31 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
       .finally(() => setLoadingProgress(false));
   }, [userId, selectedStudentId]);
 
-  const recFetchedRef = useRef(false);
+  const recFetchingRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!hasStudents || recFetchedRef.current) return;
-    const key = `recs-fetched-${userId}`;
-    if (localStorage.getItem(key) === new Date().toDateString()) return;
-    recFetchedRef.current = true;
+    if (!selectedStudentId || recFetchingRef.current === selectedStudentId) return;
+    const key = `recs-fetched-${selectedStudentId}`;
+    const cached = localStorage.getItem(key);
+    if (cached && JSON.parse(cached).date === new Date().toDateString()) {
+      setAiInsight(JSON.parse(cached).insight);
+      return;
+    }
+    recFetchingRef.current = selectedStudentId;
+    setAiInsight("");
     setRecLoading(true);
-    fetch(`/api/parent-recommendations?parentId=${userId}&hour=${new Date().getHours()}`)
+    fetch(`/api/parent-recommendations?parentId=${userId}&studentId=${selectedStudentId}&hour=${new Date().getHours()}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d?.greeting) setAiInsight(d.greeting);
+        const insight = d?.greeting ?? "";
+        if (insight) {
+          setAiInsight(insight);
+          localStorage.setItem(key, JSON.stringify({ date: new Date().toDateString(), insight }));
+        }
         if (d?.actions?.length) setRecActions(d.actions);
-        if (d?.greeting || d?.actions?.length) localStorage.setItem(key, new Date().toDateString());
       })
       .catch(() => {})
-      .finally(() => { recFetchedRef.current = false; setRecLoading(false); });
-  }, [userId, hasStudents]);
+      .finally(() => { recFetchingRef.current = null; setRecLoading(false); });
+  }, [userId, selectedStudentId]);
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
@@ -230,7 +238,26 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
     const subjectTopics = allTopics
       .filter(t => t.subject.toLowerCase().includes(focusedSubject === "math" ? "math" : "science") && t.pct < 65)
       .slice(0, 3);
-    const targetStudentId = focusedGapRec?.studentId ?? selectedStudentId ?? user.linkedStudents[0]?.id;
+    const targetStudentId = selectedStudentId ?? user.linkedStudents[0]?.id;
+    const [customTopic, setCustomTopic] = React.useState("");
+    const [customActing, setCustomActing] = React.useState(false);
+    const [customError, setCustomError] = React.useState("");
+    async function handleCustom() {
+      const topic = customTopic.trim();
+      if (!topic) return;
+      setCustomActing(true);
+      setCustomError("");
+      try {
+        const res = await fetch("/api/focused-test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ parentId: userId, studentId: targetStudentId, subject: focusedSubject === "math" ? "Mathematics" : "Science", topic, type: focusedType }),
+        });
+        if (!res.ok) { const d = await res.json(); setCustomError(d.error ?? "No questions found"); return; }
+        await refreshPapers();
+        setShowFocused(false);
+      } finally { setCustomActing(false); }
+    }
     return (
       <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowFocused(false)}>
         <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
@@ -262,7 +289,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
           {/* Top 3 weak topics */}
           <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Weakest Topics</p>
           {subjectTopics.length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               {subjectTopics.map((t) => {
                 const key = `${t.subject}-${t.topic}`;
                 return (
@@ -294,10 +321,30 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
               })}
             </div>
           ) : (
-            <p className="text-sm text-[#43474f] py-3 text-center">No weak topics for this subject yet. Complete more papers to get recommendations.</p>
+            <p className="text-sm text-[#43474f] py-2 text-center">No auto-detected weak topics. Enter one below.</p>
           )}
 
-          <button onClick={() => setShowFocused(false)} className="w-full mt-4 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold text-sm">Close</button>
+          {/* Manual topic entry */}
+          <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Enter Topic Manually</p>
+          <div className="flex gap-2 mb-1">
+            <input
+              value={customTopic}
+              onChange={e => { setCustomTopic(e.target.value); setCustomError(""); }}
+              onKeyDown={e => { if (e.key === "Enter") handleCustom(); }}
+              placeholder={`e.g. ${focusedSubject === "math" ? "Fractions" : "Plants"}`}
+              className="flex-1 px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none"
+            />
+            <button
+              onClick={handleCustom}
+              disabled={!customTopic.trim() || customActing}
+              className="px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold disabled:opacity-50"
+            >
+              {customActing ? "…" : "Go"}
+            </button>
+          </div>
+          {customError && <p className="text-xs text-[#ba1a1a] mb-2">{customError}</p>}
+
+          <button onClick={() => setShowFocused(false)} className="w-full mt-3 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold text-sm">Close</button>
         </div>
       </div>
     );
@@ -495,12 +542,10 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
       <div className="bg-[#003366] text-white p-7 rounded-[2.5rem] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#006c49]/20 rounded-full blur-3xl -mr-16 -mt-16" />
         <h3 className="font-headline font-bold text-xl mb-3 pr-8 leading-tight">
-          {recLoading ? "Analysing performance…" : focusedGapRec
-            ? `Recommended: ${focusedGapRec.gaps?.[0]?.topics?.[0] ?? "Focused Practice"}`
-            : "Your child's progress overview"}
+          {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
         </h3>
         <p className="text-[#799dd6] text-sm leading-relaxed mb-4">
-          {recLoading ? "" : insightForCard}
+          {recLoading ? "" : (aiInsight || insightForCard)}
         </p>
         {!recLoading && (
           <div className="space-y-2 mb-5">
@@ -914,11 +959,9 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
                       </div>
                     </div>
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
-                      {recLoading ? "Analysing performance…" : focusedGapRec
-                        ? `Focus recommended: ${focusedGapRec.gaps?.[0]?.topics?.[0] ?? "Weak areas"}`
-                        : `${selectedStudent?.name ?? "Your child"}'s progress overview`}
+                      {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
                     </h2>
-                    <p className="text-[#799dd6] text-base max-w-md leading-relaxed">{insightForCard}</p>
+                    <p className="text-[#799dd6] text-base max-w-md leading-relaxed">{aiInsight || insightForCard}</p>
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button

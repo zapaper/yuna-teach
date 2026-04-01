@@ -17,6 +17,7 @@ type Action =
 
 export async function GET(req: NextRequest) {
   const parentId = req.nextUrl.searchParams.get("parentId");
+  const studentIdFilter = req.nextUrl.searchParams.get("studentId") ?? null;
   const clientHour = parseInt(req.nextUrl.searchParams.get("hour") ?? "-1", 10);
   if (!parentId) return NextResponse.json({ greeting: "", actions: [] });
 
@@ -28,12 +29,15 @@ export async function GET(req: NextRequest) {
     },
   });
   const parentName = parent?.name ?? "there";
-  const linkedStudents = parent?.parentLinks?.map(l => l.student) ?? [];
+  const allLinkedStudents = parent?.parentLinks?.map(l => l.student) ?? [];
+  if (allLinkedStudents.length === 0) return NextResponse.json({ greeting: "", actions: [] });
+  const linkedStudents = studentIdFilter
+    ? allLinkedStudents.filter(s => s.id === studentIdFilter)
+    : allLinkedStudents;
   if (linkedStudents.length === 0) return NextResponse.json({ greeting: "", actions: [] });
 
   const actions: Action[] = [];
   const month = new Date().getMonth() + 1;
-  const dayOfWeek = new Date().toLocaleDateString("en-SG", { weekday: "long" });
 
   // Exam schedule context
   let examType: string | null = null;
@@ -143,22 +147,35 @@ export async function GET(req: NextRequest) {
   const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   let greeting = "";
   try {
-    const prompt = `You are a warm AI tutor assistant for ${parentName}, a Singapore primary school parent.
+    const isStudentSpecific = studentIdFilter && linkedStudents.length === 1;
+    const prompt = isStudentSpecific
+      ? `You are a warm AI tutor assistant. Write a concise 2-3 sentence insight for ${parentName} about their child.
 
 Student diagnostic:
 ${studentSummaries.join("\n")}
 ${examContext ? `Note: ${examContext}` : ""}
 
-Write a warm, conversational check-in message of 4-5 flowing sentences. Do NOT number the sentences.
+Rules:
+- 2-3 sentences only — no greetings, no sign-offs
+- Mention specific topic names from the diagnostic — do not be vague
+- If there are weak topics, name them and suggest focused practice
+- If performing well, acknowledge it and suggest a daily quiz to maintain momentum
+- Use **double asterisks** around the child's name and topic names to bold them
+- No bullet points, no numbered lists, no markdown other than **bold**`
+      : `You are a warm AI tutor assistant for ${parentName}, a Singapore primary school parent.
 
-Start by greeting ${parentName} with "Good ${timeOfDay}" and acknowledging it's ${dayOfWeek}. Then add one genuine empathy sentence about the effort of keeping up with a child's learning. Then naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review. End with "Feel free to ask me anything too!"
+Student diagnostic:
+${studentSummaries.join("\n")}
+${examContext ? `Note: ${examContext}` : ""}
+
+Write a warm, conversational check-in message of 3-4 flowing sentences. Do NOT number the sentences.
+
+Start by greeting ${parentName} with "Good ${timeOfDay}". Naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review.
 
 Rules:
 - No bullet points, no numbered lists
-- Empathy sentence must come before the topic feedback
 - Mention specific topic names from the diagnostic — do not be vague
-- Sound like a caring tutor talking to a busy parent, not a robot
-- Use **double asterisks** around student names and topic names to bold them (e.g. **David**, **Fractions**)
+- Use **double asterisks** around student names and topic names to bold them
 - No other markdown or formatting`;
 
     const response = await getAI().models.generateContent({
