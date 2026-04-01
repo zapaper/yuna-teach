@@ -745,7 +745,7 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
       {/* ════════════════════════════════════════════════════════════════════ */}
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
         <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
-          {activeView === "papers" ? "Set Papers" : "Parent Dashboard"}
+          {activeView === "papers" ? "Set Papers" : `${user.name}'s Dashboard`}
         </h1>
         <div className="flex items-center gap-5">
           <div className="relative">
