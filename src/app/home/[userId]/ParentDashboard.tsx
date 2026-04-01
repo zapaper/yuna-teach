@@ -214,6 +214,17 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
   // Master papers (not assigned = available to assign)
   const masterPapers = examPapers.filter(p => !p.assignedToId && p.paperType === null);
 
+  // Available subjects and exam types from master papers
+  const availableSubjects = Array.from(new Set(masterPapers.map(p => p.subject).filter(Boolean))) as string[];
+  const availableExamTypes = Array.from(new Set(masterPapers.map(p => p.examType).filter(Boolean))) as string[];
+
+  // Filtered papers for Set Papers view (subject + examType filters; level auto-applied by API)
+  const filteredPapers = masterPapers.filter(p => {
+    if (subjectFilter && p.subject !== subjectFilter) return false;
+    if (examTypeFilter && p.examType !== examTypeFilter) return false;
+    return true;
+  });
+
   // ── Early: no students ────────────────────────────────────────────────────
 
   if (!hasStudents) {
@@ -887,15 +898,24 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
       {/* ════════════════════════════════════════════════════════════════════ */}
       <main className="lg:ml-72 pt-20 lg:pt-24 pb-32 lg:pb-12">
 
-        {/* ── Papers view ─────────────────────────────────────────────────── */}
+        {/* ── Papers / Set Papers view ─────────────────────────────────────── */}
         {activeView === "papers" && (
           <div className="px-5 lg:px-8 max-w-4xl">
+            {/* Header */}
             <div className="flex items-center gap-3 mb-6">
               <button onClick={() => setActiveView("progress")} className="p-2 rounded-xl hover:bg-[#e5eeff] transition-colors">
                 <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
               </button>
-              <h2 className="font-headline font-extrabold text-xl text-[#001e40]">Exam Papers</h2>
+              <div>
+                <h2 className="font-headline font-extrabold text-xl text-[#001e40]">Set Papers</h2>
+                {selectedStudent && (
+                  <p className="text-xs text-[#43474f] mt-0.5">
+                    {selectedStudent.name} · {selectedStudent.level ? `Primary ${selectedStudent.level}` : ""}
+                  </p>
+                )}
+              </div>
             </div>
+
             {loadingPapers ? (
               <div className="flex justify-center py-16"><div className="animate-spin rounded-full h-8 w-8 border-2 border-[#dce9ff] border-t-[#003366]" /></div>
             ) : masterPapers.length === 0 ? (
@@ -905,12 +925,128 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                 <p className="text-sm text-[#43474f] mt-1">Papers uploaded by admin will appear here.</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {masterPapers.map(p => (
-                  <ExamPaperCard key={p.id} paper={p} userId={userId} userRole="PARENT"
-                    onDelete={id => setExamPapers(prev => prev.filter(x => x.id !== id))} />
-                ))}
-              </div>
+              <>
+                {/* ── Subject filter ── */}
+                <div className="mb-6">
+                  <p className="font-headline font-bold text-base text-[#0b1c30] mb-3">Select Subject</p>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setSubjectFilter(null)}
+                      className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 ${
+                        subjectFilter === null
+                          ? "bg-[#001e40] text-white shadow-md"
+                          : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff]"
+                      }`}
+                    >All</button>
+                    {availableSubjects.map(s => (
+                      <button
+                        key={s}
+                        onClick={() => setSubjectFilter(subjectFilter === s ? null : s)}
+                        className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all active:scale-95 flex items-center gap-1.5 ${
+                          subjectFilter === s
+                            ? "bg-[#001e40] text-white shadow-md"
+                            : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff]"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          {s.toLowerCase().includes("math") ? "calculate" : s.toLowerCase().includes("science") ? "science" : "translate"}
+                        </span>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Exam type filter ── */}
+                {availableExamTypes.length > 0 && (
+                  <div className="mb-6">
+                    <p className="font-headline font-bold text-base text-[#0b1c30] mb-3">Assessment Type</p>
+                    {/* Mobile: 2-col grid; Desktop: flex wrap */}
+                    <div className="grid grid-cols-2 lg:flex lg:flex-wrap gap-2 lg:gap-2">
+                      <button
+                        onClick={() => setExamTypeFilter(null)}
+                        className={`px-4 py-3.5 lg:py-2.5 rounded-2xl lg:rounded-xl text-xs font-bold uppercase tracking-widest text-center transition-all active:scale-95 ${
+                          examTypeFilter === null
+                            ? "bg-[#003366] text-[#799dd6] shadow-lg"
+                            : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff] border-2 border-transparent hover:border-[#d5e3ff]"
+                        }`}
+                      >All</button>
+                      {availableExamTypes.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setExamTypeFilter(examTypeFilter === t ? null : t)}
+                          className={`px-4 py-3.5 lg:py-2.5 rounded-2xl lg:rounded-xl text-xs font-bold uppercase tracking-widest text-center transition-all active:scale-95 ${
+                            examTypeFilter === t
+                              ? "bg-[#003366] text-[#799dd6] shadow-lg"
+                              : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff] border-2 border-transparent hover:border-[#d5e3ff]"
+                          }`}
+                        >{t}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Results ── */}
+                <div className="flex items-baseline justify-between mb-4">
+                  <div>
+                    <p className="font-headline font-bold text-lg text-[#0b1c30]">
+                      Papers{" "}
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#6cf8bb] text-[#00714d] text-sm font-bold ml-1">
+                        {filteredPapers.length}
+                      </span>
+                    </p>
+                  </div>
+                  {(subjectFilter || examTypeFilter) && (
+                    <button
+                      onClick={() => { setSubjectFilter(null); setExamTypeFilter(null); }}
+                      className="text-xs text-[#006c49] font-semibold hover:underline"
+                    >Clear filters</button>
+                  )}
+                </div>
+
+                {filteredPapers.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-3xl border-2 border-dashed border-[#c3c6d1]">
+                    <span className="material-symbols-outlined text-3xl text-[#c3c6d1] mb-2 block">search_off</span>
+                    <p className="text-sm text-[#43474f]">No papers match your filters</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Mobile: compact cards; Desktop: ExamPaperCard */}
+                    <div className="lg:hidden space-y-3">
+                      {filteredPapers.map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => router.push(`/exam/${p.id}/overview?userId=${userId}`)}
+                          className="w-full bg-white rounded-[1.5rem] p-4 flex items-center gap-3 text-left"
+                          style={{ boxShadow: "0 20px 40px rgba(11,28,48,0.03)" }}
+                        >
+                          <div className="w-11 h-11 rounded-2xl bg-[#dce9ff] flex items-center justify-center text-[#001e40] shrink-0">
+                            <span className="material-symbols-outlined text-[20px]">
+                              {(p.subject ?? "").toLowerCase().includes("math") ? "calculate"
+                                : (p.subject ?? "").toLowerCase().includes("science") ? "science" : "description"}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-headline font-bold text-[#001e40] text-sm leading-tight truncate">{p.title}</p>
+                            <p className="text-xs text-[#737780] font-medium mt-0.5">
+                              {[p.subject, p.examType, p.level].filter(Boolean).join(" · ")}
+                            </p>
+                          </div>
+                          {p.assignmentCount > 0 && (
+                            <span className="material-symbols-outlined text-[#006c49] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="hidden lg:block space-y-4">
+                      {filteredPapers.map(p => (
+                        <ExamPaperCard key={p.id} paper={p} userId={userId} userRole="PARENT"
+                          onDelete={id => setExamPapers(prev => prev.filter(x => x.id !== id))} />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
             )}
           </div>
         )}
