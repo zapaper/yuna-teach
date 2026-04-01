@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Legacy app shades */
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
   --color-primary-200: #bfdbfe;
@@ -12,10 +13,56 @@
   --color-accent-orange: #fb923c;
   --color-accent-green: #4ade80;
   --color-accent-pink: #f472b6;
+
+  /* Marketing theme tokens */
+  --color-background: #FFFBFA;
+  --color-on-surface: #2D1B00;
+  --color-on-surface-variant: #4E463D;
+  --color-primary: #003366;
+  --color-on-primary: #ffffff;
+  --color-secondary: #00875A;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #D1FADF;
+  --color-on-secondary-container: #005236;
+  --color-tertiary: #FF8A65;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #FFDCC0;
+  --color-tertiary-fixed: #FFDDB4;
+  --color-tertiary-fixed-dim: #ffb952;
+  --color-on-tertiary-container: #492200;
+  --color-on-tertiary-fixed: #291800;
+  --color-surface: #FFFBFA;
+  --color-surface-container: #FFF8F5;
+  --color-surface-container-low: #FFF5F0;
+  --color-surface-container-high: #FFF0EA;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #FDF1E8;
+  --color-outline: #85736E;
+  --color-outline-variant: #E0E2EC;
 }
 
 .font-headline {
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+.font-body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.font-label {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.soft-glow {
+  box-shadow: 0 20px 50px -12px rgba(255, 138, 101, 0.15);
+}
+
+.warm-gradient {
+  background: linear-gradient(135deg, #FFF5F0 0%, #FFFBFA 100%);
+}
+
+.text-balance {
+  text-wrap: balance;
 }
 
 body {

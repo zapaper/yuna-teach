@@ -9,13 +9,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Mark for You",
-  description: "Let AI help with your child's learning gaps.",
+  title: "MarkForYou.com | Empowering Your Child's Learning Journey",
+  description: "Targeted practice to accelerate your child's mastery of Math and Science.",
   metadataBase: new URL("https://markforyou.com"),
   openGraph: {
-    title: "Mark for You",
-    description: "Let AI help with your child's learning gaps.",
-    siteName: "Mark for You",
+    title: "MarkForYou.com",
+    description: "Targeted practice to accelerate your child's mastery of Math and Science.",
+    siteName: "MarkForYou.com",
     type: "website",
   },
 };
@@ -26,17 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
       </head>
-      <body className="min-h-screen bg-slate-50">
-        <div className="mx-auto max-w-lg lg:max-w-none min-h-screen bg-white shadow-sm">
-          {children}
-        </div>
+      <body className="min-h-screen">
+        {children}
       </body>
     </html>
   );
