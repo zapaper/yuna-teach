@@ -435,7 +435,7 @@ export default function HomePage({
   }
 
   if (isParent && user) {
-    return <ParentDashboard userId={userId} user={user} />;
+    return <ParentDashboard userId={userId} user={user} initialStudentId={searchParams.get("student") ?? undefined} />;
   }
 
   if (!isAdmin && user) {

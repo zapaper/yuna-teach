@@ -259,7 +259,10 @@ function ExamReviewContent({ id }: { id: string }) {
     }
   }
 
-  const backPath = `/home/${userId}`;
+  const isStudent = userId === assignedToId;
+  const backPath = assignedToId && !isStudent
+    ? `/home/${userId}?student=${assignedToId}`
+    : `/home/${userId}`;
 
   if (loading) {
     return (
@@ -294,8 +297,6 @@ function ExamReviewContent({ id }: { id: string }) {
       </div>
     );
   }
-
-  const isStudent = userId === assignedToId;
 
   const writtenQuestions = isStudent && !isQuiz
     ? data.questions.filter((q) => q.marksAwarded !== null)

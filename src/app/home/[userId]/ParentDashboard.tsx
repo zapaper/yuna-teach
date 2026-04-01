@@ -58,7 +58,7 @@ function scorePct(paper: ExamPaperSummary) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ParentDashboard({ userId, user }: { userId: string; user: User }) {
+export default function ParentDashboard({ userId, user, initialStudentId }: { userId: string; user: User; initialStudentId?: string }) {
   const router = useRouter();
 
   // Data
@@ -71,7 +71,11 @@ export default function ParentDashboard({ userId, user }: { userId: string; user
   const [recLoading, setRecLoading] = useState(false);
 
   // UI state
-  const [selectedStudentId, setSelectedStudentId] = useState(user.linkedStudents[0]?.id ?? "");
+  const [selectedStudentId, setSelectedStudentId] = useState(
+    (initialStudentId && user.linkedStudents.some(s => s.id === initialStudentId))
+      ? initialStudentId
+      : (user.linkedStudents[0]?.id ?? "")
+  );
   const [showStudentMenu, setShowStudentMenu] = useState(false);
   const [activeView, setActiveView] = useState<"progress" | "papers">("progress");
 
