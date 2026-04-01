@@ -180,9 +180,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
                 <label className="block font-headline font-bold text-sm text-primary" htmlFor="login-password">Password</label>
-                <button type="button" onClick={() => { setForgotOpen(v => !v); setForgotDone(false); setForgotError(""); setForgotEmail(""); }} className="text-xs font-semibold text-secondary hover:text-on-secondary-container transition-colors">
-                  Forgot Password?
-                </button>
+                <span className="text-xs font-semibold text-outline-variant">Forgot Password?</span>
               </div>
               <div className="relative group">
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">lock</span>

@@ -811,7 +811,16 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                 {initials(user.name)}
               </button>
               {showProfileMenu && (
-                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
+                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
+                  {user.name?.toLowerCase() === "admin" && (
+                    <button
+                      onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">admin_panel_settings</span>
+                      Admin Panel
+                    </button>
+                  )}
                   <button
                     onClick={() => { setShowProfileMenu(false); router.push("/"); }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
@@ -849,7 +858,16 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
               {initials(user.name)}
             </button>
             {showProfileMenu && (
-              <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
+              <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
+                {user.name?.toLowerCase() === "admin" && (
+                  <button
+                    onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">admin_panel_settings</span>
+                    Admin Panel
+                  </button>
+                )}
                 <button
                   onClick={() => { setShowProfileMenu(false); router.push("/"); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
