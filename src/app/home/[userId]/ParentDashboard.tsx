@@ -33,7 +33,7 @@ function initials(name: string) {
 
 function renderBold(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
-    i % 2 === 1 ? <strong key={i}>{part}</strong> : part
+    i % 2 === 1 ? <strong key={i} className="font-bold text-white/90">{part}</strong> : part
   );
 }
 
