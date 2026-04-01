@@ -320,6 +320,23 @@ function ExamReviewContent({ id }: { id: string }) {
     ));
   }
 
+  // Renders marking notes: bolds verdict labels like "(a) Correct" / "(b) Incorrect"
+  function renderMarkingNotes(text: string) {
+    const verdictRe = /^(\([a-zA-Z]\)\s+(?:Partially\s+)?(?:Correct|Incorrect))/i;
+    return text.split("|").map((part, i, arr) => {
+      const trimmed = part.trim();
+      const match = trimmed.match(verdictRe);
+      return (
+        <span key={i}>
+          {match ? (
+            <><strong>{match[1]}</strong>{trimmed.slice(match[1].length)}</>
+          ) : trimmed}
+          {i < arr.length - 1 ? <br /> : null}
+        </span>
+      );
+    });
+  }
+
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
       {/* ── Top bar ── */}
@@ -417,7 +434,7 @@ function ExamReviewContent({ id }: { id: string }) {
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
             <div
               className="relative z-10 flex flex-col items-center justify-center w-44 h-44 rounded-full shrink-0"
-              style={{ border: `10px solid ${scoreBorderColor}` }}
+              style={{ background: `radial-gradient(closest-side, white 82%, transparent 82%), conic-gradient(${scoreBorderColor} ${pct ?? 0}%, #dce9ff 0)` }}
             >
               <span className="font-headline text-5xl font-extrabold" style={{ color: scoreTextColor }}>
                 {pct !== null ? `${pct}%` : `${data.score ?? 0}`}
@@ -632,10 +649,6 @@ function ExamReviewContent({ id }: { id: string }) {
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
                               )}
-                              {drawableDiagram && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={toSrc(drawableDiagram)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
-                              )}
                               {/* MCQ options */}
                               {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
@@ -741,7 +754,7 @@ function ExamReviewContent({ id }: { id: string }) {
                       {/* Solutions panel */}
                       <div className="flex-1 space-y-4">
                         {/* OEQ typed answer */}
-                        {isQuiz && currentQ.studentAnswer && !currentQ.transcribedOptions && (
+                        {currentQ.studentAnswer && !currentQ.transcribedOptions && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Your Answer</p>
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
@@ -767,7 +780,7 @@ function ExamReviewContent({ id }: { id: string }) {
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
                             <p className="text-sm text-[#43474f] leading-relaxed">
-                              {renderWithNewlines(currentQ.markingNotes)}
+                              {renderMarkingNotes(currentQ.markingNotes)}
                             </p>
                           </div>
                         )}
