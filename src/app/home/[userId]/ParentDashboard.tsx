@@ -1261,7 +1261,9 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                       const subjectIcon = (p.subject ?? "").toLowerCase().includes("math") ? "calculate"
                         : (p.subject ?? "").toLowerCase().includes("science") ? "science" : "description";
                       const isAssigning = assigningPaperId === p.id;
-                      async function handleAssign() {
+                      async function handleAssign(e: React.MouseEvent) {
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (!selectedStudentId || isAssigning) return;
                         setAssigningPaperId(p.id);
                         try {
@@ -1297,8 +1299,13 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                               {[p.subject, p.examType, p.level].filter(Boolean).join(" · ")}
                             </p>
                           </div>
-                          {p.assignmentCount > 0 && !isAssigning && (
-                            <span className="material-symbols-outlined text-[#006c49] shrink-0 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          {isAssigning ? null : p.assignmentCount > 0 ? (
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <span className="material-symbols-outlined text-[#006c49] text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                              <span className="text-[10px] font-bold text-[#006c49]">Assign again</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl shrink-0">Assign</span>
                           )}
                         </button>
                       );
