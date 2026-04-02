@@ -146,15 +146,19 @@ function ExamPracticeContent({ id }: { id: string }) {
 
   // ── Intercept browser back button: save ink + time, then navigate ──
   const backSaving = useRef(false);
+  const submitStatusRef = useRef(submitStatus);
+  submitStatusRef.current = submitStatus;
+
   useEffect(() => {
-    // Push a duplicate history entry so pressing back triggers popstate instead of leaving
+    // Push a single duplicate history entry so pressing back triggers popstate instead of leaving.
+    // This effect must only run ONCE per mount — never re-run on state changes — otherwise
+    // multiple pushState calls stack up and the back button gets stuck.
     window.history.pushState(null, "", window.location.href);
 
     function onPopState() {
       if (backSaving.current) return;
-      if (submitStatus === "submitted" || !sessionStart.current) {
-        // Already submitted or timer not started — just navigate
-        router.push(backPath);
+      if (submitStatusRef.current === "submitted" || !sessionStart.current) {
+        router.replace(backPath);
         return;
       }
       backSaving.current = true;
@@ -179,19 +183,18 @@ function ExamPracticeContent({ id }: { id: string }) {
             fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
             saveTimeToServer(),
           ]);
-          console.log("[back-button] Saved ink + time before navigating away");
         } catch (err) {
           console.warn("[back-button] Save failed:", err);
         } finally {
           backSaving.current = false;
-          router.push(backPath);
+          router.replace(backPath);
         }
       })();
     }
 
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [submitStatus, backPath, id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function getCurrentTime() {
     if (!sessionStart.current) return baseSeconds.current;
