@@ -960,7 +960,7 @@ function QuestionCard({
                       <>
                         <button
                           type="button"
-                          onClick={() => onDraw({ top: 0, left: 0, bottom: 50, right: 50 }, `subref-${sp.label}` as DrawTarget)}
+                          onClick={() => setDrawTarget(`subref-${sp.label}` as DrawTarget)}
                           className="text-[10px] px-2 py-0.5 rounded-md bg-sky-50 text-sky-600 hover:bg-sky-100"
                         >
                           {sp.refImageBase64 ? "Redraw diagram" : "Add diagram"}
@@ -976,7 +976,7 @@ function QuestionCard({
                     {/* Drawable diagram */}
                     <button
                       type="button"
-                      onClick={() => onDraw({ top: 0, left: 0, bottom: 50, right: 50 }, `sub-${sp.label}` as DrawTarget)}
+                      onClick={() => setDrawTarget(`sub-${sp.label}` as DrawTarget)}
                       className="text-[10px] px-2 py-0.5 rounded-md bg-violet-50 text-violet-600 hover:bg-violet-100"
                     >
                       {sp.diagramBase64 ? "Redraw canvas bg" : "Add drawable diagram"}
