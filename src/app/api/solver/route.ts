@@ -70,7 +70,7 @@ Steps:
    - "value" = the actual quantity if known/solved, "?" if the question asks for it, null if not relevant.
    - Optionally add a "Total" row if it helps understanding.
    - "unitValue" = value of 1 unit after solving.
-   - Maximum 5 rows per step, units must be 1-10.
+   - Maximum 5 rows per step, units must be 1-20.
    For all other question types, set "diagrams": [].
 
 ${hint ? `Additional context from the user: ${hint}\n` : ""}Rules:
@@ -120,7 +120,7 @@ Respond with ONLY valid JSON (no markdown fences):
       .map((d: { title?: unknown; rows?: unknown; unitValue?: unknown }) => {
         if (!Array.isArray(d.rows)) return null;
         const validRows = (d.rows as RawRow[]).filter(
-          r => typeof r.label === "string" && typeof r.units === "number" && r.units >= 1 && r.units <= 10
+          r => typeof r.label === "string" && typeof r.units === "number" && r.units >= 1 && r.units <= 20
         );
         if (validRows.length === 0) return null;
         return {

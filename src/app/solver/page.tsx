@@ -570,7 +570,7 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
               fill="#f1f5f9" stroke="#e2e8f0" strokeWidth={1} />
             <rect x={barX} y={y} width={barW} height={ROW_H} rx={4}
               fill={col.fill} stroke={col.stroke} strokeWidth={1.5} />
-            {Array.from({ length: row.units - 1 }, (_, j) => (
+            {row.units <= 12 && Array.from({ length: row.units - 1 }, (_, j) => (
               <line key={j}
                 x1={barX + (j + 1) * unitW} y1={y + 6}
                 x2={barX + (j + 1) * unitW} y2={y + ROW_H - 6}
