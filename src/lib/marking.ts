@@ -83,16 +83,18 @@ async function cropPageRegion(
   const meta = await sharp(pageBuffer).metadata();
   const height = meta.height ?? 1;
   const width = meta.width ?? 1;
-  // Add small padding (2%) above and below to avoid cutting off handwriting
-  const pad = height * 0.02;
-  const top = Math.max(0, Math.round((yStartPct / 100) * height - pad));
-  const bottom = Math.min(height, Math.round((yEndPct / 100) * height + pad));
+  // Padding: 1% above (don't bleed into previous question), 6% below (student's final
+  // answer / "Ans:" line often sits right at the bottom boundary — be generous)
+  const padTop = height * 0.01;
+  const padBottom = height * 0.06;
+  const top = Math.max(0, Math.round((yStartPct / 100) * height - padTop));
+  const bottom = Math.min(height, Math.round((yEndPct / 100) * height + padBottom));
   const cropHeight = Math.max(1, bottom - top);
   const cropped = await sharp(pageBuffer)
     .extract({ left: 0, top, width, height: cropHeight })
     .jpeg()
     .toBuffer();
-  console.log(`[marking] CROP ${label}: original ${width}x${height}, yStart=${yStartPct}% yEnd=${yEndPct}% → top=${top}px bottom=${bottom}px cropH=${cropHeight}px, cropped size=${cropped.length} bytes`);
+  console.log(`[marking] CROP ${label}: original ${width}x${height}, yStart=${yStartPct}% yEnd=${yEndPct}% padTop=${(padTop/height*100).toFixed(1)}% padBottom=${(padBottom/height*100).toFixed(1)}% → top=${top}px bottom=${bottom}px cropH=${cropHeight}px, size=${cropped.length}b`);
   return cropped;
 }
 
