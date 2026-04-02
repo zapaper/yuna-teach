@@ -77,6 +77,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
   const [releasing, setReleasing] = useState(false);
+  const [advisoryDismissed, setAdvisoryDismissed] = useState(false);
   const [released, setReleased] = useState(false);
 
   useEffect(() => {
@@ -548,12 +549,15 @@ function ExamReviewContent({ id }: { id: string }) {
         </section>
 
         {/* Advisory — parents only */}
-        {!isStudent && (
-          <div className="rounded-2xl bg-[#ffddb4]/40 border border-[#ffb952]/30 px-4 py-3 mb-6 flex items-start gap-3">
-            <span className="material-symbols-outlined text-[#633f00] shrink-0 mt-0.5">info</span>
-            <p className="text-sm text-[#633f00] leading-relaxed">
+        {!isStudent && !advisoryDismissed && (
+          <div className="rounded-2xl bg-blue-50 border border-blue-200 px-4 py-3 mb-6 flex items-start gap-3">
+            <span className="material-symbols-outlined text-blue-600 shrink-0 mt-0.5">info</span>
+            <p className="text-sm text-blue-700 leading-relaxed flex-1">
               We encourage you to review your child&apos;s mistakes together and discuss the correct approach.
             </p>
+            <button onClick={() => setAdvisoryDismissed(true)} className="shrink-0 text-blue-400 hover:text-blue-600 transition-colors">
+              <span className="material-symbols-outlined text-lg">close</span>
+            </button>
           </div>
         )}
 

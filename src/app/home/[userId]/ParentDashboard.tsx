@@ -799,7 +799,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {recentActivities.map(paper => {
         const pct = scorePct(paper);
         return (
-          <div key={paper.id} onClick={() => router.push(`/exam/${paper.id}/overview?userId=${userId}`)}
+          <div key={paper.id} onClick={() => {
+              const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
+              if (isQuizOrFocused || paper.completedAt) {
+                router.push(`/exam/${paper.id}/review?userId=${userId}`);
+              } else {
+                const masterId = paper.sourceExamId ?? paper.id;
+                router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
+              }
+            }}
             className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow">
             <div className="w-11 h-11 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#001e40] shrink-0">
               <span className="material-symbols-outlined text-lg">{activityIcon(paper)}</span>
@@ -1525,7 +1533,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       ) : recentActivities.map(paper => {
                         const pct = scorePct(paper);
                         return (
-                          <div key={paper.id} onClick={() => router.push(`/exam/${paper.id}/overview?userId=${userId}`)}
+                          <div key={paper.id} onClick={() => {
+                              const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
+                              if (isQuizOrFocused || paper.completedAt) {
+                                router.push(`/exam/${paper.id}/review?userId=${userId}`);
+                              } else {
+                                const masterId = paper.sourceExamId ?? paper.id;
+                                router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
+                              }
+                            }}
                             className="flex items-center gap-5 cursor-pointer group hover:opacity-80 transition-opacity">
                             <div className="w-12 h-12 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#003366] shrink-0">
                               <span className="material-symbols-outlined">{activityIcon(paper)}</span>
@@ -1538,7 +1554,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               <span className="text-xs text-[#43474f] block">{relativeDate(paper.completedAt!)}</span>
                               {pct !== null ? (
                                 <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>
-                                  {pct >= 75 ? "PASSED" : pct >= 50 ? "REVIEWING" : "NEEDS WORK"}
+                                  {pct}%
                                 </span>
                               ) : (
                                 <span className="text-xs font-extrabold text-[#d58d00]">PENDING</span>
