@@ -624,7 +624,7 @@ function ExamOverviewContent({ id }: { id: string }) {
     <div className="p-6 pb-24 max-w-2xl mx-auto">
       {/* Back */}
       <button
-        onClick={() => router.push(backPath)}
+        onClick={() => router.replace(backPath)}
         className="flex items-center gap-1 text-slate-500 mb-6 hover:text-slate-700"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -1625,10 +1625,12 @@ function ExamOverviewContent({ id }: { id: string }) {
             Results sent to student
           </div>
         ) : null}
-        <button onClick={() => { if (detailCloneId) triggerMarking(detailCloneId); setMarkingDetail(null); setDetailCloneId(null); }}
-          className="w-full py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
-          Re-mark all questions
-        </button>
+        {isAdmin && (
+          <button onClick={() => { if (detailCloneId) triggerMarking(detailCloneId); setMarkingDetail(null); setDetailCloneId(null); }}
+            className="w-full py-2.5 rounded-xl border-2 border-slate-200 text-slate-500 text-sm font-medium hover:bg-slate-50 transition-colors">
+            Re-mark all questions
+          </button>
+        )}
       </div>
     </div>,
     document.body
