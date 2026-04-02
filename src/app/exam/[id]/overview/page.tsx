@@ -184,7 +184,12 @@ function ExamOverviewContent({ id }: { id: string }) {
           usersRes.json(),
         ]);
         const currentUser = usersData.users?.find((u: User) => u.id === userId);
-        setIsAdmin(currentUser?.name?.toLowerCase() === "admin");
+        const adminCheck = currentUser?.name?.toLowerCase() === "admin";
+        setIsAdmin(adminCheck);
+        if (!adminCheck) {
+          router.replace(`/home/${userId}`);
+          return;
+        }
         setPaper(paperData);
         if (transcribeRes.ok) {
           const td = await transcribeRes.json();

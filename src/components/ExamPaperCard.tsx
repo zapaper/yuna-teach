@@ -74,12 +74,12 @@ export default function ExamPaperCard({
   const isFocused = paper.paperType === "focused";
   const isQuiz = paper.paperType === "quiz";
 
-  // Parents: if extraction just finished (ready), go to edit for review; otherwise overview
-  // Students: review (if released) or practice; focused tests go to focused page; quizzes go to quiz page
+  // Parents: completed clone → review; master/incomplete papers → non-navigable (assign from dashboard)
+  // Students: review (if released/complete) or practice; focused tests go to focused page; quizzes go to quiz page
   const examHref = isExtracting
     ? "#"
     : userRole === "PARENT"
-    ? `/exam/${paper.id}/overview?userId=${userId}`
+    ? (paper.completedAt ? `/exam/${paper.id}/review?userId=${userId}` : "#")
     : paper.markingStatus === "released" || paper.markingStatus === "complete" || !!paper.completedAt
     ? `/exam/${paper.id}/review?userId=${userId}`
     : isQuiz || isFocused
