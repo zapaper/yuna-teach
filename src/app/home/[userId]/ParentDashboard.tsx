@@ -1264,6 +1264,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                       async function handleAssign(e: React.MouseEvent) {
                         e.preventDefault();
                         e.stopPropagation();
+                        console.log("[handleAssign] paperId:", p.id, "studentId:", selectedStudentId);
                         if (!selectedStudentId || isAssigning) return;
                         setAssigningPaperId(p.id);
                         try {
@@ -1272,6 +1273,8 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ assignedToId: selectedStudentId, instantFeedback: false }),
                           });
+                          const data = await res.json();
+                          console.log("[handleAssign] response:", res.status, data);
                           if (!res.ok) {
                             alert("Failed to assign paper. Please try again.");
                             return;

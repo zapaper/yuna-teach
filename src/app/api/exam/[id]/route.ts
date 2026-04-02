@@ -84,13 +84,18 @@ export async function PATCH(
     const studentId = body.assignedToId as string;
     const instantFeedback = body.instantFeedback === true;
 
-    // Check if clone already exists for this student + master
-    const existing = await prisma.examPaper.findFirst({
+    // Check if an incomplete clone already exists for this student + master
+    const existingAny = await prisma.examPaper.findFirst({
       where: { sourceExamId: id, assignedToId: studentId },
+      select: { id: true, completedAt: true },
     });
+    console.log("[PATCH assign] masterId:", id, "studentId:", studentId, "existingClone:", existingAny);
+    const existing = existingAny?.completedAt == null ? existingAny : null;
     if (existing) {
+      console.log("[PATCH assign] returning alreadyAssigned for incomplete clone:", existing.id);
       return NextResponse.json({ success: true, id: existing.id, alreadyAssigned: true });
     }
+    console.log("[PATCH assign] creating new clone");
 
     // Fetch master paper + questions
     const master = await prisma.examPaper.findUnique({

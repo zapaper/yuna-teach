@@ -135,7 +135,8 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
     fetchData.current?.();
     function onVisible() { if (document.visibilityState === "visible") fetchData.current?.(); }
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    const poll = setInterval(() => fetchData.current?.(), 30000);
+    return () => { document.removeEventListener("visibilitychange", onVisible); clearInterval(poll); };
   }, [userId]);
 
   useEffect(() => {
