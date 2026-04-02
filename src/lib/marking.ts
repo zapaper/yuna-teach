@@ -611,20 +611,26 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   // MCQ: use blind detection (no expected answer shown to AI)
   // Cloze questions are always written even if their answer field is a single letter
   if (isMcqAnswer(question.answer) && !isClozeQuestion(question.syllabusTopic)) {
-    const pageBase64 = pageBuffer.toString("base64");
+    // Crop to question region to prevent adjacent questions bleeding in
+    const hasBounds = question.yStartPct != null && question.yEndPct != null;
+    const mcqImageBuffer = hasBounds
+      ? await cropPageRegion(pageBuffer, question.yStartPct!, question.yEndPct!, `remarkSingle MCQ Q${question.questionNum}`)
+      : pageBuffer;
+    const pageBase64 = mcqImageBuffer.toString("base64");
+    const qForDetect = hasBounds ? { ...question, yStartPct: 0, yEndPct: 100 } : question;
     const isAnswer1 = normalizeMcq(question.answer ?? "") === "1";
     let studentAnswer: string | null = null;
 
     if (isAnswer1) {
       // 1 normal + 1 OpenCV-enhanced — if either detects "1", accept it
       console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: answer=1, normal + opencv`);
-      const enhancedBuffer = await isolateAndThickenBlueInk(pageBuffer, `remarkSingle Q${question.questionNum}`);
+      const enhancedBuffer = await isolateAndThickenBlueInk(mcqImageBuffer, `remarkSingle Q${question.questionNum}`);
       const enhancedBase64 = enhancedBuffer.toString("base64");
 
       const hint1 = new Set([question.id]);
       const [normalDet, opencvDet] = await Promise.all([
-        detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum} normal`, 0.4, hint1),
-        detectMcqAnswers(enhancedBase64, [question], `remarkSingle Q${question.questionNum} opencv`, 0.3, hint1),
+        detectMcqAnswers(pageBase64, [qForDetect], `remarkSingle Q${question.questionNum} normal`, 0.4, hint1),
+        detectMcqAnswers(enhancedBase64, [qForDetect], `remarkSingle Q${question.questionNum} opencv`, 0.3, hint1),
       ]);
       const normalAns = normalDet.get(question.id) ?? null;
       const opencvAns = opencvDet.get(question.id) ?? null;
@@ -636,7 +642,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
       else studentAnswer = normalAns ?? opencvAns;
     } else {
       console.log(`[marking] remarkSingle MCQ Q${question.questionNum}: blind detection`);
-      const detected = await detectMcqAnswers(pageBase64, [question], `remarkSingle Q${question.questionNum}`);
+      const detected = await detectMcqAnswers(pageBase64, [qForDetect], `remarkSingle Q${question.questionNum}`);
       studentAnswer = detected.get(question.id) ?? null;
     }
 
@@ -990,13 +996,19 @@ export async function markExamPaper(paperId: string): Promise<void> {
 
         const results: QuestionMarkResult[] = [];
 
-        // Blind MCQ detection: one question at a time to avoid cross-contamination
+        // Blind MCQ detection: one question at a time, cropped to question region to avoid cross-contamination
         if (mcqQs.length > 0) {
-          console.log(`[marking] ── MCQ BLIND DETECTION ── page ${pageIndex}, ${mcqQs.length} questions (1-by-1): ${mcqQs.map(q => `Q${q.questionNum}(ans=${q.answer})`).join(", ")}`);
-          const pageBase64 = pageBuffer.toString("base64");
+          console.log(`[marking] ── MCQ BLIND DETECTION ── page ${pageIndex}, ${mcqQs.length} questions (1-by-1, cropped): ${mcqQs.map(q => `Q${q.questionNum}(ans=${q.answer})`).join(", ")}`);
           const mcqResults = await Promise.all(
             mcqQs.map(async (q) => {
-              const detected = await detectMcqAnswers(pageBase64, [q], `page ${pageIndex} Q${q.questionNum}`);
+              // Crop to question region to prevent adjacent question answers bleeding in
+              const hasBounds = q.yStartPct != null && q.yEndPct != null;
+              const imageBuffer = hasBounds
+                ? await cropPageRegion(pageBuffer, q.yStartPct!, q.yEndPct!, `MCQ page ${pageIndex} Q${q.questionNum}`)
+                : pageBuffer;
+              const imageBase64 = imageBuffer.toString("base64");
+              const qForDetect = hasBounds ? { ...q, yStartPct: 0, yEndPct: 100 } : q;
+              const detected = await detectMcqAnswers(imageBase64, [qForDetect], `page ${pageIndex} Q${q.questionNum}`);
               const studentAnswer = detected.get(q.id) ?? null;
               const expected = q.answer?.trim() ?? "";
               if (!studentAnswer) {
