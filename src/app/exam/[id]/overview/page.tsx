@@ -558,12 +558,13 @@ function ExamOverviewContent({ id }: { id: string }) {
   // Build submissionIndexMap from metadata (for lightbox page lookup)
   function getSubmissionPage(originalPageIdx: number): number {
     if (!paper) return originalPageIdx;
-    const answerPageSet = new Set(
-      (paper.metadata?.answerPages ?? []).map((p) => p - 1)
-    );
+    const hiddenSet = new Set([
+      ...(paper.metadata?.answerPages ?? []).map((p: number) => p - 1),
+      ...(paper.metadata?.skipPages ?? []).map((p: number) => p - 1),
+    ]);
     let idx = 0;
     for (let i = 0; i < paper.pageCount; i++) {
-      if (!answerPageSet.has(i)) {
+      if (!hiddenSet.has(i)) {
         if (i === originalPageIdx) return idx;
         idx++;
       }

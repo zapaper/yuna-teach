@@ -63,6 +63,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [totalMarks, setTotalMarks] = useState<string | null>(null);
   const [assignedToId, setAssignedToId] = useState<string | null>(null);
   const [answerPages, setAnswerPages] = useState<number[]>([]);
+  const [skipPages, setSkipPages] = useState<number[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [submissionPageOverride, setSubmissionPageOverride] = useState<number | null>(null);
@@ -98,9 +99,11 @@ function ExamReviewContent({ id }: { id: string }) {
           paperIsQuiz = paper.paperType === "quiz" || paper.paperType === "focused";
           setIsQuiz(paperIsQuiz);
           setAnswerPages(paper.metadata?.answerPages ?? []);
+          setSkipPages(paper.metadata?.skipPages ?? []);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
-          setSubmissionPageCount((paper.pageCount ?? 0) - ap.length);
+          const sp = paper.metadata?.skipPages ?? [];
+          setSubmissionPageCount((paper.pageCount ?? 0) - ap.length - sp.length);
           // Map questionNum → full question data from paper
           for (const q of paper.questions ?? []) {
             if (q.questionNum) {
@@ -145,10 +148,13 @@ function ExamReviewContent({ id }: { id: string }) {
   }, [id]);
 
   function getSubmissionPage(originalPageIdx: number): number {
-    const answerPageSet = new Set(answerPages.map((p) => p - 1));
+    const hiddenSet = new Set([
+      ...answerPages.map((p) => p - 1),
+      ...skipPages.map((p) => p - 1),
+    ]);
     let idx = 0;
     for (let i = 0; i < pageCount; i++) {
-      if (!answerPageSet.has(i)) {
+      if (!hiddenSet.has(i)) {
         if (i === originalPageIdx) return idx;
         idx++;
       }
@@ -380,7 +386,7 @@ function ExamReviewContent({ id }: { id: string }) {
           >
             <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
           </button>
-          <h1 className="font-headline font-bold text-lg text-[#001e40]">Quiz Review</h1>
+          <h1 className="font-headline font-bold text-lg text-[#001e40]">{isQuiz ? "Quiz Review" : "Exam Review"}</h1>
           {isQuiz && !isStudent ? (
             <button
               onClick={handleRelease}
@@ -774,7 +780,7 @@ function ExamReviewContent({ id }: { id: string }) {
                           );
                         })()}
                       </div>
-                    ) : !isStudent && currentQ.imageData ? (
+                    ) : currentQ.imageData ? (
                       <div className="mb-5 rounded-2xl overflow-hidden border border-[#e5eeff]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={currentQ.imageData} alt={`Question ${currentQ.questionNum}`} className="w-full h-auto" />
