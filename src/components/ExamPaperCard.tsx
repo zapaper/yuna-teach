@@ -74,9 +74,11 @@ export default function ExamPaperCard({
   const isFocused = paper.paperType === "focused";
   const isQuiz = paper.paperType === "quiz";
 
+  const isMarking = paper.markingStatus === "in_progress";
+
   // Parents: completed clone → review; master/incomplete papers → non-navigable (assign from dashboard)
   // Students: review (if released/complete) or practice; focused tests go to focused page; quizzes go to quiz page
-  const examHref = isExtracting
+  const examHref = isExtracting || isMarking
     ? "#"
     : userRole === "PARENT"
     ? (paper.completedAt ? `/exam/${paper.id}/review?userId=${userId}` : "#")
@@ -316,7 +318,11 @@ export default function ExamPaperCard({
                 </span>
               ) : null}
               {userRole === "PARENT" ? (
-                paper.pendingReviewCount > 0 ? (
+                isMarking ? (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                    Marking
+                  </span>
+                ) : paper.pendingReviewCount > 0 ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
                     Pending review ({paper.pendingReviewCount})
                   </span>

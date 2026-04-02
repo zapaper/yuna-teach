@@ -438,20 +438,21 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                         <div className="space-y-2">
                           {completedPapers.slice(0, 10).map(paper => {
                             const pct = scorePct(paper);
+                            const isMarking = paper.markingStatus === "in_progress";
                             return (
                               <div key={paper.id}
-                                onClick={() => {
-                                  router.push(`/exam/${paper.id}/review?userId=${userId}`);
-                                }}
-                                className="flex items-center gap-3 p-3 rounded-xl bg-[#006c49]/5 cursor-pointer hover:bg-[#006c49]/10 transition-colors">
+                                onClick={() => { if (!isMarking) router.push(`/exam/${paper.id}/review?userId=${userId}`); }}
+                                className={`flex items-center gap-3 p-3 rounded-xl bg-[#006c49]/5 transition-colors ${isMarking ? "opacity-60" : "cursor-pointer hover:bg-[#006c49]/10"}`}>
                                 <div className="bg-white p-1.5 rounded-lg shadow-sm shrink-0">
-                                  <span className="material-symbols-outlined text-[#006c49] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                  <span className="material-symbols-outlined text-[#006c49] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>{isMarking ? "pending" : "check_circle"}</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="font-semibold text-xs text-[#003366] truncate">{paper.title}</p>
-                                  {pct !== null && (
+                                  {isMarking ? (
+                                    <p className="text-[10px] font-bold text-blue-500">Marking…</p>
+                                  ) : pct !== null ? (
                                     <p className={`text-[10px] font-bold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-amber-600" : "text-[#ba1a1a]"}`}>{pct}%</p>
-                                  )}
+                                  ) : null}
                                 </div>
                               </div>
                             );
@@ -761,29 +762,31 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                 <div className="space-y-3">
                   {completedPapers.slice(0, 10).map(paper => {
                     const pct = scorePct(paper);
+                    const isMarking = paper.markingStatus === "in_progress";
                     return (
                       <div
                         key={paper.id}
-                        onClick={() => {
-                          router.push(`/exam/${paper.id}/review?userId=${userId}`);
-                        }}
-                        className="flex items-center justify-between p-4 rounded-2xl bg-[#006c49]/5 cursor-pointer hover:bg-[#006c49]/10 transition-colors"
+                        onClick={() => { if (!isMarking) router.push(`/exam/${paper.id}/review?userId=${userId}`); }}
+                        className={`flex items-center justify-between p-4 rounded-2xl bg-[#006c49]/5 transition-colors ${isMarking ? "opacity-60" : "cursor-pointer hover:bg-[#006c49]/10"}`}
                       >
                         <div className="flex items-center gap-4">
                           <div className="bg-white p-2.5 rounded-xl shadow-sm">
-                            <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                            <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>{isMarking ? "pending" : "check_circle"}</span>
                           </div>
                           <div>
                             <p className="font-bold text-sm text-[#003366]">{paper.title}</p>
                             <p className="text-[10px] text-[#43474f]">
-                              {pct !== null ? `Score: ${pct}% · ` : ""}{paper.completedAt ? relativeDate(paper.completedAt) : ""}
+                              {isMarking ? "Marking…" : pct !== null ? `Score: ${pct}% · ` : ""}{!isMarking && paper.completedAt ? relativeDate(paper.completedAt) : ""}
                             </p>
                           </div>
                         </div>
-                        {pct !== null && (
+                        {!isMarking && pct !== null && (
                           <span className={`text-xs font-extrabold shrink-0 ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-amber-600" : "text-[#ba1a1a]"}`}>
                             {pct}%
                           </span>
+                        )}
+                        {isMarking && (
+                          <span className="text-xs font-extrabold text-blue-500 shrink-0">Marking…</span>
                         )}
                       </div>
                     );
