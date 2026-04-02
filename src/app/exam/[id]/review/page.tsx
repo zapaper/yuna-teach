@@ -263,8 +263,8 @@ function ExamReviewContent({ id }: { id: string }) {
 
   const isStudent = userId === assignedToId;
   const backPath = assignedToId && !isStudent
-    ? `/home/${userId}?student=${assignedToId}`
-    : `/home/${userId}`;
+    ? `/home/${userId}?view=progress&student=${assignedToId}`
+    : `/home/${userId}?view=progress`;
 
   if (loading) {
     return (

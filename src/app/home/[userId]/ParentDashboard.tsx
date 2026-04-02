@@ -64,7 +64,7 @@ function scorePct(paper: ExamPaperSummary) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ParentDashboard({ userId, user, initialStudentId }: { userId: string; user: User; initialStudentId?: string }) {
+export default function ParentDashboard({ userId, user, initialStudentId, initialView }: { userId: string; user: User; initialStudentId?: string; initialView?: string }) {
   const router = useRouter();
 
   // Data
@@ -83,7 +83,7 @@ export default function ParentDashboard({ userId, user, initialStudentId }: { us
       : (user.linkedStudents[0]?.id ?? "")
   );
   const [showStudentMenu, setShowStudentMenu] = useState(false);
-  const [activeView, setActiveView] = useState<"progress" | "papers">("progress");
+  const [activeView, setActiveView] = useState<"progress" | "papers">(initialView === "papers" ? "papers" : "progress");
 
   // Modals
   const [showFocused, setShowFocused] = useState(false);
