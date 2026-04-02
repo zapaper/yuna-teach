@@ -445,7 +445,9 @@ function QuizContent({ id }: { id: string }) {
             <div className={`hidden lg:block mb-10 ${mcqQuestions.length > 0 ? "mt-16" : "mt-4"}`}>
               <h2 className="font-headline text-3xl font-extrabold text-[#001e40] tracking-tight">SECTION B: WRITTEN ANSWERS</h2>
               <p className="text-[#737780] mt-1 text-sm">Show all workings clearly. Partial marks may be awarded for correct methodology.</p>
+              <p className="text-[#737780] mt-1 text-xs italic">For Apple users: turn on &quot;Draw with Apple Pencil&quot; and turn off &quot;Scribble&quot; for smooth writing.</p>
             </div>
+            <p className="lg:hidden text-[#737780] text-xs italic mb-4 px-1">For Apple users: turn on &quot;Draw with Apple Pencil&quot; and turn off &quot;Scribble&quot; for smooth writing.</p>
             <div className="space-y-12">
               {oeqQuestions.map((q, idx) => (
                 <OeqQuestionCard
