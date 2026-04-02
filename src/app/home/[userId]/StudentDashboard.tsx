@@ -441,8 +441,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                             return (
                               <div key={paper.id}
                                 onClick={() => {
-                                  const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
-                                  router.push(isQuizOrFocused ? `/exam/${paper.id}/review?userId=${userId}` : `/exam/${paper.id}/overview?userId=${userId}`);
+                                  router.push(`/exam/${paper.id}/review?userId=${userId}`);
                                 }}
                                 className="flex items-center gap-3 p-3 rounded-xl bg-[#006c49]/5 cursor-pointer hover:bg-[#006c49]/10 transition-colors">
                                 <div className="bg-white p-1.5 rounded-lg shadow-sm shrink-0">
@@ -766,8 +765,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                       <div
                         key={paper.id}
                         onClick={() => {
-                          const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
-                          router.push(isQuizOrFocused ? `/exam/${paper.id}/review?userId=${userId}` : `/exam/${paper.id}/overview?userId=${userId}`);
+                          router.push(`/exam/${paper.id}/review?userId=${userId}`);
                         }}
                         className="flex items-center justify-between p-4 rounded-2xl bg-[#006c49]/5 cursor-pointer hover:bg-[#006c49]/10 transition-colors"
                       >
