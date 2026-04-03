@@ -705,6 +705,13 @@ function ExamReviewContent({ id }: { id: string }) {
               const isPartial = !isCorrect && (currentQ.marksAwarded ?? 0) > 0;
               const badgeBg = isCorrect ? "#d1fae5" : isPartial ? "#fef3c7" : "#ffdad6";
               const badgeText = isCorrect ? "#006c49" : isPartial ? "#633f00" : "#ba1a1a";
+              // Check if this question has subparts with per-part answers shown inline
+              const subs = currentQ.transcribedSubparts as { label: string }[] | null;
+              const realSubLabels = subs?.filter(s => !s.label.startsWith("_")) ?? [];
+              const hasInlinePartAnswers = realSubLabels.length > 0 && (
+                Object.keys(parsePartAnswers(currentQ.studentAnswer)).length > 0 ||
+                Object.keys(parsePartAnswers(currentQ.answer)).length > 0
+              );
 
               return (<>
               <div className="relative bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff]">
@@ -931,8 +938,8 @@ function ExamReviewContent({ id }: { id: string }) {
 
                       {/* Solutions panel */}
                       <div className="flex-1 space-y-4">
-                        {/* OEQ typed answer */}
-                        {currentQ.studentAnswer && !currentQ.transcribedOptions && (
+                        {/* OEQ typed answer — skip if per-part answers shown inline */}
+                        {currentQ.studentAnswer && !currentQ.transcribedOptions && !hasInlinePartAnswers && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Your Answer</p>
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
@@ -943,8 +950,8 @@ function ExamReviewContent({ id }: { id: string }) {
                           </div>
                         )}
 
-                        {/* Correct answer */}
-                        {(currentQ.answer || currentQ.answerImageData) && !(isQuiz && currentQ.transcribedOptions) && (
+                        {/* Correct answer — skip if per-part answers shown inline */}
+                        {(currentQ.answer || currentQ.answerImageData) && !(isQuiz && currentQ.transcribedOptions) && !hasInlinePartAnswers && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Correct Answer</p>
                             {currentQ.answer && (
