@@ -859,46 +859,9 @@ function ExamReviewContent({ id }: { id: string }) {
                     {currentQ.marksAwarded !== null && (
                       <div className="mt-4">
                         {elaborations[currentQ.id] ? (
-                          <div className="p-4 lg:p-5 bg-white rounded-2xl shadow-sm flex gap-3 items-start border-l-4 border-[#ffb952] lg:border-l-0 lg:bg-white/70 lg:backdrop-blur-md lg:border lg:border-white/40">
-                            <div className="mt-0.5 p-1.5 bg-[#ffddb4] rounded-lg lg:hidden">
-                              <span className="material-symbols-outlined text-[#633f00] text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
-                            </div>
-                            <div className="w-10 h-10 rounded-xl bg-[#001e40] text-white items-center justify-center shrink-0 hidden lg:flex">
-                              <span className="material-symbols-outlined text-base">psychology</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-bold text-[#001e40] mb-1 flex items-center gap-2">
-                                AI Insight
-                                {!isStudent && (
-                                  <button
-                                    onClick={async () => {
-                                      const updated = elaborations[currentQ.id];
-                                      if (!updated) return;
-                                      try {
-                                        await fetch(`/api/exam/questions/${currentQ.id}`, {
-                                          method: "PATCH",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({ elaboration: updated }),
-                                        });
-                                      } catch { /* ignore */ }
-                                    }}
-                                    className="text-[10px] font-normal text-[#003366] hover:underline normal-case"
-                                  >
-                                    Save
-                                  </button>
-                                )}
-                              </p>
-                              {!isStudent ? (
-                                <textarea
-                                  value={elaborations[currentQ.id]}
-                                  onChange={e => setElaborations(prev => ({ ...prev, [currentQ.id]: e.target.value }))}
-                                  rows={5}
-                                  className="w-full text-sm text-[#43474f] leading-relaxed rounded-xl bg-[#eff4ff] border border-[#c3c6d1] p-3 focus:outline-none focus:border-[#001e40] resize-y"
-                                />
-                              ) : (
-                                <FormattedText text={elaborations[currentQ.id]} className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line" />
-                              )}
-                            </div>
+                          <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">AI Explanation</p>
+                            <FormattedText text={elaborations[currentQ.id]} className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line" />
                           </div>
                         ) : (
                           <button
