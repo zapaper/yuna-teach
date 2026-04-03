@@ -855,32 +855,6 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     </div>
 
-                    {/* AI Elaboration — full width below submission + solutions */}
-                    {currentQ.marksAwarded !== null && (
-                      <div className="mt-4">
-                        {elaborations[currentQ.id] ? (
-                          <div>
-                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">AI Explanation</p>
-                            <FormattedText text={elaborations[currentQ.id]} className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line" />
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => fetchElaboration(currentQ.id)}
-                            disabled={elaborating === currentQ.id}
-                            className="w-full h-14 bg-gradient-to-r from-[#001e40] to-[#003366] hover:from-[#003366] hover:to-[#001e40] text-white rounded-2xl flex items-center justify-center gap-3 font-headline font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
-                          >
-                            <span className="material-symbols-outlined">psychology_alt</span>
-                            {elaborating === currentQ.id ? (
-                              <span className="flex items-center gap-2">
-                                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
-                                Generating…
-                              </span>
-                            ) : "AI Elaboration"}
-                          </button>
-                        )}
-                      </div>
-                    )}
-
                     {/* Flag toggle — bottom center */}
                     <div className="mt-6 pt-5 border-t border-[#e5eeff] flex justify-center">
                       <button
@@ -911,6 +885,32 @@ function ExamReviewContent({ id }: { id: string }) {
                   </div>
                 </div>
               </div>
+
+              {/* AI Elaboration — separate section below question card */}
+              {currentQ.marksAwarded !== null && (
+                <div className="mt-4">
+                  {elaborations[currentQ.id] ? (
+                    <div className="bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff]">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">AI Explanation</p>
+                      <FormattedText text={elaborations[currentQ.id]} className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line" />
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => fetchElaboration(currentQ.id)}
+                      disabled={elaborating === currentQ.id}
+                      className="w-full h-14 bg-gradient-to-r from-[#001e40] to-[#003366] hover:from-[#003366] hover:to-[#001e40] text-white rounded-2xl flex items-center justify-center gap-3 font-headline font-bold transition-all shadow-md active:scale-95 disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined">psychology_alt</span>
+                      {elaborating === currentQ.id ? (
+                        <span className="flex items-center gap-2">
+                          <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
+                          Generating…
+                        </span>
+                      ) : "AI Elaboration"}
+                    </button>
+                  )}
+                </div>
+              )}
               );
             })()}
           </div>
