@@ -22,21 +22,22 @@ export async function POST(request: NextRequest) {
     where: { id: studentId },
     select: { level: true },
   });
-  const levelFilter = student?.level ? `Primary ${student.level}` : undefined;
+  const levelFilter = student?.level ? `P${student.level}` : undefined;
 
-  // Exam type filter based on current month — same logic as daily quiz
-  const allQuestions = await prisma.examQuestion.findMany({
-    where: {
-      syllabusTopic: topic,
-      transcribedStem: { not: null },
-      answer: { not: null },
-      examPaper: {
-        sourceExamId: null,
-        paperType: null,
-        subject: { contains: subject, mode: "insensitive" },
-        ...(levelFilter ? { level: levelFilter } : {}),
-      },
+  const questionWhere = (withLevel: boolean) => ({
+    syllabusTopic: topic,
+    transcribedStem: { not: null } as { not: null },
+    answer: { not: null } as { not: null },
+    examPaper: {
+      sourceExamId: null,
+      paperType: null,
+      subject: { contains: subject, mode: "insensitive" as const },
+      ...(withLevel && levelFilter ? { level: levelFilter } : {}),
     },
+  });
+
+  let allQuestions = await prisma.examQuestion.findMany({
+    where: questionWhere(true),
     select: {
       id: true,
       questionNum: true,
@@ -57,6 +58,20 @@ export async function POST(request: NextRequest) {
       },
     },
   });
+
+  // Fallback: retry without level filter if nothing found
+  if (allQuestions.length === 0 && levelFilter) {
+    allQuestions = await prisma.examQuestion.findMany({
+      where: questionWhere(false),
+      select: {
+        id: true, questionNum: true, examPaperId: true, imageData: true, answer: true,
+        answerImageData: true, marksAvailable: true, syllabusTopic: true, transcribedStem: true,
+        transcribedOptions: true, transcribedOptionImages: true, transcribedSubparts: true,
+        diagramImageData: true, diagramBounds: true,
+        examPaper: { select: { year: true, examType: true, school: true } },
+      },
+    });
+  }
 
   if (allQuestions.length === 0) {
     return NextResponse.json({ error: "No questions found for this topic" }, { status: 404 });

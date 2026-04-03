@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useRef } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FormattedText from "@/components/FormattedText";
 
@@ -31,6 +31,17 @@ function SolverContent() {
   const [creatingTest, setCreatingTest] = useState(false);
   const [noStudentLinked, setNoStudentLinked] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [linkedStudent, setLinkedStudent] = useState<{ id: string; name: string } | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    fetch("/api/users").then(r => r.json()).then(data => {
+      const me = (data.users ?? []).find((u: { id: string; linkedStudents: { id: string; name: string }[] }) => u.id === userId);
+      const first = me?.linkedStudents?.[0] ?? null;
+      setLinkedStudent(first);
+      setNoStudentLinked(!first);
+    }).catch(() => {});
+  }, [userId]);
 
   function compressImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -88,26 +99,13 @@ function SolverContent() {
   }
 
   async function createFocusedTest() {
+    if (!linkedStudent) { setNoStudentLinked(true); return; }
     setCreatingTest(true);
-    setNoStudentLinked(false);
     try {
-      // Get linked students for this parent
-      const usersRes = await fetch("/api/users");
-      const usersData = await usersRes.json();
-      const usersList: { id: string; linkedStudents: { id: string }[] }[] = usersData.users ?? [];
-      const currentUser = usersList.find((u) => u.id === userId) ?? null;
-      const linkedStudents = currentUser?.linkedStudents ?? [];
-
-      if (linkedStudents.length === 0) {
-        setNoStudentLinked(true);
-        setCreatingTest(false);
-        return;
-      }
-
       const res = await fetch("/api/focused-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId: userId, studentId: linkedStudents[0].id, subject, topic }),
+        body: JSON.stringify({ parentId: userId, studentId: linkedStudent.id, subject, topic }),
       });
       const data = await res.json();
       if (res.ok && data.id) {
@@ -483,7 +481,7 @@ function SolverContent() {
             {topic && (
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <p className="text-sm text-[#0b1c30] font-medium mb-3">
-                  Create a focused test on <span className="text-[#003366] font-semibold">{topic}</span> for your child?
+                  Create a focused test on <span className="text-[#003366] font-semibold">{topic}</span> for <span className="text-[#003366] font-semibold">{linkedStudent?.name ?? "your child"}</span>?
                 </p>
                 {noStudentLinked && <p className="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-3">Please link a student to your account first.</p>}
                 {error && <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-3">{error}</p>}
