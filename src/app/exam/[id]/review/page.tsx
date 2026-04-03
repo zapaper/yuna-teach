@@ -80,6 +80,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [releasing, setReleasing] = useState(false);
   const [editingMarks, setEditingMarks] = useState<string | null>(null);
   const [savingMarks, setSavingMarks] = useState(false);
+  const [remarking, setRemarking] = useState(false);
   const [advisoryDismissed, setAdvisoryDismissed] = useState(false);
   const [released, setReleased] = useState(false);
 
@@ -164,6 +165,19 @@ function ExamReviewContent({ id }: { id: string }) {
       }
     }
     return originalPageIdx;
+  }
+
+  async function handleRemark() {
+    if (!confirm("Re-mark this paper? This will re-run AI marking on all questions.")) return;
+    setRemarking(true);
+    try {
+      const res = await fetch(`/api/exam/${id}/mark`, { method: "POST" });
+      if (res.ok) {
+        router.push(`/home/${userId}`);
+      }
+    } catch {
+      setRemarking(false);
+    }
   }
 
   async function handleRelease() {
@@ -365,6 +379,24 @@ function ExamReviewContent({ id }: { id: string }) {
     : pct >= 75 ? "#006c49"
     : pct >= 50 ? "#633f00"
     : "#ba1a1a";
+
+  // Parse multi-part answer string like "(a) 12 (b) 3.5" into { a: "12", b: "3.5" }
+  function parsePartAnswers(text: string | null): Record<string, string> {
+    if (!text) return {};
+    const parts: Record<string, string> = {};
+    const regex = /\(([a-zA-Z])\)\s*/g;
+    const labels: { label: string; idx: number }[] = [];
+    let m;
+    while ((m = regex.exec(text)) !== null) {
+      labels.push({ label: m[1].toLowerCase(), idx: m.index + m[0].length });
+    }
+    if (labels.length === 0) return {};
+    for (let i = 0; i < labels.length; i++) {
+      const end = i + 1 < labels.length ? text.lastIndexOf("(", labels[i + 1].idx) : text.length;
+      parts[labels[i].label] = text.slice(labels[i].idx, end).trim();
+    }
+    return parts;
+  }
 
   function renderWithNewlines(text: string) {
     return text.split("|").map((part, i, arr) => (
@@ -572,6 +604,20 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         )}
 
+        {/* Remark button — parents only */}
+        {!isStudent && (
+          <div className="mb-4 flex justify-end">
+            <button
+              onClick={handleRemark}
+              disabled={remarking}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#c3c6d1]/30 text-sm font-bold text-[#43474f] hover:bg-[#eff4ff] hover:text-[#001e40] transition-all disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-base">refresh</span>
+              {remarking ? "Remarking…" : "Remark"}
+            </button>
+          </div>
+        )}
+
         {/* ── Tabs ── */}
         <div className="mb-6">
           <div className="flex items-center gap-1 p-1 bg-white rounded-2xl w-fit shadow-sm">
@@ -660,7 +706,7 @@ function ExamReviewContent({ id }: { id: string }) {
               const badgeBg = isCorrect ? "#d1fae5" : isPartial ? "#fef3c7" : "#ffdad6";
               const badgeText = isCorrect ? "#006c49" : isPartial ? "#633f00" : "#ba1a1a";
 
-              return (
+              return (<>
               <div className="relative bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff]">
                 <div className="flex flex-col md:flex-row gap-5 lg:gap-8">
                   {/* Number badge */}
@@ -797,25 +843,47 @@ function ExamReviewContent({ id }: { id: string }) {
                                   })}
                                 </div>
                               )}
-                              {/* Subparts */}
-                              {realSubs && realSubs.length > 0 && (
-                                <div className="space-y-2 mt-2">
-                                  {realSubs.map((sp) => {
-                                    const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
-                                    return (
-                                      <div key={sp.label}>
-                                        <p className="text-sm text-[#0b1c30]">
-                                          <span className="font-bold text-[#001e40]">({sp.label})</span> {sp.text}
-                                        </p>
-                                        {imgSrc && (
-                                          // eslint-disable-next-line @next/next/no-img-element
-                                          <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-xl border border-[#e5eeff] mt-1" />
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
+                              {/* Subparts with per-part answers */}
+                              {realSubs && realSubs.length > 0 && (() => {
+                                const studentParts = parsePartAnswers(currentQ.studentAnswer);
+                                const answerParts = parsePartAnswers(currentQ.answer);
+                                const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
+                                return (
+                                  <div className="space-y-4 mt-2">
+                                    {realSubs.map((sp) => {
+                                      const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
+                                      const partStudent = studentParts[sp.label.toLowerCase()];
+                                      const partAnswer = answerParts[sp.label.toLowerCase()];
+                                      return (
+                                        <div key={sp.label} className="space-y-2">
+                                          <p className="text-sm text-[#0b1c30]">
+                                            <span className="font-bold text-[#001e40]">({sp.label})</span> {sp.text}
+                                          </p>
+                                          {imgSrc && (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-xl border border-[#e5eeff]" />
+                                          )}
+                                          {hasPartAnswers && partStudent && (
+                                            <div className={`text-sm leading-relaxed rounded-xl p-3 ${
+                                              partAnswer && partStudent.toLowerCase().replace(/\s/g, "") === partAnswer.toLowerCase().replace(/\s/g, "")
+                                                ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                                            }`}>
+                                              <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Your Answer</span>
+                                              {partStudent}
+                                            </div>
+                                          )}
+                                          {hasPartAnswers && partAnswer && (
+                                            <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff]">
+                                              <span className="text-[9px] font-bold uppercase tracking-wider text-[#43474f] opacity-60 block mb-0.5">Correct Answer</span>
+                                              {partAnswer}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })()}
                             </>
                           );
                         })()}
@@ -963,7 +1031,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   )}
                 </div>
               )}
-              );
+              </>);
             })()}
           </div>
         )}
