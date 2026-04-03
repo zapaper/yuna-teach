@@ -860,12 +860,23 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const studentParts = parsePartAnswers(studentAnswerText);
                                 const answerParts = parsePartAnswers(currentQ.answer);
                                 const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
+                                // Parse marking notes for per-part correctness
+                                const notes = currentQ.markingNotes ?? "";
+                                const partCorrectMap: Record<string, boolean> = {};
+                                for (const sp of realSubs) {
+                                  const re = new RegExp(`\\(${sp.label}\\)\\s*(Correct|Incorrect|Wrong|Partial)`, "i");
+                                  const m = notes.match(re);
+                                  if (m) partCorrectMap[sp.label.toLowerCase()] = m[1].toLowerCase() === "correct";
+                                }
                                 return (
                                   <div className="space-y-4 mt-2">
                                     {realSubs.map((sp) => {
                                       const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
                                       const partStudent = studentParts[sp.label.toLowerCase()];
                                       const partAnswer = answerParts[sp.label.toLowerCase()];
+                                      const partIsCorrect = sp.label.toLowerCase() in partCorrectMap
+                                        ? partCorrectMap[sp.label.toLowerCase()]
+                                        : (partAnswer && partStudent ? partStudent.toLowerCase().replace(/\s/g, "") === partAnswer.toLowerCase().replace(/\s/g, "") : isCorrect);
                                       return (
                                         <div key={sp.label} className="space-y-2">
                                           <p className="text-sm text-[#0b1c30]">
@@ -898,8 +909,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                           )}
                                           {hasPartAnswers && partStudent && (
                                             <div className={`text-sm leading-relaxed rounded-xl p-3 ${
-                                              partAnswer && partStudent.toLowerCase().replace(/\s/g, "") === partAnswer.toLowerCase().replace(/\s/g, "")
-                                                ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                                              partIsCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                                             }`}>
                                               <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Detected Answer</span>
                                               {partStudent}
