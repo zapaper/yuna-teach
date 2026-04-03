@@ -205,9 +205,9 @@ export default function HomePage() {
                 className="w-full h-full object-cover"
                 controls
                 preload="metadata"
-                poster="/coverpage2.jpg"
+                poster="/democover.png"
               >
-                <source src="/markforyou.mp4" type="video/mp4" />
+                <source src="/Markforyou.mp4" type="video/mp4" />
               </video>
             </div>
           </div>
