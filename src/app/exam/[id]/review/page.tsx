@@ -917,15 +917,58 @@ function ExamReviewContent({ id }: { id: string }) {
                       </div>
                     ) : null}
 
-                    {/* Submission image + solution side-by-side */}
+                    {/* Quiz OEQ (non-subpart): stacked layout — written answer, detected, correct */}
+                    {isQuiz && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !hasInlinePartAnswers && (
+                      <div className="space-y-4 mb-4">
+                        {/* Written answer image */}
+                        <div>
+                          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
+                          <div className="rounded-2xl overflow-hidden border border-[#e5eeff]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`/api/exam/${id}/submission?page=${currentQOeqIndex}`}
+                              alt={`Written answer for Q${currentQ.questionNum}`}
+                              className="w-full h-auto"
+                            />
+                          </div>
+                        </div>
+                        {/* Detected answer */}
+                        {studentAnswerText && (
+                          <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Detected Answer</p>
+                            <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
+                              isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                            }`}>
+                              {studentAnswerText}
+                            </div>
+                          </div>
+                        )}
+                        {/* Correct answer */}
+                        {(currentQ.answer || currentQ.answerImageData) && (
+                          <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Correct Answer</p>
+                            {currentQ.answer && (
+                              <div className="text-sm text-[#0b1c30] leading-relaxed rounded-2xl bg-white p-4 border border-[#e5eeff]">
+                                {renderWithNewlines(currentQ.answer)}
+                              </div>
+                            )}
+                            {currentQ.answerImageData && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={currentQ.answerImageData} alt="Answer diagram" className="mt-2 max-w-full rounded-xl border border-[#e5eeff]" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Exam paper: Submission image + solution side-by-side */}
+                    {!isQuiz && (
                     <div className="md:flex gap-5">
-                      {(!isQuiz || (isQuiz && currentQOeqIndex >= 0)) && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !hasInlinePartAnswers && (
+                      {!currentQ.transcribedOptions && !currentQ.transcribedOptionImages && (
                         <div className="md:w-1/2 md:shrink-0 mb-4 md:mb-0 rounded-2xl overflow-hidden border border-[#e5eeff] relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={isQuiz
-                              ? `/api/exam/${id}/submission?page=${currentQOeqIndex}`
-                              : `/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
+                            src={`/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
                             alt={`Submission page for Q${currentQ.questionNum}`}
                             className="w-full h-auto"
                           />
@@ -953,10 +996,10 @@ function ExamReviewContent({ id }: { id: string }) {
 
                       {/* Solutions panel */}
                       <div className="flex-1 space-y-4">
-                        {/* OEQ typed answer — skip if per-part answers shown inline */}
-                        {studentAnswerText && !currentQ.transcribedOptions && !hasInlinePartAnswers && (
+                        {/* OEQ typed answer */}
+                        {studentAnswerText && !currentQ.transcribedOptions && (
                           <div>
-                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Your Answer</p>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Detected Answer</p>
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
                               isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
@@ -965,8 +1008,8 @@ function ExamReviewContent({ id }: { id: string }) {
                           </div>
                         )}
 
-                        {/* Correct answer — skip if per-part answers shown inline */}
-                        {(currentQ.answer || currentQ.answerImageData) && !(isQuiz && currentQ.transcribedOptions) && !hasInlinePartAnswers && (
+                        {/* Correct answer */}
+                        {(currentQ.answer || currentQ.answerImageData) && !(isQuiz && currentQ.transcribedOptions) && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Correct Answer</p>
                             {currentQ.answer && (
@@ -996,6 +1039,7 @@ function ExamReviewContent({ id }: { id: string }) {
 
                       </div>
                     </div>
+                    )}
 
                     {/* Flag toggle — bottom center */}
                     <div className="mt-6 pt-5 border-t border-[#e5eeff] flex justify-center">
