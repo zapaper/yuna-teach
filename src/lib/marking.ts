@@ -465,6 +465,7 @@ STEP 4: Marks available.
 STEP 5: Compare against the expected answer.
   A) If the student's answer MATCHES the expected answer → FULL MARKS.
      - DEGREE SYMBOL: "45°" and "45 °" and "45degrees" all match "45°". A small raised circle/zero after a number is the degree symbol (°), NOT a digit zero. So "8" followed by a small raised circle = "8°", NOT "80". Always check if the expected answer contains ° — if so, interpret any trailing small raised circle as the degree symbol.
+     - DEGREE FALLBACK: If the expected answer ends with ° (e.g. "8°", "45°") and the student's detected answer is the number with a trailing "0" (e.g. "80", "450"), this is almost certainly the degree symbol misread as zero. Treat it as CORRECT — award full marks. The pattern is: expected "X°" and detected "X0" → match.
   B) If the student's answer does NOT match:
      - For MCQ (single option like "1","2","A","B"): ZERO marks. No partial marks for MCQ.
      - For written/worked answers: check if working/steps are partially correct.
