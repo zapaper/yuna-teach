@@ -2007,13 +2007,20 @@ export async function markQuizPaper(paperId: string): Promise<void> {
           continue;
         }
 
-        // Attempt marking with one retry on timeout
+        // Attempt marking with retries (delay + fallback model on 503)
+        const QUIZ_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.0-flash"];
         let lastErr: unknown = null;
-        for (let attempt = 0; attempt < 2; attempt++) {
+        for (let attempt = 0; attempt < QUIZ_MODELS.length; attempt++) {
           try {
+            if (attempt > 0) {
+              const delay = attempt * 5000; // 5s, 10s backoff
+              console.log(`[quiz-marking] OEQ Q${q.questionNum} waiting ${delay}ms before retry ${attempt + 1}...`);
+              await new Promise(r => setTimeout(r, delay));
+            }
+            const model = QUIZ_MODELS[attempt];
             const response = await withTimeout(
               ai.models.generateContent({
-                model: "gemini-2.5-flash",
+                model,
                 contents: [{ role: "user", parts }],
                 config: { temperature: 0.1 },
               }),
@@ -2049,17 +2056,15 @@ export async function markQuizPaper(paperId: string): Promise<void> {
             break;
           } catch (err) {
             lastErr = err;
-            if (attempt === 0) {
-              console.warn(`[quiz-marking] OEQ Q${q.questionNum} attempt ${attempt + 1} failed, retrying...`, err);
-            }
+            console.warn(`[quiz-marking] OEQ Q${q.questionNum} attempt ${attempt + 1} (${QUIZ_MODELS[attempt]}) failed:`, err);
           }
         }
         if (lastErr) {
-          console.error(`[quiz-marking] OEQ Q${q.questionNum} failed after retries:`, lastErr);
+          console.error(`[quiz-marking] OEQ Q${q.questionNum} failed after ${QUIZ_MODELS.length} attempts:`, lastErr);
           updates.push(
             prisma.examQuestion.update({
               where: { id: q.id },
-              data: { marksAwarded: 0, markingNotes: "Marking error — timed out" },
+              data: { marksAwarded: 0, markingNotes: "Marking error — AI unavailable, please re-mark" },
             })
           );
         }
