@@ -447,6 +447,7 @@ STEP 2: Read the blue ink answer — HARD BOUNDARY ENFORCEMENT.
     Do NOT dismiss small or faint blue marks as stray marks — children's handwriting is often small.
     If the expected answer is a single digit (1, 2, 3, 4) and you see ANY blue mark in the answer
     region, interpret it as the student's digit answer. Err on the side of detecting an answer.
+  - MULTI-DIGIT NUMBERS: Read ALL digits carefully. A "1" can look like a thin vertical stroke and is easily missed between or before other digits. For example, "51" must not be read as just "5" — look closely for a thin stroke before/after each digit. Count the number of digits you see and cross-check against the expected answer's digit count. If the expected answer has 2+ digits, make sure you are reading all of them.
   - Questions may have parts (a), (b), (c). Read each part's blue ink answer separately.
 
 STEP 3: Match the answer to the correct sub-part.
