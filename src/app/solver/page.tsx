@@ -107,7 +107,7 @@ function SolverContent() {
       const res = await fetch("/api/focused-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId: userId, subject, topic }),
+        body: JSON.stringify({ parentId: userId, studentId: linkedStudents[0].id, subject, topic }),
       });
       const data = await res.json();
       if (res.ok && data.id) {
