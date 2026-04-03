@@ -862,6 +862,17 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
                                 return (
                                   <div className="space-y-4 mt-2">
+                                    {/* Show submission image before per-part answers */}
+                                    {hasPartAnswers && isQuiz && currentQOeqIndex >= 0 && (
+                                      <div className="rounded-2xl overflow-hidden border border-[#e5eeff]">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                          src={`/api/exam/${id}/submission?page=${currentQOeqIndex}`}
+                                          alt={`Written answer for Q${currentQ.questionNum}`}
+                                          className="w-full h-auto"
+                                        />
+                                      </div>
+                                    )}
                                     {realSubs.map((sp) => {
                                       const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
                                       const partStudent = studentParts[sp.label.toLowerCase()];
@@ -880,7 +891,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                               partAnswer && partStudent.toLowerCase().replace(/\s/g, "") === partAnswer.toLowerCase().replace(/\s/g, "")
                                                 ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                                             }`}>
-                                              <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Your Answer</span>
+                                              <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Detected Answer</span>
                                               {partStudent}
                                             </div>
                                           )}
@@ -909,7 +920,7 @@ function ExamReviewContent({ id }: { id: string }) {
 
                     {/* Submission image + solution side-by-side */}
                     <div className="md:flex gap-5">
-                      {(!isQuiz || (isQuiz && currentQOeqIndex >= 0)) && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && (
+                      {(!isQuiz || (isQuiz && currentQOeqIndex >= 0)) && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !hasInlinePartAnswers && (
                         <div className="md:w-1/2 md:shrink-0 mb-4 md:mb-0 rounded-2xl overflow-hidden border border-[#e5eeff] relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
