@@ -514,6 +514,7 @@ FINAL REMINDER — READ THIS BEFORE RESPONDING:
   6. For answer image questions: ONLY compare against what is visible in the provided answer image. Never guess or infer the correct answer from context.
   7. Blue ink present ≠ correct answer. If blue ink exists but is too incomplete/illegible to match the expected answer, award 0 marks. Do NOT assume the student wrote the correct answer just because some blue ink is there.
   8. NEVER copy the answer key into studentAnswer. studentAnswer must only contain what you actually saw written in blue ink. If a sub-part answer was not detected, say "(x) missing" — never substitute the expected answer.
+  9. GEOMETRY/ANGLE QUESTIONS: If the expected answer contains a degree symbol (°), a small raised circle or zero-like mark after the student's number is the DEGREE SYMBOL, not the digit "0". E.g. student writes "8°" → read as "8°" NOT "80". Always check the expected answer for ° before interpreting trailing marks.
 
 Return ONLY valid JSON (no markdown fences):
 {
