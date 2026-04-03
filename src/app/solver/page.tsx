@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import FormattedText from "@/components/FormattedText";
 
 interface DiagramRow { label: string; units: number; value: string | null; }
 interface DiagramStep { title: string | null; rows: DiagramRow[]; unitValue: string | null; }
@@ -471,7 +472,7 @@ function SolverContent() {
             )}
             <div className="rounded-2xl bg-gradient-to-br from-[#eff6ff] to-[#eff4ff] border border-slate-100 p-4">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Solution</p>
-              <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">{solution}</p>
+              <FormattedText text={solution} className="text-sm text-slate-800 leading-relaxed whitespace-pre-line" />
               <p className="text-xs text-slate-400 mt-3 italic">The AI is not yet trained on PSLE, so answers may sometimes be incorrect.</p>
             </div>
             <button onClick={handleShare} disabled={sharing}

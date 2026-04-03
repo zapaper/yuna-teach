@@ -76,7 +76,8 @@ Steps:
 ${hint ? `Additional context from the user: ${hint}\n` : ""}Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
 - Do NOT invent or paraphrase topic names.
-- Write ALL math in plain text only. No LaTeX, no markdown. Use: 3/5 (not \\frac{3}{5}), x or * for multiply, ÷ for divide, ^ for powers. Never use $, \\, {, } in the solution.
+- Write ALL math in plain text only. No LaTeX. Use: 3/5 (not \\frac{3}{5}), x or * for multiply, ÷ for divide, ^ for powers. Never use $, \\, {, } in the solution.
+- Use **double asterisks** to bold: step labels (e.g. **Step 1:**), the answer label (**Answer:**), and key subject terms (e.g. **numerator**, **photosynthesis**, **ratio**). No other markdown.
 - Always end the solution with a blank line followed by a final line that starts exactly with "Answer: " and gives the concise final answer (e.g. "Answer: The total cost is $24." or "Answer: x = 5").
 - For circle problems: use π = 22/7 unless the question specifies otherwise. Circumference = 2 x 22/7 x r. Area = 22/7 x r x r. Diameter = 2 x radius. Always state which value (radius or diameter) you are using.
 - For composite area/circumference problems: first break the figure into simpler parts using imaginary lines (e.g. split into a semicircle + rectangle, or subtract a circle from a square). Calculate each part separately, then combine. Show each part as its own numbered step.

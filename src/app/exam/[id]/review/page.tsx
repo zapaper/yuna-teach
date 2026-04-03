@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
+import FormattedText from "@/components/FormattedText";
 
 interface ReviewQuestion {
   id: string;
@@ -920,7 +921,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   className="w-full text-sm text-[#43474f] leading-relaxed rounded-xl bg-[#eff4ff] border border-[#c3c6d1] p-3 focus:outline-none focus:border-[#001e40] resize-y"
                                 />
                               ) : (
-                                <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line">{elaborations[currentQ.id]}</p>
+                                <FormattedText text={elaborations[currentQ.id]} className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line" />
                               )}
                             </div>
                           </div>
