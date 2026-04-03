@@ -875,14 +875,25 @@ function ExamReviewContent({ id }: { id: string }) {
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-xl border border-[#e5eeff]" />
                                           )}
-                                          {/* Per-subpart submission image */}
+                                          {/* Per-subpart submission image (falls back to combined) */}
                                           {isQuiz && currentQOeqIndex >= 0 && (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img
                                               src={`/api/exam/${id}/submission?page=${currentQOeqIndex}&subpart=${sp.label.toLowerCase()}`}
                                               alt={`Written answer for (${sp.label})`}
                                               className="w-full h-auto rounded-2xl border border-[#e5eeff]"
-                                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                              onError={(e) => {
+                                                const img = e.target as HTMLImageElement;
+                                                // Fallback to combined image (only on first subpart to avoid duplicates)
+                                                if (sp === realSubs[0] && !img.dataset.fallback) {
+                                                  img.dataset.fallback = "1";
+                                                  img.src = `/api/exam/${id}/submission?page=${currentQOeqIndex}`;
+                                                } else if (img.dataset.fallback) {
+                                                  img.style.display = "none";
+                                                } else {
+                                                  img.style.display = "none";
+                                                }
+                                              }}
                                             />
                                           )}
                                           {hasPartAnswers && partStudent && (
@@ -903,6 +914,15 @@ function ExamReviewContent({ id }: { id: string }) {
                                         </div>
                                       );
                                     })}
+                                    {/* Marking notes for subpart questions */}
+                                    {currentQ.markingNotes && (
+                                      <div className="mt-2">
+                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
+                                        <p className="text-sm text-[#43474f] leading-relaxed">
+                                          {renderMarkingNotes(currentQ.markingNotes)}
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               })()}
@@ -956,6 +976,15 @@ function ExamReviewContent({ id }: { id: string }) {
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={currentQ.answerImageData} alt="Answer diagram" className="mt-2 max-w-full rounded-xl border border-[#e5eeff]" />
                             )}
+                          </div>
+                        )}
+                        {/* Marking notes */}
+                        {currentQ.markingNotes && (
+                          <div>
+                            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
+                            <p className="text-sm text-[#43474f] leading-relaxed">
+                              {renderMarkingNotes(currentQ.markingNotes)}
+                            </p>
                           </div>
                         )}
                       </div>
