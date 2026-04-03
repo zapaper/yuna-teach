@@ -168,7 +168,7 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   async function handleRemark() {
-    if (!confirm("Re-mark this paper? This will re-run AI marking on all questions.")) return;
+    if (!confirm("Re-mark this paper? This will re-run AI marking on all questions and override any manual score changes.")) return;
     setRemarking(true);
     try {
       const res = await fetch(`/api/exam/${id}/mark`, { method: "POST" });
