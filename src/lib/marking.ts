@@ -389,6 +389,8 @@ const MARKING_PROMPT = `You are marking a primary school student's exam submissi
 
 CRITICAL — DEGREE SYMBOL: If any expected answer contains ° (degrees), accept BOTH formats as correct. E.g. expected "8°" → accept "8°" OR "80" (the ° looks like 0 in handwriting). Expected "45°" → accept "45°" OR "450". The trailing zero IS the degree symbol. Award FULL MARKS.
 
+CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin vertical stroke (|) with no serif or base. It is easily missed next to other digits. E.g. "51cm" must NOT be read as "5cm". If your detected answer has fewer digits than the expected answer, re-examine the handwriting for missed "1"s.
+
 HOW TO READ THIS IMAGE:
 - Printed question text = BLACK. Student's handwritten answers = BLUE INK.
 - ONLY blue ink counts as the student's answer. Black printed text is NEVER the student's answer.
@@ -1592,6 +1594,8 @@ Expected answer: {EXPECTED_ANSWER}
 Marks available: {MARKS_AVAILABLE}
 
 CRITICAL — DEGREE SYMBOL: If the expected answer contains ° (degrees), accept BOTH formats as correct. E.g. expected "8°" → accept "8°" OR "80" (the ° looks like 0 in handwriting). Expected "45°" → accept "45°" OR "450". The trailing zero IS the degree symbol.
+
+CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin vertical stroke (|) with no serif or base. It is easily missed next to other digits. Read EVERY digit carefully. E.g. "51cm" must NOT be read as "5cm" — look for a thin vertical stroke before or after other digits. If the expected answer has more digits than what you detected, re-examine the handwriting for missed "1"s.
 
 Instructions:
 1. Read the student's blue-ink handwritten answer from Image 2.
