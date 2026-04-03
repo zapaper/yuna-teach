@@ -77,6 +77,7 @@ function QuizContent({ id }: { id: string }) {
   // OEQ drawing
   const [tool, setTool] = useState<DrawTool>("pen");
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
+  const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
 
   // Submission
@@ -187,15 +188,30 @@ function QuizContent({ id }: { id: string }) {
         const form = new FormData();
         form.append("action", "save");
         for (let i = 0; i < oeqQuestions.length; i++) {
-          const handle = oeqCanvasHandles.current[oeqQuestions[i].id];
+          const q = oeqQuestions[i];
+          const handle = oeqCanvasHandles.current[q.id];
           if (handle) {
             const [composite, ink] = await Promise.all([
               handle.exportImage(),
               handle.exportInk(),
             ]);
-            // Save using sequential index so marking can find them
+            // Save combined image
             form.append(`page_${i}`, composite, `page_${i}.jpg`);
             form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+          }
+          // Save individual subpart images
+          const spRefs = oeqSubpartHandles.current[q.id];
+          if (spRefs) {
+            for (const [label, spHandle] of Object.entries(spRefs)) {
+              if (spHandle) {
+                const [spComposite, spInk] = await Promise.all([
+                  spHandle.exportImage(),
+                  spHandle.exportInk(),
+                ]);
+                form.append(`page_${i}_${label}`, spComposite, `page_${i}_${label}.jpg`);
+                form.append(`page_${i}_${label}_ink`, spInk, `page_${i}_${label}_ink.png`);
+              }
+            }
           }
         }
         await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
@@ -456,6 +472,7 @@ function QuizContent({ id }: { id: string }) {
                   index={mcqQuestions.length + idx}
                   tool={tool}
                   onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
+                  onSubpartRefs={(refs) => { oeqSubpartHandles.current[q.id] = refs; }}
                   onStrokeStart={() => { lastDrawnId.current = q.id; }}
                 />
               ))}
@@ -593,12 +610,14 @@ function OeqQuestionCard({
   index,
   tool,
   onCanvasRef,
+  onSubpartRefs,
   onStrokeStart,
 }: {
   question: QuizQuestion;
   index: number;
   tool: DrawTool;
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
+  onSubpartRefs?: (refs: Record<string, AnswerCanvasHandle | null>) => void;
   onStrokeStart: () => void;
 }) {
   const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
@@ -641,7 +660,8 @@ function OeqQuestionCard({
       },
     };
     onCanvasRef(combinedHandle);
-    return () => onCanvasRef(null);
+    if (onSubpartRefs) onSubpartRefs(subCanvasRefs.current);
+    return () => { onCanvasRef(null); if (onSubpartRefs) onSubpartRefs({}); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSubparts]);
 

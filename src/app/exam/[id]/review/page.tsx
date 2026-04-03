@@ -862,17 +862,6 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
                                 return (
                                   <div className="space-y-4 mt-2">
-                                    {/* Show submission image before per-part answers */}
-                                    {hasPartAnswers && isQuiz && currentQOeqIndex >= 0 && (
-                                      <div className="rounded-2xl overflow-hidden border border-[#e5eeff]">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                          src={`/api/exam/${id}/submission?page=${currentQOeqIndex}`}
-                                          alt={`Written answer for Q${currentQ.questionNum}`}
-                                          className="w-full h-auto"
-                                        />
-                                      </div>
-                                    )}
                                     {realSubs.map((sp) => {
                                       const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
                                       const partStudent = studentParts[sp.label.toLowerCase()];
@@ -885,6 +874,16 @@ function ExamReviewContent({ id }: { id: string }) {
                                           {imgSrc && (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-xl border border-[#e5eeff]" />
+                                          )}
+                                          {/* Per-subpart submission image */}
+                                          {isQuiz && currentQOeqIndex >= 0 && (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                              src={`/api/exam/${id}/submission?page=${currentQOeqIndex}&subpart=${sp.label.toLowerCase()}`}
+                                              alt={`Written answer for (${sp.label})`}
+                                              className="w-full h-auto rounded-2xl border border-[#e5eeff]"
+                                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                            />
                                           )}
                                           {hasPartAnswers && partStudent && (
                                             <div className={`text-sm leading-relaxed rounded-xl p-3 ${

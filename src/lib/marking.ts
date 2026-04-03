@@ -1863,16 +1863,35 @@ export async function markQuizPaper(paperId: string): Promise<void> {
           }
         }
 
-        // Student's handwritten answer from submission files (saved as page_0, page_1, ...)
+        // Student's handwritten answer from submission files
         let hasSubmission = false;
-        try {
-          const pagePath = path.join(subDir, `page_${i}.jpg`);
-          const pageBuffer = await fs.readFile(pagePath);
-          parts.push({ text: "Student's handwritten answer:" });
-          parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
-          hasSubmission = true;
-        } catch {
-          // No submission image
+        const subparts = q.transcribedSubparts as { label: string; text: string }[] | null;
+        const realSubs = subparts?.filter(sp => !sp.label.startsWith("_")) ?? [];
+        // Try individual subpart images first
+        if (realSubs.length > 0) {
+          for (const sp of realSubs) {
+            try {
+              const spPath = path.join(subDir, `page_${i}_${sp.label}.jpg`);
+              const spBuffer = await fs.readFile(spPath);
+              parts.push({ text: `Student's handwritten answer for part (${sp.label}):` });
+              parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: spBuffer.toString("base64") } });
+              hasSubmission = true;
+            } catch {
+              // Individual subpart file not found
+            }
+          }
+        }
+        // Fallback: try combined image
+        if (!hasSubmission) {
+          try {
+            const pagePath = path.join(subDir, `page_${i}.jpg`);
+            const pageBuffer = await fs.readFile(pagePath);
+            parts.push({ text: "Student's handwritten answer:" });
+            parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
+            hasSubmission = true;
+          } catch {
+            // No submission image
+          }
         }
 
         // Add expected answer image if available

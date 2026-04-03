@@ -43,10 +43,11 @@ export async function GET(
       return NextResponse.json({ error: "Invalid page" }, { status: 400 });
     }
     const type = request.nextUrl.searchParams.get("type");
+    const subpart = request.nextUrl.searchParams.get("subpart");
     const isInk = type === "ink";
     const filePath = isInk
-      ? path.join(dir, `page_${n}_ink.png`)
-      : path.join(dir, `page_${n}.jpg`);
+      ? path.join(dir, subpart ? `page_${n}_${subpart}_ink.png` : `page_${n}_ink.png`)
+      : path.join(dir, subpart ? `page_${n}_${subpart}.jpg` : `page_${n}.jpg`);
     try {
       const buffer = await fs.readFile(filePath);
       return new NextResponse(buffer, {
@@ -65,7 +66,7 @@ export async function GET(
   try {
     const files = await fs.readdir(dir);
     pageCount = files.filter(
-      (f) => f.startsWith("page_") && f.endsWith(".jpg")
+      (f) => /^page_\d+\.jpg$/.test(f)
     ).length;
   } catch {
     // directory doesn't exist yet
