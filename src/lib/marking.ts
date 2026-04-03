@@ -463,6 +463,7 @@ STEP 4: Marks available.
 
 STEP 5: Compare against the expected answer.
   A) If the student's answer MATCHES the expected answer → FULL MARKS.
+     - For answers with degree symbol (°): "45°" and "45 °" and "45degrees" all match "45°". The degree symbol in handwriting often looks like a small zero or circle — treat it as °.
   B) If the student's answer does NOT match:
      - For MCQ (single option like "1","2","A","B"): ZERO marks. No partial marks for MCQ.
      - For written/worked answers: check if working/steps are partially correct.
@@ -486,6 +487,7 @@ STEP 5: Compare against the expected answer.
 STEP 6: Record what you detected.
   "studentAnswer": Write EXACTLY what the student wrote in blue ink.
     - For text/number answers: quote their answer (e.g. "3.5 kg", "B", "12").
+    - For geometry/angle questions: the degree symbol (°) in handwriting often looks like a small zero or circle above the number. If the expected answer contains degrees (e.g. "45°") and you see a small circle or zero-like mark after a number, treat it as the degree symbol. Write the answer with ° (e.g. "45°", "120°").
     - For MCQ: the option they wrote (e.g. "1", "2", "A", "B").
     - If multi-part: combine parts (e.g. "(a) 12 (b) 3.5")
     - If blue ink exists but the answer is illegible, incomplete, or too unclear to read:

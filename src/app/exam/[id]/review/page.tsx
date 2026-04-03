@@ -78,6 +78,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
   const [releasing, setReleasing] = useState(false);
+  const [editingMarks, setEditingMarks] = useState<string | null>(null);
+  const [savingMarks, setSavingMarks] = useState(false);
   const [advisoryDismissed, setAdvisoryDismissed] = useState(false);
   const [released, setReleased] = useState(false);
 
@@ -242,6 +244,31 @@ function ExamReviewContent({ id }: { id: string }) {
       // ignore
     } finally {
       setElaborating(null);
+    }
+  }
+
+  async function updateMarks(questionId: string, newMarks: number) {
+    setSavingMarks(true);
+    try {
+      const res = await fetch(`/api/exam/questions/${questionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ marksAwarded: newMarks }),
+      });
+      if (res.ok) {
+        setData((prev) => {
+          if (!prev) return prev;
+          const questions = prev.questions.map((q) =>
+            q.id === questionId ? { ...q, marksAwarded: newMarks } : q
+          );
+          const newScore = questions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
+          return { ...prev, questions, score: newScore };
+        });
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSavingMarks(false);
     }
   }
 
@@ -648,9 +675,34 @@ function ExamReviewContent({ id }: { id: string }) {
                     {/* Topic + marks */}
                     <div className="flex items-center gap-3 mb-4 flex-wrap">
                       {currentQ.marksAvailable !== null && (
-                        <span className="px-3 py-1 bg-white rounded-full text-xs font-bold text-[#001e40] shadow-sm">
-                          {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable} marks
-                        </span>
+                        editingMarks === currentQ.id && !isStudent ? (
+                          <div className="flex items-center gap-1.5 bg-white rounded-full px-2 py-1 shadow-sm">
+                            <button
+                              onClick={() => { const v = Math.max(0, (currentQ.marksAwarded ?? 0) - 1); updateMarks(currentQ.id, v); }}
+                              disabled={savingMarks || (currentQ.marksAwarded ?? 0) <= 0}
+                              className="w-6 h-6 rounded-full bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center font-bold text-sm disabled:opacity-30"
+                            >−</button>
+                            <span className="text-xs font-bold text-[#001e40] min-w-[3rem] text-center">
+                              {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable}
+                            </span>
+                            <button
+                              onClick={() => { const v = Math.min(currentQ.marksAvailable!, (currentQ.marksAwarded ?? 0) + 1); updateMarks(currentQ.id, v); }}
+                              disabled={savingMarks || (currentQ.marksAwarded ?? 0) >= currentQ.marksAvailable!}
+                              className="w-6 h-6 rounded-full bg-[#d1fae5] text-[#006c49] flex items-center justify-center font-bold text-sm disabled:opacity-30"
+                            >+</button>
+                            <button onClick={() => setEditingMarks(null)} className="ml-1 text-[#43474f] hover:text-[#001e40]">
+                              <span className="material-symbols-outlined text-sm">check</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <span
+                            onClick={() => { if (!isStudent) setEditingMarks(currentQ.id); }}
+                            className={`px-3 py-1 bg-white rounded-full text-xs font-bold text-[#001e40] shadow-sm ${!isStudent ? "cursor-pointer hover:bg-[#e5eeff] transition-colors" : ""}`}
+                          >
+                            {currentQ.marksAwarded ?? 0} / {currentQ.marksAvailable} marks
+                            {!isStudent && <span className="material-symbols-outlined text-[10px] ml-1 align-middle opacity-40">edit</span>}
+                          </span>
+                        )
                       )}
                       {isCorrect && (
                         <span className="flex items-center gap-1 text-xs font-bold text-[#006c49]">
