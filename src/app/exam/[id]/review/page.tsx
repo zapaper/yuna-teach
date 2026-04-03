@@ -390,17 +390,7 @@ function ExamReviewContent({ id }: { id: string }) {
             <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
           </button>
           <h1 className="font-headline font-bold text-lg text-[#001e40]">{isQuiz ? "Quiz Review" : "Exam Review"}</h1>
-          {!isStudent && !released && data.markingStatus !== "released" ? (
-            <button
-              onClick={handleRelease}
-              disabled={releasing}
-              className="px-3 py-1.5 rounded-full text-xs font-bold transition-colors disabled:opacity-50 bg-[#001e40] text-white"
-            >
-              {releasing ? "…" : "Release"}
-            </button>
-          ) : !isStudent && (released || data.markingStatus === "released") ? (
-            <span className="px-3 py-1.5 rounded-full text-xs font-bold text-[#006c49] bg-[#6cf8bb]/30">Released ✓</span>
-          ) : !isQuiz ? (
+          {!isQuiz ? (
             <button
               onClick={downloadPdf}
               disabled={downloading}
@@ -422,21 +412,6 @@ function ExamReviewContent({ id }: { id: string }) {
             <p className="font-headline font-bold text-[#001e40] truncate">{paperTitle}</p>
           </div>
           <div className="flex items-center gap-3">
-            {!isStudent && !released && data.markingStatus !== "released" ? (
-              <button
-                onClick={handleRelease}
-                disabled={releasing}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50 shrink-0 bg-[#001e40] text-white hover:bg-[#003366]"
-              >
-                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                {releasing ? "Saving…" : "Release to Student"}
-              </button>
-            ) : !isStudent && (released || data.markingStatus === "released") ? (
-              <span className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-[#006c49] bg-[#6cf8bb]/30 border border-[#6cf8bb] shrink-0">
-                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
-                Released
-              </span>
-            ) : null}
             {!isQuiz && (
               <button
                 onClick={downloadPdf}
