@@ -2008,7 +2008,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
         }
 
         // Attempt marking with retries (delay + fallback model on 503)
-        const QUIZ_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.0-flash"];
+        const QUIZ_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
         let lastErr: unknown = null;
         for (let attempt = 0; attempt < QUIZ_MODELS.length; attempt++) {
           try {
