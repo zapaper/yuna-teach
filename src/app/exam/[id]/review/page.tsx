@@ -708,8 +708,12 @@ function ExamReviewContent({ id }: { id: string }) {
               // Check if this question has subparts with per-part answers shown inline
               const subs = currentQ.transcribedSubparts as { label: string }[] | null;
               const realSubLabels = subs?.filter(s => !s.label.startsWith("_")) ?? [];
+              // Try studentAnswer first; fallback: extract from markingNotes "Detected: ..."
+              const studentAnswerText = currentQ.studentAnswer
+                || currentQ.markingNotes?.match(/^Detected:\s*(.+?)(?:\s*\||$)/)?.[1]
+                || null;
               const hasInlinePartAnswers = realSubLabels.length > 0 && (
-                Object.keys(parsePartAnswers(currentQ.studentAnswer)).length > 0 ||
+                Object.keys(parsePartAnswers(studentAnswerText)).length > 0 ||
                 Object.keys(parsePartAnswers(currentQ.answer)).length > 0
               );
 
@@ -852,7 +856,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               )}
                               {/* Subparts with per-part answers */}
                               {realSubs && realSubs.length > 0 && (() => {
-                                const studentParts = parsePartAnswers(currentQ.studentAnswer);
+                                const studentParts = parsePartAnswers(studentAnswerText);
                                 const answerParts = parsePartAnswers(currentQ.answer);
                                 const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
                                 return (
@@ -939,13 +943,13 @@ function ExamReviewContent({ id }: { id: string }) {
                       {/* Solutions panel */}
                       <div className="flex-1 space-y-4">
                         {/* OEQ typed answer — skip if per-part answers shown inline */}
-                        {currentQ.studentAnswer && !currentQ.transcribedOptions && !hasInlinePartAnswers && (
+                        {studentAnswerText && !currentQ.transcribedOptions && !hasInlinePartAnswers && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Your Answer</p>
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
                               isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
-                              {currentQ.studentAnswer}
+                              {studentAnswerText}
                             </div>
                           </div>
                         )}

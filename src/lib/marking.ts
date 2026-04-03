@@ -1918,6 +1918,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
                 where: { id: q.id },
                 data: {
                   marksAwarded: awarded,
+                  studentAnswer: parsed.studentAnswer || null,
                   markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
                 },
               })
