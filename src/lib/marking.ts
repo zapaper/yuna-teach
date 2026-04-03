@@ -2007,47 +2007,59 @@ export async function markQuizPaper(paperId: string): Promise<void> {
           continue;
         }
 
-        try {
-          const response = await withTimeout(
-            ai.models.generateContent({
-              model: "gemini-2.5-flash",
-              contents: [{ role: "user", parts }],
-              config: { temperature: 0.1 },
-            }),
-            GEMINI_TIMEOUT_MS,
-            `quiz-oeq-q${q.questionNum}`
-          );
+        // Attempt marking with one retry on timeout
+        let lastErr: unknown = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const response = await withTimeout(
+              ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts }],
+                config: { temperature: 0.1 },
+              }),
+              GEMINI_TIMEOUT_MS,
+              `quiz-oeq-q${q.questionNum}`
+            );
 
-          const text = response.text?.trim() ?? "";
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]) as QuestionMarkResult;
-            const awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
-            totalAwarded += awarded;
-            updates.push(
-              prisma.examQuestion.update({
-                where: { id: q.id },
-                data: {
-                  marksAwarded: awarded,
-                  studentAnswer: parsed.studentAnswer || null,
-                  markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
-                },
-              })
-            );
-          } else {
-            updates.push(
-              prisma.examQuestion.update({
-                where: { id: q.id },
-                data: { marksAwarded: 0, markingNotes: "Failed to parse AI response" },
-              })
-            );
+            const text = response.text?.trim() ?? "";
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]) as QuestionMarkResult;
+              const awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
+              totalAwarded += awarded;
+              updates.push(
+                prisma.examQuestion.update({
+                  where: { id: q.id },
+                  data: {
+                    marksAwarded: awarded,
+                    studentAnswer: parsed.studentAnswer || null,
+                    markingNotes: buildMarkingNotes({ ...parsed, questionId: q.id, marksAvailable, marksAwarded: awarded }),
+                  },
+                })
+              );
+            } else {
+              updates.push(
+                prisma.examQuestion.update({
+                  where: { id: q.id },
+                  data: { marksAwarded: 0, markingNotes: "Failed to parse AI response" },
+                })
+              );
+            }
+            lastErr = null;
+            break;
+          } catch (err) {
+            lastErr = err;
+            if (attempt === 0) {
+              console.warn(`[quiz-marking] OEQ Q${q.questionNum} attempt ${attempt + 1} failed, retrying...`, err);
+            }
           }
-        } catch (err) {
-          console.error(`[quiz-marking] OEQ Q${q.questionNum} failed:`, err);
+        }
+        if (lastErr) {
+          console.error(`[quiz-marking] OEQ Q${q.questionNum} failed after retries:`, lastErr);
           updates.push(
             prisma.examQuestion.update({
               where: { id: q.id },
-              data: { marksAwarded: 0, markingNotes: "Marking error" },
+              data: { marksAwarded: 0, markingNotes: "Marking error — timed out" },
             })
           );
         }
