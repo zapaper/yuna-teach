@@ -173,7 +173,8 @@ function ExamReviewContent({ id }: { id: string }) {
     try {
       const res = await fetch(`/api/exam/${id}/mark`, { method: "POST" });
       if (res.ok) {
-        router.push(`/home/${userId}`);
+        const studentParam = assignedToId ? `?student=${assignedToId}` : "";
+        router.push(`/home/${userId}${studentParam}`);
       }
     } catch {
       setRemarking(false);

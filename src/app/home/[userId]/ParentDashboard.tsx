@@ -798,8 +798,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     <div className="space-y-3">
       {recentActivities.map(paper => {
         const pct = scorePct(paper);
+        const isMarking = paper.markingStatus === "in_progress";
         return (
           <div key={paper.id} onClick={() => {
+              if (isMarking) return;
               const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
               if (isQuizOrFocused || paper.completedAt) {
                 router.push(`/exam/${paper.id}/review?userId=${userId}`);
@@ -808,15 +810,17 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
               }
             }}
-            className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow">
+            className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow ${isMarking ? "opacity-60" : "cursor-pointer hover:shadow-md"}`}>
             <div className="w-11 h-11 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#001e40] shrink-0">
               <span className="material-symbols-outlined text-lg">{activityIcon(paper)}</span>
             </div>
             <div className="flex-1 min-w-0">
               <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
-              <p className="text-xs text-[#43474f]">{relativeDate(paper.completedAt!)}</p>
+              <p className="text-xs text-[#43474f]">{isMarking ? "Marking…" : relativeDate(paper.completedAt!)}</p>
             </div>
-            {pct !== null ? (
+            {isMarking ? (
+              <span className="text-xs font-extrabold text-blue-500 shrink-0">Marking…</span>
+            ) : pct !== null ? (
               <p className={`font-extrabold text-sm shrink-0 ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</p>
             ) : (
               <span className="material-symbols-outlined text-[#ba1a1a] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
@@ -1525,8 +1529,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         <p className="text-sm text-[#43474f] text-center py-4">No completed papers yet.</p>
                       ) : recentActivities.map(paper => {
                         const pct = scorePct(paper);
+                        const isMarking = paper.markingStatus === "in_progress";
                         return (
                           <div key={paper.id} onClick={() => {
+                              if (isMarking) return;
                               const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
                               if (isQuizOrFocused || paper.completedAt) {
                                 router.push(`/exam/${paper.id}/review?userId=${userId}`);
@@ -1535,23 +1541,27 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
                               }
                             }}
-                            className="flex items-center gap-5 cursor-pointer group hover:opacity-80 transition-opacity">
+                            className={`flex items-center gap-5 transition-opacity ${isMarking ? "opacity-60" : "cursor-pointer group hover:opacity-80"}`}>
                             <div className="w-12 h-12 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#003366] shrink-0">
                               <span className="material-symbols-outlined">{activityIcon(paper)}</span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <h5 className="font-bold text-[#001e40] truncate">{paper.title}</h5>
-                              <p className="text-sm text-[#43474f]">{relativeDate(paper.completedAt!)}</p>
+                              <p className="text-sm text-[#43474f]">{isMarking ? "Marking…" : relativeDate(paper.completedAt!)}</p>
                             </div>
                             <div className="text-right shrink-0">
-                              <span className="text-xs text-[#43474f] block">{relativeDate(paper.completedAt!)}</span>
-                              {pct !== null ? (
-                                <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>
-                                  {pct}%
-                                </span>
-                              ) : (
-                                <span className="text-xs font-extrabold text-[#d58d00]">PENDING</span>
-                              )}
+                              {isMarking ? (
+                                <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                              ) : (<>
+                                <span className="text-xs text-[#43474f] block">{relativeDate(paper.completedAt!)}</span>
+                                {pct !== null ? (
+                                  <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>
+                                    {pct}%
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-extrabold text-[#d58d00]">PENDING</span>
+                                )}
+                              </>)}
                             </div>
                           </div>
                         );
