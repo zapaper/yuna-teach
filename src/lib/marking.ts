@@ -381,7 +381,8 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - If the final answer matches the expected answer → award FULL MARKS immediately. Do NOT penalise for missing or incomplete working.
   - ONLY if the final answer does NOT match the expected answer (or is absent): scan the student's working steps for partial credit.
     Award partial marks if some steps or methods are correct, proportional to marksAvailable.
-  - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.`;
+  - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.
+  - CONCEPT ERRORS: If the student used the wrong formula, method, or operation, wrap the specific error in **double asterisks** in the notes (e.g. "Student used **multiplication** instead of division" or "Wrong formula: used **P = 2l + w** instead of area formula").`;
 }
 
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise.
@@ -499,6 +500,7 @@ STEP 7: Notes — concise but helpful:
   - Zero marks (no answer) → "No blue ink answer found"
   - If a question context image is provided, use it to explain the mistake in context of what was asked
   - Include what the student wrote vs what was expected when relevant
+  - BOLD ERRORS: Use **double asterisks** to highlight the specific concept, keyword, or term the student got wrong or missed. E.g. "Student used **subtraction** instead of **division**." or "Missing key term: **photosynthesis**." Bold only the specific wrong/missing item, not the whole sentence.
 
 FINAL REMINDER — READ THIS BEFORE RESPONDING:
   1. For EVERY question, your FIRST action must be checking for blue ink within its yStart%–yEnd% region.

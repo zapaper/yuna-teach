@@ -352,20 +352,20 @@ function ExamReviewContent({ id }: { id: string }) {
     ));
   }
 
-  // Renders marking notes: bolds all verdict labels like "(a) Correct" / "(b) Incorrect"
+  // Renders marking notes: bolds verdict labels and **keyword** markers
   function renderMarkingNotes(text: string) {
-    // Split into pipe-separated sections (e.g. "Detected: X | (a) Correct. (b) Wrong")
     return text.split("|").map((part, i, arr) => {
       const trimmed = part.trim();
-      // Globally bold every "(x) [Partially] Correct/Incorrect" phrase in each section
-      const verdictRe = /(\([a-zA-Z]\)\s+(?:Partially\s+)?(?:Correct|Incorrect))/gi;
+      const boldRe = /(\*\*[^*\n]+\*\*|\([a-zA-Z]\)\s+(?:Partially\s+)?(?:Correct|Incorrect))/gi;
       const segments: React.ReactNode[] = [];
       let last = 0;
       let m: RegExpExecArray | null;
-      while ((m = verdictRe.exec(trimmed)) !== null) {
+      while ((m = boldRe.exec(trimmed)) !== null) {
         if (m.index > last) segments.push(trimmed.slice(last, m.index));
-        segments.push(<strong key={m.index}>{m[1]}</strong>);
-        last = m.index + m[1].length;
+        const raw = m[1];
+        const label = raw.startsWith("**") ? raw.slice(2, -2) : raw;
+        segments.push(<strong key={m.index}>{label}</strong>);
+        last = m.index + raw.length;
       }
       if (last < trimmed.length) segments.push(trimmed.slice(last));
       return (
