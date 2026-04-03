@@ -800,7 +800,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               <h3 className="font-headline text-lg lg:text-xl font-semibold text-[#001e40] leading-relaxed whitespace-pre-wrap">
                                 {currentQ.transcribedStem}
                               </h3>
-                              {currentQ.diagramImageData && (
+                              {currentQ.diagramImageData && !drawableDiagram && (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
                               )}
