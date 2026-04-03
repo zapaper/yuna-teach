@@ -1815,6 +1815,30 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     });
     if (!paper) throw new Error("Paper not found");
 
+    // Sync answers from source questions (in case answer keys were updated)
+    const sourceIds = paper.questions.map(q => q.sourceQuestionId).filter(Boolean) as string[];
+    if (sourceIds.length > 0) {
+      const sourceQuestions = await prisma.examQuestion.findMany({
+        where: { id: { in: sourceIds } },
+        select: { id: true, answer: true, answerImageData: true },
+      });
+      const sourceMap = new Map(sourceQuestions.map(sq => [sq.id, sq]));
+      for (const q of paper.questions) {
+        if (q.sourceQuestionId) {
+          const src = sourceMap.get(q.sourceQuestionId);
+          if (src && (src.answer !== q.answer || src.answerImageData !== q.answerImageData)) {
+            console.log(`[quiz-marking] Syncing answer for Q${q.questionNum}: "${q.answer}" → "${src.answer}"`);
+            await prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { answer: src.answer, answerImageData: src.answerImageData },
+            });
+            q.answer = src.answer;
+            q.answerImageData = src.answerImageData;
+          }
+        }
+      }
+    }
+
     // Separate MCQ (already marked) and OEQ (need AI marking)
     const mcqQuestions = paper.questions.filter(q => {
       const n = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
