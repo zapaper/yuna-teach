@@ -605,6 +605,78 @@ function McqQuestionCard({
 
 /* ────────────── OEQ Question Card ────────────── */
 
+/* Scratch overlay — transparent drawing layer on question area (not saved) */
+function ScratchOverlay({ tool }: { tool: DrawTool }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawing = useRef(false);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
+
+  function getPos(e: React.PointerEvent) {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+  }
+
+  function onDown(e: React.PointerEvent) {
+    if (e.button !== 0) return;
+    isDrawing.current = true;
+    lastPos.current = getPos(e);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function onMove(e: React.PointerEvent) {
+    if (!isDrawing.current) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx || !lastPos.current) return;
+    const pos = getPos(e);
+    ctx.strokeStyle = tool === "eraser" ? "rgba(0,0,0,0)" : "#0066cc";
+    ctx.lineWidth = tool === "eraser" ? 20 : 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    if (tool === "eraser") {
+      ctx.globalCompositeOperation = "destination-out";
+    } else {
+      ctx.globalCompositeOperation = "source-over";
+    }
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    lastPos.current = pos;
+  }
+
+  function onUp() { isDrawing.current = false; lastPos.current = null; }
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+    const obs = new ResizeObserver(() => {
+      const w = parent.offsetWidth;
+      const h = parent.offsetHeight;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      canvas.width = w * 2;
+      canvas.height = h * 2;
+    });
+    obs.observe(parent);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 z-10 cursor-crosshair"
+      style={{ touchAction: "none" }}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+    />
+  );
+}
+
 function OeqQuestionCard({
   question,
   index,
@@ -679,29 +751,32 @@ function OeqQuestionCard({
 
         {/* Content */}
         <div className="flex-grow space-y-4 lg:space-y-6 w-full min-w-0">
-          {/* Question header */}
-          <div className="flex justify-between items-start gap-4">
-            <div className="flex-1 min-w-0">
-              {question.transcribedStem && (
-                <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
-                  {question.transcribedStem}
-                </p>
-              )}
-              {question.diagramImageData && (
-                <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
-                  <img
-                    src={`data:image/jpeg;base64,${question.diagramImageData}`}
-                    alt="Diagram"
-                    className="w-full rounded-lg"
-                  />
-                </div>
+          {/* Question header — scratch-drawable */}
+          <div className="relative">
+            <div className="flex justify-between items-start gap-4">
+              <div className="flex-1 min-w-0">
+                {question.transcribedStem && (
+                  <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
+                    {question.transcribedStem}
+                  </p>
+                )}
+                {question.diagramImageData && (
+                  <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
+                    <img
+                      src={`data:image/jpeg;base64,${question.diagramImageData}`}
+                      alt="Diagram"
+                      className="w-full rounded-lg"
+                    />
+                  </div>
+                )}
+              </div>
+              {question.marksAvailable && (
+                <span className="bg-[#d3e4fe] text-[#003366] px-3 py-1 rounded-md text-xs font-bold uppercase tracking-widest whitespace-nowrap shrink-0">
+                  [{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]
+                </span>
               )}
             </div>
-            {question.marksAvailable && (
-              <span className="bg-[#d3e4fe] text-[#003366] px-3 py-1 rounded-md text-xs font-bold uppercase tracking-widest whitespace-nowrap shrink-0">
-                [{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]
-              </span>
-            )}
+            <ScratchOverlay tool={tool} />
           </div>
 
           {/* Sub-parts with individual canvases */}
@@ -732,7 +807,7 @@ function OeqQuestionCard({
                     ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
                     tool={tool}
                     onStrokeStart={onStrokeStart}
-                    height={sp.diagramBase64 ? 300 : 220}
+                    height={sp.diagramBase64 ? 340 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
                   />
                 </div>
@@ -746,7 +821,7 @@ function OeqQuestionCard({
                 ref={onCanvasRef}
                 tool={tool}
                 onStrokeStart={onStrokeStart}
-                height={drawableDiagramBase64 ? 320 : 260}
+                height={drawableDiagramBase64 ? 360 : 300}
                 backgroundImage={drawableDiagramBase64}
               />
             </div>
