@@ -469,7 +469,7 @@ STEP 4: Marks available.
 STEP 5: Compare against the expected answer.
   A) If the student's answer MATCHES the expected answer → FULL MARKS.
      - DEGREE SYMBOL: "45°" and "45 °" and "45degrees" all match "45°". A small raised circle/zero after a number is the degree symbol (°), NOT a digit zero. So "8" followed by a small raised circle = "8°", NOT "80". Always check if the expected answer contains ° — if so, interpret any trailing small raised circle as the degree symbol.
-     - DEGREE FALLBACK: If the expected answer ends with ° (e.g. "8°", "45°") and the student's detected answer is the number with a trailing "0" (e.g. "80", "450"), this is almost certainly the degree symbol misread as zero. Treat it as CORRECT — award full marks. The pattern is: expected "X°" and detected "X0" → match.
+     - DEGREE FALLBACK: If the expected answer ends with ° (e.g. "8°", "45°") and the student's detected answer is the number with a trailing "0" (e.g. "80", "450"), this is almost certainly the degree symbol misread as zero. Treat it as CORRECT — award full marks. The pattern is: expected "X°" and detected "X0" → match. In the notes, write: "Trailing 0 interpreted as degree symbol (°) — answer accepted as X°."
   B) If the student's answer does NOT match:
      - For MCQ (single option like "1","2","A","B"): ZERO marks. No partial marks for MCQ.
      - For written/worked answers: check if working/steps are partially correct.
@@ -1593,7 +1593,7 @@ HOW TO READ THE IMAGES:
 Expected answer: {EXPECTED_ANSWER}
 Marks available: {MARKS_AVAILABLE}
 
-CRITICAL — DEGREE SYMBOL: If the expected answer contains ° (degrees), accept BOTH formats as correct. E.g. expected "8°" → accept "8°" OR "80" (the ° looks like 0 in handwriting). Expected "45°" → accept "45°" OR "450". The trailing zero IS the degree symbol.
+CRITICAL — DEGREE SYMBOL: If the expected answer contains ° (degrees), accept BOTH formats as correct. E.g. expected "8°" → accept "8°" OR "80" (the ° looks like 0 in handwriting). Expected "45°" → accept "45°" OR "450". The trailing zero IS the degree symbol. Award FULL MARKS. In the notes, write: "Trailing 0 interpreted as degree symbol (°) — answer accepted as X°."
 
 CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin vertical stroke (|) with no serif or base. It is easily missed next to other digits. Read EVERY digit carefully. E.g. "51cm" must NOT be read as "5cm" — look for a thin vertical stroke before or after other digits. If the expected answer has more digits than what you detected, re-examine the handwriting for missed "1"s.
 
@@ -1867,6 +1867,67 @@ export async function markQuizPaper(paperId: string): Promise<void> {
         let hasSubmission = false;
         const subparts = q.transcribedSubparts as { label: string; text: string }[] | null;
         const realSubs = subparts?.filter(sp => !sp.label.startsWith("_")) ?? [];
+        const hasDrawable = subparts?.some(sp => sp.label === "_drawable") ?? false;
+
+        // For drawable diagram OEQ: pre-check for blue ink using ink-only image
+        if (hasDrawable && realSubs.length === 0) {
+          let inkFound = true; // default to true if check fails
+          try {
+            const inkPath = path.join(subDir, `page_${i}_ink.png`);
+            const inkBuffer = await fs.readFile(inkPath);
+            const inkBase64 = inkBuffer.toString("base64");
+            inkFound = await hasBlueInk(inkBase64, `quiz-drawable-Q${q.questionNum}`);
+          } catch {
+            // If ink file not found, try checking the composite
+            try {
+              const pagePath = path.join(subDir, `page_${i}.jpg`);
+              const pageBuffer = await fs.readFile(pagePath);
+              inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`);
+            } catch {
+              inkFound = false;
+            }
+          }
+          if (!inkFound) {
+            console.log(`[quiz-marking] Drawable Q${q.questionNum}: no ink detected — awarding 0`);
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No drawing detected (pre-check)" },
+              })
+            );
+            continue;
+          }
+          console.log(`[quiz-marking] Drawable Q${q.questionNum}: ink detected — proceeding to mark`);
+        }
+
+        // For regular OEQ (non-drawable, non-subpart): blue ink pre-check
+        if (!hasDrawable && realSubs.length === 0) {
+          let inkFound = true;
+          try {
+            const inkPath = path.join(subDir, `page_${i}_ink.png`);
+            const inkBuffer = await fs.readFile(inkPath);
+            inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`);
+          } catch {
+            try {
+              const pagePath = path.join(subDir, `page_${i}.jpg`);
+              const pageBuffer = await fs.readFile(pagePath);
+              inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`);
+            } catch {
+              inkFound = false;
+            }
+          }
+          if (!inkFound) {
+            console.log(`[quiz-marking] OEQ Q${q.questionNum}: no ink detected — awarding 0`);
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No blue ink found (pre-check)" },
+              })
+            );
+            continue;
+          }
+        }
+
         // Try individual subpart images first
         if (realSubs.length > 0) {
           for (const sp of realSubs) {
