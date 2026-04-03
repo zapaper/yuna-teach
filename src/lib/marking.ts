@@ -387,6 +387,8 @@ function mathMarkingRules(subject: string | null | undefined): string {
 
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise.
 
+CRITICAL — DEGREE SYMBOL: If any expected answer contains ° (degrees), accept BOTH formats as correct. E.g. expected "8°" → accept "8°" OR "80" (the ° looks like 0 in handwriting). Expected "45°" → accept "45°" OR "450". The trailing zero IS the degree symbol. Award FULL MARKS.
+
 HOW TO READ THIS IMAGE:
 - Printed question text = BLACK. Student's handwritten answers = BLUE INK.
 - ONLY blue ink counts as the student's answer. Black printed text is NEVER the student's answer.
@@ -1588,6 +1590,8 @@ HOW TO READ THE IMAGES:
 
 Expected answer: {EXPECTED_ANSWER}
 Marks available: {MARKS_AVAILABLE}
+
+CRITICAL — DEGREE SYMBOL: If the expected answer contains ° (degrees), accept BOTH formats as correct. E.g. expected "8°" → accept "8°" OR "80" (the ° looks like 0 in handwriting). Expected "45°" → accept "45°" OR "450". The trailing zero IS the degree symbol.
 
 Instructions:
 1. Read the student's blue-ink handwritten answer from Image 2.
