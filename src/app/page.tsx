@@ -200,17 +200,15 @@ export default function HomePage() {
             <div className="text-center mb-8 lg:mb-12">
               <h2 className="font-headline text-2xl md:text-4xl font-extrabold text-primary mb-4">See MarkForYou in Action</h2>
             </div>
-            <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-black group cursor-pointer">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt="Demo Video Thumbnail" className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700" src="/coverpage2.jpg" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-16 h-16 lg:w-20 lg:h-20 bg-tertiary text-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                  <span className="material-symbols-outlined text-[32px] lg:text-[40px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-                </div>
-              </div>
-              <div className="absolute bottom-4 lg:bottom-6 left-4 lg:left-6 text-white font-bold bg-black/40 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg backdrop-blur-sm text-sm lg:text-base">
-                Demo Video Coming Soon
-              </div>
+            <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-black">
+              <video
+                className="w-full h-full object-cover"
+                controls
+                preload="metadata"
+                poster="/coverpage2.jpg"
+              >
+                <source src="/markforyou.mp4" type="video/mp4" />
+              </video>
             </div>
           </div>
         </section>
