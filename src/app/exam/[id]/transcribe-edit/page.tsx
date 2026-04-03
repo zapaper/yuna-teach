@@ -931,7 +931,11 @@ function QuestionCard({
           {!isMcq && q.subparts && q.subparts.length > 0 && (
             <div className="space-y-2 mt-2">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Sub-parts</label>
-              {q.subparts.map((sp, i) => (
+              {q.subparts.map((sp, i) => {
+                // Parse marks from text suffix like "[2]"
+                const marksMatch = sp.text.match(/\[(\d+)\s*(?:m(?:ark)?s?)?\]\s*$/i);
+                const spMarks = marksMatch ? marksMatch[1] : "";
+                return (
                 <div key={sp.label} className="rounded-xl bg-white border border-amber-100 px-3 py-2">
                   <div className="flex items-start gap-2">
                     <span className="font-mono text-xs text-amber-600 mt-2 shrink-0">({sp.label})</span>
@@ -940,6 +944,19 @@ function QuestionCard({
                       onChange={e => onUpdateSubpart(i, e.target.value)}
                       rows={2}
                       className="flex-1 text-sm bg-transparent focus:outline-none resize-none"
+                    />
+                    <input
+                      type="text"
+                      value={spMarks}
+                      onChange={e => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        // Remove old marks suffix, append new
+                        const cleaned = sp.text.replace(/\s*\[\d+\s*(?:m(?:ark)?s?)?\]\s*$/i, "").trim();
+                        onUpdateSubpart(i, val ? `${cleaned} [${val}]` : cleaned);
+                      }}
+                      className="w-8 text-xs text-center px-1 py-0.5 rounded-md border border-amber-200 bg-amber-50 focus:outline-none focus:border-amber-400 shrink-0 mt-2"
+                      placeholder="m"
+                      title="Marks for this part"
                     />
                     <button
                       type="button"
@@ -989,7 +1006,21 @@ function QuestionCard({
                     )}
                   </div>
                 </div>
-              ))}
+              );
+              })}
+              {/* Subpart marks sum */}
+              {(() => {
+                const sum = q.subparts!.reduce((s, sp) => {
+                  const m = sp.text.match(/\[(\d+)\s*(?:m(?:ark)?s?)?\]\s*$/i);
+                  return s + (m ? parseInt(m[1]) : 0);
+                }, 0);
+                return sum > 0 ? (
+                  <p className={`text-[10px] font-bold text-right ${sum === (q.marksAvailable ?? 0) ? "text-green-600" : "text-amber-600"}`}>
+                    Sub-part total: {sum}{q.marksAvailable ? ` / ${q.marksAvailable}` : ""}
+                    {q.marksAvailable && sum !== q.marksAvailable ? " ⚠" : " ✓"}
+                  </p>
+                ) : null;
+              })()}
             </div>
           )}
         </>

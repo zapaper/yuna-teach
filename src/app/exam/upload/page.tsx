@@ -104,8 +104,8 @@ function ExamUploadContent() {
         body: JSON.stringify({ retryExtraction: true }),
       }).catch((err) => console.warn("Extraction trigger failed:", err));
 
-      // Redirect to home (with timestamp to force refetch)
-      router.push(userId ? `/home/${userId}?t=${Date.now()}` : "/");
+      // Redirect to admin panel
+      router.push("/admin");
     } finally {
       setAiAnalyzing(false);
     }
