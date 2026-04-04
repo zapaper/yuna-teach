@@ -12,6 +12,7 @@ interface Paper {
   school: string | null;
   year: string | null;
   examType: string | null;
+  paperType: string | null;
   visible: boolean;
   extractionStatus: string | null;
   questionCount: number;
@@ -38,6 +39,7 @@ function AdminPapersContent() {
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [yearFilter, setYearFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [hideQuizzes, setHideQuizzes] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -84,6 +86,7 @@ function AdminPapersContent() {
   const examTypes = Array.from(new Set(papers.map(p => p.examType).filter(Boolean))).sort() as string[];
 
   const filtered = papers.filter(p => {
+    if (hideQuizzes && (p.paperType === "quiz" || p.paperType === "focused")) return false;
     if (subjectFilter && p.subject !== subjectFilter) return false;
     if (yearFilter && p.year !== yearFilter) return false;
     if (typeFilter && p.examType !== typeFilter) return false;
@@ -122,6 +125,17 @@ function AdminPapersContent() {
           placeholder="Search title, school…"
           className="w-full px-4 py-2 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:border-slate-400"
         />
+
+        {/* Hide quizzes toggle */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setHideQuizzes(!hideQuizzes)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${hideQuizzes ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"}`}
+          >
+            {hideQuizzes ? "Exam Papers Only" : "Showing All"}
+          </button>
+          <span className="text-[10px] text-slate-400">{filtered.length} papers</span>
+        </div>
 
         {/* Subject filter */}
         {subjects.length > 0 && (

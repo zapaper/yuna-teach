@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   }
 
   const papers = await prisma.examPaper.findMany({
-    where: { sourceExamId: null, paperType: null },
+    where: { sourceExamId: null },
     select: {
       id: true,
       title: true,
@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       school: true,
       year: true,
       examType: true,
+      paperType: true,
       visible: true,
       extractionStatus: true,
       createdAt: true,
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
       school: p.school,
       year: p.year,
       examType: p.examType,
+      paperType: p.paperType,
       visible: p.visible,
       extractionStatus: p.extractionStatus,
       createdAt: p.createdAt.toISOString(),
