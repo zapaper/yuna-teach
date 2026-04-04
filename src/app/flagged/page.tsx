@@ -140,13 +140,13 @@ function FlaggedContent() {
                     <button
                       onClick={(e) => handleDelete(item, e)}
                       disabled={deleting === item.questionId}
-                      className="p-1 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                      className="p-2.5 rounded-xl text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40 min-w-[40px] min-h-[40px] flex items-center justify-center"
                       title="Remove flag"
                     >
                       {deleting === item.questionId ? (
-                        <span className="animate-spin rounded-full h-4 w-4 border-2 border-red-200 border-t-red-500 inline-block" />
+                        <span className="animate-spin rounded-full h-5 w-5 border-2 border-red-200 border-t-red-500 inline-block" />
                       ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
                           fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
                           <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>

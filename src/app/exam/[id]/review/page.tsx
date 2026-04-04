@@ -381,20 +381,43 @@ function ExamReviewContent({ id }: { id: string }) {
     : pct >= 50 ? "#633f00"
     : "#ba1a1a";
 
-  // Parse multi-part answer string like "(a) 12 (b) 3.5" into { a: "12", b: "3.5" }
-  function parsePartAnswers(text: string | null): Record<string, string> {
+  // Parse multi-part answer string by finding known subpart labels in the text
+  function parsePartAnswers(text: string | null, knownLabels?: string[]): Record<string, string> {
     if (!text) return {};
-    const parts: Record<string, string> = {};
-    const regex = /\(([a-zA-Z])\)\s*/g;
-    const labels: { label: string; idx: number }[] = [];
-    let m;
-    while ((m = regex.exec(text)) !== null) {
-      labels.push({ label: m[1].toLowerCase(), idx: m.index + m[0].length });
+    const lower = text.toLowerCase();
+    const labels = knownLabels ?? ["a", "b", "c", "d", "e", "f"];
+
+    // Find each label's position in the text
+    const found: { label: string; start: number; matchStart: number }[] = [];
+    for (const label of labels) {
+      const lbl = label.toLowerCase();
+      // Try "(label)" first, then bare label
+      const bracketed = `(${lbl})`;
+      let pos = lower.indexOf(bracketed);
+      if (pos !== -1) {
+        let end = pos + bracketed.length;
+        while (end < text.length && text[end] === " ") end++;
+        found.push({ label: lbl, start: end, matchStart: pos });
+        continue;
+      }
+      // For complex labels like "a(i)", find them directly
+      if (lbl.length > 1) {
+        pos = lower.indexOf(lbl);
+        if (pos !== -1) {
+          let end = pos + lbl.length;
+          while (end < text.length && text[end] === " ") end++;
+          found.push({ label: lbl, start: end, matchStart: pos });
+        }
+      }
     }
-    if (labels.length === 0) return {};
-    for (let i = 0; i < labels.length; i++) {
-      const end = i + 1 < labels.length ? text.lastIndexOf("(", labels[i + 1].idx) : text.length;
-      parts[labels[i].label] = text.slice(labels[i].idx, end).trim();
+
+    if (found.length === 0) return {};
+    found.sort((a, b) => a.matchStart - b.matchStart);
+
+    const parts: Record<string, string> = {};
+    for (let i = 0; i < found.length; i++) {
+      const end = i + 1 < found.length ? found[i + 1].matchStart : text.length;
+      parts[found[i].label] = text.slice(found[i].start, end).trim();
     }
     return parts;
   }
@@ -713,9 +736,10 @@ function ExamReviewContent({ id }: { id: string }) {
               const studentAnswerText = currentQ.studentAnswer
                 || currentQ.markingNotes?.match(/^Detected:\s*(.+?)(?:\s*\||$)/)?.[1]
                 || null;
+              const subLabels = realSubLabels.map(s => s.label.toLowerCase());
               const hasInlinePartAnswers = realSubLabels.length > 0 && (
-                Object.keys(parsePartAnswers(studentAnswerText)).length > 0 ||
-                Object.keys(parsePartAnswers(currentQ.answer)).length > 0
+                Object.keys(parsePartAnswers(studentAnswerText, subLabels)).length > 0 ||
+                Object.keys(parsePartAnswers(currentQ.answer, subLabels)).length > 0
               );
 
               return (<>
@@ -857,8 +881,9 @@ function ExamReviewContent({ id }: { id: string }) {
                               )}
                               {/* Subparts with per-part answers */}
                               {realSubs && realSubs.length > 0 && (() => {
-                                const studentParts = parsePartAnswers(studentAnswerText);
-                                const answerParts = parsePartAnswers(currentQ.answer);
+                                const spLabels = realSubs.map(s => s.label.toLowerCase());
+                                const studentParts = parsePartAnswers(studentAnswerText, spLabels);
+                                const answerParts = parsePartAnswers(currentQ.answer, spLabels);
                                 const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
                                 // Parse marking notes for per-part correctness
                                 const notes = currentQ.markingNotes ?? "";
