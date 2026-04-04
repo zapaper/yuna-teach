@@ -584,7 +584,7 @@ function ExamOverviewContent({ id }: { id: string }) {
     return h > 0 ? `${h}h ${m}m ${sec}s` : m > 0 ? `${m}m ${sec}s` : `${sec}s`;
   }
 
-  const backPath = userId ? `/home/${userId}?view=progress` : "/";
+  const backPath = isAdmin ? `/admin/papers?userId=${userId}` : userId ? `/home/${userId}?view=progress` : "/";
 
   if (loading) {
     return (
