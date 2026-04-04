@@ -292,8 +292,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         <div className="w-16 h-16 rounded-3xl bg-[#003366] flex items-center justify-center mb-6">
           <span className="material-symbols-outlined text-white text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>family_restroom</span>
         </div>
-        <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">No Student Linked Yet</h2>
-        <p className="text-[#43474f] mb-6 max-w-xs text-sm leading-relaxed">Create your child&apos;s account or link an existing one to get started.</p>
+        <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">Let&apos;s create a student account for your child</h2>
+        <p className="text-[#43474f] mb-6 max-w-xs text-sm leading-relaxed">Create your child&apos;s account to start assigning quizzes and tracking progress.</p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <button
             onClick={() => router.push(`/register/student?parentId=${userId}`)}

@@ -22,6 +22,7 @@ function RegisterStudentContent() {
   const [level, setLevel] = useState(4);
   const [error, setError] = useState("");
   const [registering, setRegistering] = useState(false);
+  const [createdStudent, setCreatedStudent] = useState<{ id: string; name: string } | null>(null);
 
   // Username availability
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
@@ -68,9 +69,9 @@ function RegisterStudentContent() {
         return;
       }
       const user = await res.json();
-      // If opened from parent flow, go back to parent dashboard (which now has the linked student)
       if (parentId) {
-        router.push(`/home/${parentId}`);
+        // Show success screen with option to open student tab
+        setCreatedStudent({ id: user.id, name: name.trim() });
       } else {
         router.push(`/home/${user.id}`);
       }
@@ -79,6 +80,39 @@ function RegisterStudentContent() {
     } finally {
       setRegistering(false);
     }
+  }
+
+  // Success screen after creating student
+  if (createdStudent) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-5">
+          <span className="material-symbols-outlined text-green-600 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800 mb-2">Account Created!</h2>
+        <p className="text-sm text-slate-500 mb-6 max-w-xs">
+          <strong>{createdStudent.name}</strong>&apos;s student account is ready and linked to your parent account.
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <button
+            onClick={() => {
+              window.open(`/home/${createdStudent.id}`, "_blank");
+            }}
+            className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">open_in_new</span>
+            Open {createdStudent.name}&apos;s Account
+          </button>
+          <button
+            onClick={() => router.push(`/home/${parentId}`)}
+            className="px-6 py-3 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-base">arrow_back</span>
+            Back to Parent Dashboard
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
