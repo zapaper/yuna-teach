@@ -198,7 +198,7 @@ export default function HomePage() {
         <section className="py-16 lg:py-24 bg-surface-container-low px-6" id="demo-video">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-8 lg:mb-12">
-              <h2 className="font-headline text-2xl md:text-4xl font-extrabold text-primary mb-4">See MarkForYou in Action</h2>
+              <h2 className="font-headline text-2xl md:text-4xl font-extrabold text-primary mb-4">How it works</h2>
             </div>
             <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-black">
               <video
