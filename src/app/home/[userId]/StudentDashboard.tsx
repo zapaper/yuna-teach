@@ -383,7 +383,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                     <span className="material-symbols-outlined text-white/40 text-xl">arrow_forward</span>
                   </div>
                   <h3 className="text-white font-headline font-extrabold text-xl mb-1">Scan 听写 Spelling</h3>
-                  <p className="text-white/70 text-sm">AI-powered correction in seconds</p>
+                  <p className="text-white/70 text-sm">AI-assisted spelling helper</p>
                 </button>
               </div>
 
@@ -652,7 +652,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
               </span>
             </div>
             <h3 className="text-[#003366] font-headline font-bold text-xl">Scan Spelling / 听写</h3>
-            <p className="text-[#43474f] text-sm mt-1">AI-powered correction in seconds</p>
+            <p className="text-[#43474f] text-sm mt-1">AI-assisted spelling helper</p>
           </button>
         </section>
 
