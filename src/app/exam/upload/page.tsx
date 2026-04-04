@@ -105,7 +105,7 @@ function ExamUploadContent() {
       }).catch((err) => console.warn("Extraction trigger failed:", err));
 
       // Redirect to admin panel
-      router.push("/admin");
+      router.push(userId ? `/admin?userId=${userId}` : "/admin");
     } finally {
       setAiAnalyzing(false);
     }
