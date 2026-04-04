@@ -1142,7 +1142,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   {elaborations[currentQ.id] ? (
                     <div className="bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff]">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">AI Explanation</p>
-                      <FormattedText text={elaborations[currentQ.id]} className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line" />
+                      <FormattedText text={elaborations[currentQ.id]} className="text-base text-[#43474f] leading-relaxed whitespace-pre-line" />
                     </div>
                   ) : (
                     <button
