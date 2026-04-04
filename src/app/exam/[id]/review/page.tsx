@@ -1154,7 +1154,7 @@ function ExamReviewContent({ id }: { id: string }) {
                       {elaborating === currentQ.id ? (
                         <span className="flex items-center gap-2">
                           <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
-                          Generating…
+                          Generating in background...
                         </span>
                       ) : "AI Elaboration"}
                     </button>
