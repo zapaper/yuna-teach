@@ -192,14 +192,15 @@ Rules:
 - Include units (e.g. "cm", "kg", "m²")
 - Do NOT include blank answer lines or answer boxes in the text
 - Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
-- If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text as "[N]" (e.g. "Find the area of the triangle. [2]")
+- If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text in the format "[Nmarks]" (e.g. "Find the area of the triangle. [2marks]"). ALWAYS use this exact format: [Nmarks] with no space.
+- For questions WITHOUT sub-parts, include the marks at the end of the stem in the same format (e.g. "Calculate the total cost. [4marks]")
 
 Return ONLY valid JSON, no markdown fences:
 {
   "stem": "ALL preamble/context text before the sub-parts (e.g. 'The table shows the number of students in each class.')",
   "subparts": [
-    { "label": "a", "text": "sub-question text here [2]" },
-    { "label": "b", "text": "sub-question text here [3]" }
+    { "label": "a", "text": "sub-question text here [2marks]" },
+    { "label": "b", "text": "sub-question text here [3marks]" }
   ],
   "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 }
 }
@@ -340,14 +341,15 @@ Rules:
 - Include units (e.g. "g", "cm", "°C", "km/h")
 - Do NOT include blank answer lines or answer boxes in the text
 - Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
-- If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text as "[N]" (e.g. "Explain why Plant A grew taller. [2]")
+- If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text in the format "[Nmarks]" (e.g. "Explain why Plant A grew taller. [2marks]"). ALWAYS use this exact format: [Nmarks] with no space.
+- For questions WITHOUT sub-parts, include the marks at the end of the stem in the same format (e.g. "Explain why the plant wilted. [4marks]")
 
 Return ONLY valid JSON, no markdown fences:
 {
   "stem": "ALL preamble/context text before the sub-parts (e.g. 'The diagram below shows a food chain in a pond.')",
   "subparts": [
-    { "label": "a", "text": "sub-question text here [2]" },
-    { "label": "b", "text": "sub-question text here [3]" }
+    { "label": "a", "text": "sub-question text here [2marks]" },
+    { "label": "b", "text": "sub-question text here [3marks]" }
   ],
   "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 }
 }

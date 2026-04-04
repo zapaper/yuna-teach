@@ -950,9 +950,9 @@ function QuestionCard({
                       value={spMarks}
                       onChange={e => {
                         const val = e.target.value.replace(/\D/g, "");
-                        // Remove old marks suffix, append new
+                        // Remove old marks suffix, append new in [Nmarks] format
                         const cleaned = sp.text.replace(/\s*\[\d+\s*(?:m(?:ark)?s?)?\]\s*$/i, "").trim();
-                        onUpdateSubpart(i, val ? `${cleaned} [${val}]` : cleaned);
+                        onUpdateSubpart(i, val ? `${cleaned} [${val}marks]` : cleaned);
                       }}
                       className="w-8 text-xs text-center px-1 py-0.5 rounded-md border border-amber-200 bg-amber-50 focus:outline-none focus:border-amber-400 shrink-0 mt-2"
                       placeholder="m"
