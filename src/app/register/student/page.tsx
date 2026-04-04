@@ -85,31 +85,46 @@ function RegisterStudentContent() {
   // Success screen after creating student
   if (createdStudent) {
     return (
-      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-5">
-          <span className="material-symbols-outlined text-green-600 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-        </div>
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">Account Created!</h2>
-        <p className="text-sm text-slate-500 mb-6 max-w-xs">
-          <strong>{createdStudent.name}</strong>&apos;s student account is ready and linked to your parent account.
-        </p>
-        <div className="flex flex-col gap-3 w-full max-w-xs">
-          <button
-            onClick={() => {
-              window.open(`/home/${createdStudent.id}`, "_blank");
-            }}
-            className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-base">open_in_new</span>
-            Open {createdStudent.name}&apos;s Account to try a Quiz
-          </button>
-          <button
-            onClick={() => router.push(`/home/${parentId}`)}
-            className="px-6 py-3 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-base">arrow_back</span>
-            Go to Parent&apos;s Account
-          </button>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <div className="max-w-md w-full">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-outlined text-green-600 text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800">You&apos;re All Set!</h2>
+          </div>
+
+          {/* Message with owl */}
+          <div className="flex gap-4 items-start bg-[#eff4ff] rounded-2xl p-5 mb-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/owlright_t.png" alt="" className="w-16 h-16 shrink-0" />
+            <p className="text-sm text-[#001e40] leading-relaxed">
+              From here, you can go to <strong>{createdStudent.name}&apos;s account</strong> to try a 10-min quiz. This way our AI can start analysing {createdStudent.name}&apos;s strengths and gaps, and tailor further practices.
+              <br /><br />
+              Remember that the <strong>parent&apos;s login</strong> and <strong>student&apos;s login</strong> are different. Let&apos;s go!
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => {
+                window.open(`/home/${createdStudent.id}`, "_blank");
+              }}
+              className="px-6 py-3.5 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">open_in_new</span>
+              Open {createdStudent.name}&apos;s Account to try 10min Quiz
+            </button>
+            <button
+              onClick={() => router.push(`/home/${parentId}`)}
+              className="px-6 py-3.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">arrow_back</span>
+              Go to Parent&apos;s Account
+            </button>
+          </div>
         </div>
       </div>
     );
