@@ -86,7 +86,12 @@ function AdminPapersContent() {
   const examTypes = Array.from(new Set(papers.map(p => p.examType).filter(Boolean))).sort() as string[];
 
   const filtered = papers.filter(p => {
-    if (hideQuizzes && (p.paperType === "quiz" || p.paperType === "focused")) return false;
+    if (hideQuizzes) {
+      if (p.paperType === "quiz" || p.paperType === "focused") return false;
+      // Also filter by title pattern for older papers without paperType set
+      const t = p.title.toLowerCase();
+      if (t.includes("daily quiz") || t.includes("focused practice") || t.includes("focused test")) return false;
+    }
     if (subjectFilter && p.subject !== subjectFilter) return false;
     if (yearFilter && p.year !== yearFilter) return false;
     if (typeFilter && p.examType !== typeFilter) return false;
