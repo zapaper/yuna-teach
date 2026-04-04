@@ -535,9 +535,10 @@ const MEANING_PROMPT_ZH = `You are a primary school Chinese teacher in Singapore
 For the Chinese word or phrase "{word}", provide:
 1. pinyin: the hanyu pinyin with tone marks (e.g. "zhǒng zú")
 2. meaning: a brief meaning in Chinese, under 15 characters (e.g. "人类按肤色、语言等分的类别")
-3. example: a simple example sentence in Chinese that a Primary 3-4 student would understand, under 20 characters (e.g. "新加坡有很多种族。")
+3. englishMeaning: a simple meaning in English, under 10 words (e.g. "different groups of people by race")
+4. example: a simple example sentence in Chinese that a Primary 3-4 student would understand, under 20 characters (e.g. "新加坡有很多种族。")
 
-Return ONLY valid JSON: {"pinyin": "...", "meaning": "...", "example": "..."}`;
+Return ONLY valid JSON: {"pinyin": "...", "meaning": "...", "englishMeaning": "...", "example": "..."}`;
 
 const MEANING_PROMPT_EN = `You are a primary school English teacher.
 For the word "{word}", provide:
@@ -558,6 +559,7 @@ export interface WordInfo {
   pinyin?: string;
   reading?: string;
   meaning: string;
+  englishMeaning?: string;
   example: string;
 }
 

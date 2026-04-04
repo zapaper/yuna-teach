@@ -9,6 +9,7 @@ interface WordInfo {
   pinyin?: string;
   reading?: string;
   meaning: string;
+  englishMeaning?: string;
   example: string;
 }
 
@@ -388,6 +389,11 @@ function TestPageContent({ id }: { id: string }) {
                   <p className="text-lg text-[#43474f] leading-relaxed font-medium">
                     {currentWordInfo.info.meaning}
                   </p>
+                  {currentWordInfo.info.englishMeaning && (
+                    <p className="text-sm text-[#43474f]/70 mt-1 italic">
+                      {currentWordInfo.info.englishMeaning}
+                    </p>
+                  )}
                 </div>
                 {currentWordInfo.info.example && (
                   <div>
