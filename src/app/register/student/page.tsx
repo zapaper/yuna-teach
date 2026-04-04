@@ -101,14 +101,14 @@ function RegisterStudentContent() {
             className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-base">open_in_new</span>
-            Open {createdStudent.name}&apos;s Account
+            Open {createdStudent.name}&apos;s Account to try a Quiz
           </button>
           <button
             onClick={() => router.push(`/home/${parentId}`)}
             className="px-6 py-3 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-base">arrow_back</span>
-            Back to Parent Dashboard
+            Go to Parent&apos;s Account
           </button>
         </div>
       </div>
