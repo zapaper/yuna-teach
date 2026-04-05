@@ -95,6 +95,29 @@ async function cropQuestionServer(
   return `data:image/jpeg;base64,${croppedBuffer.toString("base64")}`;
 }
 
+/** Stitch multiple page images vertically into one JPEG (for Visual Text context) */
+async function stitchPagesVertically(pages: Buffer[]): Promise<Buffer> {
+  if (pages.length === 0) return Buffer.alloc(0);
+  if (pages.length === 1) return pages[0];
+  const metas = await Promise.all(pages.map(p => sharp(p).metadata()));
+  const maxW = Math.max(...metas.map(m => m.width ?? 0));
+  const totalH = metas.reduce((sum, m) => sum + (m.height ?? 0), 0);
+  const resized = await Promise.all(pages.map(p =>
+    sharp(p).resize({ width: maxW, fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } }).toBuffer()
+  ));
+  const heights = await Promise.all(resized.map(async b => (await sharp(b).metadata()).height ?? 0));
+  let yOff = 0;
+  const composites = resized.map((buf, i) => {
+    const c = { input: buf, top: yOff, left: 0 };
+    yOff += heights[i];
+    return c;
+  });
+  return sharp({ create: { width: maxW, height: totalH, channels: 3, background: { r: 255, g: 255, b: 255 } } })
+    .composite(composites)
+    .jpeg({ quality: 80 })
+    .toBuffer();
+}
+
 /**
  * Split a multi-part answer string by sub-part labels.
  * Answer format: "(a) 24 cm² | (b) 15 cm | (c) 3.5 kg"
@@ -333,7 +356,35 @@ async function extractExamPaperCore(
     const isEnglish = detectedSubject.includes("english");
 
     // English MCQ topics — use tighter top padding so answer options aren't clipped
-    const ENGLISH_MCQ_TOPICS = new Set(["Grammar", "Vocabulary", "Comprehension MCQ"]);
+    const ENGLISH_MCQ_TOPICS = new Set(["Grammar MCQ", "Vocabulary MCQ", "Vocabulary Cloze MCQ", "Visual Text Comprehension MCQ"]);
+
+    // For Visual Text Comprehension: find pages with no questions (visual-only pages)
+    // These are pages between the last Vocab Cloze MCQ question page and the first Visual Text question page
+    const visualTextPages: Buffer[] = [];
+    if (isEnglish) {
+      // Find which pages have Visual Text questions
+      const vtQuestionPages = new Set<number>();
+      const nonVtQuestionPages = new Set<number>();
+      for (const seg of allSegments) {
+        const topic = result.syllabusTopics?.[seg.questionNum] ?? null;
+        if (topic === "Visual Text Comprehension MCQ") {
+          vtQuestionPages.add(seg.pageIndex);
+        } else {
+          nonVtQuestionPages.add(seg.pageIndex);
+        }
+      }
+      // Pages that have no questions at all but are between the last non-VT page and first VT page
+      if (vtQuestionPages.size > 0) {
+        const firstVtPage = Math.min(...vtQuestionPages);
+        const lastNonVtPage = nonVtQuestionPages.size > 0 ? Math.max(...nonVtQuestionPages) : -1;
+        for (let p = lastNonVtPage + 1; p < firstVtPage; p++) {
+          if (!vtQuestionPages.has(p) && !nonVtQuestionPages.has(p) && imageBuffers[p]) {
+            visualTextPages.push(imageBuffers[p]);
+          }
+        }
+        console.log(`[extraction] Visual Text context pages: ${visualTextPages.length} pages between page ${lastNonVtPage + 1} and ${firstVtPage}`);
+      }
+    }
 
     // Process each question group
     const questions: Array<{
@@ -417,13 +468,24 @@ async function extractExamPaperCore(
       }
 
       // Single page
-      const croppedImage = await cropQuestionServer(
+      let croppedImage = await cropQuestionServer(
         imageBuffers[segments[0].pageIndex],
         segments[0].yStartPct,
         segments[0].yEndPct,
         topPadPct,
         botPadPct
       );
+
+      // For Visual Text Comprehension: stitch visual text pages on top of question crop
+      if (syllabusTopic === "Visual Text Comprehension MCQ" && visualTextPages.length > 0) {
+        try {
+          const cropBuf = Buffer.from(croppedImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
+          const stitched = await stitchPagesVertically([...visualTextPages, cropBuf]);
+          croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
+        } catch (err) {
+          console.warn(`[extraction] Failed to stitch visual text pages for Q${qNum}:`, err);
+        }
+      }
 
       const primary = segments[0];
       questions.push({
