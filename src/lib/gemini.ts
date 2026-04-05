@@ -890,7 +890,17 @@ Return ONLY valid JSON:
 
 If there is only one paper with no booklets, still include it in the "papers" array with questionPrefix "".
 
-### ENGLISH PAPERS ONLY — Non-gradable sections:
+### ENGLISH PAPERS ONLY — Section identification:
+For English papers, identify the specific section type for each section in the sections array. The typical order of sections after MCQ is:
+1. **Grammar Cloze** — fill-in-the-blank from word bank labeled A–Q (letters I and O skipped). Type: "grammar-cloze"
+2. **Editing** — correct underlined spelling/grammar errors in a passage. Type: "editing"
+3. **Comprehension Cloze** — fill-in-the-blank with no word bank. Type: "comprehension-cloze"
+4. **Synthesis & Transformation** — rewrite sentences. Type: "synthesis"
+5. **Comprehension OEQ** — open-ended questions on a passage. Type: "comprehension-oeq"
+
+Use these type values in the sections array for English papers (e.g. {"name": "Grammar Cloze", "type": "grammar-cloze", "questionCount": 10, "marksPerQuestion": 1}).
+
+#### Non-gradable sections:
 For English Preliminary and End-of-Year exams, certain papers cannot be auto-graded and must be excluded from question extraction:
 - **Writing papers** (e.g. "Paper 1 - Writing", "Paper 1 Writing", any paper whose label or section title indicates it is a writing/composition paper)
 - **Listening Comprehension papers** (e.g. "Paper 3 - Listening Comprehension", "Listening", any paper labelled as listening)
@@ -1128,7 +1138,7 @@ export const ENGLISH_SYLLABUS = [
   "Grammar",
   "Vocabulary",
   "Comprehension MCQ",
-  "Cloze Passage",
+  "Grammar Cloze",
   "Editing (Spelling & Grammar)",
   "Comprehension Cloze",
   "Synthesis & Transformation",
@@ -1183,14 +1193,14 @@ Use this decision rule FIRST when encountering any passage-fill question:
 ╚══════════════════════════════════════════════════════════════════════╝
 
 The sections appear in this order in Booklet B:
-  1. Cloze Passage       — number BELOW the blank      → Method 1
+  1. Grammar Cloze       — number BELOW the blank      → Method 1
   2. Editing             — number BESIDE the box       → Method 2
-  3. Comprehension Cloze — number BELOW the blank      → Method 1 (same as Cloze Passage)
+  3. Comprehension Cloze — number BELOW the blank      → Method 1 (same as Grammar Cloze)
 
 ---
 
 ## Method 1: CLOZE extraction
-### (applies to: Cloze Passage AND Comprehension Cloze — question number is BELOW the blank line)
+### (applies to: Grammar Cloze AND Comprehension Cloze — question number is BELOW the blank line)
 
 **What it looks like:**
 - Running text with blank lines (underscores "___") embedded in sentences
@@ -1246,13 +1256,13 @@ Start at the very bottom of the blank line — do NOT include any space above th
 
 ---
 
-## ⚠ CRITICAL: Transition from Cloze Passage → Editing (Spelling & Grammar)
+## ⚠ CRITICAL: Transition from Grammar Cloze → Editing (Spelling & Grammar)
 
-The Cloze Passage section is typically **ONE PAGE**. After the Cloze page ends, the very next page begins the **Editing (Spelling & Grammar)** section.
+The Grammar Cloze section is typically **ONE PAGE**. After the Cloze page ends, the very next page begins the **Editing (Spelling & Grammar)** section.
 
 **How to detect you have crossed into Editing:**
 
-| Cloze Passage (Method 1) | Editing (Method 2) |
+| Grammar Cloze (Method 1) | Editing (Method 2) |
 |---|---|
 | Prose with **blank underscore lines** embedded | Prose with **underlined words** (no blank lines) |
 | Parenthesised number **(nn)** printed **BELOW** the blank | Small **numbered box** printed **BESIDE or ABOVE** an underlined word |
@@ -1342,9 +1352,9 @@ ${ENGLISH_SYLLABUS.map((t) => `- ${t}`).join("\n")}
 English Paper 2 follows this section order — use it to resolve ambiguous questions:
 1. Grammar & Vocabulary MCQ (Booklet A) — early MCQ questions (A/B/C/D), testing grammar and vocabulary
 2. Comprehension MCQ (Booklet A) — later MCQ questions (A/B/C/D) based on a reading passage
-3. Cloze Passage — fill-in-the-blank passage, question number printed BELOW each blank
+3. Grammar Cloze — fill-in-the-blank from word bank (A–Q, no I or O), question number printed BELOW each blank
 4. Editing (Spelling & Grammar) — passage with numbered boxes beside errors; student corrects in the box
-5. Comprehension Cloze — fill-in-the-blank passage (same layout as Cloze Passage), appears AFTER Editing
+5. Comprehension Cloze — fill-in-the-blank passage (same layout as Grammar Cloze), appears AFTER Editing
 6. Synthesis & Transformation — sentence rewriting using given words
 7. Comprehension (Open-ended) — written answers to questions about a reading passage
 
@@ -1352,9 +1362,9 @@ Rules per topic:
 - "Grammar" — MCQ testing tenses, subject-verb agreement, punctuation, articles, prepositions, conjunctions (Booklet A, earlier questions)
 - "Vocabulary" — MCQ testing word meaning, synonyms, antonyms, word choice, phrasal verbs (Booklet A, earlier questions)
 - "Comprehension MCQ" — MCQ based on a reading passage (Booklet A, later questions); answer is A/B/C/D
-- "Cloze Passage" — fill-in-blank passage; blank underscore lines embedded in prose; question number printed BELOW the blank; appears BEFORE Editing; usually ONE PAGE
-- "Editing (Spelling & Grammar)" — prose passage with UNDERLINED words (not blanks); a small numbered BOX is beside/above each underlined word; student writes the corrected spelling in the box; appears on the page IMMEDIATELY AFTER Cloze Passage; if you see boxes → this topic, NOT Cloze
-- "Comprehension Cloze" — fill-in-blank passage; blank underscore lines + question number BELOW the blank (same visual layout as Cloze Passage); appears AFTER Editing section; if you see blanks (not boxes) after the Editing page → this topic
+- "Grammar Cloze" — fill-in-blank from word bank (labeled A–Q, skipping I and O); student writes a SINGLE LETTER in each blank; question number printed BELOW the blank; appears BEFORE Editing; usually ONE PAGE
+- "Editing (Spelling & Grammar)" — prose passage with UNDERLINED words (not blanks); a small numbered BOX is beside/above each underlined word; student writes the corrected spelling in the box; appears on the page IMMEDIATELY AFTER Grammar Cloze; if you see boxes → this topic, NOT Cloze
+- "Comprehension Cloze" — fill-in-blank passage (no word bank); student writes a WORD in each blank; blank underscore lines + question number BELOW the blank (similar layout to Grammar Cloze but no letter options); appears AFTER Editing section; if you see blanks (not boxes) after the Editing page → this topic
 - "Synthesis & Transformation" — rewriting sentences using given words, combining sentences, direct/indirect speech
 - "Comprehension (Open-ended)" — written answers to questions about a reading passage; NOT multiple choice
 - "Continuous Writing" — extended creative writing or narrative

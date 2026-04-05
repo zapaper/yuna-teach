@@ -257,10 +257,10 @@ function isMcqAnswer(answer: string | null): boolean {
   return /^\(?[1-4A-Da-d]\)?$/.test(answer.trim());
 }
 
-/** Cloze Passage and Comprehension Cloze answers are words, never MCQ choices.
+/** Grammar Cloze and Comprehension Cloze answers are words/letters, never MCQ choices.
  *  Even if the answer field is a single letter (e.g. "D"), treat as written. */
 function isClozeQuestion(syllabusTopic: string | null | undefined): boolean {
-  return syllabusTopic === "Cloze Passage" || syllabusTopic === "Comprehension Cloze";
+  return syllabusTopic === "Grammar Cloze" || syllabusTopic === "Comprehension Cloze";
 }
 
 /** Normalize MCQ answer for comparison: strip parens, uppercase.
@@ -314,14 +314,14 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - For ALL written English questions, READ the question text in the image to identify the question type, then apply the rules below.
   - The sections in order after MCQ are: (a) Grammar Cloze, (b) Editing, (c) Comprehension Cloze, (d) Synthesis & Transformation, (e) Comprehension OEQ.
 
-  (a) GRAMMAR CLOZE (fill-in-the-blank with correct grammar):
-  - A passage with numbered blanks. The student fills in the grammatically correct word (e.g. verb form, preposition, connector).
-  - The question number is printed in parentheses BELOW or BESIDE the blank line, e.g. (21).
+  (a) GRAMMAR CLOZE (select from options A–Q, excluding I and O):
+  - A passage with numbered blanks. The student selects a word from a printed word bank labeled A through Q (letters I and O are skipped to avoid confusion with numbers 1 and 0).
+  - The student writes a SINGLE LETTER (A–H, J–N, P–Q) in the blank or answer box.
   - STEP 1 — Verify question number: locate the parenthesised number and confirm it matches the question you are marking.
-  - STEP 2 — Blue ink check: look for blue ink written ON or ABOVE the blank line paired with the matching number. If no blue ink, award 0.
-  - STEP 3 — Read answer: the student's answer is the word written in blue ink on/above the blank. Do NOT read from a different blank.
-  - Accept ONLY the exact word from the answer key. Grammar cloze requires the precise grammatical form — do NOT accept synonyms or different tenses.
-  - Spelling must be correct. A misspelled word = 0 marks.
+  - STEP 2 — Blue ink check: look for blue ink written ON or ABOVE the blank or in the answer box. If no blue ink, award 0.
+  - STEP 3 — Read answer: the student's answer is the LETTER written in blue ink. Read it as an uppercase letter (A–Q).
+  - Compare the letter against the answer key. Exact letter match = full marks. Wrong letter = 0 marks.
+  - NOTE: The letters I and O are NOT used. If you think you see "I" it is likely "J"; if you see "O" it is likely "D", "Q", or "C". Use context and the letter bank to resolve ambiguity.
 
   (b) EDITING (spelling & grammar correction):
   - The question number is printed BESIDE an answer box. The passage nearby contains an UNDERLINED or MARKED word — this is the erroneous word the student must correct.
@@ -743,7 +743,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
   const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject));
   parts.push({ text: prompt });
 
-  const isCloze = question.syllabusTopic === "Cloze Passage" || question.syllabusTopic === "Comprehension Cloze";
+  const isCloze = question.syllabusTopic === "Grammar Cloze" || question.syllabusTopic === "Comprehension Cloze";
   const isEditing = question.syllabusTopic === "Editing (Spelling & Grammar)";
   const remarkModel = (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
   if (isEditing) console.log(`[marking] Q${question.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-3.1-flash-lite-preview)`);
@@ -1086,7 +1086,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
                 }
 
                 // Step 2: Mark normally with cropped image
-                const isCloze = q.syllabusTopic === "Cloze Passage" || q.syllabusTopic === "Comprehension Cloze";
+                const isCloze = q.syllabusTopic === "Grammar Cloze" || q.syllabusTopic === "Comprehension Cloze";
                 const isEditing = q.syllabusTopic === "Editing (Spelling & Grammar)";
                 const batchModel = (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
                 if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-3.1-flash-lite-preview)`);
