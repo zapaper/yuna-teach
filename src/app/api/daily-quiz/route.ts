@@ -33,12 +33,12 @@ export async function POST(request: NextRequest) {
   const levelFilter = student?.level ? `Primary ${student.level}` : undefined;
 
   // Determine which exam types are appropriate based on current date
-  // Jan 1 - Apr 15: WA1 only | Apr 16 - Jul 14: WA1, WA2, SA1 | Jul 15 - Aug 31: WA1, WA2, WA3, SA1 | Sep-Dec: all
+  // Jan - Apr: WA1 only | May - Jul 14: WA1, WA2, SA1 | Jul 15 - Aug: WA1, WA2, WA3, SA1 | Sep-Dec: all
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1-12
   const currentDay = now.getDate();
   let allowedExamTypes: string[] | null = null; // null = allow all
-  if (currentMonth < 4 || (currentMonth === 4 && currentDay <= 15)) {
+  if (currentMonth <= 4) {
     allowedExamTypes = ["WA1"];
   } else if (currentMonth < 7 || (currentMonth === 7 && currentDay <= 14)) {
     allowedExamTypes = ["WA1", "WA2", "SA1"];  // SA1 covers WA1+WA2 scope
