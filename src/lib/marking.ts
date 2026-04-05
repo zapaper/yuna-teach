@@ -310,23 +310,20 @@ function englishMarkingRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("english")) return "";
   return `
   ENGLISH PAPER MARKING RULES:
-  - MCQ questions: mark identically to Math/Science — no partial marks, exact single-option match only.
-  - For ALL written English questions, READ the question text in the image to identify the question type, then apply the rules below:
+  - MCQ questions (Grammar MCQ, Vocabulary MCQ): no partial marks, exact single-option match only.
+  - For ALL written English questions, READ the question text in the image to identify the question type, then apply the rules below.
+  - The sections in order after MCQ are: (a) Grammar Cloze, (b) Editing, (c) Comprehension Cloze, (d) Synthesis & Transformation, (e) Comprehension OEQ.
 
-  SYNTHESIS & TRANSFORMATION / GRAMMAR FILL-IN:
-  - There is usually one correct rewritten sentence or one accepted form.
-  - Award full marks only if the answer is grammatically correct AND preserves the original meaning.
-  - Award 0 if meaning is changed, tense is wrong, or key words are missing.
-  - Minor spelling errors that do not change the word: still award marks.
+  (a) GRAMMAR CLOZE (fill-in-the-blank with correct grammar):
+  - A passage with numbered blanks. The student fills in the grammatically correct word (e.g. verb form, preposition, connector).
+  - The question number is printed in parentheses BELOW or BESIDE the blank line, e.g. (21).
+  - STEP 1 — Verify question number: locate the parenthesised number and confirm it matches the question you are marking.
+  - STEP 2 — Blue ink check: look for blue ink written ON or ABOVE the blank line paired with the matching number. If no blue ink, award 0.
+  - STEP 3 — Read answer: the student's answer is the word written in blue ink on/above the blank. Do NOT read from a different blank.
+  - Accept ONLY the exact word from the answer key. Grammar cloze requires the precise grammatical form — do NOT accept synonyms or different tenses.
+  - Spelling must be correct. A misspelled word = 0 marks.
 
-  COMPREHENSION (open-ended, short answer):
-  - The answer key gives the expected key point(s).
-  - Award full marks if all key points are present in the student's answer.
-  - Award PARTIAL marks if some key points are present — even for 1-mark questions, award 0 if the key idea is missing or too vague.
-  - Accept synonyms and paraphrases as long as the meaning is preserved.
-  - In notes, state which key point was present or missing.
-
-  EDITING (spelling/grammar correction):
+  (b) EDITING (spelling & grammar correction):
   - The question number is printed BESIDE an answer box. The passage nearby contains an UNDERLINED or MARKED word — this is the erroneous word the student must correct.
   - STEP 1 — Verify question number: locate the printed question number and confirm it matches the question you are marking.
   - STEP 2 — Read the underlined error word: find the underlined/marked word in the printed passage near this question number. Read it carefully. This tells you WHAT KIND of error the student was asked to fix (e.g. a misspelling, wrong tense, wrong form). Log it: "Error word: [word]".
@@ -338,16 +335,29 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - STEP 8 — Award marks only if every letter matches exactly.
   - ALWAYS output this in notes (even for correct answers): "Error word: X | Transcription: x-x-x-x | Match: YES/NO".
 
-  CLOZE PASSAGE / COMPREHENSION CLOZE (fill-in-the-blank):
+  (c) COMPREHENSION CLOZE (fill-in-the-blank, no word bank):
+  - A passage with numbered blanks. The student must fill in a suitable word based on context (no options given).
   - The question number is printed in parentheses BELOW the blank line, e.g. (34).
   - STEP 1 — Verify question number: locate the parenthesised number e.g. "(34)" in the crop and confirm it matches the question you are marking. If multiple question numbers are visible, only read the answer for the matching number.
   - STEP 2 — Blue ink check: look for blue ink written ON or ABOVE the blank line that is directly above the matching parenthesised number. If no blue ink is found there, award 0 marks.
   - STEP 3 — Read answer: the student's answer is the word written in blue ink on/above the blank paired with the matching number. Do NOT read a word from a different blank belonging to a different number.
-  - Accept the exact word from the answer key. Accept clear synonyms only if semantically equivalent in context.
+  - Accept the exact word from the answer key. Accept clear synonyms ONLY if semantically equivalent in context and grammatically correct in the sentence.
   - Do NOT accept answers that change the grammar of the sentence.
+  - Spelling must be correct. A misspelled word = 0 marks.
 
-  VOCABULARY (word meaning, synonym, antonym):
-  - Award marks for exact match or clear semantic equivalent from the answer key.`;
+  (d) SYNTHESIS & TRANSFORMATION (sentence rewriting):
+  - There is usually one correct rewritten sentence or one accepted form.
+  - Award full marks only if the answer is grammatically correct AND preserves the original meaning.
+  - Award 0 if meaning is changed, tense is wrong, or key words are missing.
+  - Minor spelling errors that do not change the word: still award marks.
+  - The given word/phrase MUST be used in the rewritten sentence. If the student did not use the given word, award 0.
+
+  (e) COMPREHENSION OEQ (open-ended, short answer):
+  - The answer key gives the expected key point(s).
+  - Award full marks if all key points are present in the student's answer.
+  - Award PARTIAL marks if some key points are present — even for 1-mark questions, award 0 if the key idea is missing or too vague.
+  - Accept synonyms and paraphrases as long as the meaning is preserved.
+  - In notes, state which key point was present or missing.`;
 }
 
 function scienceCommandWordRules(subject: string | null | undefined): string {
