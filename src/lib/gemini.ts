@@ -1163,7 +1163,12 @@ In a tight layout, the visual gap between consecutive questions is very small (s
 
 ### Crop boundaries for English MCQ
 
-- **yStartPct** = **~1% above** the question number line — MINIMAL top padding only, do NOT use 2–3% (questions are too close together; that much padding will bleed into the previous question)
+There are TWO types of MCQ in English Booklet A:
+1. **Grammar & Vocabulary MCQ** (earlier questions) — each has a stem + 4 options, spans ~5–8% of page height
+2. **Comprehension MCQ** (later questions, based on a shared passage) — these are EVEN TIGHTER because the stem is usually just one short question line + 4 options, spanning only ~3–5% of page height. Use ZERO top padding for these — crop starts right at the question number line.
+
+For ALL English MCQ:
+- **yStartPct** = **~1% above** the question number line for Grammar/Vocab MCQ. For Comprehension MCQ (passage-based, tighter), use **~0.5% above** or the exact question number line — MINIMAL padding to avoid bleeding into the previous question
 - **yEndPct** = bottom edge of the LAST answer option line, e.g. the line with "(4) option text" — stop immediately after it with NO extra padding
 - The next question's number line starts immediately (or within 1–2% gap) after the previous question's last option
 
