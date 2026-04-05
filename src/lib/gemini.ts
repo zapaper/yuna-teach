@@ -1159,9 +1159,9 @@ English MCQ questions are **vertically much tighter** than Math or Science quest
 - The first question on a page may start very close to the top (after a header or section title)
 - Scan from the VERY TOP of the page for the first question number at the left margin
 - If the page starts with a section heading (e.g. "Section A", "Grammar", "Section B", "Vocabulary"), the first question number is right below it — do NOT skip it
-- **Section transitions within Booklet A**: English Booklet A has multiple sections (Grammar MCQ Q1-10 → Vocabulary MCQ Q11-15 → Vocabulary Cloze MCQ Q16-20 → Visual Text Comprehension MCQ Q21-30). When one section ends and another begins (sometimes mid-page, sometimes on a new page), there may be a section title or passage text before the next question number. The question numbers are CONTINUOUS across sections — e.g. Grammar MCQ ends at Q10, Vocabulary MCQ starts at Q11.
+- **Section transitions within Booklet A**: English Booklet A has multiple sections (Grammar MCQ Q1-10 → Vocabulary MCQ Q11-15 → Vocabulary Cloze MCQ Q16-20 → Visual Text Comprehension MCQ Q21-28). When one section ends and another begins (sometimes mid-page, sometimes on a new page), there may be a section title or passage text before the next question number. The question numbers are CONTINUOUS across sections — e.g. Grammar MCQ ends at Q10, Vocabulary MCQ starts at Q11.
 - **Vocabulary Cloze MCQ (Q16-20)**: This section has a PASSAGE before the questions start. The passage takes up significant space on the page. The questions (Q16, Q17, ...) appear BELOW or AFTER the passage. Do NOT mistake the passage text for a question — scan below the passage for question numbers at the left margin.
-- **Visual Text Comprehension MCQ (Q21-30)**: There is usually an image/poster/advertisement before the questions. Questions appear after the visual.
+- **Visual Text Comprehension MCQ (Q21-28)**: There is usually an image/poster/advertisement before the questions. Questions appear after the visual.
 
 ### Identifying question numbers in tight layouts
 
