@@ -1135,9 +1135,10 @@ export const SCIENCE_SYLLABUS = [
 ] as const;
 
 export const ENGLISH_SYLLABUS = [
-  "Grammar",
-  "Vocabulary",
-  "Comprehension MCQ",
+  "Grammar MCQ",
+  "Vocabulary MCQ",
+  "Vocabulary Cloze MCQ",
+  "Visual Text Comprehension MCQ",
   "Grammar Cloze",
   "Editing (Spelling & Grammar)",
   "Comprehension Cloze",
@@ -1145,7 +1146,6 @@ export const ENGLISH_SYLLABUS = [
   "Comprehension (Open-ended)",
   "Continuous Writing",
   "Situational Writing",
-  "Visual Text Comprehension",
   "Oral Communication",
 ] as const;
 
@@ -1355,18 +1355,25 @@ Choose EXACTLY ONE topic from this list:
 ${ENGLISH_SYLLABUS.map((t) => `- ${t}`).join("\n")}
 
 English Paper 2 follows this section order — use it to resolve ambiguous questions:
-1. Grammar & Vocabulary MCQ (Booklet A) — early MCQ questions (A/B/C/D), testing grammar and vocabulary
-2. Comprehension MCQ (Booklet A) — later MCQ questions (A/B/C/D) based on a reading passage
-3. Grammar Cloze — fill-in-the-blank from word bank (A–Q, no I or O), question number printed BELOW each blank
-4. Editing (Spelling & Grammar) — passage with numbered boxes beside errors; student corrects in the box
-5. Comprehension Cloze — fill-in-the-blank passage (same layout as Grammar Cloze), appears AFTER Editing
-6. Synthesis & Transformation — sentence rewriting using given words
-7. Comprehension (Open-ended) — written answers to questions about a reading passage
+
+MCQ sections (Booklet A):
+1. Grammar MCQ — MCQ testing grammar (tenses, subject-verb agreement, articles, prepositions, conjunctions)
+2. Vocabulary MCQ — MCQ testing word meaning, synonyms, antonyms, word choice, phrasal verbs
+3. Vocabulary Cloze MCQ — MCQ where a passage has blanks, each with 4 word options (1)-(4) to choose from
+4. Visual Text Comprehension MCQ — MCQ based on an advertisement, poster, infographic, or visual text
+
+Written sections (Booklet B):
+5. Grammar Cloze — fill-in-the-blank from word bank (A–Q, no I or O), question number printed BELOW each blank
+6. Editing (Spelling & Grammar) — passage with numbered boxes beside errors; student corrects in the box
+7. Comprehension Cloze — fill-in-the-blank passage (no word bank), appears AFTER Editing
+8. Synthesis & Transformation — sentence rewriting using given words
+9. Comprehension (Open-ended) — written answers to questions about a reading passage
 
 Rules per topic:
-- "Grammar" — MCQ testing tenses, subject-verb agreement, punctuation, articles, prepositions, conjunctions (Booklet A, earlier questions)
-- "Vocabulary" — MCQ testing word meaning, synonyms, antonyms, word choice, phrasal verbs (Booklet A, earlier questions)
-- "Comprehension MCQ" — MCQ based on a reading passage (Booklet A, later questions); answer is A/B/C/D
+- "Grammar MCQ" — MCQ testing grammar rules; answer is (1)/(2)/(3)/(4); appears first in Booklet A
+- "Vocabulary MCQ" — MCQ testing word meaning/synonyms; answer is (1)/(2)/(3)/(4); appears after Grammar MCQ
+- "Vocabulary Cloze MCQ" — a passage with numbered blanks, each blank has 4 word options (1)-(4); student picks the best word; answer is (1)/(2)/(3)/(4); appears after Vocabulary MCQ
+- "Visual Text Comprehension MCQ" — MCQ based on a visual text (poster, ad, infographic); answer is (1)/(2)/(3)/(4); usually appears last in Booklet A
 - "Grammar Cloze" — fill-in-blank from word bank (labeled A–Q, skipping I and O); student writes a SINGLE LETTER in each blank; question number printed BELOW the blank; appears BEFORE Editing; usually ONE PAGE
 - "Editing (Spelling & Grammar)" — prose passage with UNDERLINED words (not blanks); a small numbered BOX is beside/above each underlined word; student writes the corrected spelling in the box; appears on the page IMMEDIATELY AFTER Grammar Cloze; if you see boxes → this topic, NOT Cloze
 - "Comprehension Cloze" — fill-in-blank passage (no word bank); student writes a WORD in each blank; blank underscore lines + question number BELOW the blank (similar layout to Grammar Cloze but no letter options); appears AFTER Editing section; if you see blanks (not boxes) after the Editing page → this topic
@@ -1374,7 +1381,6 @@ Rules per topic:
 - "Comprehension (Open-ended)" — written answers to questions about a reading passage; NOT multiple choice
 - "Continuous Writing" — extended creative writing or narrative
 - "Situational Writing" — writing for a specific purpose (email, report, letter, recount)
-- "Visual Text Comprehension" — questions about advertisements, posters, infographics
 - "Oral Communication" — reading aloud or stimulus-based conversation
 - If the question does not clearly fit any topic, set "syllabusTopic" to null`;
 

@@ -705,9 +705,10 @@ const SCIENCE_TOPICS = [
 ];
 
 const ENGLISH_TOPICS = [
-  "Grammar",
-  "Vocabulary",
-  "Comprehension MCQ",
+  "Grammar MCQ",
+  "Vocabulary MCQ",
+  "Vocabulary Cloze MCQ",
+  "Visual Text Comprehension MCQ",
   "Grammar Cloze",
   "Editing (Spelling & Grammar)",
   "Comprehension Cloze",
@@ -715,7 +716,6 @@ const ENGLISH_TOPICS = [
   "Comprehension (Open-ended)",
   "Continuous Writing",
   "Situational Writing",
-  "Visual Text Comprehension",
   "Oral Communication",
 ];
 
@@ -780,11 +780,16 @@ function QuestionEditCard({
         const isMcq = /^[A-D]$/i.test(ans) || /^[1-4]$/.test(ans);
         let label: string;
         let cls: string;
-        if (topic === "Grammar Cloze") { label = "Grammar Cloze"; cls = "bg-orange-100 text-orange-700 border-orange-200"; }
+        if (topic === "Grammar MCQ") { label = "Grammar MCQ"; cls = "bg-blue-100 text-blue-700 border-blue-200"; }
+        else if (topic === "Vocabulary MCQ") { label = "Vocabulary MCQ"; cls = "bg-blue-100 text-blue-700 border-blue-200"; }
+        else if (topic === "Vocabulary Cloze MCQ") { label = "Vocab Cloze MCQ"; cls = "bg-sky-100 text-sky-700 border-sky-200"; }
+        else if (topic === "Visual Text Comprehension MCQ") { label = "Visual Text MCQ"; cls = "bg-cyan-100 text-cyan-700 border-cyan-200"; }
+        else if (topic === "Grammar Cloze") { label = "Grammar Cloze"; cls = "bg-orange-100 text-orange-700 border-orange-200"; }
         else if (topic === "Comprehension Cloze") { label = "Comprehension Cloze"; cls = "bg-green-100 text-green-700 border-green-200"; }
-        else if (topic.startsWith("Editing")) { label = "Editing (Spelling & Grammar)"; cls = "bg-yellow-100 text-yellow-700 border-yellow-200"; }
-        else if (topic.includes("Open-ended") || topic === "Comprehension (Open-ended)") { label = "Open-ended Comprehension"; cls = "bg-purple-100 text-purple-700 border-purple-200"; }
-        else if (topic === "Comprehension MCQ" || isMcq) { label = topic === "Comprehension MCQ" ? "Comprehension MCQ" : "MCQ"; cls = "bg-blue-100 text-blue-700 border-blue-200"; }
+        else if (topic.startsWith("Editing")) { label = "Editing"; cls = "bg-yellow-100 text-yellow-700 border-yellow-200"; }
+        else if (topic.includes("Open-ended") || topic === "Comprehension (Open-ended)") { label = "Comprehension OEQ"; cls = "bg-purple-100 text-purple-700 border-purple-200"; }
+        else if (topic === "Synthesis & Transformation") { label = "Synthesis"; cls = "bg-pink-100 text-pink-700 border-pink-200"; }
+        else if (isMcq) { label = "MCQ"; cls = "bg-blue-100 text-blue-700 border-blue-200"; }
         else { label = "Written"; cls = "bg-slate-100 text-slate-500 border-slate-200"; }
         return (
           <div className={`px-3 py-1 border-b flex items-center gap-2 ${cls}`}>
