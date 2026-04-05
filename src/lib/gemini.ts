@@ -1153,7 +1153,12 @@ const ENGLISH_CLOZE_ADDENDUM = `
 
 ## ENGLISH PAPER — MCQ question extraction (Booklet A)
 
-English MCQ questions are **vertically much tighter** than Math or Science questions. Each question (stem + 4 options) typically spans only **5–8% of the page height**. This tight spacing means the general padding rules will produce incorrect crops — use these overrides instead.
+English MCQ questions are **vertically much tighter** than Math or Science questions. Each question (stem + 4 options) typically spans only **3–8% of the page height**. The general padding rules are TOO LARGE — use ZERO padding for English MCQ.
+
+### CRITICAL — Do NOT miss the FIRST MCQ question on a page
+- The first question on a page may start very close to the top (after a header or section title)
+- Scan from the VERY TOP of the page for the first question number at the left margin
+- If the page starts with a section heading (e.g. "Section A", "Grammar"), the first question number is right below it — do NOT skip it
 
 ### Identifying question numbers in tight layouts
 
@@ -1161,16 +1166,12 @@ The question number is a bare integer ("1", "2", … "28") at the **far left mar
 
 In a tight layout, the visual gap between consecutive questions is very small (sometimes just one blank line). Scan only the leftmost edge for the bare integer — if you see "(1)" or "(2)" near the left, it is an answer option, not a question number.
 
-### Crop boundaries for English MCQ
+### Crop boundaries for English MCQ — ZERO PADDING
 
-There are TWO types of MCQ in English Booklet A:
-1. **Grammar & Vocabulary MCQ** (earlier questions) — each has a stem + 4 options, spans ~5–8% of page height
-2. **Comprehension MCQ** (later questions, based on a shared passage) — these are EVEN TIGHTER because the stem is usually just one short question line + 4 options, spanning only ~3–5% of page height. Use ZERO top padding for these — crop starts right at the question number line.
-
-For ALL English MCQ:
-- **yStartPct** = **~1% above** the question number line for Grammar/Vocab MCQ. For Comprehension MCQ (passage-based, tighter), use **~0.5% above** or the exact question number line — MINIMAL padding to avoid bleeding into the previous question
-- **yEndPct** = bottom edge of the LAST answer option line, e.g. the line with "(4) option text" — stop immediately after it with NO extra padding
-- The next question's number line starts immediately (or within 1–2% gap) after the previous question's last option
+For ALL English MCQ (Grammar, Vocabulary, Vocab Cloze, Visual Text):
+- **yStartPct** = the EXACT line of the question number — NO top padding (0%). Do NOT add 1-2% above. The previous question ends right where this one starts.
+- **yEndPct** = the EXACT bottom of the last answer option line "(4) ..." — NO bottom padding. The next question starts immediately after.
+- Questions are contiguous: Q(N+1) yStartPct = Q(N) yEndPct — no gaps
 
 ### How each English MCQ question looks on the page
 
@@ -1181,7 +1182,7 @@ For ALL English MCQ:
         (4) fourth option
     2.  Next question stem...   ← bare "2." at left margin = next question boundary
 
-The crop for Q1 runs from just above "1." down to just below "(4) fourth option". Q2 starts at "2."
+The crop for Q1 runs from "1." down to the line with "(4) fourth option". Q2 starts at "2."
 
 ---
 
