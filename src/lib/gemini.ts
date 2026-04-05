@@ -1155,10 +1155,12 @@ const ENGLISH_CLOZE_ADDENDUM = `
 
 English MCQ questions are **vertically much tighter** than Math or Science questions. Each question (stem + 4 options) typically spans only **3–8% of the page height**. The general padding rules are TOO LARGE — use ZERO padding for English MCQ.
 
-### CRITICAL — Do NOT miss the FIRST MCQ question on a page
+### CRITICAL — Do NOT miss the FIRST MCQ question on a page or after a section transition
 - The first question on a page may start very close to the top (after a header or section title)
 - Scan from the VERY TOP of the page for the first question number at the left margin
-- If the page starts with a section heading (e.g. "Section A", "Grammar"), the first question number is right below it — do NOT skip it
+- If the page starts with a section heading (e.g. "Section A", "Grammar", "Section B", "Vocabulary"), the first question number is right below it — do NOT skip it
+- **Section transitions within Booklet A**: English Booklet A has multiple sections (Grammar MCQ → Vocabulary MCQ → Vocabulary Cloze MCQ → Visual Text MCQ). When one section ends and another begins (sometimes mid-page, sometimes on a new page), there may be a section title or passage text before the next question number. The question numbers are CONTINUOUS across sections — if Grammar MCQ ended at Q5, Vocabulary MCQ starts at Q6. Look for Q6 at the left margin right after the section heading or passage.
+- If a passage appears (for Vocabulary Cloze or Visual Text), the questions follow the passage — scan below the passage text for the next sequential question number
 
 ### Identifying question numbers in tight layouts
 
