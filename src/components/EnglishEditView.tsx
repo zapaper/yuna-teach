@@ -491,7 +491,7 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
     if (m.startsWith("**") && m.endsWith("**")) {
       const inner = m.slice(2, -2);
       // Check if it's a cloze blank like (29)________
-      const clozeMatch = !isMcq ? inner.match(/^\((\d+)\)_+$/) : null;
+      const clozeMatch = inner.match(/^\((\d+)\)_+$/);
       if (clozeMatch) {
         parts.push(
           <span key={match.index} className="inline-flex items-center gap-0.5 font-bold">
