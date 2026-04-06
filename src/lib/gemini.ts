@@ -1880,18 +1880,27 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
         const CLOZE_EDITING_TOPICS = new Set(["Grammar Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze"]);
         for (let i = 0; i < fixed.length; i++) {
           const ext = fixed[i] as { questionNumYPct?: number; questionNumXPct?: number; syllabusTopic?: string | null };
-          const qnY = ext.questionNumYPct;
-          if (qnY != null && qnY > 0) {
-            fixed[i].yStartPct = qnY;
-            if (i > 0) {
-              fixed[i - 1].yEndPct = qnY;
+          const isClozeOrEditing = CLOZE_EDITING_TOPICS.has(ext.syllabusTopic ?? "");
+
+          // For MCQ/S&T/OEQ: use questionNumYPct for y-boundaries (number is at the TOP)
+          // For cloze/editing: skip y-override (number is at the BOTTOM, AI already sets correct boundaries)
+          if (!isClozeOrEditing) {
+            const qnY = ext.questionNumYPct;
+            if (qnY != null && qnY > 0) {
+              fixed[i].yStartPct = qnY;
+              if (i > 0 && !CLOZE_EDITING_TOPICS.has((fixed[i - 1] as { syllabusTopic?: string | null }).syllabusTopic ?? "")) {
+                fixed[i - 1].yEndPct = qnY;
+              }
             }
           }
+
           // For cloze/editing sections: set x-boundaries around the question number (±6%)
-          const qnX = ext.questionNumXPct;
-          if (qnX != null && qnX > 0 && CLOZE_EDITING_TOPICS.has(ext.syllabusTopic ?? "")) {
-            fixed[i].xStartPct = Math.max(0, qnX - 6);
-            fixed[i].xEndPct = Math.min(100, qnX + 6);
+          if (isClozeOrEditing) {
+            const qnX = ext.questionNumXPct;
+            if (qnX != null && qnX > 0) {
+              fixed[i].xStartPct = Math.max(0, qnX - 6);
+              fixed[i].xEndPct = Math.min(100, qnX + 6);
+            }
           }
         }
       }
