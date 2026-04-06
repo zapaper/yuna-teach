@@ -1946,10 +1946,11 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
             const qnX = ext.questionNumXPct;
             const isEditingSec = ext.syllabusTopic === "Editing (Spelling & Grammar)";
             if (qnX != null && qnX > 0) {
-              // Editing: -3% left, +12% right (capture the answer box which is to the right)
-              // Cloze: ±6% (blank is centered around the number)
-              fixed[i].xStartPct = Math.max(0, qnX - (isEditingSec ? 3 : 6));
-              fixed[i].xEndPct = Math.min(100, qnX + (isEditingSec ? 12 : 6));
+              // Editing & Comprehension Cloze: -3% left, +15% right (capture the answer box/blank to the right)
+              // Grammar Cloze: ±6% (blank is centered around the number)
+              const isWideXCrop = isEditingSec || ext.syllabusTopic === "Comprehension Cloze";
+              fixed[i].xStartPct = Math.max(0, qnX - (isWideXCrop ? 3 : 6));
+              fixed[i].xEndPct = Math.min(100, qnX + (isWideXCrop ? 15 : 6));
             }
           }
         }
