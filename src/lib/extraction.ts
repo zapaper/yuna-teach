@@ -396,6 +396,30 @@ async function extractExamPaperCore(
       }
     }
 
+    // For Vocab Cloze MCQ: extract the passage (top half of the page) as a separate image
+    let vocabClozePassageImage: string | null = null;
+    if (isEnglish) {
+      // Find the first Vocab Cloze MCQ question to get its page and yStartPct
+      for (const seg of allSegments) {
+        const topic = result.syllabusTopics?.[seg.questionNum] ?? null;
+        if (topic === "Vocabulary Cloze MCQ" && !seg.isContinuation) {
+          // Crop from top of page to just above the first question
+          try {
+            vocabClozePassageImage = await cropQuestionServer(
+              imageBuffers[seg.pageIndex],
+              0,
+              Math.max(5, seg.yStartPct - 1),
+              0, 0
+            );
+            console.log(`[extraction] Vocab Cloze passage extracted from page ${seg.pageIndex + 1}, 0%-${(seg.yStartPct - 1).toFixed(1)}%`);
+          } catch (err) {
+            console.warn(`[extraction] Failed to extract Vocab Cloze passage:`, err);
+          }
+          break;
+        }
+      }
+    }
+
     // Process each question group
     const questions: Array<{
       questionNum: string;
@@ -499,6 +523,18 @@ async function extractExamPaperCore(
           croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
         } catch (err) {
           console.warn(`[extraction] Failed to stitch visual text pages for Q${qNum}:`, err);
+        }
+      }
+
+      // For Vocab Cloze MCQ: stitch passage image on top of question crop
+      if (syllabusTopic === "Vocabulary Cloze MCQ" && vocabClozePassageImage) {
+        try {
+          const cropBuf = Buffer.from(croppedImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
+          const passageBuf = Buffer.from(vocabClozePassageImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
+          const stitched = await stitchPagesVertically([passageBuf, cropBuf]);
+          croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
+        } catch (err) {
+          console.warn(`[extraction] Failed to stitch vocab cloze passage for Q${qNum}:`, err);
         }
       }
 

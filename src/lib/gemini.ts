@@ -1932,6 +1932,12 @@ function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionN
     lines.push("CRITICAL: You MUST extract EVERY question from Q" + firstQuestionNum + " to Q" + (firstQuestionNum + paper.expectedQuestionCount - 1) + " in sequence.");
     lines.push("Do NOT skip questions. If you cannot find a question number, look more carefully at the page — English MCQ questions are very tightly spaced.");
     lines.push("Process page by page, top to bottom. On each page, scan the LEFT MARGIN for bare integers (question numbers). Extract ALL of them before moving to the next page.");
+    // Vocab Cloze MCQ guidance
+    const hasVocabCloze = paper.sections.some(s => s.name?.includes("Vocab") && s.name?.includes("Cloze"));
+    if (hasVocabCloze) {
+      lines.push("");
+      lines.push("VOCAB CLOZE MCQ: The first page has a PASSAGE in the top half (~50% of page). The first question (Q" + firstQuestionNum + ") starts in the LOWER HALF of the page, around 40-60% from the top. Scan from the middle of the page downward.");
+    }
   }
   return lines.join("\n");
 }
