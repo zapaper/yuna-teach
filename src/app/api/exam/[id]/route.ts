@@ -296,14 +296,15 @@ export async function POST(
     const question = await prisma.examQuestion.create({
       data: {
         questionNum: nextNum,
-        imageData: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AKwA//9k=", // 1x1 white pixel
+        imageData: body.imageData || "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AKwA//9k=", // 1x1 white pixel
         answer: null,
         answerImageData: null,
         pageIndex: refQuestion?.pageIndex ?? 0,
         orderIndex: insertOrder,
         yStartPct: null,
         yEndPct: null,
-        marksAvailable: null,
+        marksAvailable: body.marksAvailable ?? null,
+        syllabusTopic: body.syllabusTopic ?? null,
         examPaperId: id,
       },
     });

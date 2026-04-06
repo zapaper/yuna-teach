@@ -564,20 +564,24 @@ function ExamEditContent({ id }: { id: string }) {
               const metadata = paper.metadata ?? {} as Record<string, unknown>;
               const ocrTexts = (metadata as { sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[] }> }).sectionOcrTexts ?? {};
               ocrTexts[sectionName] = { ...ocrTexts[sectionName], ocrText };
-              await fetch(`/api/exam/${id}`, {
+              const res = await fetch(`/api/exam/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ metadata: { ...metadata, sectionOcrTexts: ocrTexts } }),
               });
+              if (!res.ok) {
+                alert("Failed to save OCR text");
+                return;
+              }
 
               // 2. Re-parse question numbers from the edited text (for cloze/editing)
               const isEmbedded = sectionName.toLowerCase().includes("cloze") || sectionName.toLowerCase().includes("editing");
               if (isEmbedded) {
                 // Extract question numbers from bold patterns like **(39) word** or **(29)________**
                 const qNums: number[] = [];
-                const regex = /\*\*\((\d+)\)[^*]*\*\*/g;
+                const boldRegex = /\*\*\((\d+)\)[^*]*\*\*/g;
                 let m;
-                while ((m = regex.exec(ocrText)) !== null) {
+                while ((m = boldRegex.exec(ocrText)) !== null) {
                   const n = parseInt(m[1]);
                   if (!isNaN(n) && !qNums.includes(n)) qNums.push(n);
                 }
@@ -585,37 +589,29 @@ function ExamEditContent({ id }: { id: string }) {
                 const plainRegex = /\((\d+)\)/g;
                 while ((m = plainRegex.exec(ocrText)) !== null) {
                   const n = parseInt(m[1]);
-                  if (!isNaN(n) && !qNums.includes(n)) qNums.push(n);
+                  if (!isNaN(n) && n >= 20 && !qNums.includes(n)) qNums.push(n); // filter out small numbers that might be in passage
                 }
                 qNums.sort((a, b) => a - b);
 
-                // Update questions for this section — delete old ones and create new
-                if (qNums.length > 0 && paper) {
-                  const sectionQuestions = paper.questions.filter(q => q.syllabusTopic === sectionName);
+                if (qNums.length > 0) {
                   // Delete questions not in the new set
+                  const sectionQuestions = paper.questions.filter(q => q.syllabusTopic === sectionName);
                   for (const q of sectionQuestions) {
                     const n = parseInt(q.questionNum, 10);
                     if (!isNaN(n) && !qNums.includes(n)) {
                       await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
                     }
                   }
-                  // Create missing questions
+                  // Add missing questions via the addQuestion endpoint
                   const existingNums = new Set(sectionQuestions.map(q => parseInt(q.questionNum, 10)).filter(n => !isNaN(n)));
                   for (const n of qNums) {
                     if (!existingNums.has(n)) {
-                      await fetch(`/api/exam/questions/create`, {
+                      const addRes = await fetch(`/api/exam/${id}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          examPaperId: id,
-                          questionNum: String(n),
-                          imageData: "",
-                          pageIndex: 0,
-                          orderIndex: n,
-                          syllabusTopic: sectionName,
-                          marksAvailable: 1,
-                        }),
+                        body: JSON.stringify({ action: "addQuestion", questionNum: String(n), syllabusTopic: sectionName }),
                       });
+                      if (!addRes.ok) console.warn(`Failed to add Q${n}`);
                     }
                   }
                 }
