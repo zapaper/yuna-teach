@@ -2004,8 +2004,19 @@ function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionN
   lines.push(`Question prefix for JSON output: "${paper.questionPrefix}"`);
   lines.push(`Expected questions: ${paper.expectedQuestionCount} (starting from Q${firstQuestionNum})`);
   lines.push(`First question number to find: ${firstQuestionNum}`);
+  let qCounter = firstQuestionNum;
   for (const section of paper.sections) {
-    lines.push(`Section ${section.name}: ${section.type}, ${section.questionCount} questions`);
+    const extra = section as { startPage?: number; questionRange?: string };
+    const range = extra.questionRange ?? `Q${qCounter}-Q${qCounter + section.questionCount - 1}`;
+    const startPage = extra.startPage != null ? ` (starts on page ${extra.startPage})` : "";
+    lines.push(`Section "${section.name}": ${section.type}, ${section.questionCount} questions, ${range}${startPage}`);
+    qCounter += section.questionCount;
+  }
+  if (subject.toLowerCase().includes("english")) {
+    lines.push("");
+    lines.push("CRITICAL: You MUST extract EVERY question from Q" + firstQuestionNum + " to Q" + (firstQuestionNum + paper.expectedQuestionCount - 1) + " in sequence.");
+    lines.push("Do NOT skip questions. If you cannot find a question number, look more carefully at the page — English MCQ questions are very tightly spaced.");
+    lines.push("Process page by page, top to bottom. On each page, scan the LEFT MARGIN for bare integers (question numbers). Extract ALL of them before moving to the next page.");
   }
   return lines.join("\n");
 }
@@ -2075,6 +2086,13 @@ async function runExtractionCall(
       rawPages = [];
     }
     pages = rawPages;
+    // Log per-page extraction detail
+    for (const p of pages) {
+      const qNums = (p.questions ?? []).map((q: { questionNum: string; yStartPct?: number; yEndPct?: number; questionNumYPct?: number }) =>
+        `Q${q.questionNum}(${q.yStartPct?.toFixed(1) ?? "?"}%-${q.yEndPct?.toFixed(1) ?? "?"}%)`
+      );
+      console.log(`[Exam Pipeline] ${label} page ${p.pageIndex}: ${qNums.length > 0 ? qNums.join(", ") : "NO QUESTIONS"}`);
+    }
   } catch (parseErr) {
     console.log(`[Exam Pipeline] ${label}: JSON parse failed, error: ${parseErr}`);
   }
