@@ -94,8 +94,9 @@ export async function POST(request: NextRequest) {
   const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
 
   // Find all clean-extracted questions from master papers (matching level + semester)
+  // For English: don't filter by examType (English papers don't follow WA1/WA2 schedule)
   const allQuestions = await prisma.examQuestion.findMany({
-    where: questionWhere(levelFilter ?? null, allowedExamTypes),
+    where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes),
     select: questionSelect,
   });
 
@@ -114,7 +115,10 @@ export async function POST(request: NextRequest) {
     const withBoth = await prisma.examQuestion.count({
       where: { transcribedStem: { not: null }, answer: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
     });
-    console.log(`[English Quiz] Total English Qs: ${totalEnglishQs}, with stem: ${withStem}, with answer: ${withAnswer}, with both: ${withBoth}, after level/exam filter: ${allQuestions.length}`);
+    const withBothNoFilter = await prisma.examQuestion.count({
+      where: { transcribedStem: { not: null }, answer: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
+    });
+    console.log(`[English Quiz] Total: ${totalEnglishQs}, stem: ${withStem}, answer: ${withAnswer}, both: ${withBothNoFilter}, level="${levelFilter}", examType=${subject === "english" ? "none" : JSON.stringify(allowedExamTypes)}, after filter: ${allQuestions.length}`);
     if (allQuestions.length > 0) {
       const topics = new Map<string, number>();
       for (const q of allQuestions) { topics.set(q.syllabusTopic ?? "null", (topics.get(q.syllabusTopic ?? "null") ?? 0) + 1); }
