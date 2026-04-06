@@ -1052,6 +1052,81 @@ marksAvailable: total marks for this question (sum of sub-part bracket marks). U
 
 Return ONLY valid JSON.`;
 
+// English-specific extraction prompt — tighter padding, questionNumYPct/XPct
+const ENGLISH_EXTRACTION_PROMPT = `You are an expert at extracting question boundaries from Singapore primary school ENGLISH exam papers.
+
+You are given ONLY the question pages of the exam (answer sheets have been removed). Each image is labeled with its original page index (0-based).
+
+## Context from structure analysis:
+{structureContext}
+
+## Your task: Extract EVERY question's crop boundaries
+
+### Crop boundaries — TIGHT, 0.5% padding:
+- yStartPct = 0.5% ABOVE the question number. The question number MUST be fully inside the crop.
+- yEndPct = 0.5% BELOW the last line of content (last answer option for MCQ, last answer line for written)
+- Questions are CONTIGUOUS: Q(N+1) yStartPct = Q(N) yEndPct — no gaps between questions
+- Each question is ONE entry — do NOT split sub-parts (a), (b), (c) into separate entries
+
+### Question number position — output these fields for EACH question:
+- "questionNumYPct" — EXACT vertical position (%) of the TOP of the question number text. Measure to 0.5% accuracy.
+- "questionNumXPct" — EXACT horizontal position (%) of the CENTER of the question number.
+
+### WHERE to find question numbers — LEFT MARGIN SCAN:
+- Scan the left-most column of the page (within ~5% of the left edge)
+- A question number is a bare integer (or integer + ".") flush with the left edge
+- Answer options "(1)", "(2)", "(3)", "(4)" are INDENTED — they are NOT question numbers
+- Sub-part labels "(a)", "(b)" are NOT question numbers
+- Page numbers in headers/footers are NOT question numbers
+
+### Sequential extraction:
+- Extract questions strictly in order, page by page, top to bottom
+- SAME PAGE: each new question starts exactly where the previous ended
+- PAGE BOUNDARY: last question on a page gets yEndPct = 95. Next question starts at ~2% on the next page
+- Process pages in ASCENDING order. Never go backwards.
+- If a page has NO question numbers, return it with an EMPTY questions array
+
+### FIRST QUESTION:
+- Locate the first question number at the LEFT MARGIN before extracting
+- If the first page has only instructions, skip it and look at the NEXT page
+
+### CRITICAL — Only report what you can SEE:
+- ONLY output a question number if you can clearly SEE it printed on the page
+- NEVER invent or guess question numbers
+- NEVER duplicate a question number
+- It is BETTER to output fewer questions than to hallucinate
+
+### MCQ questions:
+- Each MCQ = stem + answer options (1)/(2)/(3)/(4) as ONE entry
+- English MCQ are tightly spaced (~3-8% of page height)
+- Sections have CONTINUOUS numbering: Grammar MCQ Q1-10, Vocab MCQ Q11-15, Vocab Cloze MCQ Q16-20, Visual Text MCQ Q21-28
+- Passage-only or visual-only pages (no question numbers) = extract zero questions, continue to next page
+
+### Written questions:
+- Keep the ENTIRE question as ONE entry including ALL sub-parts and answer spaces
+- Include diagrams, pictures, answer lines, answer boxes
+
+### Marks detection:
+- Look for marks in brackets like [1], [2], [3]
+- MCQ = typically 1 mark each unless stated otherwise
+- If not visible, set marksAvailable to null
+
+## OUTPUT FORMAT
+Return ONLY valid JSON:
+{
+  "pages": [
+    {
+      "pageIndex": 2,
+      "questions": [
+        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 19.0, "questionNumYPct": 12.5, "questionNumXPct": 3.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1, "syllabusTopic": "Grammar MCQ"},
+        {"questionNum": "2", "yStartPct": 19.0, "yEndPct": 26.0, "questionNumYPct": 19.5, "questionNumXPct": 3.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 1, "syllabusTopic": "Grammar MCQ"}
+      ]
+    }
+  ]
+}
+
+Return ONLY valid JSON.`;
+
 // Science-specific addendum — appended to QUESTION_EXTRACTION_PROMPT for science papers
 const SCIENCE_ADDENDUM = `
 
@@ -1155,26 +1230,6 @@ export const ENGLISH_SYLLABUS = [
 
 const ENGLISH_CLOZE_ADDENDUM = `
 
-## ENGLISH PAPER — Additional fields (ENGLISH ONLY)
-
-For EACH question, also output these two fields:
-- "questionNumYPct" — EXACT vertical position (%) of the TOP of the question number text. Measure to 0.5% accuracy.
-- "questionNumXPct" — EXACT horizontal position (%) of the CENTER of the question number. For cloze/editing sections where the number is embedded in the passage, this indicates the horizontal position of the answer blank/box.
-
-## ENGLISH PAPER — MCQ extraction (Booklet A)
-
-English MCQ questions are tightly spaced (~3-8% of page height each). Use MINIMAL padding.
-
-### MCQ rules:
-- Question number = bare integer at FAR LEFT margin ("1", "2", ...)
-- Answer options = indented "(1)", "(2)", "(3)", "(4)" — these are NOT question numbers
-- yStartPct = questionNumYPct (exact position of question number). yEndPct = next question's questionNumYPct
-- Sections have CONTINUOUS numbering: Grammar MCQ Q1-10, Vocab MCQ Q11-15, Vocab Cloze MCQ Q16-20, Visual Text MCQ Q21-28
-- Passage-only pages (no question numbers) = extract zero questions, continue to next page
-- Visual text pages (posters/ads with no questions) = extract zero questions, continue to next page
-
----
-
 ## ENGLISH PAPER — Booklet B sections
 
 ### CLOZE (Grammar Cloze + Comprehension Cloze):
@@ -1190,9 +1245,7 @@ English MCQ questions are tightly spaced (~3-8% of page height each). Use MINIMA
 
 ### SYNTHESIS & TRANSFORMATION + COMPREHENSION OEQ:
 - Question number at left margin, standard extraction
-- yStartPct = ~1% above question number. yEndPct = next question number or end of page
-
-When you reach the last MCQ on a page and the page count expected for this section has not been reached, look at the immediately following page(s) for more MCQs before concluding the section is complete.`;
+- yStartPct = ~0.5% above question number. yEndPct = next question number or end of page`;
 
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
@@ -1887,7 +1940,9 @@ async function runExtractionCall(
   const isScience = subjectLowerEx.includes("science");
   const isMath = subjectLowerEx.includes("math");
   const isEnglish = subjectLowerEx.includes("english");
-  let prompt = QUESTION_EXTRACTION_PROMPT.replace(
+  // Use separate prompt for English — tighter padding, questionNumYPct/XPct
+  const basePrompt = isEnglish ? ENGLISH_EXTRACTION_PROMPT : QUESTION_EXTRACTION_PROMPT;
+  let prompt = basePrompt.replace(
     "{structureContext}",
     bookletContext
   );
