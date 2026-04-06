@@ -2557,8 +2557,9 @@ export async function analyzeExamBatch(
           const secLabel = sec.name || sec.type;
 
           // Step 1: OCR — extract clean text from all section pages
-          // For Comprehension OEQ: also include passage pages from Booklet A
           const isCompOEQSec = secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open");
+          const isVisualTextSec = secLabel.toLowerCase().includes("visual text");
+          const visualPagesForVT: number[] = isVisualTextSec ? ((sec as { visualPages?: number[] }).visualPages ?? []) : [];
           // Find Booklet A passage pages: pages in Booklet A that don't belong to any section's startPage range
           const passagePagesForOEQ: number[] = [];
           if (isCompOEQSec) {
@@ -2614,12 +2615,14 @@ export async function analyzeExamBatch(
     | F | G | H | J | K |
     | word6 | word7 | word8 | word9 | word10 |
     Note: letters I and O are typically skipped. Use 5 columns per row.
-  * The blank and its question number MUST be on the SAME line and BOLDED:
-    Write as: "... word **___(29)** word ..." or "... word **___(51)** word ..."
-    Bold the entire blank+number as one unit. The question number is always RIGHT AFTER the blank.
+  * The question number MUST come BEFORE the blank, on the SAME line, and BOLDED:
+    Write as: "... word **(29)________** word ..." or "... word **(51)________** word ..."
+    Format: **(N)________** — number in parentheses, then exactly 8 underscores. Bold the entire unit.
+  * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, etc.
+    Only include the passage text and word bank.
 - For EDITING sections: each question has an UNDERLINED error word in the passage with a numbered answer box nearby.
-  Bold the error word and tag with its question number: **(39) beleive** ___
-  The bold number + word links the underlined word to question N. The ___ is the answer box.
+  Bold the error word and tag with its question number: **(39) beleive**
+  The bold number + word links the underlined word to question N. Do NOT add ___ after it — the answer box is rendered by the UI.
   Make sure EVERY underlined word is tagged with its corresponding question number in bold.
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
 - For SYNTHESIS & TRANSFORMATION sections:
@@ -2648,6 +2651,45 @@ Output ONLY the extracted text, no commentary.` });
           const isMcqSection = secLabel.toLowerCase().includes("mcq");
           const isClozeSection = secLabel.toLowerCase().includes("cloze") && !secLabel.toLowerCase().includes("mcq");
           const isEditingSection = secLabel.toLowerCase().includes("editing");
+          const isGrammarClozeSec = secLabel.toLowerCase() === "grammar cloze";
+          const isCompClozeSec = secLabel.toLowerCase() === "comprehension cloze";
+
+          // For Grammar Cloze and Comprehension Cloze: questions are already in the OCR text
+          // Just extract question numbers — no need for a separate AI call
+          if (isGrammarClozeSec || isCompClozeSec) {
+            // Parse question numbers from OCR text: **(29)________** or (29)
+            const qNumRegex = /\((\d+)\)/g;
+            const foundNums: number[] = [];
+            let qMatch;
+            while ((qMatch = qNumRegex.exec(ocrText)) !== null) {
+              const n = parseInt(qMatch[1]);
+              if (n >= secFirstQ && n <= secLastQ && !foundNums.includes(n)) {
+                foundNums.push(n);
+              }
+            }
+            foundNums.sort((a, b) => a - b);
+            console.log(`[Exam Pipeline] ${secLabel}: found ${foundNums.length} question numbers in OCR: ${foundNums.join(", ")}`);
+
+            // Create minimal question entries (no stem/options needed — OCR has everything)
+            const clozeQuestions = foundNums.map(n => ({
+              questionNum: `${prefix}${n}`,
+              yStartPct: 0, yEndPct: 0,
+              boundaryTop: String(n), boundaryBottom: "",
+              marksAvailable: 1 as number | null,
+              syllabusTopic: sec.name,
+            }));
+
+            const pages: QuestionExtractionResult["pages"] = [{
+              pageIndex: secPageIndices[0],
+              questions: clozeQuestions,
+            }];
+
+            return { pages, _sectionOcr: {
+              name: secLabel, ocrText, pageIndices: secPageIndices,
+              ...(isCompOEQSec && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
+              ...(isVisualTextSec && visualPagesForVT.length > 0 ? { passagePageIndices: visualPagesForVT } : {}),
+            } };
+          }
 
           const extractPrompt = `You are extracting individual questions from an English exam paper. The text below was OCR'd from the exam pages.
 
@@ -2736,6 +2778,7 @@ Return ONLY valid JSON:
           return { pages, _sectionOcr: {
             name: secLabel, ocrText, pageIndices: secPageIndices,
             ...(isCompOEQSec && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
+            ...(isVisualTextSec && visualPagesForVT.length > 0 ? { passagePageIndices: visualPagesForVT } : {}),
           } };
         })());
 

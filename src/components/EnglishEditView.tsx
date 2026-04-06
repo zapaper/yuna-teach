@@ -349,7 +349,31 @@ function RichLine({ text }: { text: string }) {
     }
     const m = match[0];
     if (m.startsWith("**") && m.endsWith("**")) {
-      parts.push(<strong key={match.index} className="font-bold text-slate-800">{m.slice(2, -2)}</strong>);
+      const inner = m.slice(2, -2);
+      // Check if it's a cloze blank like (29)________
+      const clozeMatch = inner.match(/^\((\d+)\)_+$/);
+      if (clozeMatch) {
+        parts.push(
+          <span key={match.index} className="inline-flex items-center gap-0.5 font-bold">
+            <span className="text-blue-600 bg-blue-50 px-1 rounded text-[11px]">({clozeMatch[1]})</span>
+            <span className="border-b-2 border-slate-400 w-20 inline-block" />
+          </span>
+        );
+      } else {
+        // Check if it's an editing error word like (39) beleive
+        const editMatch = inner.match(/^\((\d+)\)\s+(.+)$/);
+        if (editMatch) {
+          parts.push(
+            <span key={match.index} className="inline-flex items-center gap-1">
+              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({editMatch[1]})</span>
+              <span className="underline decoration-red-400 decoration-2 font-bold text-red-700">{editMatch[2]}</span>
+              <span className="inline-block border-2 border-slate-300 rounded px-1 min-w-[10rem] h-6 bg-white" />
+            </span>
+          );
+        } else {
+          parts.push(<strong key={match.index} className="font-bold text-slate-800">{inner}</strong>);
+        }
+      }
     } else if (m.startsWith("[error:")) {
       const numMatch = m.match(/\[error:(\d+)\]/);
       const word = m.replace(/\[error:\d+\]/, "").replace("[/error]", "");
