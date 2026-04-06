@@ -17,8 +17,8 @@ function isRetryable(err: unknown): boolean {
   if (!err || typeof err !== "object") return false;
   const e = err as Record<string, unknown>;
   if (typeof e.code === "string" && RETRYABLE_CODES.has(e.code)) return true;
-  // HTTP 503 / 429 from Gemini
-  if (typeof e.status === "number" && (e.status === 503 || e.status === 429)) return true;
+  // HTTP 503 / 429 / 504 from Gemini
+  if (typeof e.status === "number" && (e.status === 503 || e.status === 429 || e.status === 504)) return true;
   return false;
 }
 
