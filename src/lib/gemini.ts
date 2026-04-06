@@ -902,11 +902,19 @@ Use these type values in the sections array for English papers. ALSO include "st
 - "startPage" = 0-based page index where this section's first QUESTION NUMBER appears (NOT where a passage or visual text starts — the page with the actual question numbers)
 - "questionRange" = e.g. "Q1-10"
 
-e.g. {"name": "Grammar MCQ", "type": "MCQ", "questionCount": 10, "marksPerQuestion": 1, "startPage": 1, "questionRange": "Q1-10"}
-     {"name": "Vocabulary Cloze MCQ", "type": "MCQ", "questionCount": 5, "marksPerQuestion": 1, "startPage": 4, "questionRange": "Q16-20"}
-     {"name": "Visual Text Comprehension MCQ", "type": "MCQ", "questionCount": 8, "marksPerQuestion": 1, "startPage": 7, "questionRange": "Q21-28", "visualPages": [5, 6]}
+Booklet A examples:
+  {"name": "Grammar MCQ", "type": "MCQ", "questionCount": 10, "marksPerQuestion": 1, "startPage": 1, "questionRange": "Q1-10"}
+  {"name": "Vocabulary Cloze MCQ", "type": "MCQ", "questionCount": 5, "marksPerQuestion": 1, "startPage": 4, "questionRange": "Q16-20"}
+  {"name": "Visual Text Comprehension MCQ", "type": "MCQ", "questionCount": 8, "marksPerQuestion": 1, "startPage": 7, "questionRange": "Q21-28", "visualPages": [5, 6]}
 
-IMPORTANT: "startPage" must be the page with the first QUESTION NUMBER for that section, not a passage page or visual text page.
+Booklet B examples:
+  {"name": "Grammar Cloze", "type": "grammar-cloze", "questionCount": 10, "marksPerQuestion": 1, "startPage": 10, "questionRange": "Q29-38"}
+  {"name": "Editing", "type": "editing", "questionCount": 12, "marksPerQuestion": 1, "startPage": 11, "questionRange": "Q39-50"}
+  {"name": "Comprehension Cloze", "type": "comprehension-cloze", "questionCount": 8, "marksPerQuestion": 1, "startPage": 13, "questionRange": "Q51-58"}
+  {"name": "Synthesis & Transformation", "type": "synthesis", "questionCount": 5, "marksPerQuestion": 2, "startPage": 14, "questionRange": "Q59-63"}
+  {"name": "Comprehension OEQ", "type": "comprehension-oeq", "questionCount": 8, "marksPerQuestion": null, "startPage": 16, "questionRange": "Q64-71"}
+
+IMPORTANT: "startPage" must be the page with the first QUESTION NUMBER for that section, not a passage page or visual text page. Include "startPage" and "questionRange" for ALL sections in BOTH Booklet A and Booklet B.
 For Visual Text Comprehension, also include "visualPages" — the 0-based page indices of the visual text/poster pages that appear BEFORE the questions.
 
 #### Non-gradable sections:
