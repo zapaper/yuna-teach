@@ -60,8 +60,8 @@ async function synthesizeSpeechGoogle(
 
   const ssmlGender = voice === "male" ? "MALE" : "FEMALE";
   const voiceConfig = language === "JAPANESE"
-    ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Neural2-C" : "ja-JP-Neural2-B", ssmlGender }
-    : { languageCode: "zh-CN", name: voice === "male" ? "zh-CN-Neural2-D" : "zh-CN-Neural2-C", ssmlGender };
+    ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Wavenet-C" : "ja-JP-Wavenet-B", ssmlGender }
+    : { languageCode: "zh-CN", name: voice === "male" ? "zh-CN-Wavenet-C" : "zh-CN-Wavenet-A", ssmlGender };
   console.log(`[TTS] language=${language}, voice=${voice}, name=${voiceConfig.name}`);
 
   const response = await fetch(
