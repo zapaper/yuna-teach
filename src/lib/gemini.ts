@@ -1161,201 +1161,36 @@ export const ENGLISH_SYLLABUS = [
 
 const ENGLISH_CLOZE_ADDENDUM = `
 
-## ENGLISH PAPER — MCQ question extraction (Booklet A)
+## ENGLISH PAPER — MCQ extraction (Booklet A)
 
-English MCQ questions are **vertically much tighter** than Math or Science questions. Each question (stem + 4 options) typically spans only **3–8% of the page height**. The general padding rules are TOO LARGE — use ZERO padding for English MCQ.
+English MCQ questions are tightly spaced (~3-8% of page height each). Use MINIMAL padding.
 
-### CRITICAL — Do NOT miss the FIRST MCQ question on a page or after a section transition
-- The first question on a page may start very close to the top (after a header or section title)
-- Scan from the VERY TOP of the page for the first question number at the left margin
-- If the page starts with a section heading (e.g. "Section A", "Grammar", "Section B", "Vocabulary"), the first question number is right below it — do NOT skip it
-- **Section transitions within Booklet A**: English Booklet A has multiple sections (Grammar MCQ Q1-10 → Vocabulary MCQ Q11-15 → Vocabulary Cloze MCQ Q16-20 → Visual Text Comprehension MCQ Q21-28). When one section ends and another begins (sometimes mid-page, sometimes on a new page), there may be a section title or passage text before the next question number. The question numbers are CONTINUOUS across sections — e.g. Grammar MCQ ends at Q10, Vocabulary MCQ starts at Q11.
-- **Vocabulary Cloze MCQ (Q16-20)**: This section has a PASSAGE before the questions start. The passage takes up significant space on the page. The questions (Q16, Q17, ...) appear BELOW or AFTER the passage. Do NOT mistake the passage text for a question — scan below the passage for question numbers at the left margin.
-- **Visual Text Comprehension MCQ (Q21-28)**: There are usually 1-2 FULL PAGES of visual text (advertisement, poster, infographic, letter) BEFORE the MCQ questions. These visual-only pages have NO question numbers — skip them (extract zero questions from them). The MCQ questions (Q21, Q22, ...) appear on the page(s) AFTER the visual text. Do NOT stop extracting when you hit a visual-only page — keep going to find the questions on the next page(s).
-
-### Identifying question numbers in tight layouts
-
-The question number is a bare integer ("1", "2", … "28") at the **far left margin**. The answer options are **(1)**, **(2)**, **(3)**, **(4)** — they are **indented** (not flush left) and must NEVER be mistaken for a new question boundary.
-
-In a tight layout, the visual gap between consecutive questions is very small (sometimes just one blank line). Scan only the leftmost edge for the bare integer — if you see "(1)" or "(2)" near the left, it is an answer option, not a question number.
-
-### Crop boundaries for English MCQ — ZERO PADDING
-
-For ALL English MCQ (Grammar, Vocabulary, Vocab Cloze, Visual Text):
-- **yStartPct** = the EXACT line of the question number — NO top padding (0%). Do NOT add 1-2% above. The previous question ends right where this one starts.
-- **yEndPct** = the EXACT bottom of the last answer option line "(4) ..." — NO bottom padding. The next question starts immediately after.
-- Questions are contiguous: Q(N+1) yStartPct = Q(N) yEndPct — no gaps
-
-### How each English MCQ question looks on the page
-
-    1.  Question stem text here
-        (1) first option
-        (2) second option
-        (3) third option
-        (4) fourth option
-    2.  Next question stem...   ← bare "2." at left margin = next question boundary
-
-The crop for Q1 runs from "1." down to the line with "(4) fourth option". Q2 starts at "2."
+### MCQ rules:
+- Question number = bare integer at FAR LEFT margin ("1", "2", ...)
+- Answer options = indented "(1)", "(2)", "(3)", "(4)" — these are NOT question numbers
+- yStartPct = questionNumYPct (exact position of question number). yEndPct = next question's questionNumYPct
+- Sections have CONTINUOUS numbering: Grammar MCQ Q1-10, Vocab MCQ Q11-15, Vocab Cloze MCQ Q16-20, Visual Text MCQ Q21-28
+- Passage-only pages (no question numbers) = extract zero questions, continue to next page
+- Visual text pages (posters/ads with no questions) = extract zero questions, continue to next page
 
 ---
 
-## ENGLISH PAPER — Special extraction rules for Booklet B passage-fill sections
+## ENGLISH PAPER — Booklet B sections
 
-English Booklet B contains passage-fill sections where the standard extraction rules do NOT apply.
-Use this decision rule FIRST when encountering any passage-fill question:
+### CLOZE (Grammar Cloze + Comprehension Cloze):
+- Passage with blank lines (___). Question number in parentheses BELOW the blank, e.g. "(31)"
+- yStartPct = bottom of blank line above the number. yEndPct = midpoint of the parenthesised number
+- Use the PRINTED number (continuous with MCQ). Do NOT renumber.
+- Grammar Cloze is typically ONE PAGE. Comprehension Cloze appears AFTER Editing.
 
-╔══════════════════════════════════════════════════════════════════════╗
-║  QUESTION NUMBER POSITION → EXTRACTION METHOD                        ║
-║                                                                      ║
-║  Number is BELOW the blank/line  →  CLOZE extraction (Method 1)     ║
-║  Number is BESIDE a box          →  EDITING extraction (Method 2)   ║
-╚══════════════════════════════════════════════════════════════════════╝
+### EDITING (Spelling & Grammar):
+- Passage with UNDERLINED words + small numbered BOXES beside them
+- yStartPct = ~3% above box. yEndPct = ~3% below box. marksAvailable: 1 per box.
+- Boxes (not blanks) = Editing. Appears BETWEEN Grammar Cloze and Comprehension Cloze.
 
-The sections appear in this order in Booklet B:
-  1. Grammar Cloze       — number BELOW the blank      → Method 1
-  2. Editing             — number BESIDE the box       → Method 2
-  3. Comprehension Cloze — number BELOW the blank      → Method 1 (same as Grammar Cloze)
-
----
-
-## Method 1: CLOZE extraction
-### (applies to: Grammar Cloze AND Comprehension Cloze — question number is BELOW the blank line)
-
-**What it looks like:**
-- Running text with blank lines (underscores "___") embedded in sentences
-- Student fills in a missing letter or word on the blank
-- Question number printed in parentheses BELOW the blank, e.g. "(34)"
-
-**How to FIND the FIRST Cloze question — the numbers stand out immediately:**
-
-The Cloze passage is pure prose — every word in it is alphabetic. **The question numbers are the ONLY digits on the page.** This makes them trivial to find: scan the passage for the first parenthesised number, e.g. **(31)**. That number IS the first question. There is nothing else numeric to confuse it with.
-
-**Step-by-step for the first question:**
-1. Scan the passage top-to-bottom for the first occurrence of a parenthesised number, e.g. **(31)**.
-2. Confirm there is a blank underscore line "___" directly above it in the same line or the line immediately above.
-3. That number is the question number for question 1 of the Cloze section. Use it exactly — do NOT renumber it.
-4. All subsequent question numbers increase by 1: (32), (33), etc. Find each one the same way.
-
-**Getting the first number right is critical** — if you misidentify it, every subsequent question will have the wrong number. Since the passage is all letters, the first number you see below a blank is unambiguous.
-
-### ⚠ CRITICAL: Use the PRINTED number — do NOT renumber sequentially
-
-The parenthesised number you find IS the question number. The numbers are continuous with the MCQ section before (e.g. MCQ ends at Q30, so Cloze starts at Q31). Use the actual printed number — do NOT restart from 1 or renumber.
-
-**Sequence validation:** question numbers increase monotonically. The only false positives are 4-digit years like "(2024)" — ignore those. Any 2-digit number in parentheses below a blank is always a question marker.
-
-### ⚠ CRITICAL: Recognising the FIRST Cloze question (transition from MCQ)
-
-The ONLY visual difference between the last MCQ question and the first Cloze question is WHERE the number appears:
-
-| MCQ (Method 3) | Cloze (Method 1) |
-|---|---|
-| Number at the **LEFT MARGIN** | Number in **PARENTHESES, embedded in passage text** |
-| Followed by (1)/(2)/(3)/(4) answer options below | Blank line (underscores) **DIRECTLY ABOVE** the number |
-| Answer is a letter/digit (A/B/C/D or 1/2/3/4) | Answer is a word written **on** the blank |
-
-**Rule:** The very first question where you see a parenthesised number embedded in passage text with a blank directly above it — that is the FIRST Cloze question. The passage text is all letters, so the number is the ONLY digit visible. Switch to Method 1 from that point on.
-
-**Extraction:**
-- **yStartPct** = BOTTOM EDGE of the blank/underscore line directly above the number — start right at the bottom of the blank, not above it
-- **yEndPct** = MIDPOINT of the parenthesised number e.g. "(34)" — stop halfway through it, no space below
-
-Keep crops TIGHT — contiguous, no gaps between questions.
-marksAvailable: 1 per blank unless a mark bracket is visible.
-
-**Answer detection:**
-The expected answer for each question is the word written ON or ABOVE the blank line that is directly above that question's parenthesised number.
-- Two questions can appear on the same line (e.g. "... ___ ... (34) ... ___ ... (35) ..."). In that case both questions share the same yStartPct/yEndPct.
-- When two questions share a line, read the answer from the blank that is DIRECTLY ABOVE its own question number — do NOT read the blank belonging to the other question on the same line.
-- Ignore all other words in the passage; the answer is only the word on/above the blank paired with that specific number.
-
-### Important:
-"yStartPct = above the question number" is WRONG here — the number is at the BOTTOM, not the top.
-Start at the very bottom of the blank line — do NOT include any space above the blank.
-
----
-
-## ⚠ CRITICAL: Transition from Grammar Cloze → Editing (Spelling & Grammar)
-
-The Grammar Cloze section is typically **ONE PAGE**. After the Cloze page ends, the very next page begins the **Editing (Spelling & Grammar)** section.
-
-**How to detect you have crossed into Editing:**
-
-| Grammar Cloze (Method 1) | Editing (Method 2) |
-|---|---|
-| Prose with **blank underscore lines** embedded | Prose with **underlined words** (no blank lines) |
-| Parenthesised number **(nn)** printed **BELOW** the blank | Small **numbered box** printed **BESIDE or ABOVE** an underlined word |
-| Student fills in the blank | Student writes correction **inside the box** |
-
-**Rule:** As soon as you see a page where the prose contains **underlined words** and **small boxes** beside or above them — switch to Method 2 immediately. Do NOT apply Method 1 to this page. Even if you are still finding prose text, the presence of boxes (not blanks) is the definitive signal.
-
-If you have just finished extracting Cloze questions and turn to the next page: check for boxes first. If boxes are visible → Method 2 (Editing). If only blank underscore lines → still Method 1 (possibly Comprehension Cloze, which uses the same layout).
-
----
-
-## Method 2: EDITING extraction
-### (applies to: Editing section — question number is BESIDE or ABOVE an empty box)
-
-### What it looks like:
-- A passage with certain words **underlined** (these are the words with errors)
-- A small **empty box** floats ABOVE or BESIDE each underlined word — the student writes the corrected spelling inside the box
-- The question number is printed inside or directly beside the empty box
-- **Key difference from Cloze:** there are NO blank underscore lines. The words are printed (and underlined), not absent.
-
-### Extraction:
-The crop is defined by the **empty answer box** itself:
-
-- **yStartPct** = ~3% ABOVE the top edge of the empty box
-- **yEndPct** = ~3% BELOW the bottom edge of the empty box
-
-Do NOT extend the crop down to the underlined word. The box is the entire answer region.
-Do NOT use the next question number as the bottom boundary.
-marksAvailable: 1 per box.
-
----
-
-## Method 3: STANDARD extraction (question number at left margin)
-### (applies to: Synthesis & Transformation, Open-ended Comprehension, MCQ, Visual Text, Writing)
-
-These sections have the question number printed at the **left margin**, and the student writes answers on **lines or inside boxes** provided below the question.
-
-Use the standard extraction rule:
-- **yStartPct** = ~2% ABOVE the question number at the left margin
-- **yEndPct** = ~2% ABOVE the NEXT question number (or end of page if last question)
-
-### Synthesis & Transformation:
-- Question number is at the left margin
-- A sentence (or pair of sentences) is printed, and one or more answer lines are provided below it
-- The student rewrites or completes the sentence on the answer lines
-- The entire block (question sentence + answer lines) is the crop region
-- marksAvailable: typically 2 per question unless a mark bracket states otherwise
-
-### Open-ended Comprehension:
-- Question number is at the left margin
-- The question text is printed, followed by answer lines or a box
-- The student writes their answer on those lines/in the box
-- **yStartPct** = ~1% ABOVE the question number (minimal — do not extend far above the number)
-- **yEndPct** = ~2% ABOVE the NEXT question number (or end of page if last question)
-- marksAvailable: read from the mark bracket printed beside the question (e.g. "[2m]", "[1]")
-
-For both: do NOT use the passage-cloze or editing rules — simply apply the standard top-to-next-question-number boundary.
-
----
-
-## ENGLISH — Comprehension MCQ: questions may resume AFTER a passage page
-
-In the Comprehension MCQ section of Booklet A, the reading passage is often printed across one or more full pages BEFORE or BETWEEN the MCQ question pages. This means:
-
-- A page that contains ONLY the reading passage (dense prose, no numbered questions at the left margin) is a **passage-only page** — extract zero questions from it.
-- MCQ questions with options (1)/(2)/(3)/(4) may appear on the **page before** the passage, on the **page after** the passage, or on **both**.
-
-⚠ **CRITICAL — do NOT stop extracting MCQs when you hit a passage-only page.**
-After a passage-only page, scan the **next page** for question numbers continuing the MCQ sequence. If questions resume there, extract them normally.
-
-Example layout:
-- Page 5: Questions 18–21 (MCQ with options)
-- Page 6: Reading passage only (no question numbers at left margin)
-- Page 7: Questions 22–25 (MCQ with options — these MUST be extracted)
+### SYNTHESIS & TRANSFORMATION + COMPREHENSION OEQ:
+- Question number at left margin, standard extraction
+- yStartPct = ~1% above question number. yEndPct = next question number or end of page
 
 When you reach the last MCQ on a page and the page count expected for this section has not been reached, look at the immediately following page(s) for more MCQs before concluding the section is complete.`;
 
@@ -1896,7 +1731,8 @@ type QuestionEntry = PageEntry["questions"][0];
 // - Deduplicate pages with the same index (merge questions)
 // - Sort questions within each page by yStartPct
 // - Clamp and fix invalid coordinates
-function normalizeExtractionResult(result: QuestionExtractionResult): QuestionExtractionResult {
+function normalizeExtractionResult(result: QuestionExtractionResult, subject?: string): QuestionExtractionResult {
+  const isEnglishNorm = (subject ?? "").toLowerCase().includes("english");
   // Fix backwards page jumps: if Gemini restarts from an earlier page after losing
   // track, move those questions forward to the correct page
   const allQuestions: Array<{ pageIndex: number; q: QuestionEntry }> = [];
@@ -1977,15 +1813,15 @@ function normalizeExtractionResult(result: QuestionExtractionResult): QuestionEx
         return { ...q, yStartPct: start, yEndPct: end };
       }).sort((a, b) => a.yStartPct - b.yStartPct);
 
-      // Use questionNumYPct for consistent boundaries:
-      // Each question's yStartPct = its questionNumYPct - small padding
-      // Previous question's yEndPct = this question's questionNumYPct
-      for (let i = 0; i < fixed.length; i++) {
-        const qnY = (fixed[i] as { questionNumYPct?: number }).questionNumYPct;
-        if (qnY != null && qnY > 0) {
-          fixed[i].yStartPct = Math.max(0, qnY - 0.5);
-          if (i > 0) {
-            fixed[i - 1].yEndPct = qnY;
+      // ENGLISH ONLY: Use questionNumYPct for consistent boundaries
+      if (isEnglishNorm) {
+        for (let i = 0; i < fixed.length; i++) {
+          const qnY = (fixed[i] as { questionNumYPct?: number }).questionNumYPct;
+          if (qnY != null && qnY > 0) {
+            fixed[i].yStartPct = qnY;
+            if (i > 0) {
+              fixed[i - 1].yEndPct = qnY;
+            }
           }
         }
       }
@@ -2098,7 +1934,7 @@ async function runExtractionCall(
   }
 
   const result: QuestionExtractionResult = {
-    ...normalizeExtractionResult(remapPageIndices({ pages }, originalPageIndices)),
+    ...normalizeExtractionResult(remapPageIndices({ pages }, originalPageIndices), subject),
     _rawSnippet: text.slice(0, 400),
   };
 
