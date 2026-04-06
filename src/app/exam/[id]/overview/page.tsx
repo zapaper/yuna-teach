@@ -797,7 +797,7 @@ function ExamOverviewContent({ id }: { id: string }) {
                     body: JSON.stringify({ retryExtraction: true }),
                   });
                   if (res.ok) {
-                    router.push(`/home/${userId}?t=${Date.now()}`);
+                    router.push(isAdmin ? `/admin/papers?userId=${userId}` : `/home/${userId}?t=${Date.now()}`);
                   } else {
                     const err = await res.json().catch(() => ({}));
                     console.error("Extraction request failed:", err);
