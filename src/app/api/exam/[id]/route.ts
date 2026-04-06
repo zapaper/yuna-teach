@@ -403,5 +403,16 @@ export async function DELETE(
     await prisma.examPaper.delete({ where: { id } });
   }
 
+  // Clean up submission files from disk
+  try {
+    const { promises: fs } = await import("fs");
+    const path = await import("path");
+    const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
+    const subDir = path.join(VOLUME_PATH, "submissions", id);
+    await fs.rm(subDir, { recursive: true, force: true });
+  } catch {
+    // Ignore cleanup errors
+  }
+
   return NextResponse.json({ success: true });
 }

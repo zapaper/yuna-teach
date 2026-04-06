@@ -203,6 +203,15 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
     } catch { /* silent fail */ }
   }
 
+  async function handleDeletePaper(e: React.MouseEvent, paperId: string) {
+    e.stopPropagation();
+    if (!confirm("Delete this quiz/practice?")) return;
+    try {
+      await fetch(`/api/exam/${paperId}?userId=${userId}`, { method: "DELETE" });
+      setExamPapers(prev => prev.filter(p => p.id !== paperId));
+    } catch { /* silent fail */ }
+  }
+
   async function startQuiz() {
     setCreatingQuiz(true);
     try {
@@ -745,7 +754,17 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                           </p>
                         </div>
                       </div>
-                      <span className="material-symbols-outlined text-[#43474f]/40">chevron_right</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                          <button
+                            onClick={(e) => handleDeletePaper(e, paper.id)}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-lg">close</span>
+                          </button>
+                        )}
+                        <span className="material-symbols-outlined text-[#43474f]/40">chevron_right</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -780,14 +799,24 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                             </p>
                           </div>
                         </div>
-                        {!isMarking && pct !== null && (
-                          <span className={`text-xs font-extrabold shrink-0 ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-amber-600" : "text-[#ba1a1a]"}`}>
-                            {pct}%
-                          </span>
-                        )}
-                        {isMarking && (
-                          <span className="text-xs font-extrabold text-blue-500 shrink-0">Marking…</span>
-                        )}
+                        <div className="flex items-center gap-1 shrink-0">
+                          {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                            <button
+                              onClick={(e) => handleDeletePaper(e, paper.id)}
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-base">close</span>
+                            </button>
+                          )}
+                          {!isMarking && pct !== null && (
+                            <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-amber-600" : "text-[#ba1a1a]"}`}>
+                              {pct}%
+                            </span>
+                          )}
+                          {isMarking && (
+                            <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
