@@ -139,6 +139,7 @@ function ScanPageContent() {
   async function handleSaveAll() {
     setSaving(true);
     try {
+      const savedIds: string[] = [];
       for (let testIdx = 0; testIdx < tests.length; testIdx++) {
         const test = tests[testIdx];
         const words = test.words.map((w, idx) => ({
@@ -149,7 +150,7 @@ function ScanPageContent() {
 
         if (words.length === 0) continue;
 
-        await fetch("/api/tests", {
+        const res = await fetch("/api/tests", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -161,9 +162,22 @@ function ScanPageContent() {
             words,
           }),
         });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.id) savedIds.push(data.id);
+        }
       }
 
-      router.push(userId ? `/home/${userId}?t=${Date.now()}` : "/");
+      // Navigate to the first created spelling test
+      if (savedIds.length > 0) {
+        const firstTestUrl = `/test/${savedIds[0]}${userId ? `?userId=${userId}` : ""}`;
+        if (savedIds.length > 1) {
+          alert(`${savedIds.length} spelling lists created. Opening the first one.`);
+        }
+        router.push(firstTestUrl);
+      } else {
+        router.push(userId ? `/home/${userId}?t=${Date.now()}` : "/");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
