@@ -1877,7 +1877,7 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
 
       // ENGLISH ONLY: Use questionNumYPct/XPct for consistent boundaries
       if (isEnglishNorm) {
-        const CLOZE_EDITING_TOPICS = new Set(["Grammar Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze", "Vocabulary Cloze MCQ"]);
+        const CLOZE_EDITING_TOPICS = new Set(["Grammar Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze"]);
         for (let i = 0; i < fixed.length; i++) {
           const ext = fixed[i] as { questionNumYPct?: number; questionNumXPct?: number; syllabusTopic?: string | null };
           const qnY = ext.questionNumYPct;
