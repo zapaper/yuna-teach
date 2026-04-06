@@ -453,7 +453,7 @@ async function extractExamPaperCore(
         ? (isGrammarCloze || isEditing || isCompCloze ? 0.03 : 0)
         : 0.05;
       const botPadPct = isEnglish
-        ? (isEditing ? 0.03 : isEnglishMcq || isGrammarCloze || isCompCloze ? 0.01 : 0)
+        ? (isEditing ? 0.03 : isEnglishMcq || isGrammarCloze || isCompCloze ? 0.02 : 0)
         : 0.02;
 
       // Get full answer for this question number
