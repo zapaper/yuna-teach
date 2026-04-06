@@ -257,6 +257,10 @@ export async function PATCH(
     const existingMeta = (existing?.metadata ?? {}) as Record<string, unknown>;
     data.metadata = { ...existingMeta, passagePages: body.passagePages };
   }
+  if ("metadata" in body && typeof body.metadata === "object" && body.metadata !== null && !("skipPages" in body) && !("passagePages" in body)) {
+    // Direct metadata update (e.g. sectionOcrTexts)
+    data.metadata = body.metadata;
+  }
 
   const paper = await prisma.examPaper.update({ where: { id }, data });
 
