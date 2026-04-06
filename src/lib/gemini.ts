@@ -1919,29 +1919,39 @@ function normalizeExtractionResult(result: QuestionExtractionResult): QuestionEx
     return a.pageIndex - b.pageIndex;
   });
 
-  // Fix backwards page jumps: each question's page must be >= the previous question's page
+  // Fix backwards page jumps: each question's page must be >= the PREVIOUS question's page
+  // (not the max page ever seen — sections can share pages, so Q11 can be on the same page as Q8)
   // Continuation entries are expected to be on later pages than their primary — don't "fix" them
-  let maxPageSoFar = -1;
+  let prevPageIndex = -1;
   let lastQuestionNum = "";
   for (const entry of sorted) {
     // Continuation entries for the same question are expected on later pages
     if (entry.q.isContinuation && entry.q.questionNum === lastQuestionNum) {
-      maxPageSoFar = Math.max(maxPageSoFar, entry.pageIndex);
+      prevPageIndex = Math.max(prevPageIndex, entry.pageIndex);
       continue;
     }
-    if (entry.pageIndex < maxPageSoFar) {
-      // Backwards jump detected — move to the page after the previous question's page
-      const nextPageIndex = maxPageSoFar + 1;
-      console.log(
-        `[Extraction Fix] Q${entry.q.questionNum}: page ${entry.pageIndex} is before previous page ${maxPageSoFar}. ` +
-        `Moving to page ${nextPageIndex} (question likely continues on next page after boundary not found).`
-      );
-      entry.pageIndex = nextPageIndex;
-      // Reset coordinates to top of the new page
-      entry.q.yStartPct = 2;
-      entry.q.yEndPct = 95;
+    if (entry.pageIndex < prevPageIndex) {
+      // Check: is this a small backwards jump (1-2 pages)? This is normal for section transitions
+      // where a new section starts on a page shared with the previous section
+      const jumpBack = prevPageIndex - entry.pageIndex;
+      if (jumpBack <= 2) {
+        // Allow it — sections can share pages (e.g. Grammar MCQ ends on page 3, Vocab MCQ starts on page 2)
+        console.log(
+          `[Extraction Fix] Q${entry.q.questionNum}: page ${entry.pageIndex} is ${jumpBack} page(s) before previous page ${prevPageIndex} — allowing (likely section transition)`
+        );
+      } else {
+        // Large backwards jump — likely an AI error, move forward
+        const nextPageIndex = prevPageIndex;
+        console.log(
+          `[Extraction Fix] Q${entry.q.questionNum}: page ${entry.pageIndex} is ${jumpBack} pages before previous page ${prevPageIndex}. ` +
+          `Moving to page ${nextPageIndex} (question likely continues on next page after boundary not found).`
+        );
+        entry.pageIndex = nextPageIndex;
+        entry.q.yStartPct = 2;
+        entry.q.yEndPct = 95;
+      }
     }
-    maxPageSoFar = Math.max(maxPageSoFar, entry.pageIndex);
+    prevPageIndex = entry.pageIndex;
     lastQuestionNum = entry.q.questionNum;
   }
 
