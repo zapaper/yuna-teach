@@ -1082,8 +1082,8 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - Each question is ONE entry — do NOT split sub-parts (a), (b), (c) into separate entries
 
 ### Question number position — output these fields for EACH question:
-- "questionNumYPct" — EXACT vertical position (%) of the TOP of the question number text. Measure to 0.5% accuracy.
-- "questionNumXPct" — EXACT horizontal position (%) of the CENTER of the question number.
+- "questionNumYPct" — EXACT vertical position (%) of the CENTER of the question number text. Measure to 0.5% accuracy.
+- "questionNumXPct" — EXACT horizontal position (%) of the CENTER of the question number text. For cloze sections, this is the center of the parenthesised number e.g. the center of "(29)". Be precise — this determines the crop window.
 
 ### WHERE to find question numbers — LEFT MARGIN ONLY:
 - Question numbers are ONLY at the FAR LEFT MARGIN (within ~3% of the left edge), flush with the left edge
@@ -1279,7 +1279,9 @@ The "left margin only" rule does NOT apply to Cloze and Editing sections.
 - The passage is all alphabetic text. The parenthesised numbers are the ONLY digits on the page — they stand out clearly
 - To find the FIRST cloze question: scan the passage for the FIRST parenthesised number (e.g. "(29)"). That IS the first question number. There is nothing else numeric to confuse it with.
 - yStartPct = bottom of the blank line ABOVE the parenthesised number
-- yEndPct = midpoint of the parenthesised number text
+- yEndPct = bottom of the parenthesised number text
+- questionNumXPct = horizontal CENTER of the parenthesised number (e.g. center of "(29)")
+- questionNumYPct = vertical CENTER of the parenthesised number
 - Use the PRINTED number exactly (continuous with MCQ). Do NOT renumber.
 - Grammar Cloze is typically ONE PAGE. Comprehension Cloze appears AFTER Editing.
 
