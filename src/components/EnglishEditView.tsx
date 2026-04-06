@@ -262,11 +262,27 @@ function QuestionRow({
               }
             }
           }
+          // For Synthesis: split question text from answer area (**Word** ____)
+          let questionText = stem;
+          let answerArea = "";
+          if (stem && q.syllabusTopic?.toLowerCase().includes("synthesis")) {
+            const synthSplit = stem.match(/^([\s\S]*?)(\*\*.+?\*\*\s*_+[\s\S]*)$/);
+            if (synthSplit) {
+              questionText = synthSplit[1].trim();
+              answerArea = synthSplit[2].trim();
+            }
+          }
+
           return (
             <>
-              {stem && (
+              {questionText && (
                 <div className="mb-1">
-                  <OcrRichText text={stem} />
+                  <OcrRichText text={questionText} />
+                </div>
+              )}
+              {answerArea && (
+                <div className="mt-2">
+                  <OcrRichText text={answerArea} />
                 </div>
               )}
               {options.length > 0 && (

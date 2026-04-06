@@ -2683,7 +2683,9 @@ Output ONLY the clean passage/question text, no commentary.` });
           console.log(`[Exam Pipeline] ${secLabel}: OCR result (${ocrText.length} chars, first 300):`, ocrText.slice(0, 300));
 
           // Step 2: Extract individual questions with content from OCR text
-          const isMcqSection = secLabel.toLowerCase().includes("mcq");
+          const secTypeLower = (sec.type ?? "").toLowerCase();
+          const isMcqSection = secLabel.toLowerCase().includes("mcq") || secTypeLower === "mcq";
+          console.log(`[Exam Pipeline] ${secLabel}: type="${sec.type}" isMcq=${isMcqSection} isCloze=${secLabel.toLowerCase().includes("cloze") && !secLabel.toLowerCase().includes("mcq")} isEditing=${secLabel.toLowerCase().includes("editing")}`);
           const isClozeSection = secLabel.toLowerCase().includes("cloze") && !secLabel.toLowerCase().includes("mcq");
           const isEditingSection = secLabel.toLowerCase().includes("editing");
           const secLabelLower = secLabel.toLowerCase();
@@ -2745,7 +2747,11 @@ For EACH question, extract:
   For Synthesis: include the question sentence, any given word (e.g. "Use: although"), then the answer area as:
   "**Starting word** ________________________________\\n________________________________"
   Bold the starting word, then two full lines of underscores for the student to write on.` : ""}${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? `
-  For Comprehension OEQ: include the question text. If there are answer lines, show as [LINES: N].` : ""}
+  For Comprehension OEQ: include the FULL question text in RICH TEXT format.
+  - If the question contains a TABLE, include it as a markdown table (| col1 | col2 |) in the stem — do NOT summarize as "[TABLE: ...]"
+  - If the question contains checkboxes, use [ ] and [x]
+  - If there are answer lines, show as [LINES: N]
+  - Include ALL text exactly as it appears — diagrams can be described as [DIAGRAM: description]` : ""}
 - answer: the correct answer from the answer key if known, null otherwise
 - marksAvailable: marks if shown (e.g. from [2] brackets), null otherwise
 - pageIndex: the 0-based page index (from "--- Page N ---" markers)
@@ -2813,6 +2819,60 @@ Return ONLY valid JSON:
           const pages: QuestionExtractionResult["pages"] = [...pageMap.entries()]
             .sort(([a], [b]) => a - b)
             .map(([pageIndex, questions]) => ({ pageIndex, questions }));
+
+          // Validation: for MCQ sections, check all questions have options. If not, retry.
+          if (isMcqSection) {
+            const allQs = pages.flatMap(p => p.questions);
+            const missingOpts = allQs.filter(q => !(q as { _options?: string[] })._options?.length);
+            if (missingOpts.length > 0) {
+              console.log(`[Exam Pipeline] ${secLabel}: ${missingOpts.length}/${allQs.length} questions missing options — retrying extraction for those`);
+              const missingNums = missingOpts.map(q => q.questionNum).join(", ");
+              try {
+                const retryPrompt = `The following MCQ questions are missing their answer options. Extract the 4 options for each from the OCR text below.
+
+Questions missing options: ${missingNums}
+
+OCR TEXT:
+${ocrText}
+
+For EACH question listed above, find the 4 answer options (1)(2)(3)(4) and return them.
+Return ONLY valid JSON:
+{
+  "questions": [
+    {"questionNum": "1", "options": ["option1", "option2", "option3", "option4"]},
+    {"questionNum": "2", "options": ["option1", "option2", "option3", "option4"]}
+  ]
+}`;
+                const retryResp = await generateContentWithRetry({
+                  model: "gemini-2.5-flash",
+                  contents: [{ role: "user", parts: [{ text: retryPrompt }] }],
+                  config: { responseMimeType: "application/json", temperature: 0.1 },
+                }, 2, 5000, `options-retry:${secLabel}`);
+
+                const retryText = retryResp.text?.trim() ?? "";
+                const retryParsed = JSON.parse(sanitizeJsonString(retryText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
+                const retryQs = retryParsed.questions ?? [];
+                console.log(`[Exam Pipeline] ${secLabel}: options retry returned ${retryQs.length} questions`);
+
+                // Merge options back
+                const optMap = new Map<string, string[]>();
+                for (const rq of retryQs) {
+                  if (rq.options?.length) optMap.set(String(rq.questionNum), rq.options);
+                }
+                for (const page of pages) {
+                  for (const q of page.questions) {
+                    if (!(q as { _options?: string[] })._options?.length && optMap.has(q.questionNum)) {
+                      (q as { _options?: string[] })._options = optMap.get(q.questionNum);
+                    }
+                  }
+                }
+                const stillMissing = pages.flatMap(p => p.questions).filter(q => !(q as { _options?: string[] })._options?.length).length;
+                console.log(`[Exam Pipeline] ${secLabel}: after retry, ${stillMissing} still missing options`);
+              } catch (err) {
+                console.error(`[Exam Pipeline] ${secLabel}: options retry failed:`, err);
+              }
+            }
+          }
 
           return { pages, _sectionOcr: {
             name: secLabel, ocrText, pageIndices: secPageIndices,
