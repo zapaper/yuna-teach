@@ -1103,11 +1103,23 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - Process pages in ASCENDING order. Never go backwards.
 - If a page has NO question numbers at the left margin, return it with an EMPTY questions array
 
-### FIRST QUESTION — BE CAREFUL:
-- The first question number must be at the FAR LEFT MARGIN
-- Instruction text often contains numbers like "1" (e.g. "Section 1", "Paper 1") — these are NOT the first question
-- Look for a standalone integer at the left edge followed by a question stem, NOT embedded in a sentence
+### FIRST QUESTION — BE VERY CAREFUL:
+- The first question number is a STANDALONE integer at the FAR LEFT MARGIN (within 3% of left edge)
+- It is followed by a question stem on the same line or the line below, then answer options (1)(2)(3)(4) indented below
+- Numbers in instruction/preamble text are NOT questions. Examples that are NOT Q1:
+  * "Section 1" — section heading
+  * "Paper 1" — paper label
+  * "1 mark each" — marks description
+  * "Answer all 10 questions" — instruction
+  * Any number that is part of a sentence
+- Q1 looks like this: the digit "1" (or "1.") alone at the far left, then a question sentence, then four indented answer options
 - If the first page has only instructions, skip it and look at the NEXT page
+- Search the page from top to bottom, scanning ONLY the leftmost 3% for a standalone integer
+
+### RECOVERY — if first question position seems wrong:
+- After finding Q1, search for Q2 within 20% of page height BELOW Q1's position
+- If Q2 is not found within that range, Q1's position may be wrong — re-scan the page
+- Each subsequent question should be within ~20% of page height below the previous one (MCQ are tightly spaced)
 
 ### CRITICAL — Only report what you can SEE:
 - ONLY output a question number if you can clearly SEE it printed on the page
