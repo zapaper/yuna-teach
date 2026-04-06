@@ -1085,22 +1085,28 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - "questionNumYPct" — EXACT vertical position (%) of the TOP of the question number text. Measure to 0.5% accuracy.
 - "questionNumXPct" — EXACT horizontal position (%) of the CENTER of the question number.
 
-### WHERE to find question numbers — LEFT MARGIN SCAN:
-- Scan the left-most column of the page (within ~5% of the left edge)
-- A question number is a bare integer (or integer + ".") flush with the left edge
-- Answer options "(1)", "(2)", "(3)", "(4)" are INDENTED — they are NOT question numbers
-- Sub-part labels "(a)", "(b)" are NOT question numbers
-- Page numbers in headers/footers are NOT question numbers
+### WHERE to find question numbers — LEFT MARGIN ONLY:
+- Question numbers are ONLY at the FAR LEFT MARGIN (within ~3% of the left edge), flush with the left edge
+- A question number is a bare integer (e.g. "1", "11", "16") or integer + "." (e.g. "1.", "11.")
+- Numbers that appear ANYWHERE ELSE on the page are NEVER question numbers:
+  * "(1)", "(2)", "(3)", "(4)" = MCQ answer options (indented)
+  * "(a)", "(b)" = sub-part labels
+  * Numbers in instructions/preamble text (e.g. "Answer all 10 questions", "Section 1") = NOT question numbers
+  * Page numbers in headers/footers = NOT question numbers
+  * Numbers inside passages or question text = NOT question numbers
+- The question number must be the FIRST character on its line, at the LEFTMOST position
 
 ### Sequential extraction:
 - Extract questions strictly in order, page by page, top to bottom
 - SAME PAGE: each new question starts exactly where the previous ended
 - PAGE BOUNDARY: last question on a page gets yEndPct = 95. Next question starts at ~2% on the next page
 - Process pages in ASCENDING order. Never go backwards.
-- If a page has NO question numbers, return it with an EMPTY questions array
+- If a page has NO question numbers at the left margin, return it with an EMPTY questions array
 
-### FIRST QUESTION:
-- Locate the first question number at the LEFT MARGIN before extracting
+### FIRST QUESTION — BE CAREFUL:
+- The first question number must be at the FAR LEFT MARGIN
+- Instruction text often contains numbers like "1" (e.g. "Section 1", "Paper 1") — these are NOT the first question
+- Look for a standalone integer at the left edge followed by a question stem, NOT embedded in a sentence
 - If the first page has only instructions, skip it and look at the NEXT page
 
 ### CRITICAL — Only report what you can SEE:
