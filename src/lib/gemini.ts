@@ -2549,104 +2549,91 @@ export async function analyzeExamBatch(
         const secLastQ = secFirstQ + sec.questionCount - 1;
         console.log(`[Exam Pipeline] English section "${sec.name || sec.type}": pages [${secPageIndices.map(p => p + 1).join(", ")}], Q${secFirstQ}-Q${secLastQ}`);
 
-        // 2-step extraction: first question alone (anchor), then remaining questions
+        // TEXT-BASED extraction: OCR pages to text, then extract questions from text
         sectionTasks.push((async () => {
           const prefix = paper.questionPrefix;
           const secLabel = sec.name || sec.type;
 
-          // Step 1: Extract FIRST question only (1 question expected, startPage only)
-          // Use the structure analysis startPage directly, not secPageIndices[0] which might differ
-          const startPageIdx = sec.startPage ?? secPageIndices[0];
-          const startPageImgIdx = secPageIndices.indexOf(startPageIdx);
-          const firstPageImages = [startPageImgIdx >= 0 ? secImages[startPageImgIdx] : secImages[0]];
-          const firstPageIndices = [startPageImgIdx >= 0 ? startPageIdx : secPageIndices[0]];
-          console.log(`[Exam Pipeline] ${secLabel} step 1: looking for Q${secFirstQ} on page ${firstPageIndices[0] + 1}`);
-          const firstQPaper = {
-            ...sectionPaper,
-            label: `${sectionPaper.label} (Q${secFirstQ} only)`,
-            expectedQuestionCount: 1,
-          };
-          const firstResult = await extractQuestionsForBooklet(
-            firstPageImages, firstPageIndices, firstQPaper, secFirstQ, structure.header.subject
-          );
+          // Step 1: OCR — extract clean text from all section pages
+          console.log(`[Exam Pipeline] ${secLabel}: OCR step — extracting text from ${secImages.length} page(s)`);
+          const ocrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+          for (let pi = 0; pi < secImages.length; pi++) {
+            ocrParts.push({ inlineData: { mimeType: "image/jpeg" as const, data: secImages[pi] } });
+            ocrParts.push({ text: `[Page ${secPageIndices[pi]}]` });
+          }
+          ocrParts.push({ text: `Extract ALL text from these exam paper pages. Preserve formatting:
+- Keep question numbers exactly as printed (e.g. "1.", "11.", "(29)")
+- Keep answer options exactly (e.g. "(1) option text", "(2) option text")
+- Keep blank lines as "___"
+- Keep underlined words marked as [underline]word[/underline]
+- Indicate page breaks with "--- Page N ---"
+- For each line, preserve indentation (question numbers at left margin, options indented)
+Output ONLY the extracted text, no commentary.` });
 
-          // Find the first question's position
-          let firstQYPct: number | null = null;
-          for (const page of firstResult.pages) {
-            for (const q of page.questions) {
-              const n = parseInt(q.questionNum.replace(prefix, ""), 10);
-              if (n === secFirstQ) {
-                firstQYPct = (q as unknown as { questionNumYPct?: number }).questionNumYPct ?? q.yStartPct;
-                break;
-              }
+          const ocrResponse = await generateContentWithRetry({
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts: ocrParts }],
+            config: { temperature: 0.1 },
+          }, 2, 5000, `ocr:${secLabel}`);
+
+          const ocrText = ocrResponse.text?.trim() ?? "";
+          console.log(`[Exam Pipeline] ${secLabel}: OCR result (${ocrText.length} chars, first 300):`, ocrText.slice(0, 300));
+
+          // Step 2: Extract questions from text
+          const extractPrompt = `You are extracting question boundaries from an English exam paper. The text below was OCR'd from the exam pages.
+
+Section: ${secLabel}
+Expected questions: Q${secFirstQ} to Q${secLastQ} (${sec.questionCount} questions)
+Question prefix for JSON: "${prefix}"
+
+TEXT:
+${ocrText}
+
+For EACH question, extract:
+- questionNum: the question number as a string (e.g. "${prefix}${secFirstQ}")
+- pageIndex: the 0-based page index (from "--- Page N ---" markers)
+- yStartPct: approximate vertical position (%) where this question starts on the page. Estimate from the text position relative to total page content.
+- yEndPct: approximate vertical position (%) where this question ends
+- questionNumYPct: same as yStartPct for MCQ (number is at the top)
+- questionNumXPct: 3 for left-margin questions, or the approximate horizontal position for embedded numbers
+- marksAvailable: marks if shown, null otherwise
+- syllabusTopic: "${sec.name}"
+
+Return ONLY valid JSON:
+{
+  "pages": [
+    {
+      "pageIndex": 0,
+      "questions": [
+        {"questionNum": "${prefix}${secFirstQ}", "yStartPct": 10, "yEndPct": 20, "questionNumYPct": 10, "questionNumXPct": 3, "marksAvailable": 1, "syllabusTopic": "${sec.name}"}
+      ]
+    }
+  ]
+}`;
+
+          const extractResponse = await generateContentWithRetry({
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts: [{ text: extractPrompt }] }],
+            config: { responseMimeType: "application/json", temperature: 0.1 },
+          }, 2, 5000, `text-extract:${secLabel}`);
+
+          const extractText = extractResponse.text?.trim() ?? "";
+          let pages: QuestionExtractionResult["pages"] = [];
+          try {
+            const parsed = JSON.parse(extractText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+            pages = parsed.pages ?? [];
+            // Log per-page
+            for (const p of pages) {
+              const qNums = (p.questions ?? []).map((q: { questionNum: string }) => `Q${q.questionNum}`);
+              console.log(`[Exam Pipeline] ${secLabel} text-extract page ${p.pageIndex}: ${qNums.length > 0 ? qNums.join(", ") : "NO QUESTIONS"}`);
             }
-            if (firstQYPct != null) break;
+          } catch (err) {
+            console.error(`[Exam Pipeline] ${secLabel} text-extract JSON parse failed:`, err);
           }
 
-          if (firstQYPct != null) {
-            console.log(`[Exam Pipeline] ${secLabel} Q${secFirstQ} anchored at Y=${firstQYPct.toFixed(1)}%`);
-          } else {
-            console.log(`[Exam Pipeline] ${secLabel} Q${secFirstQ} NOT FOUND in step 1 — proceeding with full extraction`);
-          }
-
-          // Step 2: Extract remaining questions (all pages)
-          // Pass anchor info: Q1's position so the AI knows where to start looking for Q2
-          let restResult: QuestionExtractionResult = { pages: [] };
-          if (sec.questionCount > 1) {
-            const firstQEndPct = (() => {
-              for (const page of firstResult.pages) {
-                for (const q of page.questions) {
-                  const n = parseInt(q.questionNum.replace(prefix, ""), 10);
-                  if (n === secFirstQ) return q.yEndPct;
-                }
-              }
-              return null;
-            })();
-            const restPaper = {
-              ...sectionPaper,
-              label: `${sectionPaper.label} (Q${secFirstQ + 1}-Q${secLastQ})`,
-              expectedQuestionCount: sec.questionCount - 1,
-              // Pass anchor hint via firstQuestionYStartPct
-              firstQuestionYStartPct: firstQEndPct ?? sectionPaper.firstQuestionYStartPct,
-              _anchorHint: firstQYPct != null && firstQEndPct != null
-                ? `Q${secFirstQ} was found at Y=${firstQYPct.toFixed(1)}% to Y=${firstQEndPct.toFixed(1)}% on page ${secPageIndices[0]}. Start looking for Q${secFirstQ + 1} from Y=${firstQEndPct.toFixed(1)}% onwards.`
-                : undefined,
-            };
-            restResult = await extractQuestionsForBooklet(
-              secImages, secPageIndices, restPaper, secFirstQ + 1, structure.header.subject
-            );
-          }
-
-          // Merge: first question + rest
-          const merged: QuestionExtractionResult = { pages: [] };
-          const pageMap = new Map<number, QuestionExtractionResult["pages"][0]["questions"]>();
-
-          for (const r of [firstResult, restResult]) {
-            for (const page of r.pages) {
-              const existing = pageMap.get(page.pageIndex);
-              if (existing) {
-                existing.push(...page.questions);
-              } else {
-                pageMap.set(page.pageIndex, [...page.questions]);
-              }
-            }
-          }
-
-          merged.pages = [...pageMap.entries()]
-            .sort(([a], [b]) => a - b)
-            .map(([pageIndex, questions]) => ({
-              pageIndex,
-              // Sort by question number (numeric order), not yStartPct
-              questions: questions.sort((a, b) => {
-                const aNum = parseInt(a.questionNum.replace(prefix, ""), 10);
-                const bNum = parseInt(b.questionNum.replace(prefix, ""), 10);
-                if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
-                return a.yStartPct - b.yStartPct;
-              }),
-            }));
-
-          // Trim questions outside expected range
-          for (const page of merged.pages) {
+          // Remap page indices and trim to range
+          const result: QuestionExtractionResult = { pages };
+          for (const page of result.pages) {
             page.questions = page.questions.filter(q => {
               const n = parseInt(q.questionNum.replace(prefix, ""), 10);
               if (isNaN(n)) return true;
@@ -2658,18 +2645,36 @@ export async function analyzeExamBatch(
             });
           }
 
-          // Deduplicate: if both calls returned the same question, keep the one from step 1
-          const seen = new Set<string>();
-          for (const page of merged.pages) {
-            page.questions = page.questions.filter(q => {
-              if (seen.has(q.questionNum)) return false;
-              seen.add(q.questionNum);
-              return true;
-            });
-          }
+          return result;
+        })());
 
+        /* OLD IMAGE-BASED 2-STEP APPROACH (commented out)
+        sectionTasks.push((async () => {
+          const prefix = paper.questionPrefix;
+          const secLabel = sec.name || sec.type;
+          const startPageIdx = sec.startPage ?? secPageIndices[0];
+          const startPageImgIdx = secPageIndices.indexOf(startPageIdx);
+          const firstPageImages = [startPageImgIdx >= 0 ? secImages[startPageImgIdx] : secImages[0]];
+          const firstPageIndices = [startPageImgIdx >= 0 ? startPageIdx : secPageIndices[0]];
+          const firstQPaper = { ...sectionPaper, label: `${sectionPaper.label} (Q${secFirstQ} only)`, expectedQuestionCount: 1 };
+          const firstResult = await extractQuestionsForBooklet(firstPageImages, firstPageIndices, firstQPaper, secFirstQ, structure.header.subject);
+          let firstQYPct: number | null = null;
+          for (const page of firstResult.pages) { for (const q of page.questions) { const n = parseInt(q.questionNum.replace(prefix, ""), 10); if (n === secFirstQ) { firstQYPct = (q as unknown as { questionNumYPct?: number }).questionNumYPct ?? q.yStartPct; break; } } if (firstQYPct != null) break; }
+          let restResult: QuestionExtractionResult = { pages: [] };
+          if (sec.questionCount > 1) {
+            const firstQEndPct = (() => { for (const page of firstResult.pages) { for (const q of page.questions) { const n = parseInt(q.questionNum.replace(prefix, ""), 10); if (n === secFirstQ) return q.yEndPct; } } return null; })();
+            const restPaper = { ...sectionPaper, label: `${sectionPaper.label} (Q${secFirstQ + 1}-Q${secLastQ})`, expectedQuestionCount: sec.questionCount - 1, firstQuestionYStartPct: firstQEndPct ?? sectionPaper.firstQuestionYStartPct, _anchorHint: firstQYPct != null && firstQEndPct != null ? `Q${secFirstQ} at Y=${firstQYPct.toFixed(1)}%-${firstQEndPct.toFixed(1)}%` : undefined };
+            restResult = await extractQuestionsForBooklet(secImages, secPageIndices, restPaper, secFirstQ + 1, structure.header.subject);
+          }
+          const merged: QuestionExtractionResult = { pages: [] };
+          const pageMap = new Map<number, QuestionExtractionResult["pages"][0]["questions"]>();
+          for (const r of [firstResult, restResult]) { for (const page of r.pages) { const existing = pageMap.get(page.pageIndex); if (existing) { existing.push(...page.questions); } else { pageMap.set(page.pageIndex, [...page.questions]); } } }
+          merged.pages = [...pageMap.entries()].sort(([a], [b]) => a - b).map(([pageIndex, questions]) => ({ pageIndex, questions: questions.sort((a, b) => { const aNum = parseInt(a.questionNum.replace(prefix, ""), 10); const bNum = parseInt(b.questionNum.replace(prefix, ""), 10); if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum; return a.yStartPct - b.yStartPct; }) }));
+          for (const page of merged.pages) { page.questions = page.questions.filter(q => { const n = parseInt(q.questionNum.replace(prefix, ""), 10); if (isNaN(n)) return true; if (n < secFirstQ || n > secLastQ) return false; return true; }); }
+          const seen = new Set<string>(); for (const page of merged.pages) { page.questions = page.questions.filter(q => { if (seen.has(q.questionNum)) return false; seen.add(q.questionNum); return true; }); }
           return merged;
         })());
+        */
       }
       // All sections within this booklet run in parallel
       extractionTasks.push(
