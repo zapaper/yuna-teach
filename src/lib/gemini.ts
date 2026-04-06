@@ -2718,12 +2718,10 @@ Return ONLY valid JSON:
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           let rawQuestions: any[] = [];
           try {
-            const parsed = JSON.parse(extractText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+            const cleanedJson = sanitizeJsonString(extractText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+            const parsed = JSON.parse(cleanedJson);
             rawQuestions = parsed.questions ?? parsed.pages?.flatMap((p: { questions?: unknown[] }) => p.questions ?? []) ?? [];
             console.log(`[Exam Pipeline] ${secLabel} text-extract: ${rawQuestions.length} questions found`);
-            for (const q of rawQuestions) {
-              console.log(`[Exam Pipeline]   Q${q.questionNum}: stem="${(q.stem ?? "").slice(0, 60)}..." ${q.options ? `options=[${q.options.length}]` : ""}`);
-            }
           } catch (err) {
             console.error(`[Exam Pipeline] ${secLabel} text-extract JSON parse failed:`, err);
           }

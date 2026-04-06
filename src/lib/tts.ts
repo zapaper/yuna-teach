@@ -62,7 +62,7 @@ async function synthesizeSpeechGoogle(
   const voiceConfig = language === "JAPANESE"
     ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Standard-C" : "ja-JP-Standard-B", ssmlGender }
     : { languageCode: "cmn-CN", name: voice === "male" ? "cmn-CN-Standard-C" : "cmn-CN-Standard-A", ssmlGender };
-  console.log(`[TTS] language=${language}, voice=${voice}, name=${voiceConfig.name}`);
+  // Only log on error, not every call
 
   const response = await fetch(
     `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
