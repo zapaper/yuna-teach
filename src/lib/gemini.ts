@@ -1882,15 +1882,14 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
           const ext = fixed[i] as { questionNumYPct?: number; questionNumXPct?: number; syllabusTopic?: string | null };
           const isClozeOrEditing = CLOZE_EDITING_TOPICS.has(ext.syllabusTopic ?? "");
 
-          // For MCQ/S&T/OEQ: use questionNumYPct for y-boundaries (number is at the TOP)
+          // For MCQ/S&T/OEQ: use questionNumYPct for yStartPct only (number is at the TOP)
+          // Keep the AI's original yEndPct — it marks the bottom of the last option/content line
           // For cloze/editing: skip y-override (number is at the BOTTOM, AI already sets correct boundaries)
           if (!isClozeOrEditing) {
             const qnY = ext.questionNumYPct;
             if (qnY != null && qnY > 0) {
               fixed[i].yStartPct = qnY;
-              if (i > 0 && !CLOZE_EDITING_TOPICS.has((fixed[i - 1] as { syllabusTopic?: string | null }).syllabusTopic ?? "")) {
-                fixed[i - 1].yEndPct = qnY;
-              }
+              // Do NOT override previous question's yEndPct — let the AI's original bottom stand
             }
           }
 
