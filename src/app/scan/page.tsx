@@ -280,10 +280,10 @@ function ScanPageContent() {
                       </div>
                       <button
                         onClick={() => handleDeleteWord(testIdx, wordIdx)}
-                        className="shrink-0 ml-2 w-8 h-8 rounded-full flex items-center justify-center text-[#43474f] opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
+                        className="shrink-0 ml-2 w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:bg-red-50 hover:text-red-500 active:text-red-600 transition-all"
                         aria-label="Delete word"
                       >
-                        <span className="material-symbols-outlined text-lg">delete</span>
+                        <span className="material-symbols-outlined text-lg">close</span>
                       </button>
                     </div>
                   ))}

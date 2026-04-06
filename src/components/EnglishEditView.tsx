@@ -89,6 +89,16 @@ export default function EnglishEditView({ paper, pageImages, onSave, saving }: P
                   </div>
                 )}
 
+                {/* Passage OCR text (line-numbered table) */}
+                {ocrData?.passageOcrText && (
+                  <div className="p-4 bg-amber-50/50 border-b border-amber-100">
+                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-3">
+                      Passage Text (Line-numbered)
+                    </p>
+                    <OcrRichText text={ocrData.passageOcrText} />
+                  </div>
+                )}
+
                 {/* Section page images */}
                 {sectionPageIndices.length > 0 && (
                   <div className="p-4 bg-slate-50 border-b border-slate-100">
@@ -409,7 +419,7 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
         parts.push(
           <span key={match.index} className="inline-flex items-center gap-0.5 font-bold">
             <span className="text-blue-600 bg-blue-50 px-1 rounded text-[11px]">({clozeMatch[1]})</span>
-            <span className="border-b-2 border-slate-400 w-20 inline-block" />
+            <span className="text-slate-400">________</span>
           </span>
         );
       } else {

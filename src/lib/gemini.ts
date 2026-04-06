@@ -2365,7 +2365,7 @@ export interface BatchAnalysisResult {
   answers: Record<string, AnswerEntry>;
   marksPerQuestion?: Record<string, number | null>;
   syllabusTopics?: Record<string, string | null>;
-  sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[]; passagePageIndices?: number[] }>;
+  sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[]; passagePageIndices?: number[]; passageOcrText?: string }>;
   _debug?: {
     papers: Array<{
       label: string;
@@ -2566,10 +2566,54 @@ export async function analyzeExamBatch(
             ? ((sec as { passagePages?: number[] }).passagePages ?? [])
             : [];
 
-          // For Comprehension OEQ: passage pages are shown as scanned images (not OCR'd)
-          // Store passage page indices in the section OCR data for the edit view
+          // For Comprehension OEQ: OCR the passage pages as a line-numbered table
+          let passageOcrText = "";
           if (isCompOEQSec && passagePagesForOEQ.length > 0) {
-            console.log(`[Exam Pipeline] ${secLabel}: passage pages (scanned, not OCR'd): [${passagePagesForOEQ.map(p => p + 1).join(", ")}]`);
+            console.log(`[Exam Pipeline] ${secLabel}: OCR passage pages [${passagePagesForOEQ.map(p => p + 1).join(", ")}] as line-numbered table`);
+            const passageOcrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+            for (const pIdx of passagePagesForOEQ) {
+              if (imagesBase64[pIdx]) {
+                passageOcrParts.push({ inlineData: { mimeType: "image/jpeg" as const, data: imagesBase64[pIdx] } });
+                passageOcrParts.push({ text: `[Page ${pIdx}]` });
+              }
+            }
+            passageOcrParts.push({ text: `Extract the reading passage from these pages as a LINE-BY-LINE table.
+
+CRITICAL RULES:
+- Each line of the passage must be its OWN row in the table
+- The text in each row must match the EXACT line break in the original — if a line ends at the word "at", your row must also end at "at"
+- If a line is indented (new paragraph), start the text with a tab character
+- If there is a blank line in the original, include an empty row
+- The passage has LINE NUMBERS printed in the margin (usually every 5 lines: 5, 10, 15, 20...)
+- Include these line numbers in the second column where they appear
+
+Output as a markdown table:
+| Line | Text | No. |
+|------|------|-----|
+| 1 | The boy walked slowly down the | |
+| 2 | narrow path, looking at the trees | |
+| 3 | that lined both sides. He had | |
+| 4 | never been to this part of the | |
+| 5 | forest before, and everything seemed | 5 |
+| 6 | | |
+| 7 |     A sudden noise startled him. | |
+
+Note: Line 6 is blank (paragraph break). Line 7 is indented (new paragraph). Line 5 has "5" in the No. column.
+
+Exclude page headers, footers, page numbers, and titles. Only the passage text.
+Output ONLY the table.` });
+
+            try {
+              const passageResp = await generateContentWithRetry({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts: passageOcrParts }],
+                config: { temperature: 0.1 },
+              }, 2, 5000, `ocr-passage:${secLabel}`);
+              passageOcrText = passageResp.text?.trim() ?? "";
+              console.log(`[Exam Pipeline] ${secLabel}: passage OCR (${passageOcrText.length} chars, first 200):`, passageOcrText.slice(0, 200));
+            } catch (err) {
+              console.error(`[Exam Pipeline] ${secLabel}: passage OCR failed:`, err);
+            }
           }
 
           console.log(`[Exam Pipeline] ${secLabel}: OCR step — extracting text from ${secImages.length} page(s) (questions only)`);
@@ -2611,18 +2655,21 @@ export async function analyzeExamBatch(
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
 - For SYNTHESIS & TRANSFORMATION sections:
   * Each question has a printed sentence, then answer lines below
-  * Extract the question sentence, then show the answer area as:
-    **Starting word:** ____________________
+  * Extract the question sentence, then show the answer area as EXACTLY 2 lines:
+    **Starting word** ____________________
     ____________________
+  * Line 1: bold starting word + underscores on the SAME line. Line 2: one full line of underscores. Do NOT add more lines.
   * If a given word/phrase is shown (e.g. "Use: although"), bold it: **although**
 - For COMPREHENSION OEQ sections: questions may contain TABLES, CHARTS, CHECKBOXES, or LINED answer spaces.
   * Render tables as markdown tables: | Col1 | Col2 | Col3 |
+  * Only include [LINES: N] where there are ACTUAL printed answer lines in the paper. Do NOT add lines that don't exist.
   * Answer lines (where student writes) shown as: [LINES: N] where N is the number of lines
   * Tick boxes / checkboxes: render as [ ] for empty box, [x] for ticked box. E.g. "[ ] evaporation  [x] condensation"
   * If a question references a passage, note: [See passage above]
   * Flow diagrams with boxes and arrows: describe as [DIAGRAM: Box A → Box B → Box C]
 - TABLES: whenever you see a table or grid in the image, reproduce it as a markdown table with | separators and --- header row.
-Output ONLY the extracted text, no commentary.` });
+- For ALL sections: exclude preamble instructions (e.g. "For each question...", "Choose the best answer..."), page numbers, "--- Page N ---" markers, section titles, and any question/answer text that is NOT part of the passage or questions.
+Output ONLY the clean passage/question text, no commentary.` });
 
           const ocrResponse = await generateContentWithRetry({
             model: "gemini-2.5-flash",
@@ -2768,6 +2815,7 @@ Return ONLY valid JSON:
             name: secLabel, ocrText, pageIndices: secPageIndices,
             ...(isCompOEQSec && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
             ...(isVisualTextSec && visualPagesForVT.length > 0 ? { passagePageIndices: visualPagesForVT } : {}),
+            ...(passageOcrText ? { passageOcrText } : {}),
           } };
         })());
 
@@ -2805,8 +2853,8 @@ Return ONLY valid JSON:
         Promise.all(sectionTasks).then(results => {
           const ocrTexts: Record<string, { ocrText: string; pageIndices: number[] }> = {};
           for (const r of results) {
-            const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[]; passagePageIndices?: number[] } })._sectionOcr;
-            if (ocr) ocrTexts[ocr.name] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}) };
+            const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[]; passagePageIndices?: number[]; passageOcrText?: string } })._sectionOcr;
+            if (ocr) ocrTexts[ocr.name] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}), ...(ocr.passageOcrText ? { passageOcrText: ocr.passageOcrText } : {}) };
           }
           // Sort pages by question number to maintain section order (parallel tasks finish in random order)
           const allPages = results.flatMap(r => r.pages);
