@@ -27,17 +27,24 @@ type GenerateContentParams = Parameters<ReturnType<typeof getAI>["models"]["gene
 async function generateContentWithRetry(
   params: GenerateContentParams,
   maxRetries = 2,
-  delayMs = 5000
+  delayMs = 5000,
+  label?: string
 ): Promise<Awaited<ReturnType<ReturnType<typeof getAI>["models"]["generateContent"]>>> {
+  const tag = label ? `[Gemini:${label}]` : "[Gemini]";
   let lastErr: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
+      if (attempt > 0) console.log(`${tag} attempt ${attempt + 1}/${maxRetries + 1}...`);
       return await getAI().models.generateContent(params);
     } catch (err) {
       lastErr = err;
-      if (!isRetryable(err) || attempt === maxRetries) throw err;
+      const status = (err as Record<string, unknown>).status ?? (err as Record<string, unknown>).code ?? "unknown";
+      if (!isRetryable(err) || attempt === maxRetries) {
+        console.error(`${tag} FAILED after ${attempt + 1} attempts (${status})`);
+        throw err;
+      }
       const wait = delayMs * (attempt + 1);
-      console.warn(`[Gemini] Network error (${(err as Record<string, unknown>).code ?? "unknown"}), retrying in ${wait / 1000}s (attempt ${attempt + 1}/${maxRetries})...`);
+      console.warn(`${tag} error (${status}), retrying in ${wait / 1000}s (attempt ${attempt + 1}/${maxRetries})...`);
       await new Promise(r => setTimeout(r, wait));
     }
   }
@@ -1678,7 +1685,7 @@ async function analyzeExamStructure(
       responseMimeType: "application/json",
       temperature: 0.1,
     },
-  });
+  }, 2, 5000, "structure-analysis");
 
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for structure analysis");
@@ -2057,7 +2064,7 @@ async function runExtractionCall(
       responseMimeType: "application/json",
       temperature: 0.1,
     },
-  });
+  }, 2, 5000, `extraction:${label}`);
 
   const text = response.text;
   if (!text) throw new Error(`Gemini returned empty response for question extraction (${label})`);
