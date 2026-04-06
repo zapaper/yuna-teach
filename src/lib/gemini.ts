@@ -2595,10 +2595,10 @@ Output as a markdown table:
 | 3 | that lined both sides. He had | |
 | 4 | never been to this part of the | |
 | 5 | forest before, and everything seemed | 5 |
-| 6 | | |
-| 7 |     A sudden noise startled him. | |
+| | | |
+| 6 |     A sudden noise startled him. | |
 
-Note: Line 6 is blank (paragraph break). Line 7 is indented (new paragraph). Line 5 has "5" in the No. column.
+IMPORTANT: Blank lines (paragraph breaks) do NOT increment the line count. In the example above, the blank line has NO number in column 1. Line 6 comes after the blank. New paragraphs must have a tab indent (4 spaces) at the start of the text.
 
 Exclude page headers, footers, page numbers, and titles. Only the passage text.
 Output ONLY the table.` });
@@ -2622,14 +2622,14 @@ Output ONLY the table.` });
           // OCR only the question pages — NOT the passage pages
           for (let pi = 0; pi < secImages.length; pi++) {
             ocrParts.push({ inlineData: { mimeType: "image/jpeg" as const, data: secImages[pi] } });
-            ocrParts.push({ text: `[Page ${secPageIndices[pi]}]` });
+            if (secImages.length > 1) ocrParts.push({ text: `(image ${pi + 1} of ${secImages.length})` });
           }
           ocrParts.push({ text: `Extract ALL text from these exam paper pages as RICH TEXT. Preserve formatting:
 - Keep question numbers exactly as printed (e.g. "1.", "11.", "(29)")
 - Keep answer options exactly (e.g. "(1) option text", "(2) option text")
 - Keep blank lines as "___" (underscore line where student writes)
-- Preserve PARAGRAPH SPACING: use TWO blank lines between paragraphs
-- Indicate page breaks with "--- Page N ---"
+- Preserve PARAGRAPH SPACING: use TWO blank lines between paragraphs. Start each new paragraph with a tab indent (4 spaces).
+- Do NOT include page break markers, page numbers, "--- Page N ---", "Page X", or any page indicators in the output
 - For each line, preserve indentation (question numbers at left margin, options indented)
 - For CLOZE sections:
   * If there is a WORD BANK (options labeled A through Q), extract it as a markdown table at the TOP of the output:
@@ -2646,11 +2646,13 @@ Output ONLY the table.` });
     For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
   * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title, etc.
     Only include the passage text, word bank, and questions. Remove all administrative text.
-- For EDITING sections: each question has an UNDERLINED error word in the passage with a numbered answer box nearby.
-  Bold the error word and tag with its question number INLINE: **(39) beleive**
-  The bold number + word links the underlined word to question N. Do NOT add ___ after it — the answer box is rendered by the UI.
-  IMPORTANT: The passage text flows CONTINUOUSLY. Do NOT break the line at each question. The bolded error word is embedded within the running paragraph text. Only start a new line when there is a NEW PARAGRAPH (indicated by indentation/tab at the start of the line).
-  Make sure EVERY underlined word is tagged with its corresponding question number in bold.
+- For EDITING sections: the passage contains UNDERLINED error words with numbered answer boxes nearby.
+  ONLY tag words that are ACTUALLY UNDERLINED in the original image. Do NOT tag normal (non-underlined) words.
+  How to identify: look for words with a visible underline decoration beneath them. Each underlined word has a small numbered box (e.g. "39") printed beside or above it.
+  Bold ONLY the underlined error word with its question number: **(39) beleive**
+  Do NOT add ___ after it — the answer box is rendered by the UI.
+  All other (non-underlined) words in the passage should be plain text — NOT bolded.
+  IMPORTANT: The passage text flows CONTINUOUSLY within each paragraph. Join all sentences in the same paragraph onto one continuous line — do NOT break at the end of each printed line. Only start a new line (with TWO blank lines and a tab indent) when there is a NEW PARAGRAPH (indicated by indentation in the print).
   Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers.
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
 - For SYNTHESIS & TRANSFORMATION sections:
@@ -2736,8 +2738,8 @@ ${ocrText}
 
 For EACH question, extract:
 - questionNum: the question number as string (e.g. "${prefix}${secFirstQ}")
-- stem: the full question text${isMcqSection ? ` (for MCQ: the question stem before the options)
-- options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc. You MUST include all 4 options for every MCQ question.` : ""}${isClozeSection ? `
+- stem: the full question text as ONE continuous sentence. If the OCR text wraps across multiple lines, JOIN them into one sentence. Do NOT preserve line breaks within a question stem.${isMcqSection ? `
+- options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc. You MUST include all 4 options for every MCQ question. Options may also wrap across lines — join them.` : ""}${isClozeSection ? `
 - blankContext: the sentence fragment around the blank, with "___" where the blank is` : ""}${isEditingSection ? `
 - errorWord: the underlined/erroneous word the student must correct` : ""}${secLabel.toLowerCase().includes("synthesis") ? `
   For Synthesis: include the question sentence, any given word (e.g. "Use: although"), then the answer area as:

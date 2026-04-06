@@ -7,6 +7,8 @@ interface Props {
   paper: ExamPaperDetail;
   pageImages: string[];
   onSave: (questionId: string, data: Record<string, unknown>) => Promise<void>;
+  onSaveOcr?: (sectionName: string, ocrText: string) => Promise<void>;
+  onRegenerateOcr?: (sectionName: string) => Promise<void>;
   saving: string | null;
 }
 
@@ -31,7 +33,7 @@ function groupBySection(questions: ExamQuestionItem[]) {
   return sections;
 }
 
-export default function EnglishEditView({ paper, pageImages, onSave, saving }: Props) {
+export default function EnglishEditView({ paper, pageImages, onSave, onSaveOcr, onRegenerateOcr, saving }: Props) {
   const metadata = paper.metadata;
   const ocrTexts = metadata?.sectionOcrTexts ?? {};
   const sections = groupBySection(paper.questions);
@@ -140,12 +142,44 @@ export default function EnglishEditView({ paper, pageImages, onSave, saving }: P
                       </button>
                     </div>
                     {editingOcr === sec.name ? (
-                      <textarea
-                        value={ocrDrafts[sec.name] ?? ocrData.ocrText}
-                        onChange={e => setOcrDrafts(prev => ({ ...prev, [sec.name]: e.target.value }))}
-                        rows={12}
-                        className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-blue-400 resize-y"
-                      />
+                      <div>
+                        <textarea
+                          value={ocrDrafts[sec.name] ?? ocrData.ocrText}
+                          onChange={e => setOcrDrafts(prev => ({ ...prev, [sec.name]: e.target.value }))}
+                          rows={12}
+                          className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-blue-400 resize-y"
+                        />
+                        <div className="flex gap-2 mt-2">
+                          {onSaveOcr && (
+                            <button
+                              onClick={async () => {
+                                await onSaveOcr(sec.name, ocrDrafts[sec.name] ?? ocrData.ocrText);
+                                setEditingOcr(null);
+                              }}
+                              className="px-4 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold hover:bg-[#001e40] transition-colors"
+                            >
+                              Save
+                            </button>
+                          )}
+                          {onRegenerateOcr && (
+                            <button
+                              onClick={async () => {
+                                await onRegenerateOcr(sec.name);
+                                setEditingOcr(null);
+                              }}
+                              className="px-4 py-1.5 rounded-lg border border-slate-300 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors"
+                            >
+                              Regenerate
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setEditingOcr(null)}
+                            className="px-4 py-1.5 rounded-lg text-slate-400 text-xs font-bold hover:text-slate-600 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
                     ) : (
                       <OcrRichText text={ocrData.ocrText} isMcq={sec.name.toLowerCase().includes("mcq")} />
                     )}
@@ -335,26 +369,64 @@ function OcrRichText({ text, isMcq }: { text: string; isMcq?: boolean }) {
         .map(l => l.split("|").slice(1, -1).map(c => c.trim()));
 
       if (rows.length > 0) {
-        elements.push(
-          <table key={`table-${i}`} className="border-collapse border border-slate-300 text-xs my-2 w-full">
-            <tbody>
-              {rows.map((row, ri) => (
-                <tr key={ri} className={ri === 0 ? "bg-slate-100 font-bold" : ""}>
-                  {row.map((cell, ci) => (
-                    <td key={ci} className="border border-slate-200 px-2 py-1 text-center">{cell}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        );
+        // Detect passage table (3 cols: Line#, Text, LineNo) — hide first col, justify text
+        const isPassageTable = rows.length > 2 && rows[0]?.length === 3 &&
+          (rows[0][0].toLowerCase().includes("line") || rows[0][0].match(/^\d*$/));
+
+        if (isPassageTable) {
+          // Skip header row, render as passage with line numbers
+          const dataRows = rows[0][0].toLowerCase().includes("line") ? rows.slice(1) : rows;
+          elements.push(
+            <table key={`table-${i}`} className="text-sm my-2 w-full border-collapse">
+              <tbody>
+                {dataRows.map((row, ri) => {
+                  const text = row[1] ?? "";
+                  const lineNo = row[2] ?? "";
+                  const isBlank = !text.trim();
+                  const isIndented = text.startsWith("    ") || text.startsWith("\t");
+                  return (
+                    <tr key={ri} className={isBlank ? "h-4" : ""}>
+                      <td className="text-slate-700 py-0.5 pr-4 text-justify leading-relaxed" style={{ textIndent: isIndented ? "2em" : 0 }}>
+                        {isBlank ? "" : text.trim()}
+                      </td>
+                      <td className="text-slate-400 text-xs font-bold w-8 text-right align-top py-0.5 shrink-0">
+                        {lineNo}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          );
+        } else {
+          // Regular table
+          elements.push(
+            <table key={`table-${i}`} className="border-collapse border border-slate-300 text-xs my-2 w-full">
+              <tbody>
+                {rows.map((row, ri) => (
+                  <tr key={ri} className={ri === 0 ? "bg-slate-100 font-bold" : ""}>
+                    {row.map((cell, ci) => (
+                      <td key={ci} className="border border-slate-200 px-2 py-1 text-center">{cell}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          );
+        }
       }
       continue;
     }
 
     // Regular line — render with inline formatting
+    // Skip extra underscore lines after a synthesis answer (already rendered as 2 lines)
+    const isSynthLine = line.match(/^\*\*(.+?)\*\*\s*_+\s*$/);
     elements.push(<RichLine key={`line-${i}`} text={line} isMcq={isMcq} />);
     i++;
+    // After a synth line, skip ONE standalone underscore line (it's already part of the 2-line render)
+    if (isSynthLine && i < lines.length && lines[i].match(/^_+$/)) {
+      i++;
+    }
   }
 
   return (
