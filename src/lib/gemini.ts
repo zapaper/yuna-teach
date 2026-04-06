@@ -2661,7 +2661,7 @@ ${ocrText}
 For EACH question, extract:
 - questionNum: the question number as string (e.g. "${prefix}${secFirstQ}")
 - stem: the full question text (for MCQ: the question stem before the options)${isMcqSection ? `
-- options: array of 4 option strings ["option1", "option2", "option3", "option4"] (text only, no numbering like "(1)")` : ""}${isClozeSection ? `
+- options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc. You MUST include all 4 options for every MCQ question.` : ""}${isClozeSection ? `
 - blankContext: the sentence fragment around the blank, with "___" where the blank is` : ""}${isEditingSection ? `
 - errorWord: the underlined/erroneous word the student must correct` : ""}
 - answer: the correct answer from the answer key if known, null otherwise
