@@ -452,8 +452,10 @@ async function extractExamPaperCore(
       const topPadPct = isEnglish
         ? (isGrammarCloze || isEditing || isCompCloze ? 0.03 : 0)
         : 0.05;
+      const isSynthesis = syllabusTopic === "Synthesis & Transformation";
+      const isCompOEQ = syllabusTopic === "Comprehension (Open-ended)";
       const botPadPct = isEnglish
-        ? (isEditing ? 0.03 : isEnglishMcq ? 0.03 : isGrammarCloze || isCompCloze ? 0.02 : 0)
+        ? (isEditing ? 0.03 : isEnglishMcq ? 0.03 : isGrammarCloze || isCompCloze ? 0.02 : isSynthesis || isCompOEQ ? 0.005 : 0)
         : 0.02;
 
       // Get full answer for this question number
