@@ -2580,8 +2580,12 @@ Output ONLY the extracted text, no commentary.` });
           const ocrText = ocrResponse.text?.trim() ?? "";
           console.log(`[Exam Pipeline] ${secLabel}: OCR result (${ocrText.length} chars, first 300):`, ocrText.slice(0, 300));
 
-          // Step 2: Extract questions from text
-          const extractPrompt = `You are extracting question boundaries from an English exam paper. The text below was OCR'd from the exam pages.
+          // Step 2: Extract individual questions with content from OCR text
+          const isMcqSection = secLabel.toLowerCase().includes("mcq");
+          const isClozeSection = secLabel.toLowerCase().includes("cloze") && !secLabel.toLowerCase().includes("mcq");
+          const isEditingSection = secLabel.toLowerCase().includes("editing");
+
+          const extractPrompt = `You are extracting individual questions from an English exam paper. The text below was OCR'd from the exam pages.
 
 Section: ${secLabel}
 Expected questions: Q${secFirstQ} to Q${secLastQ} (${sec.questionCount} questions)
@@ -2591,24 +2595,25 @@ TEXT:
 ${ocrText}
 
 For EACH question, extract:
-- questionNum: the question number as a string (e.g. "${prefix}${secFirstQ}")
+- questionNum: the question number as string (e.g. "${prefix}${secFirstQ}")
+- stem: the full question text (for MCQ: the question stem before the options)${isMcqSection ? `
+- options: array of 4 option strings ["option1", "option2", "option3", "option4"] (text only, no numbering like "(1)")` : ""}${isClozeSection ? `
+- blankContext: the sentence fragment around the blank, with "___" where the blank is` : ""}${isEditingSection ? `
+- errorWord: the underlined/erroneous word the student must correct` : ""}
+- answer: the correct answer from the answer key if known, null otherwise
+- marksAvailable: marks if shown (e.g. from [2] brackets), null otherwise
 - pageIndex: the 0-based page index (from "--- Page N ---" markers)
-- yStartPct: approximate vertical position (%) where this question starts on the page. Estimate from the text position relative to total page content.
+- yStartPct: approximate vertical position (%) on the page (estimate from text position)
 - yEndPct: approximate vertical position (%) where this question ends
-- questionNumYPct: same as yStartPct for MCQ (number is at the top)
-- questionNumXPct: 3 for left-margin questions, or the approximate horizontal position for embedded numbers
-- marksAvailable: marks if shown, null otherwise
 - syllabusTopic: "${sec.name}"
 
 Return ONLY valid JSON:
 {
-  "pages": [
-    {
-      "pageIndex": 0,
-      "questions": [
-        {"questionNum": "${prefix}${secFirstQ}", "yStartPct": 10, "yEndPct": 20, "questionNumYPct": 10, "questionNumXPct": 3, "marksAvailable": 1, "syllabusTopic": "${sec.name}"}
-      ]
-    }
+  "questions": [
+    ${isMcqSection ? `{"questionNum": "${prefix}${secFirstQ}", "stem": "Which word best completes the sentence?", "options": ["ran", "run", "running", "runs"], "answer": null, "marksAvailable": 1, "pageIndex": 0, "yStartPct": 10, "yEndPct": 18, "syllabusTopic": "${sec.name}"}` :
+    isClozeSection ? `{"questionNum": "${prefix}${secFirstQ}", "stem": "", "blankContext": "The boy ___ to school every day.", "answer": null, "marksAvailable": 1, "pageIndex": 0, "yStartPct": 10, "yEndPct": 15, "syllabusTopic": "${sec.name}"}` :
+    isEditingSection ? `{"questionNum": "${prefix}${secFirstQ}", "stem": "", "errorWord": "beleive", "answer": null, "marksAvailable": 1, "pageIndex": 0, "yStartPct": 10, "yEndPct": 15, "syllabusTopic": "${sec.name}"}` :
+    `{"questionNum": "${prefix}${secFirstQ}", "stem": "What does the word 'happy' mean in paragraph 2?", "answer": null, "marksAvailable": 2, "pageIndex": 0, "yStartPct": 10, "yEndPct": 25, "syllabusTopic": "${sec.name}"}`}
   ]
 }`;
 
@@ -2619,34 +2624,52 @@ Return ONLY valid JSON:
           }, 2, 5000, `text-extract:${secLabel}`);
 
           const extractText = extractResponse.text?.trim() ?? "";
-          let pages: QuestionExtractionResult["pages"] = [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          let rawQuestions: any[] = [];
           try {
             const parsed = JSON.parse(extractText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
-            pages = parsed.pages ?? [];
-            // Log per-page
-            for (const p of pages) {
-              const qNums = (p.questions ?? []).map((q: { questionNum: string }) => `Q${q.questionNum}`);
-              console.log(`[Exam Pipeline] ${secLabel} text-extract page ${p.pageIndex}: ${qNums.length > 0 ? qNums.join(", ") : "NO QUESTIONS"}`);
+            rawQuestions = parsed.questions ?? parsed.pages?.flatMap((p: { questions?: unknown[] }) => p.questions ?? []) ?? [];
+            console.log(`[Exam Pipeline] ${secLabel} text-extract: ${rawQuestions.length} questions found`);
+            for (const q of rawQuestions) {
+              console.log(`[Exam Pipeline]   Q${q.questionNum}: stem="${(q.stem ?? "").slice(0, 60)}..." ${q.options ? `options=[${q.options.length}]` : ""}`);
             }
           } catch (err) {
             console.error(`[Exam Pipeline] ${secLabel} text-extract JSON parse failed:`, err);
           }
 
-          // Remap page indices and trim to range
-          const result: QuestionExtractionResult = { pages };
-          for (const page of result.pages) {
-            page.questions = page.questions.filter(q => {
-              const n = parseInt(q.questionNum.replace(prefix, ""), 10);
-              if (isNaN(n)) return true;
-              if (n < secFirstQ || n > secLastQ) {
-                console.log(`[Exam Pipeline] Trimmed Q${q.questionNum} from "${secLabel}" (outside range Q${secFirstQ}-Q${secLastQ})`);
-                return false;
-              }
-              return true;
-            });
+          // Group questions by page
+          const pageMap = new Map<number, QuestionExtractionResult["pages"][0]["questions"]>();
+          for (const q of rawQuestions) {
+            const n = parseInt(String(q.questionNum).replace(prefix, ""), 10);
+            if (!isNaN(n) && (n < secFirstQ || n > secLastQ)) {
+              console.log(`[Exam Pipeline] Trimmed Q${q.questionNum} from "${secLabel}" (outside range Q${secFirstQ}-Q${secLastQ})`);
+              continue;
+            }
+            const pi = q.pageIndex ?? secPageIndices[0];
+            const entry = {
+              questionNum: String(q.questionNum),
+              yStartPct: q.yStartPct ?? 0,
+              yEndPct: q.yEndPct ?? 0,
+              boundaryTop: String(q.questionNum),
+              boundaryBottom: "",
+              marksAvailable: q.marksAvailable ?? null,
+              syllabusTopic: q.syllabusTopic ?? sec.name,
+              // Store extracted text content as extra fields (passed through to extraction.ts)
+              ...(q.stem ? { _stem: q.stem } : {}),
+              ...(q.options ? { _options: q.options } : {}),
+              ...(q.blankContext ? { _blankContext: q.blankContext } : {}),
+              ...(q.errorWord ? { _errorWord: q.errorWord } : {}),
+            };
+            const existing = pageMap.get(pi);
+            if (existing) existing.push(entry);
+            else pageMap.set(pi, [entry]);
           }
 
-          return { ...result, _sectionOcr: { name: secLabel, ocrText, pageIndices: secPageIndices } };
+          const pages: QuestionExtractionResult["pages"] = [...pageMap.entries()]
+            .sort(([a], [b]) => a - b)
+            .map(([pageIndex, questions]) => ({ pageIndex, questions }));
+
+          return { pages, _sectionOcr: { name: secLabel, ocrText, pageIndices: secPageIndices } };
         })());
 
         /* OLD IMAGE-BASED 2-STEP APPROACH (commented out)

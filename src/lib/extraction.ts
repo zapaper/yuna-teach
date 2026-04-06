@@ -520,29 +520,44 @@ async function extractExamPaperCore(
         continue;
       }
 
-      // Single page
-      let croppedImage = await cropQuestionServer(
-        imageBuffers[segments[0].pageIndex],
-        segments[0].yStartPct,
-        segments[0].yEndPct,
-        topPadPct,
-        botPadPct,
-        segments[0].xStartPct,
-        segments[0].xEndPct
-      );
+      // Check for text content from English extraction (no image crop needed)
+      const seg0 = segments[0] as { _stem?: string; _options?: string[]; _blankContext?: string; _errorWord?: string };
+      const hasTextContent = isEnglish && (seg0._stem || seg0._options || seg0._blankContext || seg0._errorWord);
 
-      // For Visual Text Comprehension: stitch visual text pages on top of question crop
-      if (syllabusTopic === "Visual Text Comprehension MCQ" && visualTextPages.length > 0) {
-        try {
-          const cropBuf = Buffer.from(croppedImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
-          const stitched = await stitchPagesVertically([...visualTextPages, cropBuf]);
-          croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
-        } catch (err) {
-          console.warn(`[extraction] Failed to stitch visual text pages for Q${qNum}:`, err);
+      let croppedImage = "";
+      if (hasTextContent) {
+        // English text-based: no image crop needed (except Visual Text which keeps page images)
+        if (syllabusTopic === "Visual Text Comprehension MCQ" && visualTextPages.length > 0) {
+          try {
+            const stitched = await stitchPagesVertically(visualTextPages);
+            croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
+          } catch {
+            croppedImage = "";
+          }
+        }
+      } else {
+        // Standard image crop
+        croppedImage = await cropQuestionServer(
+          imageBuffers[segments[0].pageIndex],
+          segments[0].yStartPct,
+          segments[0].yEndPct,
+          topPadPct,
+          botPadPct,
+          segments[0].xStartPct,
+          segments[0].xEndPct
+        );
+
+        // For Visual Text Comprehension: stitch visual text pages on top of question crop
+        if (syllabusTopic === "Visual Text Comprehension MCQ" && visualTextPages.length > 0) {
+          try {
+            const cropBuf = Buffer.from(croppedImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
+            const stitched = await stitchPagesVertically([...visualTextPages, cropBuf]);
+            croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
+          } catch (err) {
+            console.warn(`[extraction] Failed to stitch visual text pages for Q${qNum}:`, err);
+          }
         }
       }
-
-      // Vocab Cloze MCQ: passage stored separately, NOT stitched into each question
 
       const primary = segments[0];
       questions.push({
@@ -557,6 +572,11 @@ async function extractExamPaperCore(
         marksAvailable:
           result.marksPerQuestion?.[qNum] ?? null,
         syllabusTopic: result.syllabusTopics?.[qNum] ?? null,
+        // English text content — store as transcribed fields for clean display
+        ...(seg0._stem ? { transcribedStem: seg0._stem } : {}),
+        ...(seg0._options ? { transcribedOptions: seg0._options } : {}),
+        ...(seg0._blankContext ? { transcribedStem: seg0._blankContext } : {}),
+        ...(seg0._errorWord ? { transcribedStem: seg0._errorWord } : {}),
       });
     }
 
@@ -590,6 +610,9 @@ async function extractExamPaperCore(
             marksAvailable: q.marksAvailable,
             syllabusTopic: q.syllabusTopic,
             examPaperId: paperId,
+            // English text content from OCR extraction
+            transcribedStem: (q as { transcribedStem?: string }).transcribedStem ?? null,
+            transcribedOptions: (q as { transcribedOptions?: string[] }).transcribedOptions ?? undefined,
           },
         })
       ),
