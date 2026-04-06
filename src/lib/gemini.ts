@@ -898,10 +898,15 @@ For English papers, identify the specific section type for each section in the s
 4. **Synthesis & Transformation** — rewrite sentences. Type: "synthesis"
 5. **Comprehension OEQ** — open-ended questions on a passage. Type: "comprehension-oeq"
 
-Use these type values in the sections array for English papers. ALSO include "startPage" (0-based page index where this section's first question appears) and "questionRange" (e.g. "Q1-10") for each section:
-e.g. {"name": "Grammar MCQ", "type": "MCQ", "questionCount": 10, "marksPerQuestion": 1, "startPage": 1, "questionRange": "Q1-10"}
-     {"name": "Visual Text Comprehension MCQ", "type": "MCQ", "questionCount": 8, "marksPerQuestion": 1, "startPage": 6, "questionRange": "Q21-28", "visualPages": [4, 5]}
+Use these type values in the sections array for English papers. ALSO include "startPage" and "questionRange" for each section:
+- "startPage" = 0-based page index where this section's first QUESTION NUMBER appears (NOT where a passage or visual text starts — the page with the actual question numbers)
+- "questionRange" = e.g. "Q1-10"
 
+e.g. {"name": "Grammar MCQ", "type": "MCQ", "questionCount": 10, "marksPerQuestion": 1, "startPage": 1, "questionRange": "Q1-10"}
+     {"name": "Vocabulary Cloze MCQ", "type": "MCQ", "questionCount": 5, "marksPerQuestion": 1, "startPage": 4, "questionRange": "Q16-20"}
+     {"name": "Visual Text Comprehension MCQ", "type": "MCQ", "questionCount": 8, "marksPerQuestion": 1, "startPage": 7, "questionRange": "Q21-28", "visualPages": [5, 6]}
+
+IMPORTANT: "startPage" must be the page with the first QUESTION NUMBER for that section, not a passage page or visual text page.
 For Visual Text Comprehension, also include "visualPages" — the 0-based page indices of the visual text/poster pages that appear BEFORE the questions.
 
 #### Non-gradable sections:
@@ -2452,13 +2457,11 @@ export async function analyzeExamBatch(
       for (let si = 0; si < paper.sections.length; si++) {
         const sec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; questionRange?: string };
         const nextSec = paper.sections[si + 1] as { startPage?: number } | undefined;
+        // Use the AI guidance's startPage directly — it should point to where questions begin
         const secStartPage = sec.startPage ?? pageIndices[0];
-        // Include the next section's start page IF sections can share a page
-        // BUT if next section is Visual Text (has visual-only pages before questions), exclude its pages
-        const nextSecName = ((paper.sections[si + 1] ?? {}) as { name?: string }).name ?? "";
-        const nextIsVisualText = nextSecName.toLowerCase().includes("visual text");
+        // End page: one before the next section's startPage, or end of booklet
         const secEndPage = nextSec?.startPage != null
-          ? (nextIsVisualText ? nextSec.startPage - 1 : nextSec.startPage)
+          ? (nextSec as { startPage: number }).startPage - 1
           : pageIndices[pageIndices.length - 1];
 
         // Get pages for this section
