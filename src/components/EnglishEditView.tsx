@@ -158,18 +158,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onSaveOcr, 
                               }}
                               className="px-4 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold hover:bg-[#001e40] transition-colors"
                             >
-                              Save
-                            </button>
-                          )}
-                          {onRegenerateOcr && (
-                            <button
-                              onClick={async () => {
-                                await onRegenerateOcr(sec.name);
-                                setEditingOcr(null);
-                              }}
-                              className="px-4 py-1.5 rounded-lg border border-slate-300 text-slate-600 text-xs font-bold hover:bg-slate-50 transition-colors"
-                            >
-                              Regenerate
+                              Update
                             </button>
                           )}
                           <button

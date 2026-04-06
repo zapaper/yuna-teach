@@ -2649,10 +2649,16 @@ Output ONLY the table.` });
 - For EDITING sections: the passage contains UNDERLINED+BOLDED error words with numbered answer boxes nearby.
   ONLY tag words that are BOTH UNDERLINED AND BOLDED in the original printed text. These error words look visually different from normal text — they are darker/bolder AND have an underline beneath them.
   IGNORE the empty answer boxes — do NOT include them in the output. The boxes are just blank squares where students write corrections.
-  Tag each error word with its question number: **(39) beleive**
+  Tag each error word EXACTLY as it is printed (including the wrong spelling): **(39) beleive**
+  The error word is usually MISSPELLED or has wrong grammar — extract it EXACTLY as printed, do NOT correct it.
   Do NOT add ___, boxes, or any other markup after the bolded word — the answer box is rendered by the UI.
   All other words (not underlined+bolded) must be plain text — NOT bolded.
-  IMPORTANT: The passage text flows CONTINUOUSLY within each paragraph. Join all sentences in the same paragraph onto one continuous line — do NOT break at the end of each printed line. Only start a new line (with TWO blank lines and a tab indent) when there is a NEW PARAGRAPH (indicated by indentation in the print).
+  PARAGRAPH RULES — CRITICAL:
+  - The ENTIRE paragraph must be ONE continuous line of text. Do NOT insert line breaks within a paragraph.
+  - A new paragraph ONLY starts when the original print shows an INDENTED first line (tab). This is the ONLY signal for a new paragraph.
+  - Between paragraphs: insert ONE blank line, then start the new paragraph with 4 spaces indent.
+  - Do NOT break lines at sentence endings (periods), at the edge of the printed page, or at bolded error words.
+  - The output should have very few lines — one per paragraph, not one per sentence.
   Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers.
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
 - For SYNTHESIS & TRANSFORMATION sections:

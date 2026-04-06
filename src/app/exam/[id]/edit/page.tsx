@@ -484,7 +484,7 @@ function ExamEditContent({ id }: { id: string }) {
               }
             }}
             onSaveOcr={async (sectionName, ocrText) => {
-              // Update the sectionOcrTexts in paper metadata
+              // 1. Update the sectionOcrTexts in paper metadata
               const metadata = paper.metadata ?? {} as Record<string, unknown>;
               const ocrTexts = (metadata as { sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[] }> }).sectionOcrTexts ?? {};
               ocrTexts[sectionName] = { ...ocrTexts[sectionName], ocrText };
@@ -493,16 +493,59 @@ function ExamEditContent({ id }: { id: string }) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ metadata: { ...metadata, sectionOcrTexts: ocrTexts } }),
               });
+
+              // 2. Re-parse question numbers from the edited text (for cloze/editing)
+              const isEmbedded = sectionName.toLowerCase().includes("cloze") || sectionName.toLowerCase().includes("editing");
+              if (isEmbedded) {
+                // Extract question numbers from bold patterns like **(39) word** or **(29)________**
+                const qNums: number[] = [];
+                const regex = /\*\*\((\d+)\)[^*]*\*\*/g;
+                let m;
+                while ((m = regex.exec(ocrText)) !== null) {
+                  const n = parseInt(m[1]);
+                  if (!isNaN(n) && !qNums.includes(n)) qNums.push(n);
+                }
+                // Also check plain (N) patterns for cloze
+                const plainRegex = /\((\d+)\)/g;
+                while ((m = plainRegex.exec(ocrText)) !== null) {
+                  const n = parseInt(m[1]);
+                  if (!isNaN(n) && !qNums.includes(n)) qNums.push(n);
+                }
+                qNums.sort((a, b) => a - b);
+
+                // Update questions for this section — delete old ones and create new
+                if (qNums.length > 0 && paper) {
+                  const sectionQuestions = paper.questions.filter(q => q.syllabusTopic === sectionName);
+                  // Delete questions not in the new set
+                  for (const q of sectionQuestions) {
+                    const n = parseInt(q.questionNum, 10);
+                    if (!isNaN(n) && !qNums.includes(n)) {
+                      await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
+                    }
+                  }
+                  // Create missing questions
+                  const existingNums = new Set(sectionQuestions.map(q => parseInt(q.questionNum, 10)).filter(n => !isNaN(n)));
+                  for (const n of qNums) {
+                    if (!existingNums.has(n)) {
+                      await fetch(`/api/exam/questions/create`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          examPaperId: id,
+                          questionNum: String(n),
+                          imageData: "",
+                          pageIndex: 0,
+                          orderIndex: n,
+                          syllabusTopic: sectionName,
+                          marksAvailable: 1,
+                        }),
+                      });
+                    }
+                  }
+                }
+              }
+
               await fetchPaper();
-            }}
-            onRegenerateOcr={async (sectionName) => {
-              // Re-extract the paper to regenerate OCR
-              await fetch(`/api/exam/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ retryExtraction: true }),
-              });
-              setExtracting(true);
             }}
             saving={saving?.split(/(?<=^[a-z0-9]+)/i)[0] ?? null}
           />
