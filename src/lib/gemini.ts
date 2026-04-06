@@ -1033,11 +1033,10 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 ### Other rules:
 - Skip page headers and footers in crops (but still extract questions below them)
 
-### Question number position (CRITICAL for English MCQ):
-- For EACH question, also output "questionNumYPct" — the EXACT vertical position (%) of the TOP of the question number text (e.g. the top of "11." on the page). This is the precise pixel line where the question number begins.
-- This value is used to compute consistent crop boundaries. Be as precise as possible — measure to 0.5% accuracy.
-- yStartPct should be slightly ABOVE questionNumYPct (about 0.5-1% above for padding)
-- For the PREVIOUS question on the same page, its yEndPct should equal this question's questionNumYPct (contiguous, no gap)
+### Question number position (CRITICAL for English):
+- For EACH question, output "questionNumYPct" — the EXACT vertical position (%) of the TOP of the question number.
+- For EACH question, output "questionNumXPct" — the EXACT horizontal position (%) of the CENTER of the question number. For English cloze/editing sections where the question number is embedded in the passage (not at the left margin), this tells us where the answer box/blank is horizontally.
+- Be as precise as possible — measure to 0.5% accuracy.
 
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
@@ -1046,8 +1045,8 @@ Return ONLY valid JSON:
     {
       "pageIndex": 2,
       "questions": [
-        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "questionNumYPct": 12.5, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
-        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "questionNumYPct": 35.5, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3, "isContinuation": false, "subParts": "abc"}
+        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "questionNumYPct": 12.5, "questionNumXPct": 5.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
+        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "questionNumYPct": 35.5, "questionNumXPct": 5.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3, "isContinuation": false, "subParts": "abc"}
       ]
     }
   ]
@@ -1487,11 +1486,14 @@ interface QuestionExtractionResult {
       questionNum: string;
       yStartPct: number;
       yEndPct: number;
+      xStartPct?: number;
+      xEndPct?: number;
       boundaryTop: string;
       boundaryBottom: string;
       marksAvailable?: number | null;
       isContinuation?: boolean;
       subParts?: string;
+      syllabusTopic?: string | null;
     }>;
   }>;
   _rawSnippet?: string; // first 400 chars of Gemini response, for browser debug
@@ -1813,15 +1815,23 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
         return { ...q, yStartPct: start, yEndPct: end };
       }).sort((a, b) => a.yStartPct - b.yStartPct);
 
-      // ENGLISH ONLY: Use questionNumYPct for consistent boundaries
+      // ENGLISH ONLY: Use questionNumYPct/XPct for consistent boundaries
       if (isEnglishNorm) {
+        const CLOZE_EDITING_TOPICS = new Set(["Grammar Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze", "Vocabulary Cloze MCQ"]);
         for (let i = 0; i < fixed.length; i++) {
-          const qnY = (fixed[i] as { questionNumYPct?: number }).questionNumYPct;
+          const ext = fixed[i] as { questionNumYPct?: number; questionNumXPct?: number; syllabusTopic?: string | null };
+          const qnY = ext.questionNumYPct;
           if (qnY != null && qnY > 0) {
             fixed[i].yStartPct = qnY;
             if (i > 0) {
               fixed[i - 1].yEndPct = qnY;
             }
+          }
+          // For cloze/editing sections: set x-boundaries around the question number (±1.5%)
+          const qnX = ext.questionNumXPct;
+          if (qnX != null && qnX > 0 && CLOZE_EDITING_TOPICS.has(ext.syllabusTopic ?? "")) {
+            fixed[i].xStartPct = Math.max(0, qnX - 1.5);
+            fixed[i].xEndPct = Math.min(100, qnX + 1.5);
           }
         }
       }

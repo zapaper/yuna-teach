@@ -67,7 +67,9 @@ async function cropQuestionServer(
   yStartPct: number,
   yEndPct: number,
   topPadPct = 0.05,
-  botPadPct = 0.02
+  botPadPct = 0.02,
+  xStartPct?: number,
+  xEndPct?: number
 ): Promise<string> {
   const metadata = await sharp(imageBuffer).metadata();
   const height = metadata.height!;
@@ -83,13 +85,17 @@ async function cropQuestionServer(
     Math.ceil((yEndPct / 100) * height) + botPad
   );
   const cropHeight = bottom - top;
-  if (cropHeight <= 0) {
+  // X boundaries (optional — default full width)
+  const left = xStartPct != null ? Math.max(0, Math.floor((xStartPct / 100) * width)) : 0;
+  const right = xEndPct != null ? Math.min(width, Math.ceil((xEndPct / 100) * width)) : width;
+  const cropWidth = right - left;
+  if (cropHeight <= 0 || cropWidth <= 0) {
     // Fallback: return full image
     const buf = await sharp(imageBuffer).jpeg({ quality: 85 }).toBuffer();
     return `data:image/jpeg;base64,${buf.toString("base64")}`;
   }
   const croppedBuffer = await sharp(imageBuffer)
-    .extract({ left: 0, top, width, height: cropHeight })
+    .extract({ left, top, width: cropWidth, height: cropHeight })
     .jpeg({ quality: 85 })
     .toBuffer();
   return `data:image/jpeg;base64,${croppedBuffer.toString("base64")}`;
@@ -297,6 +303,8 @@ async function extractExamPaperCore(
       pageIndex: number;
       yStartPct: number;
       yEndPct: number;
+      xStartPct?: number;
+      xEndPct?: number;
       isContinuation: boolean;
       subParts: string;
     };
@@ -330,6 +338,8 @@ async function extractExamPaperCore(
           pageIndex: correctPageIndex,
           yStartPct: q.yStartPct,
           yEndPct: q.yEndPct,
+          xStartPct: (q as { xStartPct?: number }).xStartPct,
+          xEndPct: (q as { xEndPct?: number }).xEndPct,
           isContinuation: isCont,
           subParts,
         });
@@ -438,7 +448,9 @@ async function extractExamPaperCore(
             seg.yStartPct,
             seg.yEndPct,
             topPadPct,
-            botPadPct
+            botPadPct,
+            seg.xStartPct,
+            seg.xEndPct
           );
           // Build label: e.g. "39ab", "39cd". If no subParts, use page position
           const suffix = seg.subParts || (si === 0 ? "" : `_p${si + 1}`);
@@ -473,7 +485,9 @@ async function extractExamPaperCore(
         segments[0].yStartPct,
         segments[0].yEndPct,
         topPadPct,
-        botPadPct
+        botPadPct,
+        segments[0].xStartPct,
+        segments[0].xEndPct
       );
 
       // For Visual Text Comprehension: stitch visual text pages on top of question crop
