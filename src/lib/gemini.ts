@@ -2556,19 +2556,81 @@ export async function analyzeExamBatch(
           const secLabel = sec.name || sec.type;
 
           // Step 1: OCR — extract clean text from all section pages
-          console.log(`[Exam Pipeline] ${secLabel}: OCR step — extracting text from ${secImages.length} page(s)`);
+          // For Comprehension OEQ: also include passage pages from Booklet A
+          const isCompOEQSec = secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open");
+          // Find Booklet A passage pages: pages in Booklet A that don't belong to any section's startPage range
+          const passagePagesForOEQ: number[] = [];
+          if (isCompOEQSec) {
+            const bookletA = bookletPageRanges.find(b => b.paper.label.toLowerCase().includes("booklet a"));
+            if (bookletA) {
+              // Pages that are section start pages (have questions)
+              const sectionStartPages = new Set<number>();
+              for (const p of structure.papers) {
+                for (const s of p.sections) {
+                  const sp = (s as { startPage?: number }).startPage;
+                  if (sp != null) sectionStartPages.add(sp);
+                }
+              }
+              // Booklet A pages not assigned to any section = passage pages
+              for (const pIdx of bookletA.pageIndices) {
+                if (!sectionStartPages.has(pIdx)) {
+                  // Check it's not a cover page
+                  const pageEntry = structure.pages.find(p => p.pageIndex === pIdx);
+                  if (pageEntry && !pageEntry.isCoverPage && !pageEntry.isAnswerSheet) {
+                    passagePagesForOEQ.push(pIdx);
+                  }
+                }
+              }
+            }
+          }
+
+          console.log(`[Exam Pipeline] ${secLabel}: OCR step — extracting text from ${secImages.length} page(s)${isCompOEQSec && passagePagesForOEQ.length > 0 ? ` + ${passagePagesForOEQ.length} passage page(s)` : ""}`);
           const ocrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+
+          // Include passage pages first for Comprehension OEQ
+          if (isCompOEQSec && passagePagesForOEQ.length > 0) {
+            ocrParts.push({ text: "=== READING PASSAGE ===" });
+            for (const pIdx of passagePagesForOEQ) {
+              if (imagesBase64[pIdx]) {
+                ocrParts.push({ inlineData: { mimeType: "image/jpeg" as const, data: imagesBase64[pIdx] } });
+                ocrParts.push({ text: `[Passage Page ${pIdx}]` });
+              }
+            }
+            ocrParts.push({ text: "=== END OF PASSAGE ===" });
+          }
+
           for (let pi = 0; pi < secImages.length; pi++) {
             ocrParts.push({ inlineData: { mimeType: "image/jpeg" as const, data: secImages[pi] } });
             ocrParts.push({ text: `[Page ${secPageIndices[pi]}]` });
           }
-          ocrParts.push({ text: `Extract ALL text from these exam paper pages. Preserve formatting:
+          ocrParts.push({ text: `Extract ALL text from these exam paper pages as RICH TEXT. Preserve formatting:
 - Keep question numbers exactly as printed (e.g. "1.", "11.", "(29)")
 - Keep answer options exactly (e.g. "(1) option text", "(2) option text")
-- Keep blank lines as "___"
-- Keep underlined words marked as [underline]word[/underline]
+- Keep blank lines as "___" (underscore line where student writes)
+- Preserve PARAGRAPH SPACING: use TWO blank lines between paragraphs
 - Indicate page breaks with "--- Page N ---"
 - For each line, preserve indentation (question numbers at left margin, options indented)
+- For CLOZE sections:
+  * If there is a WORD BANK (options labeled A through Q), extract it as a table at the top:
+    "WORD BANK:\\n(A) word1  (B) word2  (C) word3 ...\\n(D) word4  (E) word5 ..."
+    Note: letters I and O are typically skipped in the word bank.
+  * The blank "___" and its question number "(29)" or "(51)" MUST be on the SAME line, not separate lines.
+    Write it as: "... word ___(29) word ..." or "... word ___(51) word ..."
+    The question number is always RIGHT AFTER the blank, on the same line.
+- For EDITING sections: each question has an UNDERLINED error word in the passage with a numbered answer box nearby.
+  Tag each error word with its question number like this: [error:39]beleive[/error] ___
+  The [error:N] tag links the underlined word to question number N. The ___ is the answer box where the student writes the correction.
+  Make sure EVERY underlined word is tagged with its corresponding question number.
+- For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
+- For SYNTHESIS & TRANSFORMATION sections:
+  * Each question has a printed sentence, then answer lines below where the student rewrites it
+  * Show the sentence, then [ANSWER LINES: N] to indicate where the student writes
+  * If a given word/phrase is shown (e.g. "Use: although"), include it as: [Given word: although]
+- For COMPREHENSION OEQ sections: questions may contain TABLES, CHARTS, or LINED answer spaces.
+  * Render tables as markdown tables: | Col1 | Col2 | Col3 |
+  * Answer lines (where student writes) shown as: [LINES: N] where N is the number of lines
+  * If a question references a passage, note: [See passage above]
+- TABLES: whenever you see a table or grid in the image, reproduce it as a markdown table with | separators and --- header row.
 Output ONLY the extracted text, no commentary.` });
 
           const ocrResponse = await generateContentWithRetry({
