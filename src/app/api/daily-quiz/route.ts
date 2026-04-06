@@ -97,6 +97,29 @@ export async function POST(request: NextRequest) {
     select: questionSelect,
   });
 
+  // Debug: for English, log what we found
+  if (subject === "english") {
+    // Also check how many questions exist without the filters
+    const totalEnglishQs = await prisma.examQuestion.count({
+      where: { examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
+    });
+    const withStem = await prisma.examQuestion.count({
+      where: { transcribedStem: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
+    });
+    const withAnswer = await prisma.examQuestion.count({
+      where: { answer: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
+    });
+    const withBoth = await prisma.examQuestion.count({
+      where: { transcribedStem: { not: null }, answer: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
+    });
+    console.log(`[English Quiz] Total English Qs: ${totalEnglishQs}, with stem: ${withStem}, with answer: ${withAnswer}, with both: ${withBoth}, after level/exam filter: ${allQuestions.length}`);
+    if (allQuestions.length > 0) {
+      const topics = new Map<string, number>();
+      for (const q of allQuestions) { topics.set(q.syllabusTopic ?? "null", (topics.get(q.syllabusTopic ?? "null") ?? 0) + 1); }
+      console.log(`[English Quiz] By topic:`, Object.fromEntries(topics));
+    }
+  }
+
   type Q = typeof allQuestions[number];
 
   // Strip trailing letter(s) from a question number to get the base, e.g. "35ab" → "35", "35c" → "35", "12" → "12"
