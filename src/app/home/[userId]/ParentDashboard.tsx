@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ExamPaperSummary, User } from "@/types";
+import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
 import ExamPaperCard from "@/components/ExamPaperCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -103,6 +103,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   const [showPendingReview, setShowPendingReview] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [spellingTests, setSpellingTests] = useState<SpellingTestSummary[]>([]);
   const [assigningPaperId, setAssigningPaperId] = useState<string | null>(null);
   const [assignToast, setAssignToast] = useState<string | null>(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -141,6 +142,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       .then(d => setProgressData(d))
       .catch(() => {})
       .finally(() => setLoadingProgress(false));
+    // Fetch spelling tests for selected student
+    fetch(`/api/tests?userId=${selectedStudentId}`)
+      .then(r => r.ok ? r.json() : { tests: [] })
+      .then(d => setSpellingTests(d.tests ?? []))
+      .catch(() => setSpellingTests([]));
   }, [userId, selectedStudentId]);
 
   const recFetchingRef = useRef<string | null>(null);
@@ -1381,6 +1387,27 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 </div>
                 <ActivitiesList />
               </section>
+
+              {/* Recent Spelling */}
+              {spellingTests.length > 0 && (
+                <section className="mt-8">
+                  <h3 className="font-headline font-bold text-lg text-[#001e40] mb-4">Recent Spelling / 听写</h3>
+                  <div className="space-y-2">
+                    {spellingTests.slice(0, 5).map(test => (
+                      <div key={test.id} onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
+                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:border-[#003366]/20 transition-colors">
+                        <div className="w-9 h-9 rounded-lg bg-[#003366]/5 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[#003366] text-base">spellcheck</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-[#001e40] truncate">{test.title || "Spelling Test"}</p>
+                          <p className="text-xs text-slate-400">{test.wordCount} words</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
 
             {/* ─── DESKTOP LAYOUT ────────────────────────────────────────── */}
@@ -1574,6 +1601,27 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       })}
                     </div>
                   </div>
+
+                  {/* Recent Spelling */}
+                  {spellingTests.length > 0 && (
+                    <div className="bg-white rounded-3xl p-8 shadow-sm mt-8">
+                      <h4 className="font-headline text-xl font-extrabold text-[#001e40] mb-5">Recent Spelling / 听写</h4>
+                      <div className="space-y-4">
+                        {spellingTests.slice(0, 5).map(test => (
+                          <div key={test.id} onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
+                            className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
+                            <div className="w-10 h-10 rounded-xl bg-[#003366]/5 flex items-center justify-center shrink-0">
+                              <span className="material-symbols-outlined text-[#003366]">spellcheck</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-[#001e40] truncate">{test.title || "Spelling Test"}</p>
+                              <p className="text-sm text-[#43474f]">{test.wordCount} words</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
