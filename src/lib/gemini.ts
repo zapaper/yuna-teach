@@ -2646,12 +2646,12 @@ Output ONLY the table.` });
     For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
   * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title, etc.
     Only include the passage text, word bank, and questions. Remove all administrative text.
-- For EDITING sections: the passage contains UNDERLINED error words with numbered answer boxes nearby.
-  ONLY tag words that are ACTUALLY UNDERLINED in the original image. Do NOT tag normal (non-underlined) words.
-  How to identify: look for words with a visible underline decoration beneath them. Each underlined word has a small numbered box (e.g. "39") printed beside or above it.
-  Bold ONLY the underlined error word with its question number: **(39) beleive**
-  Do NOT add ___ after it — the answer box is rendered by the UI.
-  All other (non-underlined) words in the passage should be plain text — NOT bolded.
+- For EDITING sections: the passage contains UNDERLINED+BOLDED error words with numbered answer boxes nearby.
+  ONLY tag words that are BOTH UNDERLINED AND BOLDED in the original printed text. These error words look visually different from normal text — they are darker/bolder AND have an underline beneath them.
+  IGNORE the empty answer boxes — do NOT include them in the output. The boxes are just blank squares where students write corrections.
+  Tag each error word with its question number: **(39) beleive**
+  Do NOT add ___, boxes, or any other markup after the bolded word — the answer box is rendered by the UI.
+  All other words (not underlined+bolded) must be plain text — NOT bolded.
   IMPORTANT: The passage text flows CONTINUOUSLY within each paragraph. Join all sentences in the same paragraph onto one continuous line — do NOT break at the end of each printed line. Only start a new line (with TWO blank lines and a tab indent) when there is a NEW PARAGRAPH (indicated by indentation in the print).
   Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers.
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
@@ -2819,6 +2819,67 @@ Return ONLY valid JSON:
           const pages: QuestionExtractionResult["pages"] = [...pageMap.entries()]
             .sort(([a], [b]) => a - b)
             .map(([pageIndex, questions]) => ({ pageIndex, questions }));
+
+          // Validation: check all question numbers in sequence
+          const extractedNums = new Set(pages.flatMap(p => p.questions.map(q => {
+            const n = parseInt(q.questionNum.replace(prefix, ""), 10);
+            return isNaN(n) ? -1 : n;
+          })).filter(n => n >= 0));
+          const missingNums: number[] = [];
+          for (let n = secFirstQ; n <= secLastQ; n++) {
+            if (!extractedNums.has(n)) missingNums.push(n);
+          }
+          if (missingNums.length > 0) {
+            console.log(`[Exam Pipeline] ${secLabel}: missing questions in sequence: ${missingNums.join(", ")} — retrying`);
+            try {
+              const missingPrompt = `The following questions were not extracted. Find them in the OCR text and extract them.
+
+Missing questions: ${missingNums.map(n => `${prefix}${n}`).join(", ")}
+
+OCR TEXT:
+${ocrText}
+
+For EACH missing question, extract:
+- questionNum, stem${isMcqSection ? ", options (array of 4 strings)" : ""}, marksAvailable, pageIndex, yStartPct, yEndPct, syllabusTopic
+
+Return ONLY valid JSON:
+{"questions": [...]}`;
+
+              const missingResp = await generateContentWithRetry({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts: [{ text: missingPrompt }] }],
+                config: { responseMimeType: "application/json", temperature: 0.1 },
+              }, 2, 5000, `missing-retry:${secLabel}`);
+
+              const missingParsed = JSON.parse(sanitizeJsonString(missingResp.text?.trim().replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim() ?? "{}"));
+              const missingQs = missingParsed.questions ?? [];
+              console.log(`[Exam Pipeline] ${secLabel}: missing retry returned ${missingQs.length} questions`);
+
+              for (const q of missingQs) {
+                const pi = q.pageIndex ?? secPageIndices[0];
+                const entry = {
+                  questionNum: String(q.questionNum),
+                  yStartPct: q.yStartPct ?? 0, yEndPct: q.yEndPct ?? 0,
+                  boundaryTop: String(q.questionNum), boundaryBottom: "",
+                  marksAvailable: q.marksAvailable ?? null,
+                  syllabusTopic: q.syllabusTopic ?? sec.name,
+                  ...(q.stem ? { _stem: q.stem } : {}),
+                  ...(q.options ? { _options: q.options } : {}),
+                };
+                const existing = pageMap.get(pi);
+                if (existing) existing.push(entry);
+                else pageMap.set(pi, [entry]);
+              }
+
+              // Rebuild pages
+              pages.length = 0;
+              pages.push(...[...pageMap.entries()]
+                .sort(([a], [b]) => a - b)
+                .map(([pageIndex, questions]) => ({ pageIndex, questions })));
+            } catch (err) {
+              console.error(`[Exam Pipeline] ${secLabel}: missing retry failed:`, err);
+            }
+          }
 
           // Validation: for MCQ sections, check all questions have options. If not, retry.
           if (isMcqSection) {

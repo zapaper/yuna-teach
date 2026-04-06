@@ -483,6 +483,27 @@ function ExamEditContent({ id }: { id: string }) {
                 await saveQuestion(questionId, key as keyof ExamQuestionItem, value as string | number | null);
               }
             }}
+            onSaveOcr={async (sectionName, ocrText) => {
+              // Update the sectionOcrTexts in paper metadata
+              const metadata = paper.metadata ?? {} as Record<string, unknown>;
+              const ocrTexts = (metadata as { sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[] }> }).sectionOcrTexts ?? {};
+              ocrTexts[sectionName] = { ...ocrTexts[sectionName], ocrText };
+              await fetch(`/api/exam/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ metadata: { ...metadata, sectionOcrTexts: ocrTexts } }),
+              });
+              await fetchPaper();
+            }}
+            onRegenerateOcr={async (sectionName) => {
+              // Re-extract the paper to regenerate OCR
+              await fetch(`/api/exam/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ retryExtraction: true }),
+              });
+              setExtracting(true);
+            }}
             saving={saving?.split(/(?<=^[a-z0-9]+)/i)[0] ?? null}
           />
         </div>
