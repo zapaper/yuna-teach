@@ -137,7 +137,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, saving }: P
                         className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-blue-400 resize-y"
                       />
                     ) : (
-                      <OcrRichText text={ocrData.ocrText} />
+                      <OcrRichText text={ocrData.ocrText} isMcq={sec.name.toLowerCase().includes("mcq")} />
                     )}
                   </div>
                 )}
@@ -210,7 +210,7 @@ function QuestionRow({
           </div>
         )}
         {q.transcribedOptions && q.transcribedOptions.length > 0 && (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 mb-2 ml-4">
+          <div className="flex flex-col gap-0.5 mt-2 mb-2 ml-4">
             {q.transcribedOptions.map((opt, i) => (
               <span key={i} className="text-xs text-slate-600">
                 <span className="font-bold text-slate-400">({i + 1})</span> {opt}
@@ -285,7 +285,7 @@ function QuestionRow({
 }
 
 /** Renders OCR text with rich formatting: markdown tables, bold, error tags, underlines */
-function OcrRichText({ text }: { text: string }) {
+function OcrRichText({ text, isMcq }: { text: string; isMcq?: boolean }) {
   const lines = text.split("\n");
   const elements: React.ReactNode[] = [];
   let i = 0;
@@ -324,7 +324,7 @@ function OcrRichText({ text }: { text: string }) {
     }
 
     // Regular line — render with inline formatting
-    elements.push(<RichLine key={`line-${i}`} text={line} />);
+    elements.push(<RichLine key={`line-${i}`} text={line} isMcq={isMcq} />);
     i++;
   }
 
@@ -336,12 +336,44 @@ function OcrRichText({ text }: { text: string }) {
 }
 
 /** Renders a single line with bold, error tags, underlines */
-function RichLine({ text }: { text: string }) {
+function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
   if (!text.trim()) return <br />;
+
+  // Answer lines: [LINES: N] → render N full-width underlines
+  const linesMatch = text.match(/^\[LINES:\s*(\d+)\]\s*$/);
+  if (linesMatch) {
+    const count = parseInt(linesMatch[1]);
+    return (
+      <div className="mt-1">
+        {Array.from({ length: count }, (_, i) => (
+          <div key={i} className="border-b-2 border-slate-300 mt-3" />
+        ))}
+      </div>
+    );
+  }
+
+  // Synthesis answer line: bold starting word + underscores → full-width line
+  const synthMatch = text.match(/^\*\*(.+?)\*\*\s*_+\s*$/);
+  if (synthMatch) {
+    return (
+      <div className="mt-1">
+        <div className="flex items-end">
+          <strong className="font-bold text-slate-800 shrink-0 mr-1">{synthMatch[1]}</strong>
+          <span className="flex-1 border-b-2 border-slate-400 mb-0.5" />
+        </div>
+        <div className="border-b-2 border-slate-400 mt-3 mb-1" />
+      </div>
+    );
+  }
+
+  // Full underscore line (second answer line for Synthesis)
+  if (text.match(/^_+$/)) {
+    return <div className="border-b-2 border-slate-400 mt-3 mb-1" />;
+  }
 
   // Parse inline formatting: **bold**, [error:N]word[/error], [underline]word[/underline], ___(N)
   const parts: React.ReactNode[] = [];
-  const regex = /(\*\*[^*]+\*\*|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\))/g;
+  const regex = /(\*\*[^*]+\*\*|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\)|\[LINES:\s*\d+\]|\[x\]|\[ \]|\[DIAGRAM:[^\]]+\])/g;
   let lastIdx = 0;
   let match;
 
@@ -353,7 +385,7 @@ function RichLine({ text }: { text: string }) {
     if (m.startsWith("**") && m.endsWith("**")) {
       const inner = m.slice(2, -2);
       // Check if it's a cloze blank like (29)________
-      const clozeMatch = inner.match(/^\((\d+)\)_+$/);
+      const clozeMatch = !isMcq ? inner.match(/^\((\d+)\)_+$/) : null;
       if (clozeMatch) {
         parts.push(
           <span key={match.index} className="inline-flex items-center gap-0.5 font-bold">
@@ -394,6 +426,30 @@ function RichLine({ text }: { text: string }) {
         <span key={match.index} className="inline-flex items-center gap-0.5">
           <span className="border-b-2 border-slate-400 w-16 inline-block" />
           <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({num})</span>
+        </span>
+      );
+    } else if (m.match(/\[LINES:\s*\d+\]/)) {
+      const count = parseInt(m.match(/\[LINES:\s*(\d+)\]/)?.[1] ?? "1");
+      parts.push(
+        <span key={match.index} className="block">
+          {Array.from({ length: count }, (_, j) => (
+            <span key={j} className="block border-b-2 border-slate-300 mt-3" />
+          ))}
+        </span>
+      );
+    } else if (m === "[x]") {
+      parts.push(
+        <span key={match.index} className="inline-flex items-center justify-center w-4 h-4 border-2 border-slate-400 rounded-sm bg-blue-50 text-blue-600 text-[10px] font-bold mr-1">✓</span>
+      );
+    } else if (m === "[ ]") {
+      parts.push(
+        <span key={match.index} className="inline-block w-4 h-4 border-2 border-slate-300 rounded-sm bg-white mr-1" />
+      );
+    } else if (m.startsWith("[DIAGRAM:")) {
+      const desc = m.slice(9, -1).trim();
+      parts.push(
+        <span key={match.index} className="inline-block bg-slate-100 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-600 italic my-1">
+          📊 {desc}
         </span>
       );
     }

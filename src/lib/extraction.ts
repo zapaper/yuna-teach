@@ -343,6 +343,13 @@ async function extractExamPaperCore(
         }
       }
 
+      // Sort questions by question number to maintain paper order
+      questions.sort((a, b) => {
+        const aNum = parseInt(a.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
+        const bNum = parseInt(b.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
+        return (aNum || 0) - (bNum || 0);
+      });
+
       // Save
       const debugMetadata = result._debug ? (() => { const { rawResponses: _ignored, ...rest } = result._debug!; return rest; })() : null;
       const sectionOcrTexts = result.sectionOcrTexts ?? null;

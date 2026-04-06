@@ -2598,12 +2598,16 @@ export async function analyzeExamBatch(
   * The question number MUST come BEFORE the blank, on the SAME line, and BOLDED:
     Write as: "... word **(29)________** word ..." or "... word **(51)________** word ..."
     Format: **(N)________** — number in parentheses, then exactly 8 underscores. Bold the entire unit.
+  * This cloze formatting applies ONLY to Grammar Cloze and Comprehension Cloze sections.
+    For Vocabulary Cloze MCQ, do NOT use this format — just show the passage text normally with question numbers. The MCQ options are extracted separately.
   * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, etc.
     Only include the passage text and word bank.
 - For EDITING sections: each question has an UNDERLINED error word in the passage with a numbered answer box nearby.
-  Bold the error word and tag with its question number: **(39) beleive**
+  Bold the error word and tag with its question number INLINE: **(39) beleive**
   The bold number + word links the underlined word to question N. Do NOT add ___ after it — the answer box is rendered by the UI.
+  IMPORTANT: The passage text flows CONTINUOUSLY. Do NOT break the line at each question. The bolded error word is embedded within the running paragraph text. Only start a new line when there is a NEW PARAGRAPH (indicated by indentation/tab at the start of the line).
   Make sure EVERY underlined word is tagged with its corresponding question number in bold.
+  Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers.
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
 - For SYNTHESIS & TRANSFORMATION sections:
   * Each question has a printed sentence, then answer lines below
@@ -2611,10 +2615,12 @@ export async function analyzeExamBatch(
     **Starting word:** ____________________
     ____________________
   * If a given word/phrase is shown (e.g. "Use: although"), bold it: **although**
-- For COMPREHENSION OEQ sections: questions may contain TABLES, CHARTS, or LINED answer spaces.
+- For COMPREHENSION OEQ sections: questions may contain TABLES, CHARTS, CHECKBOXES, or LINED answer spaces.
   * Render tables as markdown tables: | Col1 | Col2 | Col3 |
   * Answer lines (where student writes) shown as: [LINES: N] where N is the number of lines
+  * Tick boxes / checkboxes: render as [ ] for empty box, [x] for ticked box. E.g. "[ ] evaporation  [x] condensation"
   * If a question references a passage, note: [See passage above]
+  * Flow diagrams with boxes and arrows: describe as [DIAGRAM: Box A → Box B → Box C]
 - TABLES: whenever you see a table or grid in the image, reproduce it as a markdown table with | separators and --- header row.
 Output ONLY the extracted text, no commentary.` });
 
@@ -2637,8 +2643,8 @@ Output ONLY the extracted text, no commentary.` });
 
           // For Grammar Cloze and Comprehension Cloze: questions are already in the OCR text
           // Just extract question numbers — no need for a separate AI call
-          if (isGrammarClozeSec || isCompClozeSec) {
-            // Parse question numbers from OCR text: **(29)________** or (29)
+          if (isGrammarClozeSec || isCompClozeSec || isEditingSection) {
+            // Parse question numbers from OCR text: **(29)________** or (39) or (N)
             const qNumRegex = /\((\d+)\)/g;
             const foundNums: number[] = [];
             let qMatch;
@@ -2802,7 +2808,14 @@ Return ONLY valid JSON:
             const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[]; passagePageIndices?: number[] } })._sectionOcr;
             if (ocr) ocrTexts[ocr.name] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}) };
           }
-          return { pages: results.flatMap(r => r.pages), _ocrTexts: ocrTexts };
+          // Sort pages by question number to maintain section order (parallel tasks finish in random order)
+          const allPages = results.flatMap(r => r.pages);
+          allPages.sort((a, b) => {
+            const aMin = Math.min(...a.questions.map(q => parseInt(q.questionNum.replace(/^[A-Z]\d*-/, ""), 10) || 0));
+            const bMin = Math.min(...b.questions.map(q => parseInt(q.questionNum.replace(/^[A-Z]\d*-/, ""), 10) || 0));
+            return aMin - bMin;
+          });
+          return { pages: allPages, _ocrTexts: ocrTexts };
         })
       );
     } else {
