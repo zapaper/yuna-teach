@@ -1103,9 +1103,10 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
   * Grammar MCQ Q1-10 — standalone grammar questions
   * Vocabulary MCQ Q11-15 — standalone vocabulary questions
   * Vocabulary Cloze MCQ Q16-20 — a PASSAGE fills the top half of the page, then Q16-20 appear below it (from ~50% of the page onwards). Tag these as "Vocabulary Cloze MCQ" NOT "Vocabulary MCQ"
-  * Visual Text Comprehension MCQ Q21-28 — 1-2 pages of visual text (poster/ad) before the questions
-- Passage-only or visual-only pages (no question numbers) = extract zero questions, continue to next page
+  * Visual Text Comprehension MCQ Q21-28 — 1-2 FULL PAGES of visual text (poster/ad/letter) appear BEFORE Q21. These visual pages have NO question numbers — output EMPTY questions array for them. Q21 starts on the page AFTER the visual text pages.
+- Passage-only or visual-only pages (no question numbers at the left margin) = output EMPTY questions array, then continue to the NEXT page
 - For Vocab Cloze MCQ: the passage takes up the top half. Scan from the MIDDLE of the page downward for Q16 at the left margin
+- For Visual Text MCQ: SKIP pages that only contain a poster/ad/letter (no question numbers). Q21 is on a LATER page.
 
 ### Written questions:
 - Keep the ENTIRE question as ONE entry including ALL sub-parts and answer spaces
@@ -1886,11 +1887,11 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
               fixed[i - 1].yEndPct = qnY;
             }
           }
-          // For cloze/editing sections: set x-boundaries around the question number (±1.5%)
+          // For cloze/editing sections: set x-boundaries around the question number (±4%)
           const qnX = ext.questionNumXPct;
           if (qnX != null && qnX > 0 && CLOZE_EDITING_TOPICS.has(ext.syllabusTopic ?? "")) {
-            fixed[i].xStartPct = Math.max(0, qnX - 1.5);
-            fixed[i].xEndPct = Math.min(100, qnX + 1.5);
+            fixed[i].xStartPct = Math.max(0, qnX - 4);
+            fixed[i].xEndPct = Math.min(100, qnX + 4);
           }
         }
       }
