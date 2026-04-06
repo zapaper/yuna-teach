@@ -454,8 +454,10 @@ async function extractExamPaperCore(
         : 0.05;
       const isSynthesis = syllabusTopic === "Synthesis & Transformation";
       const isCompOEQ = syllabusTopic === "Comprehension (Open-ended)";
+      // Grammar MCQ Q1 gets extra 5% bottom padding (first question often misdetected from preamble)
+      const isFirstGrammarMcq = syllabusTopic === "Grammar MCQ" && (qNum === "1" || qNum.endsWith("-1"));
       const botPadPct = isEnglish
-        ? (isEditing ? 0.03 : isEnglishMcq ? 0.03 : isGrammarCloze || isCompCloze ? 0.02 : isSynthesis || isCompOEQ ? 0.005 : 0)
+        ? (isFirstGrammarMcq ? 0.05 : isEditing ? 0.03 : isEnglishMcq ? 0.03 : isGrammarCloze || isCompCloze ? 0.02 : isSynthesis || isCompOEQ ? 0.005 : 0)
         : 0.02;
 
       // Get full answer for this question number
