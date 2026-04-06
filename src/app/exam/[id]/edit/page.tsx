@@ -13,6 +13,7 @@ import { ExamPaperDetail, ExamQuestionItem } from "@/types";
 import Image from "next/image";
 import { renderPdfToImages } from "@/lib/pdf";
 import AdminNav from "@/components/AdminNav";
+import EnglishEditView from "@/components/EnglishEditView";
 
 export default function ExamEditPage({
   params,
@@ -469,7 +470,21 @@ function ExamEditContent({ id }: { id: string }) {
         onFile={handlePdfLoad}
       />
 
-      {/* Question cards */}
+      {/* Question cards — English uses section-based view */}
+      {isEnglishPaper && paper.metadata?.sectionOcrTexts ? (
+        <div className="mt-5">
+          <EnglishEditView
+            paper={paper}
+            pageImages={pageImages}
+            onSave={async (questionId, data) => {
+              for (const [key, value] of Object.entries(data)) {
+                await saveQuestion(questionId, key as keyof ExamQuestionItem, value as string | number | null);
+              }
+            }}
+            saving={saving?.split(/(?<=^[a-z0-9]+)/i)[0] ?? null}
+          />
+        </div>
+      ) : (
       <div className="space-y-4 mt-5">
         {paper.questions.map((q) => (
           <QuestionEditCard
@@ -492,6 +507,7 @@ function ExamEditContent({ id }: { id: string }) {
           />
         ))}
       </div>
+      )}
 
       {/* Add question + Tag syllabus buttons */}
       <div className="flex gap-3 mt-4">
