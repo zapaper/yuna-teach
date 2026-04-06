@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
-    subject?: "math" | "science";
+    subject?: "math" | "science" | "english";
   };
 
   if (!userId || !quizType) {
@@ -47,13 +47,15 @@ export async function POST(request: NextRequest) {
   }
   // Sep-Dec: all types allowed including SA2, Prelim, End of Year etc.
 
+  const subjectFilter = subject === "science" ? "science" : subject === "english" ? "english" : "math";
+
   const questionWhere = (lf: string | null, examTypeFilter: string[] | null) => ({
     transcribedStem: { not: null as null },
     answer: { not: null as null },
     examPaper: {
       sourceExamId: null,
       paperType: null,
-      subject: { contains: subject === "science" ? "science" : "math", mode: "insensitive" as const },
+      subject: { contains: subjectFilter, mode: "insensitive" as const },
       ...(lf ? { level: lf } : {}),
       ...(examTypeFilter ? { examType: { in: examTypeFilter } } : {}),
     },
@@ -137,6 +139,103 @@ export async function POST(request: NextRequest) {
 
   const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
 
+  // ── ENGLISH QUIZ PATH ────────────────────────────────────────────────────
+  if (subject === "english") {
+    const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
+    const freshQs = allQuestions.filter(q => !usedSourceIds.has(q.id));
+    const usedQs = allQuestions.filter(q => usedSourceIds.has(q.id));
+    const allPool = [...freshQs, ...usedQs]; // prefer fresh, fall back to used
+
+    // Pool by syllabusTopic
+    const grammarMcqPool = shuffle(allPool.filter(q => q.syllabusTopic?.toLowerCase().includes("grammar") && q.syllabusTopic?.toLowerCase().includes("mcq") && isMcq(q.answer)));
+    const vocabMcqPool = shuffle(allPool.filter(q => q.syllabusTopic?.toLowerCase().includes("vocabulary") && q.syllabusTopic?.toLowerCase().includes("mcq") && !q.syllabusTopic?.toLowerCase().includes("cloze") && isMcq(q.answer)));
+
+    // Vocab Cloze MCQ: group by paper (all questions from same paper go together)
+    const vocabClozeAll = allPool.filter(q => q.syllabusTopic?.toLowerCase().includes("vocabulary") && q.syllabusTopic?.toLowerCase().includes("cloze") && isMcq(q.answer));
+    const vocabClozePapers = new Map<string, typeof allPool>();
+    for (const q of vocabClozeAll) {
+      const key = q.examPaperId;
+      if (!vocabClozePapers.has(key)) vocabClozePapers.set(key, []);
+      vocabClozePapers.get(key)!.push(q);
+    }
+    const vocabClozeSets = shuffle([...vocabClozePapers.values()]);
+
+    // Visual Text MCQ: group by paper
+    const visualTextAll = allPool.filter(q => q.syllabusTopic?.toLowerCase().includes("visual") && q.syllabusTopic?.toLowerCase().includes("text") && isMcq(q.answer));
+    const visualTextPapers = new Map<string, typeof allPool>();
+    for (const q of visualTextAll) {
+      const key = q.examPaperId;
+      if (!visualTextPapers.has(key)) visualTextPapers.set(key, []);
+      visualTextPapers.get(key)!.push(q);
+    }
+    const visualTextSets = shuffle([...visualTextPapers.values()]);
+
+    // Select: 3 Grammar MCQ + 3 Vocab MCQ + either 1 Vocab Cloze set or 1 Visual Text set
+    const selectedGrammar = grammarMcqPool.slice(0, 3);
+    const selectedVocab = vocabMcqPool.slice(0, 3);
+
+    // Randomly pick Vocab Cloze or Visual Text
+    const useVocabCloze = vocabClozeSets.length > 0 && (visualTextSets.length === 0 || Math.random() < 0.5);
+    const selectedSet = useVocabCloze
+      ? (vocabClozeSets[0] ?? [])
+      : (visualTextSets[0] ?? []);
+    const setLabel = useVocabCloze ? "Vocabulary Cloze MCQ" : "Visual Text MCQ";
+
+    const allSelected = [...selectedGrammar, ...selectedVocab, ...selectedSet];
+    if (allSelected.length === 0) {
+      return NextResponse.json({ error: "Not enough English questions available" }, { status: 404 });
+    }
+
+    const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
+    const levelLabel = levelFilter ? `P${student!.level} ` : "";
+
+    const paper = await prisma.examPaper.create({
+      data: {
+        title: `${levelLabel}Daily Quiz – English (MCQ: Grammar + Vocab + ${setLabel})`,
+        subject: "English Language",
+        level: levelFilter || null,
+        userId,
+        assignedToId: targetStudentId,
+        paperType: "quiz",
+        instantFeedback: true,
+        pageCount: 0,
+        extractionStatus: "ready",
+        totalMarks: String(totalMarks),
+        metadata: {
+          quizType: "mcq",
+          sourceLabels: Object.fromEntries(
+            allSelected.map((q, i) => {
+              const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);
+              return [String(i + 1), parts.length > 0 ? parts.join(" ") : null];
+            })
+          ),
+        },
+        questions: {
+          create: allSelected.map((q, i) => ({
+            questionNum: String(i + 1),
+            imageData: q.imageData,
+            answer: q.answer,
+            answerImageData: q.answerImageData,
+            marksAvailable: q.marksAvailable ?? 1,
+            syllabusTopic: q.syllabusTopic,
+            pageIndex: 0,
+            orderIndex: i,
+            transcribedStem: q.transcribedStem,
+            transcribedOptions: q.transcribedOptions ?? undefined,
+            transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+            transcribedSubparts: q.transcribedSubparts ?? undefined,
+            diagramImageData: q.diagramImageData,
+            diagramBounds: q.diagramBounds ?? undefined,
+            sourceQuestionId: q.id,
+          })),
+        },
+      },
+    });
+
+    return NextResponse.json({ id: paper.id, questionCount: allSelected.length });
+  }
+
+  // ── MATH / SCIENCE QUIZ PATH ───────────────────────────────────────────
   // Separate fresh (not yet seen) from used questions
   const freshQuestions = allQuestions.filter(q => !usedSourceIds.has(q.id));
   const usedQuestions  = allQuestions.filter(q =>  usedSourceIds.has(q.id));

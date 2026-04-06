@@ -93,7 +93,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizStudentId, setQuizStudentId] = useState(user.linkedStudents[0]?.id ?? "");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
-  const [quizSubject, setQuizSubject] = useState<"math" | "science">("math");
+  const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -532,10 +532,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         )}
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
         <div className="flex gap-2 mb-4">
-          {(["math", "science"] as const).map(s => (
+          {(["math", "science", "english"] as const).map(s => (
             <button key={s} onClick={() => setQuizSubject(s)}
               className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-              {s === "math" ? "Mathematics" : "Science"}
+              {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
             </button>
           ))}
         </div>
