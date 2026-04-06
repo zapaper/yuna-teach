@@ -184,8 +184,21 @@ function QuestionRow({
       </span>
 
       <div className="flex-1 min-w-0">
-        {/* Question image thumbnail */}
-        {q.imageData && (
+        {/* Clean extracted question text */}
+        {q.transcribedStem && (
+          <p className="text-sm text-slate-700 mb-1 whitespace-pre-wrap">{q.transcribedStem}</p>
+        )}
+        {q.transcribedOptions && q.transcribedOptions.length > 0 && (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 mb-2 ml-4">
+            {q.transcribedOptions.map((opt, i) => (
+              <span key={i} className="text-xs text-slate-600">
+                <span className="font-bold text-slate-400">({i + 1})</span> {opt}
+              </span>
+            ))}
+          </div>
+        )}
+        {/* Fallback: image if no text content */}
+        {!q.transcribedStem && q.imageData && (
           <img
             src={q.imageData}
             alt={`Q${q.questionNum}`}

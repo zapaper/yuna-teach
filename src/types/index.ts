@@ -153,4 +153,6 @@ export interface ExamQuestionItem {
   markingNotes: string | null;
   syllabusTopic: string | null;
   studentAnswer: string | null;
+  transcribedStem: string | null;
+  transcribedOptions: string[] | null;
 }

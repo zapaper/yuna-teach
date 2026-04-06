@@ -211,6 +211,8 @@ function ExamEditContent({ id }: { id: string }) {
       markingNotes: newQ.markingNotes as string | null,
       syllabusTopic: newQ.syllabusTopic as string | null ?? null,
       studentAnswer: newQ.studentAnswer as string | null ?? null,
+      transcribedStem: newQ.transcribedStem as string | null ?? null,
+      transcribedOptions: newQ.transcribedOptions as string[] | null ?? null,
     };
   }
 
