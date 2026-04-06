@@ -1882,16 +1882,15 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
           const ext = fixed[i] as { questionNumYPct?: number; questionNumXPct?: number; syllabusTopic?: string | null };
           const isClozeOrEditing = CLOZE_EDITING_TOPICS.has(ext.syllabusTopic ?? "");
 
-          // For MCQ: use questionNumYPct for yStartPct only, keep AI's yEndPct (natural bottom)
-          // For S&T/OEQ: use questionNumYPct for yStartPct AND set previous question's yEndPct = this questionNumYPct (tight)
-          // For cloze/editing: skip y-override (number is at the BOTTOM, AI already sets correct boundaries)
-          const isSynthOrOEQ = ext.syllabusTopic === "Synthesis & Transformation" || ext.syllabusTopic === "Comprehension (Open-ended)";
+          // For ALL non-cloze/editing: yStartPct = this question's questionNumYPct
+          // and previous question's yEndPct = this question's questionNumYPct
+          // Crop padding adds the visual bottom buffer
+          // For cloze/editing: skip y-override (number is at the BOTTOM)
           if (!isClozeOrEditing) {
             const qnY = ext.questionNumYPct;
             if (qnY != null && qnY > 0) {
               fixed[i].yStartPct = qnY;
-              // For S&T and OEQ: set previous question's yEndPct to this question's top
-              if (isSynthOrOEQ && i > 0) {
+              if (i > 0) {
                 const prevTopic = (fixed[i - 1] as { syllabusTopic?: string | null }).syllabusTopic ?? "";
                 if (!CLOZE_EDITING_TOPICS.has(prevTopic)) {
                   fixed[i - 1].yEndPct = qnY;
