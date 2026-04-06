@@ -415,10 +415,10 @@ async function extractExamPaperCore(
 
       const syllabusTopic = result.syllabusTopics?.[qNum] ?? null;
       const isEnglishMcq = isEnglish && ENGLISH_MCQ_TOPICS.has(syllabusTopic ?? "");
-      // English: zero padding — boundaries are already precise from questionNumYPct
+      // English: zero top padding (precise from questionNumYPct), small bottom padding for MCQ
       // Other subjects: standard padding
       const topPadPct = isEnglish ? 0 : 0.05;
-      const botPadPct = isEnglish ? 0 : 0.02;
+      const botPadPct = isEnglish ? (isEnglishMcq ? 0.01 : 0) : 0.02;
 
       // Get full answer for this question number
       const rawEntry = result.answers?.[qNum];

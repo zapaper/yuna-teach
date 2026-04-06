@@ -2422,13 +2422,68 @@ export async function analyzeExamBatch(
     console.log("[Exam Pipeline] WARNING: no answer pages detected — check structure analysis");
   }
 
-  const [bookletResults, answerResult] = await Promise.all([
-    // All booklet extractions run concurrently
-    Promise.all(bookletPageRanges.map(({ paper, pageIndices, firstQuestionNum }) => {
-      if (pageIndices.length === 0) return Promise.resolve({ pages: [] } as QuestionExtractionResult);
+  // For English: split booklets into per-section extractions (parallel within booklet)
+  // For other subjects: one extraction per booklet (as before)
+  const extractionTasks: Array<Promise<QuestionExtractionResult>> = [];
+
+  for (const { paper, pageIndices, firstQuestionNum } of bookletPageRanges) {
+    if (pageIndices.length === 0) {
+      extractionTasks.push(Promise.resolve({ pages: [] } as QuestionExtractionResult));
+      continue;
+    }
+
+    const isEnglishBooklet = detectedSubject.includes("english");
+    const hasSectionPages = paper.sections?.some((s) => (s as unknown as { startPage?: number }).startPage != null);
+
+    if (isEnglishBooklet && hasSectionPages && paper.sections.length > 1) {
+      // Split by section — each section gets its own parallel extraction
+      const sectionTasks: Array<Promise<QuestionExtractionResult>> = [];
+      for (let si = 0; si < paper.sections.length; si++) {
+        const sec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; questionRange?: string };
+        const nextSec = paper.sections[si + 1] as { startPage?: number } | undefined;
+        const secStartPage = sec.startPage ?? pageIndices[0];
+        const secEndPage = nextSec?.startPage != null ? nextSec.startPage - 1 : pageIndices[pageIndices.length - 1];
+
+        // Get pages for this section
+        const secPageIndices = pageIndices.filter(p => p >= secStartPage && p <= secEndPage);
+        if (secPageIndices.length === 0) continue;
+
+        // Determine first question number for this section
+        const rangeMatch = sec.questionRange?.match(/Q(\d+)/);
+        const secFirstQ = rangeMatch ? parseInt(rangeMatch[1]) : firstQuestionNum;
+
+        // Build a mini-paper for this section
+        const sectionPaper = {
+          ...paper,
+          label: `${paper.label} — ${sec.name || sec.type}`,
+          expectedQuestionCount: sec.questionCount,
+          firstQuestionPageIndex: secPageIndices[0],
+          sections: [sec],
+        };
+
+        const secImages = secPageIndices.map(idx => imagesBase64[idx]);
+        console.log(`[Exam Pipeline] English section "${sec.name || sec.type}": pages [${secPageIndices.map(p => p + 1).join(", ")}], Q${secFirstQ}-Q${secFirstQ + sec.questionCount - 1}`);
+        sectionTasks.push(
+          extractQuestionsForBooklet(secImages, secPageIndices, sectionPaper, secFirstQ, structure.header.subject)
+        );
+      }
+      // All sections within this booklet run in parallel
+      extractionTasks.push(
+        Promise.all(sectionTasks).then(results => ({
+          pages: results.flatMap(r => r.pages),
+        }))
+      );
+    } else {
+      // Non-English or single-section: one extraction per booklet
       const images = pageIndices.map(idx => imagesBase64[idx]);
-      return extractQuestionsForBooklet(images, pageIndices, paper, firstQuestionNum, structure.header.subject);
-    })),
+      extractionTasks.push(
+        extractQuestionsForBooklet(images, pageIndices, paper, firstQuestionNum, structure.header.subject)
+      );
+    }
+  }
+
+  const [bookletResults, answerResult] = await Promise.all([
+    Promise.all(extractionTasks),
     // Answer extraction runs concurrently with all booklet extractions
     answerImages.length > 0
       ? extractAnswersWithWorking(answerImages, answerPageIndices, structure)
