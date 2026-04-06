@@ -1939,7 +1939,10 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
             const qnY = ext.questionNumYPct;
             if (qnY != null && qnY > 0) {
               fixed[i].yStartPct = qnY;
-              if (i > 0) {
+              // Only cascade yEndPct for S&T and OEQ (tight boundaries needed)
+              // MCQ keeps its own yEndPct (AI's original) — cascading causes upward drift
+              const isSynthOrOEQ = ext.syllabusTopic === "Synthesis & Transformation" || ext.syllabusTopic === "Comprehension (Open-ended)";
+              if (isSynthOrOEQ && i > 0) {
                 const prevTopic = (fixed[i - 1] as { syllabusTopic?: string | null }).syllabusTopic ?? "";
                 if (!CLOZE_EDITING_TOPICS.has(prevTopic)) {
                   fixed[i - 1].yEndPct = qnY;
@@ -2551,9 +2554,13 @@ export async function analyzeExamBatch(
           const prefix = paper.questionPrefix;
           const secLabel = sec.name || sec.type;
 
-          // Step 1: Extract FIRST question only (1 question expected, first page only)
-          const firstPageImages = [secImages[0]];
-          const firstPageIndices = [secPageIndices[0]];
+          // Step 1: Extract FIRST question only (1 question expected, startPage only)
+          // Use the structure analysis startPage directly, not secPageIndices[0] which might differ
+          const startPageIdx = sec.startPage ?? secPageIndices[0];
+          const startPageImgIdx = secPageIndices.indexOf(startPageIdx);
+          const firstPageImages = [startPageImgIdx >= 0 ? secImages[startPageImgIdx] : secImages[0]];
+          const firstPageIndices = [startPageImgIdx >= 0 ? startPageIdx : secPageIndices[0]];
+          console.log(`[Exam Pipeline] ${secLabel} step 1: looking for Q${secFirstQ} on page ${firstPageIndices[0] + 1}`);
           const firstQPaper = {
             ...sectionPaper,
             label: `${sectionPaper.label} (Q${secFirstQ} only)`,
