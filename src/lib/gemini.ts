@@ -1275,6 +1275,7 @@ The "left margin only" rule does NOT apply to Cloze and Editing sections.
 - Passage with UNDERLINED words + small numbered BOXES beside them
 - yStartPct = ~3% above box. yEndPct = ~3% below box. marksAvailable: 1 per box.
 - Boxes (not blanks) = Editing. Appears BETWEEN Grammar Cloze and Comprehension Cloze.
+- Editing questions can span across pages. If the last question on a page is found, check the NEXT PAGE for more numbered boxes. The next question may be just a few rows down on the next page.
 
 ### SYNTHESIS & TRANSFORMATION + COMPREHENSION OEQ:
 - Question number at left margin, standard extraction
