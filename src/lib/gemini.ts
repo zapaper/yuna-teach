@@ -1033,6 +1033,12 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 ### Other rules:
 - Skip page headers and footers in crops (but still extract questions below them)
 
+### Question number position (CRITICAL for English MCQ):
+- For EACH question, also output "questionNumYPct" — the EXACT vertical position (%) of the TOP of the question number text (e.g. the top of "11." on the page). This is the precise pixel line where the question number begins.
+- This value is used to compute consistent crop boundaries. Be as precise as possible — measure to 0.5% accuracy.
+- yStartPct should be slightly ABOVE questionNumYPct (about 0.5-1% above for padding)
+- For the PREVIOUS question on the same page, its yEndPct should equal this question's questionNumYPct (contiguous, no gap)
+
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
 {
@@ -1040,8 +1046,8 @@ Return ONLY valid JSON:
     {
       "pageIndex": 2,
       "questions": [
-        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
-        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3, "isContinuation": false, "subParts": "abc"}
+        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "questionNumYPct": 12.5, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
+        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "questionNumYPct": 35.5, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3, "isContinuation": false, "subParts": "abc"}
       ]
     }
   ]
@@ -1960,6 +1966,19 @@ function normalizeExtractionResult(result: QuestionExtractionResult): QuestionEx
         if (end <= start) end = Math.min(100, start + 5); // ensure positive height
         return { ...q, yStartPct: start, yEndPct: end };
       }).sort((a, b) => a.yStartPct - b.yStartPct);
+
+      // Use questionNumYPct for consistent boundaries:
+      // Each question's yStartPct = its questionNumYPct - small padding
+      // Previous question's yEndPct = this question's questionNumYPct
+      for (let i = 0; i < fixed.length; i++) {
+        const qnY = (fixed[i] as { questionNumYPct?: number }).questionNumYPct;
+        if (qnY != null && qnY > 0) {
+          fixed[i].yStartPct = Math.max(0, qnY - 0.5);
+          if (i > 0) {
+            fixed[i - 1].yEndPct = qnY;
+          }
+        }
+      }
 
       return { pageIndex, questions: fixed };
     });
