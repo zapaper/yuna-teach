@@ -1257,10 +1257,18 @@ const ENGLISH_CLOZE_ADDENDUM = `
 
 ## ENGLISH PAPER — Booklet B sections
 
+⚠ IMPORTANT: Booklet B uses DIFFERENT question number formats than Booklet A MCQ.
+The "left margin only" rule does NOT apply to Cloze and Editing sections.
+
 ### CLOZE (Grammar Cloze + Comprehension Cloze):
-- Passage with blank lines (___). Question number in parentheses BELOW the blank, e.g. "(31)"
-- yStartPct = bottom of blank line above the number. yEndPct = midpoint of the parenthesised number
-- Use the PRINTED number (continuous with MCQ). Do NOT renumber.
+- This is a PASSAGE with blank lines (___) embedded in sentences
+- The question number is in PARENTHESES, printed BELOW or BESIDE the blank, e.g. "(29)", "(30)", "(31)"
+- These numbers are NOT at the left margin — they are EMBEDDED IN THE PASSAGE TEXT
+- The passage is all alphabetic text. The parenthesised numbers are the ONLY digits on the page — they stand out clearly
+- To find the FIRST cloze question: scan the passage for the FIRST parenthesised number (e.g. "(29)"). That IS the first question number. There is nothing else numeric to confuse it with.
+- yStartPct = bottom of the blank line ABOVE the parenthesised number
+- yEndPct = midpoint of the parenthesised number text
+- Use the PRINTED number exactly (continuous with MCQ). Do NOT renumber.
 - Grammar Cloze is typically ONE PAGE. Comprehension Cloze appears AFTER Editing.
 
 ### EDITING (Spelling & Grammar):
@@ -1918,12 +1926,15 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
             }
           }
 
-          // For cloze/editing sections: set x-boundaries around the question number (±6%)
+          // For cloze/editing sections: set x-boundaries around the question number
           if (isClozeOrEditing) {
             const qnX = ext.questionNumXPct;
+            const isEditingSec = ext.syllabusTopic === "Editing (Spelling & Grammar)";
             if (qnX != null && qnX > 0) {
-              fixed[i].xStartPct = Math.max(0, qnX - 6);
-              fixed[i].xEndPct = Math.min(100, qnX + 6);
+              // Editing: -3% left, +12% right (capture the answer box which is to the right)
+              // Cloze: ±6% (blank is centered around the number)
+              fixed[i].xStartPct = Math.max(0, qnX - (isEditingSec ? 3 : 6));
+              fixed[i].xEndPct = Math.min(100, qnX + (isEditingSec ? 12 : 6));
             }
           }
         }
@@ -1954,13 +1965,22 @@ function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionN
   if (subject.toLowerCase().includes("english")) {
     lines.push("");
     lines.push("CRITICAL: You MUST extract EVERY question from Q" + firstQuestionNum + " to Q" + (firstQuestionNum + paper.expectedQuestionCount - 1) + " in sequence.");
-    lines.push("Do NOT skip questions. If you cannot find a question number, look more carefully at the page — English MCQ questions are very tightly spaced.");
-    lines.push("Process page by page, top to bottom. On each page, scan the LEFT MARGIN for bare integers (question numbers). Extract ALL of them before moving to the next page.");
-    // Vocab Cloze MCQ guidance
-    const hasVocabCloze = paper.sections.some(s => s.name?.includes("Vocab") && s.name?.includes("Cloze"));
-    if (hasVocabCloze) {
+    lines.push("Do NOT skip questions.");
+
+    // Section-specific guidance
+    const secName = paper.sections[0]?.name?.toLowerCase() ?? "";
+    if (secName.includes("grammar cloze") || secName.includes("comprehension cloze")) {
       lines.push("");
-      lines.push("VOCAB CLOZE MCQ: The first page has a PASSAGE in the top half (~50% of page). The first question (Q" + firstQuestionNum + ") starts in the LOWER HALF of the page, around 40-60% from the top. Scan from the middle of the page downward.");
+      lines.push("This is a CLOZE section. Question numbers are in PARENTHESES embedded in the passage text (e.g. \"(29)\"), NOT at the left margin.");
+      lines.push("Scan the passage for the first parenthesised number — that is Q" + firstQuestionNum + ". The passage is all text, so the numbers stand out as the only digits.");
+    } else if (secName.includes("editing")) {
+      lines.push("");
+      lines.push("This is an EDITING section. Question numbers are printed BESIDE or INSIDE small boxes, NOT at the left margin.");
+    } else if (secName.includes("vocab") && secName.includes("cloze")) {
+      lines.push("");
+      lines.push("VOCAB CLOZE MCQ: The first page has a PASSAGE in the top half (~50% of page). Q" + firstQuestionNum + " starts in the LOWER HALF. Scan from the middle downward for question numbers at the LEFT MARGIN.");
+    } else {
+      lines.push("Process page by page, top to bottom. On each page, scan the LEFT MARGIN for bare integers (question numbers).");
     }
   }
   return lines.join("\n");
