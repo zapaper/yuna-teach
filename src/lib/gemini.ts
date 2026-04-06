@@ -2498,25 +2498,103 @@ export async function analyzeExamBatch(
         const secImages = secPageIndices.map(idx => imagesBase64[idx]);
         const secLastQ = secFirstQ + sec.questionCount - 1;
         console.log(`[Exam Pipeline] English section "${sec.name || sec.type}": pages [${secPageIndices.map(p => p + 1).join(", ")}], Q${secFirstQ}-Q${secLastQ}`);
-        sectionTasks.push(
-          extractQuestionsForBooklet(secImages, secPageIndices, sectionPaper, secFirstQ, structure.header.subject)
-            .then(result => {
-              // Trim questions outside the expected range for this section
-              const prefix = paper.questionPrefix;
-              for (const page of result.pages) {
-                page.questions = page.questions.filter(q => {
-                  const n = parseInt(q.questionNum.replace(prefix, ""), 10);
-                  if (isNaN(n)) return true;
-                  if (n < secFirstQ || n > secLastQ) {
-                    console.log(`[Exam Pipeline] Trimmed Q${q.questionNum} from "${sec.name || sec.type}" (outside range Q${secFirstQ}-Q${secLastQ})`);
-                    return false;
-                  }
-                  return true;
-                });
+
+        // 2-step extraction: first question alone (anchor), then remaining questions
+        sectionTasks.push((async () => {
+          const prefix = paper.questionPrefix;
+          const secLabel = sec.name || sec.type;
+
+          // Step 1: Extract FIRST question only (1 question expected, first page only)
+          const firstPageImages = [secImages[0]];
+          const firstPageIndices = [secPageIndices[0]];
+          const firstQPaper = {
+            ...sectionPaper,
+            label: `${sectionPaper.label} (Q${secFirstQ} only)`,
+            expectedQuestionCount: 1,
+          };
+          const firstResult = await extractQuestionsForBooklet(
+            firstPageImages, firstPageIndices, firstQPaper, secFirstQ, structure.header.subject
+          );
+
+          // Find the first question's position
+          let firstQYPct: number | null = null;
+          for (const page of firstResult.pages) {
+            for (const q of page.questions) {
+              const n = parseInt(q.questionNum.replace(prefix, ""), 10);
+              if (n === secFirstQ) {
+                firstQYPct = (q as unknown as { questionNumYPct?: number }).questionNumYPct ?? q.yStartPct;
+                break;
               }
-              return result;
-            })
-        );
+            }
+            if (firstQYPct != null) break;
+          }
+
+          if (firstQYPct != null) {
+            console.log(`[Exam Pipeline] ${secLabel} Q${secFirstQ} anchored at Y=${firstQYPct.toFixed(1)}%`);
+          } else {
+            console.log(`[Exam Pipeline] ${secLabel} Q${secFirstQ} NOT FOUND in step 1 — proceeding with full extraction`);
+          }
+
+          // Step 2: Extract remaining questions (all pages)
+          let restResult: QuestionExtractionResult = { pages: [] };
+          if (sec.questionCount > 1) {
+            const restPaper = {
+              ...sectionPaper,
+              label: `${sectionPaper.label} (Q${secFirstQ + 1}-Q${secLastQ})`,
+              expectedQuestionCount: sec.questionCount - 1,
+            };
+            restResult = await extractQuestionsForBooklet(
+              secImages, secPageIndices, restPaper, secFirstQ + 1, structure.header.subject
+            );
+          }
+
+          // Merge: first question + rest
+          const merged: QuestionExtractionResult = { pages: [] };
+          const pageMap = new Map<number, QuestionExtractionResult["pages"][0]["questions"]>();
+
+          for (const r of [firstResult, restResult]) {
+            for (const page of r.pages) {
+              const existing = pageMap.get(page.pageIndex);
+              if (existing) {
+                existing.push(...page.questions);
+              } else {
+                pageMap.set(page.pageIndex, [...page.questions]);
+              }
+            }
+          }
+
+          merged.pages = [...pageMap.entries()]
+            .sort(([a], [b]) => a - b)
+            .map(([pageIndex, questions]) => ({
+              pageIndex,
+              questions: questions.sort((a, b) => a.yStartPct - b.yStartPct),
+            }));
+
+          // Trim questions outside expected range
+          for (const page of merged.pages) {
+            page.questions = page.questions.filter(q => {
+              const n = parseInt(q.questionNum.replace(prefix, ""), 10);
+              if (isNaN(n)) return true;
+              if (n < secFirstQ || n > secLastQ) {
+                console.log(`[Exam Pipeline] Trimmed Q${q.questionNum} from "${secLabel}" (outside range Q${secFirstQ}-Q${secLastQ})`);
+                return false;
+              }
+              return true;
+            });
+          }
+
+          // Deduplicate: if both calls returned the same question, keep the one from step 1
+          const seen = new Set<string>();
+          for (const page of merged.pages) {
+            page.questions = page.questions.filter(q => {
+              if (seen.has(q.questionNum)) return false;
+              seen.add(q.questionNum);
+              return true;
+            });
+          }
+
+          return merged;
+        })());
       }
       // All sections within this booklet run in parallel
       extractionTasks.push(
