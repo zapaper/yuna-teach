@@ -68,7 +68,28 @@ export default function EnglishEditView({ paper, pageImages, onSave, saving }: P
 
             {isExpanded && (
               <div className="border-t border-slate-100">
-                {/* Page images for this section */}
+                {/* Passage page images (Comprehension OEQ) */}
+                {ocrData?.passagePageIndices && ocrData.passagePageIndices.length > 0 && (
+                  <div className="p-4 bg-amber-50 border-b border-amber-100">
+                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-3">
+                      Reading Passage (Page {ocrData.passagePageIndices.map(i => i + 1).join(", ")})
+                    </p>
+                    <div className="flex gap-3 overflow-x-auto pb-2">
+                      {ocrData.passagePageIndices.map(pageIdx => (
+                        pageImages[pageIdx] && (
+                          <img
+                            key={`passage-${pageIdx}`}
+                            src={pageImages[pageIdx]}
+                            alt={`Passage Page ${pageIdx + 1}`}
+                            className="h-80 rounded-lg border border-amber-200 shadow-sm shrink-0"
+                          />
+                        )
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Section page images */}
                 {sectionPageIndices.length > 0 && (
                   <div className="p-4 bg-slate-50 border-b border-slate-100">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">
@@ -116,9 +137,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, saving }: P
                         className="w-full text-xs font-mono bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:border-blue-400 resize-y"
                       />
                     ) : (
-                      <pre className="text-xs font-mono text-slate-600 bg-white border border-slate-100 rounded-xl p-3 max-h-48 overflow-y-auto whitespace-pre-wrap">
-                        {ocrData.ocrText}
-                      </pre>
+                      <OcrRichText text={ocrData.ocrText} />
                     )}
                   </div>
                 )}
@@ -261,4 +280,102 @@ function QuestionRow({
       )}
     </div>
   );
+}
+
+/** Renders OCR text with rich formatting: markdown tables, bold, error tags, underlines */
+function OcrRichText({ text }: { text: string }) {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Markdown table detection: line with | separators
+    if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        tableLines.push(lines[i]);
+        i++;
+      }
+      // Parse table
+      const rows = tableLines
+        .filter(l => !l.match(/^\s*\|[\s-|]+\|\s*$/)) // skip separator rows
+        .map(l => l.split("|").slice(1, -1).map(c => c.trim()));
+
+      if (rows.length > 0) {
+        elements.push(
+          <table key={`table-${i}`} className="border-collapse border border-slate-300 text-xs my-2 w-full">
+            <tbody>
+              {rows.map((row, ri) => (
+                <tr key={ri} className={ri === 0 ? "bg-slate-100 font-bold" : ""}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} className="border border-slate-200 px-2 py-1 text-center">{cell}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        );
+      }
+      continue;
+    }
+
+    // Regular line — render with inline formatting
+    elements.push(<RichLine key={`line-${i}`} text={line} />);
+    i++;
+  }
+
+  return (
+    <div className="text-sm text-slate-700 bg-white border border-slate-100 rounded-xl p-3 max-h-96 overflow-y-auto">
+      {elements}
+    </div>
+  );
+}
+
+/** Renders a single line with bold, error tags, underlines */
+function RichLine({ text }: { text: string }) {
+  if (!text.trim()) return <br />;
+
+  // Parse inline formatting: **bold**, [error:N]word[/error], [underline]word[/underline], ___(N)
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\))/g;
+  let lastIdx = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIdx) {
+      parts.push(text.slice(lastIdx, match.index));
+    }
+    const m = match[0];
+    if (m.startsWith("**") && m.endsWith("**")) {
+      parts.push(<strong key={match.index} className="font-bold text-slate-800">{m.slice(2, -2)}</strong>);
+    } else if (m.startsWith("[error:")) {
+      const numMatch = m.match(/\[error:(\d+)\]/);
+      const word = m.replace(/\[error:\d+\]/, "").replace("[/error]", "");
+      parts.push(
+        <span key={match.index} className="inline-flex items-center gap-1">
+          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">Q{numMatch?.[1]}</span>
+          <span className="underline decoration-red-400 decoration-2 font-medium text-red-700">{word}</span>
+        </span>
+      );
+    } else if (m.startsWith("[underline]")) {
+      const word = m.replace("[underline]", "").replace("[/underline]", "");
+      parts.push(<span key={match.index} className="underline decoration-2">{word}</span>);
+    } else if (m.match(/___\(\d+\)/)) {
+      const num = m.match(/\((\d+)\)/)?.[1];
+      parts.push(
+        <span key={match.index} className="inline-flex items-center gap-0.5">
+          <span className="border-b-2 border-slate-400 w-16 inline-block" />
+          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({num})</span>
+        </span>
+      );
+    }
+    lastIdx = match.index + m.length;
+  }
+  if (lastIdx < text.length) {
+    parts.push(text.slice(lastIdx));
+  }
+
+  return <p className="leading-relaxed">{parts}</p>;
 }

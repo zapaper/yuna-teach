@@ -297,7 +297,104 @@ async function extractExamPaperCore(
         .map(p => p.label)
     );
 
-    // 4. Collect all question segments (including multi-page continuations)
+    // 4. For English text-based extraction: skip image cropping entirely
+    const detectedSubjectEarly = (result.header?.subject || paper.subject || "").toLowerCase();
+    const isEnglishEarly = detectedSubjectEarly.includes("english");
+    const hasTextExtraction = isEnglishEarly && result.pages.some(p =>
+      p.questions.some(q => (q as { _stem?: string })._stem || (q as { _options?: string[] })._options)
+    );
+
+    if (hasTextExtraction) {
+      console.log(`[extraction] English text-based: building questions from OCR text (no image crops)`);
+      const questions: Array<{
+        questionNum: string; imageData: string; answer: string; answerImageData: string;
+        pageIndex: number; orderIndex: number; yStartPct: number | null; yEndPct: number | null;
+        marksAvailable: number | null; syllabusTopic: string | null;
+        transcribedStem?: string; transcribedOptions?: string[];
+      }> = [];
+
+      for (const page of result.pages) {
+        if (page.isAnswerSheet) continue;
+        for (const q of page.questions) {
+          const ext = q as { _stem?: string; _options?: string[]; _blankContext?: string; _errorWord?: string };
+          const qNum = q.questionNum;
+          // Get answer from answer extraction
+          const rawEntry = result.answers?.[qNum];
+          let answer = "";
+          if (rawEntry) {
+            const entry = normalizeAnswer(rawEntry);
+            answer = entry.type === "text" ? entry.value : (entry.value || "");
+          }
+
+          questions.push({
+            questionNum: qNum,
+            imageData: "", // No image for text-based questions
+            answer,
+            answerImageData: "",
+            pageIndex: page.pageIndex,
+            orderIndex: questions.length,
+            yStartPct: q.yStartPct ?? null,
+            yEndPct: q.yEndPct ?? null,
+            marksAvailable: q.marksAvailable ?? result.marksPerQuestion?.[qNum] ?? null,
+            syllabusTopic: q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? null,
+            transcribedStem: ext._stem || ext._blankContext || ext._errorWord || undefined,
+            transcribedOptions: ext._options || undefined,
+          });
+        }
+      }
+
+      // Save
+      const debugMetadata = result._debug ? (() => { const { rawResponses: _ignored, ...rest } = result._debug!; return rest; })() : null;
+      const sectionOcrTexts = result.sectionOcrTexts ?? null;
+      const vocabClozePassageImage: string | null = null; // TODO: extract if needed
+
+      await prisma.$transaction([
+        prisma.examQuestion.deleteMany({ where: { examPaperId: paperId } }),
+        ...questions.map((q, i) =>
+          prisma.examQuestion.create({
+            data: {
+              questionNum: q.questionNum,
+              imageData: q.imageData,
+              answer: q.answer || null,
+              answerImageData: q.answerImageData || null,
+              pageIndex: q.pageIndex,
+              orderIndex: i,
+              yStartPct: q.yStartPct,
+              yEndPct: q.yEndPct,
+              marksAvailable: q.marksAvailable,
+              syllabusTopic: q.syllabusTopic,
+              examPaperId: paperId,
+              transcribedStem: q.transcribedStem ?? null,
+              transcribedOptions: q.transcribedOptions ?? undefined,
+            },
+          })
+        ),
+        prisma.examPaper.update({
+          where: { id: paperId },
+          data: {
+            title: result.header?.title || paper.title,
+            school: result.header?.school || paper.school,
+            level: normalizeLevel(result.header?.level) || paper.level,
+            subject: normalizeSubject(result.header?.subject) || paper.subject,
+            year: result.header?.year != null ? String(result.header.year) : paper.year,
+            semester: result.header?.semester != null ? String(result.header.semester) : paper.semester,
+            totalMarks: result.header?.totalMarks != null ? String(result.header.totalMarks) : paper.totalMarks,
+            examType: result.header?.examType || paper.examType,
+            metadata: {
+              ...(debugMetadata as object ?? {}),
+              ...(sectionOcrTexts ? { sectionOcrTexts } : {}),
+              ...(vocabClozePassageImage ? { vocabClozePassageImage } : {}),
+            },
+            extractionStatus: "ready",
+          },
+        }),
+      ]);
+
+      console.log(`[extraction] English text-based: ${questions.length} questions saved.`);
+      return;
+    }
+
+    // 4. Collect all question segments (including multi-page continuations) — image-based path
     type QuestionSegment = {
       questionNum: string;
       pageIndex: number;
@@ -307,6 +404,10 @@ async function extractExamPaperCore(
       xEndPct?: number;
       isContinuation: boolean;
       subParts: string;
+      _stem?: string;
+      _options?: string[];
+      _blankContext?: string;
+      _errorWord?: string;
     };
 
     const allSegments: QuestionSegment[] = [];
@@ -342,6 +443,11 @@ async function extractExamPaperCore(
           xEndPct: (q as { xEndPct?: number }).xEndPct,
           isContinuation: isCont,
           subParts,
+          // English text content from OCR extraction
+          _stem: (q as { _stem?: string })._stem,
+          _options: (q as { _options?: string[] })._options,
+          _blankContext: (q as { _blankContext?: string })._blankContext,
+          _errorWord: (q as { _errorWord?: string })._errorWord,
         });
 
         lastCroppedQuestion = {

@@ -905,23 +905,24 @@ For English papers, identify the specific section type for each section in the s
 4. **Synthesis & Transformation** — rewrite sentences. Type: "synthesis"
 5. **Comprehension OEQ** — open-ended questions on a passage. Type: "comprehension-oeq"
 
-Use these type values in the sections array for English papers. ALSO include "startPage" and "questionRange" for each section:
-- "startPage" = 0-based page index where this section's first QUESTION NUMBER appears (NOT where a passage or visual text starts — the page with the actual question numbers)
+Use these type values in the sections array for English papers. ALSO include "startPage", "endPage", and "questionRange" for each section:
+- "startPage" = 0-based page index where this section's first QUESTION NUMBER appears
+- "endPage" = 0-based page index of the LAST page containing questions for this section
 - "questionRange" = e.g. "Q1-10"
 
 Booklet A examples:
-  {"name": "Grammar MCQ", "type": "MCQ", "questionCount": 10, "marksPerQuestion": 1, "startPage": 1, "questionRange": "Q1-10"}
-  {"name": "Vocabulary Cloze MCQ", "type": "MCQ", "questionCount": 5, "marksPerQuestion": 1, "startPage": 4, "questionRange": "Q16-20"}
-  {"name": "Visual Text Comprehension MCQ", "type": "MCQ", "questionCount": 8, "marksPerQuestion": 1, "startPage": 7, "questionRange": "Q21-28", "visualPages": [5, 6]}
+  {"name": "Grammar MCQ", "type": "MCQ", "questionCount": 10, "marksPerQuestion": 1, "startPage": 1, "endPage": 3, "questionRange": "Q1-10"}
+  {"name": "Vocabulary Cloze MCQ", "type": "MCQ", "questionCount": 5, "marksPerQuestion": 1, "startPage": 4, "endPage": 5, "questionRange": "Q16-20"}
+  {"name": "Visual Text Comprehension MCQ", "type": "MCQ", "questionCount": 8, "marksPerQuestion": 1, "startPage": 7, "endPage": 8, "questionRange": "Q21-28", "visualPages": [5, 6]}
 
 Booklet B examples:
-  {"name": "Grammar Cloze", "type": "grammar-cloze", "questionCount": 10, "marksPerQuestion": 1, "startPage": 10, "questionRange": "Q29-38"}
-  {"name": "Editing", "type": "editing", "questionCount": 12, "marksPerQuestion": 1, "startPage": 11, "questionRange": "Q39-50"}
-  {"name": "Comprehension Cloze", "type": "comprehension-cloze", "questionCount": 8, "marksPerQuestion": 1, "startPage": 13, "questionRange": "Q51-58"}
-  {"name": "Synthesis & Transformation", "type": "synthesis", "questionCount": 5, "marksPerQuestion": 2, "startPage": 14, "questionRange": "Q59-63"}
-  {"name": "Comprehension OEQ", "type": "comprehension-oeq", "questionCount": 8, "marksPerQuestion": null, "startPage": 16, "questionRange": "Q64-71"}
+  {"name": "Grammar Cloze", "type": "grammar-cloze", "questionCount": 10, "marksPerQuestion": 1, "startPage": 10, "endPage": 11, "questionRange": "Q29-38"}
+  {"name": "Editing", "type": "editing", "questionCount": 12, "marksPerQuestion": 1, "startPage": 12, "endPage": 13, "questionRange": "Q39-50"}
+  {"name": "Comprehension Cloze", "type": "comprehension-cloze", "questionCount": 8, "marksPerQuestion": 1, "startPage": 14, "endPage": 15, "questionRange": "Q51-58"}
+  {"name": "Synthesis & Transformation", "type": "synthesis", "questionCount": 5, "marksPerQuestion": 2, "startPage": 16, "endPage": 17, "questionRange": "Q59-63"}
+  {"name": "Comprehension OEQ", "type": "comprehension-oeq", "questionCount": 8, "marksPerQuestion": null, "startPage": 18, "endPage": 20, "questionRange": "Q64-71"}
 
-IMPORTANT: "startPage" must be the page with the first QUESTION NUMBER for that section, not a passage page or visual text page. Include "startPage" and "questionRange" for ALL sections in BOTH Booklet A and Booklet B.
+IMPORTANT: "startPage" = page with first question number. "endPage" = last page with questions for this section. Include "startPage", "endPage", and "questionRange" for ALL sections in BOTH Booklet A and Booklet B.
 For Visual Text Comprehension, also include "visualPages" — the 0-based page indices of the visual text/poster pages that appear BEFORE the questions.
 
 #### Non-gradable sections:
@@ -2363,7 +2364,7 @@ export interface BatchAnalysisResult {
   answers: Record<string, AnswerEntry>;
   marksPerQuestion?: Record<string, number | null>;
   syllabusTopics?: Record<string, string | null>;
-  sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[] }>;
+  sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[]; passagePageIndices?: number[] }>;
   _debug?: {
     papers: Array<{
       label: string;
@@ -2520,14 +2521,14 @@ export async function analyzeExamBatch(
       // Split by section — each section gets its own parallel extraction
       const sectionTasks: Array<Promise<QuestionExtractionResult>> = [];
       for (let si = 0; si < paper.sections.length; si++) {
-        const sec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; questionRange?: string };
+        const sec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; endPage?: number; questionRange?: string };
         const nextSec = paper.sections[si + 1] as { startPage?: number } | undefined;
-        // Use the AI guidance's startPage directly — it should point to where questions begin
+        // Use the AI guidance's startPage/endPage directly
         const secStartPage = sec.startPage ?? pageIndices[0];
-        // End page: one before the next section's startPage, or end of booklet
-        const secEndPage = nextSec?.startPage != null
+        // Prefer endPage from structure analysis, fall back to next section's startPage - 1
+        const secEndPage = sec.endPage ?? (nextSec?.startPage != null
           ? (nextSec as { startPage: number }).startPage - 1
-          : pageIndices[pageIndices.length - 1];
+          : pageIndices[pageIndices.length - 1]);
 
         // Get pages for this section
         const secPageIndices = pageIndices.filter(p => p >= secStartPage && p <= secEndPage);
@@ -2584,21 +2585,16 @@ export async function analyzeExamBatch(
             }
           }
 
-          console.log(`[Exam Pipeline] ${secLabel}: OCR step — extracting text from ${secImages.length} page(s)${isCompOEQSec && passagePagesForOEQ.length > 0 ? ` + ${passagePagesForOEQ.length} passage page(s)` : ""}`);
-          const ocrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
-
-          // Include passage pages first for Comprehension OEQ
+          // For Comprehension OEQ: passage pages are shown as scanned images (not OCR'd)
+          // Store passage page indices in the section OCR data for the edit view
           if (isCompOEQSec && passagePagesForOEQ.length > 0) {
-            ocrParts.push({ text: "=== READING PASSAGE ===" });
-            for (const pIdx of passagePagesForOEQ) {
-              if (imagesBase64[pIdx]) {
-                ocrParts.push({ inlineData: { mimeType: "image/jpeg" as const, data: imagesBase64[pIdx] } });
-                ocrParts.push({ text: `[Passage Page ${pIdx}]` });
-              }
-            }
-            ocrParts.push({ text: "=== END OF PASSAGE ===" });
+            console.log(`[Exam Pipeline] ${secLabel}: passage pages (scanned, not OCR'd): [${passagePagesForOEQ.map(p => p + 1).join(", ")}]`);
           }
 
+          console.log(`[Exam Pipeline] ${secLabel}: OCR step — extracting text from ${secImages.length} page(s) (questions only)`);
+          const ocrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+
+          // OCR only the question pages — NOT the passage pages
           for (let pi = 0; pi < secImages.length; pi++) {
             ocrParts.push({ inlineData: { mimeType: "image/jpeg" as const, data: secImages[pi] } });
             ocrParts.push({ text: `[Page ${secPageIndices[pi]}]` });
@@ -2611,21 +2607,27 @@ export async function analyzeExamBatch(
 - Indicate page breaks with "--- Page N ---"
 - For each line, preserve indentation (question numbers at left margin, options indented)
 - For CLOZE sections:
-  * If there is a WORD BANK (options labeled A through Q), extract it as a table at the top:
-    "WORD BANK:\\n(A) word1  (B) word2  (C) word3 ...\\n(D) word4  (E) word5 ..."
-    Note: letters I and O are typically skipped in the word bank.
-  * The blank "___" and its question number "(29)" or "(51)" MUST be on the SAME line, not separate lines.
-    Write it as: "... word ___(29) word ..." or "... word ___(51) word ..."
-    The question number is always RIGHT AFTER the blank, on the same line.
+  * If there is a WORD BANK (options labeled A through Q), extract it as a markdown table at the TOP of the output:
+    | A | B | C | D | E |
+    |---|---|---|---|---|
+    | word1 | word2 | word3 | word4 | word5 |
+    | F | G | H | J | K |
+    | word6 | word7 | word8 | word9 | word10 |
+    Note: letters I and O are typically skipped. Use 5 columns per row.
+  * The blank and its question number MUST be on the SAME line and BOLDED:
+    Write as: "... word **___(29)** word ..." or "... word **___(51)** word ..."
+    Bold the entire blank+number as one unit. The question number is always RIGHT AFTER the blank.
 - For EDITING sections: each question has an UNDERLINED error word in the passage with a numbered answer box nearby.
-  Tag each error word with its question number like this: [error:39]beleive[/error] ___
-  The [error:N] tag links the underlined word to question number N. The ___ is the answer box where the student writes the correction.
-  Make sure EVERY underlined word is tagged with its corresponding question number.
+  Bold the error word and tag with its question number: **(39) beleive** ___
+  The bold number + word links the underlined word to question N. The ___ is the answer box.
+  Make sure EVERY underlined word is tagged with its corresponding question number in bold.
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
 - For SYNTHESIS & TRANSFORMATION sections:
-  * Each question has a printed sentence, then answer lines below where the student rewrites it
-  * Show the sentence, then [ANSWER LINES: N] to indicate where the student writes
-  * If a given word/phrase is shown (e.g. "Use: although"), include it as: [Given word: although]
+  * Each question has a printed sentence, then answer lines below
+  * Extract the question sentence, then show the answer area as:
+    **Starting word:** ____________________
+    ____________________
+  * If a given word/phrase is shown (e.g. "Use: although"), bold it: **although**
 - For COMPREHENSION OEQ sections: questions may contain TABLES, CHARTS, or LINED answer spaces.
   * Render tables as markdown tables: | Col1 | Col2 | Col3 |
   * Answer lines (where student writes) shown as: [LINES: N] where N is the number of lines
@@ -2731,7 +2733,10 @@ Return ONLY valid JSON:
             .sort(([a], [b]) => a - b)
             .map(([pageIndex, questions]) => ({ pageIndex, questions }));
 
-          return { pages, _sectionOcr: { name: secLabel, ocrText, pageIndices: secPageIndices } };
+          return { pages, _sectionOcr: {
+            name: secLabel, ocrText, pageIndices: secPageIndices,
+            ...(isCompOEQSec && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
+          } };
         })());
 
         /* OLD IMAGE-BASED 2-STEP APPROACH (commented out)
@@ -2768,8 +2773,8 @@ Return ONLY valid JSON:
         Promise.all(sectionTasks).then(results => {
           const ocrTexts: Record<string, { ocrText: string; pageIndices: number[] }> = {};
           for (const r of results) {
-            const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[] } })._sectionOcr;
-            if (ocr) ocrTexts[ocr.name] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices };
+            const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[]; passagePageIndices?: number[] } })._sectionOcr;
+            if (ocr) ocrTexts[ocr.name] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}) };
           }
           return { pages: results.flatMap(r => r.pages), _ocrTexts: ocrTexts };
         })
