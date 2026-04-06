@@ -486,7 +486,7 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                           <p className="font-semibold text-sm text-[#003366] truncate">{test.title || "Spelling Test"}</p>
                           <p className="text-xs text-slate-400">{relativeDate(test.createdAt)}</p>
                         </div>
-                        <span className="text-xs text-slate-400 shrink-0">{test.wordCount}w</span>
+                        <span className="text-xs text-slate-400 shrink-0">{test.wordCount} words</span>
                       </div>
                     ))}
                   </div>

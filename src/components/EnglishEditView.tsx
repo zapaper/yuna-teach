@@ -204,20 +204,39 @@ function QuestionRow({
 
       <div className="flex-1 min-w-0">
         {/* Clean extracted question text — render with rich formatting */}
-        {q.transcribedStem && (
-          <div className="mb-1">
-            <OcrRichText text={q.transcribedStem} />
-          </div>
-        )}
-        {q.transcribedOptions && q.transcribedOptions.length > 0 && (
-          <div className="flex flex-col gap-0.5 mt-2 mb-2 ml-4">
-            {q.transcribedOptions.map((opt, i) => (
-              <span key={i} className="text-xs text-slate-600">
-                <span className="font-bold text-slate-400">({i + 1})</span> {opt}
-              </span>
-            ))}
-          </div>
-        )}
+        {(() => {
+          let stem = q.transcribedStem ?? "";
+          let options = q.transcribedOptions ?? [];
+          // If options are empty, try to extract from stem (e.g. "stem text (1) opt1 (2) opt2 (3) opt3 (4) opt4")
+          if (options.length === 0 && stem) {
+            const optMatch = stem.match(/^(.*?)\s*\(1\)\s+/);
+            if (optMatch) {
+              const optParts = stem.slice(optMatch[1].length).match(/\(\d\)\s+([^(]*)/g);
+              if (optParts && optParts.length >= 4) {
+                stem = optMatch[1].trim();
+                options = optParts.map(p => p.replace(/^\(\d\)\s+/, "").trim());
+              }
+            }
+          }
+          return (
+            <>
+              {stem && (
+                <div className="mb-1">
+                  <OcrRichText text={stem} />
+                </div>
+              )}
+              {options.length > 0 && (
+                <div className="flex flex-col gap-0.5 mt-2 mb-2 ml-4">
+                  {options.map((opt, i) => (
+                    <span key={i} className="text-xs text-slate-600">
+                      <span className="font-bold text-slate-400">({i + 1})</span> {opt}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
         {/* Fallback: image if no text content */}
         {!q.transcribedStem && q.imageData && (
           <img

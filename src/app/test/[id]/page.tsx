@@ -415,7 +415,7 @@ function TestPageContent({ id }: { id: string }) {
           <div className="w-full md:w-1/2">
             <div className="flex items-center justify-between mb-3">
               <label className="text-xs font-bold text-[#001e40] uppercase tracking-widest">
-                Delay between words
+                Delay between words/phrases
               </label>
               <span className="text-xs font-black text-[#001e40] px-3 py-1 bg-[#e5eeff] rounded-lg tabular-nums">
                 {delaySeconds % 1 === 0 ? `${delaySeconds}s` : `${delaySeconds.toFixed(1)}s`}

@@ -2599,9 +2599,9 @@ export async function analyzeExamBatch(
     Write as: "... word **(29)________** word ..." or "... word **(51)________** word ..."
     Format: **(N)________** — number in parentheses, then exactly 8 underscores. Bold the entire unit.
   * This cloze formatting applies ONLY to Grammar Cloze and Comprehension Cloze sections.
-    For Vocabulary Cloze MCQ, do NOT use this format — just show the passage text normally with question numbers. The MCQ options are extracted separately.
-  * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, etc.
-    Only include the passage text and word bank.
+    For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
+  * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title, etc.
+    Only include the passage text, word bank, and questions. Remove all administrative text.
 - For EDITING sections: each question has an UNDERLINED error word in the passage with a numbered answer box nearby.
   Bold the error word and tag with its question number INLINE: **(39) beleive**
   The bold number + word links the underlined word to question N. Do NOT add ___ after it — the answer box is rendered by the UI.
