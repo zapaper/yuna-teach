@@ -577,41 +577,51 @@ function ExamEditContent({ id }: { id: string }) {
               // 2. Re-parse question numbers from the edited text (for cloze/editing)
               const isEmbedded = sectionName.toLowerCase().includes("cloze") || sectionName.toLowerCase().includes("editing");
               if (isEmbedded) {
-                // Extract question numbers from bold patterns like **(39) word** or **(29)________**
+                // Extract question numbers from bold patterns **(39) word** or plain (39) in passage
                 const qNums: number[] = [];
-                const boldRegex = /\*\*\((\d+)\)[^*]*\*\*/g;
+                // Match: **(N) ...** or *(N) ...* or (N)________ or just (N) at start of bold
+                const allNumRegex = /\*{0,2}\((\d+)\)[^*\n]*\*{0,2}|\((\d+)\)_{2,}/g;
                 let m;
-                while ((m = boldRegex.exec(ocrText)) !== null) {
-                  const n = parseInt(m[1]);
+                while ((m = allNumRegex.exec(ocrText)) !== null) {
+                  const n = parseInt(m[1] ?? m[2]);
                   if (!isNaN(n) && !qNums.includes(n)) qNums.push(n);
                 }
-                // Also check plain (N) patterns for cloze
-                const plainRegex = /\((\d+)\)/g;
-                while ((m = plainRegex.exec(ocrText)) !== null) {
-                  const n = parseInt(m[1]);
-                  if (!isNaN(n) && n >= 20 && !qNums.includes(n)) qNums.push(n); // filter out small numbers that might be in passage
-                }
                 qNums.sort((a, b) => a - b);
+                console.log(`[Update] ${sectionName}: found question numbers:`, qNums);
 
                 if (qNums.length > 0) {
-                  // Delete questions not in the new set
                   const sectionQuestions = paper.questions.filter(q => q.syllabusTopic === sectionName);
+                  const existingNums = new Set(sectionQuestions.map(q => parseInt(q.questionNum, 10)).filter(n => !isNaN(n)));
+
+                  // Delete questions not in the new set
                   for (const q of sectionQuestions) {
                     const n = parseInt(q.questionNum, 10);
                     if (!isNaN(n) && !qNums.includes(n)) {
                       await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
                     }
                   }
-                  // Add missing questions via the addQuestion endpoint
-                  const existingNums = new Set(sectionQuestions.map(q => parseInt(q.questionNum, 10)).filter(n => !isNaN(n)));
+                  // Add missing questions
                   for (const n of qNums) {
                     if (!existingNums.has(n)) {
-                      const addRes = await fetch(`/api/exam/${id}`, {
+                      await fetch(`/api/exam/${id}`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ action: "addQuestion", questionNum: String(n), syllabusTopic: sectionName }),
+                        body: JSON.stringify({ action: "addQuestion", questionNum: String(n), syllabusTopic: sectionName, marksAvailable: 1 }),
                       });
-                      if (!addRes.ok) console.warn(`Failed to add Q${n}`);
+                    }
+                  }
+                  // Sort: update orderIndex for all questions in this section
+                  const updatedPaper = await fetchPaper();
+                  if (updatedPaper) {
+                    const secQs = updatedPaper.questions
+                      .filter(q => q.syllabusTopic === sectionName)
+                      .sort((a, b) => parseInt(a.questionNum, 10) - parseInt(b.questionNum, 10));
+                    for (let i = 0; i < secQs.length; i++) {
+                      await fetch(`/api/exam/questions/${secQs[i].id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ orderIndex: secQs[i].orderIndex }),
+                      });
                     }
                   }
                 }

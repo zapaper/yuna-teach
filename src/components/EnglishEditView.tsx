@@ -565,5 +565,7 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
     parts.push(text.slice(lastIdx));
   }
 
-  return <p className="leading-relaxed">{parts}</p>;
+  // Detect paragraph indent (leading spaces or tab)
+  const indent = text.match(/^(\s{2,}|\t)/);
+  return <p className="leading-relaxed" style={indent ? { textIndent: "2em" } : undefined}>{parts}</p>;
 }
