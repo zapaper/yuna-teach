@@ -1099,8 +1099,13 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 ### MCQ questions:
 - Each MCQ = stem + answer options (1)/(2)/(3)/(4) as ONE entry
 - English MCQ are tightly spaced (~3-8% of page height)
-- Sections have CONTINUOUS numbering: Grammar MCQ Q1-10, Vocab MCQ Q11-15, Vocab Cloze MCQ Q16-20, Visual Text MCQ Q21-28
+- Sections have CONTINUOUS numbering:
+  * Grammar MCQ Q1-10 — standalone grammar questions
+  * Vocabulary MCQ Q11-15 — standalone vocabulary questions
+  * Vocabulary Cloze MCQ Q16-20 — a PASSAGE fills the top half of the page, then Q16-20 appear below it (from ~50% of the page onwards). Tag these as "Vocabulary Cloze MCQ" NOT "Vocabulary MCQ"
+  * Visual Text Comprehension MCQ Q21-28 — 1-2 pages of visual text (poster/ad) before the questions
 - Passage-only or visual-only pages (no question numbers) = extract zero questions, continue to next page
+- For Vocab Cloze MCQ: the passage takes up the top half. Scan from the MIDDLE of the page downward for Q16 at the left margin
 
 ### Written questions:
 - Keep the ENTIRE question as ONE entry including ALL sub-parts and answer spaces
@@ -1273,8 +1278,8 @@ Written sections (Booklet B):
 
 Rules per topic:
 - "Grammar MCQ" — MCQ testing grammar rules; answer is (1)/(2)/(3)/(4); appears first in Booklet A
-- "Vocabulary MCQ" — MCQ testing word meaning/synonyms; answer is (1)/(2)/(3)/(4); appears after Grammar MCQ
-- "Vocabulary Cloze MCQ" — a passage with numbered blanks, each blank has 4 word options (1)-(4); student picks the best word; answer is (1)/(2)/(3)/(4); appears after Vocabulary MCQ
+- "Vocabulary MCQ" — standalone MCQ testing word meaning/synonyms; answer is (1)/(2)/(3)/(4); Q11-15; NO passage above the questions
+- "Vocabulary Cloze MCQ" — a PASSAGE fills the top half of the page, then Q16-20 appear below with 4 word options each; answer is (1)/(2)/(3)/(4); ALWAYS tag Q16-20 as this topic, NOT "Vocabulary MCQ". The key difference: Vocab Cloze has a passage ABOVE the questions, Vocab MCQ does NOT
 - "Visual Text Comprehension MCQ" — MCQ based on a visual text (poster, ad, infographic); answer is (1)/(2)/(3)/(4); usually appears last in Booklet A
 - "Grammar Cloze" — fill-in-blank from word bank (labeled A–Q, skipping I and O); student writes a SINGLE LETTER in each blank; question number printed BELOW the blank; appears BEFORE Editing; usually ONE PAGE
 - "Editing (Spelling & Grammar)" — prose passage with UNDERLINED words (not blanks); a small numbered BOX is beside/above each underlined word; student writes the corrected spelling in the box; appears on the page IMMEDIATELY AFTER Grammar Cloze; if you see boxes → this topic, NOT Cloze
