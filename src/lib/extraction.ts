@@ -439,10 +439,22 @@ async function extractExamPaperCore(
 
       const syllabusTopic = result.syllabusTopics?.[qNum] ?? null;
       const isEnglishMcq = isEnglish && ENGLISH_MCQ_TOPICS.has(syllabusTopic ?? "");
-      // English: zero top padding (precise from questionNumYPct), small bottom padding for MCQ
+      const isGrammarCloze = syllabusTopic === "Grammar Cloze";
+      const isEditing = syllabusTopic === "Editing (Spelling & Grammar)";
+      const isCompCloze = syllabusTopic === "Comprehension Cloze";
+      // English padding per section type:
+      // - MCQ: 0% top, 1% bottom
+      // - Grammar Cloze: 3% top, 1% bottom
+      // - Editing: 3% top, 3% bottom
+      // - Comprehension Cloze: 3% top, 1% bottom
+      // - Other English (S&T, OEQ): 0% top, 0% bottom
       // Other subjects: standard padding
-      const topPadPct = isEnglish ? 0 : 0.05;
-      const botPadPct = isEnglish ? (isEnglishMcq ? 0.01 : 0) : 0.02;
+      const topPadPct = isEnglish
+        ? (isGrammarCloze || isEditing || isCompCloze ? 0.03 : 0)
+        : 0.05;
+      const botPadPct = isEnglish
+        ? (isEditing ? 0.03 : isEnglishMcq || isGrammarCloze || isCompCloze ? 0.01 : 0)
+        : 0.02;
 
       // Get full answer for this question number
       const rawEntry = result.answers?.[qNum];
