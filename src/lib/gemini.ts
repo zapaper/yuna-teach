@@ -1033,11 +1033,6 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 ### Other rules:
 - Skip page headers and footers in crops (but still extract questions below them)
 
-### Question number position (CRITICAL for English):
-- For EACH question, output "questionNumYPct" — the EXACT vertical position (%) of the TOP of the question number.
-- For EACH question, output "questionNumXPct" — the EXACT horizontal position (%) of the CENTER of the question number. For English cloze/editing sections where the question number is embedded in the passage (not at the left margin), this tells us where the answer box/blank is horizontally.
-- Be as precise as possible — measure to 0.5% accuracy.
-
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
 {
@@ -1045,8 +1040,8 @@ Return ONLY valid JSON:
     {
       "pageIndex": 2,
       "questions": [
-        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "questionNumYPct": 12.5, "questionNumXPct": 5.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
-        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "questionNumYPct": 35.5, "questionNumXPct": 5.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3, "isContinuation": false, "subParts": "abc"}
+        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 35.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1},
+        {"questionNum": "2", "yStartPct": 35.0, "yEndPct": 58.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 3, "isContinuation": false, "subParts": "abc"}
       ]
     }
   ]
@@ -1159,6 +1154,12 @@ export const ENGLISH_SYLLABUS = [
 ] as const;
 
 const ENGLISH_CLOZE_ADDENDUM = `
+
+## ENGLISH PAPER — Additional fields (ENGLISH ONLY)
+
+For EACH question, also output these two fields:
+- "questionNumYPct" — EXACT vertical position (%) of the TOP of the question number text. Measure to 0.5% accuracy.
+- "questionNumXPct" — EXACT horizontal position (%) of the CENTER of the question number. For cloze/editing sections where the number is embedded in the passage, this indicates the horizontal position of the answer blank/box.
 
 ## ENGLISH PAPER — MCQ extraction (Booklet A)
 
