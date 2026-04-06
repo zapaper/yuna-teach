@@ -1887,11 +1887,11 @@ function normalizeExtractionResult(result: QuestionExtractionResult, subject?: s
               fixed[i - 1].yEndPct = qnY;
             }
           }
-          // For cloze/editing sections: set x-boundaries around the question number (±4%)
+          // For cloze/editing sections: set x-boundaries around the question number (±6%)
           const qnX = ext.questionNumXPct;
           if (qnX != null && qnX > 0 && CLOZE_EDITING_TOPICS.has(ext.syllabusTopic ?? "")) {
-            fixed[i].xStartPct = Math.max(0, qnX - 4);
-            fixed[i].xEndPct = Math.min(100, qnX + 4);
+            fixed[i].xStartPct = Math.max(0, qnX - 6);
+            fixed[i].xEndPct = Math.min(100, qnX + 6);
           }
         }
       }
