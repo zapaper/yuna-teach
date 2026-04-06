@@ -12,12 +12,12 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishSection } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishSections } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
     subject?: "math" | "science" | "english";
-    englishSection?: string; // e.g. "vocab-cloze", "editing", "synthesis"
+    englishSections?: string[]; // e.g. ["vocab-cloze", "editing"]
   };
 
   if (!userId || !quizType) {
@@ -202,43 +202,52 @@ export async function POST(request: NextRequest) {
     const selectedGrammar = grammarMcqPool.slice(0, 3);
     const selectedVocab = vocabMcqPool.slice(0, 3);
 
-    // Select the additional section based on user choice (single radio button)
-    const section = englishSection ?? "vocab-cloze";
+    // Select additional sections based on user choices (checkboxes)
+    const selectedSections = new Set(englishSections ?? ["vocab-cloze"]);
     const selectedExtra: typeof allPool = [];
     const sectionLabels: Record<string, string> = {
-      "vocab-cloze": "Vocab Cloze MCQ", "visual-text": "Visual Text MCQ",
+      "vocab-cloze": "Vocab Cloze", "visual-text": "Visual Text",
       "grammar-cloze": "Grammar Cloze", "editing": "Editing",
       "comprehension-cloze": "Comp Cloze", "synthesis": "Synthesis",
       "comprehension-oeq": "Comp OEQ",
     };
-    const sectionLabel = sectionLabels[section] ?? section;
+    const activeLabels: string[] = [];
 
-    if (section === "vocab-cloze" && vocabClozeSets.length > 0) {
-      selectedExtra.push(...vocabClozeSets[0]);
-    } else if (section === "visual-text" && visualTextSets.length > 0) {
-      selectedExtra.push(...visualTextSets[0]);
-    } else if (section === "synthesis") {
-      const synthQs = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
-      shuffle(synthQs);
-      selectedExtra.push(...synthQs.slice(0, 3));
-    } else {
-      // Passage-bound sections: grammar-cloze, editing, comprehension-cloze, comprehension-oeq
-      const topicPatterns: Record<string, (t: string) => boolean> = {
-        "grammar-cloze": t => t.includes("grammar") && t.includes("cloze") && !t.includes("mcq"),
-        "editing": t => t.includes("editing"),
-        "comprehension-cloze": t => t.includes("comprehension") && t.includes("cloze"),
-        "comprehension-oeq": t => t.includes("comprehension") && t.includes("open"),
-      };
-      const matcher = topicPatterns[section];
-      if (matcher) {
-        const sectionQs = allPool.filter(q => matcher((q.syllabusTopic ?? "").toLowerCase()));
-        const papers = new Map<string, typeof allPool>();
-        for (const q of sectionQs) {
-          if (!papers.has(q.examPaperId)) papers.set(q.examPaperId, []);
-          papers.get(q.examPaperId)!.push(q);
+    const topicMatchers: Record<string, (t: string) => boolean> = {
+      "grammar-cloze": t => t.includes("grammar") && t.includes("cloze") && !t.includes("mcq"),
+      "editing": t => t.includes("editing"),
+      "comprehension-cloze": t => t.includes("comprehension") && t.includes("cloze"),
+      "synthesis": t => t.includes("synthesis"),
+      "comprehension-oeq": t => t.includes("comprehension") && t.includes("open"),
+    };
+
+    for (const section of selectedSections) {
+      if (section === "vocab-cloze" && vocabClozeSets.length > 0) {
+        selectedExtra.push(...vocabClozeSets[0]);
+        activeLabels.push("Vocab Cloze");
+      } else if (section === "visual-text" && visualTextSets.length > 0) {
+        selectedExtra.push(...visualTextSets[0]);
+        activeLabels.push("Visual Text");
+      } else if (section === "synthesis") {
+        const synthQs = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
+        shuffle(synthQs);
+        selectedExtra.push(...synthQs.slice(0, 3));
+        if (synthQs.length > 0) activeLabels.push("Synthesis");
+      } else {
+        const matcher = topicMatchers[section];
+        if (matcher) {
+          const sectionQs = allPool.filter(q => matcher((q.syllabusTopic ?? "").toLowerCase()));
+          const papers = new Map<string, typeof allPool>();
+          for (const q of sectionQs) {
+            if (!papers.has(q.examPaperId)) papers.set(q.examPaperId, []);
+            papers.get(q.examPaperId)!.push(q);
+          }
+          const paperSets = shuffle([...papers.values()]);
+          if (paperSets.length > 0) {
+            selectedExtra.push(...paperSets[0]);
+            activeLabels.push(sectionLabels[section] ?? section);
+          }
         }
-        const paperSets = shuffle([...papers.values()]);
-        if (paperSets.length > 0) selectedExtra.push(...paperSets[0]);
       }
     }
 
@@ -249,10 +258,11 @@ export async function POST(request: NextRequest) {
 
     const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
     const levelLabel = levelFilter ? `P${student!.level} ` : "";
+    const extraLabel = activeLabels.length > 0 ? ` + ${activeLabels.join(" + ")}` : "";
 
     const paper = await prisma.examPaper.create({
       data: {
-        title: `${levelLabel}Daily Quiz – English (Grammar + Vocab MCQ + ${sectionLabel})`,
+        title: `${levelLabel}Daily Quiz – English (Grammar + Vocab MCQ${extraLabel})`,
         subject: "English Language",
         level: levelFilter || null,
         userId,

@@ -94,8 +94,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [quizStudentId, setQuizStudentId] = useState(user.linkedStudents[0]?.id ?? "");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
-  const [englishOeqSections, setEnglishOeqSections] = useState<Set<string>>(new Set());
-  const [englishMcqSet, setEnglishMcqSet] = useState<string>("vocab-cloze");
+  const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["vocab-cloze"]));
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -555,7 +554,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         ) : (
           <div className="mb-5">
-            <p className="text-[10px] text-[#43474f] mb-3">3 Grammar MCQ + 3 Vocab MCQ + choose one section below:</p>
+            <p className="text-[10px] text-[#43474f] mb-3">3 Grammar MCQ + 3 Vocab MCQ + select sections below:</p>
             <div className="space-y-2">
               {[
                 { key: "vocab-cloze", label: "Vocabulary Cloze MCQ" },
@@ -568,11 +567,17 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               ].map(s => (
                 <label key={s.key} className="flex items-center gap-2 cursor-pointer">
                   <input
-                    type="radio"
-                    name="englishSection"
-                    checked={englishMcqSet === s.key}
-                    onChange={() => setEnglishMcqSet(s.key as typeof englishMcqSet)}
-                    className="w-4 h-4 accent-[#006c49]"
+                    type="checkbox"
+                    checked={englishSections.has(s.key)}
+                    onChange={() => {
+                      setEnglishSections(prev => {
+                        const next = new Set(prev);
+                        if (next.has(s.key)) next.delete(s.key);
+                        else next.add(s.key);
+                        return next;
+                      });
+                    }}
+                    className="w-4 h-4 rounded accent-[#006c49]"
                   />
                   <span className="text-sm text-[#001e40]">{s.label}</span>
                 </label>
@@ -594,7 +599,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     userId: quizStudentId,
                     quizType: quizSubject === "english" ? "mcq" : quizType,
                     subject: quizSubject,
-                    ...(quizSubject === "english" ? { englishSection: englishMcqSet } : {}),
+                    ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
                   }),
                 });
                 const data = await res.json();
