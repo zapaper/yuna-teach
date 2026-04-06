@@ -443,17 +443,17 @@ async function extractExamPaperCore(
       const isEditing = syllabusTopic === "Editing (Spelling & Grammar)";
       const isCompCloze = syllabusTopic === "Comprehension Cloze";
       // English padding per section type:
-      // - MCQ: 0% top, 1% bottom
-      // - Grammar Cloze: 3% top, 1% bottom
+      // - MCQ: 0% top, 3% bottom
+      // - Grammar Cloze: 3% top, 2% bottom
       // - Editing: 3% top, 3% bottom
-      // - Comprehension Cloze: 3% top, 1% bottom
+      // - Comprehension Cloze: 3% top, 2% bottom
       // - Other English (S&T, OEQ): 0% top, 0% bottom
       // Other subjects: standard padding
       const topPadPct = isEnglish
         ? (isGrammarCloze || isEditing || isCompCloze ? 0.03 : 0)
         : 0.05;
       const botPadPct = isEnglish
-        ? (isEditing ? 0.03 : isEnglishMcq || isGrammarCloze || isCompCloze ? 0.02 : 0)
+        ? (isEditing ? 0.03 : isEnglishMcq ? 0.03 : isGrammarCloze || isCompCloze ? 0.02 : 0)
         : 0.02;
 
       // Get full answer for this question number
