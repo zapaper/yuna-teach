@@ -95,6 +95,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [englishOeqSections, setEnglishOeqSections] = useState<Set<string>>(new Set());
+  const [englishMcqSet, setEnglishMcqSet] = useState<"vocab-cloze" | "visual-text" | "random">("random");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -554,7 +555,20 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         ) : (
           <div className="mb-5">
-            <p className="text-[10px] text-[#43474f] mb-2">MCQ: 3 Grammar + 3 Vocab + Vocab Cloze or Visual Text</p>
+            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">MCQ Set</p>
+            <p className="text-[10px] text-[#43474f] mb-2">3 Grammar MCQ + 3 Vocab MCQ + one of:</p>
+            <div className="flex gap-2 mb-4">
+              {([
+                { key: "random" as const, label: "Random" },
+                { key: "vocab-cloze" as const, label: "Vocab Cloze" },
+                { key: "visual-text" as const, label: "Visual Text" },
+              ]).map(s => (
+                <button key={s.key} onClick={() => setEnglishMcqSet(s.key)}
+                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-medium ${englishMcqSet === s.key ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Add Written Sections (optional)</p>
             <div className="space-y-2">
               {[
@@ -598,7 +612,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     userId: quizStudentId,
                     quizType: quizSubject === "english" ? "mcq" : quizType,
                     subject: quizSubject,
-                    ...(quizSubject === "english" && englishOeqSections.size > 0 ? { englishOeqSections: [...englishOeqSections] } : {}),
+                    ...(quizSubject === "english" ? {
+                      englishMcqSet: englishMcqSet,
+                      ...(englishOeqSections.size > 0 ? { englishOeqSections: [...englishOeqSections] } : {}),
+                    } : {}),
                   }),
                 });
                 const data = await res.json();

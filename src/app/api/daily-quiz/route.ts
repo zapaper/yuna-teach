@@ -12,12 +12,13 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishOeqSections } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishOeqSections, englishMcqSet } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
     subject?: "math" | "science" | "english";
-    englishOeqSections?: string[]; // e.g. ["grammar-cloze", "editing", "synthesis"]
+    englishOeqSections?: string[];
+    englishMcqSet?: "vocab-cloze" | "visual-text" | "random";
   };
 
   if (!userId || !quizType) {
@@ -198,8 +199,11 @@ export async function POST(request: NextRequest) {
     const selectedGrammar = grammarMcqPool.slice(0, 3);
     const selectedVocab = vocabMcqPool.slice(0, 3);
 
-    // Randomly pick Vocab Cloze or Visual Text
-    const useVocabCloze = vocabClozeSets.length > 0 && (visualTextSets.length === 0 || Math.random() < 0.5);
+    // Pick Vocab Cloze or Visual Text based on user selection
+    const mcqSetChoice = englishMcqSet ?? "random";
+    const useVocabCloze = mcqSetChoice === "vocab-cloze" ? true
+      : mcqSetChoice === "visual-text" ? false
+      : vocabClozeSets.length > 0 && (visualTextSets.length === 0 || Math.random() < 0.5);
     const selectedSet = useVocabCloze
       ? (vocabClozeSets[0] ?? [])
       : (visualTextSets[0] ?? []);
