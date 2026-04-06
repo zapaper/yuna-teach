@@ -100,29 +100,29 @@ function RegisterStudentContent() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/owlright_t.png" alt="" className="w-16 h-16 shrink-0" />
             <p className="text-sm text-[#001e40] leading-relaxed">
-              From here, you can go to <strong>{createdStudent.name}&apos;s account</strong> to try a 10-min quiz. This way our AI can start analysing {createdStudent.name}&apos;s strengths and gaps, and tailor further practices.
+              Let&apos;s start by assigning a quick 15-min quiz to <strong>{createdStudent.name}</strong>. This will help our AI determine {createdStudent.name}&apos;s strengths and gaps.
               <br /><br />
-              Remember that the <strong>parent&apos;s login</strong> and <strong>student&apos;s login</strong> are different. Let&apos;s go!
+              Press the button below to start!
             </p>
           </div>
 
           {/* Actions */}
           <div className="flex flex-col gap-3">
             <button
+              onClick={() => router.push(`/home/${parentId}`)}
+              className="px-6 py-3.5 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-base">quiz</span>
+              Assign Quiz to {createdStudent.name}
+            </button>
+            <button
               onClick={() => {
                 window.open(`/home/${createdStudent.id}`, "_blank");
               }}
-              className="px-6 py-3.5 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-base">open_in_new</span>
-              Open {createdStudent.name}&apos;s Account to try 10min Quiz
-            </button>
-            <button
-              onClick={() => router.push(`/home/${parentId}`)}
               className="px-6 py-3.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-base">arrow_back</span>
-              Go to Parent&apos;s Account
+              <span className="material-symbols-outlined text-base">open_in_new</span>
+              Open {createdStudent.name}&apos;s Account
             </button>
           </div>
         </div>
