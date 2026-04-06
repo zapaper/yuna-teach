@@ -2768,7 +2768,7 @@ For EACH question, extract:
 Return ONLY valid JSON:
 {
   "questions": [
-    ${isMcqSection ? `{"questionNum": "${prefix}${secFirstQ}", "stem": "Which word best completes the sentence?", "options": ["ran", "run", "running", "runs"], "answer": null, "marksAvailable": 1, "pageIndex": 0, "yStartPct": 10, "yEndPct": 18, "syllabusTopic": "${sec.name}"}` :
+    ${isMcqSection ? `{"questionNum": "${prefix}${secFirstQ}", "stem": "<EXTRACT THE ACTUAL QUESTION TEXT FROM THE OCR>", "options": ["<option 1>", "<option 2>", "<option 3>", "<option 4>"], "answer": null, "marksAvailable": 1, "pageIndex": 0, "yStartPct": 10, "yEndPct": 18, "syllabusTopic": "${sec.name}"}` :
     isClozeSection ? `{"questionNum": "${prefix}${secFirstQ}", "stem": "", "blankContext": "The boy ___ to school every day.", "answer": null, "marksAvailable": 1, "pageIndex": 0, "yStartPct": 10, "yEndPct": 15, "syllabusTopic": "${sec.name}"}` :
     isEditingSection ? `{"questionNum": "${prefix}${secFirstQ}", "stem": "", "errorWord": "beleive", "answer": null, "marksAvailable": 1, "pageIndex": 0, "yStartPct": 10, "yEndPct": 15, "syllabusTopic": "${sec.name}"}` :
     `{"questionNum": "${prefix}${secFirstQ}", "stem": "What does the word 'happy' mean in paragraph 2?", "answer": null, "marksAvailable": 2, "pageIndex": 0, "yStartPct": 10, "yEndPct": 25, "syllabusTopic": "${sec.name}"}`}
