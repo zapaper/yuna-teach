@@ -475,16 +475,22 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             <p className="text-sm text-[#43474f] py-2 text-center">No auto-detected weak topics. Enter one below.</p>
           )}
 
-          {/* Manual topic entry */}
-          <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Enter Topic Manually</p>
+          {/* Topic selection — dropdown or manual entry */}
+          <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Choose Topic</p>
           <div className="flex gap-2 mb-1">
-            <input
+            <select
               value={customTopic}
               onChange={e => { setCustomTopic(e.target.value); setCustomError(""); }}
-              onKeyDown={e => { if (e.key === "Enter") handleCustom(); }}
-              placeholder={`e.g. ${focusedSubject === "math" ? "Fractions" : "Plants"}`}
-              className="flex-1 px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none"
-            />
+              className="flex-1 px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none bg-white"
+            >
+              <option value="">Select a topic…</option>
+              {(focusedSubject === "math"
+                ? ["Basic math operations", "Fractions", "Percentage", "Ratio", "Algebra", "Area and circumference of circle", "Volume of cube and cuboid", "Geometry", "Statistics", "Time", "Volume measurement"]
+                : ["Diversity of living and non-living things", "Diversity of materials", "Life cycles in plants and animals", "Plant parts and functions", "Human digestive system", "Cycles in matter", "Water cycle, evaporation, condensation", "Plant respiratory and circulatory systems", "Human respiratory and circulatory systems", "Reproduction in plants and animals", "Light energy and uses", "Heat energy and uses", "Electrical system and circuits", "Photosynthesis", "Energy conversion", "Interaction of forces (Magnets)", "Interaction of forces (Frictional force, gravitational force, elastic spring force)", "Interactions within the environment"]
+              ).map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
             <button
               onClick={handleCustom}
               disabled={!customTopic.trim() || customActing}
