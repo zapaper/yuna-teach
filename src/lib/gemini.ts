@@ -2776,7 +2776,8 @@ Return ONLY valid JSON:
             const cleanedJson = sanitizeJsonString(extractText.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
             const parsed = JSON.parse(cleanedJson);
             rawQuestions = parsed.questions ?? parsed.pages?.flatMap((p: { questions?: unknown[] }) => p.questions ?? []) ?? [];
-            console.log(`[Exam Pipeline] ${secLabel} text-extract: ${rawQuestions.length} questions found`);
+            const withOpts = rawQuestions.filter(q => q.options && q.options.length > 0).length;
+            console.log(`[Exam Pipeline] ${secLabel} text-extract: ${rawQuestions.length} questions found (${withOpts} with options)`);
           } catch (err) {
             console.error(`[Exam Pipeline] ${secLabel} text-extract JSON parse failed:`, err);
           }
