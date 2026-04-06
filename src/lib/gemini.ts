@@ -1955,6 +1955,10 @@ function buildBookletContext(paper: StructureResult["papers"][0], firstQuestionN
   lines.push(`Question prefix for JSON output: "${paper.questionPrefix}"`);
   lines.push(`Expected questions: ${paper.expectedQuestionCount} (starting from Q${firstQuestionNum})`);
   lines.push(`First question number to find: ${firstQuestionNum}`);
+  const anchorHint = (paper as unknown as { _anchorHint?: string })._anchorHint;
+  if (anchorHint) {
+    lines.push(`ANCHOR: ${anchorHint}`);
+  }
   let qCounter = firstQuestionNum;
   for (const section of paper.sections) {
     const extra = section as { startPage?: number; questionRange?: string };
@@ -2557,12 +2561,27 @@ export async function analyzeExamBatch(
           }
 
           // Step 2: Extract remaining questions (all pages)
+          // Pass anchor info: Q1's position so the AI knows where to start looking for Q2
           let restResult: QuestionExtractionResult = { pages: [] };
           if (sec.questionCount > 1) {
+            const firstQEndPct = (() => {
+              for (const page of firstResult.pages) {
+                for (const q of page.questions) {
+                  const n = parseInt(q.questionNum.replace(prefix, ""), 10);
+                  if (n === secFirstQ) return q.yEndPct;
+                }
+              }
+              return null;
+            })();
             const restPaper = {
               ...sectionPaper,
               label: `${sectionPaper.label} (Q${secFirstQ + 1}-Q${secLastQ})`,
               expectedQuestionCount: sec.questionCount - 1,
+              // Pass anchor hint via firstQuestionYStartPct
+              firstQuestionYStartPct: firstQEndPct ?? sectionPaper.firstQuestionYStartPct,
+              _anchorHint: firstQYPct != null && firstQEndPct != null
+                ? `Q${secFirstQ} was found at Y=${firstQYPct.toFixed(1)}% to Y=${firstQEndPct.toFixed(1)}% on page ${secPageIndices[0]}. Start looking for Q${secFirstQ + 1} from Y=${firstQEndPct.toFixed(1)}% onwards.`
+                : undefined,
             };
             restResult = await extractQuestionsForBooklet(
               secImages, secPageIndices, restPaper, secFirstQ + 1, structure.header.subject
