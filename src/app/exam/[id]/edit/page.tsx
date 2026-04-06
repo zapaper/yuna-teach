@@ -52,6 +52,7 @@ function ExamEditContent({ id }: { id: string }) {
   const [selectTarget, setSelectTarget] = useState<SelectTarget | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [taggingSyllabus, setTaggingSyllabus] = useState(false);
+  const [savingClean, setSavingClean] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchPaper = useCallback(async () => {
@@ -272,6 +273,81 @@ function ExamEditContent({ id }: { id: string }) {
       });
     } finally {
       setTaggingSyllabus(false);
+    }
+  }
+
+  async function saveCleanQuestions() {
+    if (!paper || savingClean) return;
+    setSavingClean(true);
+    try {
+      const metadata = paper.metadata;
+      const ocrTexts = metadata?.sectionOcrTexts ?? {};
+
+      for (const q of paper.questions) {
+        const topic = q.syllabusTopic ?? "";
+        const topicLower = topic.toLowerCase();
+        const sectionOcr = ocrTexts[topic];
+
+        // Determine what to save based on section type
+        const isStandalone = topicLower.includes("grammar mcq") || topicLower.includes("vocabulary mcq") || topicLower.includes("synthesis");
+        const isPassageBound = topicLower.includes("grammar cloze") || topicLower.includes("editing") || topicLower.includes("comprehension cloze") || topicLower.includes("vocabulary cloze mcq") || (topicLower.includes("comprehension") && topicLower.includes("open"));
+        const isVisualText = topicLower.includes("visual text");
+
+        // Build transcribedSubparts to store passage reference
+        const subparts: Array<{ label: string; text: string; diagramBase64?: string | null }> = [];
+
+        if (isPassageBound && sectionOcr?.ocrText) {
+          // Store the passage OCR as a sentinel subpart
+          subparts.push({ label: "_passage", text: sectionOcr.ocrText });
+        }
+
+        if (isPassageBound && sectionOcr?.passageOcrText) {
+          // Store the line-numbered passage for Comp OEQ
+          subparts.push({ label: "_passageText", text: sectionOcr.passageOcrText });
+        }
+
+        if (isVisualText && sectionOcr?.passagePageIndices) {
+          // Store visual page indices as sentinel
+          subparts.push({ label: "_visualPages", text: JSON.stringify(sectionOcr.passagePageIndices) });
+        }
+
+        // Save the question with clean extract data
+        const data: Record<string, unknown> = {};
+
+        if (q.transcribedStem) {
+          data.transcribedStem = q.transcribedStem;
+        }
+        if (q.transcribedOptions) {
+          data.transcribedOptions = q.transcribedOptions;
+        }
+        if (subparts.length > 0) {
+          data.transcribedSubparts = subparts;
+        }
+
+        // Only PATCH if there's something to save
+        if (Object.keys(data).length > 0) {
+          await fetch(`/api/exam/questions/${q.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+        }
+      }
+
+      // Mark paper as clean-extracted
+      await fetch(`/api/exam/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ extractionStatus: "ready" }),
+      });
+
+      await fetchPaper();
+      alert("Clean questions saved successfully!");
+    } catch (err) {
+      console.error("Save clean questions failed:", err);
+      alert("Failed to save clean questions.");
+    } finally {
+      setSavingClean(false);
     }
   }
 
@@ -573,6 +649,29 @@ function ExamEditContent({ id }: { id: string }) {
           />
         ))}
       </div>
+      )}
+
+      {/* Save Clean Questions — English only */}
+      {isEnglishPaper && paper.metadata?.sectionOcrTexts && (
+        <div className="mt-4">
+          <button
+            onClick={saveCleanQuestions}
+            disabled={savingClean}
+            className="w-full py-3 rounded-2xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {savingClean ? (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white inline-block" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-lg">save</span>
+                Save Clean Questions
+              </>
+            )}
+          </button>
+        </div>
       )}
 
       {/* Add question + Tag syllabus buttons */}
