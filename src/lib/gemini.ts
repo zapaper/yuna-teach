@@ -2453,8 +2453,13 @@ export async function analyzeExamBatch(
         const sec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; questionRange?: string };
         const nextSec = paper.sections[si + 1] as { startPage?: number } | undefined;
         const secStartPage = sec.startPage ?? pageIndices[0];
-        // Include the next section's start page too — sections can share a page
-        const secEndPage = nextSec?.startPage != null ? nextSec.startPage : pageIndices[pageIndices.length - 1];
+        // Include the next section's start page IF sections can share a page
+        // BUT if next section is Visual Text (has visual-only pages before questions), exclude its pages
+        const nextSecName = ((paper.sections[si + 1] ?? {}) as { name?: string }).name ?? "";
+        const nextIsVisualText = nextSecName.toLowerCase().includes("visual text");
+        const secEndPage = nextSec?.startPage != null
+          ? (nextIsVisualText ? nextSec.startPage - 1 : nextSec.startPage)
+          : pageIndices[pageIndices.length - 1];
 
         // Get pages for this section
         const secPageIndices = pageIndices.filter(p => p >= secStartPage && p <= secEndPage);
