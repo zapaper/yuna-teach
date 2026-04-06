@@ -568,6 +568,9 @@ async function extractExamPaperCore(
         })()
       : null;
 
+    // Collect section OCR texts for English papers
+    const sectionOcrTexts = result.sectionOcrTexts ?? null;
+
     // 6. Save questions + update paper in a transaction
     await prisma.$transaction([
       // Delete any existing questions (in case of retry)
@@ -605,6 +608,7 @@ async function extractExamPaperCore(
           metadata: {
             ...(debugMetadata as object ?? {}),
             ...(vocabClozePassageImage ? { vocabClozePassageImage } : {}),
+            ...(sectionOcrTexts ? { sectionOcrTexts } : {}),
           },
           extractionStatus: "ready",
         },

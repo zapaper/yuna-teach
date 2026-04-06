@@ -2363,6 +2363,7 @@ export interface BatchAnalysisResult {
   answers: Record<string, AnswerEntry>;
   marksPerQuestion?: Record<string, number | null>;
   syllabusTopics?: Record<string, string | null>;
+  sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[] }>;
   _debug?: {
     papers: Array<{
       label: string;
@@ -2645,7 +2646,7 @@ Return ONLY valid JSON:
             });
           }
 
-          return result;
+          return { ...result, _sectionOcr: { name: secLabel, ocrText, pageIndices: secPageIndices } };
         })());
 
         /* OLD IMAGE-BASED 2-STEP APPROACH (commented out)
@@ -2677,10 +2678,16 @@ Return ONLY valid JSON:
         */
       }
       // All sections within this booklet run in parallel
+      // Collect OCR texts from each section
       extractionTasks.push(
-        Promise.all(sectionTasks).then(results => ({
-          pages: results.flatMap(r => r.pages),
-        }))
+        Promise.all(sectionTasks).then(results => {
+          const ocrTexts: Record<string, { ocrText: string; pageIndices: number[] }> = {};
+          for (const r of results) {
+            const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[] } })._sectionOcr;
+            if (ocr) ocrTexts[ocr.name] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices };
+          }
+          return { pages: results.flatMap(r => r.pages), _ocrTexts: ocrTexts };
+        })
       );
     } else {
       // Non-English or single-section: one extraction per booklet
@@ -2909,12 +2916,20 @@ Return ONLY valid JSON:
     }
   }
 
+  // Collect OCR texts from English section extractions
+  const sectionOcrTexts: Record<string, { ocrText: string; pageIndices: number[] }> = {};
+  for (const br of bookletResults) {
+    const ocrData = (br as unknown as { _ocrTexts?: Record<string, { ocrText: string; pageIndices: number[] }> })._ocrTexts;
+    if (ocrData) Object.assign(sectionOcrTexts, ocrData);
+  }
+
   return {
     header: structure.header,
     pages,
     answers: answerResult.answers,
     marksPerQuestion,
     syllabusTopics: Object.keys(syllabusTopics).length > 0 ? syllabusTopics : undefined,
+    sectionOcrTexts: Object.keys(sectionOcrTexts).length > 0 ? sectionOcrTexts : undefined,
     _debug: {
       papers: structure.papers.map(p => ({
         label: p.label,
