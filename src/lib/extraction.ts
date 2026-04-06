@@ -538,17 +538,7 @@ async function extractExamPaperCore(
         }
       }
 
-      // For Vocab Cloze MCQ: stitch passage image on top of question crop
-      if (syllabusTopic === "Vocabulary Cloze MCQ" && vocabClozePassageImage) {
-        try {
-          const cropBuf = Buffer.from(croppedImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
-          const passageBuf = Buffer.from(vocabClozePassageImage.replace(/^data:image\/\w+;base64,/, ""), "base64");
-          const stitched = await stitchPagesVertically([passageBuf, cropBuf]);
-          croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
-        } catch (err) {
-          console.warn(`[extraction] Failed to stitch vocab cloze passage for Q${qNum}:`, err);
-        }
-      }
+      // Vocab Cloze MCQ: passage stored separately, NOT stitched into each question
 
       const primary = segments[0];
       questions.push({
@@ -608,7 +598,10 @@ async function extractExamPaperCore(
           semester: result.header?.semester != null ? String(result.header.semester) : paper.semester,
           totalMarks: result.header?.totalMarks != null ? String(result.header.totalMarks) : paper.totalMarks,
           examType: result.header?.examType || paper.examType,
-          metadata: debugMetadata as object ?? undefined,
+          metadata: {
+            ...(debugMetadata as object ?? {}),
+            ...(vocabClozePassageImage ? { vocabClozePassageImage } : {}),
+          },
           extractionStatus: "ready",
         },
       }),
