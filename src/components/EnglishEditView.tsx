@@ -203,9 +203,11 @@ function QuestionRow({
       </span>
 
       <div className="flex-1 min-w-0">
-        {/* Clean extracted question text */}
+        {/* Clean extracted question text — render with rich formatting */}
         {q.transcribedStem && (
-          <p className="text-sm text-slate-700 mb-1 whitespace-pre-wrap">{q.transcribedStem}</p>
+          <div className="mb-1">
+            <OcrRichText text={q.transcribedStem} />
+          </div>
         )}
         {q.transcribedOptions && q.transcribedOptions.length > 0 && (
           <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 mb-2 ml-4">

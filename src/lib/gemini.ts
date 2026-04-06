@@ -920,10 +920,11 @@ Booklet B examples:
   {"name": "Editing", "type": "editing", "questionCount": 12, "marksPerQuestion": 1, "startPage": 12, "endPage": 13, "questionRange": "Q39-50"}
   {"name": "Comprehension Cloze", "type": "comprehension-cloze", "questionCount": 8, "marksPerQuestion": 1, "startPage": 14, "endPage": 15, "questionRange": "Q51-58"}
   {"name": "Synthesis & Transformation", "type": "synthesis", "questionCount": 5, "marksPerQuestion": 2, "startPage": 16, "endPage": 17, "questionRange": "Q59-63"}
-  {"name": "Comprehension OEQ", "type": "comprehension-oeq", "questionCount": 8, "marksPerQuestion": null, "startPage": 18, "endPage": 20, "questionRange": "Q64-71"}
+  {"name": "Comprehension OEQ", "type": "comprehension-oeq", "questionCount": 8, "marksPerQuestion": null, "startPage": 18, "endPage": 20, "questionRange": "Q64-71", "passagePages": [7, 8]}
 
 IMPORTANT: "startPage" = page with first question number. "endPage" = last page with questions for this section. Include "startPage", "endPage", and "questionRange" for ALL sections in BOTH Booklet A and Booklet B.
 For Visual Text Comprehension, also include "visualPages" — the 0-based page indices of the visual text/poster pages that appear BEFORE the questions.
+For Comprehension OEQ, also include "passagePages" — the 0-based page indices of the reading passage pages in Booklet A (usually the last 1-2 pages of Booklet A, containing the reading passage that the OEQ questions are about).
 
 #### Non-gradable sections:
 For English Preliminary and End-of-Year exams, certain papers cannot be auto-graded and must be excluded from question extraction:
@@ -2560,31 +2561,10 @@ export async function analyzeExamBatch(
           const isCompOEQSec = secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open");
           const isVisualTextSec = secLabel.toLowerCase().includes("visual text");
           const visualPagesForVT: number[] = isVisualTextSec ? ((sec as { visualPages?: number[] }).visualPages ?? []) : [];
-          // Find Booklet A passage pages: pages in Booklet A that don't belong to any section's startPage range
-          const passagePagesForOEQ: number[] = [];
-          if (isCompOEQSec) {
-            const bookletA = bookletPageRanges.find(b => b.paper.label.toLowerCase().includes("booklet a"));
-            if (bookletA) {
-              // Pages that are section start pages (have questions)
-              const sectionStartPages = new Set<number>();
-              for (const p of structure.papers) {
-                for (const s of p.sections) {
-                  const sp = (s as { startPage?: number }).startPage;
-                  if (sp != null) sectionStartPages.add(sp);
-                }
-              }
-              // Booklet A pages not assigned to any section = passage pages
-              for (const pIdx of bookletA.pageIndices) {
-                if (!sectionStartPages.has(pIdx)) {
-                  // Check it's not a cover page
-                  const pageEntry = structure.pages.find(p => p.pageIndex === pIdx);
-                  if (pageEntry && !pageEntry.isCoverPage && !pageEntry.isAnswerSheet) {
-                    passagePagesForOEQ.push(pIdx);
-                  }
-                }
-              }
-            }
-          }
+          // Get passage pages from structure analysis (or fall back to auto-detection)
+          const passagePagesForOEQ: number[] = isCompOEQSec
+            ? ((sec as { passagePages?: number[] }).passagePages ?? [])
+            : [];
 
           // For Comprehension OEQ: passage pages are shown as scanned images (not OCR'd)
           // Store passage page indices in the section OCR data for the edit view
@@ -2651,8 +2631,9 @@ Output ONLY the extracted text, no commentary.` });
           const isMcqSection = secLabel.toLowerCase().includes("mcq");
           const isClozeSection = secLabel.toLowerCase().includes("cloze") && !secLabel.toLowerCase().includes("mcq");
           const isEditingSection = secLabel.toLowerCase().includes("editing");
-          const isGrammarClozeSec = secLabel.toLowerCase() === "grammar cloze";
-          const isCompClozeSec = secLabel.toLowerCase() === "comprehension cloze";
+          const secLabelLower = secLabel.toLowerCase();
+          const isGrammarClozeSec = secLabelLower.includes("grammar") && secLabelLower.includes("cloze") && !secLabelLower.includes("mcq");
+          const isCompClozeSec = secLabelLower.includes("comprehension") && secLabelLower.includes("cloze");
 
           // For Grammar Cloze and Comprehension Cloze: questions are already in the OCR text
           // Just extract question numbers — no need for a separate AI call
@@ -2702,10 +2683,14 @@ ${ocrText}
 
 For EACH question, extract:
 - questionNum: the question number as string (e.g. "${prefix}${secFirstQ}")
-- stem: the full question text (for MCQ: the question stem before the options)${isMcqSection ? `
+- stem: the full question text${isMcqSection ? ` (for MCQ: the question stem before the options)
 - options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc. You MUST include all 4 options for every MCQ question.` : ""}${isClozeSection ? `
 - blankContext: the sentence fragment around the blank, with "___" where the blank is` : ""}${isEditingSection ? `
-- errorWord: the underlined/erroneous word the student must correct` : ""}
+- errorWord: the underlined/erroneous word the student must correct` : ""}${secLabel.toLowerCase().includes("synthesis") ? `
+  For Synthesis: include the question sentence, any given word (e.g. "Use: although"), then the answer area as:
+  "**Starting word** ________________________________\\n________________________________"
+  Bold the starting word, then two full lines of underscores for the student to write on.` : ""}${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? `
+  For Comprehension OEQ: include the question text. If there are answer lines, show as [LINES: N].` : ""}
 - answer: the correct answer from the answer key if known, null otherwise
 - marksAvailable: marks if shown (e.g. from [2] brackets), null otherwise
 - pageIndex: the 0-based page index (from "--- Page N ---" markers)
