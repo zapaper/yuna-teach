@@ -94,6 +94,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [quizStudentId, setQuizStudentId] = useState(user.linkedStudents[0]?.id ?? "");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
+  const [englishOeqSections, setEnglishOeqSections] = useState<Set<string>>(new Set());
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -540,16 +541,49 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           ))}
         </div>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
-        <div className="flex gap-2 mb-5">
-          <button onClick={() => setQuizType("mcq")}
-            className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-            MCQ Only
-          </button>
-          <button onClick={() => setQuizType("mcq-oeq")}
-            className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq-oeq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-            MCQ + Written
-          </button>
-        </div>
+        {quizSubject !== "english" ? (
+          <div className="flex gap-2 mb-5">
+            <button onClick={() => setQuizType("mcq")}
+              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+              MCQ Only
+            </button>
+            <button onClick={() => setQuizType("mcq-oeq")}
+              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq-oeq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+              MCQ + Written
+            </button>
+          </div>
+        ) : (
+          <div className="mb-5">
+            <p className="text-[10px] text-[#43474f] mb-2">MCQ: 3 Grammar + 3 Vocab + Vocab Cloze or Visual Text</p>
+            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Add Written Sections (optional)</p>
+            <div className="space-y-2">
+              {[
+                { key: "grammar-cloze", label: "Grammar Cloze" },
+                { key: "editing", label: "Editing (Spelling & Grammar)" },
+                { key: "comprehension-cloze", label: "Comprehension Cloze" },
+                { key: "synthesis", label: "Synthesis & Transformation" },
+                { key: "comprehension-oeq", label: "Comprehension OEQ" },
+              ].map(s => (
+                <label key={s.key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={englishOeqSections.has(s.key)}
+                    onChange={() => {
+                      setEnglishOeqSections(prev => {
+                        const next = new Set(prev);
+                        if (next.has(s.key)) next.delete(s.key);
+                        else next.add(s.key);
+                        return next;
+                      });
+                    }}
+                    className="w-4 h-4 rounded accent-[#006c49]"
+                  />
+                  <span className="text-sm text-[#001e40]">{s.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex gap-3">
           <button onClick={() => setShowQuiz(false)} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
           <button
@@ -560,7 +594,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 const res = await fetch("/api/daily-quiz", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ userId: quizStudentId, quizType, subject: quizSubject }),
+                  body: JSON.stringify({
+                    userId: quizStudentId,
+                    quizType: quizSubject === "english" ? "mcq" : quizType,
+                    subject: quizSubject,
+                    ...(quizSubject === "english" && englishOeqSections.size > 0 ? { englishOeqSections: [...englishOeqSections] } : {}),
+                  }),
                 });
                 const data = await res.json();
                 if (!res.ok) { alert(data.error || "Failed"); return; }

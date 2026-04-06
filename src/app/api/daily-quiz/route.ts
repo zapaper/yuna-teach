@@ -12,11 +12,12 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishOeqSections } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
     subject?: "math" | "science" | "english";
+    englishOeqSections?: string[]; // e.g. ["grammar-cloze", "editing", "synthesis"]
   };
 
   if (!userId || !quizType) {
@@ -204,17 +205,62 @@ export async function POST(request: NextRequest) {
       : (visualTextSets[0] ?? []);
     const setLabel = useVocabCloze ? "Vocabulary Cloze MCQ" : "Visual Text MCQ";
 
-    const allSelected = [...selectedGrammar, ...selectedVocab, ...selectedSet];
+    // OEQ sections (if selected)
+    const oeqSections = new Set(englishOeqSections ?? []);
+    const selectedOeq: typeof allPool = [];
+    const oeqLabels: string[] = [];
+
+    // Map section keys to syllabusTopic patterns
+    const oeqTopicMap: Record<string, string> = {
+      "grammar-cloze": "grammar cloze",
+      "editing": "editing",
+      "comprehension-cloze": "comprehension cloze",
+      "synthesis": "synthesis",
+      "comprehension-oeq": "comprehension",
+    };
+
+    for (const [key, topicPattern] of Object.entries(oeqTopicMap)) {
+      if (!oeqSections.has(key)) continue;
+      const isCompOeq = key === "comprehension-oeq";
+      const sectionQs = allPool.filter(q => {
+        const t = (q.syllabusTopic ?? "").toLowerCase();
+        if (isCompOeq) return t.includes("comprehension") && t.includes("open");
+        return t.includes(topicPattern) && !t.includes("mcq");
+      });
+
+      if (key === "synthesis") {
+        // Synthesis: pick 3 random individual questions
+        shuffle(sectionQs);
+        selectedOeq.push(...sectionQs.slice(0, 3));
+        if (sectionQs.length > 0) oeqLabels.push("Synthesis");
+      } else {
+        // Passage-bound sections: pick all questions from one paper
+        const papers = new Map<string, typeof allPool>();
+        for (const q of sectionQs) {
+          if (!papers.has(q.examPaperId)) papers.set(q.examPaperId, []);
+          papers.get(q.examPaperId)!.push(q);
+        }
+        const paperSets = shuffle([...papers.values()]);
+        if (paperSets.length > 0) {
+          selectedOeq.push(...paperSets[0]);
+          oeqLabels.push(key === "grammar-cloze" ? "Grammar Cloze" : key === "editing" ? "Editing" : key === "comprehension-cloze" ? "Comp Cloze" : "Comp OEQ");
+        }
+      }
+    }
+
+    const allSelected = [...selectedGrammar, ...selectedVocab, ...selectedSet, ...selectedOeq];
     if (allSelected.length === 0) {
       return NextResponse.json({ error: "Not enough English questions available" }, { status: 404 });
     }
 
     const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
     const levelLabel = levelFilter ? `P${student!.level} ` : "";
+    const titleParts = [`MCQ: Grammar + Vocab + ${setLabel}`];
+    if (oeqLabels.length > 0) titleParts.push(`OEQ: ${oeqLabels.join(" + ")}`);
 
     const paper = await prisma.examPaper.create({
       data: {
-        title: `${levelLabel}Daily Quiz – English (MCQ: Grammar + Vocab + ${setLabel})`,
+        title: `${levelLabel}Daily Quiz – English (${titleParts.join(" | ")})`,
         subject: "English Language",
         level: levelFilter || null,
         userId,
