@@ -898,7 +898,11 @@ For English papers, identify the specific section type for each section in the s
 4. **Synthesis & Transformation** — rewrite sentences. Type: "synthesis"
 5. **Comprehension OEQ** — open-ended questions on a passage. Type: "comprehension-oeq"
 
-Use these type values in the sections array for English papers (e.g. {"name": "Grammar Cloze", "type": "grammar-cloze", "questionCount": 10, "marksPerQuestion": 1}).
+Use these type values in the sections array for English papers. ALSO include "startPage" (0-based page index where this section's first question appears) and "questionRange" (e.g. "Q1-10") for each section:
+e.g. {"name": "Grammar MCQ", "type": "MCQ", "questionCount": 10, "marksPerQuestion": 1, "startPage": 1, "questionRange": "Q1-10"}
+     {"name": "Visual Text Comprehension MCQ", "type": "MCQ", "questionCount": 8, "marksPerQuestion": 1, "startPage": 6, "questionRange": "Q21-28", "visualPages": [4, 5]}
+
+For Visual Text Comprehension, also include "visualPages" — the 0-based page indices of the visual text/poster pages that appear BEFORE the questions.
 
 #### Non-gradable sections:
 For English Preliminary and End-of-Year exams, certain papers cannot be auto-graded and must be excluded from question extraction:
@@ -2348,6 +2352,23 @@ export async function analyzeExamBatch(
     pages: structure.pages.map(p => ({ idx: p.pageIndex, answer: p.isAnswerSheet, cover: p.isCoverPage, paper: p.paperLabel })),
   }));
 
+  // Log English section details
+  const detectedSubject = (structure.header.subject ?? "").toLowerCase();
+  if (detectedSubject.includes("english")) {
+    for (const paper of structure.papers) {
+      if (paper.sections && paper.sections.length > 0) {
+        console.log(`[Exam Pipeline] ENGLISH SECTIONS for ${paper.label}:`);
+        for (const sec of paper.sections) {
+          const extra = (sec as { startPage?: number; questionRange?: string; visualPages?: number[] });
+          console.log(`  - ${sec.name || sec.type} | type: ${sec.type} | Q count: ${sec.questionCount} | marks/q: ${sec.marksPerQuestion ?? "varies"} | startPage: ${extra.startPage ?? "?"} | range: ${extra.questionRange ?? "?"}`);
+          if (extra.visualPages?.length) {
+            console.log(`    Visual text pages: ${extra.visualPages.join(", ")}`);
+          }
+        }
+      }
+    }
+  }
+
   // --- Partition pages ---
   const coverPageEntries = structure.pages.filter(p => !p.isAnswerSheet && p.isCoverPage);
   const answerPageEntries = structure.pages.filter(p => p.isAnswerSheet);
@@ -2456,9 +2477,73 @@ export async function analyzeExamBatch(
   };
 
   const finalValidation = validateQuestionExtraction(questionResult, structure);
-  console.log("[Exam Pipeline] Question extraction:", JSON.stringify(
-    questionResult.pages.map(p => ({ idx: p.pageIndex, questions: p.questions.map(q => q.questionNum) }))
-  ));
+
+  // Per-question extraction logging with section identification
+  const allExtractedQNums = questionResult.pages.flatMap(p => p.questions.filter(q => !q.isContinuation).map(q => q.questionNum));
+  console.log(`[Exam Pipeline] Extracted ${allExtractedQNums.length} questions: ${allExtractedQNums.join(", ")}`);
+
+  // For English: log per-section extraction status
+  if (detectedSubject.includes("english")) {
+    for (const paper of structure.papers) {
+      if (!paper.sections?.length) continue;
+      for (const sec of paper.sections) {
+        const range = (sec as { questionRange?: string }).questionRange;
+        if (!range) continue;
+        const match = range.match(/Q(\d+)-(\d+)/);
+        if (!match) continue;
+        const start = parseInt(match[1]);
+        const end = parseInt(match[2]);
+        const prefix = paper.questionPrefix;
+        const expected: string[] = [];
+        for (let n = start; n <= end; n++) expected.push(prefix + String(n));
+        const found = expected.filter(q => allExtractedQNums.includes(q));
+        const missing = expected.filter(q => !allExtractedQNums.includes(q));
+        if (missing.length === 0) {
+          console.log(`[Exam Pipeline] ✓ ${sec.name || sec.type} (${range}): all ${found.length} questions extracted`);
+        } else {
+          console.log(`[Exam Pipeline] ✗ ${sec.name || sec.type} (${range}): ${found.length}/${expected.length} extracted, MISSING: ${missing.join(", ")}`);
+          // Check if first question of section is missing — critical
+          if (missing.includes(expected[0])) {
+            console.log(`[Exam Pipeline] ⚠ FIRST QUESTION of ${sec.name || sec.type} (${expected[0]}) is missing — this is critical`);
+          }
+        }
+      }
+    }
+  }
+
+  // Retry: if first question of any English section is missing, re-extract that booklet
+  if (detectedSubject.includes("english")) {
+    for (let bi = 0; bi < bookletPageRanges.length; bi++) {
+      const { paper, pageIndices, firstQuestionNum } = bookletPageRanges[bi];
+      if (!paper.sections?.length || pageIndices.length === 0) continue;
+      let needsRetry = false;
+      for (const sec of paper.sections) {
+        const range = (sec as { questionRange?: string }).questionRange;
+        if (!range) continue;
+        const match = range.match(/Q(\d+)/);
+        if (!match) continue;
+        const firstQ = paper.questionPrefix + match[1];
+        if (!allExtractedQNums.includes(firstQ)) {
+          console.log(`[Exam Pipeline] Retrying ${paper.label} extraction — missing first question of ${sec.name || sec.type} (${firstQ})`);
+          needsRetry = true;
+          break;
+        }
+      }
+      if (needsRetry) {
+        const images = pageIndices.map(idx => imagesBase64[idx]);
+        const retryResult = await extractQuestionsForBooklet(images, pageIndices, paper, firstQuestionNum, structure.header.subject);
+        const retryQNums = retryResult.pages.flatMap(p => p.questions.filter(q => !q.isContinuation).map(q => q.questionNum));
+        console.log(`[Exam Pipeline] Retry result for ${paper.label}: ${retryQNums.length} questions: ${retryQNums.join(", ")}`);
+        if (retryQNums.length > allExtractedQNums.filter(q => pageIndices.some(pi => questionResult.pages.find(p => p.pageIndex === pi)?.questions.some(qq => qq.questionNum === q))).length) {
+          // Replace this booklet's pages in the result
+          const otherPages = questionResult.pages.filter(p => !pageIndices.includes(p.pageIndex));
+          questionResult.pages = [...otherPages, ...retryResult.pages];
+          console.log(`[Exam Pipeline] Retry for ${paper.label} produced better result — using it`);
+        }
+      }
+    }
+  }
+
   if (!finalValidation.valid) {
     console.log("[Exam Pipeline] Final validation issues:", finalValidation.issues);
   }
