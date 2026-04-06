@@ -2490,9 +2490,26 @@ export async function analyzeExamBatch(
         };
 
         const secImages = secPageIndices.map(idx => imagesBase64[idx]);
-        console.log(`[Exam Pipeline] English section "${sec.name || sec.type}": pages [${secPageIndices.map(p => p + 1).join(", ")}], Q${secFirstQ}-Q${secFirstQ + sec.questionCount - 1}`);
+        const secLastQ = secFirstQ + sec.questionCount - 1;
+        console.log(`[Exam Pipeline] English section "${sec.name || sec.type}": pages [${secPageIndices.map(p => p + 1).join(", ")}], Q${secFirstQ}-Q${secLastQ}`);
         sectionTasks.push(
           extractQuestionsForBooklet(secImages, secPageIndices, sectionPaper, secFirstQ, structure.header.subject)
+            .then(result => {
+              // Trim questions outside the expected range for this section
+              const prefix = paper.questionPrefix;
+              for (const page of result.pages) {
+                page.questions = page.questions.filter(q => {
+                  const n = parseInt(q.questionNum.replace(prefix, ""), 10);
+                  if (isNaN(n)) return true;
+                  if (n < secFirstQ || n > secLastQ) {
+                    console.log(`[Exam Pipeline] Trimmed Q${q.questionNum} from "${sec.name || sec.type}" (outside range Q${secFirstQ}-Q${secLastQ})`);
+                    return false;
+                  }
+                  return true;
+                });
+              }
+              return result;
+            })
         );
       }
       // All sections within this booklet run in parallel
