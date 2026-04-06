@@ -2619,7 +2619,13 @@ export async function analyzeExamBatch(
             .sort(([a], [b]) => a - b)
             .map(([pageIndex, questions]) => ({
               pageIndex,
-              questions: questions.sort((a, b) => a.yStartPct - b.yStartPct),
+              // Sort by question number (numeric order), not yStartPct
+              questions: questions.sort((a, b) => {
+                const aNum = parseInt(a.questionNum.replace(prefix, ""), 10);
+                const bNum = parseInt(b.questionNum.replace(prefix, ""), 10);
+                if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+                return a.yStartPct - b.yStartPct;
+              }),
             }));
 
           // Trim questions outside expected range
