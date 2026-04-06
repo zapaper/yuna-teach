@@ -198,9 +198,11 @@ export async function POST(request: NextRequest) {
     }
     const visualTextSets = shuffle([...visualTextPapers.values()]);
 
-    // Select: 3 Grammar MCQ + 3 Vocab MCQ + either 1 Vocab Cloze set or 1 Visual Text set
+    // Select: 3 Grammar MCQ + 3 Vocab MCQ + selected sections
+    console.log(`[English Quiz] Pools: grammar=${grammarMcqPool.length}, vocab=${vocabMcqPool.length}, vocabCloze=${vocabClozeSets.length} sets, visualText=${visualTextSets.length} sets`);
     const selectedGrammar = grammarMcqPool.slice(0, 3);
     const selectedVocab = vocabMcqPool.slice(0, 3);
+    console.log(`[English Quiz] Selected: grammar=${selectedGrammar.length}, vocab=${selectedVocab.length}`);
 
     // Select additional sections based on user choices (checkboxes)
     const selectedSections = new Set(englishSections ?? ["vocab-cloze"]);
