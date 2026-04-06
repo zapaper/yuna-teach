@@ -183,6 +183,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       .catch(() => {});
   }, [userId]);
 
+  async function handleDeletePaper(e: React.MouseEvent, paperId: string) {
+    e.stopPropagation();
+    if (!confirm("Delete this quiz/practice?")) return;
+    try {
+      await fetch(`/api/exam/${paperId}?userId=${userId}`, { method: "DELETE" });
+      setExamPapers(prev => prev.filter(p => p.id !== paperId));
+    } catch { /* silent */ }
+  }
+
   // ── Link modal helpers ────────────────────────────────────────────────────
 
   async function fetchMyCode() {
@@ -227,7 +236,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   const studentPapers = examPapers.filter(p => p.assignedToId === selectedStudentId);
   const completedPapers = studentPapers.filter(p => p.completedAt);
-  const pendingRelease = completedPapers.filter(p => p.markingStatus !== "released");
+  const pendingRelease = completedPapers.filter(p => p.markingStatus === "complete");
   const scoredPapers = completedPapers.filter(p => p.score !== null && p.totalMarks && parseFloat(p.totalMarks) > 0);
   const avgScore = scoredPapers.length > 0
     ? Math.round(scoredPapers.reduce((s, p) => s + (p.score! / parseFloat(p.totalMarks!) * 100), 0) / scoredPapers.length)
@@ -870,13 +879,21 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
               <p className="text-xs text-[#43474f]">{isMarking ? "Marking…" : relativeDate(paper.completedAt!)}</p>
             </div>
-            {isMarking ? (
-              <span className="text-xs font-extrabold text-blue-500 shrink-0">Marking…</span>
-            ) : pct !== null ? (
-              <p className={`font-extrabold text-sm shrink-0 ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</p>
-            ) : (
-              <span className="material-symbols-outlined text-[#ba1a1a] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
+            <div className="flex items-center gap-1 shrink-0">
+              {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                <button onClick={(e) => handleDeletePaper(e, paper.id)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                  <span className="material-symbols-outlined text-base">close</span>
+                </button>
+              )}
+              {isMarking ? (
+                <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+              ) : pct !== null ? (
+                <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
+              ) : (
+                <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
             )}
+            </div>
           </div>
         );
       })}
