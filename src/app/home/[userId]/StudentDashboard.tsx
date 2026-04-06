@@ -432,7 +432,15 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                                   {paper.paperType === "quiz" ? "Daily Quiz" : paper.paperType === "focused" ? "Focused Practice" : "Exam Paper"}
                                 </p>
                               </div>
-                              <span className="material-symbols-outlined text-slate-300 text-base">chevron_right</span>
+                              <div className="flex items-center gap-1 shrink-0">
+                                {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                                  <button onClick={(e) => handleDeletePaper(e, paper.id)}
+                                    className="w-6 h-6 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                    <span className="material-symbols-outlined text-sm">close</span>
+                                  </button>
+                                )}
+                                <span className="material-symbols-outlined text-slate-300 text-base">chevron_right</span>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -463,6 +471,12 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
                                     <p className={`text-[10px] font-bold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-amber-600" : "text-[#ba1a1a]"}`}>{pct}%</p>
                                   ) : null}
                                 </div>
+                                {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                                  <button onClick={(e) => handleDeletePaper(e, paper.id)}
+                                    className="w-6 h-6 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
+                                    <span className="material-symbols-outlined text-sm">close</span>
+                                  </button>
+                                )}
                               </div>
                             );
                           })}
