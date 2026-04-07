@@ -420,10 +420,9 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Clean passage: keep only the first N markers (N = question count), strip the rest
+      // Clean passage: keep only the first N markers, truncate after the last one
       if (passage && !passage.startsWith("[")) {
         const qCount = group.questions.length;
-        // Find all markers in order and keep only the first qCount
         const allMarkers: { num: number; fullMatch: string; index: number }[] = [];
         const markerRegex = /\*\*\((\d+)\)[^*]*\*\*/g;
         let mm;
@@ -431,12 +430,13 @@ export async function POST(request: NextRequest) {
           allMarkers.push({ num: parseInt(mm[1]), fullMatch: mm[0], index: mm.index });
         }
         if (allMarkers.length > qCount) {
-          // Strip markers beyond the first qCount (they belong to other sections)
-          const toRemove = allMarkers.slice(qCount);
-          for (const marker of toRemove.reverse()) {
-            passage = passage!.slice(0, marker.index) + passage!.slice(marker.index + marker.fullMatch.length);
-          }
-          console.log(`[English Quiz] Stripped ${toRemove.length} extra markers from passage (kept first ${qCount})`);
+          // Truncate passage right after the last kept marker (removes other section content entirely)
+          const lastKept = allMarkers[qCount - 1];
+          const cutPoint = lastKept.index + lastKept.fullMatch.length;
+          // Keep a bit after the last marker (rest of the sentence/line)
+          const nextNewline = passage.indexOf("\n", cutPoint);
+          passage = passage.slice(0, nextNewline >= 0 ? nextNewline : cutPoint).trimEnd();
+          console.log(`[English Quiz] Truncated passage after marker ${qCount} (removed ${allMarkers.length - qCount} extra markers)`);
         }
 
         // Rewrite remaining markers to match quiz numbering (position-based)

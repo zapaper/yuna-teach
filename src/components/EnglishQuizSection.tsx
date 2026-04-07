@@ -71,24 +71,40 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
             const lineCount = linesMatch ? parseInt(linesMatch[1]) : 2;
             const cleanStem = stem.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
 
-            // For synthesis: split into question part and answer part (bold starting word + blank)
+            // For synthesis: split into question text and answer segments
+            // Answer line can be: "**Instead of** ___" or "___ **although** ___"
             let synthQuestion = "";
-            let synthStartWord = "";
+            const synthAnswerParts: { type: "input" | "keyword"; content: string; key: string }[] = [];
             if (sectionType === "synthesis") {
-              // Find the answer line: starts with ** (bold starting word) or ___ (blanks)
-              // Split at the last line that contains **bold** followed by ___
               const lines = cleanStem.split("\n");
-              const answerLineIdx = lines.findIndex(l => /\*\*[^*]+\*\*.*_{3,}/.test(l) || /^_{3,}/.test(l.trim()));
+              // Find the answer line(s): contain **bold** and/or ___
+              const answerLineIdx = lines.findIndex(l => /\*\*[^*]+\*\*/.test(l) && /_{3,}/.test(l) || /^_{3,}/.test(l.trim()));
               if (answerLineIdx >= 0) {
                 synthQuestion = lines.slice(0, answerLineIdx).join("\n").trim();
-                const answerLine = lines[answerLineIdx];
-                const boldMatch = answerLine.match(/\*\*([^*]+)\*\*/);
-                synthStartWord = boldMatch ? boldMatch[1] : "";
+                // Parse answer line into segments: blanks become inputs, **bold** become keywords
+                const answerLine = lines.slice(answerLineIdx).join("\n");
+                const segRegex = /\*\*([^*]+)\*\*|_{3,}/g;
+                let lastEnd = 0;
+                let seg;
+                let inputIdx = 0;
+                while ((seg = segRegex.exec(answerLine)) !== null) {
+                  // Skip plain text between segments
+                  if (seg[1]) {
+                    synthAnswerParts.push({ type: "keyword", content: seg[1].trim(), key: `kw${seg.index}` });
+                  } else {
+                    synthAnswerParts.push({ type: "input", content: "", key: `in${inputIdx++}` });
+                  }
+                  lastEnd = seg.index + seg[0].length;
+                }
+                // If no parts found, add a single input
+                if (synthAnswerParts.length === 0) {
+                  synthAnswerParts.push({ type: "input", content: "", key: "in0" });
+                }
               } else {
-                // Try inline: **word** ___
-                const boldMatch = cleanStem.match(/\*\*([^*]+)\*\*/);
-                synthStartWord = boldMatch ? boldMatch[1] : "";
                 synthQuestion = cleanStem.replace(/\*\*[^*]+\*\*/, "").replace(/_{3,}/g, "").trim();
+                const boldMatch = cleanStem.match(/\*\*([^*]+)\*\*/);
+                if (boldMatch) synthAnswerParts.push({ type: "keyword", content: boldMatch[1].trim(), key: "kw0" });
+                synthAnswerParts.push({ type: "input", content: "", key: "in0" });
               }
             }
 
@@ -113,19 +129,38 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                   </div>
                 </div>
 
-                {/* Synthesis: bold starting word on new line + typed input */}
+                {/* Synthesis: keyword + input boxes */}
                 {sectionType === "synthesis" && (
                   <div className="mt-3 ml-[52px]">
-                    {synthStartWord && (
-                      <p className="font-bold text-base text-[#001e40] mb-1">{synthStartWord}</p>
-                    )}
-                    <textarea
-                      value={answers[q.id] ?? ""}
-                      onChange={e => onAnswer(q.id, e.target.value)}
-                      rows={lineCount}
-                      className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed"
-                      placeholder="Type your answer here..."
-                    />
+                    {synthAnswerParts.map((part) => {
+                      if (part.type === "keyword") {
+                        return <p key={part.key} className="font-bold text-base text-[#001e40] my-1">{part.content}</p>;
+                      }
+                      // For multiple inputs, split stored answer by |||
+                      const inputCount = synthAnswerParts.filter(p => p.type === "input").length;
+                      const inputIdx = synthAnswerParts.filter(p => p.type === "input").indexOf(part);
+                      const storedParts = (answers[q.id] ?? "").split("|||");
+                      const value = inputCount > 1 ? (storedParts[inputIdx] ?? "") : (answers[q.id] ?? "");
+                      return (
+                        <textarea
+                          key={part.key}
+                          value={value}
+                          onChange={e => {
+                            if (inputCount > 1) {
+                              const parts = (answers[q.id] ?? "").split("|||");
+                              while (parts.length < inputCount) parts.push("");
+                              parts[inputIdx] = e.target.value;
+                              onAnswer(q.id, parts.join("|||"));
+                            } else {
+                              onAnswer(q.id, e.target.value);
+                            }
+                          }}
+                          rows={lineCount}
+                          className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed mb-1"
+                          placeholder="Type your answer here..."
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
@@ -285,11 +320,25 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
           const cells = trimmed.split("|").slice(1, -1).map(c => c.trim());
           return (
             <div key={li} className="flex gap-1 my-1">
-              {cells.map((cell, ci) => (
-                <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1.5 border border-[#d3e4fe]">
-                  {cell}
-                </span>
-              ))}
+              {cells.map((cell, ci) => {
+                const isBlank = !cell || cell.match(/^_{2,}$/);
+                const isFirstCol = ci === 0;
+                if (isBlank) {
+                  return (
+                    <input
+                      key={ci}
+                      type="text"
+                      className={`text-center text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
+                      placeholder="..."
+                    />
+                  );
+                }
+                return (
+                  <span key={ci} className={`text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1.5 border border-[#d3e4fe] ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}>
+                    {cell}
+                  </span>
+                );
+              })}
             </div>
           );
         }
