@@ -866,11 +866,11 @@ function OeqQuestionCard({
                       />
                     )}
                   </div>
-                  <BlankCanvas
+                  <ResizableCanvas
                     ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
                     tool={tool}
                     onStrokeStart={onStrokeStart}
-                    height={sp.diagramBase64 ? 340 : 260}
+                    defaultHeight={sp.diagramBase64 ? 340 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
                   />
                 </div>
@@ -878,16 +878,13 @@ function OeqQuestionCard({
               })}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative">
-              <div className="absolute top-0 left-12 h-full w-px bg-[#ba1a1a]/10" />
-              <BlankCanvas
-                ref={onCanvasRef}
-                tool={tool}
-                onStrokeStart={onStrokeStart}
-                height={drawableDiagramBase64 ? 360 : 300}
-                backgroundImage={drawableDiagramBase64}
-              />
-            </div>
+            <ResizableCanvas
+              ref={onCanvasRef}
+              tool={tool}
+              onStrokeStart={onStrokeStart}
+              defaultHeight={drawableDiagramBase64 ? 360 : 300}
+              backgroundImage={drawableDiagramBase64}
+            />
           )}
         </div>
       </div>
@@ -936,6 +933,55 @@ interface AnswerCanvasHandle {
   exportInk(): Promise<Blob>;
   undo(): void;
 }
+
+/* ────────────── Resizable Canvas Wrapper ────────────── */
+
+const ResizableCanvas = forwardRef<
+  AnswerCanvasHandle,
+  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null }
+>(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage }, ref) {
+  const [height, setHeight] = useState(defaultHeight);
+  const dragRef = useRef<{ startY: number; startH: number } | null>(null);
+
+  function onDragStart(e: React.PointerEvent) {
+    dragRef.current = { startY: e.clientY, startH: height };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onDragMove(e: React.PointerEvent) {
+    if (!dragRef.current) return;
+    const delta = e.clientY - dragRef.current.startY;
+    setHeight(Math.max(200, dragRef.current.startH + delta));
+  }
+  function onDragEnd() { dragRef.current = null; }
+
+  return (
+    <div className="relative">
+      <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative">
+        <div className="absolute top-0 left-12 h-full w-px bg-[#ba1a1a]/10" />
+        <BlankCanvas
+          ref={ref}
+          tool={tool}
+          onStrokeStart={onStrokeStart}
+          height={height}
+          backgroundImage={backgroundImage}
+        />
+        {/* Ans: overlay at bottom right */}
+        <div className="absolute bottom-3 right-4 pointer-events-none select-none">
+          <span className="text-sm font-bold text-slate-300">Ans: ___________</span>
+        </div>
+      </div>
+      {/* Drag handle */}
+      <div
+        onPointerDown={onDragStart}
+        onPointerMove={onDragMove}
+        onPointerUp={onDragEnd}
+        onPointerCancel={onDragEnd}
+        className="mx-auto mt-1 w-12 h-3 rounded-full bg-slate-200 hover:bg-slate-300 cursor-ns-resize active:bg-[#003366] transition-colors touch-none"
+        style={{ touchAction: "none" }}
+      />
+    </div>
+  );
+});
 
 const BlankCanvas = forwardRef<
   AnswerCanvasHandle,
