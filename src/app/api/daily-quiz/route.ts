@@ -284,7 +284,7 @@ export async function POST(request: NextRequest) {
       "vocab-cloze": ["Vocabulary Cloze MCQ", "Vocabulary Cloze", "Vocab Cloze MCQ"],
       "visual-text": ["Visual Text Comprehension MCQ", "Visual Text MCQ", "Visual Text Comprehension"],
       "grammar-cloze": ["Grammar Cloze"],
-      "editing": ["Editing", "Editing (Spelling & Grammar)"],
+      "editing": ["Editing", "Editing (Spelling & Grammar)", "Editing for Spelling and Grammar", "Editing (Spelling and Grammar)"],
       "comprehension-cloze": ["Comprehension Cloze"],
       "synthesis": ["Synthesis & Transformation", "Synthesis"],
       "comprehension-oeq": ["Comprehension OEQ", "Comprehension Open Ended", "Comprehension (Open-ended)"],

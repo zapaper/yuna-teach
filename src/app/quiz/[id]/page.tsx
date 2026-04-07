@@ -1020,8 +1020,8 @@ interface AnswerCanvasHandle {
 
 const ResizableCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null }
->(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null }
+>(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl }, ref) {
   // Use a large fixed canvas height, but control visible area via container CSS
   const maxCanvasHeight = 600;
   const [visibleHeight, setVisibleHeight] = useState(defaultHeight);
@@ -1048,6 +1048,7 @@ const ResizableCanvas = forwardRef<
           onStrokeStart={onStrokeStart}
           height={maxCanvasHeight}
           backgroundImage={backgroundImage}
+          savedInkUrl={savedInkUrl}
         />
         {/* Ans: overlay at bottom right */}
         <div className="absolute bottom-3 right-4 pointer-events-none select-none">
@@ -1069,8 +1070,8 @@ const ResizableCanvas = forwardRef<
 
 const BlankCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null }
->(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null; savedInkUrl?: string | null }
+>(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage, savedInkUrl }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
@@ -1124,7 +1125,24 @@ const BlankCanvas = forwardRef<
     function init() {
       const ctx = canvas!.getContext("2d", { desynchronized: true })!;
       drawBackground(ctx);
-      setReady(true);
+
+      // Load saved ink if available
+      if (savedInkUrl) {
+        const inkImg = new Image();
+        inkImg.crossOrigin = "anonymous";
+        inkImg.onload = () => {
+          // Draw ink onto visible canvas
+          ctx.drawImage(inkImg, 0, 0, CANVAS_W, CANVAS_H);
+          // Also draw onto ink-only canvas
+          const inkCtx = inkCanvasRef.current?.getContext("2d");
+          if (inkCtx) inkCtx.drawImage(inkImg, 0, 0, CANVAS_W, CANVAS_H);
+          setReady(true);
+        };
+        inkImg.onerror = () => setReady(true);
+        inkImg.src = savedInkUrl;
+      } else {
+        setReady(true);
+      }
     }
 
     if (backgroundImage) {
