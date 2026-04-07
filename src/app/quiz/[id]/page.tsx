@@ -17,6 +17,7 @@ interface QuizQuestion {
   diagramImageData: string | null;
   marksAvailable: number | null;
   syllabusTopic: string | null;
+  studentAnswer: string | null;
 }
 
 interface QuizPaper {
@@ -103,6 +104,12 @@ function QuizContent({ id }: { id: string }) {
         const data = await res.json();
         setPaper(data);
         setElapsed(data.timeSpentSeconds || 0);
+        // Load saved MCQ answers (progress recovery)
+        const savedAnswers: Record<string, string> = {};
+        for (const q of data.questions ?? []) {
+          if (q.studentAnswer) savedAnswers[q.id] = q.studentAnswer;
+        }
+        if (Object.keys(savedAnswers).length > 0) setMcqAnswers(savedAnswers);
         if (data.completedAt) {
           setSubmitted(true);
           if (data.markingStatus === "complete" || data.markingStatus === "released") {
@@ -158,6 +165,66 @@ function QuizContent({ id }: { id: string }) {
 
   function selectMcqAnswer(questionId: string, option: string) {
     setMcqAnswers(prev => ({ ...prev, [questionId]: option }));
+  }
+
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [progressSaved, setProgressSaved] = useState(false);
+
+  async function handleSaveProgress() {
+    if (savingProgress) return;
+    setSavingProgress(true);
+    try {
+      // Save MCQ answers (without scoring/completing)
+      await Promise.all(
+        mcqQuestions.filter(q => mcqAnswers[q.id]).map(q =>
+          fetch(`/api/exam/questions/${q.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentAnswer: mcqAnswers[q.id] }),
+          })
+        )
+      );
+
+      // Save OEQ drawings
+      if (hasOeq) {
+        const form = new FormData();
+        form.append("action", "save");
+        for (let i = 0; i < oeqQuestions.length; i++) {
+          const q = oeqQuestions[i];
+          const handle = oeqCanvasHandles.current[q.id];
+          if (handle) {
+            const [composite, ink] = await Promise.all([handle.exportImage(), handle.exportInk()]);
+            form.append(`page_${i}`, composite, `page_${i}.jpg`);
+            form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+          }
+          const spRefs = oeqSubpartHandles.current[q.id];
+          if (spRefs) {
+            for (const [label, spHandle] of Object.entries(spRefs)) {
+              if (spHandle) {
+                const [spComposite, spInk] = await Promise.all([spHandle.exportImage(), spHandle.exportInk()]);
+                form.append(`page_${i}_${label}`, spComposite, `page_${i}_${label}.jpg`);
+                form.append(`page_${i}_${label}_ink`, spInk, `page_${i}_${label}_ink.png`);
+              }
+            }
+          }
+        }
+        await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+      }
+
+      // Save elapsed time
+      await fetch(`/api/exam/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timeSpentSeconds: elapsed }),
+      });
+
+      setProgressSaved(true);
+      setTimeout(() => setProgressSaved(false), 2000);
+    } catch {
+      alert("Failed to save progress");
+    } finally {
+      setSavingProgress(false);
+    }
   }
 
   async function handleSubmit() {
@@ -338,7 +405,7 @@ function QuizContent({ id }: { id: string }) {
           </button>
           {hasOeq && <>
             <button
-              onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "pen" : "eraser")}
+              onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "eraser" : "eraser")}
               className={`p-3 rounded-full transition-colors ${tool === "eraser" || tool === "eraser-large" ? "text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
             >
               <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
@@ -350,6 +417,14 @@ function QuizContent({ id }: { id: string }) {
               <span className="material-symbols-outlined text-xl">undo</span>
             </button>
           </>}
+          <button
+            onClick={handleSaveProgress}
+            disabled={savingProgress}
+            className="flex items-center gap-1.5 bg-white text-[#003366] border border-[#003366]/20 rounded-full px-4 py-3 font-headline font-bold text-sm hover:bg-[#eff4ff] transition-colors disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-lg">save</span>
+            {savingProgress ? "…" : progressSaved ? "✓ Saved" : "Save"}
+          </button>
           <button
             onClick={handleSubmit}
             disabled={submitting}
@@ -386,7 +461,7 @@ function QuizContent({ id }: { id: string }) {
               Pen
             </button>
             <button
-              onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "pen" : "eraser")}
+              onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "eraser" : "eraser")}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "eraser" || tool === "eraser-large" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
             >
               <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
@@ -411,6 +486,13 @@ function QuizContent({ id }: { id: string }) {
             className="bg-[#001e40] text-white px-6 py-2 rounded-lg font-headline font-bold text-sm hover:scale-95 active:scale-90 transition-transform shadow-md disabled:opacity-50"
           >
             {submitting ? "…" : "Submit"}
+          </button>
+          <button
+            onClick={handleSaveProgress}
+            disabled={savingProgress}
+            className="bg-white text-[#003366] border border-[#003366]/20 px-4 py-2 rounded-lg font-headline font-bold text-sm hover:bg-[#eff4ff] transition-colors disabled:opacity-50"
+          >
+            {savingProgress ? "Saving…" : progressSaved ? "✓ Saved" : "Save Progress"}
           </button>
         </div>
       </header>
@@ -693,7 +775,7 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     const pos = getPos(e);
     const isEraser = tool === "eraser" || tool === "eraser-large";
     ctx.strokeStyle = isEraser ? "rgba(0,0,0,0)" : "#0066cc";
-    ctx.lineWidth = tool === "eraser-large" ? 40 : tool === "eraser" ? 20 : 2;
+    ctx.lineWidth = tool === "eraser-large" ? 60 : tool === "eraser" ? 20 : 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     if (isEraser) {
@@ -940,29 +1022,31 @@ const ResizableCanvas = forwardRef<
   AnswerCanvasHandle,
   { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null }
 >(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage }, ref) {
-  const [height, setHeight] = useState(defaultHeight);
+  // Use a large fixed canvas height, but control visible area via container CSS
+  const maxCanvasHeight = 600;
+  const [visibleHeight, setVisibleHeight] = useState(defaultHeight);
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
 
   function onDragStart(e: React.PointerEvent) {
-    dragRef.current = { startY: e.clientY, startH: height };
+    dragRef.current = { startY: e.clientY, startH: visibleHeight };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }
   function onDragMove(e: React.PointerEvent) {
     if (!dragRef.current) return;
     const delta = e.clientY - dragRef.current.startY;
-    setHeight(Math.max(200, dragRef.current.startH + delta));
+    setVisibleHeight(Math.max(200, Math.min(maxCanvasHeight, dragRef.current.startH + delta)));
   }
   function onDragEnd() { dragRef.current = null; }
 
   return (
     <div className="relative">
-      <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative">
+      <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative" style={{ height: visibleHeight }}>
         <div className="absolute top-0 left-12 h-full w-px bg-[#ba1a1a]/10" />
         <BlankCanvas
           ref={ref}
           tool={tool}
           onStrokeStart={onStrokeStart}
-          height={height}
+          height={maxCanvasHeight}
           backgroundImage={backgroundImage}
         />
         {/* Ans: overlay at bottom right */}
@@ -1148,7 +1232,7 @@ const BlankCanvas = forwardRef<
       if (toolRef.current === "eraser" || toolRef.current === "eraser-large") {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(255,255,255,1)";
-        ctx.lineWidth = toolRef.current === "eraser-large" ? 48 : 24;
+        ctx.lineWidth = toolRef.current === "eraser-large" ? 72 : 24;
       } else {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(37,99,235,0.85)";
@@ -1161,7 +1245,7 @@ const BlankCanvas = forwardRef<
       if (toolRef.current === "eraser" || toolRef.current === "eraser-large") {
         inkCtx.globalCompositeOperation = "destination-out";
         inkCtx.strokeStyle = "rgba(0,0,0,1)";
-        inkCtx.lineWidth = toolRef.current === "eraser-large" ? 48 : 24;
+        inkCtx.lineWidth = toolRef.current === "eraser-large" ? 72 : 24;
       } else {
         inkCtx.globalCompositeOperation = "source-over";
         inkCtx.strokeStyle = "rgba(37,99,235,0.85)";
@@ -1185,13 +1269,13 @@ const BlankCanvas = forwardRef<
       lastPos.current = pos;
       applyStyleVisible();
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, toolRef.current === "eraser-large" ? 24 : (toolRef.current === "eraser" ? 12 : 1.5), 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y, toolRef.current === "eraser-large" ? 36 : (toolRef.current === "eraser" ? 12 : 1.5), 0, Math.PI * 2);
       ctx.fill();
       const inkCtx = inkCanvasRef.current?.getContext("2d");
       if (inkCtx) {
         applyStyleInk(inkCtx);
         inkCtx.beginPath();
-        inkCtx.arc(pos.x, pos.y, toolRef.current === "eraser-large" ? 24 : (toolRef.current === "eraser" ? 12 : 1.5), 0, Math.PI * 2);
+        inkCtx.arc(pos.x, pos.y, toolRef.current === "eraser-large" ? 36 : (toolRef.current === "eraser" ? 12 : 1.5), 0, Math.PI * 2);
         inkCtx.fill();
       }
       if (toolRef.current === "eraser" || toolRef.current === "eraser-large") redrawComposite();
