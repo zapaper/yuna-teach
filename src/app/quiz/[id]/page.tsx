@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState, useRef, useImperativeHandle, forwardRef, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import EnglishQuizSection from "@/components/EnglishQuizSection";
 
 /* ────────────── types ────────────── */
 
@@ -177,9 +178,10 @@ function QuizContent({ id }: { id: string }) {
     if (savingProgress) return;
     setSavingProgress(true);
     try {
-      // Save MCQ answers (without scoring/completing)
+      // Save all answers (MCQ + typed sections like cloze/editing)
+      const questionsWithAnswers = (paper?.questions ?? []).filter(q => mcqAnswers[q.id]);
       await Promise.all(
-        mcqQuestions.filter(q => mcqAnswers[q.id]).map(q =>
+        questionsWithAnswers.map(q =>
           fetch(`/api/exam/questions/${q.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -531,54 +533,54 @@ function QuizContent({ id }: { id: string }) {
         {mcqQuestions.length > 0 && (
           <>
             {paper.metadata?.englishSections ? (
-              // English quiz: render with section headers and passages
+              // English quiz: render sections by type
               <>
                 {paper.metadata.englishSections.map((sec, si) => {
-                  const secQuestions = mcqQuestions.slice(sec.startIndex, sec.endIndex + 1);
+                  // Get ALL questions for this section (not just MCQ)
+                  const secQuestions = paper.questions.slice(sec.startIndex, sec.endIndex + 1);
                   if (secQuestions.length === 0) return null;
+
+                  const label = sec.label.toLowerCase();
+                  const isGrammarCloze = label.includes("grammar cloze");
+                  const isEditing = label.includes("editing");
+                  const isCompCloze = label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze"));
+                  const isVisualText = label.includes("visual text");
+                  const isTypedSection = isGrammarCloze || isEditing || isCompCloze || isVisualText;
+
+                  if (isTypedSection) {
+                    return (
+                      <EnglishQuizSection
+                        key={si}
+                        sectionLabel={sec.label}
+                        passage={sec.passage ?? null}
+                        questions={secQuestions}
+                        sectionType={isGrammarCloze ? "grammar-cloze" : isEditing ? "editing" : isCompCloze ? "comprehension-cloze" : "visual-text-mcq"}
+                        answers={mcqAnswers}
+                        onAnswer={selectMcqAnswer}
+                      />
+                    );
+                  }
+
+                  // Standard MCQ section (Grammar MCQ, Vocab MCQ, Vocab Cloze MCQ)
                   return (
                     <div key={si} className="mb-12">
-                      {/* Section header */}
                       <div className="mb-8 mt-4">
                         <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sec.label.toUpperCase()}</h2>
-                        {!sec.passage && (
-                          <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
-                        )}
+                        <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
                       </div>
 
-                      {/* Passage — image, text, or visual text reference */}
-                      {sec.passage && (
-                        sec.passage.startsWith("data:image") ? (
-                          // Visual Text: inline image
-                          <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={sec.passage} alt="Reading passage" className="w-full h-auto" />
-                          </div>
-                        ) : sec.passage.startsWith("[VISUAL_TEXT_SOURCE:") ? (
-                          // Visual Text: load from first question's imageData
-                          (() => {
-                            const firstQ = secQuestions[0];
-                            return firstQ?.imageData ? (
-                              <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={firstQ.imageData} alt="Visual text" className="w-full h-auto" />
-                              </div>
-                            ) : null;
-                          })()
-                        ) : (
-                          // Text passage (Vocab Cloze, etc.)
-                          <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
-                            <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-wrap">{sec.passage}</p>
-                          </div>
-                        )
+                      {/* Vocab Cloze passage */}
+                      {sec.passage && !sec.passage.startsWith("[") && !sec.passage.startsWith("data:") && (
+                        <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
+                          <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-wrap">{sec.passage}</p>
+                        </div>
                       )}
-                      {sec.passage && sec.label.toLowerCase().includes("cloze") && (
+                      {sec.passage && label.includes("vocab") && label.includes("cloze") && (
                         <p className="text-sm text-[#737780] mb-6 italic">Which word best completes the blanks?</p>
                       )}
 
-                      {/* Questions */}
                       <div className="space-y-10">
-                        {secQuestions.map((q, idx) => (
+                        {secQuestions.filter(q => isMcq(q.answer)).map((q, idx) => (
                           <McqQuestionCard
                             key={q.id}
                             question={q}
