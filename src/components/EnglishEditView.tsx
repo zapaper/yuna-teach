@@ -46,7 +46,10 @@ export default function EnglishEditView({ paper, pageImages, onSave, onSaveOcr, 
     <div className="space-y-6">
       {sections.map(sec => {
         const isExpanded = expandedSection === sec.name;
-        const ocrData = ocrTexts[sec.name];
+        // Try exact match first, then fuzzy match on section name
+        const ocrData = ocrTexts[sec.name] ?? Object.entries(ocrTexts).find(([k]) =>
+          k.toLowerCase().replace(/\s+/g, "").includes(sec.name.toLowerCase().replace(/\s+/g, "").slice(0, 10))
+        )?.[1] ?? null;
         const sectionPageIndices = ocrData?.pageIndices ?? [];
 
         return (

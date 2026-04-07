@@ -304,6 +304,29 @@ async function extractExamPaperCore(
       p.questions.some(q => (q as { _stem?: string })._stem || (q as { _options?: string[] })._options)
     );
 
+    // Pre-compute visual text pages for both text-based and image-based paths
+    const visualTextPages: Buffer[] = [];
+    if (isEnglishEarly) {
+      const vtQuestionPages = new Set<number>();
+      const nonVtQuestionPages = new Set<number>();
+      for (const page of result.pages) {
+        for (const q of page.questions) {
+          const topic = (q.syllabusTopic ?? result.syllabusTopics?.[q.questionNum] ?? "").toLowerCase();
+          if (topic.includes("visual") && topic.includes("text")) vtQuestionPages.add(page.pageIndex);
+          else nonVtQuestionPages.add(page.pageIndex);
+        }
+      }
+      if (vtQuestionPages.size > 0) {
+        const firstVtPage = Math.min(...vtQuestionPages);
+        const lastNonVtPage = nonVtQuestionPages.size > 0 ? Math.max(...nonVtQuestionPages) : -1;
+        for (let p = lastNonVtPage + 1; p < firstVtPage; p++) {
+          if (!vtQuestionPages.has(p) && !nonVtQuestionPages.has(p) && imageBuffers[p]) {
+            visualTextPages.push(imageBuffers[p]);
+          }
+        }
+      }
+    }
+
     if (hasTextExtraction) {
       console.log(`[extraction] English text-based: building questions from OCR text (no image crops)`);
       const questions: Array<{
@@ -326,9 +349,19 @@ async function extractExamPaperCore(
             answer = entry.type === "text" ? entry.value : (entry.value || "");
           }
 
+          // For Visual Text: store stitched visual page images
+          let qImageData = "";
+          const qTopic = (q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? "").toLowerCase();
+          if (qTopic.includes("visual") && qTopic.includes("text") && visualTextPages.length > 0) {
+            try {
+              const stitched = await stitchPagesVertically(visualTextPages);
+              qImageData = `data:image/jpeg;base64,${stitched.toString("base64")}`;
+            } catch { /* ignore */ }
+          }
+
           questions.push({
             questionNum: qNum,
-            imageData: "", // No image for text-based questions
+            imageData: qImageData,
             answer,
             answerImageData: "",
             pageIndex: page.pageIndex,
@@ -481,10 +514,9 @@ async function extractExamPaperCore(
     // English MCQ topics — use tighter top padding so answer options aren't clipped
     const ENGLISH_MCQ_TOPICS = new Set(["Grammar MCQ", "Vocabulary MCQ", "Vocabulary Cloze MCQ", "Visual Text Comprehension MCQ"]);
 
-    // For Visual Text Comprehension: find pages with no questions (visual-only pages)
-    // These are pages between the last Vocab Cloze MCQ question page and the first Visual Text question page
-    const visualTextPages: Buffer[] = [];
-    if (isEnglish) {
+    // For Visual Text Comprehension (image-based path): reuse pre-computed visualTextPages or rebuild
+    // visualTextPages was already computed above for the text-based path
+    if (visualTextPages.length === 0 && isEnglish) {
       // Find which pages have Visual Text questions
       const vtQuestionPages = new Set<number>();
       const nonVtQuestionPages = new Set<number>();
