@@ -91,6 +91,8 @@ function QuizContent({ id }: { id: string }) {
   const [mcqScore, setMcqScore] = useState<{ correct: number; total: number } | null>(null);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [progressSaved, setProgressSaved] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Badge system
@@ -166,9 +168,6 @@ function QuizContent({ id }: { id: string }) {
   function selectMcqAnswer(questionId: string, option: string) {
     setMcqAnswers(prev => ({ ...prev, [questionId]: option }));
   }
-
-  const [savingProgress, setSavingProgress] = useState(false);
-  const [progressSaved, setProgressSaved] = useState(false);
 
   async function handleSaveProgress() {
     if (savingProgress) return;

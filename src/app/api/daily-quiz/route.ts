@@ -270,8 +270,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not enough English questions available" }, { status: 404 });
     }
 
+    // Pre-fetch all source paper metadata in one batch
+    const sourcePaperIds = [...new Set(selectedExtra.map(q => q.examPaperId))];
+    const sourcePapers = sourcePaperIds.length > 0
+      ? await prisma.examPaper.findMany({ where: { id: { in: sourcePaperIds } }, select: { id: true, metadata: true } })
+      : [];
+    const sourcePaperMap = new Map(sourcePapers.map(p => [p.id, p.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null]));
+
     // Build section metadata for quiz display
-    const sections: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> = [];
+    const sections: Array<{ label: string; startIndex: number; endIndex: number; passage?: string; sourceExamId?: string }> = [];
     let idx = 0;
     if (selectedGrammar.length > 0 || selectedVocab.length > 0) {
       sections.push({ label: "Section A: Grammar and Vocab MCQ", startIndex: idx, endIndex: idx + selectedGrammar.length + selectedVocab.length - 1 });
