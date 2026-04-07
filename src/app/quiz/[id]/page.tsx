@@ -616,6 +616,8 @@ function QuizContent({ id }: { id: string }) {
                   onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
                   onSubpartRefs={(refs) => { oeqSubpartHandles.current[q.id] = refs; }}
                   onStrokeStart={() => { lastDrawnId.current = q.id; }}
+                  paperId={id}
+                  oeqIndex={idx}
                 />
               ))}
             </div>
@@ -829,6 +831,8 @@ function OeqQuestionCard({
   onCanvasRef,
   onSubpartRefs,
   onStrokeStart,
+  paperId,
+  oeqIndex,
 }: {
   question: QuizQuestion;
   index: number;
@@ -836,6 +840,8 @@ function OeqQuestionCard({
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
   onSubpartRefs?: (refs: Record<string, AnswerCanvasHandle | null>) => void;
   onStrokeStart: () => void;
+  paperId: string;
+  oeqIndex: number;
 }) {
   const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
   // rebuild ref image map from sentinels
@@ -954,6 +960,7 @@ function OeqQuestionCard({
                     onStrokeStart={onStrokeStart}
                     defaultHeight={sp.diagramBase64 ? 340 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
+                    savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink`}
                   />
                 </div>
               );
@@ -966,6 +973,7 @@ function OeqQuestionCard({
               onStrokeStart={onStrokeStart}
               defaultHeight={drawableDiagramBase64 ? 360 : 300}
               backgroundImage={drawableDiagramBase64}
+              savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
             />
           )}
         </div>
