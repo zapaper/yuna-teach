@@ -83,7 +83,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       : (user.linkedStudents[0]?.id ?? "")
   );
   const [showStudentMenu, setShowStudentMenu] = useState(false);
-  const [activeView, setActiveView] = useState<"progress" | "papers">(initialView === "papers" ? "papers" : "progress");
+  const [activeView, setActiveView] = useState<"progress" | "papers" | "activities">(initialView === "papers" ? "papers" : "progress");
 
   // Modals
   const [showFocused, setShowFocused] = useState(false);
@@ -1127,7 +1127,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
         <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
-          {activeView === "papers" ? "Set Papers" : `${user.name}'s Dashboard`}
+          {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
         </h1>
         <div className="flex items-center gap-5">
           <div className="relative">
@@ -1395,6 +1395,79 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         )}
 
+        {/* ── All Activities view ───────────────────────────────────────────── */}
+        {activeView === "activities" && (
+          <div className="px-5 lg:px-8 max-w-4xl">
+            <div className="flex items-center gap-3 mb-6">
+              <button onClick={() => setActiveView("progress")} className="p-2 rounded-xl hover:bg-[#e5eeff] transition-colors">
+                <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
+              </button>
+              <div>
+                <h2 className="font-headline font-extrabold text-xl text-[#001e40]">All Activities</h2>
+                {selectedStudent && (
+                  <p className="text-xs text-[#43474f] mt-0.5">{selectedStudent.name} &middot; {completedPapers.length} completed</p>
+                )}
+              </div>
+            </div>
+
+            {completedPapers.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-[#c3c6d1]">
+                <span className="material-symbols-outlined text-4xl text-[#c3c6d1] mb-3 block">history</span>
+                <p className="font-bold text-[#001e40]">No completed papers yet</p>
+                <p className="text-sm text-[#43474f] mt-1">Completed papers will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {[...completedPapers]
+                  .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+                  .map(paper => {
+                    const pct = scorePct(paper);
+                    const isMarking = paper.markingStatus === "in_progress";
+                    return (
+                      <div key={paper.id} onClick={() => {
+                          if (isMarking) return;
+                          const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
+                          if (isQuizOrFocused || paper.completedAt) {
+                            router.push(`/exam/${paper.id}/review?userId=${userId}`);
+                          } else {
+                            const masterId = paper.sourceExamId ?? paper.id;
+                            router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
+                          }
+                        }}
+                        className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow ${isMarking ? "opacity-60" : "cursor-pointer hover:shadow-md"}`}>
+                        <div className="w-11 h-11 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#001e40] shrink-0">
+                          <span className="material-symbols-outlined text-lg">{activityIcon(paper)}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
+                          <p className="text-xs text-[#43474f]">
+                            {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
+                            {paper.subject && <> &middot; {paper.subject}</>}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                            <button onClick={(e) => handleDeletePaper(e, paper.id)}
+                              className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                              <span className="material-symbols-outlined text-base">close</span>
+                            </button>
+                          )}
+                          {isMarking ? (
+                            <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                          ) : pct !== null ? (
+                            <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
+                          ) : (
+                            <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* ── Progress dashboard view ──────────────────────────────────────── */}
         {activeView === "progress" && (
           <>
@@ -1440,7 +1513,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <section>
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="font-headline font-bold text-lg text-[#001e40]">Recent Activities</h3>
-                  <button onClick={() => setActiveView("papers")} className="text-xs font-extrabold text-[#003366]">View All</button>
+                  <button onClick={() => setActiveView("activities")} className="text-xs font-extrabold text-[#003366]">View All</button>
                 </div>
                 <ActivitiesList />
               </section>
@@ -1612,7 +1685,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   <div className="bg-white rounded-3xl p-8 shadow-sm">
                     <div className="flex justify-between items-center mb-7">
                       <h4 className="font-headline text-xl font-extrabold text-[#001e40]">Recent Activities</h4>
-                      <button onClick={() => setActiveView("papers")} className="text-sm font-extrabold text-[#003366] hover:underline">View All</button>
+                      <button onClick={() => setActiveView("activities")} className="text-sm font-extrabold text-[#003366] hover:underline">View All</button>
                     </div>
                     <div className="space-y-5">
                       {recentActivities.length === 0 ? (
