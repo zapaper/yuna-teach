@@ -332,7 +332,13 @@ export async function POST(request: NextRequest) {
             }
           }
         }
-        console.log(`[English Quiz] ${section}: passage ${passage ? `found (${passage.length} chars)` : "NOT found"}`);
+        // For Visual Text: try to get the source paper's visual page images
+        if (section === "visual-text" && !passage && firstExtraQ.imageData) {
+          // The first Visual Text question's imageData contains stitched visual pages
+          passage = firstExtraQ.imageData; // Store as passageImage (base64 data URL)
+        }
+
+        console.log(`[English Quiz] ${section}: passage ${passage ? `found (${passage.length > 100 ? passage.length + " chars" : passage})` : "NOT found"}`);
       }
 
       const secLabel = sectionLabels[section] ?? section;

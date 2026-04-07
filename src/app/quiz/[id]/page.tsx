@@ -457,13 +457,22 @@ function QuizContent({ id }: { id: string }) {
                         )}
                       </div>
 
-                      {/* Passage (for Vocab Cloze, etc.) */}
+                      {/* Passage — image or text */}
                       {sec.passage && (
-                        <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
-                          <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-wrap">{sec.passage}</p>
-                        </div>
+                        sec.passage.startsWith("data:image") ? (
+                          // Visual Text: scanned image
+                          <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={sec.passage} alt="Reading passage" className="w-full h-auto" />
+                          </div>
+                        ) : (
+                          // Text passage (Vocab Cloze, etc.)
+                          <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
+                            <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-wrap">{sec.passage}</p>
+                          </div>
+                        )
                       )}
-                      {sec.passage && (
+                      {sec.passage && sec.label.toLowerCase().includes("cloze") && (
                         <p className="text-sm text-[#737780] mb-6 italic">Which word best completes the blanks?</p>
                       )}
 
@@ -476,7 +485,7 @@ function QuizContent({ id }: { id: string }) {
                             index={sec.startIndex + idx}
                             selected={mcqAnswers[q.id] ?? null}
                             onSelect={(opt) => selectMcqAnswer(q.id, opt)}
-                            hideStem={!!sec.passage}
+                            hideStem={!!sec.passage && sec.label.toLowerCase().includes("cloze")}
                           />
                         ))}
                       </div>
