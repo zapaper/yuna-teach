@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface QuizQuestion {
   id: string;
@@ -38,9 +38,10 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
       {/* Section header */}
       <div className="mb-6">
         <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sectionLabel.toUpperCase()}</h2>
-        {sectionType === "grammar-cloze" && <p className="text-[#737780] mt-1 text-sm">Select the correct word from the word bank for each blank.</p>}
-        {sectionType === "editing" && <p className="text-[#737780] mt-1 text-sm">Write the correct spelling for each underlined word.</p>}
+        {sectionType === "grammar-cloze" && <p className="text-[#737780] mt-1 text-sm">From the list of words given, choose the most suitable word, and write its letter (A to Q) in the blank.</p>}
+        {sectionType === "editing" && <p className="text-[#737780] mt-1 text-sm">Each of the underlined words contains either a spelling or grammatical error. Type the correct word in each of the boxes.</p>}
         {sectionType === "comprehension-cloze" && <p className="text-[#737780] mt-1 text-sm">Fill in each blank with a suitable word.</p>}
+        {sectionType === "synthesis" && <p className="text-[#737780] mt-1 text-sm">Rewrite the given sentence(s) using the word(s) provided. Your answer must be in one sentence. The meaning of your sentence must be the same as the meaning of the given sentence(s).</p>}
       </div>
 
       {/* Visual Text: show scanned page images */}
@@ -262,7 +263,8 @@ function PassageWithInputs({
   const lines = passage.split("\n");
 
   return (
-    <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100">
+    <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 relative">
+      <PassageScratchOverlay />
       {lines.map((line, li) => {
         // Skip table separator rows (must check before table rows)
         if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
@@ -418,7 +420,7 @@ function PassageLine({
     if (sectionType === "grammar-cloze" || sectionType === "comprehension-cloze") {
       // Cloze: show question number + text input
       parts.push(
-        <span key={`q${qNum}`} className="inline-flex items-center gap-1 mx-1">
+        <span key={`q${qNum}`} className="relative z-20 inline-flex items-center gap-1 mx-1">
           <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({displayNum})</span>
           <input
             type="text"
@@ -435,7 +437,7 @@ function PassageLine({
     } else if (sectionType === "editing") {
       // Editing: show question number + error word + correction input
       parts.push(
-        <span key={`q${qNum}`} className="inline-flex items-center gap-1 mx-1">
+        <span key={`q${qNum}`} className="relative z-20 inline-flex items-center gap-1 mx-1">
           <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({displayNum})</span>
           <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{content}</span>
           <input
@@ -556,4 +558,72 @@ function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbac
   }
 
   return null;
+}
+
+/** Transparent drawing overlay for passage annotation (underlining, circling) */
+function PassageScratchOverlay() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawing = useRef(false);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
+
+  function getPos(e: React.PointerEvent) {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+  }
+
+  function onDown(e: React.PointerEvent) {
+    if (e.button !== 0 || e.pointerType === "mouse") return; // stylus/touch only
+    isDrawing.current = true;
+    lastPos.current = getPos(e);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+
+  function onMove(e: React.PointerEvent) {
+    if (!isDrawing.current) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx || !lastPos.current) return;
+    const pos = getPos(e);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = "rgba(0, 102, 204, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    lastPos.current = pos;
+  }
+
+  function onUp() { isDrawing.current = false; lastPos.current = null; }
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+    const obs = new ResizeObserver(() => {
+      const w = parent.offsetWidth;
+      const h = parent.offsetHeight;
+      canvas.style.width = `${w}px`;
+      canvas.style.height = `${h}px`;
+      canvas.width = w * 2;
+      canvas.height = h * 2;
+    });
+    obs.observe(parent);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 z-10 pointer-events-auto"
+      style={{ touchAction: "none" }}
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+    />
+  );
 }

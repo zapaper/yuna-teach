@@ -508,7 +508,7 @@ export async function POST(request: NextRequest) {
             imageData: q.imageData,
             answer: q.answer,
             answerImageData: q.answerImageData,
-            marksAvailable: q.marksAvailable ?? 1,
+            marksAvailable: q.marksAvailable ?? ((q.syllabusTopic ?? "").toLowerCase().includes("synthesis") ? 2 : 1),
             syllabusTopic: q.syllabusTopic,
             pageIndex: 0,
             orderIndex: i,
