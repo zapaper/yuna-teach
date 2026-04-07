@@ -36,7 +36,7 @@ interface QuizPaper {
   requesterIsAdmin?: boolean;
 }
 
-type DrawTool = "pen" | "eraser" | "eraser-large";
+type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
 
 /* ────────────── helpers ────────────── */
 
@@ -81,7 +81,8 @@ function QuizContent({ id }: { id: string }) {
   const [mcqAnswers, setMcqAnswers] = useState<Record<string, string>>({});
 
   // OEQ drawing
-  const [tool, setTool] = useState<DrawTool>("pen");
+  const isEnglishQuiz = !!paper?.metadata?.englishSections;
+  const [tool, setTool] = useState<DrawTool>(paper?.metadata?.englishSections ? "type" : "pen");
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
   const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
@@ -473,27 +474,34 @@ function QuizContent({ id }: { id: string }) {
       {/* ── Mobile Top Bar (floating pill) ── */}
       <header className="lg:hidden fixed top-0 w-full z-50 px-6 py-4 flex justify-center bg-[#f8f9ff]/80 backdrop-blur-md">
         <div className="bg-white/90 backdrop-blur-xl rounded-full px-2 py-1.5 flex items-center gap-0.5 shadow-lg border border-white/30">
+          {isEnglishQuiz && (
+            <button
+              onClick={() => setTool("type")}
+              className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "type" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
+            >
+              <span className="material-symbols-outlined text-xl">keyboard</span>
+              <span>Type</span>
+            </button>
+          )}
           <button
             onClick={() => setTool("pen")}
-            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "text-[#001e40]" : "text-[#43474f]"}`}
+            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
           >
             <span className="material-symbols-outlined text-xl">edit</span>
-            <span>Write</span>
+            <span>Draw</span>
           </button>
-          {hasOeq && <>
-            <button
-              onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "eraser" : "eraser")}
-              className={`p-3 rounded-full transition-colors ${tool === "eraser" || tool === "eraser-large" ? "text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
-            >
-              <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
-            </button>
-            <button
-              onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
-              className="p-3 rounded-full text-[#737780] hover:text-[#001e40] transition-colors"
-            >
-              <span className="material-symbols-outlined text-xl">undo</span>
-            </button>
-          </>}
+          <button
+            onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "eraser" : "eraser")}
+            className={`p-3 rounded-full transition-colors ${tool === "eraser" || tool === "eraser-large" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
+          >
+            <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
+          </button>
+          <button
+            onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
+            className="p-3 rounded-full text-[#737780] hover:text-[#001e40] transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl">undo</span>
+          </button>
           <button
             onClick={handleSaveProgress}
             disabled={savingProgress}
@@ -530,6 +538,15 @@ function QuizContent({ id }: { id: string }) {
         <div className="flex items-center gap-4">
           {/* Drawing tools */}
           <div className="flex items-center bg-[#eff4ff] rounded-lg p-1 border border-[#c3c6d1]/10">
+            {isEnglishQuiz && (
+              <button
+                onClick={() => setTool("type")}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "type" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
+              >
+                <span className="material-symbols-outlined text-xl">keyboard</span>
+                Type
+              </button>
+            )}
             <button
               onClick={() => setTool("pen")}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "pen" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
@@ -627,6 +644,8 @@ function QuizContent({ id }: { id: string }) {
                         sectionType={isGrammarCloze ? "grammar-cloze" : isEditing ? "editing" : isCompCloze ? "comprehension-cloze" : "visual-text-mcq"}
                         answers={mcqAnswers}
                         onAnswer={selectMcqAnswer}
+                        tool={tool}
+                        onToolChange={(t) => setTool(t)}
                       />
                     );
                   }
@@ -642,6 +661,8 @@ function QuizContent({ id }: { id: string }) {
                         sectionType={isSynthesis ? "synthesis" : "comprehension-oeq"}
                         answers={mcqAnswers}
                         onAnswer={selectMcqAnswer}
+                        tool={tool}
+                        onToolChange={(t) => setTool(t)}
                       />
                     );
                   }
