@@ -313,9 +313,26 @@ export async function POST(request: NextRequest) {
         if (passageSub) { passage = passageSub.text; }
 
         // Try 2: source paper's sectionOcrTexts (pre-fetched batch)
-        // Skip for sections that don't use passage text
-        const skipOcrLookup = group.key === "visual-text" || group.key === "synthesis" || group.key === "comprehension-oeq";
-        if (!passage && !skipOcrLookup) {
+        // Skip for sections that don't use inline passage markers
+        const skipOcrLookup = group.key === "visual-text" || group.key === "synthesis";
+        // Comprehension OEQ: load the reading passage (passageOcrText), not the question OCR
+        if (!passage && group.key === "comprehension-oeq") {
+          const meta = sourcePaperMap.get(firstQ.examPaperId);
+          if (meta?.sectionOcrTexts) {
+            for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
+              if (secName.toLowerCase().includes("comprehension") && (secName.toLowerCase().includes("open") || secName.toLowerCase().includes("oeq"))) {
+                const passageText = (secData as { passageOcrText?: string }).passageOcrText;
+                if (passageText) {
+                  passage = passageText;
+                  console.log(`[English Quiz] Comp OEQ: loaded reading passage (${passageText.length} chars) from "${secName}"`);
+                }
+                break;
+              }
+            }
+          }
+          if (!passage) console.log(`[English Quiz] Comp OEQ: no reading passage found in sectionOcrTexts`);
+        }
+        if (!passage && !skipOcrLookup && group.key !== "comprehension-oeq") {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
             // Try exact name match first

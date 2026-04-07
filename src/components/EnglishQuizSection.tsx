@@ -64,6 +64,11 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
         />
       )}
 
+      {/* Comprehension OEQ: reading passage */}
+      {sectionType === "comprehension-oeq" && passage && (
+        <ReadingPassage text={passage} />
+      )}
+
       {/* Synthesis / Comprehension OEQ: typed answer sections */}
       {(sectionType === "synthesis" || sectionType === "comprehension-oeq") && (
         <div className="space-y-8">
@@ -135,39 +140,59 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                 </div>
 
                 {/* Synthesis: keyword + input boxes */}
-                {sectionType === "synthesis" && (
-                  <div className="mt-3 ml-[52px]">
-                    {synthAnswerParts.map((part) => {
-                      if (part.type === "keyword") {
-                        return <p key={part.key} className="font-bold text-base text-[#001e40] my-1">{part.content}</p>;
-                      }
-                      // For multiple inputs, split stored answer by |||
-                      const inputCount = synthAnswerParts.filter(p => p.type === "input").length;
-                      const inputIdx = synthAnswerParts.filter(p => p.type === "input").indexOf(part);
-                      const storedParts = (answers[q.id] ?? "").split("|||");
-                      const value = inputCount > 1 ? (storedParts[inputIdx] ?? "") : (answers[q.id] ?? "");
-                      return (
-                        <input
-                          key={part.key}
-                          type="text"
-                          value={value}
-                          onChange={e => {
-                            if (inputCount > 1) {
-                              const parts = (answers[q.id] ?? "").split("|||");
-                              while (parts.length < inputCount) parts.push("");
-                              parts[inputIdx] = e.target.value;
-                              onAnswer(q.id, parts.join("|||"));
-                            } else {
-                              onAnswer(q.id, e.target.value);
-                            }
-                          }}
-                          className="w-full max-w-md border-2 border-slate-200 focus:border-[#003366] outline-none rounded-lg px-3 py-2 text-base text-[#001e40] mb-1"
-                          placeholder="Type your answer..."
-                        />
-                      );
-                    })}
-                  </div>
-                )}
+                {sectionType === "synthesis" && (() => {
+                  const inputCount = synthAnswerParts.filter(p => p.type === "input").length;
+                  const isStartingWord = inputCount === 1 && synthAnswerParts[0]?.type === "keyword";
+
+                  const makeInput = (inputIdx: number, key: string) => {
+                    const storedParts = (answers[q.id] ?? "").split("|||");
+                    const value = inputCount > 1 ? (storedParts[inputIdx] ?? "") : (answers[q.id] ?? "");
+                    return (
+                      <input
+                        key={key}
+                        type="text"
+                        value={value}
+                        onFocus={() => onToolChange?.("type")}
+                        onChange={e => {
+                          if (inputCount > 1) {
+                            const parts = (answers[q.id] ?? "").split("|||");
+                            while (parts.length < inputCount) parts.push("");
+                            parts[inputIdx] = e.target.value;
+                            onAnswer(q.id, parts.join("|||"));
+                          } else {
+                            onAnswer(q.id, e.target.value);
+                          }
+                        }}
+                        className="flex-1 min-w-[120px] border-2 border-slate-200 focus:border-[#003366] outline-none rounded-lg px-3 py-2 text-base text-[#001e40]"
+                        placeholder="Type your answer..."
+                      />
+                    );
+                  };
+
+                  if (isStartingWord) {
+                    // Starting word: keyword + input on same line
+                    return (
+                      <div className="mt-3 ml-[52px] flex items-center gap-2">
+                        <span className="font-bold text-base text-[#001e40] shrink-0">{synthAnswerParts[0].content}</span>
+                        {makeInput(0, "in0")}
+                      </div>
+                    );
+                  }
+
+                  // Mid-sentence keyword: all inline — [input] keyword [input]
+                  let inputIdx = 0;
+                  return (
+                    <div className="mt-3 ml-[52px] flex flex-wrap items-center gap-2">
+                      {synthAnswerParts.map((part) => {
+                        if (part.type === "keyword") {
+                          return <span key={part.key} className="font-bold text-base text-[#001e40] shrink-0">{part.content}</span>;
+                        }
+                        const idx = inputIdx++;
+                        return makeInput(idx, part.key);
+                      })}
+                    </div>
+                  );
+                })()}
 
                 {/* Comprehension OEQ: typed answer lines (skip if question has a table for answers) */}
                 {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && (
@@ -573,6 +598,55 @@ function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbac
   return null;
 }
 
+/** Renders reading passage with line numbers (for Comp OEQ) */
+function ReadingPassage({ text }: { text: string }) {
+  const lines = text.split("\n");
+  // Check if it's a markdown table format (| Line | Text | No. |)
+  const isTable = lines.some(l => l.trim().startsWith("|") && l.trim().endsWith("|") && !l.match(/^\s*\|[\s-:|]+\|\s*$/));
+
+  if (isTable) {
+    // Parse table rows, skip header separator
+    const rows: string[][] = [];
+    for (const line of lines) {
+      if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) continue;
+      if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+        rows.push(line.split("|").slice(1, -1).map(c => c.trim()));
+      }
+    }
+    // First row is header — skip it
+    const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+    return (
+      <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
+        <div className="space-y-0">
+          {dataRows.map((cells, ri) => {
+            const lineNum = cells[0]?.trim();
+            const textContent = cells[1]?.trim() ?? "";
+            const marginNum = cells[2]?.trim() ?? "";
+            const isEmpty = !lineNum && !textContent;
+            const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
+            return (
+              <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.5rem]"}`}>
+                <span className="w-6 text-right text-xs text-[#737780] font-mono shrink-0 pt-0.5">{lineNum}</span>
+                <p className={`flex-1 text-base text-[#0b1c30] leading-relaxed ${isIndented ? "pl-8" : ""}`}>
+                  {textContent.replace(/^\s+/, "")}
+                </p>
+                <span className="w-6 text-right text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Plain text fallback
+  return (
+    <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
+      <p className="text-base text-[#0b1c30] leading-relaxed whitespace-pre-wrap">{text}</p>
+    </div>
+  );
+}
+
 /** Transparent drawing overlay for passage annotation (underlining, circling) */
 function PassageScratchOverlay() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -586,7 +660,7 @@ function PassageScratchOverlay() {
   }
 
   function onDown(e: React.PointerEvent) {
-    if (e.button !== 0 || e.pointerType === "mouse") return; // stylus/touch only
+    if (e.button !== 0) return;
     isDrawing.current = true;
     lastPos.current = getPos(e);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);

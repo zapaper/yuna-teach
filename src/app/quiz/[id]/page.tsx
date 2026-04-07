@@ -82,7 +82,9 @@ function QuizContent({ id }: { id: string }) {
 
   // OEQ drawing
   const isEnglishQuiz = !!paper?.metadata?.englishSections;
-  const [tool, setTool] = useState<DrawTool>(paper?.metadata?.englishSections ? "type" : "pen");
+  const [tool, setTool] = useState<DrawTool>("pen");
+  const toolInitRef = useRef(false);
+  if (isEnglishQuiz && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
   const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
@@ -528,7 +530,7 @@ function QuizContent({ id }: { id: string }) {
           <div className="h-6 w-px bg-[#c3c6d1]/40" />
           <div className="flex items-center gap-4">
             <span className="font-headline text-sm font-semibold text-[#001e40]">{paper.title}</span>
-            {mcqQuestions.length > 0 && (
+            {mcqQuestions.length > 0 && !isEnglishQuiz && (
               <span className="px-3 py-1 bg-[#dce9ff] rounded-full font-label text-xs font-bold text-[#001e40]">
                 {answeredCount} / {mcqQuestions.length} MCQ
               </span>
@@ -595,7 +597,7 @@ function QuizContent({ id }: { id: string }) {
       <div className="pt-24 pb-8 max-w-4xl mx-auto px-4 lg:px-16">
 
         {/* Mobile progress bar */}
-        {mcqQuestions.length > 0 && (
+        {mcqQuestions.length > 0 && !isEnglishQuiz && (
           <div className="lg:hidden mb-8">
             <div className="flex justify-between items-end mb-3">
               <div>
