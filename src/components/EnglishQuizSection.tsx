@@ -111,8 +111,38 @@ function PassageWithInputs({
   answers: Record<string, string>;
   onAnswer: (questionId: string, answer: string) => void;
 }) {
-  // Map question numbers to question IDs for input binding
-  const qNumToId = new Map(questions.map(q => [parseInt(q.questionNum), q.id]));
+  // Build position-based mapping: extract question numbers from passage in order,
+  // then map each to the corresponding question by position (handles renumbered and original numbering)
+  const passageQNums: number[] = [];
+  const seen = new Set<number>();
+  const passageRegex = /\*\*\((\d+)\)/g;
+  let pm;
+  while ((pm = passageRegex.exec(passage)) !== null) {
+    const n = parseInt(pm[1]);
+    if (!seen.has(n)) { passageQNums.push(n); seen.add(n); }
+  }
+  const sortedQs = [...questions].sort((a, b) =>
+    a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
+  );
+  const qNumToId = new Map<number, string>();
+  const qNumToDisplayNum = new Map<number, number>(); // passage number → quiz display number
+  // First try direct match (quiz question number == passage number)
+  const directMatch = questions.some(q => passageQNums.includes(parseInt(q.questionNum)));
+  if (directMatch) {
+    questions.forEach(q => {
+      const n = parseInt(q.questionNum);
+      qNumToId.set(n, q.id);
+      qNumToDisplayNum.set(n, n);
+    });
+  } else {
+    // Position-based: passage blank i → questions[i]
+    passageQNums.forEach((pn, i) => {
+      if (i < sortedQs.length) {
+        qNumToId.set(pn, sortedQs[i].id);
+        qNumToDisplayNum.set(pn, parseInt(sortedQs[i].questionNum));
+      }
+    });
+  }
 
   // Parse passage and replace question markers with inputs
   const lines = passage.split("\n");
@@ -135,6 +165,7 @@ function PassageWithInputs({
             line={line}
             sectionType={sectionType}
             qNumToId={qNumToId}
+            qNumToDisplayNum={qNumToDisplayNum}
             answers={answers}
             onAnswer={onAnswer}
           />
@@ -159,12 +190,14 @@ function PassageLine({
   line,
   sectionType,
   qNumToId,
+  qNumToDisplayNum,
   answers,
   onAnswer,
 }: {
   line: string;
   sectionType: "grammar-cloze" | "editing" | "comprehension-cloze";
   qNumToId: Map<number, string>;
+  qNumToDisplayNum: Map<number, number>;
   answers: Record<string, string>;
   onAnswer: (questionId: string, answer: string) => void;
 }) {
@@ -181,6 +214,7 @@ function PassageLine({
     }
 
     const qNum = parseInt(match[1]);
+    const displayNum = qNumToDisplayNum.get(qNum) ?? qNum;
     const content = match[2].trim();
     const qId = qNumToId.get(qNum);
 
@@ -188,7 +222,7 @@ function PassageLine({
       // Cloze: show question number + text input
       parts.push(
         <span key={`q${qNum}`} className="inline-flex items-center gap-1 mx-1">
-          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({qNum})</span>
+          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({displayNum})</span>
           <input
             type="text"
             value={qId ? (answers[qId] ?? "") : ""}
@@ -205,7 +239,7 @@ function PassageLine({
       // Editing: show question number + error word + correction input
       parts.push(
         <span key={`q${qNum}`} className="inline-flex items-center gap-1 mx-1">
-          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({qNum})</span>
+          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({displayNum})</span>
           <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{content}</span>
           <input
             type="text"

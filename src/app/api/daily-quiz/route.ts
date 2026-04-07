@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
     answerImageData: true,
     marksAvailable: true,
     syllabusTopic: true,
+    pageIndex: true,
     transcribedStem: true,
     transcribedOptions: true,
     transcribedOptionImages: true,
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
     diagramImageData: true,
     diagramBounds: true,
     examPaper: {
-      select: { id: true, year: true, examType: true, school: true },
+      select: { id: true, year: true, examType: true, school: true, pageCount: true },
     },
   };
 
@@ -345,11 +346,11 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Try 3: Visual Text — store source paper ID + page indices for image loading
+        // Try 3: Visual Text — compute passage page indices from source paper
         if (group.key === "visual-text" && !passage) {
+          // First try sectionOcrTexts.passagePageIndices
           const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
-            // Find the Visual Text entry to get passagePageIndices
             for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
               if (secName.toLowerCase().includes("visual") && secName.toLowerCase().includes("text")) {
                 const pageIndices = (secData as { passagePageIndices?: number[] }).passagePageIndices;
@@ -360,6 +361,42 @@ export async function POST(request: NextRequest) {
               }
             }
           }
+
+          // Fallback: compute visual text context pages from source paper questions
+          if (!passage) {
+            try {
+              const sourcePaperQuestions = await prisma.examQuestion.findMany({
+                where: { examPaperId: firstQ.examPaperId },
+                select: { pageIndex: true, syllabusTopic: true },
+                orderBy: { orderIndex: "asc" },
+              });
+              const vtQPages = new Set(
+                sourcePaperQuestions
+                  .filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text"))
+                  .map(q => q.pageIndex)
+              );
+              const nonVtPages = new Set(
+                sourcePaperQuestions
+                  .filter(q => !((q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text")))
+                  .map(q => q.pageIndex)
+              );
+              // Context pages = pages that have no questions on them, between last non-VT page and first VT question page
+              const lastNonVtPage = Math.max(...nonVtPages, -1);
+              const firstVtPage = Math.min(...vtQPages);
+              const totalPages = (firstQ as any).examPaper?.pageCount ?? 0;
+              const contextPages: number[] = [];
+              for (let p = lastNonVtPage + 1; p < firstVtPage && p < totalPages; p++) {
+                contextPages.push(p);
+              }
+              if (contextPages.length > 0) {
+                passage = `[VISUAL_PAGES:${firstQ.examPaperId}:${contextPages.join(",")}]`;
+                console.log(`[English Quiz] Visual Text: computed context pages [${contextPages}] from source paper`);
+              }
+            } catch (err) {
+              console.warn(`[English Quiz] Visual Text: failed to compute context pages:`, err);
+            }
+          }
+
           if (!passage) passage = `[VISUAL_TEXT_SOURCE:${firstQ.examPaperId}]`;
         }
       }

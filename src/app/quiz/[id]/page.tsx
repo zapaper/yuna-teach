@@ -585,10 +585,48 @@ function QuizContent({ id }: { id: string }) {
                         <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
                       </div>
 
-                      {/* Vocab Cloze passage */}
+                      {/* Vocab Cloze passage — rich text with formatted blanks */}
                       {sec.passage && !sec.passage.startsWith("[") && !sec.passage.startsWith("data:") && (
                         <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
-                          <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-wrap">{sec.passage}</p>
+                          {sec.passage.split("\n").map((line, li) => {
+                            if (!line.trim()) return <br key={li} />;
+                            // Skip table separators
+                            if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
+                            // Table rows
+                            if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+                              const cells = line.split("|").slice(1, -1).map(c => c.trim());
+                              return (
+                                <div key={li} className="flex gap-2 my-1">
+                                  {cells.map((cell, ci) => (
+                                    <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-white/60 rounded px-2 py-1">{cell}</span>
+                                  ))}
+                                </div>
+                              );
+                            }
+                            // Rich text: replace **(N)text** with styled blanks
+                            const parts: React.ReactNode[] = [];
+                            const regex = /\*\*\((\d+)\)([^*]*)\*\*/g;
+                            let lastIdx2 = 0;
+                            let m;
+                            while ((m = regex.exec(line)) !== null) {
+                              if (m.index > lastIdx2) parts.push(<span key={`t${lastIdx2}`}>{line.slice(lastIdx2, m.index)}</span>);
+                              const qNum = m[1];
+                              parts.push(
+                                <span key={`q${qNum}`} className="inline-flex items-center gap-0.5 mx-0.5">
+                                  <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1 rounded">({qNum})</span>
+                                  <span className="border-b-2 border-[#001e40]/30 px-2 text-sm">________</span>
+                                </span>
+                              );
+                              lastIdx2 = m.index + m[0].length;
+                            }
+                            if (lastIdx2 < line.length) parts.push(<span key="end">{line.slice(lastIdx2)}</span>);
+                            const indent = line.match(/^(\s{2,}|\t)/);
+                            return (
+                              <p key={li} className="leading-relaxed text-sm text-[#001e40] my-1" style={indent ? { textIndent: "2em" } : undefined}>
+                                {parts.length > 0 ? parts : line}
+                              </p>
+                            );
+                          })}
                         </div>
                       )}
                       {sec.passage && label.includes("vocab") && label.includes("cloze") && (
