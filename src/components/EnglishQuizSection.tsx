@@ -142,8 +142,9 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                       const storedParts = (answers[q.id] ?? "").split("|||");
                       const value = inputCount > 1 ? (storedParts[inputIdx] ?? "") : (answers[q.id] ?? "");
                       return (
-                        <textarea
+                        <input
                           key={part.key}
+                          type="text"
                           value={value}
                           onChange={e => {
                             if (inputCount > 1) {
@@ -155,17 +156,16 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                               onAnswer(q.id, e.target.value);
                             }
                           }}
-                          rows={lineCount}
-                          className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed mb-1"
-                          placeholder="Type your answer here..."
+                          className="w-full max-w-md border-2 border-slate-200 focus:border-[#003366] outline-none rounded-lg px-3 py-2 text-base text-[#001e40] mb-1"
+                          placeholder="Type your answer..."
                         />
                       );
                     })}
                   </div>
                 )}
 
-                {/* Comprehension OEQ: typed answer lines */}
-                {sectionType === "comprehension-oeq" && (
+                {/* Comprehension OEQ: typed answer lines (skip if question has a table for answers) */}
+                {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && (
                   <div className="mt-3 ml-[52px]">
                     <textarea
                       value={answers[q.id] ?? ""}
