@@ -313,8 +313,9 @@ export async function POST(request: NextRequest) {
         if (passageSub) { passage = passageSub.text; }
 
         // Try 2: source paper's sectionOcrTexts (pre-fetched batch)
-        // Skip for visual-text — it needs page images, not OCR text
-        if (!passage && group.key !== "visual-text") {
+        // Skip for sections that don't use passage text
+        const skipOcrLookup = group.key === "visual-text" || group.key === "synthesis" || group.key === "comprehension-oeq";
+        if (!passage && !skipOcrLookup) {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
             // Try exact name match first
