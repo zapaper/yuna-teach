@@ -80,6 +80,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [isQuiz, setIsQuiz] = useState(false);
   const [releasing, setReleasing] = useState(false);
   const [englishSections, setEnglishSections] = useState<Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | null>(null);
+  const [expandedElabs, setExpandedElabs] = useState<Set<string>>(new Set());
   const [editingMarks, setEditingMarks] = useState<string | null>(null);
   const [savingMarks, setSavingMarks] = useState(false);
   const [remarking, setRemarking] = useState(false);
@@ -375,7 +376,8 @@ function ExamReviewContent({ id }: { id: string }) {
     : null;
   const currentSectionLabel = currentSection?.label.toLowerCase() ?? "";
   const isTypedSection = currentSectionLabel.includes("grammar cloze") || currentSectionLabel.includes("editing") ||
-    currentSectionLabel.includes("comprehension cloze") || (currentSectionLabel.includes("comp") && currentSectionLabel.includes("cloze"));
+    currentSectionLabel.includes("comprehension cloze") || (currentSectionLabel.includes("comp") && currentSectionLabel.includes("cloze")) ||
+    currentSectionLabel.includes("synthesis") || currentSectionLabel.includes("comprehension oeq");
   const sectionQuestions = currentSection
     ? data.questions.slice(currentSection.startIndex, currentSection.endIndex + 1)
     : [];
@@ -741,10 +743,10 @@ function ExamReviewContent({ id }: { id: string }) {
             </nav>
 
             {/* Typed English section review (Grammar Cloze, Editing, etc.) */}
-            {currentQ && isTypedSection && currentSection?.passage && (() => {
+            {currentQ && isTypedSection && (() => {
               // Parse word bank from passage table rows
               const wordBank = new Map<string, string>();
-              const passageLines = currentSection.passage!.split("\n");
+              const passageLines = (currentSection?.passage ?? "").split("\n");
               const tableRows: string[][] = [];
               for (const line of passageLines) {
                 if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) continue; // skip separator
@@ -771,6 +773,8 @@ function ExamReviewContent({ id }: { id: string }) {
 
               const isGrammarCloze = currentSectionLabel.includes("grammar cloze");
               const isEditing = currentSectionLabel.includes("editing");
+              const isSynthesis = currentSectionLabel.includes("synthesis");
+              const isCompOeq = currentSectionLabel.includes("comprehension oeq");
               const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
               const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
 
@@ -778,11 +782,34 @@ function ExamReviewContent({ id }: { id: string }) {
                 <div className="bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]">
                   {/* Section header */}
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-headline text-lg font-extrabold text-[#001e40]">{currentSection.label}</h3>
+                    <h3 className="font-headline text-lg font-extrabold text-[#001e40]">{currentSection?.label}</h3>
                     <span className={`text-sm font-bold px-3 py-1 rounded-full ${
                       earnedMarks === totalMarks ? "bg-[#d1fae5] text-[#006c49]" : earnedMarks > 0 ? "bg-[#fef3c7] text-[#633f00]" : "bg-[#ffdad6] text-[#ba1a1a]"
                     }`}>{earnedMarks} / {totalMarks}</span>
                   </div>
+
+                  {/* Passage text (Grammar Cloze, Editing, Comp Cloze) */}
+                  {currentSection?.passage && !currentSection.passage.startsWith("[") && (
+                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-4 lg:p-6 border border-slate-100 max-h-64 overflow-y-auto">
+                      {currentSection.passage.split("\n").map((line: string, li: number) => {
+                        if (!line.trim()) return <br key={li} />;
+                        if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
+                        if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+                          const cells = line.split("|").slice(1, -1).map((c: string) => c.trim());
+                          return (
+                            <div key={li} className="flex gap-1 my-1">
+                              {cells.map((cell: string, ci: number) => (
+                                <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-white rounded px-2 py-1">{cell}</span>
+                              ))}
+                            </div>
+                          );
+                        }
+                        // Render inline bold and question markers
+                        const rendered = line.replace(/\*\*\((\d+)\)[^*]*\*\*/g, (_, num) => `(${num}) ____`).replace(/\*\*([^*]+)\*\*/g, '$1');
+                        return <p key={li} className="text-sm text-[#0b1c30] leading-relaxed my-0.5">{rendered}</p>;
+                      })}
+                    </div>
+                  )}
 
                   {/* Word bank (Grammar Cloze only) */}
                   {isGrammarCloze && wordBank.size > 0 && (
@@ -802,39 +829,110 @@ function ExamReviewContent({ id }: { id: string }) {
                   <div className="space-y-3">
                     {sectionQuestions.map((q, qi) => {
                       const qCorrect = (q.marksAwarded ?? 0) >= (q.marksAvailable ?? 1);
-                      const studentAns = (q.studentAnswer ?? "").toUpperCase();
-                      const correctAns = (q.answer ?? "").toUpperCase();
-                      const studentWord = wordBank.get(studentAns) ?? "";
-                      const correctWord = wordBank.get(correctAns) ?? "";
+                      const isPartialQ = !qCorrect && (q.marksAwarded ?? 0) > 0;
+                      const studentAns = (q.studentAnswer ?? "");
+                      const correctAns = (q.answer ?? "");
+                      const studentWord = wordBank.get(studentAns.toUpperCase()) ?? "";
+                      const correctWord = wordBank.get(correctAns.toUpperCase()) ?? "";
                       const displayNum = parseInt(q.questionNum);
+
+                      // For synthesis/comp OEQ: clean the stem for display
+                      const stemRaw = q.transcribedStem ?? "";
+                      const cleanStemDisplay = stemRaw
+                        .replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "")
+                        .replace(/\*\*([^*]+)\*\*/g, "$1")
+                        .replace(/_{3,}/g, "")
+                        .trim();
+                      // Extract keyword from synthesis stem
+                      const kwMatch = stemRaw.match(/\*\*([^*]+)\*\*/);
+                      const keyword = kwMatch ? kwMatch[1].trim() : "";
 
                       return (
                         <div key={q.id} className={`p-4 rounded-2xl border-2 ${
-                          qCorrect ? "bg-[#d1fae5]/30 border-[#006c49]/20" : "bg-[#ffdad6]/30 border-[#ba1a1a]/20"
+                          qCorrect ? "bg-[#d1fae5]/30 border-[#006c49]/20" : isPartialQ ? "bg-[#fef3c7]/30 border-[#633f00]/20" : "bg-[#ffdad6]/30 border-[#ba1a1a]/20"
                         }`}>
                           <div className="flex items-start gap-3">
                             <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                              qCorrect ? "bg-[#006c49] text-white" : "bg-[#ba1a1a] text-white"
+                              qCorrect ? "bg-[#006c49] text-white" : isPartialQ ? "bg-[#633f00] text-white" : "bg-[#ba1a1a] text-white"
                             }`}>{displayNum}</span>
                             <div className="flex-1 min-w-0">
-                              {qCorrect ? (
-                                <p className="text-sm text-[#006c49] font-semibold">
-                                  <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                  {isGrammarCloze ? `${correctAns}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
-                                </p>
+                              {/* Synthesis / Comp OEQ: show question + typed answer */}
+                              {(isSynthesis || isCompOeq) ? (
+                                <div className="space-y-2">
+                                  {cleanStemDisplay && (
+                                    <p className="text-sm text-[#001e40]">{cleanStemDisplay}</p>
+                                  )}
+                                  {isSynthesis && keyword && (
+                                    <p className="text-sm font-bold text-[#001e40]">{keyword}</p>
+                                  )}
+                                  <div className="bg-white rounded-lg p-3 border border-slate-200">
+                                    <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
+                                    <p className="text-sm text-[#001e40]">{studentAns || <span className="italic text-[#737780]">No answer</span>}</p>
+                                  </div>
+                                  {correctAns && (
+                                    <p className="text-sm text-[#006c49]">
+                                      <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                      Correct: {correctAns}
+                                    </p>
+                                  )}
+                                  {q.marksAvailable && (
+                                    <p className="text-xs text-[#43474f]">{q.marksAwarded ?? 0} / {q.marksAvailable} marks</p>
+                                  )}
+                                </div>
                               ) : (
-                                <div className="space-y-1">
-                                  <p className="text-sm text-[#ba1a1a] font-semibold">
-                                    <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
-                                    Your answer: {studentAns ? (isGrammarCloze ? `${studentAns}: ${studentWord || "—"}` : `"${studentAns}"`) : "No answer"}
-                                  </p>
+                                /* Grammar Cloze / Editing / Comp Cloze */
+                                qCorrect ? (
                                   <p className="text-sm text-[#006c49] font-semibold">
                                     <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                    Correct: {isGrammarCloze ? `${correctAns}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
+                                    {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
                                   </p>
-                                </div>
+                                ) : (
+                                  <div className="space-y-1">
+                                    <p className="text-sm text-[#ba1a1a] font-semibold">
+                                      <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
+                                      Your answer: {studentAns ? (isGrammarCloze ? `${studentAns.toUpperCase()}: ${studentWord || "—"}` : `"${studentAns}"`) : "No answer"}
+                                    </p>
+                                    <p className="text-sm text-[#006c49] font-semibold">
+                                      <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                      Correct: {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
+                                    </p>
+                                  </div>
+                                )
                               )}
                             </div>
+                          </div>
+
+                          {/* AI Explain button + expandable elaboration */}
+                          <div className="mt-2 ml-11">
+                            {elaborations[q.id] ? (
+                              <div>
+                                <button
+                                  onClick={() => setExpandedElabs(prev => {
+                                    const next = new Set(prev);
+                                    next.has(q.id) ? next.delete(q.id) : next.add(q.id);
+                                    return next;
+                                  })}
+                                  className="flex items-center gap-1 text-xs font-bold text-[#003366] hover:underline"
+                                >
+                                  <span className="material-symbols-outlined text-sm">{expandedElabs.has(q.id) ? "expand_less" : "expand_more"}</span>
+                                  {expandedElabs.has(q.id) ? "Hide explanation" : "Show explanation"}
+                                </button>
+                                {expandedElabs.has(q.id) && (
+                                  <div className="mt-2 p-3 bg-[#eff4ff] rounded-xl">
+                                    <FormattedText text={elaborations[q.id]} className="text-sm text-[#43474f] leading-relaxed" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => { fetchElaboration(q.id); setExpandedElabs(prev => new Set(prev).add(q.id)); }}
+                                disabled={elaborating === q.id}
+                                className="flex items-center gap-1 text-xs font-bold text-[#003366] hover:underline disabled:opacity-50"
+                              >
+                                <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                                {elaborating === q.id ? "Generating..." : "AI Explain"}
+                              </button>
+                            )}
                           </div>
                         </div>
                       );

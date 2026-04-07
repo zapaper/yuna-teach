@@ -111,15 +111,44 @@ export async function POST(
       ? `\n\nHere is the visual text (flyer/poster/advertisement) that the question refers to:\n${visualTextContext}\n`
       : "";
 
+    // For Grammar Cloze / Editing: include the passage text for context
+    let passageContext = "";
+    const topic = (question.syllabusTopic ?? "").toLowerCase();
+    const isGrammarCloze = topic.includes("grammar") && topic.includes("cloze");
+    const isEditing = topic.includes("editing");
+    const isCompCloze = topic.includes("comprehension") && topic.includes("cloze");
+    if ((isGrammarCloze || isEditing || isCompCloze) && question.examPaper?.metadata) {
+      const paperMeta = question.examPaper.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> };
+      if (paperMeta.englishSections) {
+        const qIdx = parseInt(question.questionNum) - 1; // 0-based
+        const sec = paperMeta.englishSections.find(s => qIdx >= s.startIndex && qIdx <= s.endIndex);
+        if (sec?.passage && !sec.passage.startsWith("[")) {
+          passageContext = sec.passage;
+        }
+      }
+    }
+    const passageNote = passageContext
+      ? `\n\nHere is the passage that the question is based on:\n${passageContext}\n`
+      : "";
+    const sectionHint = isGrammarCloze
+      ? " This is a Grammar Cloze question — the student must choose the correct word from a word bank (identified by letter A-Q) to fill in the blank in the passage. Explain why the correct word fits the blank based on grammar and meaning."
+      : isEditing
+        ? " This is an Editing question — the student must identify and correct the spelling/grammar error in the underlined word. Explain the correct spelling/grammar rule."
+        : isCompCloze
+          ? " This is a Comprehension Cloze question — the student must fill in the blank with a suitable word based on the passage context. Explain why the correct word fits based on meaning and grammar."
+          : isVisualText
+            ? " Reference the visual text content to explain why the answer is correct."
+            : "";
+
     parts.push({
       text: `You are a helpful tutor for a primary/secondary school student.
 
 Here is the question:
 ${questionText}
-${visualTextNote}
+${visualTextNote}${passageNote}
 Correct answer: ${question.answer ?? "Not provided"}
 
-Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${isVisualText ? " Reference the visual text content to explain why the answer is correct." : ""}
+Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${sectionHint}
 
 Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). Do not use LaTeX or any special math notation. Use **double asterisks** to bold step labels (e.g. **Step 1:**), the answer label (**Answer:**), and key subject terms (e.g. **numerator**, **photosynthesis**). No other markdown.`,
     });
