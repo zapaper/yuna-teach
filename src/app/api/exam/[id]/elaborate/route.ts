@@ -37,7 +37,9 @@ export async function POST(
       transcribedStem: true,
       transcribedOptions: true,
       transcribedSubparts: true,
-      examPaper: { select: { paperType: true } },
+      syllabusTopic: true,
+      sourceQuestionId: true,
+      examPaper: { select: { paperType: true, metadata: true } },
     },
   });
 
@@ -64,20 +66,60 @@ export async function POST(
     if (subs && subs.length > 0) {
       questionText += "\n" + subs.filter(s => s.label !== "_drawable").map(s => `(${s.label}) ${s.text}`).join("\n");
     }
+
+    // For Visual Text MCQ: include the visual text passage OCR for context
+    let visualTextContext = "";
+    const isVisualText = (question.syllabusTopic ?? "").toLowerCase().includes("visual") &&
+      (question.syllabusTopic ?? "").toLowerCase().includes("text");
+    if (isVisualText && question.sourceQuestionId) {
+      try {
+        // Get source paper's sectionOcrTexts for Visual Text passage
+        const sourceQ = await prisma.examQuestion.findUnique({
+          where: { id: question.sourceQuestionId },
+          select: { examPaperId: true },
+        });
+        if (sourceQ) {
+          const sourcePaper = await prisma.examPaper.findUnique({
+            where: { id: sourceQ.examPaperId },
+            select: { metadata: true },
+          });
+          const meta = sourcePaper?.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null;
+          if (meta?.sectionOcrTexts) {
+            for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
+              if (secName.toLowerCase().includes("visual") && secName.toLowerCase().includes("text")) {
+                visualTextContext = secData.ocrText;
+                break;
+              }
+            }
+          }
+        }
+      } catch { /* non-critical */ }
+    }
+
     // Include diagram image only (cropped, no headers)
     if (question.diagramImageData) {
       const match = question.diagramImageData.match(/^data:(image\/\w+);base64,(.+)$/);
       if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
     }
+    // For Visual Text: also send the question image (contains the flyer/poster)
+    if (isVisualText && question.imageData) {
+      const match = question.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
+      if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+    }
+
+    const visualTextNote = visualTextContext
+      ? `\n\nHere is the visual text (flyer/poster/advertisement) that the question refers to:\n${visualTextContext}\n`
+      : "";
+
     parts.push({
       text: `You are a helpful tutor for a primary/secondary school student.
 
 Here is the question:
 ${questionText}
-
+${visualTextNote}
 Correct answer: ${question.answer ?? "Not provided"}
 
-Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
+Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${isVisualText ? " Reference the visual text content to explain why the answer is correct." : ""}
 
 Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). Do not use LaTeX or any special math notation. Use **double asterisks** to bold step labels (e.g. **Step 1:**), the answer label (**Answer:**), and key subject terms (e.g. **numerator**, **photosynthesis**). No other markdown.`,
     });
