@@ -2681,6 +2681,12 @@ Output ONLY the table.` });
   * If a given word/phrase is shown (e.g. "Use: although"), bold it: **although**
 - For COMPREHENSION OEQ sections: questions may contain TABLES, CHARTS, CHECKBOXES, or LINED answer spaces.
   * Render tables as markdown tables: | Col1 | Col2 | Col3 |
+    If the question mentions "table" or "Complete the table", you MUST reproduce the table from the paper as a markdown table.
+    Include column headers and any pre-filled cells. Leave blank cells empty (the student fills them in).
+    Example: | Cause | Effect |
+             |-------|--------|
+             | The sun heated the water | |
+             | | The plants grew |
   * Only include [LINES: N] where there are ACTUAL printed answer lines in the paper. Do NOT add lines that don't exist.
   * Answer lines (where student writes) shown as: [LINES: N] where N is the number of lines
   * Tick boxes / checkboxes: render as [ ] for empty box, [x] for ticked box. E.g. "[ ] evaporation  [x] condensation"
