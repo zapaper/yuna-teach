@@ -364,23 +364,50 @@ function ExamReviewContent({ id }: { id: string }) {
     return q.marksAwarded < q.marksAvailable;
   });
 
-  const displayQuestions = showAll ? writtenQuestions : incorrectQuestions;
-  const currentQ = displayQuestions[currentIdx] ?? null;
+  // Build display items: collapse typed English sections into single entries
+  type DisplayItem = { type: "question"; question: ReviewQuestion } | { type: "section"; section: typeof englishSections extends (infer T)[] | null ? NonNullable<T> : never; questions: ReviewQuestion[] };
+  const baseQuestions = showAll ? writtenQuestions : incorrectQuestions;
+  const displayItems: DisplayItem[] = [];
+  const sectionQIds = new Set<string>();
 
-  // Detect if current question belongs to a typed English section (Grammar Cloze, Editing, etc.)
-  const currentSection = currentQ && englishSections
-    ? englishSections.find(sec => {
-        const qIdx = data.questions.findIndex(q => q.id === currentQ.id);
-        return qIdx >= sec.startIndex && qIdx <= sec.endIndex;
-      })
-    : null;
+  if (englishSections) {
+    // Find which sections are typed (shown as a group)
+    for (const sec of englishSections) {
+      const label = sec.label.toLowerCase();
+      const isGrouped = label.includes("grammar cloze") || label.includes("editing") ||
+        label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
+        label.includes("synthesis") || label.includes("comprehension oeq");
+      if (isGrouped) {
+        const secQs = data.questions.slice(sec.startIndex, sec.endIndex + 1);
+        const hasRelevant = secQs.some(q => baseQuestions.some(bq => bq.id === q.id));
+        if (hasRelevant) {
+          displayItems.push({ type: "section", section: sec, questions: secQs });
+          for (const q of secQs) sectionQIds.add(q.id);
+        }
+      }
+    }
+  }
+  // Add individual questions that aren't part of grouped sections
+  for (const q of baseQuestions) {
+    if (!sectionQIds.has(q.id)) {
+      displayItems.push({ type: "question", question: q });
+    }
+  }
+  // Sort by first question's position in data.questions
+  displayItems.sort((a, b) => {
+    const aIdx = data.questions.findIndex(q => q.id === (a.type === "question" ? a.question.id : a.questions[0]?.id));
+    const bIdx = data.questions.findIndex(q => q.id === (b.type === "question" ? b.question.id : b.questions[0]?.id));
+    return aIdx - bIdx;
+  });
+
+  const currentItem = displayItems[currentIdx] ?? null;
+  const currentQ = currentItem?.type === "question" ? currentItem.question : (currentItem?.type === "section" ? currentItem.questions[0] : null);
+
+  // Detect if current item is a typed section
+  const currentSection = currentItem?.type === "section" ? currentItem.section : null;
   const currentSectionLabel = currentSection?.label.toLowerCase() ?? "";
-  const isTypedSection = currentSectionLabel.includes("grammar cloze") || currentSectionLabel.includes("editing") ||
-    currentSectionLabel.includes("comprehension cloze") || (currentSectionLabel.includes("comp") && currentSectionLabel.includes("cloze")) ||
-    currentSectionLabel.includes("synthesis") || currentSectionLabel.includes("comprehension oeq");
-  const sectionQuestions = currentSection
-    ? data.questions.slice(currentSection.startIndex, currentSection.endIndex + 1)
-    : [];
+  const isTypedSection = currentItem?.type === "section";
+  const sectionQuestions = currentItem?.type === "section" ? currentItem.questions : [];
 
   // For quiz OEQ: index of currentQ among all OEQ questions (no text or image MCQ options)
   const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions && !q.transcribedOptionImages);
@@ -680,7 +707,7 @@ function ExamReviewContent({ id }: { id: string }) {
         </div>
 
         {/* ── Question Review ── */}
-        {displayQuestions.length === 0 ? (
+        {displayItems.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-3xl shadow-sm">
             {incorrectQuestions.length === 0 ? (
               <>
@@ -706,11 +733,14 @@ function ExamReviewContent({ id }: { id: string }) {
                   <span className="material-symbols-outlined">chevron_left</span>
                 </button>
                 <span className="text-sm font-bold text-[#001e40] tabular-nums">
-                  {String(currentIdx + 1).padStart(2, "0")} of {String(displayQuestions.length).padStart(2, "0")}
+                  {currentItem?.type === "section"
+                    ? `Q${currentItem.questions[0]?.questionNum}–${currentItem.questions[currentItem.questions.length - 1]?.questionNum}`
+                    : String(currentIdx + 1).padStart(2, "0")
+                  } of {String(displayItems.length).padStart(2, "0")}
                 </span>
                 <button
-                  onClick={() => { setCurrentIdx((i) => Math.min(displayQuestions.length - 1, i + 1)); setSubmissionPageOverride(null); }}
-                  disabled={currentIdx === displayQuestions.length - 1}
+                  onClick={() => { setCurrentIdx((i) => Math.min(displayItems.length - 1, i + 1)); setSubmissionPageOverride(null); }}
+                  disabled={currentIdx === displayItems.length - 1}
                   className="w-10 h-10 rounded-full border border-[#c3c6d1]/40 flex items-center justify-center text-[#001e40] hover:bg-[#eff4ff] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                 >
                   <span className="material-symbols-outlined">chevron_right</span>
@@ -730,12 +760,15 @@ function ExamReviewContent({ id }: { id: string }) {
               <div className="flex flex-col items-center">
                 <span className="text-[10px] font-bold text-[#43474f] tracking-[0.2em] uppercase mb-1">Question</span>
                 <span className="font-headline font-extrabold text-2xl text-[#001e40]">
-                  {currentIdx + 1} <span className="text-[#43474f] font-medium text-lg">of {displayQuestions.length}</span>
+                  {currentItem?.type === "section"
+                    ? <>{currentItem.questions[0]?.questionNum}–{currentItem.questions[currentItem.questions.length - 1]?.questionNum}</>
+                    : currentIdx + 1
+                  } <span className="text-[#43474f] font-medium text-lg">of {displayItems.length}</span>
                 </span>
               </div>
               <button
-                onClick={() => { setCurrentIdx((i) => Math.min(displayQuestions.length - 1, i + 1)); setSubmissionPageOverride(null); }}
-                disabled={currentIdx === displayQuestions.length - 1}
+                onClick={() => { setCurrentIdx((i) => Math.min(displayItems.length - 1, i + 1)); setSubmissionPageOverride(null); }}
+                disabled={currentIdx === displayItems.length - 1}
                 className="w-12 h-12 flex items-center justify-center rounded-xl bg-[#eff4ff] text-[#001e40] hover:scale-105 transition-transform disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined">chevron_right</span>

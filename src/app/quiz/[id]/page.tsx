@@ -281,11 +281,26 @@ function QuizContent({ id }: { id: string }) {
         )
       );
 
-      // Save & score typed section answers (Grammar Cloze, Editing, Comp Cloze)
-      const typedQuestions = paper!.questions.filter(q => typedSectionQIds.has(q.id));
-      if (typedQuestions.length > 0) {
+      // Save & score typed section answers
+      // Simple comparison: Grammar Cloze, Editing, Comp Cloze
+      // AI marking needed: Synthesis, Comp OEQ (just save answer, let markQuizPaper handle)
+      const aiMarkSectionLabels = new Set<string>();
+      if (paper!.metadata?.englishSections) {
+        for (const sec of (paper!.metadata.englishSections as Array<{ label: string; startIndex: number; endIndex: number }>)) {
+          const l = sec.label.toLowerCase();
+          if (l.includes("synthesis") || l.includes("comprehension oeq") || l.includes("comp oeq")) {
+            for (let i = sec.startIndex; i <= sec.endIndex; i++) {
+              if (paper!.questions[i]) aiMarkSectionLabels.add(paper!.questions[i].id);
+            }
+          }
+        }
+      }
+      const simpleCompareQs = paper!.questions.filter(q => typedSectionQIds.has(q.id) && !aiMarkSectionLabels.has(q.id));
+      const aiMarkQs = paper!.questions.filter(q => aiMarkSectionLabels.has(q.id));
+
+      if (simpleCompareQs.length > 0) {
         await Promise.all(
-          typedQuestions.map(q => {
+          simpleCompareQs.map(q => {
             const studentAns = (mcqAnswers[q.id] ?? "").trim().toUpperCase();
             const correctAns = (q.answer ?? "").trim().toUpperCase();
             const isCorrect = studentAns !== "" && studentAns === correctAns;
@@ -297,6 +312,19 @@ function QuizContent({ id }: { id: string }) {
                 marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
                 markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctAns}"`) : "No answer",
               }),
+            });
+          })
+        );
+      }
+      // Save typed answers for AI-marked sections (synthesis, comp OEQ)
+      if (aiMarkQs.length > 0) {
+        await Promise.all(
+          aiMarkQs.map(q => {
+            const studentAns = (mcqAnswers[q.id] ?? "").trim();
+            return fetch(`/api/exam/questions/${q.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ studentAnswer: studentAns || null }),
             });
           })
         );

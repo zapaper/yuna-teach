@@ -1928,6 +1928,54 @@ export async function markQuizPaper(paperId: string): Promise<void> {
           }
         }
 
+        // Check if this is a typed answer (synthesis, comp OEQ in English quiz)
+        if (q.studentAnswer && !q.studentAnswer.startsWith("data:")) {
+          // Typed text answer — mark using text comparison with AI
+          parts.push({ text: `Student's typed answer: "${q.studentAnswer}"` });
+          parts.push({
+            text: `Expected answer: ${expectedAnswer}
+Marks available: ${marksAvailable}
+
+Mark this answer. Compare the student's typed answer against the expected answer.
+For Synthesis & Transformation: the student must rewrite the sentence using the given word while keeping the same meaning. Minor spelling errors are acceptable if the meaning is preserved.
+For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question.
+
+Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "feedback": "<brief feedback>"}]}`
+          });
+
+          try {
+            const response = await withTimeout(
+              ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts }],
+                config: { responseMimeType: "application/json", temperature: 0.1 },
+              }),
+              GEMINI_TIMEOUT_MS,
+              `quiz-typed-Q${q.questionNum}`
+            );
+            const parsed = extractJson(response.text ?? "") as { questions: Array<{ marksAwarded: number; feedback?: string }> };
+            const result = parsed.questions?.[0];
+            const awarded = Math.min(result?.marksAwarded ?? 0, marksAvailable);
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: awarded, markingNotes: result?.feedback ?? `Typed answer marked: ${awarded}/${marksAvailable}` },
+              })
+            );
+            totalAwarded += awarded;
+            console.log(`[quiz-marking] Typed Q${q.questionNum}: "${q.studentAnswer}" → ${awarded}/${marksAvailable}`);
+          } catch (err) {
+            console.error(`[quiz-marking] Typed Q${q.questionNum} marking failed:`, err);
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: 0, markingNotes: "Marking failed" },
+              })
+            );
+          }
+          continue;
+        }
+
         // Student's handwritten answer from submission files
         let hasSubmission = false;
         const subparts = q.transcribedSubparts as { label: string; text: string }[] | null;
