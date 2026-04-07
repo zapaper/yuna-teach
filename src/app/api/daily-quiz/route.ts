@@ -311,8 +311,32 @@ export async function POST(request: NextRequest) {
         if (!passage) {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
+            // Try exact name match first
             for (const name of (sectionOcrNames[group.key] ?? [])) {
               if (meta.sectionOcrTexts[name]) { passage = meta.sectionOcrTexts[name].ocrText; break; }
+            }
+            // Fuzzy fallback: match by key words
+            if (!passage) {
+              const keyWords: Record<string, string[]> = {
+                "grammar-cloze": ["grammar", "cloze"],
+                "editing": ["editing"],
+                "comprehension-cloze": ["comprehension", "cloze"],
+                "vocab-cloze": ["vocab", "cloze"],
+                "visual-text": ["visual", "text"],
+                "synthesis": ["synthesis"],
+                "comprehension-oeq": ["comprehension", "open"],
+              };
+              const words = keyWords[group.key] ?? [];
+              if (words.length > 0) {
+                for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
+                  const nameLower = secName.toLowerCase();
+                  if (words.every(w => nameLower.includes(w))) {
+                    passage = secData.ocrText;
+                    console.log(`[English Quiz] Fuzzy matched "${secName}" for ${group.key}`);
+                    break;
+                  }
+                }
+              }
             }
           }
         }
@@ -331,6 +355,10 @@ export async function POST(request: NextRequest) {
         endIndex: idx + group.questions.length - 1,
         ...(passage ? { passage } : {}),
       });
+      if (!passage && firstQ) {
+        const meta = sourcePaperMap.get(firstQ.examPaperId);
+        console.log(`[English Quiz] ${group.key}: NO passage. sectionOcrTexts keys: [${meta?.sectionOcrTexts ? Object.keys(meta.sectionOcrTexts).join(", ") : "none"}]`);
+      }
       console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: ${passage ? "yes" : "no"}`);
       idx += group.questions.length;
       sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
