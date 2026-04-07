@@ -235,7 +235,11 @@ export async function POST(request: NextRequest) {
       "comprehension-oeq": t => t.includes("comprehension") && t.includes("open"),
     };
 
-    for (const section of selectedSections) {
+    // Fixed order: MCQ sections first (Vocab Cloze, Visual Text), then OEQ sections
+    const sectionOrder = ["vocab-cloze", "visual-text", "grammar-cloze", "editing", "comprehension-cloze", "synthesis", "comprehension-oeq"];
+    const orderedSections = sectionOrder.filter(s => selectedSections.has(s));
+
+    for (const section of orderedSections) {
       let sectionQs: typeof allPool = [];
       if (section === "vocab-cloze" && vocabClozeSets.length > 0) {
         sectionQs = vocabClozeSets[0];
@@ -341,11 +345,22 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Try 3: Visual Text — store reference instead of huge base64
+        // Try 3: Visual Text — store source paper ID + page indices for image loading
         if (group.key === "visual-text" && !passage) {
-          // Don't store the full image — just mark that visual pages exist
-          // The quiz page will load images from the source paper
-          passage = `[VISUAL_TEXT_SOURCE:${firstQ.examPaperId}]`;
+          const meta = sourcePaperMap.get(firstQ.examPaperId);
+          if (meta?.sectionOcrTexts) {
+            // Find the Visual Text entry to get passagePageIndices
+            for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
+              if (secName.toLowerCase().includes("visual") && secName.toLowerCase().includes("text")) {
+                const pageIndices = (secData as { passagePageIndices?: number[] }).passagePageIndices;
+                if (pageIndices?.length) {
+                  passage = `[VISUAL_PAGES:${firstQ.examPaperId}:${pageIndices.join(",")}]`;
+                }
+                break;
+              }
+            }
+          }
+          if (!passage) passage = `[VISUAL_TEXT_SOURCE:${firstQ.examPaperId}]`;
         }
       }
 

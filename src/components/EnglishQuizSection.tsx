@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface QuizQuestion {
   id: string;
@@ -41,16 +41,9 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
         {sectionType === "comprehension-cloze" && <p className="text-[#737780] mt-1 text-sm">Fill in each blank with a suitable word.</p>}
       </div>
 
-      {/* Visual Text: show image */}
+      {/* Visual Text: show scanned page images */}
       {sectionType === "visual-text-mcq" && passage && (
-        passage.startsWith("data:image") || passage.startsWith("[VISUAL_TEXT_SOURCE:") ? (
-          <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
-            {questions[0]?.imageData ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={questions[0].imageData} alt="Visual text" className="w-full h-auto" />
-            ) : null}
-          </div>
-        ) : null
+        <VisualTextImages passage={passage} fallbackImage={questions[0]?.imageData} />
       )}
 
       {/* Passage with inline inputs (Grammar Cloze, Editing, Comp Cloze) */}
@@ -241,4 +234,67 @@ function PassageLine({
       {parts.length > 0 ? parts : line}
     </p>
   );
+}
+
+/** Loads and displays Visual Text scanned page images */
+function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbackImage?: string }) {
+  const [pageImages, setPageImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    // Parse [VISUAL_PAGES:paperId:0,1,2] format
+    const pagesMatch = passage.match(/^\[VISUAL_PAGES:([^:]+):([^\]]+)\]$/);
+    if (pagesMatch) {
+      const paperId = pagesMatch[1];
+      const pageIndices = pagesMatch[2].split(",").map(Number);
+      // Load each page image
+      Promise.all(
+        pageIndices.map(async (pageIdx) => {
+          try {
+            const res = await fetch(`/api/exam/${paperId}/pages?page=${pageIdx}`);
+            if (res.ok) {
+              const blob = await res.blob();
+              return URL.createObjectURL(blob);
+            }
+          } catch { /* ignore */ }
+          return null;
+        })
+      ).then(urls => setPageImages(urls.filter(Boolean) as string[]));
+    }
+  }, [passage]);
+
+  // Inline image
+  if (passage.startsWith("data:image")) {
+    return (
+      <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={passage} alt="Visual text" className="w-full h-auto" />
+      </div>
+    );
+  }
+
+  // Loaded page images
+  if (pageImages.length > 0) {
+    return (
+      <div className="mb-6 space-y-2">
+        {pageImages.map((url, i) => (
+          <div key={i} className="rounded-2xl overflow-hidden border border-[#d3e4fe]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={`Visual text page ${i + 1}`} className="w-full h-auto" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Fallback: use question imageData
+  if (fallbackImage) {
+    return (
+      <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={fallbackImage} alt="Visual text" className="w-full h-auto" />
+      </div>
+    );
+  }
+
+  return null;
 }
