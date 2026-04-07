@@ -420,27 +420,31 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Clean and rewrite passage question numbers
+      // Clean passage: keep only the first N markers (N = question count), strip the rest
       if (passage && !passage.startsWith("[")) {
-        const groupQNums = new Set(group.questions.map(q => parseInt(q.questionNum)));
-        // Strip markers that don't belong to this section's questions
-        // Remove entire **(N)...**  where N is not in groupQNums
-        passage = passage.replace(/\*\*\((\d+)\)[^*]*\*\*/g, (match, numStr) => {
-          const num = parseInt(numStr);
-          return groupQNums.has(num) ? match : "";
-        });
-
-        // Rewrite remaining markers to match quiz numbering
-        const sortedGroupQs = [...group.questions].sort((a, b) =>
-          a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
-        );
-        sortedGroupQs.forEach((q, qi) => {
-          const origNum = parseInt(q.questionNum);
-          const quizNum = idx + qi + 1; // 1-based quiz numbering
-          if (origNum !== quizNum) {
-            // Replace **(origNum) to **(quizNum) in passage
-            passage = passage!.replace(new RegExp(`\\*\\*\\(${origNum}\\)`, "g"), `**(${quizNum})`);
+        const qCount = group.questions.length;
+        // Find all markers in order and keep only the first qCount
+        const allMarkers: { num: number; fullMatch: string; index: number }[] = [];
+        const markerRegex = /\*\*\((\d+)\)[^*]*\*\*/g;
+        let mm;
+        while ((mm = markerRegex.exec(passage)) !== null) {
+          allMarkers.push({ num: parseInt(mm[1]), fullMatch: mm[0], index: mm.index });
+        }
+        if (allMarkers.length > qCount) {
+          // Strip markers beyond the first qCount (they belong to other sections)
+          const toRemove = allMarkers.slice(qCount);
+          for (const marker of toRemove.reverse()) {
+            passage = passage!.slice(0, marker.index) + passage!.slice(marker.index + marker.fullMatch.length);
           }
+          console.log(`[English Quiz] Stripped ${toRemove.length} extra markers from passage (kept first ${qCount})`);
+        }
+
+        // Rewrite remaining markers to match quiz numbering (position-based)
+        let markerIdx = 0;
+        passage = passage.replace(/\*\*\((\d+)\)/g, () => {
+          const quizNum = idx + markerIdx + 1;
+          markerIdx++;
+          return `**(${quizNum})`;
         });
       }
 
