@@ -307,10 +307,9 @@ export async function POST(request: NextRequest) {
         const passageSub = subs?.find(s => s.label === "_passage");
         if (passageSub) { passage = passageSub.text; }
 
-        // Try 2: source paper's sectionOcrTexts
+        // Try 2: source paper's sectionOcrTexts (pre-fetched batch)
         if (!passage) {
-          const sourcePaper = await prisma.examPaper.findUnique({ where: { id: firstQ.examPaperId }, select: { metadata: true } });
-          const meta = sourcePaper?.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null;
+          const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
             for (const name of (sectionOcrNames[group.key] ?? [])) {
               if (meta.sectionOcrTexts[name]) { passage = meta.sectionOcrTexts[name].ocrText; break; }
@@ -318,9 +317,11 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Try 3: Visual Text — use imageData
-        if (group.key === "visual-text" && !passage && firstQ.imageData) {
-          passage = firstQ.imageData;
+        // Try 3: Visual Text — store reference instead of huge base64
+        if (group.key === "visual-text" && !passage) {
+          // Don't store the full image — just mark that visual pages exist
+          // The quiz page will load images from the source paper
+          passage = `[VISUAL_TEXT_SOURCE:${firstQ.examPaperId}]`;
         }
       }
 

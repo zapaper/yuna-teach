@@ -84,6 +84,7 @@ function QuizContent({ id }: { id: string }) {
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
   const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
+  const canvasHeights = useRef<Record<string, number>>({});
 
   // Submission
   const [submitting, setSubmitting] = useState(false);
@@ -112,6 +113,9 @@ function QuizContent({ id }: { id: string }) {
           if (q.studentAnswer) savedAnswers[q.id] = q.studentAnswer;
         }
         if (Object.keys(savedAnswers).length > 0) setMcqAnswers(savedAnswers);
+        // Load saved canvas heights
+        const savedHeights = (data.metadata as { canvasHeights?: Record<string, number> } | null)?.canvasHeights;
+        if (savedHeights) canvasHeights.current = savedHeights;
         if (data.completedAt) {
           setSubmitted(true);
           if (data.markingStatus === "complete" || data.markingStatus === "released") {
@@ -210,11 +214,15 @@ function QuizContent({ id }: { id: string }) {
         await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
       }
 
-      // Save elapsed time
+      // Save elapsed time + canvas heights
+      const existingMeta = paper?.metadata ?? {};
       await fetch(`/api/exam/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ timeSpentSeconds: elapsed }),
+        body: JSON.stringify({
+          timeSpentSeconds: elapsed,
+          metadata: { ...existingMeta, canvasHeights: canvasHeights.current },
+        }),
       });
 
       setProgressSaved(true);
@@ -538,14 +546,25 @@ function QuizContent({ id }: { id: string }) {
                         )}
                       </div>
 
-                      {/* Passage — image or text */}
+                      {/* Passage — image, text, or visual text reference */}
                       {sec.passage && (
                         sec.passage.startsWith("data:image") ? (
-                          // Visual Text: scanned image
+                          // Visual Text: inline image
                           <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={sec.passage} alt="Reading passage" className="w-full h-auto" />
                           </div>
+                        ) : sec.passage.startsWith("[VISUAL_TEXT_SOURCE:") ? (
+                          // Visual Text: load from first question's imageData
+                          (() => {
+                            const firstQ = secQuestions[0];
+                            return firstQ?.imageData ? (
+                              <div className="mb-6 rounded-2xl overflow-hidden border border-[#d3e4fe]">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={firstQ.imageData} alt="Visual text" className="w-full h-auto" />
+                              </div>
+                            ) : null;
+                          })()
                         ) : (
                           // Text passage (Vocab Cloze, etc.)
                           <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
@@ -617,6 +636,8 @@ function QuizContent({ id }: { id: string }) {
                   onStrokeStart={() => { lastDrawnId.current = q.id; }}
                   paperId={id}
                   oeqIndex={idx}
+                  savedHeights={canvasHeights.current}
+                  onHeightChange={(cid, h) => { canvasHeights.current[cid] = h; }}
                 />
               ))}
             </div>
@@ -832,6 +853,8 @@ function OeqQuestionCard({
   onStrokeStart,
   paperId,
   oeqIndex,
+  savedHeights,
+  onHeightChange,
 }: {
   question: QuizQuestion;
   index: number;
@@ -841,6 +864,8 @@ function OeqQuestionCard({
   onStrokeStart: () => void;
   paperId: string;
   oeqIndex: number;
+  savedHeights?: Record<string, number>;
+  onHeightChange?: (id: string, h: number) => void;
 }) {
   const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
   // rebuild ref image map from sentinels
@@ -960,6 +985,9 @@ function OeqQuestionCard({
                     defaultHeight={sp.diagramBase64 ? 340 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
                     savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink`}
+                    canvasId={`${question.id}_${sp.label}`}
+                    savedHeight={savedHeights?.[`${question.id}_${sp.label}`]}
+                    onHeightChange={onHeightChange}
                   />
                 </div>
               );
@@ -973,6 +1001,9 @@ function OeqQuestionCard({
               defaultHeight={drawableDiagramBase64 ? 360 : 300}
               backgroundImage={drawableDiagramBase64}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
+              canvasId={question.id}
+              savedHeight={savedHeights?.[question.id]}
+              onHeightChange={onHeightChange}
             />
           )}
         </div>
@@ -1027,11 +1058,10 @@ interface AnswerCanvasHandle {
 
 const ResizableCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null }
->(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl }, ref) {
-  // Use a large fixed canvas height, but control visible area via container CSS
+  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void }
+>(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, savedHeight, onHeightChange }, ref) {
   const maxCanvasHeight = 600;
-  const [visibleHeight, setVisibleHeight] = useState(defaultHeight);
+  const [visibleHeight, setVisibleHeight] = useState(savedHeight ?? defaultHeight);
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
 
   function onDragStart(e: React.PointerEvent) {
@@ -1043,7 +1073,10 @@ const ResizableCanvas = forwardRef<
     const delta = e.clientY - dragRef.current.startY;
     setVisibleHeight(Math.max(200, Math.min(maxCanvasHeight, dragRef.current.startH + delta)));
   }
-  function onDragEnd() { dragRef.current = null; }
+  function onDragEnd() {
+    dragRef.current = null;
+    if (canvasId && onHeightChange) onHeightChange(canvasId, visibleHeight);
+  }
 
   return (
     <div className="relative">
