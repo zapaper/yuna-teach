@@ -313,11 +313,20 @@ export async function POST(request: NextRequest) {
           });
           const meta = sourcePaper?.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null;
           if (meta?.sectionOcrTexts) {
-            // Find matching section OCR
-            const topicLower = (firstExtraQ.syllabusTopic ?? "").toLowerCase();
-            for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
-              if (secName.toLowerCase().includes(topicLower.split(" ")[0]) || topicLower.includes(secName.toLowerCase().split(" ")[0])) {
-                passage = secData.ocrText;
+            // Map section keys to exact sectionOcrTexts names
+            const sectionOcrNames: Record<string, string[]> = {
+              "vocab-cloze": ["Vocabulary Cloze MCQ", "Vocabulary Cloze", "Vocab Cloze MCQ"],
+              "visual-text": ["Visual Text Comprehension MCQ", "Visual Text MCQ", "Visual Text Comprehension"],
+              "grammar-cloze": ["Grammar Cloze"],
+              "editing": ["Editing", "Editing (Spelling & Grammar)"],
+              "comprehension-cloze": ["Comprehension Cloze"],
+              "synthesis": ["Synthesis & Transformation", "Synthesis"],
+              "comprehension-oeq": ["Comprehension OEQ", "Comprehension Open Ended", "Comprehension (Open-ended)"],
+            };
+            const possibleNames = sectionOcrNames[section] ?? [];
+            for (const name of possibleNames) {
+              if (meta.sectionOcrTexts[name]) {
+                passage = meta.sectionOcrTexts[name].ocrText;
                 break;
               }
             }
