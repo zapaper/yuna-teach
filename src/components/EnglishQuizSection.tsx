@@ -111,8 +111,8 @@ function PassageWithInputs({
   answers: Record<string, string>;
   onAnswer: (questionId: string, answer: string) => void;
 }) {
-  // Build position-based mapping: extract question numbers from passage in order,
-  // then map each to the corresponding question by position (handles renumbered and original numbering)
+  // Always use position-based mapping: passage blank i → questions[i]
+  // This handles both renumbered and original numbering, and ignores stray markers
   const passageQNums: number[] = [];
   const seen = new Set<number>();
   const passageRegex = /\*\*\((\d+)\)/g;
@@ -125,24 +125,13 @@ function PassageWithInputs({
     a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
   );
   const qNumToId = new Map<number, string>();
-  const qNumToDisplayNum = new Map<number, number>(); // passage number → quiz display number
-  // First try direct match (quiz question number == passage number)
-  const directMatch = questions.some(q => passageQNums.includes(parseInt(q.questionNum)));
-  if (directMatch) {
-    questions.forEach(q => {
-      const n = parseInt(q.questionNum);
-      qNumToId.set(n, q.id);
-      qNumToDisplayNum.set(n, n);
-    });
-  } else {
-    // Position-based: passage blank i → questions[i]
-    passageQNums.forEach((pn, i) => {
-      if (i < sortedQs.length) {
-        qNumToId.set(pn, sortedQs[i].id);
-        qNumToDisplayNum.set(pn, parseInt(sortedQs[i].questionNum));
-      }
-    });
-  }
+  const qNumToDisplayNum = new Map<number, number>();
+  passageQNums.forEach((pn, i) => {
+    if (i < sortedQs.length) {
+      qNumToId.set(pn, sortedQs[i].id);
+      qNumToDisplayNum.set(pn, parseInt(sortedQs[i].questionNum));
+    }
+  });
 
   // Parse passage and replace question markers with inputs
   const lines = passage.split("\n");
@@ -226,7 +215,7 @@ function PassageLine({
           <input
             type="text"
             value={qId ? (answers[qId] ?? "") : ""}
-            onChange={e => qId && onAnswer(qId, e.target.value.toUpperCase())}
+            onChange={e => qId && onAnswer(qId, sectionType === "grammar-cloze" ? e.target.value.toUpperCase() : e.target.value)}
             className={`border-b-2 border-slate-300 focus:border-[#003366] outline-none text-center font-bold text-sm bg-transparent ${
               sectionType === "grammar-cloze" ? "w-8" : "w-24"
             }`}
@@ -295,17 +284,19 @@ function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbac
       return;
     }
 
-    // Parse [VISUAL_TEXT_SOURCE:paperId] — load all pages from source paper
+    // Parse [VISUAL_TEXT_SOURCE:paperId] — load pages from source paper
+    // Visual text pages are typically the 2-3 pages before the last few question pages
     const sourceMatch = passage.match(/^\[VISUAL_TEXT_SOURCE:([^\]]+)\]$/);
     if (sourceMatch) {
       const paperId = sourceMatch[1];
       fetch(`/api/exam/${paperId}/pages`)
         .then(r => r.json())
         .then(async ({ pageCount }: { pageCount: number }) => {
-          if (!pageCount) return;
-          // Load all pages — visual text pages are typically near the end
+          if (!pageCount || pageCount < 2) return;
+          // Load all pages and let user see them — better than nothing
+          const startPage = Math.max(0, pageCount - 4); // last 4 pages likely contain VT
           const urls = await Promise.all(
-            Array.from({ length: pageCount }, (_, i) => i).map(async (pageIdx) => {
+            Array.from({ length: pageCount - startPage }, (_, i) => startPage + i).map(async (pageIdx) => {
               try {
                 const res = await fetch(`/api/exam/${paperId}/pages?page=${pageIdx}`);
                 if (res.ok) {

@@ -173,7 +173,8 @@ function QuizContent({ id }: { id: string }) {
       const label = sec.label.toLowerCase();
       const isTyped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
-        label.includes("visual text");
+        label.includes("visual text") || label.includes("synthesis") ||
+        label.includes("comprehension oeq") || label.includes("comp oeq");
       if (isTyped) {
         for (let i = sec.startIndex; i <= sec.endIndex; i++) {
           if (paper.questions[i]) typedSectionQIds.add(paper.questions[i].id);
@@ -206,12 +207,13 @@ function QuizContent({ id }: { id: string }) {
         )
       );
 
-      // Save OEQ drawings
-      if (hasOeq) {
+      // Save OEQ drawings (all questions with canvas handles)
+      const saveOeqQs = (paper?.questions ?? []).filter(q => oeqCanvasHandles.current[q.id]);
+      if (saveOeqQs.length > 0) {
         const form = new FormData();
         form.append("action", "save");
-        for (let i = 0; i < oeqQuestions.length; i++) {
-          const q = oeqQuestions[i];
+        for (let i = 0; i < saveOeqQs.length; i++) {
+          const q = saveOeqQs[i];
           const handle = oeqCanvasHandles.current[q.id];
           if (handle) {
             const [composite, ink] = await Promise.all([handle.exportImage(), handle.exportInk()]);
@@ -300,12 +302,13 @@ function QuizContent({ id }: { id: string }) {
         );
       }
 
-      // For MCQ+OEQ: save OEQ drawings (action "save" — don't trigger marking yet)
-      if (hasOeq) {
+      // Save ALL OEQ drawings (including inline synthesis/comp OEQ sections)
+      const allOeqWithHandles = paper!.questions.filter(q => oeqCanvasHandles.current[q.id]);
+      if (allOeqWithHandles.length > 0) {
         const form = new FormData();
         form.append("action", "save");
-        for (let i = 0; i < oeqQuestions.length; i++) {
-          const q = oeqQuestions[i];
+        for (let i = 0; i < allOeqWithHandles.length; i++) {
+          const q = allOeqWithHandles[i];
           const handle = oeqCanvasHandles.current[q.id];
           if (handle) {
             const [composite, ink] = await Promise.all([
@@ -582,6 +585,8 @@ function QuizContent({ id }: { id: string }) {
                   const isEditing = label.includes("editing");
                   const isCompCloze = label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze"));
                   const isVisualText = label.includes("visual text");
+                  const isSynthesis = label.includes("synthesis");
+                  const isCompOeq = label.includes("comprehension oeq") || label.includes("comp oeq");
                   const isTypedSection = isGrammarCloze || isEditing || isCompCloze || isVisualText;
 
                   if (isTypedSection) {
@@ -595,6 +600,38 @@ function QuizContent({ id }: { id: string }) {
                         answers={mcqAnswers}
                         onAnswer={selectMcqAnswer}
                       />
+                    );
+                  }
+
+                  // Synthesis / Comp OEQ: render as OEQ canvasses within section
+                  if (isSynthesis || isCompOeq) {
+                    return (
+                      <div key={si} className="mb-12">
+                        <div className="mb-8 mt-4">
+                          <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sec.label.toUpperCase()}</h2>
+                          <p className="text-[#737780] mt-1 text-sm">
+                            {isSynthesis ? "Rewrite the sentences according to the instructions given." : "Answer the questions in full sentences."}
+                          </p>
+                          <p className="text-[#737780] mt-1 text-xs italic">For Apple users: turn on &quot;Draw with Apple Pencil&quot; and turn off &quot;Scribble&quot; for smooth writing.</p>
+                        </div>
+                        <div className="space-y-12">
+                          {secQuestions.map((q, sqIdx) => (
+                            <OeqQuestionCard
+                              key={q.id}
+                              question={q}
+                              index={sec.startIndex + sqIdx}
+                              tool={tool}
+                              onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
+                              onSubpartRefs={(refs) => { oeqSubpartHandles.current[q.id] = refs; }}
+                              onStrokeStart={() => { lastDrawnId.current = q.id; }}
+                              paperId={id}
+                              oeqIndex={secQuestions.indexOf(q)}
+                              savedHeights={canvasHeights.current}
+                              onHeightChange={(cid, h) => { canvasHeights.current[cid] = h; }}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     );
                   }
 

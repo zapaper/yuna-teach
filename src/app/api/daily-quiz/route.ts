@@ -221,8 +221,8 @@ export async function POST(request: NextRequest) {
     const sectionLabels: Record<string, string> = {
       "vocab-cloze": "Vocab Cloze", "visual-text": "Visual Text",
       "grammar-cloze": "Grammar Cloze", "editing": "Editing",
-      "comprehension-cloze": "Comp Cloze", "synthesis": "Synthesis",
-      "comprehension-oeq": "Comp OEQ",
+      "comprehension-cloze": "Comprehension Cloze", "synthesis": "Synthesis",
+      "comprehension-oeq": "Comprehension OEQ",
     };
     const activeLabels: string[] = [];
     // Track per-section question groups for section metadata
@@ -348,56 +348,74 @@ export async function POST(request: NextRequest) {
 
         // Try 3: Visual Text — compute passage page indices from source paper
         if (group.key === "visual-text" && !passage) {
+          const sourcePaperId = firstQ.examPaperId;
+          console.log(`[English Quiz] Visual Text: source paper ${sourcePaperId}`);
+
           // First try sectionOcrTexts.passagePageIndices
-          const meta = sourcePaperMap.get(firstQ.examPaperId);
+          const meta = sourcePaperMap.get(sourcePaperId);
           if (meta?.sectionOcrTexts) {
+            console.log(`[English Quiz] Visual Text: sectionOcrTexts keys = [${Object.keys(meta.sectionOcrTexts).join(", ")}]`);
             for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
               if (secName.toLowerCase().includes("visual") && secName.toLowerCase().includes("text")) {
                 const pageIndices = (secData as { passagePageIndices?: number[] }).passagePageIndices;
+                console.log(`[English Quiz] Visual Text: found "${secName}", passagePageIndices = ${JSON.stringify(pageIndices)}`);
                 if (pageIndices?.length) {
-                  passage = `[VISUAL_PAGES:${firstQ.examPaperId}:${pageIndices.join(",")}]`;
+                  passage = `[VISUAL_PAGES:${sourcePaperId}:${pageIndices.join(",")}]`;
                 }
                 break;
               }
             }
+          } else {
+            console.log(`[English Quiz] Visual Text: no sectionOcrTexts in source paper metadata`);
           }
 
-          // Fallback: compute visual text context pages from source paper questions
+          // Fallback: compute visual text context pages from ALL source paper questions
           if (!passage) {
             try {
               const sourcePaperQuestions = await prisma.examQuestion.findMany({
-                where: { examPaperId: firstQ.examPaperId },
-                select: { pageIndex: true, syllabusTopic: true },
+                where: { examPaperId: sourcePaperId },
+                select: { pageIndex: true, syllabusTopic: true, questionNum: true },
                 orderBy: { orderIndex: "asc" },
               });
-              const vtQPages = new Set(
-                sourcePaperQuestions
-                  .filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text"))
-                  .map(q => q.pageIndex)
+              console.log(`[English Quiz] Visual Text: source paper has ${sourcePaperQuestions.length} questions`);
+              const vtQs = sourcePaperQuestions.filter(q =>
+                (q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text")
               );
-              const nonVtPages = new Set(
-                sourcePaperQuestions
-                  .filter(q => !((q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text")))
-                  .map(q => q.pageIndex)
+              const nonVtQs = sourcePaperQuestions.filter(q =>
+                !((q.syllabusTopic ?? "").toLowerCase().includes("visual") && (q.syllabusTopic ?? "").toLowerCase().includes("text"))
               );
-              // Context pages = pages that have no questions on them, between last non-VT page and first VT question page
-              const lastNonVtPage = Math.max(...nonVtPages, -1);
-              const firstVtPage = Math.min(...vtQPages);
-              const totalPages = (firstQ as any).examPaper?.pageCount ?? 0;
-              const contextPages: number[] = [];
-              for (let p = lastNonVtPage + 1; p < firstVtPage && p < totalPages; p++) {
-                contextPages.push(p);
-              }
-              if (contextPages.length > 0) {
-                passage = `[VISUAL_PAGES:${firstQ.examPaperId}:${contextPages.join(",")}]`;
-                console.log(`[English Quiz] Visual Text: computed context pages [${contextPages}] from source paper`);
+              console.log(`[English Quiz] Visual Text: ${vtQs.length} VT questions on pages [${[...new Set(vtQs.map(q => q.pageIndex))]}], ${nonVtQs.length} non-VT on pages [${[...new Set(nonVtQs.map(q => q.pageIndex))]}]`);
+
+              if (vtQs.length > 0 && nonVtQs.length > 0) {
+                const vtPages = new Set(vtQs.map(q => q.pageIndex));
+                const nonVtPages = new Set(nonVtQs.map(q => q.pageIndex));
+                const lastNonVtPage = Math.max(...nonVtPages);
+                const firstVtPage = Math.min(...vtPages);
+                const totalPages = (firstQ as any).examPaper?.pageCount ?? 0;
+                console.log(`[English Quiz] Visual Text: lastNonVtPage=${lastNonVtPage}, firstVtPage=${firstVtPage}, totalPages=${totalPages}`);
+                const contextPages: number[] = [];
+                for (let p = lastNonVtPage + 1; p < firstVtPage && p < totalPages; p++) {
+                  contextPages.push(p);
+                }
+                // If no context pages found, use the VT question pages themselves
+                const pagesToUse = contextPages.length > 0 ? contextPages : [...vtPages].sort((a, b) => a - b);
+                passage = `[VISUAL_PAGES:${sourcePaperId}:${pagesToUse.join(",")}]`;
+                console.log(`[English Quiz] Visual Text: using pages [${pagesToUse}] (${contextPages.length > 0 ? "context" : "question pages"})`);
+              } else if (vtQs.length > 0) {
+                // No non-VT questions, use VT question pages
+                const vtPages = [...new Set(vtQs.map(q => q.pageIndex))].sort((a, b) => a - b);
+                passage = `[VISUAL_PAGES:${sourcePaperId}:${vtPages.join(",")}]`;
+                console.log(`[English Quiz] Visual Text: using VT question pages [${vtPages}]`);
               }
             } catch (err) {
               console.warn(`[English Quiz] Visual Text: failed to compute context pages:`, err);
             }
           }
 
-          if (!passage) passage = `[VISUAL_TEXT_SOURCE:${firstQ.examPaperId}]`;
+          if (!passage) {
+            console.warn(`[English Quiz] Visual Text: ALL methods failed, using VISUAL_TEXT_SOURCE fallback`);
+            passage = `[VISUAL_TEXT_SOURCE:${sourcePaperId}]`;
+          }
         }
       }
 
@@ -427,7 +445,20 @@ export async function POST(request: NextRequest) {
         const meta = sourcePaperMap.get(firstQ.examPaperId);
         console.log(`[English Quiz] ${group.key}: NO passage. sectionOcrTexts keys: [${meta?.sectionOcrTexts ? Object.keys(meta.sectionOcrTexts).join(", ") : "none"}]`);
       }
-      console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: ${passage ? "yes" : "no"}`);
+      // Log passage details for debugging
+      if (passage && !passage.startsWith("[")) {
+        const markerCount = (passage.match(/\*\*\(\d+\)/g) ?? []).length;
+        console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: yes, markers: ${markerCount}, questions: ${group.questions.length}`);
+        if (markerCount !== group.questions.length) {
+          console.warn(`[English Quiz] WARNING: passage has ${markerCount} markers but section has ${group.questions.length} questions!`);
+          // Extract marker numbers for debugging
+          const markers = [...passage.matchAll(/\*\*\((\d+)\)/g)].map(m => m[1]);
+          console.warn(`[English Quiz] Passage markers: [${markers.join(", ")}]`);
+          console.warn(`[English Quiz] Question nums: [${group.questions.map(q => q.questionNum).join(", ")}]`);
+        }
+      } else {
+        console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: ${passage ? passage.substring(0, 40) : "no"}`);
+      }
       idx += group.questions.length;
       sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
     }
