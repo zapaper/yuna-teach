@@ -313,7 +313,8 @@ export async function POST(request: NextRequest) {
         if (passageSub) { passage = passageSub.text; }
 
         // Try 2: source paper's sectionOcrTexts (pre-fetched batch)
-        if (!passage) {
+        // Skip for visual-text — it needs page images, not OCR text
+        if (!passage && group.key !== "visual-text") {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
             // Try exact name match first
@@ -327,7 +328,6 @@ export async function POST(request: NextRequest) {
                 "editing": ["editing"],
                 "comprehension-cloze": ["comprehension", "cloze"],
                 "vocab-cloze": ["vocab", "cloze"],
-                "visual-text": ["visual", "text"],
                 "synthesis": ["synthesis"],
                 "comprehension-oeq": ["comprehension", "open"],
               };
@@ -419,9 +419,17 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Rewrite passage question numbers to match quiz numbering
+      // Clean and rewrite passage question numbers
       if (passage && !passage.startsWith("[")) {
-        // Build mapping from original question numbers to quiz numbers
+        const groupQNums = new Set(group.questions.map(q => parseInt(q.questionNum)));
+        // Strip markers that don't belong to this section's questions
+        // Remove entire **(N)...**  where N is not in groupQNums
+        passage = passage.replace(/\*\*\((\d+)\)[^*]*\*\*/g, (match, numStr) => {
+          const num = parseInt(numStr);
+          return groupQNums.has(num) ? match : "";
+        });
+
+        // Rewrite remaining markers to match quiz numbering
         const sortedGroupQs = [...group.questions].sort((a, b) =>
           a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
         );

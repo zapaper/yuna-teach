@@ -603,35 +603,18 @@ function QuizContent({ id }: { id: string }) {
                     );
                   }
 
-                  // Synthesis / Comp OEQ: render as OEQ canvasses within section
+                  // Synthesis / Comp OEQ: typed answer sections
                   if (isSynthesis || isCompOeq) {
                     return (
-                      <div key={si} className="mb-12">
-                        <div className="mb-8 mt-4">
-                          <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sec.label.toUpperCase()}</h2>
-                          <p className="text-[#737780] mt-1 text-sm">
-                            {isSynthesis ? "Rewrite the sentences according to the instructions given." : "Answer the questions in full sentences."}
-                          </p>
-                          <p className="text-[#737780] mt-1 text-xs italic">For Apple users: turn on &quot;Draw with Apple Pencil&quot; and turn off &quot;Scribble&quot; for smooth writing.</p>
-                        </div>
-                        <div className="space-y-12">
-                          {secQuestions.map((q, sqIdx) => (
-                            <OeqQuestionCard
-                              key={q.id}
-                              question={q}
-                              index={sec.startIndex + sqIdx}
-                              tool={tool}
-                              onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
-                              onSubpartRefs={(refs) => { oeqSubpartHandles.current[q.id] = refs; }}
-                              onStrokeStart={() => { lastDrawnId.current = q.id; }}
-                              paperId={id}
-                              oeqIndex={secQuestions.indexOf(q)}
-                              savedHeights={canvasHeights.current}
-                              onHeightChange={(cid, h) => { canvasHeights.current[cid] = h; }}
-                            />
-                          ))}
-                        </div>
-                      </div>
+                      <EnglishQuizSection
+                        key={si}
+                        sectionLabel={sec.label}
+                        passage={sec.passage ?? null}
+                        questions={secQuestions}
+                        sectionType={isSynthesis ? "synthesis" : "comprehension-oeq"}
+                        answers={mcqAnswers}
+                        onAnswer={selectMcqAnswer}
+                      />
                     );
                   }
 
@@ -680,7 +663,7 @@ function QuizContent({ id }: { id: string }) {
                             if (lastIdx2 < line.length) parts.push(<span key="end">{line.slice(lastIdx2)}</span>);
                             const indent = line.match(/^(\s{2,}|\t)/);
                             return (
-                              <p key={li} className="leading-relaxed text-sm text-[#001e40] my-1" style={indent ? { textIndent: "2em" } : undefined}>
+                              <p key={li} className="leading-relaxed text-base text-[#001e40] my-1" style={indent ? { textIndent: "2em" } : undefined}>
                                 {parts.length > 0 ? parts : line}
                               </p>
                             );

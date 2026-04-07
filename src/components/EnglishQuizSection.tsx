@@ -18,7 +18,7 @@ interface Props {
   sectionLabel: string;
   passage: string | null;
   questions: QuizQuestion[];
-  sectionType: "grammar-cloze" | "editing" | "comprehension-cloze" | "visual-text-mcq";
+  sectionType: "grammar-cloze" | "editing" | "comprehension-cloze" | "visual-text-mcq" | "synthesis" | "comprehension-oeq";
   answers: Record<string, string>;
   onAnswer: (questionId: string, answer: string) => void;
 }
@@ -29,6 +29,8 @@ interface Props {
  * - Editing: passage with correction inputs
  * - Comprehension Cloze: passage with word inputs
  * - Visual Text MCQ: scanned image + MCQ options
+ * - Synthesis: question stem with bold starting word + typed answer
+ * - Comprehension OEQ: question stem with typed answer lines
  */
 export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer }: Props) {
   return (
@@ -47,7 +49,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
       )}
 
       {/* Passage with inline inputs (Grammar Cloze, Editing, Comp Cloze) */}
-      {passage && sectionType !== "visual-text-mcq" && (
+      {passage && (sectionType === "grammar-cloze" || sectionType === "editing" || sectionType === "comprehension-cloze") && (
         <PassageWithInputs
           passage={passage}
           questions={questions}
@@ -55,6 +57,101 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
           answers={answers}
           onAnswer={onAnswer}
         />
+      )}
+
+      {/* Synthesis / Comprehension OEQ: typed answer sections */}
+      {(sectionType === "synthesis" || sectionType === "comprehension-oeq") && (
+        <div className="space-y-8">
+          {questions.map((q) => {
+            const stem = q.transcribedStem ?? "";
+            const displayNum = parseInt(q.questionNum);
+
+            // Parse lines count from stem: [Lines: N] or [N lines]
+            const linesMatch = stem.match(/\[(?:Lines?:\s*)?(\d+)\s*(?:lines?)?\]/i);
+            const lineCount = linesMatch ? parseInt(linesMatch[1]) : 2;
+            const cleanStem = stem.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
+
+            // For synthesis: parse **bold starting word** and _______ answer area
+            // e.g., "**Instead of** _______" → bold "Instead of" + input
+            const synthParts: { type: "bold" | "text" | "blank"; content: string }[] = [];
+            if (sectionType === "synthesis") {
+              const synthRegex = /\*\*([^*]+)\*\*|_{3,}/g;
+              let lastEnd = 0;
+              let sm;
+              while ((sm = synthRegex.exec(cleanStem)) !== null) {
+                if (sm.index > lastEnd) {
+                  const between = cleanStem.slice(lastEnd, sm.index).trim();
+                  if (between) synthParts.push({ type: "text", content: between });
+                }
+                if (sm[1]) {
+                  synthParts.push({ type: "bold", content: sm[1] });
+                } else {
+                  synthParts.push({ type: "blank", content: "" });
+                }
+                lastEnd = sm.index + sm[0].length;
+              }
+              if (lastEnd < cleanStem.length) {
+                const remaining = cleanStem.slice(lastEnd).trim();
+                if (remaining) synthParts.push({ type: "text", content: remaining });
+              }
+              // If no blanks found, add one at the end
+              if (!synthParts.some(p => p.type === "blank")) {
+                synthParts.push({ type: "blank", content: "" });
+              }
+            }
+
+            return (
+              <div key={q.id} className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
+                <div className="flex items-start gap-3 mb-4">
+                  <span className="w-10 h-10 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {displayNum}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    {sectionType === "comprehension-oeq" && (
+                      <p className="text-base text-[#001e40] leading-relaxed whitespace-pre-wrap">{cleanStem}</p>
+                    )}
+                    {q.marksAvailable && (
+                      <span className="text-[10px] font-bold text-[#003366] bg-[#d3e4fe] px-2 py-0.5 rounded uppercase tracking-wider">
+                        {q.marksAvailable} {q.marksAvailable > 1 ? "marks" : "mark"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Synthesis: bold starting word + typed input */}
+                {sectionType === "synthesis" && (
+                  <div className="mt-3">
+                    <div className="flex flex-wrap items-baseline gap-1 mb-2">
+                      {synthParts.map((part, pi) => {
+                        if (part.type === "bold") return <span key={pi} className="font-bold text-base text-[#001e40]">{part.content}</span>;
+                        if (part.type === "text") return <span key={pi} className="text-base text-[#0b1c30]">{part.content}</span>;
+                        return null;
+                      })}
+                    </div>
+                    <textarea
+                      value={answers[q.id] ?? ""}
+                      onChange={e => onAnswer(q.id, e.target.value)}
+                      rows={lineCount}
+                      className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed"
+                      placeholder="Type your answer here..."
+                    />
+                  </div>
+                )}
+
+                {/* Comprehension OEQ: typed answer lines */}
+                {sectionType === "comprehension-oeq" && (
+                  <textarea
+                    value={answers[q.id] ?? ""}
+                    onChange={e => onAnswer(q.id, e.target.value)}
+                    rows={lineCount}
+                    className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed mt-3"
+                    placeholder="Type your answer here..."
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Visual Text MCQ: standard question + options */}
@@ -253,7 +350,7 @@ function PassageLine({
   const indent = line.match(/^(\s{2,}|\t)/);
 
   return (
-    <p className="leading-relaxed text-sm text-[#0b1c30] my-1" style={indent ? { textIndent: "2em" } : undefined}>
+    <p className="leading-relaxed text-base text-[#0b1c30] my-1" style={indent ? { textIndent: "2em" } : undefined}>
       {parts.length > 0 ? parts : line}
     </p>
   );
