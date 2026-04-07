@@ -34,7 +34,7 @@ interface QuizPaper {
   requesterIsAdmin?: boolean;
 }
 
-type DrawTool = "pen" | "eraser";
+type DrawTool = "pen" | "eraser" | "eraser-large";
 
 /* ────────────── helpers ────────────── */
 
@@ -338,10 +338,10 @@ function QuizContent({ id }: { id: string }) {
           </button>
           {hasOeq && <>
             <button
-              onClick={() => setTool("eraser")}
-              className={`p-3 rounded-full transition-colors ${tool === "eraser" ? "text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
+              onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "pen" : "eraser")}
+              className={`p-3 rounded-full transition-colors ${tool === "eraser" || tool === "eraser-large" ? "text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
             >
-              <span className="material-symbols-outlined text-xl">ink_eraser</span>
+              <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
             </button>
             <button
               onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
@@ -386,11 +386,11 @@ function QuizContent({ id }: { id: string }) {
               Pen
             </button>
             <button
-              onClick={() => setTool("eraser")}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "eraser" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
+              onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "pen" : "eraser")}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "eraser" || tool === "eraser-large" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
             >
-              <span className="material-symbols-outlined text-xl">ink_eraser</span>
-              Erase
+              <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
+              {tool === "eraser-large" ? "Big Erase" : "Erase"}
             </button>
             <button
               onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
@@ -485,7 +485,6 @@ function QuizContent({ id }: { id: string }) {
                             index={sec.startIndex + idx}
                             selected={mcqAnswers[q.id] ?? null}
                             onSelect={(opt) => selectMcqAnswer(q.id, opt)}
-                            hideStem={!!sec.passage && sec.label.toLowerCase().includes("cloze")}
                           />
                         ))}
                       </div>
@@ -692,11 +691,12 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx || !lastPos.current) return;
     const pos = getPos(e);
-    ctx.strokeStyle = tool === "eraser" ? "rgba(0,0,0,0)" : "#0066cc";
-    ctx.lineWidth = tool === "eraser" ? 20 : 2;
+    const isEraser = tool === "eraser" || tool === "eraser-large";
+    ctx.strokeStyle = isEraser ? "rgba(0,0,0,0)" : "#0066cc";
+    ctx.lineWidth = tool === "eraser-large" ? 40 : tool === "eraser" ? 20 : 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    if (tool === "eraser") {
+    if (isEraser) {
       ctx.globalCompositeOperation = "destination-out";
     } else {
       ctx.globalCompositeOperation = "source-over";
@@ -1145,10 +1145,10 @@ const BlankCanvas = forwardRef<
 
     function applyStyleVisible() {
       ctx.lineCap = "round"; ctx.lineJoin = "round";
-      if (toolRef.current === "eraser") {
+      if (toolRef.current === "eraser" || toolRef.current === "eraser-large") {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(255,255,255,1)";
-        ctx.lineWidth = 24;
+        ctx.lineWidth = toolRef.current === "eraser-large" ? 48 : 24;
       } else {
         ctx.globalCompositeOperation = "source-over";
         ctx.strokeStyle = "rgba(37,99,235,0.85)";
@@ -1158,10 +1158,10 @@ const BlankCanvas = forwardRef<
 
     function applyStyleInk(inkCtx: CanvasRenderingContext2D) {
       inkCtx.lineCap = "round"; inkCtx.lineJoin = "round";
-      if (toolRef.current === "eraser") {
+      if (toolRef.current === "eraser" || toolRef.current === "eraser-large") {
         inkCtx.globalCompositeOperation = "destination-out";
         inkCtx.strokeStyle = "rgba(0,0,0,1)";
-        inkCtx.lineWidth = 24;
+        inkCtx.lineWidth = toolRef.current === "eraser-large" ? 48 : 24;
       } else {
         inkCtx.globalCompositeOperation = "source-over";
         inkCtx.strokeStyle = "rgba(37,99,235,0.85)";
@@ -1185,16 +1185,16 @@ const BlankCanvas = forwardRef<
       lastPos.current = pos;
       applyStyleVisible();
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, toolRef.current === "eraser" ? 12 : 1.5, 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y, toolRef.current === "eraser-large" ? 24 : (toolRef.current === "eraser" ? 12 : 1.5), 0, Math.PI * 2);
       ctx.fill();
       const inkCtx = inkCanvasRef.current?.getContext("2d");
       if (inkCtx) {
         applyStyleInk(inkCtx);
         inkCtx.beginPath();
-        inkCtx.arc(pos.x, pos.y, toolRef.current === "eraser" ? 12 : 1.5, 0, Math.PI * 2);
+        inkCtx.arc(pos.x, pos.y, toolRef.current === "eraser-large" ? 24 : (toolRef.current === "eraser" ? 12 : 1.5), 0, Math.PI * 2);
         inkCtx.fill();
       }
-      if (toolRef.current === "eraser") redrawComposite();
+      if (toolRef.current === "eraser" || toolRef.current === "eraser-large") redrawComposite();
     }
 
     function handlePointerMove(e: PointerEvent) {
@@ -1221,7 +1221,7 @@ const BlankCanvas = forwardRef<
       if (!isDrawing.current) return;
       isDrawing.current = false;
       lastPos.current = null;
-      if (toolRef.current === "eraser") redrawComposite();
+      if (toolRef.current === "eraser" || toolRef.current === "eraser-large") redrawComposite();
       scheduleSnapshotCapture();
     }
 

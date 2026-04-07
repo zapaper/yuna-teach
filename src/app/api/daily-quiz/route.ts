@@ -51,7 +51,8 @@ export async function POST(request: NextRequest) {
   const subjectFilter = subject === "science" ? "science" : subject === "english" ? "english" : "math";
 
   const questionWhere = (lf: string | null, examTypeFilter: string[] | null) => ({
-    transcribedStem: { not: null as null },
+    // English: don't require transcribedStem (passage-bound sections don't have stems)
+    ...(subject !== "english" ? { transcribedStem: { not: null as null } } : {}),
     answer: { not: null as null },
     examPaper: {
       sourceExamId: null,
@@ -223,6 +224,8 @@ export async function POST(request: NextRequest) {
       "comprehension-oeq": "Comp OEQ",
     };
     const activeLabels: string[] = [];
+    // Track per-section question groups for section metadata
+    const extraSectionGroups: Array<{ key: string; label: string; questions: typeof allPool }> = [];
 
     const topicMatchers: Record<string, (t: string) => boolean> = {
       "grammar-cloze": t => t.includes("grammar") && t.includes("cloze") && !t.includes("mcq"),
@@ -233,32 +236,32 @@ export async function POST(request: NextRequest) {
     };
 
     for (const section of selectedSections) {
+      let sectionQs: typeof allPool = [];
       if (section === "vocab-cloze" && vocabClozeSets.length > 0) {
-        selectedExtra.push(...vocabClozeSets[0]);
-        activeLabels.push("Vocab Cloze");
+        sectionQs = vocabClozeSets[0];
       } else if (section === "visual-text" && visualTextSets.length > 0) {
-        selectedExtra.push(...visualTextSets[0]);
-        activeLabels.push("Visual Text");
+        sectionQs = visualTextSets[0];
       } else if (section === "synthesis") {
-        const synthQs = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
-        shuffle(synthQs);
-        selectedExtra.push(...synthQs.slice(0, 3));
-        if (synthQs.length > 0) activeLabels.push("Synthesis");
+        const synthPool = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
+        shuffle(synthPool);
+        sectionQs = synthPool.slice(0, 3);
       } else {
         const matcher = topicMatchers[section];
         if (matcher) {
-          const sectionQs = allPool.filter(q => matcher((q.syllabusTopic ?? "").toLowerCase()));
+          const matchedQs = allPool.filter(q => matcher((q.syllabusTopic ?? "").toLowerCase()));
           const papers = new Map<string, typeof allPool>();
-          for (const q of sectionQs) {
+          for (const q of matchedQs) {
             if (!papers.has(q.examPaperId)) papers.set(q.examPaperId, []);
             papers.get(q.examPaperId)!.push(q);
           }
           const paperSets = shuffle([...papers.values()]);
-          if (paperSets.length > 0) {
-            selectedExtra.push(...paperSets[0]);
-            activeLabels.push(sectionLabels[section] ?? section);
-          }
+          if (paperSets.length > 0) sectionQs = paperSets[0];
         }
+      }
+      if (sectionQs.length > 0) {
+        selectedExtra.push(...sectionQs);
+        activeLabels.push(sectionLabels[section] ?? section);
+        extraSectionGroups.push({ key: section, label: sectionLabels[section] ?? section, questions: sectionQs });
       }
     }
 
@@ -275,83 +278,54 @@ export async function POST(request: NextRequest) {
       idx += selectedGrammar.length + selectedVocab.length;
     }
 
-    // For each extra section, get the passage if it's passage-bound
+    // For each extra section group, build section metadata with passage
     let sectionLetter = "B";
-    for (const section of selectedSections) {
-      const sectionQs = allSelected.slice(idx).filter((_, i) => {
-        const qIdx = idx + i;
-        return qIdx >= idx && qIdx < idx + selectedExtra.filter((_, j) => {
-          // This is hacky — need a better way to track which extra questions belong to which section
-          return true;
-        }).length;
-      });
+    const sectionOcrNames: Record<string, string[]> = {
+      "vocab-cloze": ["Vocabulary Cloze MCQ", "Vocabulary Cloze", "Vocab Cloze MCQ"],
+      "visual-text": ["Visual Text Comprehension MCQ", "Visual Text MCQ", "Visual Text Comprehension"],
+      "grammar-cloze": ["Grammar Cloze"],
+      "editing": ["Editing", "Editing (Spelling & Grammar)"],
+      "comprehension-cloze": ["Comprehension Cloze"],
+      "synthesis": ["Synthesis & Transformation", "Synthesis"],
+      "comprehension-oeq": ["Comprehension OEQ", "Comprehension Open Ended", "Comprehension (Open-ended)"],
+    };
 
-      // Find passage OCR from the source question's transcribedSubparts
+    for (const group of extraSectionGroups) {
       let passage: string | undefined;
-      const firstExtraQ = selectedExtra.find(q => {
-        const t = (q.syllabusTopic ?? "").toLowerCase();
-        if (section === "vocab-cloze") return t.includes("vocabulary") && t.includes("cloze");
-        if (section === "visual-text") return t.includes("visual") && t.includes("text");
-        if (section === "grammar-cloze") return t.includes("grammar") && t.includes("cloze") && !t.includes("mcq");
-        if (section === "editing") return t.includes("editing");
-        if (section === "comprehension-cloze") return t.includes("comprehension") && t.includes("cloze");
-        if (section === "comprehension-oeq") return t.includes("comprehension") && t.includes("open");
-        return false;
-      });
+      const firstQ = group.questions[0];
 
-      if (firstExtraQ) {
-        // Try 1: Get passage from transcribedSubparts sentinel (_passage)
-        const subs = firstExtraQ.transcribedSubparts as Array<{ label: string; text: string }> | null;
+      if (firstQ) {
+        // Try 1: transcribedSubparts sentinel
+        const subs = firstQ.transcribedSubparts as Array<{ label: string; text: string }> | null;
         const passageSub = subs?.find(s => s.label === "_passage");
-        if (passageSub) {
-          passage = passageSub.text;
-        } else {
-          // Try 2: Get passage from the source paper's sectionOcrTexts metadata
-          const sourcePaper = await prisma.examPaper.findUnique({
-            where: { id: firstExtraQ.examPaperId },
-            select: { metadata: true },
-          });
+        if (passageSub) { passage = passageSub.text; }
+
+        // Try 2: source paper's sectionOcrTexts
+        if (!passage) {
+          const sourcePaper = await prisma.examPaper.findUnique({ where: { id: firstQ.examPaperId }, select: { metadata: true } });
           const meta = sourcePaper?.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null;
           if (meta?.sectionOcrTexts) {
-            // Map section keys to exact sectionOcrTexts names
-            const sectionOcrNames: Record<string, string[]> = {
-              "vocab-cloze": ["Vocabulary Cloze MCQ", "Vocabulary Cloze", "Vocab Cloze MCQ"],
-              "visual-text": ["Visual Text Comprehension MCQ", "Visual Text MCQ", "Visual Text Comprehension"],
-              "grammar-cloze": ["Grammar Cloze"],
-              "editing": ["Editing", "Editing (Spelling & Grammar)"],
-              "comprehension-cloze": ["Comprehension Cloze"],
-              "synthesis": ["Synthesis & Transformation", "Synthesis"],
-              "comprehension-oeq": ["Comprehension OEQ", "Comprehension Open Ended", "Comprehension (Open-ended)"],
-            };
-            const possibleNames = sectionOcrNames[section] ?? [];
-            for (const name of possibleNames) {
-              if (meta.sectionOcrTexts[name]) {
-                passage = meta.sectionOcrTexts[name].ocrText;
-                break;
-              }
+            for (const name of (sectionOcrNames[group.key] ?? [])) {
+              if (meta.sectionOcrTexts[name]) { passage = meta.sectionOcrTexts[name].ocrText; break; }
             }
           }
         }
-        // For Visual Text: try to get the source paper's visual page images
-        if (section === "visual-text" && !passage && firstExtraQ.imageData) {
-          // The first Visual Text question's imageData contains stitched visual pages
-          passage = firstExtraQ.imageData; // Store as passageImage (base64 data URL)
-        }
 
-        console.log(`[English Quiz] ${section}: passage ${passage ? `found (${passage.length > 100 ? passage.length + " chars" : passage})` : "NOT found"}`);
+        // Try 3: Visual Text — use imageData
+        if (group.key === "visual-text" && !passage && firstQ.imageData) {
+          passage = firstQ.imageData;
+        }
       }
 
-      const secLabel = sectionLabels[section] ?? section;
-      const count = selectedExtra.length; // simplified — all extras are one section for now
       sections.push({
-        label: `Section ${sectionLetter}: ${secLabel}`,
+        label: `Section ${sectionLetter}: ${group.label}`,
         startIndex: idx,
-        endIndex: idx + count - 1,
+        endIndex: idx + group.questions.length - 1,
         ...(passage ? { passage } : {}),
       });
-      idx += count;
+      console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: ${passage ? "yes" : "no"}`);
+      idx += group.questions.length;
       sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
-      break; // Only one extra section supported for now
     }
 
     const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
