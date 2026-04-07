@@ -300,10 +300,30 @@ export async function POST(request: NextRequest) {
       });
 
       if (firstExtraQ) {
-        // Get passage from transcribedSubparts sentinel
+        // Try 1: Get passage from transcribedSubparts sentinel (_passage)
         const subs = firstExtraQ.transcribedSubparts as Array<{ label: string; text: string }> | null;
         const passageSub = subs?.find(s => s.label === "_passage");
-        if (passageSub) passage = passageSub.text;
+        if (passageSub) {
+          passage = passageSub.text;
+        } else {
+          // Try 2: Get passage from the source paper's sectionOcrTexts metadata
+          const sourcePaper = await prisma.examPaper.findUnique({
+            where: { id: firstExtraQ.examPaperId },
+            select: { metadata: true },
+          });
+          const meta = sourcePaper?.metadata as { sectionOcrTexts?: Record<string, { ocrText: string }> } | null;
+          if (meta?.sectionOcrTexts) {
+            // Find matching section OCR
+            const topicLower = (firstExtraQ.syllabusTopic ?? "").toLowerCase();
+            for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
+              if (secName.toLowerCase().includes(topicLower.split(" ")[0]) || topicLower.includes(secName.toLowerCase().split(" ")[0])) {
+                passage = secData.ocrText;
+                break;
+              }
+            }
+          }
+        }
+        console.log(`[English Quiz] ${section}: passage ${passage ? `found (${passage.length} chars)` : "NOT found"}`);
       }
 
       const secLabel = sectionLabels[section] ?? section;
