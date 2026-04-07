@@ -2639,9 +2639,10 @@ Output ONLY the table.` });
     | F | G | H | J | K |
     | word6 | word7 | word8 | word9 | word10 |
     Note: letters I and O are typically skipped. Use 5 columns per row.
-  * The question number MUST come BEFORE the blank, on the SAME line, and BOLDED:
-    Write as: "... word **(29)________** word ..." or "... word **(51)________** word ..."
-    Format: **(N)________** — number in parentheses, then exactly 8 underscores. Bold the entire unit.
+  * In the original paper, each blank is a printed line where the student writes, and the question number is printed BELOW that blank line (in parentheses, e.g. "(29)").
+    In your output, COMBINE them into ONE inline marker: **(N)________** — the question number in parentheses, then 8 underscores, all bolded.
+    Place this marker INLINE in the passage text where the blank appears: "... word **(29)________** word ..."
+    Look for the blank lines FIRST (they are the questions), then read the number printed below/beside each blank.
   * This cloze formatting applies ONLY to Grammar Cloze and Comprehension Cloze sections.
     For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
   * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title, etc.
@@ -2663,10 +2664,20 @@ Output ONLY the table.` });
 - For VISUAL TEXT sections: describe any images/posters/advertisements briefly in [IMAGE: description]
 - For SYNTHESIS & TRANSFORMATION sections:
   * Each question has a printed sentence, then answer lines below
-  * Extract the question sentence, then show the answer area as EXACTLY 2 lines:
-    **Starting word** ____________________
-    ____________________
-  * Line 1: bold starting word + underscores on the SAME line. Line 2: one full line of underscores. Do NOT add more lines.
+  * Look at the answer area carefully. There are TWO patterns:
+    PATTERN A — Starting word at the beginning:
+      The keyword/starting word is printed at the LEFT, followed by blank lines.
+      Format: **Starting word** ____________________
+              ____________________
+    PATTERN B — Joining word in the MIDDLE:
+      There are blank lines BEFORE the keyword AND blank lines AFTER the keyword.
+      This means the keyword is a JOINING WORD (e.g. "although", "because", "so that").
+      Format: ____________________
+              **although**
+              ____________________
+  * Use exactly the pattern that matches the original paper layout.
+  * Bold the keyword/joining word with **double asterisks**.
+  * Use ____________________ (20 underscores) for each answer line.
   * If a given word/phrase is shown (e.g. "Use: although"), bold it: **although**
 - For COMPREHENSION OEQ sections: questions may contain TABLES, CHARTS, CHECKBOXES, or LINED answer spaces.
   * Render tables as markdown tables: | Col1 | Col2 | Col3 |
