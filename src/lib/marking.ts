@@ -1848,15 +1848,47 @@ export async function markQuizPaper(paperId: string): Promise<void> {
       }
     }
 
+    // Identify typed English section questions (Grammar Cloze, Editing, Comp Cloze, Visual Text MCQ)
+    // These are scored by direct comparison, not AI marking
+    const typedSectionQIds = new Set<string>();
+    const meta = paper.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> } | null;
+    if (meta?.englishSections) {
+      for (const sec of meta.englishSections) {
+        const label = sec.label.toLowerCase();
+        const isTyped = label.includes("grammar cloze") || label.includes("editing") ||
+          label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
+          label.includes("visual text");
+        if (isTyped) {
+          for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
+            typedSectionQIds.add(paper.questions[i].id);
+          }
+        }
+      }
+    }
+
     // Separate MCQ (already marked) and OEQ (need AI marking)
-    const mcqQuestions = paper.questions.filter(q => {
-      const n = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+    const isMcqAnswer = (ans: string | null) => {
+      const n = (ans ?? "").trim().replace(/[().]/g, "").trim();
       return n === "1" || n === "2" || n === "3" || n === "4";
-    });
-    const oeqQuestions = paper.questions.filter(q => {
-      const n = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
-      return !(n === "1" || n === "2" || n === "3" || n === "4");
-    });
+    };
+    const mcqQuestions = paper.questions.filter(q => isMcqAnswer(q.answer) || typedSectionQIds.has(q.id));
+    const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id));
+
+    // Score any typed section questions that weren't scored client-side
+    for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && qq.marksAwarded === null)) {
+      const studentAns = (q.studentAnswer ?? "").trim().toUpperCase();
+      const correctAns = (q.answer ?? "").trim().toUpperCase();
+      const isCorrect = studentAns !== "" && studentAns === correctAns;
+      await prisma.examQuestion.update({
+        where: { id: q.id },
+        data: {
+          marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
+          markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctAns}"`) : "No answer",
+        },
+      });
+      q.marksAwarded = isCorrect ? (q.marksAvailable ?? 1) : 0;
+      console.log(`[quiz-marking] Typed Q${q.questionNum}: "${studentAns}" vs "${correctAns}" → ${isCorrect ? "correct" : "wrong"}`);
+    }
 
     let totalAwarded = mcqQuestions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
     const updates: ReturnType<typeof prisma.examQuestion.update>[] = [];

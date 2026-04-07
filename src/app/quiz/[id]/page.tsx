@@ -279,6 +279,27 @@ function QuizContent({ id }: { id: string }) {
         )
       );
 
+      // Save & score typed section answers (Grammar Cloze, Editing, Comp Cloze)
+      const typedQuestions = paper!.questions.filter(q => typedSectionQIds.has(q.id));
+      if (typedQuestions.length > 0) {
+        await Promise.all(
+          typedQuestions.map(q => {
+            const studentAns = (mcqAnswers[q.id] ?? "").trim().toUpperCase();
+            const correctAns = (q.answer ?? "").trim().toUpperCase();
+            const isCorrect = studentAns !== "" && studentAns === correctAns;
+            return fetch(`/api/exam/questions/${q.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                studentAnswer: studentAns || null,
+                marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
+                markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctAns}"`) : "No answer",
+              }),
+            });
+          })
+        );
+      }
+
       // For MCQ+OEQ: save OEQ drawings (action "save" — don't trigger marking yet)
       if (hasOeq) {
         const form = new FormData();

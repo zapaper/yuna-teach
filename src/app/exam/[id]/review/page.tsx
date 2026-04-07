@@ -18,6 +18,7 @@ interface ReviewQuestion {
   flagged: boolean;
   imageData?: string;
   answerImageData?: string | null;
+  syllabusTopic?: string | null;
   // Quiz-specific transcription fields
   transcribedStem?: string | null;
   transcribedOptions?: string[] | null;
@@ -78,6 +79,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
   const [releasing, setReleasing] = useState(false);
+  const [englishSections, setEnglishSections] = useState<Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | null>(null);
   const [editingMarks, setEditingMarks] = useState<string | null>(null);
   const [savingMarks, setSavingMarks] = useState(false);
   const [remarking, setRemarking] = useState(false);
@@ -105,6 +107,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setIsQuiz(paperIsQuiz);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
+          if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
           const sp = paper.metadata?.skipPages ?? [];
@@ -362,6 +365,20 @@ function ExamReviewContent({ id }: { id: string }) {
 
   const displayQuestions = showAll ? writtenQuestions : incorrectQuestions;
   const currentQ = displayQuestions[currentIdx] ?? null;
+
+  // Detect if current question belongs to a typed English section (Grammar Cloze, Editing, etc.)
+  const currentSection = currentQ && englishSections
+    ? englishSections.find(sec => {
+        const qIdx = data.questions.findIndex(q => q.id === currentQ.id);
+        return qIdx >= sec.startIndex && qIdx <= sec.endIndex;
+      })
+    : null;
+  const currentSectionLabel = currentSection?.label.toLowerCase() ?? "";
+  const isTypedSection = currentSectionLabel.includes("grammar cloze") || currentSectionLabel.includes("editing") ||
+    currentSectionLabel.includes("comprehension cloze") || (currentSectionLabel.includes("comp") && currentSectionLabel.includes("cloze"));
+  const sectionQuestions = currentSection
+    ? data.questions.slice(currentSection.startIndex, currentSection.endIndex + 1)
+    : [];
 
   // For quiz OEQ: index of currentQ among all OEQ questions (no text or image MCQ options)
   const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions && !q.transcribedOptionImages);
@@ -723,8 +740,112 @@ function ExamReviewContent({ id }: { id: string }) {
               </button>
             </nav>
 
-            {/* Current question card */}
-            {currentQ && (() => {
+            {/* Typed English section review (Grammar Cloze, Editing, etc.) */}
+            {currentQ && isTypedSection && currentSection?.passage && (() => {
+              // Parse word bank from passage table rows
+              const wordBank = new Map<string, string>();
+              const passageLines = currentSection.passage!.split("\n");
+              const tableRows: string[][] = [];
+              for (const line of passageLines) {
+                if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) continue; // skip separator
+                if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+                  tableRows.push(line.split("|").slice(1, -1).map(c => c.trim()));
+                }
+              }
+              // Word bank: row 0 = letters (A, B, C...), row 1 = words
+              if (tableRows.length >= 2) {
+                for (let c = 0; c < tableRows[0].length; c++) {
+                  const letter = tableRows[0][c].toUpperCase();
+                  const word = tableRows[1]?.[c] ?? "";
+                  if (letter && word) wordBank.set(letter, word);
+                }
+                // Handle additional rows (letters continue): row 2 = more letters, row 3 = more words
+                for (let r = 2; r + 1 < tableRows.length; r += 2) {
+                  for (let c = 0; c < tableRows[r].length; c++) {
+                    const letter = tableRows[r][c].toUpperCase();
+                    const word = tableRows[r + 1]?.[c] ?? "";
+                    if (letter && word) wordBank.set(letter, word);
+                  }
+                }
+              }
+
+              const isGrammarCloze = currentSectionLabel.includes("grammar cloze");
+              const isEditing = currentSectionLabel.includes("editing");
+              const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
+              const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+
+              return (
+                <div className="bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]">
+                  {/* Section header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-headline text-lg font-extrabold text-[#001e40]">{currentSection.label}</h3>
+                    <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+                      earnedMarks === totalMarks ? "bg-[#d1fae5] text-[#006c49]" : earnedMarks > 0 ? "bg-[#fef3c7] text-[#633f00]" : "bg-[#ffdad6] text-[#ba1a1a]"
+                    }`}>{earnedMarks} / {totalMarks}</span>
+                  </div>
+
+                  {/* Word bank (Grammar Cloze only) */}
+                  {isGrammarCloze && wordBank.size > 0 && (
+                    <div className="mb-6 bg-[#eff4ff] rounded-2xl p-4">
+                      <p className="text-xs font-bold text-[#43474f] mb-2 uppercase tracking-wider">Word Bank</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[...wordBank.entries()].map(([letter, word]) => (
+                          <span key={letter} className="text-xs bg-white rounded-lg px-2 py-1 border border-[#d3e4fe]">
+                            <span className="font-bold text-[#003366]">{letter}</span>: {word}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Question results */}
+                  <div className="space-y-3">
+                    {sectionQuestions.map((q, qi) => {
+                      const qCorrect = (q.marksAwarded ?? 0) >= (q.marksAvailable ?? 1);
+                      const studentAns = (q.studentAnswer ?? "").toUpperCase();
+                      const correctAns = (q.answer ?? "").toUpperCase();
+                      const studentWord = wordBank.get(studentAns) ?? "";
+                      const correctWord = wordBank.get(correctAns) ?? "";
+                      const displayNum = parseInt(q.questionNum);
+
+                      return (
+                        <div key={q.id} className={`p-4 rounded-2xl border-2 ${
+                          qCorrect ? "bg-[#d1fae5]/30 border-[#006c49]/20" : "bg-[#ffdad6]/30 border-[#ba1a1a]/20"
+                        }`}>
+                          <div className="flex items-start gap-3">
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                              qCorrect ? "bg-[#006c49] text-white" : "bg-[#ba1a1a] text-white"
+                            }`}>{displayNum}</span>
+                            <div className="flex-1 min-w-0">
+                              {qCorrect ? (
+                                <p className="text-sm text-[#006c49] font-semibold">
+                                  <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                  {isGrammarCloze ? `${correctAns}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
+                                </p>
+                              ) : (
+                                <div className="space-y-1">
+                                  <p className="text-sm text-[#ba1a1a] font-semibold">
+                                    <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
+                                    Your answer: {studentAns ? (isGrammarCloze ? `${studentAns}: ${studentWord || "—"}` : `"${studentAns}"`) : "No answer"}
+                                  </p>
+                                  <p className="text-sm text-[#006c49] font-semibold">
+                                    <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                    Correct: {isGrammarCloze ? `${correctAns}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Current question card (standard per-question view) */}
+            {currentQ && !isTypedSection && (() => {
               const isCorrect = (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 1);
               const isPartial = !isCorrect && (currentQ.marksAwarded ?? 0) > 0;
               const badgeBg = isCorrect ? "#d1fae5" : isPartial ? "#fef3c7" : "#ffdad6";
