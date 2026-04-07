@@ -166,8 +166,24 @@ function QuizContent({ id }: { id: string }) {
     return <div className="p-6 text-center py-24"><p className="text-[#43474f]">Quiz not found</p></div>;
   }
 
+  // Build set of question IDs handled by typed English sections (not OEQ canvasses)
+  const typedSectionQIds = new Set<string>();
+  if (paper.metadata?.englishSections) {
+    for (const sec of paper.metadata.englishSections) {
+      const label = sec.label.toLowerCase();
+      const isTyped = label.includes("grammar cloze") || label.includes("editing") ||
+        label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
+        label.includes("visual text");
+      if (isTyped) {
+        for (let i = sec.startIndex; i <= sec.endIndex; i++) {
+          if (paper.questions[i]) typedSectionQIds.add(paper.questions[i].id);
+        }
+      }
+    }
+  }
+
   const mcqQuestions = paper.questions.filter(q => isMcq(q.answer));
-  const oeqQuestions = paper.questions.filter(q => !isMcq(q.answer));
+  const oeqQuestions = paper.questions.filter(q => !isMcq(q.answer) && !typedSectionQIds.has(q.id));
   const hasOeq = oeqQuestions.length > 0;
 
   function selectMcqAnswer(questionId: string, option: string) {

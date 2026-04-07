@@ -364,6 +364,22 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Rewrite passage question numbers to match quiz numbering
+      if (passage && !passage.startsWith("[")) {
+        // Build mapping from original question numbers to quiz numbers
+        const sortedGroupQs = [...group.questions].sort((a, b) =>
+          a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
+        );
+        sortedGroupQs.forEach((q, qi) => {
+          const origNum = parseInt(q.questionNum);
+          const quizNum = idx + qi + 1; // 1-based quiz numbering
+          if (origNum !== quizNum) {
+            // Replace **(origNum) to **(quizNum) in passage
+            passage = passage!.replace(new RegExp(`\\*\\*\\(${origNum}\\)`, "g"), `**(${quizNum})`);
+          }
+        });
+      }
+
       sections.push({
         label: `Section ${sectionLetter}: ${group.label}`,
         startIndex: idx,

@@ -42,8 +42,8 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
       </div>
 
       {/* Visual Text: show scanned page images */}
-      {sectionType === "visual-text-mcq" && passage && (
-        <VisualTextImages passage={passage} fallbackImage={questions[0]?.imageData} />
+      {sectionType === "visual-text-mcq" && (
+        <VisualTextImages passage={passage ?? ""} fallbackImage={questions.find(q => q.imageData && q.imageData.length > 100)?.imageData} />
       )}
 
       {/* Passage with inline inputs (Grammar Cloze, Editing, Comp Cloze) */}
@@ -120,12 +120,12 @@ function PassageWithInputs({
   return (
     <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100">
       {lines.map((line, li) => {
+        // Skip table separator rows (must check before table rows)
+        if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
         // Table rows
         if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
           return <TableLine key={li} line={line} />;
         }
-        // Skip table separator rows
-        if (line.match(/^\s*\|[\s-|]+\|\s*$/)) return null;
         // Empty line = paragraph break
         if (!line.trim()) return <br key={li} />;
 
@@ -246,7 +246,6 @@ function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbac
     if (pagesMatch) {
       const paperId = pagesMatch[1];
       const pageIndices = pagesMatch[2].split(",").map(Number);
-      // Load each page image
       Promise.all(
         pageIndices.map(async (pageIdx) => {
           try {
@@ -259,6 +258,33 @@ function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbac
           return null;
         })
       ).then(urls => setPageImages(urls.filter(Boolean) as string[]));
+      return;
+    }
+
+    // Parse [VISUAL_TEXT_SOURCE:paperId] — load all pages from source paper
+    const sourceMatch = passage.match(/^\[VISUAL_TEXT_SOURCE:([^\]]+)\]$/);
+    if (sourceMatch) {
+      const paperId = sourceMatch[1];
+      fetch(`/api/exam/${paperId}/pages`)
+        .then(r => r.json())
+        .then(async ({ pageCount }: { pageCount: number }) => {
+          if (!pageCount) return;
+          // Load all pages — visual text pages are typically near the end
+          const urls = await Promise.all(
+            Array.from({ length: pageCount }, (_, i) => i).map(async (pageIdx) => {
+              try {
+                const res = await fetch(`/api/exam/${paperId}/pages?page=${pageIdx}`);
+                if (res.ok) {
+                  const blob = await res.blob();
+                  return URL.createObjectURL(blob);
+                }
+              } catch { /* ignore */ }
+              return null;
+            })
+          );
+          setPageImages(urls.filter(Boolean) as string[]);
+        })
+        .catch(() => {});
     }
   }, [passage]);
 
