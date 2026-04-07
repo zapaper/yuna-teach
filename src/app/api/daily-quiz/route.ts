@@ -267,6 +267,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Not enough English questions available" }, { status: 404 });
     }
 
+    // Build section metadata for quiz display
+    const sections: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> = [];
+    let idx = 0;
+    if (selectedGrammar.length > 0 || selectedVocab.length > 0) {
+      sections.push({ label: "Section A: Grammar and Vocab MCQ", startIndex: idx, endIndex: idx + selectedGrammar.length + selectedVocab.length - 1 });
+      idx += selectedGrammar.length + selectedVocab.length;
+    }
+
+    // For each extra section, get the passage if it's passage-bound
+    let sectionLetter = "B";
+    for (const section of selectedSections) {
+      const sectionQs = allSelected.slice(idx).filter((_, i) => {
+        const qIdx = idx + i;
+        return qIdx >= idx && qIdx < idx + selectedExtra.filter((_, j) => {
+          // This is hacky — need a better way to track which extra questions belong to which section
+          return true;
+        }).length;
+      });
+
+      // Find passage OCR from the source question's transcribedSubparts
+      let passage: string | undefined;
+      const firstExtraQ = selectedExtra.find(q => {
+        const t = (q.syllabusTopic ?? "").toLowerCase();
+        if (section === "vocab-cloze") return t.includes("vocabulary") && t.includes("cloze");
+        if (section === "visual-text") return t.includes("visual") && t.includes("text");
+        if (section === "grammar-cloze") return t.includes("grammar") && t.includes("cloze") && !t.includes("mcq");
+        if (section === "editing") return t.includes("editing");
+        if (section === "comprehension-cloze") return t.includes("comprehension") && t.includes("cloze");
+        if (section === "comprehension-oeq") return t.includes("comprehension") && t.includes("open");
+        return false;
+      });
+
+      if (firstExtraQ) {
+        // Get passage from transcribedSubparts sentinel
+        const subs = firstExtraQ.transcribedSubparts as Array<{ label: string; text: string }> | null;
+        const passageSub = subs?.find(s => s.label === "_passage");
+        if (passageSub) passage = passageSub.text;
+      }
+
+      const secLabel = sectionLabels[section] ?? section;
+      const count = selectedExtra.length; // simplified — all extras are one section for now
+      sections.push({
+        label: `Section ${sectionLetter}: ${secLabel}`,
+        startIndex: idx,
+        endIndex: idx + count - 1,
+        ...(passage ? { passage } : {}),
+      });
+      idx += count;
+      sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
+      break; // Only one extra section supported for now
+    }
+
     const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
     const levelLabel = levelFilter ? `P${student!.level} ` : "";
     const extraLabel = activeLabels.length > 0 ? ` + ${activeLabels.join(" + ")}` : "";
@@ -285,6 +337,7 @@ export async function POST(request: NextRequest) {
         totalMarks: String(totalMarks),
         metadata: {
           quizType: "mcq",
+          englishSections: sections,
           sourceLabels: Object.fromEntries(
             allSelected.map((q, i) => {
               const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);
