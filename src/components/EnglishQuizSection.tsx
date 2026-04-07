@@ -71,63 +71,54 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
             const lineCount = linesMatch ? parseInt(linesMatch[1]) : 2;
             const cleanStem = stem.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
 
-            // For synthesis: parse **bold starting word** and _______ answer area
-            // e.g., "**Instead of** _______" → bold "Instead of" + input
-            const synthParts: { type: "bold" | "text" | "blank"; content: string }[] = [];
+            // For synthesis: split into question part and answer part (bold starting word + blank)
+            let synthQuestion = "";
+            let synthStartWord = "";
             if (sectionType === "synthesis") {
-              const synthRegex = /\*\*([^*]+)\*\*|_{3,}/g;
-              let lastEnd = 0;
-              let sm;
-              while ((sm = synthRegex.exec(cleanStem)) !== null) {
-                if (sm.index > lastEnd) {
-                  const between = cleanStem.slice(lastEnd, sm.index).trim();
-                  if (between) synthParts.push({ type: "text", content: between });
-                }
-                if (sm[1]) {
-                  synthParts.push({ type: "bold", content: sm[1] });
-                } else {
-                  synthParts.push({ type: "blank", content: "" });
-                }
-                lastEnd = sm.index + sm[0].length;
-              }
-              if (lastEnd < cleanStem.length) {
-                const remaining = cleanStem.slice(lastEnd).trim();
-                if (remaining) synthParts.push({ type: "text", content: remaining });
-              }
-              // If no blanks found, add one at the end
-              if (!synthParts.some(p => p.type === "blank")) {
-                synthParts.push({ type: "blank", content: "" });
+              // Find the answer line: starts with ** (bold starting word) or ___ (blanks)
+              // Split at the last line that contains **bold** followed by ___
+              const lines = cleanStem.split("\n");
+              const answerLineIdx = lines.findIndex(l => /\*\*[^*]+\*\*.*_{3,}/.test(l) || /^_{3,}/.test(l.trim()));
+              if (answerLineIdx >= 0) {
+                synthQuestion = lines.slice(0, answerLineIdx).join("\n").trim();
+                const answerLine = lines[answerLineIdx];
+                const boldMatch = answerLine.match(/\*\*([^*]+)\*\*/);
+                synthStartWord = boldMatch ? boldMatch[1] : "";
+              } else {
+                // Try inline: **word** ___
+                const boldMatch = cleanStem.match(/\*\*([^*]+)\*\*/);
+                synthStartWord = boldMatch ? boldMatch[1] : "";
+                synthQuestion = cleanStem.replace(/\*\*[^*]+\*\*/, "").replace(/_{3,}/g, "").trim();
               }
             }
 
             return (
               <div key={q.id} className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
-                <div className="flex items-start gap-3 mb-4">
+                <div className="flex items-start gap-3 mb-3">
                   <span className="w-10 h-10 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-bold text-sm shrink-0">
                     {displayNum}
                   </span>
                   <div className="flex-1 min-w-0">
+                    {sectionType === "synthesis" && synthQuestion && (
+                      <RichStemText text={synthQuestion} answers={answers} questionId={q.id} onAnswer={onAnswer} />
+                    )}
                     {sectionType === "comprehension-oeq" && (
-                      <p className="text-base text-[#001e40] leading-relaxed whitespace-pre-wrap">{cleanStem}</p>
+                      <RichStemText text={cleanStem} answers={answers} questionId={q.id} onAnswer={onAnswer} />
                     )}
                     {q.marksAvailable && (
-                      <span className="text-[10px] font-bold text-[#003366] bg-[#d3e4fe] px-2 py-0.5 rounded uppercase tracking-wider">
+                      <span className="mt-2 inline-block text-[10px] font-bold text-[#003366] bg-[#d3e4fe] px-2 py-0.5 rounded uppercase tracking-wider">
                         {q.marksAvailable} {q.marksAvailable > 1 ? "marks" : "mark"}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Synthesis: bold starting word + typed input */}
+                {/* Synthesis: bold starting word on new line + typed input */}
                 {sectionType === "synthesis" && (
-                  <div className="mt-3">
-                    <div className="flex flex-wrap items-baseline gap-1 mb-2">
-                      {synthParts.map((part, pi) => {
-                        if (part.type === "bold") return <span key={pi} className="font-bold text-base text-[#001e40]">{part.content}</span>;
-                        if (part.type === "text") return <span key={pi} className="text-base text-[#0b1c30]">{part.content}</span>;
-                        return null;
-                      })}
-                    </div>
+                  <div className="mt-3 ml-[52px]">
+                    {synthStartWord && (
+                      <p className="font-bold text-base text-[#001e40] mb-1">{synthStartWord}</p>
+                    )}
                     <textarea
                       value={answers[q.id] ?? ""}
                       onChange={e => onAnswer(q.id, e.target.value)}
@@ -140,13 +131,15 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
 
                 {/* Comprehension OEQ: typed answer lines */}
                 {sectionType === "comprehension-oeq" && (
-                  <textarea
-                    value={answers[q.id] ?? ""}
-                    onChange={e => onAnswer(q.id, e.target.value)}
-                    rows={lineCount}
-                    className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed mt-3"
-                    placeholder="Type your answer here..."
-                  />
+                  <div className="mt-3 ml-[52px]">
+                    <textarea
+                      value={answers[q.id] ?? ""}
+                      onChange={e => onAnswer(q.id, e.target.value)}
+                      rows={lineCount}
+                      className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed"
+                      placeholder="Type your answer here..."
+                    />
+                  </div>
                 )}
               </div>
             );
@@ -270,6 +263,75 @@ function TableLine({ line }: { line: string }) {
       ))}
     </div>
   );
+}
+
+/** Renders rich text: bold, tables, tick boxes, answer lines */
+function RichStemText({ text, answers, questionId, onAnswer }: {
+  text: string;
+  answers: Record<string, string>;
+  questionId: string;
+  onAnswer: (qId: string, answer: string) => void;
+}) {
+  const lines = text.split("\n");
+  return (
+    <div className="space-y-1">
+      {lines.map((line, li) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <br key={li} />;
+        // Table separator — skip
+        if (trimmed.match(/^\|[\s-:|]+\|$/)) return null;
+        // Table row
+        if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+          const cells = trimmed.split("|").slice(1, -1).map(c => c.trim());
+          return (
+            <div key={li} className="flex gap-1 my-1">
+              {cells.map((cell, ci) => (
+                <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1.5 border border-[#d3e4fe]">
+                  {cell}
+                </span>
+              ))}
+            </div>
+          );
+        }
+        // Tick box: [ ] or [✓] or [x]
+        if (trimmed.match(/^\[[ x✓✗]\]\s/i)) {
+          const checked = trimmed.match(/^\[[x✓]\]/i);
+          const content = trimmed.replace(/^\[[ x✓✗]\]\s*/i, "");
+          return (
+            <label key={li} className="flex items-start gap-2 cursor-pointer text-base text-[#001e40] my-1">
+              <input type="checkbox" defaultChecked={!!checked} className="mt-1 w-4 h-4 accent-[#003366]" />
+              <span>{renderInlineBold(content)}</span>
+            </label>
+          );
+        }
+        // Answer line: ___ (3+ underscores)
+        if (trimmed.match(/^_{3,}$/)) {
+          return <div key={li} className="border-b-2 border-slate-300 my-2 h-6" />;
+        }
+        // Regular text with inline bold
+        return (
+          <p key={li} className="text-base text-[#001e40] leading-relaxed">
+            {renderInlineBold(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Render inline **bold** text */
+function renderInlineBold(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*([^*]+)\*\*/g;
+  let lastIdx = 0;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIdx) parts.push(<span key={`t${lastIdx}`}>{text.slice(lastIdx, m.index)}</span>);
+    parts.push(<strong key={`b${m.index}`} className="font-bold">{m[1]}</strong>);
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx < text.length) parts.push(<span key="end">{text.slice(lastIdx)}</span>);
+  return parts.length > 0 ? parts : [<span key="plain">{text}</span>];
 }
 
 function PassageLine({
