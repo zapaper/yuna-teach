@@ -22,7 +22,11 @@ interface QuizQuestion {
 interface QuizPaper {
   id: string;
   title: string;
-  metadata: { quizType: "mcq" | "mcq-oeq"; sourceLabels?: Record<string, string | null> } | null;
+  metadata: {
+    quizType: "mcq" | "mcq-oeq";
+    sourceLabels?: Record<string, string | null>;
+    englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }>;
+  } | null;
   completedAt: string | null;
   markingStatus: string | null;
   timeSpentSeconds: number;
@@ -434,24 +438,72 @@ function QuizContent({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Section A: MCQ */}
+        {/* MCQ Questions — with English section headers if applicable */}
         {mcqQuestions.length > 0 && (
           <>
-            <div className="hidden lg:block mb-10 mt-4">
-              <h2 className="font-headline text-2xl lg:text-3xl font-extrabold text-[#001e40] tracking-tight">SECTION A: MULTIPLE CHOICE</h2>
-              <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
-            </div>
-            <div className="space-y-10">
-              {mcqQuestions.map((q, idx) => (
-                <McqQuestionCard
-                  key={q.id}
-                  question={q}
-                  index={idx}
-                  selected={mcqAnswers[q.id] ?? null}
+            {paper.metadata?.englishSections ? (
+              // English quiz: render with section headers and passages
+              <>
+                {paper.metadata.englishSections.map((sec, si) => {
+                  const secQuestions = mcqQuestions.slice(sec.startIndex, sec.endIndex + 1);
+                  if (secQuestions.length === 0) return null;
+                  return (
+                    <div key={si} className="mb-12">
+                      {/* Section header */}
+                      <div className="mb-8 mt-4">
+                        <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sec.label.toUpperCase()}</h2>
+                        {!sec.passage && (
+                          <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
+                        )}
+                      </div>
+
+                      {/* Passage (for Vocab Cloze, etc.) */}
+                      {sec.passage && (
+                        <div className="bg-[#eff4ff] rounded-2xl p-5 lg:p-8 mb-6 border border-[#d3e4fe]">
+                          <p className="text-sm text-[#001e40] leading-relaxed whitespace-pre-wrap">{sec.passage}</p>
+                        </div>
+                      )}
+                      {sec.passage && (
+                        <p className="text-sm text-[#737780] mb-6 italic">Which word best completes the blanks?</p>
+                      )}
+
+                      {/* Questions */}
+                      <div className="space-y-10">
+                        {secQuestions.map((q, idx) => (
+                          <McqQuestionCard
+                            key={q.id}
+                            question={q}
+                            index={sec.startIndex + idx}
+                            selected={mcqAnswers[q.id] ?? null}
+                            onSelect={(opt) => selectMcqAnswer(q.id, opt)}
+                            hideStem={!!sec.passage}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            ) : (
+              // Non-English: standard section
+              <>
+                <div className="hidden lg:block mb-10 mt-4">
+                  <h2 className="font-headline text-2xl lg:text-3xl font-extrabold text-[#001e40] tracking-tight">SECTION A: MULTIPLE CHOICE</h2>
+                  <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
+                </div>
+                <div className="space-y-10">
+                  {mcqQuestions.map((q, idx) => (
+                    <McqQuestionCard
+                      key={q.id}
+                      question={q}
+                      index={idx}
+                      selected={mcqAnswers[q.id] ?? null}
                   onSelect={(opt) => selectMcqAnswer(q.id, opt)}
                 />
               ))}
             </div>
+          </>
+            )}
           </>
         )}
 
@@ -491,11 +543,13 @@ function McqQuestionCard({
   index,
   selected,
   onSelect,
+  hideStem,
 }: {
   question: QuizQuestion;
   index: number;
   selected: string | null;
   onSelect: (option: string) => void;
+  hideStem?: boolean;
 }) {
   const options = question.transcribedOptions as string[] | null;
   const optionImages = question.transcribedOptionImages as string[] | null;
@@ -516,7 +570,7 @@ function McqQuestionCard({
             Question {numStr}
           </span>
 
-          {question.transcribedStem && (
+          {!hideStem && question.transcribedStem && (
             <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">
               {question.transcribedStem}
             </p>
