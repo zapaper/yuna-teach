@@ -264,17 +264,6 @@ export default function HomePage() {
               </a>
             </div>
           </div>
-          {/* Newsletter card */}
-          <div className="bg-white p-6 rounded-3xl">
-            <h4 className="font-bold text-primary mb-3">Join Our Newsletter</h4>
-            <p className="text-sm text-on-surface-variant mb-4">Tips for parenting and learning delivered to your inbox.</p>
-            <div className="flex gap-2">
-              <input className="bg-surface-container-low border border-surface-container rounded-full text-sm px-4 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-tertiary/40" placeholder="Your email" type="email" />
-              <button className="bg-primary text-white p-2 rounded-full w-10 h-10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-            </div>
-          </div>
           {/* Links — 2 col grid */}
           <div className="grid grid-cols-2 gap-6">
             <div>
@@ -282,12 +271,6 @@ export default function HomePage() {
               <ul className="space-y-3 text-sm text-on-surface-variant">
                 <li><a className="hover:text-tertiary transition-colors" href="#demo-video">How it Works</a></li>
                 <li><a className="hover:text-tertiary transition-colors" href="#">Pricing Plans</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-primary mb-4">Resources</h4>
-              <ul className="space-y-3 text-sm text-on-surface-variant">
-                <li><a className="hover:text-tertiary transition-colors" href="#">Success Stories</a></li>
               </ul>
             </div>
           </div>
@@ -317,22 +300,6 @@ export default function HomePage() {
               <li><a className="hover:text-tertiary transition-colors" href="#demo-video">How it Works</a></li>
               <li><a className="hover:text-tertiary transition-colors" href="#">Pricing Plans</a></li>
             </ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-primary mb-6">Resources</h4>
-            <ul className="space-y-4 text-sm text-on-surface-variant">
-              <li><a className="hover:text-tertiary transition-colors" href="#">Success Stories</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-bold text-primary mb-6">Join Our Newsletter</h4>
-            <p className="text-sm text-on-surface-variant mb-4">Tips for parenting and learning delivered to your inbox.</p>
-            <div className="flex gap-2">
-              <input className="bg-white border border-surface-container rounded-full text-sm px-4 py-2 flex-1 focus:outline-none focus:ring-2 focus:ring-tertiary/40" placeholder="Your email" type="email" />
-              <button className="bg-primary text-white p-2 rounded-full w-10 h-10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-            </div>
           </div>
         </div>
 
