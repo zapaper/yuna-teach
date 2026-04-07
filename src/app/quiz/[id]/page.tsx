@@ -529,8 +529,8 @@ function QuizContent({ id }: { id: string }) {
           </div>
         )}
 
-        {/* MCQ Questions — with English section headers if applicable */}
-        {mcqQuestions.length > 0 && (
+        {/* Questions — English sections or standard MCQ */}
+        {(mcqQuestions.length > 0 || paper.metadata?.englishSections) && (
           <>
             {paper.metadata?.englishSections ? (
               // English quiz: render sections by type
@@ -688,6 +688,14 @@ function McqQuestionCard({
             <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">
               {question.transcribedStem}
             </p>
+          )}
+
+          {/* Fallback: show question image if no stem text */}
+          {!hideStem && !question.transcribedStem && question.imageData && question.imageData.length > 100 && (
+            <div className="mb-5 lg:mb-6 rounded-xl overflow-hidden border border-[#e5eeff]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={question.imageData} alt={`Question ${numStr}`} className="w-full h-auto" />
+            </div>
           )}
 
           {question.diagramImageData && (
