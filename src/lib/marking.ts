@@ -2000,7 +2000,17 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
             }
           }
 
-          parts.push({ text: `Student's typed answer: "${fullStudentAnswer}"` });
+          // Format table answers into readable text
+          let displayAnswer = fullStudentAnswer;
+          const isTableAnswer = fullStudentAnswer.startsWith("{");
+          if (isTableAnswer) {
+            try {
+              const cells = JSON.parse(fullStudentAnswer) as Record<string, string>;
+              const cellEntries = Object.entries(cells).filter(([, v]) => v).map(([k, v]) => `${k}: "${v}"`);
+              displayAnswer = `[TABLE] ${cellEntries.join(", ")}`;
+            } catch { /* use raw */ }
+          }
+          parts.push({ text: `Student's typed answer: "${displayAnswer}"${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
@@ -2016,7 +2026,9 @@ For Synthesis & Transformation: This tests SENTENCE FORMATION, not synonyms. Be 
 - Deduct 0.5 for each word changed to a synonym that differs from the expected answer.
 - The starting/joining word is included in the expected answer.
 - Award up to full marks if the sentence structure and meaning match the expected answer with the correct words.
-For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question, then deduct 0.5 per spelling/grammar error.
+For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question.
+- If the answer is in TABLE format (JSON with cell values), do NOT penalise for punctuation. Only deduct 0.5 for spelling or grammar errors.
+- If the answer is free text (not a table), deduct 0.5 per spelling/grammar error.
 
 The minimum marks awarded is 0 (do not go negative).
 
