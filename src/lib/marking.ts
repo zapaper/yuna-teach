@@ -1874,8 +1874,8 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     const mcqQuestions = paper.questions.filter(q => isMcqAnswer(q.answer) || typedSectionQIds.has(q.id));
     const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id));
 
-    // Score any typed section questions that weren't scored client-side
-    for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && qq.marksAwarded === null)) {
+    // Score typed section questions (always re-score on re-mark, in case answer keys changed)
+    for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && !isMcqAnswer(qq.answer))) {
       const studentAns = (q.studentAnswer ?? "").trim().toUpperCase();
       const correctAns = (q.answer ?? "").trim().toUpperCase();
       const acceptableAnswers = correctAns.split("/").map(a => a.trim());
