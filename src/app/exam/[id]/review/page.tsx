@@ -969,10 +969,25 @@ function ExamReviewContent({ id }: { id: string }) {
                                   <div className="bg-white rounded-lg p-3 border border-slate-200">
                                     <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
                                     {studentAns.startsWith("{") ? (
-                                      // Table answer — render stem table with student values filled in
+                                      // JSON answer — table cells, ticks, and/or text
                                       (() => {
                                         let cells: Record<string, string> = {};
                                         try { cells = JSON.parse(studentAns); } catch { /* ignore */ }
+                                        const textVal = cells._text ?? "";
+                                        const ticks = Object.entries(cells).filter(([k, v]) => k.startsWith("tick") && v === "true");
+                                        const hasTableCells = Object.keys(cells).some(k => k.startsWith("r"));
+
+                                        // If only ticks + text (no table), show text and tick summary
+                                        if (!hasTableCells) {
+                                          return (
+                                            <div className="space-y-1">
+                                              {ticks.length > 0 && (
+                                                <p className="text-xs text-[#43474f]">Ticked: {ticks.length} option(s)</p>
+                                              )}
+                                              <p className="text-sm text-[#001e40] whitespace-pre-wrap">{textVal || <span className="italic text-[#737780]">No text answer</span>}</p>
+                                            </div>
+                                          );
+                                        }
                                         const stemLines = stemRaw.split("\n");
                                         let rowIdx = 0;
                                         return (

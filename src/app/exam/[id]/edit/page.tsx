@@ -188,7 +188,12 @@ function ExamEditContent({ id }: { id: string }) {
   }
 
   async function deleteQuestion(questionId: string) {
-    await fetch(`/api/exam/questions/${questionId}`, { method: "DELETE" });
+    // Clear clean extraction data, don't delete the question itself
+    await fetch(`/api/exam/questions/${questionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transcribedStem: null, transcribedOptions: null, transcribedSubparts: null }),
+    });
     setPaper((prev) =>
       prev
         ? { ...prev, questions: prev.questions.filter((q) => q.id !== questionId) }
@@ -593,11 +598,15 @@ function ExamEditContent({ id }: { id: string }) {
                   const sectionQuestions = paper.questions.filter(q => q.syllabusTopic === sectionName);
                   const existingNums = new Set(sectionQuestions.map(q => parseInt(q.questionNum, 10)).filter(n => !isNaN(n)));
 
-                  // Delete questions not in the new set
+                  // Clear clean extraction data for questions not in the new set (don't delete)
                   for (const q of sectionQuestions) {
                     const n = parseInt(q.questionNum, 10);
                     if (!isNaN(n) && !qNums.includes(n)) {
-                      await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
+                      await fetch(`/api/exam/questions/${q.id}`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ transcribedStem: null, transcribedOptions: null, transcribedSubparts: null }),
+                      });
                     }
                   }
                   // Add missing questions
