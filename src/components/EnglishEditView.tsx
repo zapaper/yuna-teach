@@ -301,7 +301,14 @@ function QuestionRow({
         <span className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
           {q.questionNum}
         </span>
-        {/* Topic selector */}
+        {/* Topic selector — only for Grammar/Vocab MCQ */}
+        {(() => {
+          const t = (q.syllabusTopic ?? "").toLowerCase();
+          const knownSections = ["cloze", "editing", "visual text", "synthesis", "transformation", "comprehension open", "comprehension oeq"];
+          const isKnownSection = knownSections.some(k => t.includes(k));
+          const isGrammarOrVocabMcq = !isKnownSection;
+          if (!isGrammarOrVocabMcq) return null;
+          return (
         <div className="relative">
           <button
             onClick={() => setShowTopicMenu(!showTopicMenu)}
@@ -315,13 +322,6 @@ function QuestionRow({
               {[
                 "Grammar MCQ",
                 "Vocabulary MCQ",
-                "Vocabulary Cloze MCQ",
-                "Visual Text Comprehension MCQ",
-                "Grammar Cloze",
-                "Editing (Spelling & Grammar)",
-                "Comprehension Cloze",
-                "Synthesis / Transformation",
-                "Comprehension Open Ended",
               ].map(topic => (
                 <button
                   key={topic}
@@ -337,6 +337,8 @@ function QuestionRow({
             </div>
           )}
         </div>
+          );
+        })()}
       </div>
 
       <div className="flex-1 min-w-0">
