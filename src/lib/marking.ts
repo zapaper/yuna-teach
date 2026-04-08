@@ -1956,10 +1956,15 @@ export async function markQuizPaper(paperId: string): Promise<void> {
 Marks available: ${marksAvailable}
 
 Mark this answer. Compare the student's typed answer against the expected answer.
-For Synthesis & Transformation: the student must rewrite the sentence using the given word/phrase while keeping the same meaning. The expected answer includes the starting/joining word. Minor spelling errors are acceptable if the meaning is preserved. Award full marks if the meaning is equivalent even if worded differently.
-For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question.
 
-Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "feedback": "<brief feedback>"}]}`
+SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks for EACH spelling or grammatical error in the student's answer. List each error found in the feedback.
+
+For Synthesis & Transformation: the student must rewrite the sentence using the given word/phrase while keeping the same meaning. The expected answer includes the starting/joining word. Award content marks if the meaning is equivalent, then deduct 0.5 per spelling/grammar error.
+For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question, then deduct 0.5 per spelling/grammar error.
+
+The minimum marks awarded is 0 (do not go negative).
+
+Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "feedback": "<brief feedback including any spelling/grammar errors found>"}]}`
           });
 
           try {
