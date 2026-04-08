@@ -966,7 +966,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   {correctAns && (
                                     <div className="text-sm text-[#006c49]">
                                       <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                      <span className="font-semibold">Correct:</span>
+                                      <span className="font-semibold">Correct answer:</span>
                                       <ReviewRichText text={correctAns} />
                                     </div>
                                   )}
@@ -992,10 +992,14 @@ function ExamReviewContent({ id }: { id: string }) {
                                     </p>
                                     <p className="text-sm text-[#006c49] font-semibold">
                                       <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                      Correct: {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
+                                      Correct answer: {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
                                     </p>
                                   </div>
                                 )
+                              )}
+                              {/* Marking notes/reason for wrong/partial */}
+                              {q.markingNotes && !q.markingNotes.startsWith("Wrong.") && q.markingNotes !== "Correct" && q.markingNotes !== "No answer" && (
+                                <p className="text-xs text-[#43474f] italic mt-1">{q.markingNotes}</p>
                               )}
                             </div>
                           </div>
