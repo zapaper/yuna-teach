@@ -965,7 +965,6 @@ function ExamReviewContent({ id }: { id: string }) {
                                   </div>
                                   {correctAns && (
                                     <div className="text-sm text-[#006c49]">
-                                      <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                                       <span className="font-semibold">Correct answer:</span>
                                       <ReviewRichText text={correctAns} />
                                     </div>
@@ -991,7 +990,6 @@ function ExamReviewContent({ id }: { id: string }) {
                                       Your answer: {studentAns ? (isGrammarCloze ? `${studentAns.toUpperCase()}: ${studentWord || "—"}` : `"${studentAns}"`) : "No answer"}
                                     </p>
                                     <p className="text-sm text-[#006c49] font-semibold">
-                                      <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                                       Correct answer: {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
                                     </p>
                                   </div>
