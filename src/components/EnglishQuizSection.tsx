@@ -491,12 +491,17 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
 /** Render inline **bold** text */
 function renderInlineBold(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
-  const regex = /\*\*([^*]+)\*\*/g;
+  // Match **bold** or __underline__
+  const regex = /\*\*([^*]+)\*\*|__([^_]+)__/g;
   let lastIdx = 0;
   let m;
   while ((m = regex.exec(text)) !== null) {
     if (m.index > lastIdx) parts.push(<span key={`t${lastIdx}`}>{text.slice(lastIdx, m.index)}</span>);
-    parts.push(<strong key={`b${m.index}`} className="font-bold">{m[1]}</strong>);
+    if (m[1]) {
+      parts.push(<strong key={`b${m.index}`} className="font-bold">{m[1]}</strong>);
+    } else {
+      parts.push(<span key={`u${m.index}`} className="underline decoration-2">{m[2]}</span>);
+    }
     lastIdx = m.index + m[0].length;
   }
   if (lastIdx < text.length) parts.push(<span key="end">{text.slice(lastIdx)}</span>);
@@ -531,7 +536,7 @@ function PassageLine({
   while ((match = regex.exec(line)) !== null) {
     // Add text before the match
     if (match.index > lastIdx) {
-      parts.push(<span key={`t${lastIdx}`}>{line.slice(lastIdx, match.index)}</span>);
+      parts.push(<span key={`t${lastIdx}`}>{...renderInlineBold(line.slice(lastIdx, match.index))}</span>);
     }
 
     const qNum = parseInt(match[1]);
@@ -586,7 +591,7 @@ function PassageLine({
 
   // Add remaining text
   if (lastIdx < line.length) {
-    parts.push(<span key={`end`}>{line.slice(lastIdx)}</span>);
+    parts.push(<span key={`end`}>{...renderInlineBold(line.slice(lastIdx))}</span>);
   }
 
   // Detect paragraph indent

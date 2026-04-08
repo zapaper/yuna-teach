@@ -2686,6 +2686,7 @@ Output ONLY the table.` });
     Look for the blank lines FIRST (they are the questions), then read the number printed below/beside each blank.
   * This cloze formatting applies ONLY to Grammar Cloze and Comprehension Cloze sections.
     For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
+    For Vocabulary Cloze MCQ where an UNDERLINED WORD replaces the blank (student must find the most similar word): use double underscores to mark the underlined word: "... word **(16) __highlighted__** word ..." — the __double underscores__ render as underlined text in the UI.
   * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title, etc.
     Only include the passage text, word bank, and questions. Remove all administrative text.
 - For EDITING sections: the passage contains UNDERLINED+BOLDED error words with numbered answer boxes nearby.

@@ -45,6 +45,22 @@ function normalizeMcqAnswer(ans: string | null): string {
   return ans.trim().replace(/[().]/g, "").trim();
 }
 
+/** Render __underline__ markup */
+function renderUnderline(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  const regex = /__([^_]+)__/g;
+  let lastIdx = 0;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIdx) parts.push(text.slice(lastIdx, m.index));
+    parts.push(<span key={m.index} className="underline decoration-2">{m[1]}</span>);
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx === 0) return text;
+  if (lastIdx < text.length) parts.push(text.slice(lastIdx));
+  return <>{parts}</>;
+}
+
 function isMcq(answer: string | null): boolean {
   const n = normalizeMcqAnswer(answer);
   return n === "1" || n === "2" || n === "3" || n === "4";
@@ -720,7 +736,7 @@ function QuizContent({ id }: { id: string }) {
                             let lastIdx2 = 0;
                             let m;
                             while ((m = regex.exec(line)) !== null) {
-                              if (m.index > lastIdx2) parts.push(<span key={`t${lastIdx2}`}>{line.slice(lastIdx2, m.index)}</span>);
+                              if (m.index > lastIdx2) parts.push(<span key={`t${lastIdx2}`}>{renderUnderline(line.slice(lastIdx2, m.index))}</span>);
                               const qNum = m[1];
                               parts.push(
                                 <span key={`q${qNum}`} className="inline-flex items-center gap-0.5 mx-0.5">
@@ -730,7 +746,7 @@ function QuizContent({ id }: { id: string }) {
                               );
                               lastIdx2 = m.index + m[0].length;
                             }
-                            if (lastIdx2 < line.length) parts.push(<span key="end">{line.slice(lastIdx2)}</span>);
+                            if (lastIdx2 < line.length) parts.push(<span key="end">{renderUnderline(line.slice(lastIdx2))}</span>);
                             const indent = line.match(/^(\s{2,}|\t)/);
                             return (
                               <p key={li} className="leading-relaxed text-base text-[#001e40] my-1" style={indent ? { textIndent: "2em" } : undefined}>
