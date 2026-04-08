@@ -176,14 +176,14 @@ export async function POST(request: NextRequest) {
     const usedQs = allQuestions.filter(q => usedSourceIds.has(q.id));
     const allPool = [...freshQs, ...usedQs]; // prefer fresh, fall back to used
 
-    // Pool by syllabusTopic — match both old ("Grammar") and new ("Grammar MCQ") naming
+    // Pool by syllabusTopic — match various naming patterns including "Section X: Grammar MCQ"
     const grammarMcqPool = shuffle(allPool.filter(q => {
       const t = (q.syllabusTopic ?? "").toLowerCase();
-      return (t === "grammar" || t === "grammar mcq") && isMcq(q.answer);
+      return (t === "grammar" || t === "grammar mcq" || (t.includes("grammar") && !t.includes("cloze"))) && isMcq(q.answer);
     }));
     const vocabMcqPool = shuffle(allPool.filter(q => {
       const t = (q.syllabusTopic ?? "").toLowerCase();
-      return (t === "vocabulary" || t === "vocabulary mcq") && isMcq(q.answer);
+      return (t === "vocabulary" || t === "vocabulary mcq" || (t.includes("vocab") && !t.includes("cloze"))) && isMcq(q.answer);
     }));
 
     // Vocab Cloze MCQ: group by paper (all questions from same paper go together)
