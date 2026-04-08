@@ -823,7 +823,7 @@ function ExamReviewContent({ id }: { id: string }) {
 
                   {/* Passage text */}
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
-                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-4 lg:p-6 border border-slate-100 max-h-72 overflow-y-auto">
+                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-4 lg:p-6 border border-slate-100 max-h-[28rem] overflow-y-auto">
                       {(() => {
                         const pLines = currentSection.passage!.split("\n");
                         // Detect line-numbered table (Comp OEQ reading passage)
@@ -870,8 +870,36 @@ function ExamReviewContent({ id }: { id: string }) {
                               </div>
                             );
                           }
-                          const rendered = line.replace(/\*\*\((\d+)\)[^*]*\*\*/g, (_: string, num: string) => `(${num}) ____`).replace(/\*\*([^*]+)\*\*/g, '$1');
-                          return <p key={li} className="text-sm text-[#0b1c30] leading-relaxed my-0.5">{rendered}</p>;
+                          // Render inline: editing shows error words, cloze shows blanks
+                          const parts: React.ReactNode[] = [];
+                          const mkRegex = /\*\*\((\d+)\)([^*]*)\*\*/g;
+                          let lastEnd = 0;
+                          let mk;
+                          while ((mk = mkRegex.exec(line)) !== null) {
+                            if (mk.index > lastEnd) parts.push(<span key={`t${lastEnd}`}>{line.slice(lastEnd, mk.index)}</span>);
+                            const num = mk[1];
+                            const word = mk[2].trim();
+                            if (isEditing && word) {
+                              // Show erroneous word with red underline
+                              parts.push(
+                                <span key={`q${num}`} className="inline-flex items-center gap-0.5 mx-0.5">
+                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({num})</span>
+                                  <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{word}</span>
+                                </span>
+                              );
+                            } else {
+                              parts.push(
+                                <span key={`q${num}`} className="inline-flex items-center gap-0.5 mx-0.5">
+                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({num})</span>
+                                  <span className="border-b-2 border-slate-300 px-1 text-sm">____</span>
+                                </span>
+                              );
+                            }
+                            lastEnd = mk.index + mk[0].length;
+                          }
+                          if (lastEnd < line.length) parts.push(<span key="end">{line.slice(lastEnd)}</span>);
+                          const indent = line.match(/^(\s{2,}|\t)/);
+                          return <p key={li} className="text-sm text-[#0b1c30] leading-relaxed my-0.5" style={indent ? { textIndent: "2em" } : undefined}>{parts.length > 0 ? parts : line}</p>;
                         });
                       })()}
                     </div>

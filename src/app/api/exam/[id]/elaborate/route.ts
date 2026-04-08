@@ -55,11 +55,14 @@ export async function POST(
   const isQuiz = question.examPaper?.paperType === "quiz";
   const parts: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [];
 
-  if (isQuiz && question.transcribedStem) {
+  // For cloze/editing questions without stems, still use the quiz path for passage context
+  const topicLower = (question.syllabusTopic ?? "").toLowerCase();
+  const isClozeOrEditing = topicLower.includes("cloze") || topicLower.includes("editing");
+  if (isQuiz && (question.transcribedStem || isClozeOrEditing)) {
     // For quiz questions, use clean transcribed text to avoid Gemini reading school/year from exam paper header
     const opts = question.transcribedOptions as string[] | null;
     const subs = question.transcribedSubparts as { label: string; text: string }[] | null;
-    let questionText = question.transcribedStem;
+    let questionText = question.transcribedStem ?? `Question ${question.questionNum}`;
     if (opts && opts.length > 0) {
       questionText += "\n" + opts.map((o, i) => `(${i + 1}) ${o}`).join("\n");
     }
@@ -127,15 +130,23 @@ export async function POST(
         }
       }
     }
+    if (isGrammarCloze || isEditing || isCompCloze) {
+      console.log(`[Elaborate] Q${question.questionNum} topic="${question.syllabusTopic}" passageContext=${passageContext ? `${passageContext.length} chars` : "EMPTY"}`);
+      if (!passageContext) {
+        const paperMeta2 = question.examPaper?.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> } | null;
+        console.log(`[Elaborate] englishSections=${paperMeta2?.englishSections ? paperMeta2.englishSections.map(s => `${s.label}[${s.startIndex}-${s.endIndex}] passage=${s.passage ? s.passage.length + "ch" : "none"}`).join(", ") : "none"}`);
+        console.log(`[Elaborate] qIdx=${parseInt(question.questionNum) - 1}`);
+      }
+    }
     const passageNote = passageContext
-      ? `\n\nHere is the passage that the question is based on:\n${passageContext}\n`
+      ? `\n\nHere is the FULL passage that this question is based on:\n${passageContext}\n\nFocus on blank (${question.questionNum}) in the passage above. Look at the surrounding sentences to explain the answer.\n`
       : "";
     const sectionHint = isGrammarCloze
       ? " This is a Grammar Cloze question — the student must choose the correct word from a word bank (identified by letter A-Q) to fill in the blank in the passage. Explain why the correct word fits the blank based on grammar and meaning."
       : isEditing
         ? " This is an Editing question — the student must identify and correct the spelling/grammar error in the underlined word. Explain the correct spelling/grammar rule."
         : isCompCloze
-          ? " This is a Comprehension Cloze question — the student must fill in the blank with a suitable word based on the passage context. Explain why the correct word fits based on meaning and grammar."
+          ? ` This is a Comprehension Cloze question — the student must fill in blank (${question.questionNum}) with a suitable word. Read the sentences around the blank in the passage carefully. Quote the relevant sentence and explain why the correct word fits based on meaning, grammar, and context clues in the surrounding text.`
           : isVisualText
             ? " Reference the visual text content to explain why the answer is correct."
             : "";
