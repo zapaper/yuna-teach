@@ -179,7 +179,7 @@ function QuizContent({ id }: { id: string }) {
       const isTyped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
         label.includes("visual text") || label.includes("synthesis") ||
-        label.includes("comprehension oeq") || label.includes("comp oeq");
+        label.includes("comprehension oeq") || label.includes("comp oeq") || label.includes("comprehension open");
       if (isTyped) {
         for (let i = sec.startIndex; i <= sec.endIndex; i++) {
           if (paper.questions[i]) typedSectionQIds.add(paper.questions[i].id);
@@ -294,7 +294,7 @@ function QuizContent({ id }: { id: string }) {
       if (paper!.metadata?.englishSections) {
         for (const sec of (paper!.metadata.englishSections as Array<{ label: string; startIndex: number; endIndex: number }>)) {
           const l = sec.label.toLowerCase();
-          if (l.includes("synthesis") || l.includes("comprehension oeq") || l.includes("comp oeq")) {
+          if (l.includes("synthesis") || l.includes("comprehension oeq") || l.includes("comp oeq") || l.includes("comprehension open")) {
             for (let i = sec.startIndex; i <= sec.endIndex; i++) {
               if (paper!.questions[i]) aiMarkSectionLabels.add(paper!.questions[i].id);
             }
@@ -646,7 +646,7 @@ function QuizContent({ id }: { id: string }) {
                   const isCompCloze = label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze"));
                   const isVisualText = label.includes("visual text");
                   const isSynthesis = label.includes("synthesis");
-                  const isCompOeq = label.includes("comprehension oeq") || label.includes("comp oeq");
+                  const isCompOeq = label.includes("comprehension oeq") || label.includes("comp oeq") || label.includes("comprehension open");
                   const isTypedSection = isGrammarCloze || isEditing || isCompCloze || isVisualText;
 
                   if (isTypedSection) {

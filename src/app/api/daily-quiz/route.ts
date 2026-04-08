@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
       "editing": t => t.includes("editing"),
       "comprehension-cloze": t => t.includes("comprehension") && t.includes("cloze"),
       "synthesis": t => t.includes("synthesis"),
-      "comprehension-oeq": t => t.includes("comprehension") && t.includes("open"),
+      "comprehension-oeq": t => t.includes("comprehension") && (t.includes("open") || t.includes("oeq")),
     };
 
     // Fixed order: MCQ sections first (Vocab Cloze, Visual Text), then OEQ sections

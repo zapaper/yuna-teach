@@ -376,7 +376,7 @@ function ExamReviewContent({ id }: { id: string }) {
       const label = sec.label.toLowerCase();
       const isGrouped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
-        label.includes("synthesis") || label.includes("comprehension oeq");
+        label.includes("synthesis") || label.includes("comprehension oeq") || label.includes("comprehension open");
       if (isGrouped) {
         const secQs = data.questions.slice(sec.startIndex, sec.endIndex + 1);
         const hasRelevant = secQs.some(q => baseQuestions.some(bq => bq.id === q.id));
@@ -807,7 +807,7 @@ function ExamReviewContent({ id }: { id: string }) {
               const isGrammarCloze = currentSectionLabel.includes("grammar cloze");
               const isEditing = currentSectionLabel.includes("editing");
               const isSynthesis = currentSectionLabel.includes("synthesis");
-              const isCompOeq = currentSectionLabel.includes("comprehension oeq");
+              const isCompOeq = currentSectionLabel.includes("comprehension oeq") || currentSectionLabel.includes("comprehension open");
               const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
               const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
 
