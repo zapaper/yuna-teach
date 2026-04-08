@@ -548,6 +548,7 @@ function PassageLine({
             type="text"
             spellCheck={false}
             autoComplete="off"
+            autoCapitalize={sectionType === "grammar-cloze" ? "characters" : "none"}
             value={qId ? (answers[qId] ?? "") : ""}
             onChange={e => qId && onAnswer(qId, sectionType === "grammar-cloze" ? e.target.value.toUpperCase() : e.target.value)}
             onFocus={onFocusInput}
@@ -572,6 +573,7 @@ function PassageLine({
             onFocus={onFocusInput}
             spellCheck={false}
             autoComplete="off"
+            autoCapitalize="none"
             className={`border-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-200"} focus:border-[#003366] outline-none rounded px-2 py-0.5 text-sm w-28 bg-white`}
             placeholder="correct word"
           />

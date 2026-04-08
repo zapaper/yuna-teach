@@ -319,18 +319,36 @@ export async function POST(request: NextRequest) {
         if (!passage && group.key === "comprehension-oeq") {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
           if (meta?.sectionOcrTexts) {
+            const ocrKeys = Object.keys(meta.sectionOcrTexts);
+            console.log(`[English Quiz] Comp OEQ: sectionOcrTexts keys = [${ocrKeys.join(", ")}]`);
             for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
-              if (secName.toLowerCase().includes("comprehension") && (secName.toLowerCase().includes("open") || secName.toLowerCase().includes("oeq"))) {
-                const passageText = (secData as { passageOcrText?: string }).passageOcrText;
+              const sl = secName.toLowerCase();
+              if (sl.includes("comprehension") && (sl.includes("open") || sl.includes("oeq"))) {
+                const fullData = secData as Record<string, unknown>;
+                console.log(`[English Quiz] Comp OEQ: matched "${secName}", keys = [${Object.keys(fullData).join(", ")}]`);
+                const passageText = fullData.passageOcrText as string | undefined;
                 if (passageText) {
                   passage = passageText;
-                  console.log(`[English Quiz] Comp OEQ: loaded reading passage (${passageText.length} chars) from "${secName}"`);
+                  console.log(`[English Quiz] Comp OEQ: loaded reading passage (${passageText.length} chars)`);
+                } else {
+                  console.log(`[English Quiz] Comp OEQ: no passageOcrText in "${secName}"`);
                 }
                 break;
               }
             }
+          } else {
+            console.log(`[English Quiz] Comp OEQ: source paper ${firstQ.examPaperId} has no sectionOcrTexts`);
           }
-          if (!passage) console.log(`[English Quiz] Comp OEQ: no reading passage found in sectionOcrTexts`);
+          // Fallback: try loading from question's transcribedSubparts (_passageText)
+          if (!passage && firstQ.transcribedSubparts) {
+            const subs = firstQ.transcribedSubparts as Array<{ label: string; text: string }>;
+            const passageSub = subs.find(s => s.label === "_passageText");
+            if (passageSub) {
+              passage = passageSub.text;
+              console.log(`[English Quiz] Comp OEQ: loaded passage from _passageText subpart (${passage.length} chars)`);
+            }
+          }
+          if (!passage) console.log(`[English Quiz] Comp OEQ: no reading passage found`);
         }
         if (!passage && !skipOcrLookup && group.key !== "comprehension-oeq") {
           const meta = sourcePaperMap.get(firstQ.examPaperId);
