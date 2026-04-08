@@ -292,13 +292,52 @@ function QuestionRow({
   const [editingStem, setEditingStem] = useState(false);
   const [stemDraft, setStemDraft] = useState(q.transcribedStem ?? "");
   const [redoingTable, setRedoingTable] = useState(false);
+  const [showTopicMenu, setShowTopicMenu] = useState(false);
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
       {/* Question number */}
-      <span className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700 shrink-0">
-        {q.questionNum}
-      </span>
+      <div className="flex flex-col items-center gap-1 shrink-0">
+        <span className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
+          {q.questionNum}
+        </span>
+        {/* Topic selector */}
+        <div className="relative">
+          <button
+            onClick={() => setShowTopicMenu(!showTopicMenu)}
+            className="text-[8px] text-slate-400 hover:text-blue-600 truncate max-w-[60px]"
+            title={q.syllabusTopic ?? "Set topic"}
+          >
+            {q.syllabusTopic ? q.syllabusTopic.replace(/\s*\(.*?\)/g, "").slice(0, 10) : "topic"}
+          </button>
+          {showTopicMenu && (
+            <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 w-48 py-1">
+              {[
+                "Grammar MCQ",
+                "Vocabulary MCQ",
+                "Vocabulary Cloze MCQ",
+                "Visual Text Comprehension MCQ",
+                "Grammar Cloze",
+                "Editing (Spelling & Grammar)",
+                "Comprehension Cloze",
+                "Synthesis / Transformation",
+                "Comprehension Open Ended",
+              ].map(topic => (
+                <button
+                  key={topic}
+                  onClick={async () => {
+                    await onSave(q.id, { syllabusTopic: topic });
+                    setShowTopicMenu(false);
+                  }}
+                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 ${q.syllabusTopic === topic ? "font-bold text-blue-600 bg-blue-50" : "text-slate-700"}`}
+                >
+                  {topic}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       <div className="flex-1 min-w-0">
         {/* Clean extracted question text — render with rich formatting */}
