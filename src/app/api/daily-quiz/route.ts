@@ -495,11 +495,15 @@ export async function POST(request: NextRequest) {
 
     const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
     const levelLabel = levelFilter ? `P${student!.level} ` : "";
-    const extraLabel = activeLabels.length > 0 ? ` + ${activeLabels.join(" + ")}` : "";
+    const allLabels: string[] = [];
+    if (selectedGrammar.length > 0) allLabels.push("Grammar MCQ");
+    if (selectedVocab.length > 0) allLabels.push("Vocab MCQ");
+    allLabels.push(...activeLabels);
+    const sectionSummary = allLabels.length > 0 ? allLabels.join(" + ") : "English";
 
     const paper = await prisma.examPaper.create({
       data: {
-        title: `${levelLabel}Daily Quiz – English (Grammar + Vocab MCQ${extraLabel})`,
+        title: `${levelLabel}Daily Quiz – English (${sectionSummary})`,
         subject: "English Language",
         level: levelFilter || null,
         userId,

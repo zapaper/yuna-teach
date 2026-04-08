@@ -379,6 +379,7 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
 
   const lines = text.split("\n");
   let tableRowIdx = 0;
+  let tickIdx = 0;
   return (
     <div className="space-y-1">
       {lines.map((line, li) => {
@@ -420,11 +421,17 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
         }
         // Tick box: [ ] or [✓] or [x]
         if (trimmed.match(/^\[[ x✓✗]\]\s/i)) {
-          const checked = trimmed.match(/^\[[x✓]\]/i);
+          const tickKey = `tick${tickIdx++}`;
           const content = trimmed.replace(/^\[[ x✓✗]\]\s*/i, "");
+          const isChecked = tableCells[tickKey] === "true";
           return (
             <label key={li} className="flex items-start gap-2 cursor-pointer text-base text-[#001e40] my-1">
-              <input type="checkbox" defaultChecked={!!checked} className="mt-1 w-4 h-4 accent-[#003366]" />
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={e => updateTableCell(tickKey, e.target.checked ? "true" : "")}
+                className="mt-1 w-4 h-4 accent-[#003366]"
+              />
               <span>{renderInlineBold(content)}</span>
             </label>
           );
