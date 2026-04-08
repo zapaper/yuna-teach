@@ -300,7 +300,7 @@ function QuizContent({ id }: { id: string }) {
           }
         }
       }
-      const simpleCompareQs = paper!.questions.filter(q => typedSectionQIds.has(q.id) && !aiMarkSectionLabels.has(q.id));
+      const simpleCompareQs = paper!.questions.filter(q => typedSectionQIds.has(q.id) && !aiMarkSectionLabels.has(q.id) && !isMcq(q.answer));
       const aiMarkQs = paper!.questions.filter(q => aiMarkSectionLabels.has(q.id));
 
       if (simpleCompareQs.length > 0) {
@@ -379,7 +379,12 @@ function QuizContent({ id }: { id: string }) {
 
       // Trigger marking (handles both MCQ-only and MCQ+OEQ)
       await fetch(`/api/exam/${id}/mark`, { method: "POST" });
-      if (hasOeq) setMarkingOeq(true);
+      // Start polling if there are AI-marked questions (OEQ canvas or typed synthesis/comp OEQ)
+      const hasAiMarking = hasOeq || (isEnglishQuiz && paper!.questions.some(q => {
+        const t = (q.syllabusTopic ?? "").toLowerCase();
+        return t.includes("synthesis") || (t.includes("comprehension") && (t.includes("open") || t.includes("oeq")));
+      }));
+      if (hasAiMarking) setMarkingOeq(true);
 
       // Check for badge milestone
       try {
@@ -415,16 +420,16 @@ function QuizContent({ id }: { id: string }) {
             </div>
           )}
 
-          {hasOeq && (
+          {markingOeq && (
             markingDone ? (
               <div className="bg-[#6cf8bb]/20 rounded-2xl p-4 mb-4 flex items-center gap-3">
                 <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
-                <p className="text-sm font-semibold text-[#006c49]">Written answers marked!</p>
+                <p className="text-sm font-semibold text-[#006c49]">All answers marked!</p>
               </div>
             ) : (
               <div className="bg-[#eff4ff] rounded-2xl p-4 mb-4 flex items-center gap-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#dce9ff] border-t-[#003366] shrink-0" />
-                <p className="text-sm text-[#43474f]">AI is marking your written answers…</p>
+                <p className="text-sm text-[#43474f]">AI is marking your answers…</p>
               </div>
             )
           )}
@@ -432,9 +437,10 @@ function QuizContent({ id }: { id: string }) {
           <div className="flex gap-3 mt-6">
             <button
               onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
-              className="flex-1 px-4 py-3 rounded-2xl bg-[#001e40] text-white font-bold text-sm hover:bg-[#003366] transition-colors"
+              disabled={markingOeq && !markingDone}
+              className="flex-1 px-4 py-3 rounded-2xl bg-[#001e40] text-white font-bold text-sm hover:bg-[#003366] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Review Answers
+              {markingOeq && !markingDone ? "Marking in progress…" : "Review Answers"}
             </button>
             <button
               onClick={() => router.push(`/home/${userId}`)}
