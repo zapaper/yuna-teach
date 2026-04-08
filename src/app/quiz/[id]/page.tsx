@@ -99,6 +99,7 @@ function QuizContent({ id }: { id: string }) {
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
   const [progressSaved, setProgressSaved] = useState(false);
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Badge system
@@ -661,6 +662,8 @@ function QuizContent({ id }: { id: string }) {
                         tool={tool}
                         onToolChange={(t) => setTool(t)}
                         emptyFieldIds={emptyFieldIds}
+                        flaggedIds={flaggedIds}
+                        onToggleFlag={(qId) => setFlaggedIds(prev => { const n = new Set(prev); n.has(qId) ? n.delete(qId) : n.add(qId); return n; })}
                       />
                     );
                   }
@@ -679,6 +682,8 @@ function QuizContent({ id }: { id: string }) {
                         tool={tool}
                         onToolChange={(t) => setTool(t)}
                         emptyFieldIds={emptyFieldIds}
+                        flaggedIds={flaggedIds}
+                        onToggleFlag={(qId) => setFlaggedIds(prev => { const n = new Set(prev); n.has(qId) ? n.delete(qId) : n.add(qId); return n; })}
                       />
                     );
                   }
@@ -747,6 +752,8 @@ function QuizContent({ id }: { id: string }) {
                             index={sec.startIndex + idx}
                             selected={mcqAnswers[q.id] ?? null}
                             onSelect={(opt) => selectMcqAnswer(q.id, opt)}
+                            flagged={flaggedIds.has(q.id)}
+                            onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
                           />
                         ))}
                       </div>
@@ -768,8 +775,10 @@ function QuizContent({ id }: { id: string }) {
                       question={q}
                       index={idx}
                       selected={mcqAnswers[q.id] ?? null}
-                  onSelect={(opt) => selectMcqAnswer(q.id, opt)}
-                />
+                      onSelect={(opt) => selectMcqAnswer(q.id, opt)}
+                      flagged={flaggedIds.has(q.id)}
+                      onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                    />
               ))}
             </div>
           </>
@@ -818,12 +827,16 @@ function McqQuestionCard({
   selected,
   onSelect,
   hideStem,
+  flagged,
+  onToggleFlag,
 }: {
   question: QuizQuestion;
   index: number;
   selected: string | null;
   onSelect: (option: string) => void;
   hideStem?: boolean;
+  flagged?: boolean;
+  onToggleFlag?: () => void;
 }) {
   const options = question.transcribedOptions as string[] | null;
   const optionImages = question.transcribedOptionImages as string[] | null;
@@ -840,9 +853,17 @@ function McqQuestionCard({
         <div className="lg:hidden absolute top-0 left-0 w-1 h-full bg-[#003366]" />
 
         <div className="p-5 lg:p-8">
-          <span className="font-headline font-bold text-sm text-[#001e40] mb-3 lg:mb-5 block">
-            Question {numStr}
-          </span>
+          <div className="mb-3 lg:mb-5">
+            <span className="font-headline font-bold text-sm text-[#001e40] block">
+              Question {numStr}
+            </span>
+            {onToggleFlag && (
+              <button onClick={onToggleFlag} className="flex items-center gap-0.5 text-[10px] text-[#737780] hover:text-[#ba1a1a] transition-colors mt-0.5">
+                <span className="material-symbols-outlined text-xs" style={flagged ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+                {flagged ? "Flagged" : "Flag"}
+              </button>
+            )}
+          </div>
 
           {!hideStem && question.transcribedStem && (
             <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">

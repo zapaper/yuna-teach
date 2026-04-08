@@ -24,6 +24,8 @@ interface Props {
   tool?: "type" | "pen" | "eraser" | "eraser-large";
   onToolChange?: (tool: "type") => void;
   emptyFieldIds?: Set<string>;
+  flaggedIds?: Set<string>;
+  onToggleFlag?: (questionId: string) => void;
 }
 
 /**
@@ -35,7 +37,7 @@ interface Props {
  * - Synthesis: question stem with bold starting word + typed answer
  * - Comprehension OEQ: question stem with typed answer lines
  */
-export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds }: Props) {
+export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag }: Props) {
   return (
     <div className="mb-12">
       {/* Section header */}
@@ -135,9 +137,19 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
             return (
               <div key={q.id} className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
                 <div className="flex items-start gap-3 mb-3">
-                  <span className="w-10 h-10 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-bold text-sm shrink-0">
-                    {displayNum}
-                  </span>
+                  <div className="flex flex-col items-center gap-1 shrink-0">
+                    <span className="w-10 h-10 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-bold text-sm">
+                      {displayNum}
+                    </span>
+                    {onToggleFlag && (
+                      <button
+                        onClick={() => onToggleFlag(q.id)}
+                        className="text-[10px] flex items-center gap-0.5 text-[#737780] hover:text-[#ba1a1a] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm" style={flaggedIds?.has(q.id) ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+                      </button>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     {sectionType === "synthesis" && synthQuestion && (
                       <RichStemText text={synthQuestion} answers={answers} questionId={q.id} onAnswer={onAnswer} />
@@ -254,7 +266,14 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
           <p className="text-sm text-[#737780] italic">Choose the most appropriate answer for each question.</p>
           {questions.map((q, idx) => (
             <div key={q.id} className="bg-white rounded-2xl p-5 shadow-sm">
-              <p className="font-bold text-sm text-[#001e40] mb-1">Question {parseInt(q.questionNum)}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="font-bold text-sm text-[#001e40]">Question {parseInt(q.questionNum)}</p>
+                {onToggleFlag && (
+                  <button onClick={() => onToggleFlag(q.id)} className="text-[#737780] hover:text-[#ba1a1a] transition-colors">
+                    <span className="material-symbols-outlined text-sm" style={flaggedIds?.has(q.id) ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+                  </button>
+                )}
+              </div>
               {q.transcribedStem && (
                 <p className="text-sm text-[#0b1c30] mb-3 whitespace-pre-wrap">{q.transcribedStem}</p>
               )}
