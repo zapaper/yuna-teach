@@ -167,7 +167,11 @@ export async function POST(
       : isEditing
         ? " This is an Editing question — the student must identify and correct the spelling/grammar error in the underlined word. Explain the correct spelling/grammar rule."
         : isCompCloze
-          ? ` This is a Comprehension Cloze question — the student must fill in blank (${question.questionNum}) with a suitable word. Read the sentences around the blank in the passage carefully. Quote the relevant sentence and explain why the correct word fits based on meaning, grammar, and context clues in the surrounding text.`
+          ? ` This is a Comprehension Cloze question for a 10-12 year old student. They must fill in blank (${question.questionNum}) with a suitable word.
+
+Use simple, child-friendly language. Quote the sentence with the blank from the passage. Explain in 2-3 short sentences why the correct word fits — focus on meaning and grammar clues in the surrounding words.
+
+If the student gave an answer, explain why it is wrong OR if you believe their answer could also be accepted (fits the meaning and grammar), say so clearly: "Your answer could also be accepted because..."`
           : isSynthesis
             ? " This is a Synthesis & Transformation question — the student must rewrite the sentence using the given word while keeping the same meaning. Explain what the correct answer should be and why, comparing it with the student's answer."
             : isCompOeq

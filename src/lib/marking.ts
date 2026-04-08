@@ -1875,11 +1875,54 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id));
 
     // Score typed section questions (always re-score on re-mark, in case answer keys changed)
+    const ai = getAI();
     for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && !isMcqAnswer(qq.answer))) {
       const studentAns = (q.studentAnswer ?? "").trim().toUpperCase();
       const correctAns = (q.answer ?? "").trim().toUpperCase();
       const acceptableAnswers = correctAns.split("/").map(a => a.trim());
       const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
+
+      // For Comp Cloze: if simple compare fails, use AI to check if student's word is valid
+      const qTopic = (q.syllabusTopic ?? "").toLowerCase();
+      const isCompClozeQ = qTopic.includes("comprehension") && qTopic.includes("cloze");
+      if (!isCorrect && studentAns && isCompClozeQ) {
+        try {
+          // Get passage context for the AI
+          let passageCtx = "";
+          if (meta?.englishSections) {
+            const qIdx = parseInt(q.questionNum) - 1;
+            const sec = meta.englishSections.find(s => qIdx >= s.startIndex && qIdx <= s.endIndex);
+            if (sec?.passage) passageCtx = sec.passage;
+          }
+          const aiResp = await withTimeout(
+            ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: [{ role: "user", parts: [{ text: `A student filled in blank (${q.questionNum}) in this comprehension cloze passage with "${studentAns.toLowerCase()}". The answer key says: "${correctAns.toLowerCase()}".
+${passageCtx ? `\nPassage:\n${passageCtx}\n` : ""}
+Is the student's word "${studentAns.toLowerCase()}" an acceptable alternative that fits the blank grammatically and meaningfully in context? Only accept if the word fits naturally and preserves the meaning.
+
+Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
+              config: { responseMimeType: "application/json", temperature: 0.1 },
+            }),
+            15000,
+            `comp-cloze-check-Q${q.questionNum}`
+          );
+          const parsed = extractJson(aiResp.text ?? "") as { accepted?: boolean; reason?: string };
+          if (parsed.accepted) {
+            console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: AI accepted "${studentAns}" (key: "${correctAns}") — ${parsed.reason}`);
+            await prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { marksAwarded: q.marksAvailable ?? 1, markingNotes: `Accepted: "${studentAns}" (${parsed.reason})` },
+            });
+            q.marksAwarded = q.marksAvailable ?? 1;
+            continue;
+          }
+          console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: AI rejected "${studentAns}" — ${parsed.reason}`);
+        } catch (err) {
+          console.warn(`[quiz-marking] Comp Cloze AI check failed for Q${q.questionNum}:`, err);
+        }
+      }
+
       await prisma.examQuestion.update({
         where: { id: q.id },
         data: {
