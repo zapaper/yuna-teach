@@ -212,19 +212,37 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                 })()}
 
                 {/* Comprehension OEQ: typed answer lines (skip if question has a table for answers) */}
-                {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && (
-                  <div className="mt-3 ml-[52px]">
-                    <textarea
-                      spellCheck={false}
-                      autoComplete="off"
-                      value={answers[q.id] ?? ""}
-                      onChange={e => onAnswer(q.id, e.target.value)}
-                      rows={lineCount}
-                      className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed"
-                      placeholder="Type your answer here..."
-                    />
-                  </div>
-                )}
+                {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && (() => {
+                  // If stem has ticks/checkboxes, store text in JSON._text to avoid overwriting tick state
+                  const hasTicks = cleanStem.match(/^\[[ x✓✗]\]\s/im);
+                  const stored = answers[q.id] ?? "";
+                  let textVal = stored;
+                  if (hasTicks) {
+                    try { if (stored.startsWith("{")) textVal = (JSON.parse(stored) as Record<string, string>)._text ?? ""; } catch { /* ignore */ }
+                  }
+                  return (
+                    <div className="mt-3 ml-[52px]">
+                      <textarea
+                        spellCheck={false}
+                        autoComplete="off"
+                        value={textVal}
+                        onChange={e => {
+                          if (hasTicks) {
+                            let obj: Record<string, string> = {};
+                            try { if (stored.startsWith("{")) obj = JSON.parse(stored); } catch { /* ignore */ }
+                            obj._text = e.target.value;
+                            onAnswer(q.id, JSON.stringify(obj));
+                          } else {
+                            onAnswer(q.id, e.target.value);
+                          }
+                        }}
+                        rows={lineCount}
+                        className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed"
+                        placeholder="Type your answer here..."
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
