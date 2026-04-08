@@ -754,6 +754,7 @@ function QuizContent({ id }: { id: string }) {
                             onSelect={(opt) => selectMcqAnswer(q.id, opt)}
                             flagged={flaggedIds.has(q.id)}
                             onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                            tool={tool}
                           />
                         ))}
                       </div>
@@ -831,6 +832,7 @@ function McqQuestionCard({
   hideStem,
   flagged,
   onToggleFlag,
+  tool = "pen",
 }: {
   question: QuizQuestion;
   index: number;
@@ -839,6 +841,7 @@ function McqQuestionCard({
   hideStem?: boolean;
   flagged?: boolean;
   onToggleFlag?: () => void;
+  tool?: DrawTool;
 }) {
   const options = question.transcribedOptions as string[] | null;
   const optionImages = question.transcribedOptionImages as string[] | null;
@@ -956,9 +959,101 @@ function McqQuestionCard({
               })}
             </div>
           )}
+          {/* Expandable scratch area for workings */}
+          <McqScratchPad tool={tool} />
         </div>
       </div>
     </article>
+  );
+}
+
+/** Small pull-out scratch pad for MCQ workings — starts collapsed */
+function McqScratchPad({ tool }: { tool: DrawTool }) {
+  const [height, setHeight] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDrawing = useRef(false);
+  const lastPos = useRef<{ x: number; y: number } | null>(null);
+  const dragStart = useRef<{ y: number; h: number } | null>(null);
+
+  function getPos(e: React.PointerEvent) {
+    const canvas = canvasRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+  }
+
+  function onCanvasDown(e: React.PointerEvent) {
+    if (e.button !== 0) return;
+    isDrawing.current = true;
+    lastPos.current = getPos(e);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onCanvasMove(e: React.PointerEvent) {
+    if (!isDrawing.current) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx || !lastPos.current) return;
+    const pos = getPos(e);
+    const isEraser = tool === "eraser" || tool === "eraser-large";
+    ctx.globalCompositeOperation = isEraser ? "destination-out" : "source-over";
+    ctx.strokeStyle = isEraser ? "rgba(0,0,0,0)" : "#0066cc";
+    ctx.lineWidth = tool === "eraser-large" ? 60 : tool === "eraser" ? 20 : 2;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(lastPos.current.x, lastPos.current.y);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    lastPos.current = pos;
+  }
+  function onCanvasUp() { isDrawing.current = false; lastPos.current = null; }
+
+  function onHandleDown(e: React.PointerEvent) {
+    e.preventDefault();
+    dragStart.current = { y: e.clientY, h: height };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }
+  function onHandleMove(e: React.PointerEvent) {
+    if (!dragStart.current) return;
+    const delta = e.clientY - dragStart.current.y;
+    setHeight(Math.max(0, dragStart.current.h + delta));
+  }
+  function onHandleUp() { dragStart.current = null; }
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || height === 0) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+    const w = parent.offsetWidth;
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${height}px`;
+    canvas.width = w * 2;
+    canvas.height = height * 2;
+  }, [height]);
+
+  return (
+    <div className="mt-3">
+      {height > 0 && (
+        <div className="border border-[#d3e4fe] rounded-t-xl overflow-hidden bg-white">
+          <canvas
+            ref={canvasRef}
+            style={{ touchAction: "none", width: "100%", height: `${height}px` }}
+            onPointerDown={onCanvasDown}
+            onPointerMove={onCanvasMove}
+            onPointerUp={onCanvasUp}
+            onPointerCancel={onCanvasUp}
+          />
+        </div>
+      )}
+      <div
+        onPointerDown={onHandleDown}
+        onPointerMove={onHandleMove}
+        onPointerUp={onHandleUp}
+        onPointerCancel={onHandleUp}
+        className={`flex items-center justify-center cursor-ns-resize select-none transition-colors ${height > 0 ? "bg-[#eff4ff] border border-t-0 border-[#d3e4fe] rounded-b-xl" : "bg-[#f8f9ff] border border-[#e5eeff] rounded-xl hover:bg-[#eff4ff]"}`}
+        style={{ touchAction: "none", height: "16px" }}
+      >
+        <div className="w-8 h-1 bg-[#c3c6d1] rounded-full" />
+      </div>
+    </div>
   );
 }
 

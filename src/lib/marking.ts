@@ -1989,7 +1989,7 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
           if (fullStudentAnswer.startsWith("{")) {
             try {
               const parsed = JSON.parse(fullStudentAnswer) as Record<string, string>;
-              fullStudentAnswer = parsed._text ?? Object.entries(parsed).filter(([k, v]) => v && !k.startsWith("tick")).map(([, v]) => v).join(", ") || fullStudentAnswer;
+              fullStudentAnswer = parsed._text ?? (Object.entries(parsed).filter(([k, v]) => v && !k.startsWith("tick")).map(([, v]) => v).join(", ") || fullStudentAnswer);
             } catch { /* use raw */ }
           }
           if (isSynthesisQ && q.transcribedStem) {
