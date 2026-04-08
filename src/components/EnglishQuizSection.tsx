@@ -213,12 +213,11 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
 
                 {/* Comprehension OEQ: typed answer lines (skip if question has a table for answers) */}
                 {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && (() => {
-                  // If stem has ticks/checkboxes, store text in JSON._text to avoid overwriting tick state
-                  const hasTicks = cleanStem.match(/^\[[ x✓✗]\]\s/im);
                   const stored = answers[q.id] ?? "";
+                  const isJson = stored.startsWith("{");
                   let textVal = stored;
-                  if (hasTicks) {
-                    try { if (stored.startsWith("{")) textVal = (JSON.parse(stored) as Record<string, string>)._text ?? ""; } catch { /* ignore */ }
+                  if (isJson) {
+                    try { textVal = (JSON.parse(stored) as Record<string, string>)._text ?? ""; } catch { textVal = ""; }
                   }
                   return (
                     <div className="mt-3 ml-[52px]">
@@ -227,9 +226,9 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                         autoComplete="off"
                         value={textVal}
                         onChange={e => {
-                          if (hasTicks) {
+                          if (isJson) {
                             let obj: Record<string, string> = {};
-                            try { if (stored.startsWith("{")) obj = JSON.parse(stored); } catch { /* ignore */ }
+                            try { obj = JSON.parse(stored); } catch { /* ignore */ }
                             obj._text = e.target.value;
                             onAnswer(q.id, JSON.stringify(obj));
                           } else {
