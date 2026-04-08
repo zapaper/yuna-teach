@@ -961,7 +961,46 @@ function ExamReviewContent({ id }: { id: string }) {
                                   )}
                                   <div className="bg-white rounded-lg p-3 border border-slate-200">
                                     <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
-                                    <p className="text-sm text-[#001e40] whitespace-pre-wrap">{studentAns || <span className="italic text-[#737780]">No answer</span>}</p>
+                                    {studentAns.startsWith("{") ? (
+                                      // Table answer — render stem table with student values filled in
+                                      (() => {
+                                        let cells: Record<string, string> = {};
+                                        try { cells = JSON.parse(studentAns); } catch { /* ignore */ }
+                                        const stemLines = stemRaw.split("\n");
+                                        let rowIdx = 0;
+                                        return (
+                                          <div className="space-y-0.5 mt-1">
+                                            {stemLines.map((sl: string, sli: number) => {
+                                              const tr = sl.trim();
+                                              if (tr.match(/^\|[\s-:|]+\|$/)) return null;
+                                              if (tr.startsWith("|") && tr.endsWith("|")) {
+                                                const tableCells = tr.split("|").slice(1, -1).map((c: string) => c.trim());
+                                                const ri = rowIdx++;
+                                                return (
+                                                  <div key={sli} className="flex gap-1">
+                                                    {tableCells.map((tc: string, ci: number) => {
+                                                      const isBlank = !tc || tc.match(/^_{2,}$/);
+                                                      const cellKey = `r${ri}c${ci}`;
+                                                      const val = isBlank ? (cells[cellKey] ?? "") : tc;
+                                                      return (
+                                                        <span key={ci} className={`flex-1 text-center text-xs px-2 py-1 rounded border ${
+                                                          isBlank ? (val ? "bg-blue-50 border-blue-200 font-semibold text-blue-800" : "bg-slate-50 border-slate-200 text-[#737780] italic") : "bg-[#eff4ff] border-[#d3e4fe] text-[#001e40] font-medium"
+                                                        }`}>
+                                                          {val || "—"}
+                                                        </span>
+                                                      );
+                                                    })}
+                                                  </div>
+                                                );
+                                              }
+                                              return null;
+                                            })}
+                                          </div>
+                                        );
+                                      })()
+                                    ) : (
+                                      <p className="text-sm text-[#001e40] whitespace-pre-wrap">{studentAns || <span className="italic text-[#737780]">No answer</span>}</p>
+                                    )}
                                   </div>
                                   {correctAns && (
                                     <div className="text-sm text-[#006c49]">
@@ -971,9 +1010,6 @@ function ExamReviewContent({ id }: { id: string }) {
                                   )}
                                   {q.marksAvailable && (
                                     <p className="text-xs text-[#43474f]">{q.marksAwarded ?? 0} / {q.marksAvailable} marks</p>
-                                  )}
-                                  {q.markingNotes && q.markingNotes !== "Correct" && (
-                                    <p className="text-xs text-[#43474f] italic mt-1">{q.markingNotes}</p>
                                   )}
                                 </div>
                               ) : (
