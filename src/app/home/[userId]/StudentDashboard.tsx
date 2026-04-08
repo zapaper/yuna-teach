@@ -322,12 +322,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
           {/* Footer CTA */}
           <div className="p-4">
-            {!hasParent ? (
-              <button onClick={() => openLinkModal("share")}
-                className="w-full mt-2 py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
-                Link Parent
-              </button>
-            ) : (
+            {hasParent && (
               <div className="mt-2 px-1">
                 {user.linkedParents.map(p => (
                   <div key={p.id} className="flex items-center gap-2 py-1.5">
@@ -337,6 +332,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 ))}
               </div>
             )}
+            <button onClick={() => openLinkModal("share")}
+              className="w-full mt-2 py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
+              {hasParent ? "Link Another Parent" : "Link Parent"}
+            </button>
           </div>
         </aside>
 
@@ -561,14 +560,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" />
           </div>
           <div className="flex items-center gap-2">
-            {!hasParent && (
-              <button
-                onClick={() => openLinkModal("share")}
-                className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full"
-              >
-                Link Parent
-              </button>
-            )}
+            <button
+              onClick={() => openLinkModal("share")}
+              className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full"
+            >
+              {hasParent ? "+" : "Link Parent"}
+            </button>
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(v => !v)}
@@ -648,23 +645,20 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             ) : null}
           </div>
 
-          {/* Linked parents or link button */}
-          {hasParent ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {user.linkedParents.map(p => (
-                <span key={p.id} className="flex items-center gap-1.5 bg-[#e8f5e9] text-[#006c49] border border-[#006c49]/20 px-3 py-1 rounded-full text-xs font-semibold">
-                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>family_restroom</span>
-                  {p.name}
-                </span>
-              ))}
-            </div>
-          ) : (
+          {/* Linked parents + link button */}
+          <div className="mt-3 flex flex-wrap gap-2 items-center">
+            {user.linkedParents.map(p => (
+              <span key={p.id} className="flex items-center gap-1.5 bg-[#e8f5e9] text-[#006c49] border border-[#006c49]/20 px-3 py-1 rounded-full text-xs font-semibold">
+                <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>family_restroom</span>
+                {p.name}
+              </span>
+            ))}
             <button onClick={() => openLinkModal("share")}
-              className="mt-3 flex items-center gap-1.5 text-xs font-bold text-[#003366] bg-[#eff4ff] border border-[#003366]/10 px-4 py-2 rounded-full">
+              className="flex items-center gap-1.5 text-xs font-bold text-[#003366] bg-[#eff4ff] border border-[#003366]/10 px-3 py-1 rounded-full hover:bg-[#dce9ff] transition-colors">
               <span className="material-symbols-outlined text-sm">link</span>
-              Link Parent
+              {hasParent ? "+" : "Link Parent"}
             </button>
-          )}
+          </div>
         </header>
 
         {/* ── Primary Action Buttons ──────────────────────────────────────── */}
