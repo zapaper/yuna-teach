@@ -566,8 +566,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             <p className="text-[10px] text-[#43474f] mb-3">Select sections to include:</p>
             <div className="space-y-2">
               {[
-                { key: "grammar-mcq", label: "Grammar MCQ (3 questions)" },
-                { key: "vocab-mcq", label: "Vocabulary MCQ (3 questions)" },
+                { key: "grammar-mcq", label: "Grammar MCQ" },
+                { key: "vocab-mcq", label: "Vocabulary MCQ" },
                 { key: "vocab-cloze", label: "Vocabulary Cloze MCQ" },
                 { key: "visual-text", label: "Visual Text Comprehension MCQ" },
                 { key: "grammar-cloze", label: "Grammar Cloze" },

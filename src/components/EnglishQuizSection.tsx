@@ -344,10 +344,12 @@ function PassageWithInputs({
 
 function TableLine({ line }: { line: string }) {
   const cells = line.split("|").slice(1, -1).map(c => c.trim());
+  // Detect if this is a letter row (A-Q single uppercase letters)
+  const isLetterRow = cells.every(c => /^[A-Q]$/.test(c));
   return (
     <div className="flex gap-2 my-1">
       {cells.map((cell, ci) => (
-        <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1">{cell}</span>
+        <span key={ci} className={`flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366]" : "font-medium"}`}>{cell}</span>
       ))}
     </div>
   );

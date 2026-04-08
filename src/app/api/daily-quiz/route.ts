@@ -212,8 +212,8 @@ export async function POST(request: NextRequest) {
     // Select Grammar/Vocab MCQ based on user choices
     const selectedSections = new Set(englishSections ?? ["grammar-mcq", "vocab-mcq", "vocab-cloze"]);
     console.log(`[English Quiz] Pools: grammar=${grammarMcqPool.length}, vocab=${vocabMcqPool.length}, vocabCloze=${vocabClozeSets.length} sets, visualText=${visualTextSets.length} sets`);
-    const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, 3) : [];
-    const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, 3) : [];
+    const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, 5) : [];
+    const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, 5) : [];
     console.log(`[English Quiz] Selected: grammar=${selectedGrammar.length}, vocab=${selectedVocab.length}`);
     const selectedExtra: typeof allPool = [];
     const sectionLabels: Record<string, string> = {
