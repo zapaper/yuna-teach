@@ -2652,7 +2652,8 @@ Output ONLY the table.` });
 - Keep question numbers exactly as printed (e.g. "1.", "11.", "(29)")
 - Keep answer options exactly (e.g. "(1) option text", "(2) option text")
 - Keep blank lines as "___" (underscore line where student writes)
-- Preserve PARAGRAPH SPACING: use TWO blank lines between paragraphs. Start each new paragraph with a tab indent (4 spaces).
+- PARAGRAPH INDENTATION — CRITICAL: When the original text shows a NEW PARAGRAPH (indented first line), you MUST start that line with exactly 4 spaces. This is how the UI detects paragraph breaks. Every indented line in the original = 4 spaces at the start in your output. Do NOT skip this.
+- Preserve PARAGRAPH SPACING: use ONE blank line between paragraphs.
 - Do NOT include page break markers, page numbers, "--- Page N ---", "Page X", or any page indicators in the output
 - For each line, preserve indentation (question numbers at left margin, options indented)
 - For CLOZE sections:
@@ -2787,7 +2788,7 @@ ${ocrText}
 
 For EACH question, extract:
 - questionNum: the question number as string (e.g. "${prefix}${secFirstQ}")
-- stem: the full question text as ONE continuous sentence. If the OCR text wraps across multiple lines, JOIN them into one sentence. Do NOT preserve line breaks within a question stem.${secLabel.toLowerCase().includes("vocabulary cloze") ? `
+- stem: the full question text.${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? ` For Comprehension OEQ: preserve ALL formatting including line breaks, tables, and checkboxes. Do NOT join into one sentence.` : ` If the OCR text wraps across multiple lines, JOIN them into one sentence. Do NOT preserve line breaks within a question stem.`}${secLabel.toLowerCase().includes("vocabulary cloze") ? `
   For Vocabulary Cloze MCQ: the stem MUST include the sentence from the passage that contains the blank. Extract the sentence with "________" (8 underscores) where the blank is. E.g. "The boy was ________ when he saw the gift."` : ""}${isMcqSection ? `
 - options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc. You MUST include all 4 options for every MCQ question. Options may also wrap across lines — join them.` : ""}${isClozeSection ? `
 - blankContext: the sentence fragment around the blank, with "___" where the blank is` : ""}${isEditingSection ? `
