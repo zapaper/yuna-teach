@@ -821,26 +821,52 @@ function ExamReviewContent({ id }: { id: string }) {
                     }`}>{earnedMarks} / {totalMarks}</span>
                   </div>
 
-                  {/* Passage text (Grammar Cloze, Editing, Comp Cloze) */}
+                  {/* Passage text */}
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
-                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-4 lg:p-6 border border-slate-100 max-h-64 overflow-y-auto">
-                      {currentSection.passage.split("\n").map((line: string, li: number) => {
-                        if (!line.trim()) return <br key={li} />;
-                        if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
-                        if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-                          const cells = line.split("|").slice(1, -1).map((c: string) => c.trim());
-                          return (
-                            <div key={li} className="flex gap-1 my-1">
-                              {cells.map((cell: string, ci: number) => (
-                                <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-white rounded px-2 py-1">{cell}</span>
-                              ))}
-                            </div>
-                          );
+                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-4 lg:p-6 border border-slate-100 max-h-72 overflow-y-auto">
+                      {(() => {
+                        const pLines = currentSection.passage!.split("\n");
+                        // Detect line-numbered table (Comp OEQ reading passage)
+                        const isLineTable = pLines.some((l: string) => l.trim().startsWith("|") && l.includes("Text"));
+                        if (isLineTable && isCompOeq) {
+                          const rows: string[][] = [];
+                          for (const line of pLines) {
+                            if ((line as string).match(/^\s*\|[\s-:|]+\|\s*$/)) continue;
+                            if ((line as string).trim().startsWith("|") && (line as string).trim().endsWith("|")) {
+                              rows.push((line as string).split("|").slice(1, -1).map((c: string) => c.trim()));
+                            }
+                          }
+                          const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+                          return dataRows.map((cells: string[], ri: number) => {
+                            const textContent = cells[1]?.trim() ?? "";
+                            const marginNum = cells[2]?.trim() ?? "";
+                            const isEmpty = !textContent;
+                            return (
+                              <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.3rem]"}`}>
+                                <p className="flex-1 text-sm text-[#0b1c30] leading-snug">{textContent}</p>
+                                {marginNum && <span className="w-5 text-right text-[10px] text-[#003366] font-bold font-mono shrink-0">{marginNum}</span>}
+                              </div>
+                            );
+                          });
                         }
-                        // Render inline bold and question markers
-                        const rendered = line.replace(/\*\*\((\d+)\)[^*]*\*\*/g, (_, num) => `(${num}) ____`).replace(/\*\*([^*]+)\*\*/g, '$1');
-                        return <p key={li} className="text-sm text-[#0b1c30] leading-relaxed my-0.5">{rendered}</p>;
-                      })}
+                        // Standard passage (grammar cloze, editing, comp cloze)
+                        return pLines.map((line: string, li: number) => {
+                          if (!line.trim()) return <br key={li} />;
+                          if ((line as string).match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
+                          if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+                            const cells = line.split("|").slice(1, -1).map((c: string) => c.trim());
+                            return (
+                              <div key={li} className="flex gap-1 my-1">
+                                {cells.map((cell: string, ci: number) => (
+                                  <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-white rounded px-2 py-1">{cell}</span>
+                                ))}
+                              </div>
+                            );
+                          }
+                          const rendered = line.replace(/\*\*\((\d+)\)[^*]*\*\*/g, (_: string, num: string) => `(${num}) ____`).replace(/\*\*([^*]+)\*\*/g, '$1');
+                          return <p key={li} className="text-sm text-[#0b1c30] leading-relaxed my-0.5">{rendered}</p>;
+                        });
+                      })()}
                     </div>
                   )}
 

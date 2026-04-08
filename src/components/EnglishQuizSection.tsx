@@ -23,6 +23,7 @@ interface Props {
   onAnswer: (questionId: string, answer: string) => void;
   tool?: "type" | "pen" | "eraser" | "eraser-large";
   onToolChange?: (tool: "type") => void;
+  emptyFieldIds?: Set<string>;
 }
 
 /**
@@ -34,7 +35,7 @@ interface Props {
  * - Synthesis: question stem with bold starting word + typed answer
  * - Comprehension OEQ: question stem with typed answer lines
  */
-export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange }: Props) {
+export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds }: Props) {
   return (
     <div className="mb-12">
       {/* Section header */}
@@ -61,6 +62,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
           onAnswer={onAnswer}
           tool={tool}
           onFocusInput={() => onToolChange?.("type")}
+          emptyFieldIds={emptyFieldIds}
         />
       )}
 
@@ -267,6 +269,7 @@ function PassageWithInputs({
   onAnswer,
   tool,
   onFocusInput,
+  emptyFieldIds,
 }: {
   passage: string;
   questions: QuizQuestion[];
@@ -275,6 +278,7 @@ function PassageWithInputs({
   onAnswer: (questionId: string, answer: string) => void;
   tool?: string;
   onFocusInput?: () => void;
+  emptyFieldIds?: Set<string>;
 }) {
   // Always use position-based mapping: passage blank i → questions[i]
   // This handles both renumbered and original numbering, and ignores stray markers
@@ -324,6 +328,7 @@ function PassageWithInputs({
             answers={answers}
             onAnswer={onAnswer}
             onFocusInput={onFocusInput}
+            emptyFieldIds={emptyFieldIds}
           />
         );
       })}
@@ -433,6 +438,7 @@ function PassageLine({
   answers,
   onAnswer,
   onFocusInput,
+  emptyFieldIds,
 }: {
   line: string;
   sectionType: "grammar-cloze" | "editing" | "comprehension-cloze";
@@ -441,6 +447,7 @@ function PassageLine({
   answers: Record<string, string>;
   onAnswer: (questionId: string, answer: string) => void;
   onFocusInput?: () => void;
+  emptyFieldIds?: Set<string>;
 }) {
   // Parse bold markers with question numbers: **(29)________** or **(39) beleive**
   const parts: React.ReactNode[] = [];
@@ -469,7 +476,7 @@ function PassageLine({
             value={qId ? (answers[qId] ?? "") : ""}
             onChange={e => qId && onAnswer(qId, sectionType === "grammar-cloze" ? e.target.value.toUpperCase() : e.target.value)}
             onFocus={onFocusInput}
-            className={`border-b-2 border-slate-300 focus:border-[#003366] outline-none text-center font-bold text-sm bg-transparent ${
+            className={`border-b-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-300"} focus:border-[#003366] outline-none text-center font-bold text-sm bg-transparent ${
               sectionType === "grammar-cloze" ? "w-8" : "w-24"
             }`}
             maxLength={sectionType === "grammar-cloze" ? 1 : 20}
@@ -488,7 +495,7 @@ function PassageLine({
             value={qId ? (answers[qId] ?? "") : ""}
             onChange={e => qId && onAnswer(qId, e.target.value)}
             onFocus={onFocusInput}
-            className="border-2 border-slate-200 focus:border-[#003366] outline-none rounded px-2 py-0.5 text-sm w-28 bg-white"
+            className={`border-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-200"} focus:border-[#003366] outline-none rounded px-2 py-0.5 text-sm w-28 bg-white`}
             placeholder="correct word"
           />
         </span>

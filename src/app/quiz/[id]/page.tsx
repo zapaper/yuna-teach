@@ -93,6 +93,7 @@ function QuizContent({ id }: { id: string }) {
   // Submission
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [emptyFieldIds, setEmptyFieldIds] = useState<Set<string>>(new Set());
   const [mcqScore, setMcqScore] = useState<{ correct: number; total: number } | null>(null);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
@@ -259,6 +260,27 @@ function QuizContent({ id }: { id: string }) {
 
   async function handleSubmit() {
     if (submitting) return;
+
+    // Check for empty fields (English typed sections + MCQ)
+    if (isEnglishQuiz) {
+      const empty = new Set<string>();
+      for (const q of paper!.questions) {
+        if (typedSectionQIds.has(q.id) && !(mcqAnswers[q.id]?.trim())) {
+          empty.add(q.id);
+        }
+        if (isMcq(q.answer) && !mcqAnswers[q.id]) {
+          empty.add(q.id);
+        }
+      }
+      if (empty.size > 0) {
+        setEmptyFieldIds(empty);
+        if (!confirm(`${empty.size} field(s) have not been filled. Are you sure you want to submit?`)) {
+          return;
+        }
+      }
+      setEmptyFieldIds(new Set());
+    }
+
     setSubmitting(true);
     try {
       // Score MCQ instantly
@@ -648,6 +670,7 @@ function QuizContent({ id }: { id: string }) {
                         onAnswer={selectMcqAnswer}
                         tool={tool}
                         onToolChange={(t) => setTool(t)}
+                        emptyFieldIds={emptyFieldIds}
                       />
                     );
                   }
@@ -665,6 +688,7 @@ function QuizContent({ id }: { id: string }) {
                         onAnswer={selectMcqAnswer}
                         tool={tool}
                         onToolChange={(t) => setTool(t)}
+                        emptyFieldIds={emptyFieldIds}
                       />
                     );
                   }

@@ -209,14 +209,12 @@ export async function POST(request: NextRequest) {
     }
     const visualTextSets = shuffle([...visualTextPapers.values()]);
 
-    // Select: 3 Grammar MCQ + 3 Vocab MCQ + selected sections
+    // Select Grammar/Vocab MCQ based on user choices
+    const selectedSections = new Set(englishSections ?? ["grammar-mcq", "vocab-mcq", "vocab-cloze"]);
     console.log(`[English Quiz] Pools: grammar=${grammarMcqPool.length}, vocab=${vocabMcqPool.length}, vocabCloze=${vocabClozeSets.length} sets, visualText=${visualTextSets.length} sets`);
-    const selectedGrammar = grammarMcqPool.slice(0, 3);
-    const selectedVocab = vocabMcqPool.slice(0, 3);
+    const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, 3) : [];
+    const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, 3) : [];
     console.log(`[English Quiz] Selected: grammar=${selectedGrammar.length}, vocab=${selectedVocab.length}`);
-
-    // Select additional sections based on user choices (checkboxes)
-    const selectedSections = new Set(englishSections ?? ["vocab-cloze"]);
     const selectedExtra: typeof allPool = [];
     const sectionLabels: Record<string, string> = {
       "vocab-cloze": "Vocab Cloze", "visual-text": "Visual Text",
@@ -291,7 +289,7 @@ export async function POST(request: NextRequest) {
     }
 
     // For each extra section group, build section metadata with passage
-    let sectionLetter = "B";
+    let sectionLetter = (selectedGrammar.length > 0 || selectedVocab.length > 0) ? "B" : "A";
     const sectionOcrNames: Record<string, string[]> = {
       "vocab-cloze": ["Vocabulary Cloze MCQ", "Vocabulary Cloze", "Vocab Cloze MCQ"],
       "visual-text": ["Visual Text Comprehension MCQ", "Visual Text MCQ", "Visual Text Comprehension"],

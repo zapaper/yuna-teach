@@ -94,7 +94,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [quizStudentId, setQuizStudentId] = useState(user.linkedStudents[0]?.id ?? "");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
-  const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["vocab-cloze"]));
+  const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -563,15 +563,17 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         ) : (
           <div className="mb-5">
-            <p className="text-[10px] text-[#43474f] mb-3">3 Grammar MCQ + 3 Vocab MCQ + select sections below:</p>
+            <p className="text-[10px] text-[#43474f] mb-3">Select sections to include:</p>
             <div className="space-y-2">
               {[
+                { key: "grammar-mcq", label: "Grammar MCQ (3 questions)" },
+                { key: "vocab-mcq", label: "Vocabulary MCQ (3 questions)" },
                 { key: "vocab-cloze", label: "Vocabulary Cloze MCQ" },
                 { key: "visual-text", label: "Visual Text Comprehension MCQ" },
                 { key: "grammar-cloze", label: "Grammar Cloze" },
                 { key: "editing", label: "Editing (Spelling & Grammar)" },
                 { key: "comprehension-cloze", label: "Comprehension Cloze" },
-                { key: "synthesis", label: "Synthesis & Transformation" },
+                { key: "synthesis", label: "Synthesis & Transformation (5 questions)" },
                 { key: "comprehension-oeq", label: "Comprehension OEQ" },
               ].map(s => (
                 <label key={s.key} className="flex items-center gap-2 cursor-pointer">
