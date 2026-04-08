@@ -41,6 +41,8 @@ export default function EnglishEditView({ paper, pageImages, onSave, onSaveOcr, 
   const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.name ?? null);
   const [editingOcr, setEditingOcr] = useState<string | null>(null);
   const [ocrDrafts, setOcrDrafts] = useState<Record<string, string>>({});
+  const [editingPassage, setEditingPassage] = useState<string | null>(null);
+  const [passageDrafts, setPassageDrafts] = useState<Record<string, string>>({});
 
   return (
     <div className="space-y-6">
@@ -94,13 +96,70 @@ export default function EnglishEditView({ paper, pageImages, onSave, onSaveOcr, 
                   </div>
                 )}
 
-                {/* Passage OCR text (line-numbered table) */}
+                {/* Passage OCR text (line-numbered table) — editable */}
                 {ocrData?.passageOcrText && (
                   <div className="p-4 bg-amber-50/50 border-b border-amber-100">
-                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-3">
-                      Passage Text (Line-numbered)
-                    </p>
-                    <OcrRichText text={ocrData.passageOcrText} />
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">
+                        Reading Passage
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (editingPassage === sec.name) {
+                            setEditingPassage(null);
+                          } else {
+                            setPassageDrafts(prev => ({ ...prev, [sec.name]: ocrData.passageOcrText! }));
+                            setEditingPassage(sec.name);
+                          }
+                        }}
+                        className="text-xs text-amber-600 hover:text-amber-800 font-medium"
+                      >
+                        {editingPassage === sec.name ? "Cancel" : "Edit"}
+                      </button>
+                    </div>
+                    {editingPassage === sec.name ? (
+                      <div>
+                        <textarea
+                          value={passageDrafts[sec.name] ?? ocrData.passageOcrText}
+                          onChange={e => setPassageDrafts(prev => ({ ...prev, [sec.name]: e.target.value }))}
+                          rows={15}
+                          className="w-full text-xs font-mono bg-white border border-amber-200 rounded-xl p-3 focus:outline-none focus:border-amber-400 resize-y"
+                        />
+                        <div className="flex gap-2 mt-2">
+                          {onSaveOcr && (
+                            <button
+                              onClick={async () => {
+                                // Save passageOcrText to sectionOcrTexts metadata
+                                const metadata = paper.metadata ?? {};
+                                const allOcr = (metadata as Record<string, unknown>).sectionOcrTexts as Record<string, Record<string, unknown>> ?? {};
+                                const secOcr = allOcr[sec.name] ?? Object.entries(allOcr).find(([k]) =>
+                                  k.toLowerCase().includes(sec.name.toLowerCase().split(" ")[0]))?.[1] ?? {};
+                                const secKey = allOcr[sec.name] ? sec.name : Object.keys(allOcr).find(k =>
+                                  k.toLowerCase().includes(sec.name.toLowerCase().split(" ")[0])) ?? sec.name;
+                                allOcr[secKey] = { ...secOcr, passageOcrText: passageDrafts[sec.name] };
+                                await fetch(`/api/exam/${paper.id}`, {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ metadata: { ...metadata, sectionOcrTexts: allOcr } }),
+                                });
+                                setEditingPassage(null);
+                              }}
+                              className="px-4 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors"
+                            >
+                              Save Passage
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setEditingPassage(null)}
+                            className="px-4 py-1.5 rounded-lg text-slate-400 text-xs font-bold hover:text-slate-600 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <OcrRichText text={ocrData.passageOcrText} />
+                    )}
                   </div>
                 )}
 

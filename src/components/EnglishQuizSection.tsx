@@ -165,6 +165,8 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                       <input
                         key={key}
                         type="text"
+                        spellCheck={false}
+                        autoComplete="off"
                         value={value}
                         onFocus={() => onToolChange?.("type")}
                         onChange={e => {
@@ -212,6 +214,8 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                 {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && (
                   <div className="mt-3 ml-[52px]">
                     <textarea
+                      spellCheck={false}
+                      autoComplete="off"
                       value={answers[q.id] ?? ""}
                       onChange={e => onAnswer(q.id, e.target.value)}
                       rows={lineCount}
@@ -383,6 +387,7 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
                     <input
                       key={ci}
                       type="text"
+                      spellCheck={false}
                       className={`text-center text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
                       placeholder="..."
                     />
@@ -481,6 +486,8 @@ function PassageLine({
           <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({displayNum})</span>
           <input
             type="text"
+            spellCheck={false}
+            autoComplete="off"
             value={qId ? (answers[qId] ?? "") : ""}
             onChange={e => qId && onAnswer(qId, sectionType === "grammar-cloze" ? e.target.value.toUpperCase() : e.target.value)}
             onFocus={onFocusInput}
@@ -503,6 +510,8 @@ function PassageLine({
             value={qId ? (answers[qId] ?? "") : ""}
             onChange={e => qId && onAnswer(qId, e.target.value)}
             onFocus={onFocusInput}
+            spellCheck={false}
+            autoComplete="off"
             className={`border-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-200"} focus:border-[#003366] outline-none rounded px-2 py-0.5 text-sm w-28 bg-white`}
             placeholder="correct word"
           />
@@ -640,8 +649,9 @@ function ReadingPassage({ text }: { text: string }) {
     let nonBlankCount = 0;
     const marginNums = dataRows.map(cells => {
       const textContent = cells[1]?.trim() ?? "";
-      const isEmpty = !cells[0]?.trim() && !textContent;
-      if (!isEmpty) {
+      const lineNum = cells[0]?.trim() ?? "";
+      const isEmpty = !textContent;
+      if (!isEmpty && lineNum) {
         nonBlankCount++;
         return nonBlankCount % 5 === 0 ? String(nonBlankCount) : "";
       }
@@ -652,12 +662,12 @@ function ReadingPassage({ text }: { text: string }) {
         <div className="space-y-0">
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
-            const isEmpty = !cells[0]?.trim() && !textContent;
+            const isEmpty = !textContent && !cells[0]?.trim();
             const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
             const marginNum = marginNums[ri];
             return (
               <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.3rem]"}`}>
-                <p className={`flex-1 text-sm text-[#0b1c30] leading-snug break-words ${isIndented ? "pl-6" : ""}`}>
+                <p className={`flex-1 text-sm text-[#0b1c30] leading-snug break-words text-justify ${isIndented ? "pl-8" : ""}`}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
                 {marginNum && <span className="w-5 text-right text-[10px] text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>}

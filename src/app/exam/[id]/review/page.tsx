@@ -837,13 +837,20 @@ function ExamReviewContent({ id }: { id: string }) {
                             }
                           }
                           const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+                          let oeqLineCount = 0;
+                          const oeqMargins = dataRows.map((cells: string[]) => {
+                            const t = cells[1]?.trim() ?? "";
+                            const ln = cells[0]?.trim() ?? "";
+                            if (t && ln) { oeqLineCount++; return oeqLineCount % 5 === 0 ? String(oeqLineCount) : ""; }
+                            return "";
+                          });
                           return dataRows.map((cells: string[], ri: number) => {
                             const textContent = cells[1]?.trim() ?? "";
-                            const marginNum = cells[2]?.trim() ?? "";
-                            const isEmpty = !textContent;
+                            const marginNum = oeqMargins[ri];
+                            const isEmpty = !textContent && !cells[0]?.trim();
                             return (
                               <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.3rem]"}`}>
-                                <p className="flex-1 text-sm text-[#0b1c30] leading-snug">{textContent}</p>
+                                <p className={`flex-1 text-sm text-[#0b1c30] leading-snug text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`}>{textContent.replace(/^\s+/, "")}</p>
                                 {marginNum && <span className="w-5 text-right text-[10px] text-[#003366] font-bold font-mono shrink-0">{marginNum}</span>}
                               </div>
                             );
