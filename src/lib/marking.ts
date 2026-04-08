@@ -1878,7 +1878,8 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && qq.marksAwarded === null)) {
       const studentAns = (q.studentAnswer ?? "").trim().toUpperCase();
       const correctAns = (q.answer ?? "").trim().toUpperCase();
-      const isCorrect = studentAns !== "" && studentAns === correctAns;
+      const acceptableAnswers = correctAns.split("/").map(a => a.trim());
+      const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
       await prisma.examQuestion.update({
         where: { id: q.id },
         data: {

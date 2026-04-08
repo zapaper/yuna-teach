@@ -308,7 +308,9 @@ function QuizContent({ id }: { id: string }) {
           simpleCompareQs.map(q => {
             const studentAns = (mcqAnswers[q.id] ?? "").trim().toUpperCase();
             const correctAns = (q.answer ?? "").trim().toUpperCase();
-            const isCorrect = studentAns !== "" && studentAns === correctAns;
+            // Accept any slash-separated alternative (e.g., "tempted/enticed/inclined")
+            const acceptableAnswers = correctAns.split("/").map(a => a.trim());
+            const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
             return fetch(`/api/exam/questions/${q.id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
