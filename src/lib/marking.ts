@@ -2021,7 +2021,7 @@ SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks for EACH spelling or grammatical er
 
 For Synthesis & Transformation: This tests SENTENCE FORMATION, not synonyms. Be STRICT:
 - The student must rewrite using the EXACT words from the expected answer. Do NOT accept synonyms (e.g. "finishing" instead of "completing" is WRONG — deduct 0.5).
-- Deduct 0.5 for each punctuation error (including missing period at the end).
+- Deduct 0.5 for each punctuation error. IMPORTANT: Check CAREFULLY if a period exists at the end — look at the LAST character of the student's answer. Only flag "missing period" if the answer truly does not end with a period (.).
 - Deduct 0.5 for each grammar error (wrong tense, subject-verb agreement, etc.).
 - Deduct 0.5 for each word changed to a synonym that differs from the expected answer.
 - The starting/joining word is included in the expected answer.
