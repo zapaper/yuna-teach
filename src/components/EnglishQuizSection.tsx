@@ -47,9 +47,12 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
         {sectionType === "synthesis" && <p className="text-[#737780] mt-1 text-sm">Rewrite the given sentence(s) using the word(s) provided. Your answer must be in one sentence. The meaning of your sentence must be the same as the meaning of the given sentence(s).</p>}
       </div>
 
-      {/* Visual Text: show scanned page images */}
+      {/* Visual Text: show scanned page images with drawing overlay */}
       {sectionType === "visual-text-mcq" && (
-        <VisualTextImages passage={passage ?? ""} fallbackImage={questions.find(q => q.imageData && q.imageData.length > 100)?.imageData} />
+        <div className="relative">
+          {tool === "pen" && <PassageScratchOverlay />}
+          <VisualTextImages passage={passage ?? ""} fallbackImage={questions.find(q => q.imageData && q.imageData.length > 100)?.imageData} />
+        </div>
       )}
 
       {/* Passage with inline inputs (Grammar Cloze, Editing, Comp Cloze) */}
@@ -66,9 +69,12 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
         />
       )}
 
-      {/* Comprehension OEQ: reading passage */}
+      {/* Comprehension OEQ: reading passage with drawing overlay */}
       {sectionType === "comprehension-oeq" && passage && (
-        <ReadingPassage text={passage} />
+        <div className="relative">
+          {tool === "pen" && <PassageScratchOverlay />}
+          <ReadingPassage text={passage} />
+        </div>
       )}
 
       {/* Synthesis / Comprehension OEQ: typed answer sections */}
