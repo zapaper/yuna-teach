@@ -352,13 +352,13 @@ function QuestionRow({
           );
         })()}
         {/* Edit stem / Redo table buttons */}
-        {q.transcribedStem && !editingStem && (
+        {!editingStem && (
           <div className="flex gap-2 mt-1 mb-2">
             <button
               onClick={() => { setStemDraft(q.transcribedStem ?? ""); setEditingStem(true); }}
               className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
-            >Edit text</button>
-            {q.syllabusTopic?.toLowerCase().includes("comprehension") && q.syllabusTopic?.toLowerCase().includes("open") && (
+            >{q.transcribedStem ? "Edit text" : "Add text"}</button>
+            {q.imageData && (
               <button
                 disabled={redoingTable}
                 onClick={async () => {
