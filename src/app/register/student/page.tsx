@@ -98,7 +98,7 @@ function RegisterStudentContent() {
           {/* Message with owl */}
           <div className="flex gap-4 items-start bg-[#eff4ff] rounded-2xl p-5 mb-6">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/owlright_t.png" alt="" className="w-16 h-16 shrink-0" />
+            <img src="/owlright_t.png" alt="" className="w-20 h-16 object-contain shrink-0" />
             <p className="text-sm text-[#001e40] leading-relaxed">
               Let&apos;s start by assigning a quick 15-min quiz to <strong>{createdStudent.name}</strong>. This will help our AI determine {createdStudent.name}&apos;s strengths and gaps.
               <br /><br />

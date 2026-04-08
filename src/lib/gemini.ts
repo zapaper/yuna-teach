@@ -2763,7 +2763,8 @@ ${ocrText}
 
 For EACH question, extract:
 - questionNum: the question number as string (e.g. "${prefix}${secFirstQ}")
-- stem: the full question text as ONE continuous sentence. If the OCR text wraps across multiple lines, JOIN them into one sentence. Do NOT preserve line breaks within a question stem.${isMcqSection ? `
+- stem: the full question text as ONE continuous sentence. If the OCR text wraps across multiple lines, JOIN them into one sentence. Do NOT preserve line breaks within a question stem.${secLabel.toLowerCase().includes("vocabulary cloze") ? `
+  For Vocabulary Cloze MCQ: the stem MUST include the sentence from the passage that contains the blank. Extract the sentence with "________" (8 underscores) where the blank is. E.g. "The boy was ________ when he saw the gift."` : ""}${isMcqSection ? `
 - options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc. You MUST include all 4 options for every MCQ question. Options may also wrap across lines — join them.` : ""}${isClozeSection ? `
 - blankContext: the sentence fragment around the blank, with "___" where the blank is` : ""}${isEditingSection ? `
 - errorWord: the underlined/erroneous word the student must correct` : ""}${secLabel.toLowerCase().includes("synthesis") ? `
