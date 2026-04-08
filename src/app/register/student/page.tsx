@@ -109,7 +109,7 @@ function RegisterStudentContent() {
           {/* Actions */}
           <div className="flex flex-col gap-3">
             <button
-              onClick={() => router.push(`/home/${parentId}`)}
+              onClick={() => router.push(`/home/${parentId}?openQuiz=1&studentId=${createdStudent.id}`)}
               className="px-6 py-3.5 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors shadow-lg flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-base">quiz</span>

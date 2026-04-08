@@ -64,7 +64,7 @@ function scorePct(paper: ExamPaperSummary) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ParentDashboard({ userId, user, initialStudentId, initialView }: { userId: string; user: User; initialStudentId?: string; initialView?: string }) {
+export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean }) {
   const router = useRouter();
 
   // Data
@@ -90,8 +90,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [focusedSubject, setFocusedSubject] = useState<"math" | "science">("math");
   const [focusedType, setFocusedType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [recActing, setRecActing] = useState<string | null>(null);
-  const [showQuiz, setShowQuiz] = useState(false);
-  const [quizStudentId, setQuizStudentId] = useState(user.linkedStudents[0]?.id ?? "");
+  const [showQuiz, setShowQuiz] = useState(initialOpenQuiz ?? false);
+  const [quizStudentId, setQuizStudentId] = useState(initialStudentId ?? user.linkedStudents[0]?.id ?? "");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
@@ -616,6 +616,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 const data = await res.json();
                 if (!res.ok) { alert(data.error || "Failed"); return; }
                 setShowQuiz(false);
+                // First-time user: auto-open student tab after first quiz assignment
+                const firstQuizKey = `first-quiz-assigned-${userId}`;
+                if (!localStorage.getItem(firstQuizKey)) {
+                  localStorage.setItem(firstQuizKey, "1");
+                  window.open(`/home/${quizStudentId}?firstQuiz=1`, "_blank");
+                }
                 await refreshPapers();
               } catch { alert("Something went wrong"); }
               finally { setCreatingQuiz(false); }

@@ -102,11 +102,12 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function StudentDashboard({ userId, user }: { userId: string; user: User }) {
+export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
+  const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
   const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
@@ -138,6 +139,14 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
     const poll = setInterval(() => fetchData.current?.(), 30000);
     return () => { document.removeEventListener("visibilitychange", onVisible); clearInterval(poll); };
   }, [userId]);
+
+  // First-time student popup
+  useEffect(() => {
+    if (firstQuiz) {
+      const timer = setTimeout(() => setShowFirstQuizPopup(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [firstQuiz]);
 
   useEffect(() => {
     fetch(`/api/user/${userId}/quiz-badge`)
@@ -243,6 +252,25 @@ export default function StudentDashboard({ userId, user }: { userId: string; use
 
   return (
     <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen">
+
+      {/* First-time student popup */}
+      {showFirstQuizPopup && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4" onClick={() => setShowFirstQuizPopup(false)}>
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center animate-bounce-in" onClick={e => e.stopPropagation()}>
+            <div className="w-16 h-16 rounded-full bg-[#6cf8bb]/30 flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-outlined text-3xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>rocket_launch</span>
+            </div>
+            <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Welcome!</h2>
+            <p className="text-sm text-[#43474f] mb-6">Your first quiz is ready. Click on the quiz below to begin!</p>
+            <button
+              onClick={() => setShowFirstQuizPopup(false)}
+              className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ════════════════════════════════════════════════
           DESKTOP LAYOUT (lg+)

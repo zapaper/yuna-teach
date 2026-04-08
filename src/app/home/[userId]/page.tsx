@@ -435,11 +435,11 @@ export default function HomePage({
   }
 
   if (isParent && user) {
-    return <ParentDashboard userId={userId} user={user} initialStudentId={searchParams.get("student") ?? undefined} initialView={searchParams.get("view") ?? undefined} />;
+    return <ParentDashboard userId={userId} user={user} initialStudentId={searchParams.get("student") ?? searchParams.get("studentId") ?? undefined} initialView={searchParams.get("view") ?? undefined} initialOpenQuiz={searchParams.get("openQuiz") === "1"} />;
   }
 
   if (!isAdmin && user) {
-    return <StudentDashboard userId={userId} user={user} />;
+    return <StudentDashboard userId={userId} user={user} firstQuiz={searchParams.get("firstQuiz") === "1"} />;
   }
 
   return (
