@@ -306,16 +306,18 @@ function QuizContent({ id }: { id: string }) {
       if (simpleCompareQs.length > 0) {
         await Promise.all(
           simpleCompareQs.map(q => {
-            const studentAns = (mcqAnswers[q.id] ?? "").trim().toUpperCase();
-            const correctAns = (q.answer ?? "").trim().toUpperCase();
+            const isGrammarClozeQ = (q.syllabusTopic ?? "").toLowerCase().includes("grammar") && (q.syllabusTopic ?? "").toLowerCase().includes("cloze");
+            const studentAns = (mcqAnswers[q.id] ?? "").trim();
+            const studentCmp = studentAns.toUpperCase();
+            const correctCmp = (q.answer ?? "").trim().toUpperCase();
             // Accept any slash-separated alternative (e.g., "tempted/enticed/inclined")
-            const acceptableAnswers = correctAns.split("/").map(a => a.trim());
-            const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
+            const acceptableAnswers = correctCmp.split("/").map(a => a.trim());
+            const isCorrect = studentCmp !== "" && acceptableAnswers.includes(studentCmp);
             return fetch(`/api/exam/questions/${q.id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                studentAnswer: studentAns || null,
+                studentAnswer: (isGrammarClozeQ ? studentAns.toUpperCase() : studentAns) || null,
                 marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
                 markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctAns}"`) : "No answer",
               }),

@@ -47,8 +47,12 @@ export async function POST(
     return NextResponse.json({ error: "Question not found" }, { status: 404 });
   }
 
-  // Return cached elaboration if available
-  if (question.elaboration) {
+  // Comp Cloze: never cache — explanation is specific to student's answer
+  const isCompClozeQuestion = (question.syllabusTopic ?? "").toLowerCase().includes("comprehension") &&
+    (question.syllabusTopic ?? "").toLowerCase().includes("cloze");
+
+  // Return cached elaboration if available (except Comp Cloze)
+  if (question.elaboration && !isCompClozeQuestion) {
     return NextResponse.json({ elaboration: question.elaboration });
   }
 
@@ -220,11 +224,13 @@ Keep the explanation concise (under 200 words), age-appropriate, and encouraging
 
     const elaboration = response.text ?? "Unable to generate explanation.";
 
-    // Cache the elaboration in the database
-    await prisma.examQuestion.update({
-      where: { id: questionId },
-      data: { elaboration },
-    });
+    // Cache the elaboration in the database (except Comp Cloze — student-specific)
+    if (!isCompClozeQuestion) {
+      await prisma.examQuestion.update({
+        where: { id: questionId },
+        data: { elaboration },
+      });
+    }
 
     return NextResponse.json({ elaboration });
   } catch (err) {
