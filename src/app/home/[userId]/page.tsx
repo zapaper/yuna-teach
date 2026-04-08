@@ -232,14 +232,20 @@ export default function HomePage({
     fetchRecommendations(false);
   }, [user, isParent, hasLinkedStudents, fetchRecommendations]);
 
-  // Show guide on first visit for parents
+  // Show guide on first visit for parents (skip if opening quiz modal)
+  const isOpeningQuiz = searchParams.get("openQuiz") === "1";
   useEffect(() => {
     if (!user || user.role !== "PARENT") return;
+    if (isOpeningQuiz) {
+      // Dismiss guide silently when coming from registration
+      localStorage.setItem(`guide-dismissed-${userId}`, "1");
+      return;
+    }
     const key = `guide-dismissed-${userId}`;
     if (!localStorage.getItem(key)) {
       setShowGuide(true);
     }
-  }, [user, userId]);
+  }, [user, userId, isOpeningQuiz]);
 
   function dismissGuide() {
     localStorage.setItem(`guide-dismissed-${userId}`, "1");
