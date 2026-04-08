@@ -475,13 +475,13 @@ export async function POST(request: NextRequest) {
         const meta = sourcePaperMap.get(firstQ.examPaperId);
         console.log(`[English Quiz] ${group.key}: NO passage. sectionOcrTexts keys: [${meta?.sectionOcrTexts ? Object.keys(meta.sectionOcrTexts).join(", ") : "none"}]`);
       }
-      // Log passage details for debugging
+      // Log passage details for debugging (skip marker check for sections that don't use inline markers)
+      const usesInlineMarkers = ["grammar-cloze", "editing", "comprehension-cloze", "vocab-cloze"].includes(group.key);
       if (passage && !passage.startsWith("[")) {
         const markerCount = (passage.match(/\*\*\(\d+\)/g) ?? []).length;
-        console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: yes, markers: ${markerCount}, questions: ${group.questions.length}`);
-        if (markerCount !== group.questions.length) {
+        console.log(`[English Quiz] Section ${sectionLetter}: ${group.label} (Q${idx + 1}-${idx + group.questions.length}), passage: yes${usesInlineMarkers ? `, markers: ${markerCount}` : ""}`);
+        if (usesInlineMarkers && markerCount !== group.questions.length) {
           console.warn(`[English Quiz] WARNING: passage has ${markerCount} markers but section has ${group.questions.length} questions!`);
-          // Extract marker numbers for debugging
           const markers = [...passage.matchAll(/\*\*\((\d+)\)/g)].map(m => m[1]);
           console.warn(`[English Quiz] Passage markers: [${markers.join(", ")}]`);
           console.warn(`[English Quiz] Question nums: [${group.questions.map(q => q.questionNum).join(", ")}]`);
