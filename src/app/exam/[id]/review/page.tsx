@@ -973,6 +973,9 @@ function ExamReviewContent({ id }: { id: string }) {
                                   {q.marksAvailable && (
                                     <p className="text-xs text-[#43474f]">{q.marksAwarded ?? 0} / {q.marksAvailable} marks</p>
                                   )}
+                                  {q.markingNotes && q.markingNotes !== "Correct" && (
+                                    <p className="text-xs text-[#43474f] italic mt-1">{q.markingNotes}</p>
+                                  )}
                                 </div>
                               ) : (
                                 /* Grammar Cloze / Editing / Comp Cloze */
