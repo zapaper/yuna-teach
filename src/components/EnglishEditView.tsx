@@ -358,7 +358,7 @@ function QuestionRow({
               onClick={() => { setStemDraft(q.transcribedStem ?? ""); setEditingStem(true); }}
               className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
             >{q.transcribedStem ? "Edit text" : "Add text"}</button>
-            {q.imageData && (
+            {(
               <button
                 disabled={redoingTable}
                 onClick={async () => {
