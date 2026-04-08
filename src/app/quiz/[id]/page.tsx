@@ -887,7 +887,7 @@ function McqQuestionCard({
 
           {!hideStem && question.transcribedStem && (
             <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">
-              {question.transcribedStem}
+              {renderUnderline(question.transcribedStem)}
             </p>
           )}
 
