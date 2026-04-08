@@ -1984,8 +1984,14 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
           const qTopic = (q.syllabusTopic ?? "").toLowerCase();
           const isSynthesisQ = qTopic.includes("synthesis");
 
-          // For synthesis: extract the keyword from the stem and combine with student answer
+          // Extract text from JSON answers (OEQ with ticks stores as {"_text":"...","tick0":"true"})
           let fullStudentAnswer = q.studentAnswer;
+          if (fullStudentAnswer.startsWith("{")) {
+            try {
+              const parsed = JSON.parse(fullStudentAnswer) as Record<string, string>;
+              fullStudentAnswer = parsed._text ?? Object.entries(parsed).filter(([k, v]) => v && !k.startsWith("tick")).map(([, v]) => v).join(", ") || fullStudentAnswer;
+            } catch { /* use raw */ }
+          }
           if (isSynthesisQ && q.transcribedStem) {
             const kwMatch = q.transcribedStem.match(/\*\*([^*]+)\*\*/);
             if (kwMatch) {
@@ -2010,14 +2016,16 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
               displayAnswer = `[TABLE] ${cellEntries.join(", ")}`;
             } catch { /* use raw */ }
           }
-          parts.push({ text: `Student's typed answer (note: the surrounding quotation marks are NOT part of the answer, do not penalise them):\n${displayAnswer}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
+          const lastChar = displayAnswer.trim().slice(-1);
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---\nLast character of answer: "${lastChar}"${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
 
 Mark this answer. Compare the student's typed answer against the expected answer.
 
-SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks for EACH spelling or grammatical error in the student's answer. List each error found in the feedback.
+SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks for EACH genuine spelling or grammatical error. List each error found.
+CRITICAL: Before claiming a punctuation error, verify by checking the EXACT characters in the student's text. If the last character is "." then there IS a period — do NOT claim it is missing. If you see an apostrophe character (') in the text, do NOT claim it is missing. Only flag errors you can prove exist by pointing to the specific wrong text.
 
 For Synthesis & Transformation: This tests SENTENCE FORMATION, not synonyms. Be STRICT:
 - The student must rewrite using the EXACT words from the expected answer. Do NOT accept synonyms (e.g. "finishing" instead of "completing" is WRONG — deduct 0.5).
