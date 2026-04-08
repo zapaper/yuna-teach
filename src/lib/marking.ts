@@ -2024,19 +2024,23 @@ Marks available: ${marksAvailable}
 
 Mark this answer. Compare the student's typed answer against the expected answer.
 
-SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks for EACH genuine spelling or grammatical error. List each error found.
-CRITICAL: Before claiming a punctuation error, verify by checking the EXACT characters in the student's text. If the last character is "." then there IS a period — do NOT claim it is missing. If you see an apostrophe character (') in the text, do NOT claim it is missing. Only flag errors you can prove exist by pointing to the specific wrong text.
+SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks ONLY for genuine spelling errors (misspelled words). Do NOT deduct for punctuation (periods, commas, apostrophes, capitalisation). Do NOT flag missing or extra periods — ignore all punctuation completely.
 
 For Synthesis & Transformation: This tests SENTENCE FORMATION, not synonyms. Be STRICT:
 - The student must rewrite using the EXACT words from the expected answer. Do NOT accept synonyms (e.g. "finishing" instead of "completing" is WRONG — deduct 0.5).
-- Deduct 0.5 for each punctuation error. IMPORTANT: Check CAREFULLY if a period exists at the end — look at the LAST character of the student's answer. Only flag "missing period" if the answer truly does not end with a period (.).
+- Do NOT deduct for periods, commas, or other punctuation. Ignore punctuation entirely.
 - Deduct 0.5 for each grammar error (wrong tense, subject-verb agreement, etc.).
 - Deduct 0.5 for each word changed to a synonym that differs from the expected answer.
 - The starting/joining word is included in the expected answer.
 - Award up to full marks if the sentence structure and meaning match the expected answer with the correct words.
-For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question.
-- If the answer is in TABLE format (JSON with cell values), do NOT penalise for punctuation. Only deduct 0.5 for spelling or grammar errors.
-- If the answer is free text (not a table), deduct 0.5 per spelling/grammar error.
+For Comprehension OEQ: This tests READING COMPREHENSION. Be LENIENT on language, STRICT on content:
+- Mark based on whether the answer shows understanding of the passage and addresses the question.
+- The student's answer does NOT need to match the expected answer word-for-word. Accept any answer that conveys the same meaning or key idea.
+- Do NOT penalise for missing articles (a, an, the), minor grammar differences, or rephrasing — as long as the meaning is correct.
+- Do NOT penalise for capitalisation differences.
+- Only deduct 0.5 for genuine spelling errors (misspelled words, not style differences).
+- If the answer captures the key point but uses different words, award full marks.
+- If the answer is in TABLE format, do NOT penalise for punctuation at all.
 
 The minimum marks awarded is 0 (do not go negative).
 
