@@ -110,6 +110,12 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                 if (synthAnswerParts.length === 0) {
                   synthAnswerParts.push({ type: "input", content: "", key: "in0" });
                 }
+                // Starting word pattern: keyword first → only need 1 input after it
+                if (synthAnswerParts[0]?.type === "keyword") {
+                  const kwPart = synthAnswerParts[0];
+                  synthAnswerParts.length = 0;
+                  synthAnswerParts.push(kwPart, { type: "input", content: "", key: "in0" });
+                }
               } else {
                 synthQuestion = cleanStem.replace(/\*\*[^*]+\*\*/, "").replace(/_{3,}/g, "").trim();
                 const boldMatch = cleanStem.match(/\*\*([^*]+)\*\*/);
@@ -616,7 +622,7 @@ function ReadingPassage({ text }: { text: string }) {
     // First row is header — skip it
     const dataRows = rows.length > 1 ? rows.slice(1) : rows;
     return (
-      <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
+      <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
         <div className="space-y-0">
           {dataRows.map((cells, ri) => {
             const lineNum = cells[0]?.trim();
@@ -625,12 +631,11 @@ function ReadingPassage({ text }: { text: string }) {
             const isEmpty = !lineNum && !textContent;
             const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
             return (
-              <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.5rem]"}`}>
-                <span className="w-6 text-right text-xs text-[#737780] font-mono shrink-0 pt-0.5">{lineNum}</span>
-                <p className={`flex-1 text-base text-[#0b1c30] leading-relaxed ${isIndented ? "pl-8" : ""}`}>
+              <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.3rem]"}`}>
+                <p className={`flex-1 text-sm text-[#0b1c30] leading-snug break-words ${isIndented ? "pl-6" : ""}`}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
-                <span className="w-6 text-right text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>
+                {marginNum && <span className="w-5 text-right text-[10px] text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>}
               </div>
             );
           })}
@@ -641,8 +646,8 @@ function ReadingPassage({ text }: { text: string }) {
 
   // Plain text fallback
   return (
-    <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
-      <p className="text-base text-[#0b1c30] leading-relaxed whitespace-pre-wrap">{text}</p>
+    <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
+      <p className="text-sm text-[#0b1c30] leading-snug whitespace-pre-wrap break-words">{text}</p>
     </div>
   );
 }

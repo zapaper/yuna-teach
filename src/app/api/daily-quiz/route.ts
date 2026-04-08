@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
       } else if (section === "synthesis") {
         const synthPool = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
         shuffle(synthPool);
-        sectionQs = synthPool.slice(0, 3);
+        sectionQs = synthPool.slice(0, 5);
       } else {
         const matcher = topicMatchers[section];
         if (matcher) {
