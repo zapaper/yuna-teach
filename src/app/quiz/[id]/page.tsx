@@ -416,7 +416,7 @@ function QuizContent({ id }: { id: string }) {
           <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-1">Quiz Complete!</h2>
           <p className="text-sm text-[#43474f] mb-6">Time: {formatTime(elapsed)}</p>
 
-          {mcqScore && (
+          {mcqScore && mcqScore.total > 0 && (
             <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4">
               <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-2">MCQ Score</p>
               <p className="font-headline text-5xl font-black text-[#001e40]">{mcqScore.correct}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.total}</span></p>

@@ -262,6 +262,8 @@ export async function POST(request: NextRequest) {
         }
       }
       if (sectionQs.length > 0) {
+        // Sort by original question number to match passage marker order
+        sectionQs.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
         selectedExtra.push(...sectionQs);
         activeLabels.push(sectionLabels[section] ?? section);
         extraSectionGroups.push({ key: section, label: sectionLabels[section] ?? section, questions: sectionQs });

@@ -1918,6 +1918,13 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
             continue;
           }
           console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: AI rejected "${studentAns}" — ${parsed.reason}`);
+          // Save with AI reason
+          await prisma.examQuestion.update({
+            where: { id: q.id },
+            data: { marksAwarded: 0, markingNotes: parsed.reason ?? `"${studentAns}" does not fit the blank. Correct answer: "${correctAns}"` },
+          });
+          q.marksAwarded = 0;
+          continue;
         } catch (err) {
           console.warn(`[quiz-marking] Comp Cloze AI check failed for Q${q.questionNum}:`, err);
         }
@@ -1927,7 +1934,7 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
         where: { id: q.id },
         data: {
           marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
-          markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctAns}"`) : "No answer",
+          markingNotes: studentAns ? (isCorrect ? "Correct" : `"${studentAns}" is incorrect. Correct answer: "${correctAns}"`) : "No answer",
         },
       });
       q.marksAwarded = isCorrect ? (q.marksAvailable ?? 1) : 0;
@@ -2002,7 +2009,13 @@ Mark this answer. Compare the student's typed answer against the expected answer
 
 SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks for EACH spelling or grammatical error in the student's answer. List each error found in the feedback.
 
-For Synthesis & Transformation: the student must rewrite the sentence using the given word/phrase while keeping the same meaning. The expected answer includes the starting/joining word. Award content marks if the meaning is equivalent, then deduct 0.5 per spelling/grammar error.
+For Synthesis & Transformation: This tests SENTENCE FORMATION, not synonyms. Be STRICT:
+- The student must rewrite using the EXACT words from the expected answer. Do NOT accept synonyms (e.g. "finishing" instead of "completing" is WRONG — deduct 0.5).
+- Deduct 0.5 for each punctuation error (including missing period at the end).
+- Deduct 0.5 for each grammar error (wrong tense, subject-verb agreement, etc.).
+- Deduct 0.5 for each word changed to a synonym that differs from the expected answer.
+- The starting/joining word is included in the expected answer.
+- Award up to full marks if the sentence structure and meaning match the expected answer with the correct words.
 For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question, then deduct 0.5 per spelling/grammar error.
 
 The minimum marks awarded is 0 (do not go negative).
