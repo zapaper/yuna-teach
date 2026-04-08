@@ -809,6 +809,8 @@ function QuizContent({ id }: { id: string }) {
                   oeqIndex={idx}
                   savedHeights={canvasHeights.current}
                   onHeightChange={(cid, h) => { canvasHeights.current[cid] = h; }}
+                  flagged={flaggedIds.has(q.id)}
+                  onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
                 />
               ))}
             </div>
@@ -858,8 +860,8 @@ function McqQuestionCard({
               Question {numStr}
             </span>
             {onToggleFlag && (
-              <button onClick={onToggleFlag} className="flex items-center gap-0.5 text-[10px] text-[#737780] hover:text-[#ba1a1a] transition-colors mt-0.5">
-                <span className="material-symbols-outlined text-xs" style={flagged ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+              <button onClick={onToggleFlag} className={`flex items-center gap-1 text-xs font-medium mt-1 px-2 py-0.5 rounded-md transition-colors ${flagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}>
+                <span className="material-symbols-outlined text-base" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
                 {flagged ? "Flagged" : "Flag"}
               </button>
             )}
@@ -1046,6 +1048,8 @@ function OeqQuestionCard({
   oeqIndex,
   savedHeights,
   onHeightChange,
+  flagged,
+  onToggleFlag,
 }: {
   question: QuizQuestion;
   index: number;
@@ -1057,6 +1061,8 @@ function OeqQuestionCard({
   oeqIndex: number;
   savedHeights?: Record<string, number>;
   onHeightChange?: (id: string, h: number) => void;
+  flagged?: boolean;
+  onToggleFlag?: () => void;
 }) {
   const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
   // rebuild ref image map from sentinels
@@ -1108,11 +1114,16 @@ function OeqQuestionCard({
   return (
     <section className="group">
       <div className="flex flex-col lg:flex-row gap-5 lg:gap-8 items-start">
-        {/* Number badge */}
-        <div className="flex-none">
+        {/* Number badge + flag */}
+        <div className="flex-none flex flex-col items-center">
           <div className="w-12 h-12 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-headline font-bold text-xl shadow-lg">
             {index + 1}
           </div>
+          {onToggleFlag && (
+            <button onClick={onToggleFlag} className={`flex items-center gap-0.5 text-xs font-medium mt-1 px-2 py-0.5 rounded-md transition-colors ${flagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}>
+              <span className="material-symbols-outlined text-sm" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
+            </button>
+          )}
         </div>
 
         {/* Content */}
