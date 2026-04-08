@@ -120,7 +120,8 @@ export async function POST(
     const isGrammarCloze = topic.includes("grammar") && topic.includes("cloze");
     const isEditing = topic.includes("editing");
     const isCompCloze = topic.includes("comprehension") && topic.includes("cloze");
-    if ((isGrammarCloze || isEditing || isCompCloze) && question.examPaper?.metadata) {
+    const isCompOeq = (topic.includes("comprehension") && (topic.includes("open") || topic.includes("oeq")));
+    if ((isGrammarCloze || isEditing || isCompCloze || isCompOeq) && question.examPaper?.metadata) {
       const paperMeta = question.examPaper.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> };
       if (paperMeta.englishSections) {
         const qIdx = parseInt(question.questionNum) - 1; // 0-based
@@ -139,17 +140,41 @@ export async function POST(
       }
     }
     const passageNote = passageContext
-      ? `\n\nHere is the FULL passage that this question is based on:\n${passageContext}\n\nFocus on blank (${question.questionNum}) in the passage above. Look at the surrounding sentences to explain the answer.\n`
+      ? `\n\nHere is the FULL passage that this question is based on:\n${passageContext}\n\n${isCompOeq ? "Use the passage to explain the answer to this comprehension question." : `Focus on blank (${question.questionNum}) in the passage above. Look at the surrounding sentences to explain the answer.`}\n`
       : "";
+    // For synthesis: combine keyword with student's typed answer
+    const isSynthesis = topic.includes("synthesis");
+    let studentAnswerNote = "";
+    if (isSynthesis && question.studentAnswer) {
+      const kwMatch = (question.transcribedStem ?? "").match(/\*\*([^*]+)\*\*/);
+      const kw = kwMatch ? kwMatch[1].trim() : "";
+      let fullAnswer = question.studentAnswer;
+      if (kw) {
+        if (question.studentAnswer.includes("|||")) {
+          const [before, after] = question.studentAnswer.split("|||");
+          fullAnswer = `${before.trim()} ${kw} ${after.trim()}`.trim();
+        } else {
+          fullAnswer = `${kw} ${question.studentAnswer}`.trim();
+        }
+      }
+      studentAnswerNote = `\nStudent's answer: "${fullAnswer}"`;
+    } else if (question.studentAnswer) {
+      studentAnswerNote = `\nStudent's answer: "${question.studentAnswer}"`;
+    }
+
     const sectionHint = isGrammarCloze
       ? " This is a Grammar Cloze question — the student must choose the correct word from a word bank (identified by letter A-Q) to fill in the blank in the passage. Explain why the correct word fits the blank based on grammar and meaning."
       : isEditing
         ? " This is an Editing question — the student must identify and correct the spelling/grammar error in the underlined word. Explain the correct spelling/grammar rule."
         : isCompCloze
           ? ` This is a Comprehension Cloze question — the student must fill in blank (${question.questionNum}) with a suitable word. Read the sentences around the blank in the passage carefully. Quote the relevant sentence and explain why the correct word fits based on meaning, grammar, and context clues in the surrounding text.`
-          : isVisualText
-            ? " Reference the visual text content to explain why the answer is correct."
-            : "";
+          : isSynthesis
+            ? " This is a Synthesis & Transformation question — the student must rewrite the sentence using the given word while keeping the same meaning. Explain what the correct answer should be and why, comparing it with the student's answer."
+            : isCompOeq
+              ? " This is a Comprehension OEQ question based on the reading passage above. Quote relevant parts of the passage and explain how to arrive at the correct answer."
+              : isVisualText
+              ? " Reference the visual text content to explain why the answer is correct."
+              : "";
 
     parts.push({
       text: `You are a helpful tutor for a primary/secondary school student.
@@ -157,7 +182,7 @@ export async function POST(
 Here is the question:
 ${questionText}
 ${visualTextNote}${passageNote}
-Correct answer: ${question.answer ?? "Not provided"}
+Correct answer: ${question.answer ?? "Not provided"}${studentAnswerNote}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${sectionHint}
 

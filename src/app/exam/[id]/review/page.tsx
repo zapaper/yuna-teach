@@ -922,7 +922,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   {/* Question results */}
                   <div className="space-y-3">
                     {sectionQuestions.map((q, qi) => {
-                      const qCorrect = (q.marksAwarded ?? 0) >= (q.marksAvailable ?? 1);
+                      const qCorrect = q.marksAwarded !== null && q.marksAwarded >= (q.marksAvailable ?? 1);
                       const isPartialQ = !qCorrect && (q.marksAwarded ?? 0) > 0;
                       const studentAns = (q.studentAnswer ?? "");
                       const correctAns = (q.answer ?? "");
@@ -954,20 +954,21 @@ function ExamReviewContent({ id }: { id: string }) {
                               {(isSynthesis || isCompOeq) ? (
                                 <div className="space-y-2">
                                   {cleanStemDisplay && (
-                                    <p className="text-sm text-[#001e40]">{cleanStemDisplay}</p>
+                                    <ReviewRichText text={stemRaw.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim()} />
                                   )}
                                   {isSynthesis && keyword && (
                                     <p className="text-sm font-bold text-[#001e40]">{keyword}</p>
                                   )}
                                   <div className="bg-white rounded-lg p-3 border border-slate-200">
                                     <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
-                                    <p className="text-sm text-[#001e40]">{studentAns || <span className="italic text-[#737780]">No answer</span>}</p>
+                                    <p className="text-sm text-[#001e40] whitespace-pre-wrap">{studentAns || <span className="italic text-[#737780]">No answer</span>}</p>
                                   </div>
                                   {correctAns && (
-                                    <p className="text-sm text-[#006c49]">
+                                    <div className="text-sm text-[#006c49]">
                                       <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                      Correct: {correctAns}
-                                    </p>
+                                      <span className="font-semibold">Correct:</span>
+                                      <ReviewRichText text={correctAns} />
+                                    </div>
                                   )}
                                   {q.marksAvailable && (
                                     <p className="text-xs text-[#43474f]">{q.marksAwarded ?? 0} / {q.marksAvailable} marks</p>
@@ -1481,4 +1482,56 @@ function ExamReviewContent({ id }: { id: string }) {
       </div>
     </div>
   );
+}
+
+/** Renders rich text with tables, bold, tick boxes for review */
+function ReviewRichText({ text }: { text: string }) {
+  const lines = text.split("\n");
+  return (
+    <div className="space-y-0.5">
+      {lines.map((line, li) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <br key={li} />;
+        if (trimmed.match(/^\|[\s-:|]+\|$/)) return null;
+        if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+          const cells = trimmed.split("|").slice(1, -1).map(c => c.trim());
+          return (
+            <div key={li} className="flex gap-1 my-0.5">
+              {cells.map((cell, ci) => (
+                <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 border border-[#d3e4fe]">
+                  {cell || "—"}
+                </span>
+              ))}
+            </div>
+          );
+        }
+        if (trimmed.match(/^\[[ x✓✗]\]\s/i)) {
+          const checked = trimmed.match(/^\[[x✓]\]/i);
+          const content = trimmed.replace(/^\[[ x✓✗]\]\s*/i, "");
+          return (
+            <div key={li} className="flex items-center gap-2 text-sm text-[#001e40] my-0.5">
+              <span>{checked ? "☑" : "☐"}</span>
+              <span>{renderBoldInline(content)}</span>
+            </div>
+          );
+        }
+        if (trimmed.match(/^_{3,}$/)) return <div key={li} className="border-b border-slate-300 my-1 w-48" />;
+        return <p key={li} className="text-sm text-[#001e40] leading-relaxed">{renderBoldInline(trimmed)}</p>;
+      })}
+    </div>
+  );
+}
+
+function renderBoldInline(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*([^*]+)\*\*/g;
+  let lastIdx = 0;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIdx) parts.push(text.slice(lastIdx, m.index));
+    parts.push(<strong key={m.index} className="font-bold">{m[1]}</strong>);
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx < text.length) parts.push(text.slice(lastIdx));
+  return parts.length > 0 ? <>{parts}</> : text;
 }

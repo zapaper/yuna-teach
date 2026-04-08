@@ -1931,14 +1931,32 @@ export async function markQuizPaper(paperId: string): Promise<void> {
 
         // Check if this is a typed answer (synthesis, comp OEQ in English quiz)
         if (q.studentAnswer && !q.studentAnswer.startsWith("data:")) {
-          // Typed text answer — mark using text comparison with AI
-          parts.push({ text: `Student's typed answer: "${q.studentAnswer}"` });
+          const qTopic = (q.syllabusTopic ?? "").toLowerCase();
+          const isSynthesisQ = qTopic.includes("synthesis");
+
+          // For synthesis: extract the keyword from the stem and combine with student answer
+          let fullStudentAnswer = q.studentAnswer;
+          if (isSynthesisQ && q.transcribedStem) {
+            const kwMatch = q.transcribedStem.match(/\*\*([^*]+)\*\*/);
+            if (kwMatch) {
+              const keyword = kwMatch[1].trim();
+              // If answer has ||| (before/after keyword), combine
+              if (q.studentAnswer.includes("|||")) {
+                const [before, after] = q.studentAnswer.split("|||");
+                fullStudentAnswer = `${before.trim()} ${keyword} ${after.trim()}`.trim();
+              } else {
+                fullStudentAnswer = `${keyword} ${q.studentAnswer}`.trim();
+              }
+            }
+          }
+
+          parts.push({ text: `Student's typed answer: "${fullStudentAnswer}"` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
 
 Mark this answer. Compare the student's typed answer against the expected answer.
-For Synthesis & Transformation: the student must rewrite the sentence using the given word while keeping the same meaning. Minor spelling errors are acceptable if the meaning is preserved.
+For Synthesis & Transformation: the student must rewrite the sentence using the given word/phrase while keeping the same meaning. The expected answer includes the starting/joining word. Minor spelling errors are acceptable if the meaning is preserved. Award full marks if the meaning is equivalent even if worded differently.
 For Comprehension OEQ: mark based on whether the answer demonstrates understanding of the passage and addresses the question.
 
 Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "feedback": "<brief feedback>"}]}`
