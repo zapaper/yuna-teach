@@ -54,6 +54,7 @@ export function normalizeSubject(raw: string | null | undefined): string | null 
 import {
   analyzeExamBatch,
   normalizeAnswer,
+  getLastFallbackUsed,
   type AnswerEntry,
   type BatchAnalysisResult,
 } from "@/lib/gemini";
@@ -777,6 +778,7 @@ async function extractExamPaperCore(
             ...(debugMetadata as object ?? {}),
             ...(vocabClozePassageImage ? { vocabClozePassageImage } : {}),
             ...(sectionOcrTexts ? { sectionOcrTexts } : {}),
+            ...(() => { const fb = getLastFallbackUsed(); return fb ? { fallbackModelUsed: fb } : {}; })(),
           },
           extractionStatus: "ready",
         },

@@ -24,6 +24,15 @@ function isRetryable(err: unknown): boolean {
 
 type GenerateContentParams = Parameters<ReturnType<typeof getAI>["models"]["generateContent"]>[0];
 
+/** Track whether a fallback model was used in the last extraction */
+let _lastFallbackUsed: string | null = null;
+export function getLastFallbackUsed() { const v = _lastFallbackUsed; _lastFallbackUsed = null; return v; }
+
+const FALLBACK_MODELS: Record<string, string> = {
+  "gemini-2.5-pro": "gemini-2.5-flash",
+  "gemini-3.1-pro-preview": "gemini-2.5-flash",
+};
+
 async function generateContentWithRetry(
   params: GenerateContentParams,
   maxRetries = 2,
@@ -32,6 +41,7 @@ async function generateContentWithRetry(
 ): Promise<Awaited<ReturnType<ReturnType<typeof getAI>["models"]["generateContent"]>>> {
   const tag = label ? `[Gemini:${label}]` : "[Gemini]";
   let lastErr: unknown;
+  const primaryModel = (params as { model?: string }).model ?? "";
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       if (attempt > 0) console.log(`${tag} attempt ${attempt + 1}/${maxRetries + 1}...`);
@@ -40,6 +50,20 @@ async function generateContentWithRetry(
       lastErr = err;
       const status = (err as Record<string, unknown>).status ?? (err as Record<string, unknown>).code ?? "unknown";
       if (!isRetryable(err) || attempt === maxRetries) {
+        // Try fallback model before giving up
+        const fallback = FALLBACK_MODELS[primaryModel];
+        if (fallback && isRetryable(err)) {
+          console.warn(`${tag} primary model ${primaryModel} failed, trying fallback: ${fallback}`);
+          try {
+            const result = await getAI().models.generateContent({ ...params, model: fallback });
+            _lastFallbackUsed = fallback;
+            console.log(`${tag} fallback ${fallback} succeeded`);
+            return result;
+          } catch (fallbackErr) {
+            console.error(`${tag} fallback ${fallback} also failed`);
+            throw fallbackErr;
+          }
+        }
         console.error(`${tag} FAILED after ${attempt + 1} attempts (${status})`);
         throw err;
       }
