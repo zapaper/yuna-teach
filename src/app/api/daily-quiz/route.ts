@@ -211,6 +211,13 @@ export async function POST(request: NextRequest) {
 
     // Select Grammar/Vocab MCQ based on user choices
     const selectedSections = new Set(englishSections ?? ["grammar-mcq", "vocab-mcq", "vocab-cloze"]);
+    // Debug: show why grammar/vocab pools might be empty
+    if (grammarMcqPool.length === 0 || vocabMcqPool.length === 0) {
+      const grammarAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("grammar") && !(q.syllabusTopic ?? "").toLowerCase().includes("cloze"));
+      const vocabAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("vocab") && !(q.syllabusTopic ?? "").toLowerCase().includes("cloze"));
+      console.log(`[English Quiz] Grammar candidates: ${grammarAll.length} (MCQ: ${grammarAll.filter(q => isMcq(q.answer)).length}), sample answers: [${grammarAll.slice(0, 3).map(q => q.answer).join(", ")}]`);
+      console.log(`[English Quiz] Vocab candidates: ${vocabAll.length} (MCQ: ${vocabAll.filter(q => isMcq(q.answer)).length}), sample answers: [${vocabAll.slice(0, 3).map(q => q.answer).join(", ")}]`);
+    }
     console.log(`[English Quiz] Pools: grammar=${grammarMcqPool.length}, vocab=${vocabMcqPool.length}, vocabCloze=${vocabClozeSets.length} sets, visualText=${visualTextSets.length} sets`);
     const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, 5) : [];
     const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, 5) : [];

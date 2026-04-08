@@ -2545,8 +2545,24 @@ export async function analyzeExamBatch(
     if (isEnglishBooklet && hasSectionPages && paper.sections.length > 1) {
       // Split by section — each section gets its own parallel extraction
       const sectionTasks: Array<Promise<QuestionExtractionResult>> = [];
+      // Normalise section names to standard syllabus topics
+      const normaliseSectionName = (name: string): string => {
+        const n = name.toLowerCase().replace(/^section\s*[a-z][\s:.-]*/i, "").trim();
+        if ((n.includes("grammar") && !n.includes("cloze")) || n === "grammar") return "Grammar MCQ";
+        if ((n.includes("vocab") && !n.includes("cloze")) || n === "vocabulary") return "Vocabulary MCQ";
+        if (n.includes("vocab") && n.includes("cloze")) return "Vocabulary Cloze MCQ";
+        if (n.includes("visual") && n.includes("text")) return "Visual Text Comprehension MCQ";
+        if (n.includes("grammar") && n.includes("cloze")) return "Grammar Cloze";
+        if (n.includes("editing")) return "Editing (Spelling & Grammar)";
+        if (n.includes("comprehension") && n.includes("cloze")) return "Comprehension Cloze";
+        if (n.includes("synthesis") || n.includes("transformation")) return "Synthesis / Transformation";
+        if (n.includes("comprehension") && (n.includes("open") || n.includes("oeq"))) return "Comprehension Open Ended";
+        return name; // keep original if no match
+      };
+
       for (let si = 0; si < paper.sections.length; si++) {
-        const sec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; endPage?: number; questionRange?: string };
+        const rawSec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; endPage?: number; questionRange?: string };
+        const sec = { ...rawSec, name: normaliseSectionName(rawSec.name || rawSec.type) };
         const nextSec = paper.sections[si + 1] as { startPage?: number } | undefined;
         // Use the AI guidance's startPage/endPage directly
         const secStartPage = sec.startPage ?? pageIndices[0];
