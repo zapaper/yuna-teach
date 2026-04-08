@@ -2010,7 +2010,7 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
               displayAnswer = `[TABLE] ${cellEntries.join(", ")}`;
             } catch { /* use raw */ }
           }
-          parts.push({ text: `Student's typed answer: "${displayAnswer}"${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
+          parts.push({ text: `Student's typed answer (note: the surrounding quotation marks are NOT part of the answer, do not penalise them):\n${displayAnswer}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}

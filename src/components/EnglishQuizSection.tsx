@@ -167,6 +167,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                         type="text"
                         spellCheck={false}
                         autoComplete="off"
+                        autoCapitalize="none"
                         value={value}
                         onFocus={() => onToolChange?.("type")}
                         onChange={e => {
