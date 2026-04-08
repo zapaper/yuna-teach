@@ -366,7 +366,19 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
   questionId: string;
   onAnswer: (qId: string, answer: string) => void;
 }) {
+  // Parse table cell answers from stored JSON
+  const storedAnswer = answers[questionId] ?? "";
+  let tableCells: Record<string, string> = {};
+  try { if (storedAnswer.startsWith("{")) tableCells = JSON.parse(storedAnswer); } catch { /* ignore */ }
+
+  function updateTableCell(key: string, value: string) {
+    const updated = { ...tableCells, [key]: value };
+    // Also include non-table answer if present
+    onAnswer(questionId, JSON.stringify(updated));
+  }
+
   const lines = text.split("\n");
+  let tableRowIdx = 0;
   return (
     <div className="space-y-1">
       {lines.map((line, li) => {
@@ -377,17 +389,21 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
         // Table row
         if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
           const cells = trimmed.split("|").slice(1, -1).map(c => c.trim());
+          const ri = tableRowIdx++;
           return (
             <div key={li} className="flex gap-1 my-1">
               {cells.map((cell, ci) => {
                 const isBlank = !cell || cell.match(/^_{2,}$/);
                 const isFirstCol = ci === 0;
+                const cellKey = `r${ri}c${ci}`;
                 if (isBlank) {
                   return (
                     <input
                       key={ci}
                       type="text"
                       spellCheck={false}
+                      value={tableCells[cellKey] ?? ""}
+                      onChange={e => updateTableCell(cellKey, e.target.value)}
                       className={`text-center text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
                       placeholder="..."
                     />
