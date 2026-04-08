@@ -644,7 +644,7 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
 
   // Parse inline formatting: **bold**, [error:N]word[/error], [underline]word[/underline], ___(N)
   const parts: React.ReactNode[] = [];
-  const regex = /(\*\*[^*]+\*\*|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\)|\[LINES:\s*\d+\]|\[x\]|\[ \]|\[DIAGRAM:[^\]]+\])/g;
+  const regex = /(\*\*[^*]+\*\*|__[^_]+__|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\)|\[LINES:\s*\d+\]|\[x\]|\[ \]|\[DIAGRAM:[^\]]+\])/g;
   let lastIdx = 0;
   let match;
 
@@ -679,6 +679,8 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
           parts.push(<strong key={match.index} className="font-bold text-slate-800">{inner}</strong>);
         }
       }
+    } else if (m.startsWith("__") && m.endsWith("__") && !m.startsWith("___")) {
+      parts.push(<span key={match.index} className="underline decoration-2">{m.slice(2, -2)}</span>);
     } else if (m.startsWith("[error:")) {
       const numMatch = m.match(/\[error:(\d+)\]/);
       const word = m.replace(/\[error:\d+\]/, "").replace("[/error]", "");
