@@ -499,17 +499,21 @@ function ExamEditContent({ id }: { id: string }) {
     <div className="min-h-screen bg-slate-50">
       {userId && <AdminNav userId={userId} />}
       {/* Fallback model warning */}
-      {(paper.metadata as Record<string, unknown>)?.fallbackModelUsed && (
+      {(() => {
+        const fb = (paper.metadata as Record<string, unknown> | null)?.fallbackModelUsed;
+        if (!fb) return null;
+        return (
         <div className="lg:ml-56 px-6 pt-4">
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3 max-w-2xl mx-auto">
             <span className="material-symbols-outlined text-amber-600 shrink-0 mt-0.5">warning</span>
             <div>
               <p className="text-sm font-bold text-amber-800">Backup AI model was used for extraction</p>
-              <p className="text-xs text-amber-600 mt-1">The primary model was unavailable due to high demand. A backup model ({String((paper.metadata as Record<string, unknown>).fallbackModelUsed)}) was used instead. Results may be less accurate — please review carefully and re-extract if needed.</p>
+              <p className="text-xs text-amber-600 mt-1">The primary model was unavailable due to high demand. A backup model ({String(fb)}) was used instead. Results may be less accurate — please review carefully and re-extract if needed.</p>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
       <div className="lg:ml-56 pb-24 lg:pb-0 p-6 max-w-2xl mx-auto">
       {/* Back */}
       <button
