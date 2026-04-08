@@ -674,8 +674,8 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Remark button — parents only */}
-        {!isStudent && (
+        {/* Remark button — parents, or anyone for English quizzes */}
+        {(!isStudent || englishSections) && (
           <div className="mb-4 flex justify-end">
             <button
               onClick={handleRemark}
@@ -683,7 +683,7 @@ function ExamReviewContent({ id }: { id: string }) {
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#c3c6d1]/30 text-sm font-bold text-[#43474f] hover:bg-[#eff4ff] hover:text-[#001e40] transition-all disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-base">refresh</span>
-              {remarking ? "Re-marking…" : "Re-mark"}
+              {remarking ? "Re-marking…" : englishSections ? "Re-mark All" : "Re-mark"}
             </button>
           </div>
         )}
