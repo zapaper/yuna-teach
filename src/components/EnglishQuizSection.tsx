@@ -634,15 +634,25 @@ function ReadingPassage({ text }: { text: string }) {
     }
     // First row is header — skip it
     const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+    // Compute margin numbers: count non-blank lines, show every 5th
+    let nonBlankCount = 0;
+    const marginNums = dataRows.map(cells => {
+      const textContent = cells[1]?.trim() ?? "";
+      const isEmpty = !cells[0]?.trim() && !textContent;
+      if (!isEmpty) {
+        nonBlankCount++;
+        return nonBlankCount % 5 === 0 ? String(nonBlankCount) : "";
+      }
+      return "";
+    });
     return (
       <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
         <div className="space-y-0">
           {dataRows.map((cells, ri) => {
-            const lineNum = cells[0]?.trim();
             const textContent = cells[1]?.trim() ?? "";
-            const marginNum = cells[2]?.trim() ?? "";
-            const isEmpty = !lineNum && !textContent;
+            const isEmpty = !cells[0]?.trim() && !textContent;
             const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
+            const marginNum = marginNums[ri];
             return (
               <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.3rem]"}`}>
                 <p className={`flex-1 text-sm text-[#0b1c30] leading-snug break-words ${isIndented ? "pl-6" : ""}`}>
