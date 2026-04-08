@@ -954,7 +954,14 @@ function ExamReviewContent({ id }: { id: string }) {
                               {(isSynthesis || isCompOeq) ? (
                                 <div className="space-y-2">
                                   {cleanStemDisplay && (
-                                    <ReviewRichText text={stemRaw.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim()} />
+                                    <ReviewRichText text={(() => {
+                                      let t = stemRaw.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
+                                      // Strip table rows from stem if answer is table-based (avoid showing blank table)
+                                      if (studentAns.startsWith("{")) {
+                                        t = t.split("\n").filter(l => !l.trim().startsWith("|")).join("\n").trim();
+                                      }
+                                      return t;
+                                    })()} />
                                   )}
                                   {isSynthesis && keyword && (
                                     <p className="text-sm font-bold text-[#001e40]">{keyword}</p>
