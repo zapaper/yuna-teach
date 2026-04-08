@@ -289,6 +289,9 @@ function QuestionRow({
   const [editAnswer, setEditAnswer] = useState(false);
   const [answerDraft, setAnswerDraft] = useState(q.answer ?? "");
   const [marksDraft, setMarksDraft] = useState(q.marksAvailable != null ? String(q.marksAvailable) : "");
+  const [editingStem, setEditingStem] = useState(false);
+  const [stemDraft, setStemDraft] = useState(q.transcribedStem ?? "");
+  const [redoingTable, setRedoingTable] = useState(false);
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
@@ -348,6 +351,65 @@ function QuestionRow({
             </>
           );
         })()}
+        {/* Edit stem / Redo table buttons */}
+        {q.transcribedStem && !editingStem && (
+          <div className="flex gap-2 mt-1 mb-2">
+            <button
+              onClick={() => { setStemDraft(q.transcribedStem ?? ""); setEditingStem(true); }}
+              className="text-[10px] text-blue-600 hover:text-blue-800 font-medium"
+            >Edit text</button>
+            {q.syllabusTopic?.toLowerCase().includes("comprehension") && q.syllabusTopic?.toLowerCase().includes("open") && (
+              <button
+                disabled={redoingTable}
+                onClick={async () => {
+                  setRedoingTable(true);
+                  try {
+                    const res = await fetch("/api/exam/redo-question", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ questionId: q.id, action: "redo-table" }),
+                    });
+                    if (res.ok) {
+                      const data = await res.json();
+                      if (data.stem) {
+                        await onSave(q.id, { transcribedStem: data.stem });
+                        setStemDraft(data.stem);
+                      }
+                    } else {
+                      alert("Failed to redo table");
+                    }
+                  } catch { alert("Failed"); }
+                  finally { setRedoingTable(false); }
+                }}
+                className="text-[10px] text-purple-600 hover:text-purple-800 font-medium disabled:opacity-50"
+              >{redoingTable ? "Extracting..." : "Redo table"}</button>
+            )}
+          </div>
+        )}
+        {editingStem && (
+          <div className="mb-2">
+            <textarea
+              value={stemDraft}
+              onChange={e => setStemDraft(e.target.value)}
+              rows={6}
+              className="w-full text-xs font-mono bg-white border border-blue-200 rounded-lg p-2 focus:outline-none focus:border-blue-400 resize-y"
+            />
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={async () => {
+                  await onSave(q.id, { transcribedStem: stemDraft });
+                  setEditingStem(false);
+                }}
+                className="px-3 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700"
+              >Save</button>
+              <button
+                onClick={() => setEditingStem(false)}
+                className="px-3 py-1 rounded-lg text-slate-400 text-[10px] font-bold hover:text-slate-600"
+              >Cancel</button>
+            </div>
+          </div>
+        )}
+
         {/* Fallback: image if no text content */}
         {!q.transcribedStem && q.imageData && (
           <img
