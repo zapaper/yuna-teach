@@ -314,10 +314,12 @@ export async function POST(request: NextRequest) {
       const firstQ = group.questions[0];
 
       if (firstQ) {
-        // Try 1: transcribedSubparts sentinel
-        const subs = firstQ.transcribedSubparts as Array<{ label: string; text: string }> | null;
-        const passageSub = subs?.find(s => s.label === "_passage");
-        if (passageSub) { passage = passageSub.text; }
+        // Try 1: transcribedSubparts sentinel (skip for Comp OEQ — _passage has question OCR, not reading passage)
+        if (group.key !== "comprehension-oeq") {
+          const subs = firstQ.transcribedSubparts as Array<{ label: string; text: string }> | null;
+          const passageSub = subs?.find(s => s.label === "_passage");
+          if (passageSub) { passage = passageSub.text; }
+        }
 
         // Try 2: source paper's sectionOcrTexts (pre-fetched batch)
         // Skip for sections that don't use inline passage markers
