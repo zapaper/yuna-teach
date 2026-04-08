@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 export async function PATCH(
@@ -22,6 +23,9 @@ export async function PATCH(
   if ("syllabusTopic" in body) data.syllabusTopic = body.syllabusTopic ?? null;
   if ("studentAnswer" in body) data.studentAnswer = body.studentAnswer ?? null;
   if ("elaboration" in body) data.elaboration = body.elaboration ?? null;
+  if ("transcribedStem" in body) data.transcribedStem = body.transcribedStem ?? null;
+  if ("transcribedOptions" in body) data.transcribedOptions = body.transcribedOptions === null ? Prisma.DbNull : body.transcribedOptions;
+  if ("transcribedSubparts" in body) data.transcribedSubparts = body.transcribedSubparts === null ? Prisma.DbNull : body.transcribedSubparts;
 
   console.log("[questions PATCH] id:", id, "fields:", Object.keys(data));
   let question;
