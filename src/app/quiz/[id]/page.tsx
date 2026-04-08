@@ -858,14 +858,13 @@ function McqQuestionCard({
         <div className="lg:hidden absolute top-0 left-0 w-1 h-full bg-[#003366]" />
 
         <div className="p-5 lg:p-8">
-          <div className="mb-3 lg:mb-5">
-            <span className="font-headline font-bold text-sm text-[#001e40] block">
+          <div className="flex items-center gap-2 mb-3 lg:mb-5">
+            <span className="font-headline font-bold text-sm text-[#001e40]">
               Question {numStr}
             </span>
             {onToggleFlag && (
-              <button onClick={onToggleFlag} className={`flex items-center gap-1 text-xs font-medium mt-1 px-2 py-0.5 rounded-md transition-colors ${flagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}>
-                <span className="material-symbols-outlined text-base" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
-                {flagged ? "Flagged" : "Flag"}
+              <button onClick={onToggleFlag} className={`flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded-md transition-colors ${flagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}>
+                <span className="material-symbols-outlined text-sm" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
               </button>
             )}
           </div>
