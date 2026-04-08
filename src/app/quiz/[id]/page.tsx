@@ -319,7 +319,7 @@ function QuizContent({ id }: { id: string }) {
               body: JSON.stringify({
                 studentAnswer: (isGrammarClozeQ ? studentAns.toUpperCase() : studentAns) || null,
                 marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
-                markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctAns}"`) : "No answer",
+                markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctCmp}"`) : "No answer",
               }),
             });
           })
