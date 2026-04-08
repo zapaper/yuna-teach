@@ -390,7 +390,7 @@ function TableLine({ line }: { line: string }) {
   return (
     <div className="flex gap-2 my-1">
       {cells.map((cell, ci) => (
-        <span key={ci} className={`flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366]" : "font-medium"}`}>{cell}</span>
+        <span key={ci} className={`flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366] underline" : "font-medium"}`}>{cell}</span>
       ))}
     </div>
   );
