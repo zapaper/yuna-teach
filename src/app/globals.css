@@ -14,8 +14,8 @@
   --color-accent-green: #4ade80;
   --color-accent-pink: #f472b6;
 
-  /* Marketing theme tokens */
-  --color-background: #FFFBFA;
+  /* Marketing theme tokens — lighter teal */
+  --color-background: #F0F9F9;
   --color-on-surface: #2D1B00;
   --color-on-surface-variant: #4E463D;
   --color-primary: #003366;
@@ -31,14 +31,16 @@
   --color-tertiary-fixed-dim: #ffb952;
   --color-on-tertiary-container: #492200;
   --color-on-tertiary-fixed: #291800;
-  --color-surface: #FFFBFA;
-  --color-surface-container: #FFF8F5;
-  --color-surface-container-low: #FFF5F0;
-  --color-surface-container-high: #FFF0EA;
+  --color-surface: #F0F9F9;
+  --color-surface-container: #F8FCFC;
+  --color-surface-container-low: #F4FAFA;
+  --color-surface-container-high: #ECF5F5;
+  --color-surface-container-highest: #E0F2F2;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-variant: #FDF1E8;
+  --color-surface-variant: #F0F9F9;
   --color-outline: #85736E;
   --color-outline-variant: #E0E2EC;
+  --color-primary-container: #E3F2FD;
 }
 
 .font-headline {
@@ -58,7 +60,7 @@
 }
 
 .warm-gradient {
-  background: linear-gradient(135deg, #FFF5F0 0%, #FFFBFA 100%);
+  background: linear-gradient(135deg, #F0F9F9 0%, #FFFFFF 100%);
 }
 
 .text-balance {
