@@ -7,6 +7,7 @@ interface Props {
   paper: ExamPaperDetail;
   pageImages: string[];
   onSave: (questionId: string, data: Record<string, unknown>) => Promise<void>;
+  onDelete?: (questionId: string) => void;
   onSaveOcr?: (sectionName: string, ocrText: string) => Promise<void>;
   onRegenerateOcr?: (sectionName: string) => Promise<void>;
   saving: string | null;
@@ -33,7 +34,7 @@ function groupBySection(questions: ExamQuestionItem[]) {
   return sections;
 }
 
-export default function EnglishEditView({ paper, pageImages, onSave, onSaveOcr, onRegenerateOcr, saving }: Props) {
+export default function EnglishEditView({ paper, pageImages, onSave, onDelete, onSaveOcr, onRegenerateOcr, saving }: Props) {
   const metadata = paper.metadata;
   const ocrTexts = metadata?.sectionOcrTexts ?? {};
   const sections = groupBySection(paper.questions);
@@ -248,6 +249,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onSaveOcr, 
                         key={q.id}
                         question={q}
                         onSave={onSave}
+                        onDelete={onDelete}
                         saving={saving}
                       />
                     ))}
@@ -280,10 +282,12 @@ function SectionBadge({ name }: { name: string }) {
 function QuestionRow({
   question: q,
   onSave,
+  onDelete,
   saving,
 }: {
   question: ExamQuestionItem;
   onSave: (questionId: string, data: Record<string, unknown>) => Promise<void>;
+  onDelete?: (questionId: string) => void;
   saving: string | null;
 }) {
   const [editAnswer, setEditAnswer] = useState(false);
@@ -506,6 +510,15 @@ function QuestionRow({
         />
         <span className="text-[10px] text-slate-400">m</span>
       </div>
+
+      {/* Remove button */}
+      {onDelete && (
+        <button onClick={() => { if (confirm(`Remove Q${q.questionNum}?`)) onDelete(q.id); }}
+          className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+          title="Remove question">
+          <span className="material-symbols-outlined text-sm">close</span>
+        </button>
+      )}
 
       {/* Saving indicator */}
       {saving === q.id && (

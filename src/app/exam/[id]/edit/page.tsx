@@ -580,6 +580,7 @@ function ExamEditContent({ id }: { id: string }) {
                 await saveQuestion(questionId, key as keyof ExamQuestionItem, value as string | number | null);
               }
             }}
+            onDelete={(questionId) => deleteQuestion(questionId)}
             onSaveOcr={async (sectionName, ocrText) => {
               // 1. Update the sectionOcrTexts in paper metadata
               const metadata = paper.metadata ?? {} as Record<string, unknown>;
