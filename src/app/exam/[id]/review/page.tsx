@@ -632,7 +632,7 @@ function ExamReviewContent({ id }: { id: string }) {
                       <span className="material-symbols-outlined text-sm">add_reaction</span>Add Sticker
                     </button>
                     {showStickerPicker && (
-                      <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-5 z-50 grid grid-cols-2 gap-4">
+                      <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-5 z-[100] grid grid-cols-2 gap-4">
                         {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
                           <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-2 rounded-xl hover:bg-[#eff4ff]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -706,7 +706,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         <span className="material-symbols-outlined text-sm">add_reaction</span>Add Sticker
                       </button>
                       {showStickerPicker && (
-                        <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-6 z-50 grid grid-cols-2 gap-5">
+                        <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-6 z-[100] grid grid-cols-2 gap-5">
                           {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
                             <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-3 rounded-xl hover:bg-[#eff4ff]">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
