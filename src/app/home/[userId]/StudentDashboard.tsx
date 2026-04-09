@@ -506,7 +506,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   <div key={t.id} onClick={() => router.push(`/test/${t.id}?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer">
                     <div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">spellcheck</span></div>
                     <div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{t.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(t.createdAt)} &middot; {t.wordCount} words</p></div>
-                    {t.score !== null && <span className={`font-extrabold text-xs ${t.score >= 80 ? "text-[#006c49]" : t.score >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{t.score}%</span>}
+                    <span className="material-symbols-outlined text-[#c3c6d1] text-base shrink-0">chevron_right</span>
                   </div>
                 ))}
               </div>
