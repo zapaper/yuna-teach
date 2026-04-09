@@ -631,16 +631,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     <button onClick={() => setShowStickerPicker(!showStickerPicker)} className="flex items-center gap-1.5 text-xs font-bold text-[#291800] bg-[#ffddb4] px-3 py-1.5 rounded-full hover:bg-[#ffcf94] transition-colors">
                       <span className="material-symbols-outlined text-sm">add_reaction</span>Add Sticker
                     </button>
-                    {showStickerPicker && (
-                      <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-5 z-[100] grid grid-cols-2 gap-4">
-                        {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
-                          <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-2 rounded-xl hover:bg-[#eff4ff]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-20 h-20 object-contain" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {/* picker rendered as global modal below */}
                   </>
                 ) : (
                   <button onClick={() => saveSticker("")} className="flex items-center gap-1 text-[10px] font-medium text-[#43474f] hover:text-[#ba1a1a] transition-colors">
@@ -705,16 +696,7 @@ function ExamReviewContent({ id }: { id: string }) {
                       <button onClick={() => setShowStickerPicker(!showStickerPicker)} className="flex items-center gap-1.5 text-xs font-bold text-[#291800] bg-[#ffddb4] px-3 py-1.5 rounded-full hover:bg-[#ffcf94] transition-colors">
                         <span className="material-symbols-outlined text-sm">add_reaction</span>Add Sticker
                       </button>
-                      {showStickerPicker && (
-                        <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-6 z-[100] grid grid-cols-2 gap-5">
-                          {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
-                            <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-3 rounded-xl hover:bg-[#eff4ff]">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-24 h-24 object-contain" />
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      {/* picker rendered as global modal below */}
                     </>
                   ) : (
                     <button onClick={() => saveSticker("")} className="flex items-center gap-1 text-[10px] font-medium text-[#43474f] hover:text-[#ba1a1a] transition-colors">
@@ -1629,6 +1611,21 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         )}
       </div>
+
+      {/* Sticker picker modal */}
+      {showStickerPicker && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[200]" onClick={() => setShowStickerPicker(false)}>
+          <div className="bg-white rounded-3xl p-8 shadow-2xl grid grid-cols-2 gap-6" onClick={e => e.stopPropagation()}>
+            <p className="col-span-2 text-center font-headline font-bold text-[#001e40] text-lg">Pick a sticker!</p>
+            {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
+              <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-4 rounded-2xl hover:bg-[#eff4ff]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-24 h-24 object-contain" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
