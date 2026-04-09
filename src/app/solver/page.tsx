@@ -69,8 +69,13 @@ function SolverContent() {
     });
   }
 
+  const abortRef = useRef<AbortController | null>(null);
+
   async function handleFile(file: File) {
     setError(null);
+    if (abortRef.current) abortRef.current.abort();
+    const abort = new AbortController();
+    abortRef.current = abort;
     try {
       const dataUrl = await compressImage(file);
       setImageDataUrl(dataUrl);
@@ -80,6 +85,7 @@ function SolverContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ imageBase64: dataUrl, hint: hint.trim() || undefined }),
+        signal: abort.signal,
       });
       const data = await res.json();
       if (!res.ok) {
@@ -92,10 +98,39 @@ function SolverContent() {
       setSolution(data.solution);
       setDiagrams(data.diagrams ?? []);
       setStep("result");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      if ((err as Error)?.name === "AbortError") return;
+      // Connection may have been interrupted (e.g. tab switch on mobile)
+      // Keep the image so user can retry
+      setError("Connection interrupted. Tap 'Retry' to try again.");
       setStep("capture");
     }
+  }
+
+  function retryWithImage() {
+    if (!imageDataUrl) return;
+    setError(null);
+    setStep("solving");
+    if (abortRef.current) abortRef.current.abort();
+    const abort = new AbortController();
+    abortRef.current = abort;
+    fetch("/api/solver", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageBase64: imageDataUrl, hint: hint.trim() || undefined }),
+      signal: abort.signal,
+    }).then(r => r.json()).then(data => {
+      if (data.error) { setError(data.error); setStep("capture"); return; }
+      setSubject(data.subject);
+      setTopic(data.topic ?? "");
+      setSolution(data.solution);
+      setDiagrams(data.diagrams ?? []);
+      setStep("result");
+    }).catch(err => {
+      if ((err as Error)?.name === "AbortError") return;
+      setError("Connection interrupted. Tap 'Retry' to try again.");
+      setStep("capture");
+    });
   }
 
   async function createFocusedTest() {
@@ -413,7 +448,14 @@ function SolverContent() {
 
         {step === "capture" && (
           <div className="space-y-6">
-            {error && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100">{error}</div>}
+            {error && (
+              <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl border border-red-100 flex items-center justify-between gap-3">
+                <span>{error}</span>
+                {imageDataUrl && (
+                  <button onClick={retryWithImage} className="shrink-0 px-4 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors">Retry</button>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <button onClick={() => cameraCaptureRef.current?.click()}
                 className="flex flex-col items-center justify-center bg-[#001e40] p-8 rounded-[2rem] text-white shadow-xl hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden">
