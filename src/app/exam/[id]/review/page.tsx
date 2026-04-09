@@ -203,20 +203,21 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   async function saveSticker(stickerName: string) {
+    setShowStickerPicker(false);
+    setSticker(stickerName || null);
     try {
-      // Fetch current metadata and merge sticker
       const paperRes = await fetch(`/api/exam/${id}`);
       if (!paperRes.ok) return;
-      const paper = await paperRes.json();
-      const meta = paper.metadata ?? {};
+      const paperData = await paperRes.json();
+      const meta = paperData.metadata ?? {};
       await fetch(`/api/exam/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ metadata: { ...meta, sticker: stickerName } }),
+        body: JSON.stringify({ metadata: { ...meta, sticker: stickerName || null } }),
       });
-      setSticker(stickerName);
-      setShowStickerPicker(false);
-    } catch { /* silent */ }
+    } catch (err) {
+      console.error("Failed to save sticker:", err);
+    }
   }
 
   async function downloadPdf() {
