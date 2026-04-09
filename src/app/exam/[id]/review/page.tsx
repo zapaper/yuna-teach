@@ -996,7 +996,7 @@ function ExamReviewContent({ id }: { id: string }) {
                           }
                           if (lastEnd < line.length) parts.push(<span key="end">{line.slice(lastEnd)}</span>);
                           const indent = line.match(/^(\s{2,}|\t)/);
-                          return <p key={li} className="text-sm text-[#0b1c30] leading-relaxed my-0.5" style={indent ? { textIndent: "2em" } : undefined}>{parts.length > 0 ? parts : line}</p>;
+                          return <p key={li} className="text-sm text-[#0b1c30] leading-relaxed my-0.5 text-justify" style={indent ? { textIndent: "2em" } : undefined}>{parts.length > 0 ? parts : line}</p>;
                         });
                       })()}
                     </div>
