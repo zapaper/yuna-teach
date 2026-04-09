@@ -583,11 +583,11 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="mt-5 mb-5 lg:hidden">
           <div className="bg-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#003366]/5 rounded-full blur-2xl" />
-            {/* Sticker — full size background, top right */}
+            {/* Sticker — mobile: small top right */}
             {sticker && (
-              <div className="absolute top-0 right-0 bottom-0 z-0 flex items-center justify-end pr-4 pointer-events-none">
+              <div className="absolute top-3 right-3 z-10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/stickers/${sticker}`} alt="Sticker" className="h-full max-h-32 object-contain opacity-90 drop-shadow-md" />
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-14 h-14 object-contain drop-shadow-md" />
               </div>
             )}
             <div className="flex items-center gap-5">
@@ -648,13 +648,7 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="hidden lg:grid grid-cols-3 gap-6 my-10">
           <div className="col-span-2 bg-white rounded-3xl p-8 flex flex-row items-center gap-8 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-            {/* Sticker — full height background, right side */}
-            {sticker && (
-              <div className="absolute top-0 right-0 bottom-0 z-0 flex items-center justify-end pr-6 pointer-events-none">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/stickers/${sticker}`} alt="Sticker" className="h-full max-h-44 object-contain opacity-80 drop-shadow-lg" />
-              </div>
-            )}
+            {/* Sticker overlay removed — standalone panel below */}
             <div
               className="relative z-10 flex flex-col items-center justify-center w-44 h-44 rounded-full shrink-0"
               style={{ background: `radial-gradient(closest-side, white 82%, transparent 82%), conic-gradient(${scoreBorderColor} ${pct ?? 0}%, #dce9ff 0)` }}
@@ -727,6 +721,13 @@ function ExamReviewContent({ id }: { id: string }) {
                 <p className="font-headline text-xl font-bold text-[#ba1a1a]">{incorrectQuestions.length}</p>
               </div>
             </div>
+            {/* Sticker panel */}
+            {sticker && (
+              <div className="bg-white rounded-3xl p-5 flex items-center justify-center shadow-sm flex-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
+              </div>
+            )}
           </div>
         </section>
 
@@ -934,7 +935,7 @@ function ExamReviewContent({ id }: { id: string }) {
                             const isEmpty = !textContent && !cells[0]?.trim();
                             return (
                               <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.6rem]"}`}>
-                                <p className={`flex-1 text-[13px] lg:text-[15px] text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{textContent.replace(/^\s+/, "")}</p>
+                                <p className={`flex-1 text-[12px] lg:text-[14px] text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{textContent.replace(/^\s+/, "")}</p>
                                 {marginNum && <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0">{marginNum}</span>}
                               </div>
                             );
