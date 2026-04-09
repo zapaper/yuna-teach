@@ -823,7 +823,7 @@ function ExamReviewContent({ id }: { id: string }) {
 
                   {/* Passage text */}
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
-                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-4 lg:p-6 border border-slate-100 max-h-[28rem] overflow-y-auto">
+                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full">
                       {(() => {
                         const pLines = currentSection.passage!.split("\n");
                         // Detect line-numbered table (Comp OEQ reading passage)
@@ -849,9 +849,9 @@ function ExamReviewContent({ id }: { id: string }) {
                             const marginNum = oeqMargins[ri];
                             const isEmpty = !textContent && !cells[0]?.trim();
                             return (
-                              <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.3rem]"}`}>
-                                <p className={`flex-1 text-sm text-[#0b1c30] leading-snug text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`}>{textContent.replace(/^\s+/, "")}</p>
-                                {marginNum && <span className="w-5 text-right text-[10px] text-[#003366] font-bold font-mono shrink-0">{marginNum}</span>}
+                              <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.6rem]"}`}>
+                                <p className={`flex-1 text-base text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-10" : ""}`}>{textContent.replace(/^\s+/, "")}</p>
+                                {marginNum && <span className="w-6 text-right text-xs text-[#003366] font-bold font-mono shrink-0">{marginNum}</span>}
                               </div>
                             );
                           });

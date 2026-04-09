@@ -725,19 +725,19 @@ function ReadingPassage({ text }: { text: string }) {
       return "";
     });
     return (
-      <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
-        <div className="space-y-0">
+      <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto w-full">
+        <div className="space-y-0.5">
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
             const isEmpty = !textContent && !cells[0]?.trim();
             const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
             const marginNum = marginNums[ri];
             return (
-              <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.3rem]"}`}>
-                <p className={`flex-1 text-sm text-[#0b1c30] leading-snug break-words text-justify ${isIndented ? "pl-8" : ""}`}>
+              <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.6rem]"}`}>
+                <p className={`flex-1 text-base text-[#0b1c30] leading-relaxed break-words text-justify ${isIndented ? "pl-10" : ""}`}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
-                {marginNum && <span className="w-5 text-right text-[10px] text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>}
+                {marginNum && <span className="w-6 text-right text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>}
               </div>
             );
           })}
@@ -748,8 +748,8 @@ function ReadingPassage({ text }: { text: string }) {
 
   // Plain text fallback
   return (
-    <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[500px] overflow-y-auto">
-      <p className="text-sm text-[#0b1c30] leading-snug whitespace-pre-wrap break-words">{text}</p>
+    <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto w-full">
+      <p className="text-base text-[#0b1c30] leading-relaxed whitespace-pre-wrap break-words text-justify">{text}</p>
     </div>
   );
 }

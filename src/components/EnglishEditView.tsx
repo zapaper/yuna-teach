@@ -326,7 +326,24 @@ function QuestionRow({
                 <button
                   key={topic}
                   onClick={async () => {
+                    const oldTopic = q.syllabusTopic ?? "";
                     await onSave(q.id, { syllabusTopic: topic });
+                    // Copy sectionOcrTexts entry from old topic to new if needed
+                    if (oldTopic && oldTopic !== topic) {
+                      const meta = paper.metadata ?? {};
+                      const ocrTexts = (meta as Record<string, unknown>).sectionOcrTexts as Record<string, Record<string, unknown>> | undefined;
+                      if (ocrTexts) {
+                        const oldEntry = ocrTexts[oldTopic] ?? Object.values(ocrTexts).find((_, i) => Object.keys(ocrTexts)[i].toLowerCase().includes(oldTopic.toLowerCase().split(" ")[0]));
+                        if (oldEntry && !ocrTexts[topic]) {
+                          ocrTexts[topic] = { ...oldEntry };
+                          await fetch(`/api/exam/${paper.id}`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ metadata: { ...meta, sectionOcrTexts: ocrTexts } }),
+                          });
+                        }
+                      }
+                    }
                     setShowTopicMenu(false);
                   }}
                   className={`w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 ${q.syllabusTopic === topic ? "font-bold text-blue-600 bg-blue-50" : "text-slate-700"}`}
