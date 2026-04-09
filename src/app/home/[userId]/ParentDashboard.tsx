@@ -542,7 +542,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         )}
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
         <div className="flex gap-2 mb-4">
-          {(user.name?.toLowerCase() === "admin" ? ["math", "science", "english"] as const : ["math", "science"] as const).map(s => (
+          {(user.name?.toLowerCase() === "admin" || user.email === "jessicabwt@gmail.com" ? ["math", "science", "english"] as const : ["math", "science"] as const).map(s => (
             <button key={s} onClick={() => setQuizSubject(s)}
               className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
               {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
