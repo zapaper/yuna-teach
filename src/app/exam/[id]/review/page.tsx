@@ -763,7 +763,7 @@ function ExamReviewContent({ id }: { id: string }) {
               <button
                 onClick={handleRelease}
                 disabled={releasing}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#006c49] text-white text-sm font-bold hover:bg-[#005236] transition-all disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-[#006c49] text-[#006c49] text-sm font-bold hover:bg-[#006c49]/10 transition-all disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-base">check_circle</span>
                 {releasing ? "Saving…" : released ? "Reviewed" : "Mark as Reviewed"}
