@@ -341,13 +341,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </div>
                   )}
                   {quizBadge.image && (
-                    <div className="flex items-center gap-2 bg-[#d3e4fe] text-[#001e40] px-4 py-2 rounded-full">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
-                      <span className="text-lg font-extrabold">{quizBadge.badge}</span>
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-2 bg-[#d3e4fe] text-[#001e40] px-4 py-2 rounded-full">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
+                        <span className="text-lg font-extrabold">{quizBadge.badge}</span>
+                      </div>
+                      <span className="text-xs text-[#43474f] font-medium">{quizBadge.count} quizzes completed</span>
                     </div>
                 )}
-                  <span className="text-sm text-[#43474f] font-medium">{quizBadge.count} quizzes completed</span>
                 </div>
               )}
             </section>
