@@ -2548,16 +2548,17 @@ export async function analyzeExamBatch(
       // Normalise section names to standard syllabus topics
       const normaliseSectionName = (name: string): string => {
         const n = name.toLowerCase().replace(/^section\s*[a-z][\s:.-]*/i, "").trim();
-        if ((n.includes("grammar") && !n.includes("cloze")) || n === "grammar") return "Grammar MCQ";
-        if ((n.includes("vocab") && !n.includes("cloze")) || n === "vocabulary") return "Vocabulary MCQ";
-        if (n.includes("vocab") && n.includes("cloze")) return "Vocabulary Cloze MCQ";
-        if (n.includes("visual") && n.includes("text")) return "Visual Text Comprehension MCQ";
-        if (n.includes("grammar") && n.includes("cloze")) return "Grammar Cloze";
+        // Check editing FIRST — "editing for spelling and grammar" contains "grammar" but is NOT Grammar MCQ
         if (n.includes("editing")) return "Editing (Spelling & Grammar)";
+        if (n.includes("grammar") && n.includes("cloze")) return "Grammar Cloze";
+        if ((n.includes("grammar") && !n.includes("cloze")) || n === "grammar") return "Grammar MCQ";
+        if (n.includes("vocab") && n.includes("cloze")) return "Vocabulary Cloze MCQ";
+        if ((n.includes("vocab") && !n.includes("cloze")) || n === "vocabulary") return "Vocabulary MCQ";
+        if (n.includes("visual") && n.includes("text")) return "Visual Text Comprehension MCQ";
         if (n.includes("comprehension") && n.includes("cloze")) return "Comprehension Cloze";
         if (n.includes("synthesis") || n.includes("transformation")) return "Synthesis / Transformation";
         if (n.includes("comprehension") && (n.includes("open") || n.includes("oeq"))) return "Comprehension Open Ended";
-        return name; // keep original if no match
+        return name;
       };
 
       for (let si = 0; si < paper.sections.length; si++) {
