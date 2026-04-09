@@ -125,6 +125,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [enterSuccess, setEnterSuccess] = useState(false);
   const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz">("home");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showPastWork, setShowPastWork] = useState(false);
 
   const fetchData = useRef<() => void>(undefined);
   fetchData.current = () => {
@@ -250,629 +251,221 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
 
+  // ─── Derived data for new layout ───
+  const now = new Date();
+  const threeDaysAgo = new Date(now.getTime() - 3 * 86400000);
+  const todayStr = now.toISOString().slice(0, 10);
+  const todayActivities = studentPapers.filter(p => new Date(p.createdAt ?? "").toISOString().slice(0, 10) === todayStr);
+  const todayTodo = todayActivities.filter(p => !p.completedAt);
+  const todayDone = todayActivities.filter(p => p.completedAt);
+  const weekHomework = studentPapers.filter(p => !p.completedAt && new Date(p.createdAt ?? "") >= threeDaysAgo && new Date(p.createdAt ?? "").toISOString().slice(0, 10) !== todayStr);
+
+  function goToPaper(p: ExamPaperSummary) {
+    if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${userId}`);
+    else router.push(`/exam/${p.sourceExamId ?? p.id}/overview?userId=${userId}&openClone=${p.id}`);
+  }
+  function paperIcon(p: ExamPaperSummary) {
+    if (p.paperType === "quiz") return "quiz";
+    if (p.paperType === "focused") return "psychology";
+    const s = (p.subject ?? "").toLowerCase();
+    return s.includes("science") ? "biotech" : s.includes("english") ? "translate" : "calculate";
+  }
+
   return (
     <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen">
 
       {/* First-time student popup */}
       {showFirstQuizPopup && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4" onClick={() => setShowFirstQuizPopup(false)}>
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center animate-bounce-in" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center" onClick={e => e.stopPropagation()}>
             <div className="w-16 h-16 rounded-full bg-[#6cf8bb]/30 flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-3xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>rocket_launch</span>
             </div>
             <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Welcome!</h2>
             <p className="text-sm text-[#43474f] mb-6">Your first quiz is ready. Click on the quiz below to begin!</p>
-            <button
-              onClick={() => setShowFirstQuizPopup(false)}
-              className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors"
-            >
-              Got it!
-            </button>
+            <button onClick={() => setShowFirstQuizPopup(false)} className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors">Got it!</button>
           </div>
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════
-          DESKTOP LAYOUT (lg+)
-      ════════════════════════════════════════════════ */}
+      {/* ══ DESKTOP LAYOUT ══ */}
       <div className="hidden lg:flex min-h-screen">
-
-        {/* ── Sidebar ──────────────────────────────────────────────────────── */}
-        <aside className="fixed left-0 top-0 h-full w-64 bg-[#eff4ff] flex flex-col z-40 border-r border-[#003366]/10">
-          {/* Logo */}
-          <div className="px-6 pt-6 pb-4 flex items-center gap-2">
-            <img src="/logo_t.png" alt="Owl" className="w-8 h-8 object-contain" />
-            <img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" />
+        <aside className="fixed left-0 top-0 h-full w-64 bg-slate-50 flex flex-col z-40 py-8 px-6">
+          <div className="mb-10 flex items-center gap-3">
+            <img src="/logo_t.png" alt="Owl" className="w-10 h-10 object-contain" />
+            <span className="text-2xl font-bold text-[#001e40] tracking-tight font-headline">MarkForYou</span>
           </div>
-
-          {/* Streak + Badge pills */}
-          <div className="px-4 flex flex-col gap-2 mb-4">
-            {quizBadge && quizBadge.streak > 0 && (
-              <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 px-3 py-2 rounded-xl">
-                <span className="material-symbols-outlined text-amber-500 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                <span className="text-xs font-bold text-amber-800">{quizBadge.streak}-Day Streak</span>
+          <div className="mb-8 p-4 bg-[#e5eeff] rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-[#d3e4fe] flex items-center justify-center text-[#001e40] font-extrabold">{initials(user.name)}</div>
+              <div>
+                <p className="font-bold text-[#0b1c30]">{user.name}</p>
+                {user.linkedParents?.length > 0 && <p className="text-xs text-[#43474f]">{user.linkedParents[0].name}</p>}
               </div>
-            )}
-            {quizBadge && (
-              <div className="flex items-center gap-2 bg-yellow-400/10 border border-yellow-300/30 px-3 py-2 rounded-xl">
-                <img src={quizBadge.image} alt={quizBadge.badge} className="w-4 h-4 object-contain" />
-                <span className="text-xs font-bold text-yellow-700">{quizBadge.badge}</span>
-              </div>
-            )}
+            </div>
           </div>
-
-          {/* Nav links */}
-          <nav className="flex-1 px-3 space-y-1">
-            <button onClick={() => setActiveNav("home")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-semibold ${activeNav === "home" ? "bg-[#003366] text-white shadow-sm" : "text-[#003366] hover:bg-[#003366]/10"}`}>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: activeNav === "home" ? "'FILL' 1" : "'FILL' 0" }}>home</span>
-              Home
+          <nav className="flex flex-col gap-2 text-sm font-medium font-headline">
+            <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#001e40] font-bold border-r-4 border-[#001e40] bg-blue-50/50">
+              <span className="material-symbols-outlined">home</span>Home
             </button>
-            <button onClick={() => { setActiveNav("scan"); router.push(`/scan?userId=${userId}`); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-semibold ${activeNav === "scan" ? "bg-[#003366] text-white shadow-sm" : "text-[#003366] hover:bg-[#003366]/10"}`}>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: activeNav === "scan" ? "'FILL' 1" : "'FILL' 0" }}>document_scanner</span>
-              听写 Spelling
+            <button onClick={() => router.push(`/scan?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+              <span className="material-symbols-outlined">spellcheck</span>听写
             </button>
-            <button onClick={() => { setActiveNav("quiz"); setShowQuizSetup(true); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-semibold ${activeNav === "quiz" ? "bg-[#003366] text-white shadow-sm" : "text-[#003366] hover:bg-[#003366]/10"}`}>
-              <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
-              Daily Quiz
+            <button onClick={() => setShowQuizSetup(true)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+              <span className="material-symbols-outlined">quiz</span>Quiz
             </button>
           </nav>
-
-          {/* Footer CTA */}
-          <div className="p-4">
-            {hasParent && (
-              <div className="mt-2 px-1">
-                {user.linkedParents.map(p => (
-                  <div key={p.id} className="flex items-center gap-2 py-1.5">
-                    <span className="material-symbols-outlined text-[#006c49] text-sm">family_restroom</span>
-                    <span className="text-xs text-[#003366] font-medium truncate">{p.name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <button onClick={() => openLinkModal("share")}
-              className="w-full mt-2 py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
+          <div className="mt-auto">
+            <button onClick={() => openLinkModal("share")} className="w-full py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
               {hasParent ? "Link Another Parent" : "Link Parent"}
             </button>
           </div>
         </aside>
-
-        {/* ── Main Content ─────────────────────────────────────────────────── */}
-        <main className="ml-64 flex-1 px-8 py-6 max-w-screen-xl">
-
-          {/* Top Header */}
-          <header className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="font-headline font-extrabold text-2xl text-[#003366] leading-tight">
-                {greeting()}, {user.name.split(" ")[0]}!
-              </h2>
-              <p className="text-sm text-slate-500 font-medium mb-3">
-                {user.level ? `Primary ${user.level} Student` : "Student"} · Let&apos;s improve your score today.
-              </p>
-              <div className="flex items-center gap-2 flex-wrap">
-                {quizBadge && quizBadge.streak > 0 && (
-                  <span className="flex items-center gap-1.5 bg-amber-50 text-amber-800 border border-amber-100 px-3 py-1 rounded-full text-xs font-bold">
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                    {quizBadge.streak}-Day Streak
-                  </span>
-                )}
-                {quizBadge && (
-                  <span className="flex items-center gap-1.5 bg-yellow-400 text-white px-3 py-1 rounded-full text-xs font-bold">
-                    <img src={quizBadge.image} alt={quizBadge.badge} className="w-3.5 h-3.5 object-contain" />
-                    {quizBadge.badge}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="relative">
-              <button
-                onClick={() => setShowProfileMenu(v => !v)}
-                className="w-11 h-11 rounded-2xl bg-[#d3e4fe] border-2 border-white shadow-md flex items-center justify-center hover:bg-[#c3d9fe] transition-colors overflow-hidden"
-              >
-                <span className="material-symbols-outlined text-[#003366] text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
-              </button>
-              {showProfileMenu && (
-                <div className="absolute right-0 top-13 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
-                  <button
-                    onClick={() => { setShowProfileMenu(false); router.push("/"); }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-base">logout</span>
-                    Sign out
-                  </button>
-                </div>
-              )}
+        <main className="ml-64 flex-1 min-h-screen">
+          <header className="w-full h-16 sticky top-0 z-40 backdrop-blur-md flex justify-end items-center px-8">
+            <div className="flex items-center gap-4 text-[#001e40]">
+              {quizBadge && <span className="material-symbols-outlined hover:opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>}
+              <div className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center text-xs font-bold text-[#001e40]">{initials(user.name)}</div>
             </div>
           </header>
-
-
-          {/* Bento Grid */}
-          <div className="grid grid-cols-12 gap-6">
-
-            {/* Left column (8 cols) */}
-            <div className="col-span-8 space-y-6">
-
-              {/* Hero action cards */}
-              <div className="grid grid-cols-2 gap-4">
-                {/* Daily Quiz */}
-                <button onClick={() => setShowQuizSetup(true)}
-                  className="relative overflow-hidden bg-gradient-to-br from-[#006c49] to-[#004d35] p-6 rounded-2xl text-left shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.99]">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="bg-white/20 p-2.5 rounded-xl">
-                      <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>history_edu</span>
-                    </div>
-                    <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Recommended</span>
+          <div className="px-12 py-8 max-w-6xl mx-auto">
+            <section className="mb-12">
+              <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+              <p className="text-lg text-[#43474f] font-medium">Ready to learn today? You&apos;re doing great!</p>
+              <div className="flex flex-wrap gap-3 mt-6">
+                {quizBadge && quizBadge.streak > 0 && (
+                  <div className="flex items-center gap-1 bg-[#ffddb4] text-[#291800] px-2 py-1 rounded-full text-[10px] font-bold">
+                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak
                   </div>
-                  <h3 className="text-white font-headline font-extrabold text-xl mb-1">Daily Quiz</h3>
-                  <p className="text-white/70 text-sm">Master exam topics daily</p>
-                </button>
-
-                {/* Scan Spelling */}
-                <button onClick={() => router.push(`/scan?userId=${userId}`)}
-                  className="relative overflow-hidden bg-gradient-to-br from-[#003366] to-[#001f40] p-6 rounded-2xl text-left shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.99]">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="bg-white/20 p-2.5 rounded-xl">
-                      <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>document_scanner</span>
-                    </div>
-                    <span className="material-symbols-outlined text-white/40 text-xl">arrow_forward</span>
-                  </div>
-                  <h3 className="text-white font-headline font-extrabold text-xl mb-1">Scan 听写 Spelling</h3>
-                  <p className="text-white/70 text-sm">AI-assisted spelling helper</p>
-                </button>
-              </div>
-
-              {/* Exam &amp; Quiz */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                <h4 className="font-headline font-bold text-base text-[#003366] mb-4">Exam &amp; Quiz</h4>
-                {todoPapers.length === 0 && completedPapers.length === 0 ? (
-                  <div className="text-center py-6">
-                    <span className="material-symbols-outlined text-3xl text-slate-300 block mb-2">description</span>
-                    <p className="text-sm text-slate-400">No papers yet</p>
-                    <p className="text-xs text-slate-300 mt-1">Your parent will assign papers and quizzes here</p>
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {todoPapers.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#ba1a1a]" />
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">To Do</span>
-                        </div>
-                        <div className="space-y-2">
-                          {todoPapers.map(paper => (
-                            <div key={paper.id}
-                              onClick={() => {
-                                const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
-                                router.push(isQuizOrFocused ? `/quiz/${paper.id}?userId=${userId}` : `/exam/${paper.id}?userId=${userId}`);
-                              }}
-                              className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 cursor-pointer hover:bg-[#003366]/5 transition-colors">
-                              <div className="bg-white p-1.5 rounded-lg shadow-sm shrink-0">
-                                <span className="material-symbols-outlined text-[#003366] text-base">
-                                  {paper.paperType === "quiz" ? "history_edu" : paper.paperType === "focused" ? "psychology" : "description"}
-                                </span>
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-xs text-[#003366] truncate">{paper.title}</p>
-                                <p className="text-[10px] text-slate-400">
-                                  {paper.paperType === "quiz" ? "Daily Quiz" : paper.paperType === "focused" ? "Focused Practice" : "Exam Paper"}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                {(paper.paperType === "quiz" || paper.paperType === "focused") && (
-                                  <button onClick={(e) => handleDeletePaper(e, paper.id)}
-                                    className="w-6 h-6 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
-                                    <span className="material-symbols-outlined text-sm">close</span>
-                                  </button>
-                                )}
-                                <span className="material-symbols-outlined text-slate-300 text-base">chevron_right</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {completedPapers.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#006c49]" />
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Completed</span>
-                        </div>
-                        <div className="space-y-2">
-                          {completedPapers.slice(0, 10).map(paper => {
-                            const pct = scorePct(paper);
-                            const isMarking = paper.markingStatus === "in_progress";
-                            return (
-                              <div key={paper.id}
-                                onClick={() => { if (!isMarking) router.push(`/exam/${paper.id}/review?userId=${userId}`); }}
-                                className={`flex items-center gap-3 p-3 rounded-xl bg-[#006c49]/5 transition-colors ${isMarking ? "opacity-60" : "cursor-pointer hover:bg-[#006c49]/10"}`}>
-                                <div className="bg-white p-1.5 rounded-lg shadow-sm shrink-0">
-                                  <span className="material-symbols-outlined text-[#006c49] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>{isMarking ? "pending" : "check_circle"}</span>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-xs text-[#003366] truncate">{paper.title}</p>
-                                  {isMarking ? (
-                                    <p className="text-[10px] font-bold text-blue-500">Marking…</p>
-                                  ) : pct !== null ? (
-                                    <p className={`text-[10px] font-bold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-amber-600" : "text-[#ba1a1a]"}`}>{pct}%</p>
-                                  ) : null}
-                                </div>
-                                {(paper.paperType === "quiz" || paper.paperType === "focused") && (
-                                  <button onClick={(e) => handleDeletePaper(e, paper.id)}
-                                    className="w-6 h-6 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
-                                    <span className="material-symbols-outlined text-sm">close</span>
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                )}
+                {quizBadge && (
+                  <div className="flex items-center gap-1 bg-[#d3e4fe] text-[#001e40] px-2 py-1 rounded-full text-[10px] font-bold">
+                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>{quizBadge.count} Quizzes
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Right column (4 cols) — Recent Spelling */}
-            <div className="col-span-4">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 sticky top-6">
-                <h4 className="font-headline font-bold text-base text-[#003366] mb-4">Recent Spelling / 听写</h4>
-                {recentTests.length === 0 ? (
-                  <div className="text-center py-6">
-                    <span className="material-symbols-outlined text-3xl text-slate-300 block mb-2">spellcheck</span>
-                    <p className="text-sm text-slate-400">No spelling tests yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {recentTests.map(test => (
-                      <div key={test.id} onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
-                        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-[#003366]/5">
-                          <span className="material-symbols-outlined text-base text-[#003366]">spellcheck</span>
+            </section>
+            <div className="grid grid-cols-12 gap-8 mb-12">
+              <div className="col-span-12 lg:col-span-5 bg-[#eff4ff] rounded-[2rem] p-8 relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#006c49]/5 rounded-full blur-3xl" />
+                <h2 className="text-2xl font-bold text-[#001e40] mb-6 flex items-center gap-2 font-headline">
+                  <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities
+                </h2>
+                <div className="space-y-4">
+                  {todayDone.map(p => (
+                    <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-4 p-5 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="w-6 h-6 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center">
+                        <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                      </div>
+                      <span className="font-semibold text-[#0b1c30] truncate flex-1">{p.title}</span>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
+                    </div>
+                  ))}
+                  {todayTodo.map(p => (
+                    <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-4 p-5 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="w-6 h-6 rounded border-2 border-[#c3c6d1]" />
+                      <span className="font-semibold text-[#0b1c30] truncate flex-1">{p.title}</span>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-[#dce9ff] text-[#737780] rounded-full">TODO</span>
+                    </div>
+                  ))}
+                  {todayActivities.length === 0 && (
+                    <div className="text-center py-6"><span className="material-symbols-outlined text-3xl text-[#c3c6d1] mb-2 block">event_available</span><p className="text-sm text-[#43474f]">No activities yet today</p></div>
+                  )}
+                </div>
+              </div>
+              <div className="col-span-12 lg:col-span-7 bg-[#d3e4fe]/40 backdrop-blur-sm rounded-[2rem] p-8 border border-white/50">
+                <h2 className="text-2xl font-bold text-[#001e40] mb-6 flex items-center gap-2 font-headline">
+                  <span className="material-symbols-outlined text-[#001e40]">assignment</span>This Week&apos;s Homework
+                </h2>
+                {weekHomework.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {weekHomework.map(p => (
+                      <div key={p.id} onClick={() => goToPaper(p)} className="bg-white p-6 rounded-3xl group cursor-pointer hover:bg-[#001e40] hover:text-white transition-all duration-300 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-[#006c49]/10 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-colors">
+                          <span className="material-symbols-outlined text-[#006c49] group-hover:text-white">{paperIcon(p)}</span>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-[#003366] truncate">{test.title || "Spelling Test"}</p>
-                          <p className="text-xs text-slate-400">{relativeDate(test.createdAt)}</p>
-                        </div>
-                        <span className="text-xs text-slate-400 shrink-0">{test.wordCount} words</span>
+                        <h3 className="font-bold text-lg leading-tight mb-2">{p.title}</h3>
+                        <p className="text-sm opacity-70">{relativeDate(p.createdAt)}</p>
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="text-center py-8"><span className="material-symbols-outlined text-3xl text-[#c3c6d1] mb-2 block">celebration</span><p className="text-sm text-[#43474f]">All caught up! No pending homework.</p></div>
                 )}
               </div>
             </div>
+            <section className="mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <button onClick={() => setShowQuizSetup(true)} className="relative group h-48 rounded-[2.5rem] bg-[#006c49] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#006c49]/20">
+                  <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_-20%,rgba(255,255,255,0.2),transparent)]" />
+                  <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">rocket_launch</span>
+                  <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Daily 20min Quiz</h3>
+                  <p className="text-[#6cf8bb]/90 font-medium">Power up your memory today</p>
+                </button>
+                <button onClick={() => router.push(`/scan?userId=${userId}`)} className="relative group h-48 rounded-[2.5rem] bg-[#001e40] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#001e40]/20">
+                  <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">camera_enhance</span>
+                  <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Scan Spelling / 听写</h3>
+                  <p className="text-[#a7c8ff] font-medium">Quickly mark your latest list</p>
+                </button>
+              </div>
+            </section>
+            {completedPapers.length > 0 && (
+              <section className="mb-12">
+                <button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-2 text-sm font-bold text-[#43474f] hover:text-[#001e40] transition-colors mb-4">
+                  <span className="material-symbols-outlined text-base">{showPastWork ? "expand_less" : "expand_more"}</span>Past Completed Work ({completedPapers.length})
+                </button>
+                {showPastWork && (
+                  <div className="space-y-3">
+                    {completedPapers.slice(0, 10).map(p => { const pct = scorePct(p); return (
+                      <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-lg">{paperIcon(p)}</span></div>
+                        <div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>
+                        {pct !== null && <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}
+                      </div>
+                    ); })}
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         </main>
       </div>
 
-      {/* ════════════════════════════════════════════════
-          MOBILE LAYOUT (< lg)
-      ════════════════════════════════════════════════ */}
-      <div className="lg:hidden pb-32">
-
-      {/* ── Top Nav ─────────────────────────────────────────────────────────── */}
-      <nav className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
-        <div className="flex items-center justify-between px-6 w-full py-3 max-w-lg mx-auto">
+      {/* ══ MOBILE LAYOUT ══ */}
+      <div className="lg:hidden pb-24">
+        <header className="sticky top-0 z-40 bg-[#f8f9ff]/90 backdrop-blur-md px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2"><img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" /><img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" /></div>
           <div className="flex items-center gap-2">
-            <img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" />
-            <img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" />
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => openLinkModal("share")}
-              className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full"
-            >
-              {hasParent ? "+" : "Link Parent"}
-            </button>
-            <div className="relative">
-              <button
-                onClick={() => setShowProfileMenu(v => !v)}
-                className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center overflow-hidden"
-              >
-                <span className="material-symbols-outlined text-[#003366] text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>account_circle</span>
-              </button>
-              {showProfileMenu && (
-                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-36 z-50">
-                  <button
-                    onClick={() => { setShowProfileMenu(false); router.push("/"); }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-base">logout</span>
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── Main Content ─────────────────────────────────────────────────────── */}
-      <main className="mt-20 px-6 max-w-lg mx-auto">
-
-
-        {/* ── Student Profile Header ──────────────────────────────────────── */}
-        <header className="mb-8 pt-4">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-2xl bg-[#d3e4fe] border-2 border-white shadow-md flex items-center justify-center">
-                <span className="font-headline font-extrabold text-[#003366] text-xl">{initials(user.name)}</span>
-              </div>
-              {hasParent && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#006c49] rounded-full border-2 border-white flex items-center justify-center">
-                  <span className="material-symbols-outlined text-white text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
-                </div>
-              )}
-            </div>
-            <div>
-              <h1 className="text-2xl font-headline font-extrabold text-[#003366] tracking-tight leading-tight">{user.name}</h1>
-              <p className="text-sm text-slate-500 font-medium uppercase tracking-widest">
-                {user.level ? `Primary ${user.level} Student` : "Student"}
-              </p>
-            </div>
-          </div>
-
-          <h2 className="text-3xl font-headline font-extrabold text-[#003366] tracking-tight leading-tight">{greeting()}, {user.name.split(" ")[0]}!</h2>
-          <p className="text-[#43474f] mt-1 text-sm mb-4">Let&apos;s improve your score together.</p>
-
-          {/* Badges */}
-          <div className="flex items-center gap-3 flex-wrap">
-            {quizBadge ? (
-              <>
-                <button
-                  onClick={() => { setBadgeToast(true); setTimeout(() => setBadgeToast(false), 2500); }}
-                  className="flex items-center gap-2 bg-amber-50 text-amber-800 border border-amber-200 px-4 py-2.5 rounded-2xl font-bold shadow-sm"
-                >
-                  <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
-                  <div className="text-left">
-                    <p className="text-lg font-extrabold leading-none">{quizBadge.streak}</p>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide opacity-70">Day Streak</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => { setBadgeToast(true); setTimeout(() => setBadgeToast(false), 2500); }}
-                  className="flex items-center gap-2 bg-yellow-400 text-white px-4 py-2.5 rounded-2xl font-bold shadow-sm"
-                >
-                  <img src={quizBadge.image} alt={quizBadge.badge} className="w-7 h-7 object-contain" />
-                  <div className="text-left">
-                    <p className="text-sm font-extrabold leading-none">{quizBadge.badge}</p>
-                    <p className="text-[10px] font-semibold uppercase tracking-wide opacity-80">{quizBadge.count} quizzes</p>
-                  </div>
-                </button>
-              </>
-            ) : null}
-          </div>
-
-          {/* Linked parents + link button */}
-          <div className="mt-3 flex flex-wrap gap-2 items-center">
-            {user.linkedParents.map(p => (
-              <span key={p.id} className="flex items-center gap-1.5 bg-[#e8f5e9] text-[#006c49] border border-[#006c49]/20 px-3 py-1 rounded-full text-xs font-semibold">
-                <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>family_restroom</span>
-                {p.name}
-              </span>
-            ))}
-            <button onClick={() => openLinkModal("share")}
-              className="flex items-center gap-1.5 text-xs font-bold text-[#003366] bg-[#eff4ff] border border-[#003366]/10 px-3 py-1 rounded-full hover:bg-[#dce9ff] transition-colors">
-              <span className="material-symbols-outlined text-sm">link</span>
-              {hasParent ? "+" : "Link Parent"}
-            </button>
+            <button onClick={() => openLinkModal("share")} className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full">{hasParent ? "+" : "Link"}</button>
+            <div className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center text-xs font-bold text-[#001e40]">{initials(user.name)}</div>
           </div>
         </header>
-
-        {/* ── Primary Action Buttons ──────────────────────────────────────── */}
-        <section className="space-y-4 mb-10">
-          {/* Daily Quiz */}
-          <button
-            onClick={() => setShowQuizSetup(true)}
-            className="w-full relative overflow-hidden bg-[#006c49]/5 border border-[#006c49]/10 p-6 rounded-2xl text-left shadow-sm active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-[#006c49] bg-white p-2 rounded-xl shadow-sm">
-                    <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>history_edu</span>
-                  </span>
-                  <span className="bg-[#006c49] text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Recommended</span>
-                </div>
-                <h3 className="text-[#003366] font-headline font-bold text-xl">Daily Quiz</h3>
-                <p className="text-[#43474f] text-sm mt-1">Master exam topics daily</p>
-              </div>
-              <span className="material-symbols-outlined text-[#006c49]/40 text-2xl">arrow_forward</span>
+        <div className="px-5">
+          <section className="mb-8 mt-2">
+            <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+            <p className="text-sm text-[#43474f]">Ready to learn today?</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1 bg-[#ffddb4] text-[#291800] px-2 py-1 rounded-full text-[10px] font-bold"><span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
+              {quizBadge && <div className="flex items-center gap-1 bg-[#d3e4fe] text-[#001e40] px-2 py-1 rounded-full text-[10px] font-bold"><span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>{quizBadge.count} Quizzes</div>}
             </div>
-          </button>
-
-          {/* Scan Spelling */}
-          <button
-            onClick={() => router.push(`/scan?userId=${userId}`)}
-            className="w-full relative overflow-hidden bg-[#003366]/5 border border-[#003366]/10 p-6 rounded-2xl text-left shadow-sm active:scale-[0.98] transition-all group"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[#003366] bg-white p-2 rounded-xl shadow-sm">
-                <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>document_scanner</span>
-              </span>
-              <span className="text-[#003366]/40 group-hover:translate-x-1 transition-transform">
-                <span className="material-symbols-outlined">arrow_forward</span>
-              </span>
+          </section>
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-[#001e40] mb-4 flex items-center gap-2 font-headline"><span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities</h2>
+            <div className="space-y-3">
+              {todayDone.map(p => <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><span className="font-semibold text-sm text-[#0b1c30] truncate flex-1">{p.title}</span><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span></div>)}
+              {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><span className="font-semibold text-sm text-[#0b1c30] truncate flex-1">{p.title}</span><span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full">TODO</span></div>)}
+              {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
-            <h3 className="text-[#003366] font-headline font-bold text-xl">Scan Spelling / 听写</h3>
-            <p className="text-[#43474f] text-sm mt-1">AI-assisted spelling helper</p>
-          </button>
-        </section>
+          </section>
+          {weekHomework.length > 0 && <section className="mb-8"><h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2><div className="space-y-3">{weekHomework.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{relativeDate(p.createdAt)}</p></div></div>)}</div></section>}
+          <section className="mb-8 grid grid-cols-2 gap-3">
+            <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
+            <button onClick={() => router.push(`/scan?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">camera_enhance</span><h3 className="text-sm font-extrabold text-white font-headline">Scan 听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Mark spelling</p></button>
+          </section>
+          {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, 10).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}</div>}</section>}
+        </div>
+      </div>
 
-        {/* ── Recent Spelling ─────────────────────────────────────────────── */}
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="font-headline font-bold text-lg text-[#003366]">Recent Spelling / 听写</h4>
-          </div>
-          {recentTests.length === 0 ? (
-            <div className="text-center py-8 rounded-2xl bg-white border border-slate-100 shadow-sm">
-              <span className="material-symbols-outlined text-3xl text-slate-300 mb-2 block">spellcheck</span>
-              <p className="text-sm text-slate-400">No spelling tests yet</p>
-              <p className="text-xs text-slate-300 mt-1">Scan your spelling list to get started</p>
-            </div>
-          ) : (
-            <>
-              <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar" style={{ scrollbarWidth: "none" }}>
-                {recentTests.map(test => (
-                  <div
-                    key={test.id}
-                    onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
-                    className="relative min-w-[200px] bg-white p-5 rounded-2xl shadow-sm border border-slate-100 cursor-pointer hover:border-[#003366]/20 transition-colors group"
-                  >
-                    <button
-                      onClick={e => handleDeleteTest(e, test.id)}
-                      className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-slate-300 opacity-40 hover:opacity-100 hover:bg-red-50 hover:text-red-500 active:text-red-500 transition-all"
-                      aria-label="Delete"
-                    >
-                      <span className="material-symbols-outlined text-base">delete</span>
-                    </button>
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#003366]/5 text-[#003366]">
-                        <span className="material-symbols-outlined">spellcheck</span>
-                      </div>
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-md text-[#003366] bg-[#003366]/10">
-                        {test.wordCount} words
-                      </span>
-                    </div>
-                    <h5 className="font-bold text-sm text-[#0b1c30] mb-1 truncate">{test.title || "Spelling Test"}</h5>
-                    <p className="text-[10px] text-[#43474f] mb-3">{relativeDate(test.createdAt)}</p>
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-[#006c49] text-[8px] flex items-center justify-center text-white font-bold">AI</div>
-                      <span className="text-[10px] font-medium text-[#43474f]">View results</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {tests.length > 6 && (
-                <div className="mt-2 text-right">
-                  <Link href={`/home/${userId}?t=${Date.now()}`} className="text-[#003366] font-bold text-xs inline-flex items-center gap-1">
-                    View All <span className="material-symbols-outlined text-xs">arrow_forward</span>
-                  </Link>
-                </div>
-              )}
-            </>
-          )}
-        </section>
-
-        {/* ── Exam &amp; Quiz ─────────────────────────────────────────────────── */}
-        <section className="mb-10">
-          <h4 className="font-headline font-bold text-lg text-[#003366] mb-6">Exam &amp; Quiz</h4>
-          <div className="space-y-8">
-            {/* To Do */}
-            {todoPapers.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#ba1a1a]" />
-                  <h5 className="text-xs font-bold text-[#43474f] tracking-wider uppercase">To Do</h5>
-                </div>
-                <div className="space-y-3">
-                  {todoPapers.map(paper => (
-                    <div
-                      key={paper.id}
-                      onClick={() => {
-                        const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
-                        router.push(isQuizOrFocused ? `/quiz/${paper.id}?userId=${userId}` : `/exam/${paper.id}?userId=${userId}`);
-                      }}
-                      className="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm cursor-pointer hover:border-[#003366]/20 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="bg-[#003366]/5 p-2.5 rounded-xl">
-                          <span className="material-symbols-outlined text-[#003366]">
-                            {paper.paperType === "quiz" ? "history_edu" : paper.paperType === "focused" ? "psychology" : "description"}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-bold text-sm text-[#003366]">{paper.title}</p>
-                          <p className="text-[10px] text-[#43474f]">
-                            {paper.paperType === "quiz" ? "Daily Quiz" : paper.paperType === "focused" ? "Focused Practice" : "Exam Paper"}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {(paper.paperType === "quiz" || paper.paperType === "focused") && (
-                          <button
-                            onClick={(e) => handleDeletePaper(e, paper.id)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                          >
-                            <span className="material-symbols-outlined text-lg">close</span>
-                          </button>
-                        )}
-                        <span className="material-symbols-outlined text-[#43474f]/40">chevron_right</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Completed */}
-            {completedPapers.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#006c49]" />
-                  <h5 className="text-xs font-bold text-[#43474f] tracking-wider uppercase">Completed</h5>
-                </div>
-                <div className="space-y-3">
-                  {completedPapers.slice(0, 10).map(paper => {
-                    const pct = scorePct(paper);
-                    const isMarking = paper.markingStatus === "in_progress";
-                    return (
-                      <div
-                        key={paper.id}
-                        onClick={() => { if (!isMarking) router.push(`/exam/${paper.id}/review?userId=${userId}`); }}
-                        className={`flex items-center justify-between p-4 rounded-2xl bg-[#006c49]/5 transition-colors ${isMarking ? "opacity-60" : "cursor-pointer hover:bg-[#006c49]/10"}`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="bg-white p-2.5 rounded-xl shadow-sm">
-                            <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>{isMarking ? "pending" : "check_circle"}</span>
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm text-[#003366]">{paper.title}</p>
-                            <p className="text-[10px] text-[#43474f]">
-                              {isMarking ? "Marking…" : pct !== null ? `Score: ${pct}% · ` : ""}{!isMarking && paper.completedAt ? relativeDate(paper.completedAt) : ""}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {(paper.paperType === "quiz" || paper.paperType === "focused") && (
-                            <button
-                              onClick={(e) => handleDeletePaper(e, paper.id)}
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
-                            >
-                              <span className="material-symbols-outlined text-base">close</span>
-                            </button>
-                          )}
-                          {!isMarking && pct !== null && (
-                            <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-amber-600" : "text-[#ba1a1a]"}`}>
-                              {pct}%
-                            </span>
-                          )}
-                          {isMarking && (
-                            <span className="text-xs font-extrabold text-blue-500">Marking…</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {todoPapers.length === 0 && completedPapers.length === 0 && (
-              <div className="text-center py-8 rounded-2xl bg-white border border-slate-100 shadow-sm">
-                <span className="material-symbols-outlined text-3xl text-slate-300 mb-2 block">description</span>
-                <p className="text-sm text-slate-400">No exam papers yet</p>
-                <p className="text-xs text-slate-300 mt-1">Your parent will assign papers here</p>
-              </div>
-            )}
-          </div>
-        </section>
-
-      </main>
-
-      </div>{/* end lg:hidden mobile wrapper */}
 
       {/* ── Quiz Setup Modal ─────────────────────────────────────────────── */}
       {showQuizSetup && (
