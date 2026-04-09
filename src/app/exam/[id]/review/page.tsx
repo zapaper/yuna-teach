@@ -935,7 +935,7 @@ function ExamReviewContent({ id }: { id: string }) {
                             const isEmpty = !textContent && !cells[0]?.trim();
                             return (
                               <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.6rem]"}`}>
-                                <p className={`flex-1 text-[12px] lg:text-[14px] text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{textContent.replace(/^\s+/, "")}</p>
+                                <p className={`flex-1 text-[11px] lg:text-[13px] text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{textContent.replace(/^\s+/, "")}</p>
                                 {marginNum && <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0">{marginNum}</span>}
                               </div>
                             );
