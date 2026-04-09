@@ -106,6 +106,10 @@ export default function BeginTestMode({
     sequencerRef.current?.skip();
   }
 
+  function handleReplay() {
+    sequencerRef.current?.replay();
+  }
+
   return (
     <div className="fixed inset-0 bg-slate-900 text-white flex flex-col items-center justify-center z-50">
       {status === "loading" && (
@@ -175,16 +179,22 @@ export default function BeginTestMode({
         </div>
 
         {(status === "playing" || status === "paused") && (
-          <button
-            onClick={handleNext}
-            className="bg-white/10 text-white rounded-full px-8 py-3 text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
-          >
-            Next
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="5 4 15 12 5 20 5 4" />
-              <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={handleReplay}
+              className="bg-white/10 text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">replay</span>
+              Replay
+            </button>
+            <button
+              onClick={handleNext}
+              className="bg-white/10 text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
+            >
+              Next
+              <span className="material-symbols-outlined text-lg">skip_next</span>
+            </button>
+          </div>
         )}
       </div>
     </div>

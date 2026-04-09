@@ -10,6 +10,8 @@ export class AudioSequencer {
   private paused = false;
   private pauseResolve: (() => void) | null = null;
   private audioContext: AudioContext | null = null;
+  private replayRequested = false;
+  currentIndex = 0;
 
   async prefetchAudio(
     words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE"; voice?: "male" | "female" }>
@@ -75,6 +77,13 @@ export class AudioSequencer {
 
     try {
       for (let i = 0; i < words.length; i++) {
+        // Handle replay: go back one word
+        if (this.replayRequested) {
+          this.replayRequested = false;
+          i = Math.max(0, i - 2); // -2 because loop will i++ to get back to previous
+          continue;
+        }
+        this.currentIndex = i;
         if (this.abortController.signal.aborted) break;
         await this.waitIfPaused();
         if (this.abortController.signal.aborted) break;
@@ -140,6 +149,12 @@ export class AudioSequencer {
     } finally {
       this.closeAudio();
     }
+  }
+
+  replay() {
+    this.replayRequested = true;
+    this.skipController?.abort();
+    this.skipController = null;
   }
 
   skip() {
