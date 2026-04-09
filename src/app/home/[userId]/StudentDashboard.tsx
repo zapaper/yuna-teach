@@ -437,9 +437,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         <p className="font-bold text-sm text-[#001e40] truncate">{t.title}</p>
                         <p className="text-xs text-[#43474f]">{relativeDate(t.createdAt)} &middot; {t.wordCount} words</p>
                       </div>
-                      {t.score !== null && (
-                        <span className={`font-extrabold text-sm ${t.score >= 80 ? "text-[#006c49]" : t.score >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{t.score}%</span>
-                      )}
+                      <span className="material-symbols-outlined text-[#c3c6d1] text-lg shrink-0">chevron_right</span>
                     </div>
                   ))}
                 </div>
