@@ -332,21 +332,27 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <section className="mb-12">
               <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
               <p className="text-lg text-[#43474f] font-medium">Ready to learn today? You&apos;re doing great!</p>
-              <div className="flex flex-wrap gap-3 mt-6">
-                {quizBadge && quizBadge.streak > 0 && (
-                  <div className="flex items-center gap-1 bg-[#ffddb4] text-[#291800] px-2 py-1 rounded-full text-[10px] font-bold">
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak
-                  </div>
+              {quizBadge && (
+                <div className="flex flex-wrap items-center gap-4 mt-6">
+                  {quizBadge.streak > 0 && (
+                    <div className="flex items-center gap-2 bg-[#ffddb4] text-[#291800] px-4 py-2 rounded-full">
+                      <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+                      <span className="text-lg font-extrabold">{quizBadge.streak}-day streak</span>
+                    </div>
+                  )}
+                  {quizBadge.image && (
+                    <div className="flex items-center gap-2 bg-[#d3e4fe] text-[#001e40] px-4 py-2 rounded-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
+                      <span className="text-lg font-extrabold">{quizBadge.badge}</span>
+                    </div>
                 )}
-                {quizBadge && (
-                  <div className="flex items-center gap-1 bg-[#d3e4fe] text-[#001e40] px-2 py-1 rounded-full text-[10px] font-bold">
-                    <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>{quizBadge.count} Quizzes
-                  </div>
-                )}
-              </div>
+                  <span className="text-sm text-[#43474f] font-medium">{quizBadge.count} quizzes completed</span>
+                </div>
+              )}
             </section>
             <div className="grid grid-cols-12 gap-8 mb-12">
-              <div className="col-span-12 lg:col-span-5 bg-[#eff4ff] rounded-[2rem] p-8 relative overflow-hidden">
+              <div className="col-span-12 lg:col-span-7 bg-[#eff4ff] rounded-[2rem] p-8 relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#006c49]/5 rounded-full blur-3xl" />
                 <h2 className="text-2xl font-bold text-[#001e40] mb-6 flex items-center gap-2 font-headline">
                   <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities
@@ -357,15 +363,21 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <div className="w-6 h-6 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center">
                         <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
                       </div>
-                      <span className="font-semibold text-[#0b1c30] truncate flex-1">{p.title}</span>
-                      <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
+                        <span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full shrink-0">DONE</span>
                     </div>
                   ))}
                   {todayTodo.map(p => (
                     <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-4 p-5 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                       <div className="w-6 h-6 rounded border-2 border-[#c3c6d1]" />
-                      <span className="font-semibold text-[#0b1c30] truncate flex-1">{p.title}</span>
-                      <span className="text-[10px] font-bold px-2 py-1 bg-[#dce9ff] text-[#737780] rounded-full">TODO</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
+                        <span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-1 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span>
                     </div>
                   ))}
                   {todayActivities.length === 0 && (
@@ -373,7 +385,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   )}
                 </div>
               </div>
-              <div className="col-span-12 lg:col-span-7 bg-[#d3e4fe]/40 backdrop-blur-sm rounded-[2rem] p-8 border border-white/50">
+              <div className="col-span-12 lg:col-span-5 bg-[#d3e4fe]/40 backdrop-blur-sm rounded-[2rem] p-8 border border-white/50">
                 <h2 className="text-2xl font-bold text-[#001e40] mb-6 flex items-center gap-2 font-headline">
                   <span className="material-symbols-outlined text-[#001e40]">assignment</span>This Week&apos;s Homework
                 </h2>
@@ -445,15 +457,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
             <p className="text-sm text-[#43474f]">Ready to learn today?</p>
             <div className="flex flex-wrap gap-2 mt-3">
-              {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1 bg-[#ffddb4] text-[#291800] px-2 py-1 rounded-full text-[10px] font-bold"><span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
-              {quizBadge && <div className="flex items-center gap-1 bg-[#d3e4fe] text-[#001e40] px-2 py-1 rounded-full text-[10px] font-bold"><span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>{quizBadge.count} Quizzes</div>}
+              {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1.5 bg-[#ffddb4] text-[#291800] px-3 py-1.5 rounded-full text-sm font-extrabold"><span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
+              {quizBadge && quizBadge.image && <div className="flex items-center gap-1.5 bg-[#d3e4fe] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={quizBadge.image} alt={quizBadge.badge} className="w-6 h-6 object-contain" />{quizBadge.badge}</div>}
             </div>
           </section>
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#001e40] mb-4 flex items-center gap-2 font-headline"><span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities</h2>
             <div className="space-y-3">
-              {todayDone.map(p => <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><span className="font-semibold text-sm text-[#0b1c30] truncate flex-1">{p.title}</span><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span></div>)}
-              {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><span className="font-semibold text-sm text-[#0b1c30] truncate flex-1">{p.title}</span><span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full">TODO</span></div>)}
+              {todayDone.map(p => <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full shrink-0">DONE</span></div>)}
+              {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span></div>)}
               {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
           </section>
