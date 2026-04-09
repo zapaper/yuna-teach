@@ -725,7 +725,7 @@ function ReadingPassage({ text }: { text: string }) {
       return "";
     });
     return (
-      <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto w-full">
+      <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full">
         <div className="space-y-0.5">
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
@@ -733,11 +733,11 @@ function ReadingPassage({ text }: { text: string }) {
             const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
             const marginNum = marginNums[ri];
             return (
-              <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.6rem]"}`}>
-                <p className={`flex-1 text-base text-[#0b1c30] leading-relaxed break-words text-justify ${isIndented ? "pl-10" : ""}`}>
+              <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.4rem]"}`}>
+                <p className={`flex-1 text-[13px] lg:text-[15px] text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
-                {marginNum && <span className="w-6 text-right text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>}
+                {marginNum && <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>}
               </div>
             );
           })}
@@ -748,8 +748,8 @@ function ReadingPassage({ text }: { text: string }) {
 
   // Plain text fallback
   return (
-    <div className="mb-8 bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto w-full">
-      <p className="text-base text-[#0b1c30] leading-relaxed whitespace-pre-wrap break-words text-justify">{text}</p>
+    <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full">
+      <p className="text-[13px] lg:text-[15px] text-[#0b1c30] leading-relaxed whitespace-pre-wrap text-justify" style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{text}</p>
     </div>
   );
 }
