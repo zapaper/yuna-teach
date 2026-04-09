@@ -583,11 +583,11 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="mt-5 mb-5 lg:hidden">
           <div className="bg-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#003366]/5 rounded-full blur-2xl" />
-            {/* Sticker — top right of card */}
+            {/* Sticker — full size background, top right */}
             {sticker && (
-              <div className="absolute top-3 right-3 z-10">
+              <div className="absolute top-0 right-0 bottom-0 z-0 flex items-center justify-end pr-4 pointer-events-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-16 h-16 object-contain drop-shadow-md" />
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="h-full max-h-32 object-contain opacity-90 drop-shadow-md" />
               </div>
             )}
             <div className="flex items-center gap-5">
@@ -648,11 +648,11 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="hidden lg:grid grid-cols-3 gap-6 my-10">
           <div className="col-span-2 bg-white rounded-3xl p-8 flex flex-row items-center gap-8 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-            {/* Sticker — top right */}
+            {/* Sticker — full height background, right side */}
             {sticker && (
-              <div className="absolute top-4 right-4 z-10">
+              <div className="absolute top-0 right-0 bottom-0 z-0 flex items-center justify-end pr-6 pointer-events-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="h-full max-h-44 object-contain opacity-80 drop-shadow-lg" />
               </div>
             )}
             <div
@@ -745,7 +745,22 @@ function ExamReviewContent({ id }: { id: string }) {
 
         {/* Remark button — parents, or anyone for English quizzes */}
         {(!isStudent || englishSections) && (
-          <div className="mb-4 flex justify-end">
+          <div className="mb-4 flex justify-end gap-2">
+            {!isStudent && !released && (
+              <button
+                onClick={handleRelease}
+                disabled={releasing}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#006c49] text-white text-sm font-bold hover:bg-[#005236] transition-all disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-base">check_circle</span>
+                {releasing ? "Saving…" : released ? "Reviewed" : "Mark as Reviewed"}
+              </button>
+            )}
+            {released && !isStudent && (
+              <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#006c49]">
+                <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>Reviewed
+              </span>
+            )}
             <button
               onClick={handleRemark}
               disabled={remarking}
