@@ -534,7 +534,7 @@ function OcrRichText({ text, isMcq }: { text: string; isMcq?: boolean }) {
       // Parse table
       const rows = tableLines
         .filter(l => !l.match(/^\s*\|[\s-|]+\|\s*$/)) // skip separator rows
-        .map(l => l.split("|").slice(1, -1).map(c => c.trim()));
+        .map(l => l.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim()));
 
       if (rows.length > 0) {
         // Detect passage table (3 cols: Line#, Text, LineNo) — hide first col, justify text

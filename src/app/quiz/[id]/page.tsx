@@ -721,7 +721,7 @@ function QuizContent({ id }: { id: string }) {
                             if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
                             // Table rows
                             if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-                              const cells = line.split("|").slice(1, -1).map(c => c.trim());
+                              const cells = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
                               return (
                                 <div key={li} className="flex gap-2 my-1">
                                   {cells.map((cell, ci) => (

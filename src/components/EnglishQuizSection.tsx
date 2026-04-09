@@ -384,7 +384,7 @@ function PassageWithInputs({
 }
 
 function TableLine({ line }: { line: string }) {
-  const cells = line.split("|").slice(1, -1).map(c => c.trim());
+  const cells = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
   // Detect if this is a letter row (A-Q single uppercase letters)
   const isLetterRow = cells.every(c => /^[A-Q]$/.test(c));
   return (
@@ -426,7 +426,7 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
         if (trimmed.match(/^\|[\s-:|]+\|$/)) return null;
         // Table row
         if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
-          const cells = trimmed.split("|").slice(1, -1).map(c => c.trim());
+          const cells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
           const ri = tableRowIdx++;
           return (
             <div key={li} className="flex gap-1 my-1">
@@ -707,7 +707,7 @@ function ReadingPassage({ text }: { text: string }) {
     for (const line of lines) {
       if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) continue;
       if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-        rows.push(line.split("|").slice(1, -1).map(c => c.trim()));
+        rows.push(line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim()));
       }
     }
     // First row is header — skip it

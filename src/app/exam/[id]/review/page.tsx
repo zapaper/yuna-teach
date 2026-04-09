@@ -870,7 +870,7 @@ function ExamReviewContent({ id }: { id: string }) {
               for (const line of passageLines) {
                 if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) continue; // skip separator
                 if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-                  tableRows.push(line.split("|").slice(1, -1).map(c => c.trim()));
+                  tableRows.push(line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim()));
                 }
               }
               // Word bank: row 0 = letters (A, B, C...), row 1 = words
@@ -919,7 +919,7 @@ function ExamReviewContent({ id }: { id: string }) {
                           for (const line of pLines) {
                             if ((line as string).match(/^\s*\|[\s-:|]+\|\s*$/)) continue;
                             if ((line as string).trim().startsWith("|") && (line as string).trim().endsWith("|")) {
-                              rows.push((line as string).split("|").slice(1, -1).map((c: string) => c.trim()));
+                              rows.push((line as string).trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map((c: string) => c.trim()));
                             }
                           }
                           const dataRows = rows.length > 1 ? rows.slice(1) : rows;
@@ -947,7 +947,7 @@ function ExamReviewContent({ id }: { id: string }) {
                           if (!line.trim()) return <br key={li} />;
                           if ((line as string).match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
                           if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-                            const cells = line.split("|").slice(1, -1).map((c: string) => c.trim());
+                            const cells = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map((c: string) => c.trim());
                             return (
                               <div key={li} className="flex gap-1 my-1">
                                 {cells.map((cell: string, ci: number) => (
@@ -1082,7 +1082,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                               const tr = sl.trim();
                                               if (tr.match(/^\|[\s-:|]+\|$/)) return null;
                                               if (tr.startsWith("|") && tr.endsWith("|")) {
-                                                const tableCells = tr.split("|").slice(1, -1).map((c: string) => c.trim());
+                                                const tableCells = tr.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map((c: string) => c.trim());
                                                 const ri = rowIdx++;
                                                 return (
                                                   <div key={sli} className="flex gap-1">
@@ -1643,7 +1643,7 @@ function ReviewRichText({ text }: { text: string }) {
         if (!trimmed) return <br key={li} />;
         if (trimmed.match(/^\|[\s-:|]+\|$/)) return null;
         if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
-          const cells = trimmed.split("|").slice(1, -1).map(c => c.trim());
+          const cells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
           return (
             <div key={li} className="flex gap-1 my-0.5">
               {cells.map((cell, ci) => (
