@@ -1165,8 +1165,8 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 - English MCQ are tightly spaced (~3-8% of page height)
 - Sections have CONTINUOUS numbering:
   * Grammar MCQ Q1-10 — standalone grammar questions
-  * Vocabulary MCQ Q11-15 — standalone vocabulary questions
-  * Vocabulary Cloze MCQ Q16-20 — a PASSAGE fills the top half of the page, then Q16-20 appear below it (from ~50% of the page onwards). Tag these as "Vocabulary Cloze MCQ" NOT "Vocabulary MCQ". IMPORTANT: The passage may contain numbers (dates, amounts, etc.) — these are NOT question numbers. Only look for question numbers at the FAR LEFT MARGIN (within 5% of the left edge). Numbers embedded in the passage text are NEVER question boundaries.
+  * Vocabulary MCQ Q11-15 — standalone vocabulary questions with NO passage. These are individual word-meaning questions. They MUST be a SEPARATE section from Vocabulary Cloze MCQ.
+  * Vocabulary Cloze MCQ Q16-20 — these come AFTER Vocabulary MCQ and have a PASSAGE filling the top half of the page, with Q16-20 below it. CRITICAL: This MUST be a SEPARATE section from Vocabulary MCQ. The key difference: Vocab Cloze has a passage ABOVE the questions, Vocab MCQ does NOT. NEVER combine these two sections. IMPORTANT: The passage may contain numbers (dates, amounts, etc.) — these are NOT question numbers. Only look for question numbers at the FAR LEFT MARGIN (within 5% of the left edge).
   * Visual Text Comprehension MCQ Q21-28 — 1-2 FULL PAGES of visual text (poster/ad/letter) appear BEFORE Q21. These visual pages have NO question numbers — output EMPTY questions array for them. Q21 starts on the page AFTER the visual text pages.
 - Passage-only or visual-only pages (no question numbers at the left margin) = output EMPTY questions array, then continue to the NEXT page
 - For Vocab Cloze MCQ: the passage takes up the top half. Scan from the MIDDLE of the page downward for Q16 at the left margin
