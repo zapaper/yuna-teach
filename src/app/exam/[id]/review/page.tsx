@@ -583,8 +583,8 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="mt-5 mb-5 lg:hidden">
           <div className="bg-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#003366]/5 rounded-full blur-2xl" />
-            {/* Sticker — mobile: small top right */}
-            {sticker && (
+            {/* Sticker — mobile: inline if no summary, small corner if summary exists */}
+            {sticker && data.feedbackSummary && (
               <div className="absolute top-3 right-3 z-10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/stickers/${sticker}`} alt="Sticker" className="w-14 h-14 object-contain drop-shadow-md" />
@@ -615,6 +615,13 @@ function ExamReviewContent({ id }: { id: string }) {
                 </div>
               </div>
             </div>
+            {/* Sticker inline when no summary */}
+            {sticker && !data.feedbackSummary && (
+              <div className="flex justify-center mt-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
+              </div>
+            )}
             {data.feedbackSummary && isStudent && (
               <p className="text-sm text-[#43474f] leading-relaxed mt-4 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
             )}
@@ -673,6 +680,11 @@ function ExamReviewContent({ id }: { id: string }) {
                     <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2">{data.feedbackSummary}</p>
                   </details>
                 )
+              ) : sticker ? (
+                <div className="mb-4 flex justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={`/stickers/${sticker}`} alt="Sticker" className="w-28 h-28 object-contain drop-shadow-md" />
+                </div>
               ) : null}
               {data.bookletScores && data.bookletScores.length > 0 && (
                 <div className="flex flex-wrap gap-3">

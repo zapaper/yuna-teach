@@ -77,10 +77,16 @@ export class AudioSequencer {
 
     try {
       for (let i = 0; i < words.length; i++) {
-        // Handle replay: go back one word
+        // Handle previous: go back one word
+        if (this.previousRequested) {
+          this.previousRequested = false;
+          i = Math.max(0, i - 2); // -2 because loop will i++ to get back to previous
+          continue;
+        }
+        // Handle replay: repeat current word
         if (this.replayRequested) {
           this.replayRequested = false;
-          i = Math.max(0, i - 2); // -2 because loop will i++ to get back to previous
+          i = Math.max(0, i - 1); // -1 because loop will i++ to replay same word
           continue;
         }
         this.currentIndex = i;
@@ -153,6 +159,13 @@ export class AudioSequencer {
 
   replay() {
     this.replayRequested = true;
+    this.skipController?.abort();
+    this.skipController = null;
+  }
+
+  private previousRequested = false;
+  previous() {
+    this.previousRequested = true;
     this.skipController?.abort();
     this.skipController = null;
   }

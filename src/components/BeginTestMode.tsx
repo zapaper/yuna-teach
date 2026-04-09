@@ -106,6 +106,10 @@ export default function BeginTestMode({
     sequencerRef.current?.skip();
   }
 
+  function handlePrevious() {
+    sequencerRef.current?.previous();
+  }
+
   function handleReplay() {
     sequencerRef.current?.replay();
   }
@@ -180,6 +184,13 @@ export default function BeginTestMode({
 
         {(status === "playing" || status === "paused") && (
           <div className="flex gap-3">
+            <button
+              onClick={handlePrevious}
+              className="bg-white/10 text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">skip_previous</span>
+              Previous
+            </button>
             <button
               onClick={handleReplay}
               className="bg-white/10 text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-white/20 transition-colors flex items-center gap-2"
