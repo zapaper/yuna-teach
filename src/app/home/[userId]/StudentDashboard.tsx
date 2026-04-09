@@ -115,6 +115,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
+  const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>>([]);
+  const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkTab, setLinkTab] = useState<"share" | "enter">("share");
   const [myCode, setMyCode] = useState<string | null>(null);
@@ -153,6 +155,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     fetch(`/api/user/${userId}/quiz-badge`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.badge) setQuizBadge({ badge: d.badge, image: d.badgeImage, count: d.completedQuizzes, streak: d.streak ?? 0 }); })
+      .catch(() => {});
+  }, [userId]);
+
+  // Fetch admin notifications
+  useEffect(() => {
+    fetch(`/api/notifications?userId=${userId}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>) => {
+        if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); }
+      })
       .catch(() => {});
   }, [userId]);
 
@@ -288,6 +300,32 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         </div>
       )}
 
+      {/* Admin notification popup */}
+      {showAdminNotifs && adminNotifs.length > 0 && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#003366] flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-lg">chat</span>
+              </div>
+              <h3 className="font-headline font-extrabold text-[#001e40]">Message from Teacher</h3>
+            </div>
+            {adminNotifs.map(n => (
+              <div key={n.questionId} className="bg-[#eff4ff] rounded-2xl px-4 py-3">
+                <p className="text-xs text-[#43474f] font-medium mb-1">{n.paperTitle} · Q{n.questionNum}</p>
+                <p className="text-sm text-[#001e40] whitespace-pre-wrap">{n.adminReply}</p>
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                setShowAdminNotifs(false);
+                fetch("/api/notifications", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ userId, questionIds: adminNotifs.map(n => n.questionId) }) }).catch(() => {});
+              }}
+              className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold">Got it</button>
+          </div>
+        </div>
+      )}
+
       {/* ══ DESKTOP LAYOUT ══ */}
       <div className="hidden lg:flex min-h-screen">
         <aside className="fixed left-0 top-0 h-full w-64 bg-slate-50 flex flex-col z-40 py-8 px-6">
@@ -324,6 +362,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         <main className="ml-64 flex-1 min-h-screen">
           <header className="w-full h-16 sticky top-0 z-40 backdrop-blur-md flex justify-end items-center px-8">
             <div className="flex items-center gap-4 text-[#001e40]">
+              <button className="relative" onClick={() => { if (adminNotifs.length > 0) setShowAdminNotifs(true); }}>
+                <span className="material-symbols-outlined hover:opacity-80">notifications</span>
+                {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
+              </button>
               {quizBadge && <span className="material-symbols-outlined hover:opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>}
               <div className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center text-xs font-bold text-[#001e40]">{initials(user.name)}</div>
             </div>
