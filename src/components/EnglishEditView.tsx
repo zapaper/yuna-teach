@@ -301,27 +301,27 @@ function QuestionRow({
         <span className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
           {q.questionNum}
         </span>
-        {/* Topic selector — only for Grammar/Vocab MCQ */}
-        {(() => {
-          const t = (q.syllabusTopic ?? "").toLowerCase();
-          const knownSections = ["cloze", "editing", "visual text", "synthesis", "transformation", "comprehension open", "comprehension oeq"];
-          const isKnownSection = knownSections.some(k => t.includes(k));
-          const isGrammarOrVocabMcq = !isKnownSection;
-          if (!isGrammarOrVocabMcq) return null;
-          return (
+        {/* Topic selector */}
         <div className="relative">
           <button
             onClick={() => setShowTopicMenu(!showTopicMenu)}
-            className="text-[8px] text-slate-400 hover:text-blue-600 truncate max-w-[60px]"
+            className="text-[8px] text-slate-400 hover:text-blue-600 truncate max-w-[70px]"
             title={q.syllabusTopic ?? "Set topic"}
           >
-            {q.syllabusTopic ? q.syllabusTopic.replace(/\s*\(.*?\)/g, "").slice(0, 10) : "topic"}
+            {q.syllabusTopic ? q.syllabusTopic.slice(0, 12) : "set topic"}
           </button>
           {showTopicMenu && (
-            <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 w-48 py-1">
+            <div className="absolute left-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-50 w-56 py-1 max-h-64 overflow-y-auto">
               {[
                 "Grammar MCQ",
                 "Vocabulary MCQ",
+                "Vocabulary Cloze MCQ",
+                "Visual Text Comprehension MCQ",
+                "Grammar Cloze",
+                "Editing (Spelling & Grammar)",
+                "Comprehension Cloze",
+                "Synthesis / Transformation",
+                "Comprehension Open Ended",
               ].map(topic => (
                 <button
                   key={topic}
@@ -337,8 +337,6 @@ function QuestionRow({
             </div>
           )}
         </div>
-          );
-        })()}
       </div>
 
       <div className="flex-1 min-w-0">
