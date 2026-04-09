@@ -1986,10 +1986,25 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
 
           // Extract text from JSON answers (OEQ with ticks stores as {"_text":"...","tick0":"true"})
           let fullStudentAnswer = q.studentAnswer;
+          let tickInfo = "";
           if (fullStudentAnswer.startsWith("{")) {
             try {
               const parsed = JSON.parse(fullStudentAnswer) as Record<string, string>;
-              fullStudentAnswer = parsed._text ?? (Object.entries(parsed).filter(([k, v]) => v && !k.startsWith("tick")).map(([, v]) => v).join(", ") || fullStudentAnswer);
+              const textVal = parsed._text ?? "";
+              const ticks = Object.entries(parsed).filter(([k, v]) => k.startsWith("tick") && v === "true").map(([k]) => parseInt(k.replace("tick", "")));
+              const tableCells = Object.entries(parsed).filter(([k, v]) => v && k.startsWith("r")).map(([k, v]) => `${k}: "${v}"`);
+              fullStudentAnswer = textVal || (tableCells.length > 0 ? `[TABLE] ${tableCells.join(", ")}` : fullStudentAnswer);
+              if (ticks.length > 0) {
+                // Map tick indices to the checkbox labels from the stem
+                const stemLines = (q.transcribedStem ?? "").split("\n");
+                const checkboxLabels: string[] = [];
+                for (const line of stemLines) {
+                  const m = line.trim().match(/^\[[ x✓✗]\]\s*(.*)/i);
+                  if (m) checkboxLabels.push(m[1].trim());
+                }
+                const tickedLabels = ticks.map(i => checkboxLabels[i] ?? `option ${i + 1}`);
+                tickInfo = `\nStudent ticked: ${tickedLabels.join(", ")}`;
+              }
             } catch { /* use raw */ }
           }
           if (isSynthesisQ && q.transcribedStem) {
@@ -2017,7 +2032,7 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
             } catch { /* use raw */ }
           }
           const lastChar = displayAnswer.trim().slice(-1);
-          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---\nLast character of answer: "${lastChar}"${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---\nLast character of answer: "${lastChar}"${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
