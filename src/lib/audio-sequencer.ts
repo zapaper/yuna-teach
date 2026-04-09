@@ -77,16 +77,17 @@ export class AudioSequencer {
 
     try {
       for (let i = 0; i < words.length; i++) {
-        // Handle previous: go back one word
+        // Handle previous: go back one word from where we were
+        // After abort, loop did i++ so i is ahead. Use currentIndex as reference.
         if (this.previousRequested) {
           this.previousRequested = false;
-          i = Math.max(0, i - 2); // -2 because loop will i++ to get back to previous
+          i = Math.max(0, this.currentIndex - 1) - 1;
           continue;
         }
-        // Handle replay: repeat current word
+        // Handle replay: repeat the word we were on
         if (this.replayRequested) {
           this.replayRequested = false;
-          i = Math.max(0, i - 1); // -1 because loop will i++ to replay same word
+          i = this.currentIndex - 1;
           continue;
         }
         this.currentIndex = i;
