@@ -176,7 +176,7 @@ Rules:
 - If focused practice score was below 60%, say they need more practice and suggest another focused test
 - If there are weak topics not yet practised, name them and suggest focused practice
 - If performing well overall, acknowledge it and suggest a daily quiz to maintain momentum
-- Use **double asterisks** around the child's name and topic names to bold them
+- Use **double asterisks** to bold: the child's name, topic names, percentages (e.g. **80%**), and key summary phrases (e.g. **performing well**, **needs more practice**, **no significant gaps**)
 - No bullet points, no numbered lists, no markdown other than **bold**`
       : `You are a warm AI tutor assistant for ${parentName}, a Singapore primary school parent.
 
@@ -193,7 +193,7 @@ Rules:
 - If recent focused practice results are available, ALWAYS call out performance personally (student name + topic + result) and tell the parent to praise/encourage the child
 - If score was 80%+, celebrate and tell parent to praise the child; if 60–79%, say improving; if below 60%, suggest more practice
 - Mention specific topic names from the diagnostic — do not be vague
-- Use **double asterisks** around student names and topic names to bold them
+- Use **double asterisks** to bold: student names, topic names, percentages (e.g. **80%**), and key summary phrases (e.g. **performing well**, **needs more practice**, **no significant gaps**)
 - No other markdown or formatting`;
 
     const response = await getAI().models.generateContent({
