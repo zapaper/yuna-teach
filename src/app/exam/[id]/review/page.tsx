@@ -86,6 +86,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const [remarking, setRemarking] = useState(false);
   const [advisoryDismissed, setAdvisoryDismissed] = useState(false);
   const [released, setReleased] = useState(false);
+  const [sticker, setSticker] = useState<string | null>(null);
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -109,6 +111,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
+          if (paper.metadata?.sticker) setSticker(paper.metadata.sticker);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
           const sp = paper.metadata?.skipPages ?? [];
@@ -197,6 +200,23 @@ function ExamReviewContent({ id }: { id: string }) {
     } finally {
       setReleasing(false);
     }
+  }
+
+  async function saveSticker(stickerName: string) {
+    try {
+      // Fetch current metadata and merge sticker
+      const paperRes = await fetch(`/api/exam/${id}`);
+      if (!paperRes.ok) return;
+      const paper = await paperRes.json();
+      const meta = paper.metadata ?? {};
+      await fetch(`/api/exam/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metadata: { ...meta, sticker: stickerName } }),
+      });
+      setSticker(stickerName);
+      setShowStickerPicker(false);
+    } catch { /* silent */ }
   }
 
   async function downloadPdf() {
@@ -555,7 +575,44 @@ function ExamReviewContent({ id }: { id: string }) {
         </div>
       </header>
 
-      <div className="pt-16 pb-24 max-w-5xl mx-auto px-4 lg:px-8">
+      <div className="pt-16 pb-24 max-w-5xl mx-auto px-4 lg:px-8 relative">
+
+        {/* Sticker display — top right corner */}
+        {sticker && (
+          <div className="fixed top-20 right-4 lg:right-8 z-30 animate-bounce-in">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/stickers/${sticker}`} alt="Sticker" className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg" />
+          </div>
+        )}
+
+        {/* Sticker picker (parent only) */}
+        {!isStudent && (
+          <div className="flex justify-end mb-2 gap-2">
+            {!sticker ? (
+              <div className="relative">
+                <button onClick={() => setShowStickerPicker(!showStickerPicker)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ffddb4] text-[#291800] text-sm font-bold hover:bg-[#ffcf94] transition-colors">
+                  <span className="material-symbols-outlined text-base">add_reaction</span>Add Sticker
+                </button>
+                {showStickerPicker && (
+                  <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 flex gap-3">
+                    {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
+                      <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-16 h-16 object-contain" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button onClick={() => saveSticker("")}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-[#43474f] hover:bg-slate-50 transition-colors">
+                <span className="material-symbols-outlined text-sm">close</span>Remove Sticker
+              </button>
+            )}
+          </div>
+        )}
 
         {/* ── Hero Score Section ── */}
         {/* Mobile: compact single card */}
