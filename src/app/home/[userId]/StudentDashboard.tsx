@@ -418,7 +418,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 <button onClick={() => router.push(`/scan?userId=${userId}`)} className="relative group h-48 rounded-[2.5rem] bg-[#001e40] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#001e40]/20">
                   <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">camera_enhance</span>
                   <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Scan Spelling / 听写</h3>
-                  <p className="text-[#a7c8ff] font-medium">Quickly mark your latest list</p>
+                  <p className="text-[#a7c8ff] font-medium">Scan and test your spelling</p>
                 </button>
               </div>
             </section>
