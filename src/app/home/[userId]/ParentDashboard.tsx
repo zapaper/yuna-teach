@@ -1595,9 +1595,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           {avgScore !== null ? <>{avgScore}<span className="text-2xl font-bold">%</span></> : <span className="text-2xl text-[#c3c6d1]">—</span>}
                         </h3>
                       </div>
-                      <div className="w-14 h-14 rounded-2xl bg-[#6cf8bb]/30 flex items-center justify-center text-[#006c49]">
+                      <button
+                        onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
+                        className="w-14 h-14 rounded-2xl bg-[#6cf8bb]/30 flex items-center justify-center text-[#006c49] hover:bg-[#6cf8bb]/50 transition-colors cursor-pointer"
+                        title="View Full Report"
+                      >
                         <span className="material-symbols-outlined text-3xl">trending_up</span>
-                      </div>
+                      </button>
                     </div>
                     {avgScore !== null && (
                       <div className="mt-5">
