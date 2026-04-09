@@ -422,6 +422,30 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 </button>
               </div>
             </section>
+            {/* Recent Spelling Tests */}
+            {recentTests.length > 0 && (
+              <section className="mb-12">
+                <h2 className="text-xl font-bold text-[#001e40] mb-4 font-headline">Recent Spelling / 听写</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {recentTests.map(t => (
+                    <div key={t.id} onClick={() => router.push(`/test/${t.id}?userId=${userId}`)}
+                      className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                      <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0">
+                        <span className="material-symbols-outlined text-lg">spellcheck</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm text-[#001e40] truncate">{t.title}</p>
+                        <p className="text-xs text-[#43474f]">{relativeDate(t.createdAt)} &middot; {t.wordCount} words</p>
+                      </div>
+                      {t.score !== null && (
+                        <span className={`font-extrabold text-sm ${t.score >= 80 ? "text-[#006c49]" : t.score >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{t.score}%</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {completedPapers.length > 0 && (
               <section className="mb-12">
                 <button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-2 text-sm font-bold text-[#43474f] hover:text-[#001e40] transition-colors mb-4">
@@ -476,6 +500,20 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
             <button onClick={() => router.push(`/scan?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">camera_enhance</span><h3 className="text-sm font-extrabold text-white font-headline">Scan 听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Mark spelling</p></button>
           </section>
+          {recentTests.length > 0 && (
+            <section className="mb-8">
+              <h2 className="text-base font-bold text-[#001e40] mb-3 font-headline">Recent Spelling / 听写</h2>
+              <div className="space-y-2">
+                {recentTests.map(t => (
+                  <div key={t.id} onClick={() => router.push(`/test/${t.id}?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer">
+                    <div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">spellcheck</span></div>
+                    <div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{t.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(t.createdAt)} &middot; {t.wordCount} words</p></div>
+                    {t.score !== null && <span className={`font-extrabold text-xs ${t.score >= 80 ? "text-[#006c49]" : t.score >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{t.score}%</span>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
           {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, 10).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}</div>}</section>}
         </div>
       </div>
