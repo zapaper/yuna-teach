@@ -77,6 +77,7 @@ export interface ExamPaperSummary {
   instantFeedback: boolean;
   visible: boolean;
   sourceExamId: string | null;
+  timeSpentSeconds: number;
 }
 
 export interface ExamCloneSummary {

@@ -377,7 +377,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
                         <span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span>
                       </div>
-                      <span className="text-[10px] font-bold px-2 py-1 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${p.timeSpentSeconds > 0 ? "bg-[#fef3c7] text-[#92400e]" : "bg-[#dce9ff] text-[#737780]"}`}>{p.timeSpentSeconds > 0 ? "IN PROGRESS" : "TODO"}</span>
                     </div>
                   ))}
                   {todayActivities.length === 0 && (

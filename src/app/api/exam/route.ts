@@ -154,6 +154,7 @@ export async function GET(request: NextRequest) {
       pendingReviewCount: p.clones.filter((c) => c.markingStatus === "complete").length,
       instantFeedback: p.instantFeedback,
       visible: p.visible,
+      timeSpentSeconds: p.timeSpentSeconds,
     })),
   });
 }
