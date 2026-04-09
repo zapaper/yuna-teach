@@ -712,13 +712,14 @@ function ReadingPassage({ text }: { text: string }) {
     }
     // First row is header — skip it
     const dataRows = rows.length > 1 ? rows.slice(1) : rows;
-    // Compute margin numbers: count non-blank lines, show every 5th
+    // Use original 3rd column for line numbers if available, else compute
+    const hasThirdCol = dataRows.some(cells => cells.length >= 3 && cells[2]?.trim());
     let nonBlankCount = 0;
     const marginNums = dataRows.map(cells => {
+      if (hasThirdCol) return cells[2]?.trim() ?? "";
       const textContent = cells[1]?.trim() ?? "";
       const lineNum = cells[0]?.trim() ?? "";
-      const isEmpty = !textContent;
-      if (!isEmpty && lineNum) {
+      if (textContent && lineNum) {
         nonBlankCount++;
         return nonBlankCount % 5 === 0 ? String(nonBlankCount) : "";
       }
@@ -726,18 +727,19 @@ function ReadingPassage({ text }: { text: string }) {
     });
     return (
       <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full">
-        <div className="space-y-0.5">
+        <div>
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
             const isEmpty = !textContent && !cells[0]?.trim();
             const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
             const marginNum = marginNums[ri];
+            if (isEmpty) return <div key={ri} className="h-5" />;
             return (
-              <div key={ri} className={`flex gap-2 ${isEmpty ? "h-3" : "min-h-[1.4rem]"}`}>
+              <div key={ri} className="flex gap-2 min-h-[1.4rem]">
                 <p className={`flex-1 text-[13px] lg:text-[15px] text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
-                {marginNum && <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span>}
+                {marginNum ? <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span> : <span className="w-5 shrink-0" />}
               </div>
             );
           })}
