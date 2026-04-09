@@ -1224,8 +1224,25 @@ function OeqQuestionCard({
   return (
     <section className="group">
       <div className="flex flex-col lg:flex-row gap-5 lg:gap-8 items-start">
-        {/* Number badge + flag */}
-        <div className="flex-none flex flex-col items-center">
+        {/* Mobile: number + marks + flag in one row */}
+        <div className="lg:hidden flex items-center gap-2 mb-1">
+          <div className="w-10 h-10 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-headline font-bold text-lg shadow-lg shrink-0">
+            {index + 1}
+          </div>
+          {question.marksAvailable && (
+            <span className="bg-[#d3e4fe] text-[#003366] px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-widest whitespace-nowrap">
+              [{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]
+            </span>
+          )}
+          {onToggleFlag && (
+            <button onClick={onToggleFlag} className={`flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded-md transition-colors ${flagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}>
+              <span className="material-symbols-outlined text-sm" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
+            </button>
+          )}
+        </div>
+
+        {/* Desktop: number badge + flag */}
+        <div className="hidden lg:flex flex-none flex-col items-center">
           <div className="w-12 h-12 rounded-xl bg-[#001e40] flex items-center justify-center text-white font-headline font-bold text-xl shadow-lg">
             {index + 1}
           </div>
@@ -1238,7 +1255,7 @@ function OeqQuestionCard({
 
         {/* Content */}
         <div className="flex-grow space-y-4 lg:space-y-6 w-full min-w-0">
-          {/* Question header — scratch-drawable */}
+          {/* Question header — scratch-drawable on desktop only */}
           <div className="relative">
             <div className="flex justify-between items-start gap-4">
               <div className="flex-1 min-w-0">
@@ -1257,13 +1274,15 @@ function OeqQuestionCard({
                   </div>
                 )}
               </div>
+              {/* Desktop marks badge */}
               {question.marksAvailable && (
-                <span className="bg-[#d3e4fe] text-[#003366] px-3 py-1 rounded-md text-xs font-bold uppercase tracking-widest whitespace-nowrap shrink-0">
+                <span className="hidden lg:inline-block bg-[#d3e4fe] text-[#003366] px-3 py-1 rounded-md text-xs font-bold uppercase tracking-widest whitespace-nowrap shrink-0">
                   [{question.marksAvailable} mark{question.marksAvailable > 1 ? "s" : ""}]
                 </span>
               )}
             </div>
-            <ScratchOverlay tool={tool} />
+            {/* Scratch overlay — desktop only */}
+            <div className="hidden lg:block"><ScratchOverlay tool={tool} /></div>
           </div>
 
           {/* Sub-parts with individual canvases */}
