@@ -577,48 +577,18 @@ function ExamReviewContent({ id }: { id: string }) {
 
       <div className="pt-16 pb-24 max-w-5xl mx-auto px-4 lg:px-8 relative">
 
-        {/* Sticker display — top right corner */}
-        {sticker && (
-          <div className="fixed top-20 right-4 lg:right-8 z-30 animate-bounce-in">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/stickers/${sticker}`} alt="Sticker" className="w-20 h-20 lg:w-28 lg:h-28 object-contain drop-shadow-lg" />
-          </div>
-        )}
-
-        {/* Sticker picker (parent only) */}
-        {!isStudent && (
-          <div className="flex justify-end mb-2 gap-2">
-            {!sticker ? (
-              <div className="relative">
-                <button onClick={() => setShowStickerPicker(!showStickerPicker)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#ffddb4] text-[#291800] text-sm font-bold hover:bg-[#ffcf94] transition-colors">
-                  <span className="material-symbols-outlined text-base">add_reaction</span>Add Sticker
-                </button>
-                {showStickerPicker && (
-                  <div className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-4 z-50 flex gap-3">
-                    {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
-                      <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-16 h-16 object-contain" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button onClick={() => saveSticker("")}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-medium text-[#43474f] hover:bg-slate-50 transition-colors">
-                <span className="material-symbols-outlined text-sm">close</span>Remove Sticker
-              </button>
-            )}
-          </div>
-        )}
-
         {/* ── Hero Score Section ── */}
         {/* Mobile: compact single card */}
         <section className="mt-5 mb-5 lg:hidden">
           <div className="bg-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
             <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#003366]/5 rounded-full blur-2xl" />
+            {/* Sticker — top right of card */}
+            {sticker && (
+              <div className="absolute top-3 right-3 z-10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-16 h-16 object-contain drop-shadow-md" />
+              </div>
+            )}
             <div className="flex items-center gap-5">
               {/* Circular progress ring */}
               <div
@@ -653,6 +623,32 @@ function ExamReviewContent({ id }: { id: string }) {
                 <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2">{data.feedbackSummary}</p>
               </details>
             )}
+            {/* Sticker button */}
+            {!isStudent && (
+              <div className="mt-3 relative">
+                {!sticker ? (
+                  <>
+                    <button onClick={() => setShowStickerPicker(!showStickerPicker)} className="flex items-center gap-1.5 text-xs font-bold text-[#291800] bg-[#ffddb4] px-3 py-1.5 rounded-full hover:bg-[#ffcf94] transition-colors">
+                      <span className="material-symbols-outlined text-sm">add_reaction</span>Add Sticker
+                    </button>
+                    {showStickerPicker && (
+                      <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-5 z-50 grid grid-cols-2 gap-4">
+                        {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
+                          <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-2 rounded-xl hover:bg-[#eff4ff]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-20 h-20 object-contain" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <button onClick={() => saveSticker("")} className="flex items-center gap-1 text-[10px] font-medium text-[#43474f] hover:text-[#ba1a1a] transition-colors">
+                    <span className="material-symbols-outlined text-xs">close</span>Remove Sticker
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </section>
 
@@ -660,6 +656,13 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="hidden lg:grid grid-cols-3 gap-6 my-10">
           <div className="col-span-2 bg-white rounded-3xl p-8 flex flex-row items-center gap-8 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
+            {/* Sticker — top right */}
+            {sticker && (
+              <div className="absolute top-4 right-4 z-10">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
+              </div>
+            )}
             <div
               className="relative z-10 flex flex-col items-center justify-center w-44 h-44 rounded-full shrink-0"
               style={{ background: `radial-gradient(closest-side, white 82%, transparent 82%), conic-gradient(${scoreBorderColor} ${pct ?? 0}%, #dce9ff 0)` }}
@@ -692,6 +695,32 @@ function ExamReviewContent({ id }: { id: string }) {
                       {b.label}: {b.awarded}/{b.available}
                     </span>
                   ))}
+                </div>
+              )}
+              {/* Sticker button (parent) */}
+              {!isStudent && (
+                <div className="mt-3 relative">
+                  {!sticker ? (
+                    <>
+                      <button onClick={() => setShowStickerPicker(!showStickerPicker)} className="flex items-center gap-1.5 text-xs font-bold text-[#291800] bg-[#ffddb4] px-3 py-1.5 rounded-full hover:bg-[#ffcf94] transition-colors">
+                        <span className="material-symbols-outlined text-sm">add_reaction</span>Add Sticker
+                      </button>
+                      {showStickerPicker && (
+                        <div className="absolute left-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-slate-200 p-6 z-50 grid grid-cols-2 gap-5">
+                          {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG"].map(s => (
+                            <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-3 rounded-xl hover:bg-[#eff4ff]">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-24 h-24 object-contain" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <button onClick={() => saveSticker("")} className="flex items-center gap-1 text-[10px] font-medium text-[#43474f] hover:text-[#ba1a1a] transition-colors">
+                      <span className="material-symbols-outlined text-xs">close</span>Remove Sticker
+                    </button>
+                  )}
                 </div>
               )}
             </div>
