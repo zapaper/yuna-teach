@@ -1138,10 +1138,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
         </h1>
         <div className="flex items-center gap-5">
-          <div className="relative">
+          <button className="relative" onClick={() => { if (adminNotifs.length > 0) setShowAdminNotifs(true); }}>
             <span className="material-symbols-outlined text-[#43474f] cursor-pointer hover:text-[#001e40]">notifications</span>
             {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
-          </div>
+          </button>
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-[#001e40]">{user.name}</span>
             <div className="relative">
@@ -1185,10 +1185,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           <img src="/markforyou2_t.png" alt="Markforyou" className="h-6 object-contain" />
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
+          <button className="relative" onClick={() => { if (adminNotifs.length > 0) setShowAdminNotifs(true); }}>
             <span className="material-symbols-outlined text-[#001e40]">notifications</span>
             {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
-          </div>
+          </button>
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-[#001e40]">{user.name}</span>
           <div className="relative">
