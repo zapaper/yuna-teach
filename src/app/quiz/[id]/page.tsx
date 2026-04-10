@@ -1049,7 +1049,6 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const dragStart = useRef<{ y: number; h: number } | null>(null);
-
   function getPos(e: React.PointerEvent) {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
@@ -1069,13 +1068,14 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     const pos = getPos(e);
     const isEraser = tool === "eraser" || tool === "eraser-large";
     ctx.globalCompositeOperation = isEraser ? "destination-out" : "source-over";
-    ctx.strokeStyle = isEraser ? "rgba(0,0,0,0)" : "#0066cc";
+    ctx.strokeStyle = isEraser ? "rgba(0,0,0,1)" : "#0066cc";
     ctx.lineWidth = tool === "eraser-large" ? 60 : tool === "eraser" ? 20 : 2;
     ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
+    ctx.globalCompositeOperation = "source-over";
     lastPos.current = pos;
   }
   function onCanvasUp() { isDrawing.current = false; lastPos.current = null; }
@@ -1092,16 +1092,29 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
   }
   function onHandleUp() { dragStart.current = null; }
 
+  // Preserve canvas content on resize
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || height === 0) return;
     const parent = canvas.parentElement;
     if (!parent) return;
     const w = parent.offsetWidth;
+    const ctx = canvas.getContext("2d");
+    // Save existing content before resize
+    let savedImage: ImageData | null = null;
+    if (ctx && canvas.width > 0 && canvas.height > 0) {
+      savedImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
     canvas.style.width = `${w}px`;
     canvas.style.height = `${height}px`;
-    canvas.width = w * 2;
-    canvas.height = height * 2;
+    const newW = w * 2;
+    const newH = height * 2;
+    canvas.width = newW;
+    canvas.height = newH;
+    // Restore content
+    if (savedImage && ctx) {
+      ctx.putImageData(savedImage, 0, 0);
+    }
   }, [height]);
 
   return (
