@@ -486,6 +486,25 @@ export default function HomePage({
         <h1 className="text-2xl font-bold text-slate-800">
           {user?.name || "Home"}
         </h1>
+
+        {/* Admin avatar videos */}
+        {isAdmin && (
+          <div className="flex justify-center gap-4 mt-4">
+            {["bunny1.mp4", "bunny2.mp4"].map(vid => (
+              <video
+                key={vid}
+                src={`/avatars/${vid}`}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-32 h-32 object-contain"
+                style={{ mixBlendMode: "multiply" }}
+              />
+            ))}
+          </div>
+        )}
+
         {user?.role === "STUDENT" && user.level ? (
           <p className="text-slate-500 text-sm mt-0.5">Primary {user.level}</p>
         ) : null}
