@@ -64,7 +64,7 @@ function scorePct(paper: ExamPaperSummary) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean }) {
+export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
   const router = useRouter();
 
   // Data
@@ -98,6 +98,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
+  const [showDiagnosticWelcome, setShowDiagnosticWelcome] = useState(diagnosticWelcome ?? false);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [sendingFeedback, setSendingFeedback] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
@@ -1789,6 +1790,51 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </button>
         ))}
       </nav>
+
+      {/* Diagnostic welcome modal */}
+      {showDiagnosticWelcome && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}
+        >
+          <div className="w-full max-w-md rounded-lg overflow-hidden flex flex-col"
+            style={{ background: "#ffffff", boxShadow: "0 20px 40px rgba(11,28,48,0.06)" }}
+          >
+            <div className="px-6 pt-8 pb-4 flex flex-col items-center text-center">
+              <div className="mb-4 w-12 h-12 rounded-full flex items-center justify-center relative"
+                style={{ background: "#d3e4fe" }}
+              >
+                <span className="material-symbols-outlined text-2xl" style={{ color: "#003366", fontVariationSettings: "'FILL' 1" }}>
+                  home
+                </span>
+                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full"
+                  style={{ background: "#006c49", border: "2px solid #ffffff" }}
+                />
+              </div>
+              <h3 className="text-xl font-extrabold tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#0b1c30" }}>
+                Welcome to your homepage!
+              </h3>
+            </div>
+            <div className="px-8 pb-8 text-center">
+              <p className="leading-relaxed" style={{ color: "#43474f", fontSize: "15px" }}>
+                This is your homepage, where you can assign daily quiz or more focused practice (e.g. on a topic). You can also track your child&apos;s progress over time.
+              </p>
+            </div>
+            <div className="px-8 pb-8">
+              <button
+                onClick={() => setShowDiagnosticWelcome(false)}
+                className="w-full py-4 px-6 text-white font-bold rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center"
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  background: "linear-gradient(to right, #001e40, #003366)",
+                  boxShadow: "0 4px 12px rgba(0,30,64,0.15)",
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

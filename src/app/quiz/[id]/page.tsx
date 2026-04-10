@@ -536,7 +536,7 @@ function QuizContent({ id }: { id: string }) {
                   onClick={() => {
                     setShowDiagnosticModal(false);
                     if (diagnosticParentId) {
-                      window.open(`/home/${diagnosticParentId}`, "_blank");
+                      window.open(`/home/${diagnosticParentId}?diagnosticWelcome=1`, "_blank");
                     }
                   }}
                   className="w-full py-4 px-6 text-white font-bold rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
