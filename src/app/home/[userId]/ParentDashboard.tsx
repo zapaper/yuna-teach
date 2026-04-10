@@ -647,10 +647,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 const data = await res.json();
                 if (!res.ok) { alert(data.error || "Failed"); return; }
                 setShowQuiz(false);
-                // First-time user: auto-open student tab after first quiz assignment
-                const firstQuizKey = `first-quiz-assigned-${userId}`;
-                if (!localStorage.getItem(firstQuizKey)) {
-                  localStorage.setItem(firstQuizKey, "1");
+                // First-time user: auto-open student tab only if this student has no prior quizzes
+                const studentHasPriorQuizzes = examPapers.some(p => p.assignedToId === quizStudentId && p.paperType === "quiz");
+                if (!studentHasPriorQuizzes) {
                   window.open(`/home/${quizStudentId}?firstQuiz=1`, "_blank");
                 }
                 await refreshPapers();
