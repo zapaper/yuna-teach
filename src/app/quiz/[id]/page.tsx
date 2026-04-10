@@ -1471,7 +1471,7 @@ const BlankCanvas = forwardRef<
       const w = img.width * scale;
       const h = img.height * scale;
       const x = (CANVAS_W - w) / 2;
-      const y = (CANVAS_H - h) / 2;
+      const y = 0; // align diagram to top of canvas
       ctx.drawImage(img, x, y, w, h);
     } else {
       // Ruled lines
