@@ -12,13 +12,102 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishSections } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishSections, sourcePaperId } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
     subject?: "math" | "science" | "english";
-    englishSections?: string[]; // e.g. ["vocab-cloze", "editing"]
+    englishSections?: string[];
+    sourcePaperId?: string; // admin: generate test quiz from specific paper
   };
+
+  // ── Admin: generate test quiz from a specific paper ──
+  if (sourcePaperId) {
+    const paper = await prisma.examPaper.findUnique({
+      where: { id: sourcePaperId },
+      include: { questions: { orderBy: { orderIndex: "asc" } } },
+    });
+    if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
+
+    const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
+    const allQs = paper.questions.filter(q => q.answer);
+    if (allQs.length === 0) return NextResponse.json({ error: "No questions with answers" }, { status: 404 });
+
+    const mcqQs = allQs.filter(q => {
+      const n = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+      return n === "1" || n === "2" || n === "3" || n === "4";
+    });
+    const oeqQs = allQs.filter(q => {
+      const n = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+      return !(n === "1" || n === "2" || n === "3" || n === "4");
+    });
+    const totalMarks = allQs.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
+
+    // Build English sections if applicable
+    let englishSectionsMeta: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | undefined;
+    if (isEnglish) {
+      const sectionMap = new Map<string, typeof allQs>();
+      for (const q of allQs) {
+        const topic = q.syllabusTopic ?? "Other";
+        if (!sectionMap.has(topic)) sectionMap.set(topic, []);
+        sectionMap.get(topic)!.push(q);
+      }
+      englishSectionsMeta = [];
+      let idx = 0;
+      const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string }> | undefined;
+      for (const [topic, qs] of sectionMap) {
+        const passage = ocrTexts?.[topic]?.ocrText ?? ocrTexts?.[topic]?.passageOcrText;
+        englishSectionsMeta.push({
+          label: topic,
+          startIndex: idx,
+          endIndex: idx + qs.length - 1,
+          ...(passage ? { passage } : {}),
+        });
+        idx += qs.length;
+      }
+    }
+
+    const testQuiz = await prisma.examPaper.create({
+      data: {
+        title: `Test Quiz — ${paper.title}`,
+        subject: paper.subject,
+        level: paper.level,
+        userId,
+        assignedToId: userId,
+        paperType: "quiz",
+        instantFeedback: true,
+        pageCount: 0,
+        extractionStatus: "ready",
+        totalMarks: String(totalMarks),
+        metadata: {
+          quizType: oeqQs.length > 0 ? "mcq-oeq" : "mcq",
+          ...(englishSectionsMeta ? { englishSections: englishSectionsMeta } : {}),
+          sourceLabels: Object.fromEntries(allQs.map((q, i) => [String(i + 1), [paper.year, paper.examType, paper.school].filter(Boolean).join(" ") || null])),
+        },
+        questions: {
+          create: allQs.map((q, i) => ({
+            questionNum: String(i + 1),
+            imageData: q.imageData,
+            answer: q.answer,
+            answerImageData: q.answerImageData,
+            marksAvailable: q.marksAvailable ?? 1,
+            syllabusTopic: q.syllabusTopic,
+            pageIndex: 0,
+            orderIndex: i,
+            transcribedStem: q.transcribedStem,
+            transcribedOptions: q.transcribedOptions ?? undefined,
+            transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+            transcribedSubparts: q.transcribedSubparts ?? undefined,
+            diagramImageData: q.diagramImageData,
+            diagramBounds: q.diagramBounds ?? undefined,
+            sourceQuestionId: q.id,
+          })),
+        },
+      },
+    });
+
+    return NextResponse.json({ id: testQuiz.id, questionCount: allQs.length });
+  }
 
   if (!userId || !quizType) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
