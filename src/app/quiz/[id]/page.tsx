@@ -1264,13 +1264,12 @@ function OeqQuestionCard({
                     {question.transcribedStem}
                   </p>
                 )}
-                {(question.diagramImageData || drawableDiagramBase64) && (
+                {/* Show diagram as static image only if NOT drawable (drawable shows on canvas) */}
+                {question.diagramImageData && !drawableDiagramBase64 && (
                   <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={question.diagramImageData
-                        ? `data:image/jpeg;base64,${question.diagramImageData}`
-                        : drawableDiagramBase64!.startsWith("data:") ? drawableDiagramBase64! : `data:image/jpeg;base64,${drawableDiagramBase64}`}
+                      src={`data:image/jpeg;base64,${question.diagramImageData}`}
                       alt="Diagram"
                       className="w-full rounded-lg"
                     />
@@ -1333,8 +1332,8 @@ function OeqQuestionCard({
               ref={onCanvasRef}
               tool={tool}
               onStrokeStart={onStrokeStart}
-              defaultHeight={300}
-              backgroundImage={null}
+              defaultHeight={drawableDiagramBase64 ? 360 : 300}
+              backgroundImage={drawableDiagramBase64}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
               canvasId={question.id}
               savedHeight={savedHeights?.[question.id]}
