@@ -202,7 +202,7 @@ Rules:
       config: { temperature: 0.9 },
     });
     if (!response.text) throw new Error("Empty Gemini response");
-    greeting = response.text.trim().replace(/\*\*(.+?)\*\*/g, "$1");
+    greeting = response.text.trim();
   } catch (e) {
     console.error("[recommendations] Gemini greeting failed:", e instanceof Error ? e.message : e);
     // Build a specific fallback from the structured data
