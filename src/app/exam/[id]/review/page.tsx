@@ -363,7 +363,7 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   // Students can only see results once released (or instant feedback)
-  if (isStudent && data.markingStatus !== "released" && !(instantFeedback && data.markingStatus === "complete")) {
+  if (isStudent && data.markingStatus !== "released" && !(instantFeedback && data.markingStatus === "complete") && !(isQuiz && instantFeedback)) {
     return (
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6 text-center">
         <div>
