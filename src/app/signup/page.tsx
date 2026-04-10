@@ -128,7 +128,7 @@ function SignupFlow() {
       const user = await res.json();
       setParentId(user.id);
       setStep(2);
-      window.scrollTo({ top: 0 });
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }), 50);
     } catch {
       setParentError("Something went wrong. Please try again.");
     } finally {
@@ -166,7 +166,7 @@ function SignupFlow() {
       const user = await res.json();
       setStudentId(user.id);
       setStep(3);
-      window.scrollTo({ top: 0 });
+      setTimeout(() => window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }), 50);
     } catch {
       setStudentError("Something went wrong. Please try again.");
     } finally {
@@ -385,7 +385,7 @@ function SignupFlow() {
 
         {/* ══════════ STEP 2: Student Sign Up ══════════ */}
         {step === 2 && (
-          <div className="w-full flex flex-col lg:flex-row items-center gap-16 lg:gap-24 pt-8">
+          <div className="w-full flex flex-col lg:flex-row items-center gap-6 lg:gap-24 pt-4 lg:pt-8">
             {/* Form */}
             <div className="w-full lg:w-1/2 space-y-8 order-2 lg:order-1">
               <div className="space-y-4">
@@ -515,10 +515,10 @@ function SignupFlow() {
 
             {/* Illustration */}
             <div className="w-full lg:w-1/2 flex justify-center order-1 lg:order-2">
-              <div className="relative w-full max-w-lg">
+              <div className="relative w-2/3 lg:w-full max-w-lg mx-auto">
                 <div className="absolute inset-0 rounded-[3rem] rotate-3 scale-105 opacity-50" style={{ background: "#dce9ff" }} />
                 <div className="absolute inset-0 rounded-[3rem] -rotate-2 opacity-30" style={{ background: "#d5e3ff" }} />
-                <div className="relative rounded-[3rem] overflow-hidden p-8 shadow-lg" style={{ background: "#ffffff" }}>
+                <div className="relative rounded-[2rem] lg:rounded-[3rem] overflow-hidden p-4 lg:p-8 shadow-lg" style={{ background: "#ffffff" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     alt="Student learning"
