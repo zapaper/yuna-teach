@@ -390,7 +390,19 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         <p className="font-mono text-4xl font-extrabold text-[#003366] tracking-[0.3em]">{myCode}</p>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => navigator.clipboard.writeText(myCode)}
+                        <button onClick={() => {
+                            try {
+                              if (navigator.clipboard?.writeText) {
+                                navigator.clipboard.writeText(myCode).then(() => {
+                                  alert("Code copied!");
+                                }).catch(() => {
+                                  prompt("Copy this code:", myCode);
+                                });
+                              } else {
+                                prompt("Copy this code:", myCode);
+                              }
+                            } catch { prompt("Copy this code:", myCode); }
+                          }}
                           className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-600 flex items-center justify-center gap-1.5">
                           <span className="material-symbols-outlined text-base">content_copy</span>Copy
                         </button>
