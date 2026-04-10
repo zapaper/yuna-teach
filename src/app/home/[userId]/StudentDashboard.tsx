@@ -266,11 +266,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   // ─── Derived data for new layout ───
   const now = new Date();
   const fiveDaysAgo = new Date(now.getTime() - 5 * 86400000);
-  const todayStr = now.toISOString().slice(0, 10);
-  const todayActivities = studentPapers.filter(p => new Date(p.createdAt ?? "").toISOString().slice(0, 10) === todayStr);
+  // Use local date strings to avoid UTC timezone mismatch (e.g. SGT = UTC+8)
+  const localDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const todayStr = localDateStr(now);
+  const todayActivities = studentPapers.filter(p => localDateStr(new Date(p.createdAt ?? "")) === todayStr);
   const todayTodo = todayActivities.filter(p => !p.completedAt);
   const todayDone = todayActivities.filter(p => p.completedAt);
-  const weekHomework = studentPapers.filter(p => !p.completedAt && new Date(p.createdAt ?? "") >= fiveDaysAgo && new Date(p.createdAt ?? "").toISOString().slice(0, 10) !== todayStr);
+  const weekHomework = studentPapers.filter(p => !p.completedAt && new Date(p.createdAt ?? "") >= fiveDaysAgo && localDateStr(new Date(p.createdAt ?? "")) !== todayStr);
 
   function goToPaper(p: ExamPaperSummary) {
     if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${userId}`);

@@ -39,7 +39,44 @@ function SignupFlow() {
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);
 
-  // Username availability
+  // ── Step 1: Parent name/email availability ──
+  const [parentNameAvail, setParentNameAvail] = useState<boolean | null>(null);
+  const [checkingParentName, setCheckingParentName] = useState(false);
+  const parentNameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkParentName = useCallback((n: string) => {
+    if (parentNameDebounce.current) clearTimeout(parentNameDebounce.current);
+    if (!n.trim()) { setParentNameAvail(null); return; }
+    setCheckingParentName(true);
+    parentNameDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/check?name=${encodeURIComponent(n.trim())}`);
+        const data = await res.json();
+        setParentNameAvail(data.available);
+      } catch { setParentNameAvail(null); }
+      finally { setCheckingParentName(false); }
+    }, 400);
+  }, []);
+
+  const [parentEmailAvail, setParentEmailAvail] = useState<boolean | null>(null);
+  const [checkingParentEmail, setCheckingParentEmail] = useState(false);
+  const parentEmailDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkParentEmail = useCallback((em: string) => {
+    if (parentEmailDebounce.current) clearTimeout(parentEmailDebounce.current);
+    if (!em.trim()) { setParentEmailAvail(null); return; }
+    setCheckingParentEmail(true);
+    parentEmailDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/check?email=${encodeURIComponent(em.trim())}`);
+        const data = await res.json();
+        setParentEmailAvail(data.available);
+      } catch { setParentEmailAvail(null); }
+      finally { setCheckingParentEmail(false); }
+    }, 400);
+  }, []);
+
+  // ── Step 2: Student username availability ──
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
   const [checkingName, setCheckingName] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -66,7 +103,9 @@ function SignupFlow() {
     e.preventDefault();
     setParentError("");
     if (!parentName.trim()) { setParentError("Name is required."); return; }
+    if (parentNameAvail === false) { setParentError("This name is already taken."); return; }
     if (!parentEmail.trim()) { setParentError("Email is required."); return; }
+    if (parentEmailAvail === false) { setParentError("This email is already registered."); return; }
     if (!parentPassword) { setParentError("Password is required."); return; }
 
     setParentLoading(true);
@@ -231,7 +270,7 @@ function SignupFlow() {
                     <input
                       type="text"
                       value={parentName}
-                      onChange={e => setParentName(e.target.value)}
+                      onChange={e => { setParentName(e.target.value); checkParentName(e.target.value); }}
                       placeholder="User name"
                       className="w-full px-5 py-4 border-0 rounded-xl transition-all duration-200"
                       style={{
@@ -240,6 +279,11 @@ function SignupFlow() {
                         outline: "none",
                       }}
                     />
+                    {parentName.trim() && (
+                      <p className={`text-xs mt-1 ml-1 ${checkingParentName ? "text-gray-400" : parentNameAvail === true ? "text-green-600" : parentNameAvail === false ? "text-red-500" : "text-gray-400"}`}>
+                        {checkingParentName ? "Checking..." : parentNameAvail === true ? "Name available" : parentNameAvail === false ? "Name is already taken" : ""}
+                      </p>
+                    )}
                   </div>
 
                   {/* Email */}
@@ -251,11 +295,16 @@ function SignupFlow() {
                     <input
                       type="email"
                       value={parentEmail}
-                      onChange={e => setParentEmail(e.target.value)}
+                      onChange={e => { setParentEmail(e.target.value); checkParentEmail(e.target.value); }}
                       placeholder="sarah@example.com"
                       className="w-full px-5 py-4 border-0 rounded-xl transition-all duration-200"
                       style={{ background: "#eff4ff", color: "#0b1c30" }}
                     />
+                    {parentEmail.trim() && (
+                      <p className={`text-xs mt-1 ml-1 ${checkingParentEmail ? "text-gray-400" : parentEmailAvail === true ? "text-green-600" : parentEmailAvail === false ? "text-red-500" : "text-gray-400"}`}>
+                        {checkingParentEmail ? "Checking..." : parentEmailAvail === true ? "Email available" : parentEmailAvail === false ? "Email is already registered" : ""}
+                      </p>
+                    )}
                   </div>
 
                   {/* Password */}
@@ -292,7 +341,7 @@ function SignupFlow() {
 
                 <button
                   type="submit"
-                  disabled={parentLoading}
+                  disabled={parentLoading || parentNameAvail === false || parentEmailAvail === false}
                   className="w-full py-5 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-60"
                   style={{ background: "linear-gradient(to bottom right, #001e40, #003366)", color: "#ffffff" }}
                 >
