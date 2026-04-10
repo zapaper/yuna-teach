@@ -250,13 +250,15 @@ export async function POST(request: NextRequest) {
     const allPool = [...freshQs, ...usedQs]; // prefer fresh, fall back to used
 
     // Pool by syllabusTopic — match various naming patterns including "Section X: Grammar MCQ"
+    // MCQ pools require a stem (or image) to display — exclude blank questions
+    const hasStemOrImage = (q: Q) => !!(q.transcribedStem?.trim());
     const grammarMcqPool = shuffle(allPool.filter(q => {
       const t = (q.syllabusTopic ?? "").toLowerCase();
-      return (t === "grammar" || t === "grammar mcq" || (t.includes("grammar") && !t.includes("cloze"))) && isMcq(q.answer);
+      return (t === "grammar" || t === "grammar mcq" || (t.includes("grammar") && !t.includes("cloze"))) && isMcq(q.answer) && hasStemOrImage(q);
     }));
     const vocabMcqPool = shuffle(allPool.filter(q => {
       const t = (q.syllabusTopic ?? "").toLowerCase();
-      return (t === "vocabulary" || t === "vocabulary mcq" || (t.includes("vocab") && !t.includes("cloze"))) && isMcq(q.answer);
+      return (t === "vocabulary" || t === "vocabulary mcq" || (t.includes("vocab") && !t.includes("cloze"))) && isMcq(q.answer) && hasStemOrImage(q);
     }));
 
     // Vocab Cloze MCQ: group by paper (all questions from same paper go together)
