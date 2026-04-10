@@ -469,14 +469,45 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
     );
   }
 
-  const allTopics = Array.from(new Set(entries.flatMap(e => Object.keys(e.topics)))).sort();
+  // Aggregate entries into groups of 3 (average) for robustness
+  const GROUP_SIZE = 3;
+  const aggregated: TimelineEntry[] = [];
+  if (entries.length <= 3) {
+    // 1-3 entries: show individually
+    aggregated.push(...entries);
+  } else {
+    // Group into chunks of 3, take last N*3 entries
+    const usable = entries.slice(-(Math.floor(entries.length / GROUP_SIZE) * GROUP_SIZE));
+    for (let i = 0; i < usable.length; i += GROUP_SIZE) {
+      const chunk = usable.slice(i, i + GROUP_SIZE);
+      const mergedTopics: Record<string, { sum: number; count: number }> = {};
+      for (const e of chunk) {
+        for (const [topic, pct] of Object.entries(e.topics)) {
+          if (!mergedTopics[topic]) mergedTopics[topic] = { sum: 0, count: 0 };
+          mergedTopics[topic].sum += pct;
+          mergedTopics[topic].count++;
+        }
+      }
+      const avgTopics: Record<string, number> = {};
+      for (const [topic, { sum, count }] of Object.entries(mergedTopics)) {
+        avgTopics[topic] = Math.round(sum / count);
+      }
+      aggregated.push({
+        title: `Avg of ${chunk.length}`,
+        date: chunk[chunk.length - 1].date,
+        topics: avgTopics,
+      });
+    }
+  }
+
+  const allTopics = Array.from(new Set(aggregated.flatMap(e => Object.keys(e.topics)))).sort();
   const topicColorMap: Record<string, string> = {};
   allTopics.forEach((t, i) => { topicColorMap[t] = TOPIC_COLORS[i % TOPIC_COLORS.length]; });
 
-  const W = 600, H = 300, padL = 40, padR = 20, padT = 16, padB = 60;
+  const W = 600, H = 300, padL = 40, padR = 20, padT = 16, padB = 40;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
-  const n = entries.length;
+  const n = aggregated.length;
   const xStep = n > 1 ? chartW / (n - 1) : 0;
 
   function x(i: number) { return padL + (n > 1 ? i * xStep : chartW / 2); }
@@ -505,16 +536,12 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
               <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
             </g>
           ))}
-          {entries.map((e, i) => (
+          {aggregated.map((e, i) => (
             <text key={i} x={x(i)} y={H - padB + 16} textAnchor="middle" fill="#737780" fontSize={9}>{dateLabel(e.date)}</text>
           ))}
-          {entries.map((e, i) => {
-            const label = e.title.length > 18 ? e.title.slice(0, 16) + "..." : e.title;
-            return <text key={`t-${i}`} x={x(i)} y={H - padB + 30} textAnchor="middle" fill="#c3c6d1" fontSize={8}>{label}</text>;
-          })}
           {allTopics.map(topic => {
             const color = topicColorMap[topic];
-            const points = entries.map((e, i) => e.topics[topic] !== undefined ? { idx: i, pct: e.topics[topic] } : null).filter(Boolean) as { idx: number; pct: number }[];
+            const points = aggregated.map((e, i) => e.topics[topic] !== undefined ? { idx: i, pct: e.topics[topic] } : null).filter(Boolean) as { idx: number; pct: number }[];
             if (points.length === 0) return null;
             const pathD = points.map((p, j) => `${j === 0 ? "M" : "L"} ${x(p.idx)} ${y(p.pct)}`).join(" ");
             return (

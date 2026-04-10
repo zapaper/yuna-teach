@@ -1669,15 +1669,24 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       </div>
                       {/* SVG line chart — each subject right-aligned */}
                       <div className="relative min-h-[120px]">
-                        <svg viewBox="0 0 300 120" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                        <svg viewBox="0 0 330 120" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                          {/* Y-axis labels */}
+                          <text x="22" y="9" textAnchor="end" fontSize="8" fill="#737780" fontFamily="Inter, sans-serif">100</text>
+                          <text x="22" y="64" textAnchor="end" fontSize="8" fill="#737780" fontFamily="Inter, sans-serif">50</text>
+                          <text x="22" y="118" textAnchor="end" fontSize="8" fill="#737780" fontFamily="Inter, sans-serif">0</text>
+                          {/* Light grid lines */}
+                          <line x1="30" y1="5" x2="330" y2="5" stroke="#e5eeff" strokeWidth="0.5" />
+                          <line x1="30" y1="60" x2="330" y2="60" stroke="#e5eeff" strokeWidth="0.5" />
+                          <line x1="30" y1="115" x2="330" y2="115" stroke="#e5eeff" strokeWidth="0.5" />
                           {chartLines.map(line => {
                             const yScale = (pct: number) => 115 - (pct / 100) * 110;
                             const pts = line.points;
                             const n = pts.length;
-                            // Right-align: last point always at x=300, spaced evenly across chartMaxPts slots
-                            const slotW = chartMaxPts > 1 ? 300 / (chartMaxPts - 1) : 300;
+                            const chartW = 300;
+                            const offsetX = 30;
+                            const slotW = chartMaxPts > 1 ? chartW / (chartMaxPts - 1) : chartW;
                             const startSlot = chartMaxPts - n;
-                            const coords = pts.map((pct, i) => ({ x: (startSlot + i) * slotW, y: yScale(pct) }));
+                            const coords = pts.map((pct, i) => ({ x: offsetX + (startSlot + i) * slotW, y: yScale(pct) }));
                             const d = coords.map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`).join(" ");
                             return (
                               <g key={line.subject}>

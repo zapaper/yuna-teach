@@ -831,6 +831,7 @@ function QuizContent({ id }: { id: string }) {
                             flagged={flaggedIds.has(q.id)}
                             onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
                             tool={tool}
+                            hideScratchPad
                           />
                         ))}
                       </div>
@@ -909,6 +910,7 @@ function McqQuestionCard({
   flagged,
   onToggleFlag,
   tool = "pen",
+  hideScratchPad,
 }: {
   question: QuizQuestion;
   index: number;
@@ -918,6 +920,7 @@ function McqQuestionCard({
   flagged?: boolean;
   onToggleFlag?: () => void;
   tool?: DrawTool;
+  hideScratchPad?: boolean;
 }) {
   const options = question.transcribedOptions as string[] | null;
   const optionImages = question.transcribedOptionImages as string[] | null;
@@ -1034,8 +1037,8 @@ function McqQuestionCard({
               })}
             </div>
           )}
-          {/* Expandable scratch area for workings */}
-          <McqScratchPad tool={tool} />
+          {/* Expandable scratch area for workings (math/science only) */}
+          {!hideScratchPad && <McqScratchPad tool={tool} />}
         </div>
       </div>
     </article>
