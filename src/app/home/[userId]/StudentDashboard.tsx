@@ -265,12 +265,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   // ─── Derived data for new layout ───
   const now = new Date();
-  const threeDaysAgo = new Date(now.getTime() - 3 * 86400000);
+  const fiveDaysAgo = new Date(now.getTime() - 5 * 86400000);
   const todayStr = now.toISOString().slice(0, 10);
   const todayActivities = studentPapers.filter(p => new Date(p.createdAt ?? "").toISOString().slice(0, 10) === todayStr);
   const todayTodo = todayActivities.filter(p => !p.completedAt);
   const todayDone = todayActivities.filter(p => p.completedAt);
-  const weekHomework = studentPapers.filter(p => !p.completedAt && new Date(p.createdAt ?? "") >= threeDaysAgo && new Date(p.createdAt ?? "").toISOString().slice(0, 10) !== todayStr);
+  const weekHomework = studentPapers.filter(p => !p.completedAt && new Date(p.createdAt ?? "") >= fiveDaysAgo && new Date(p.createdAt ?? "").toISOString().slice(0, 10) !== todayStr);
 
   function goToPaper(p: ExamPaperSummary) {
     if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${userId}`);
@@ -284,7 +284,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   }
 
   return (
-    <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen">
+    <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen overflow-x-hidden">
 
       {/* First-time student popup */}
       {showFirstQuizPopup && (
@@ -370,7 +370,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <div className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center text-xs font-bold text-[#001e40]">{initials(user.name)}</div>
             </div>
           </header>
-          <div className="px-12 py-8 max-w-6xl mx-auto">
+          <div className="px-6 lg:px-10 py-8 max-w-5xl mx-auto">
             <section className="mb-12">
               <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
               <p className="text-lg text-[#43474f] font-medium">Ready to learn today? You&apos;re doing great!</p>
@@ -396,7 +396,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               )}
             </section>
             <div className="grid grid-cols-12 gap-8 mb-12">
-              <div className="col-span-12 lg:col-span-7 bg-[#eff4ff] rounded-[2rem] p-8 relative overflow-hidden">
+              <div className="col-span-12 lg:col-span-6 bg-[#eff4ff] rounded-[2rem] p-8 relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#006c49]/5 rounded-full blur-3xl" />
                 <h2 className="text-2xl font-bold text-[#001e40] mb-6 flex items-center gap-2 font-headline">
                   <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities
@@ -429,7 +429,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   )}
                 </div>
               </div>
-              <div className="col-span-12 lg:col-span-5 bg-[#d3e4fe]/40 backdrop-blur-sm rounded-[2rem] p-8 border border-white/50">
+              <div className="col-span-12 lg:col-span-6 bg-[#d3e4fe]/40 backdrop-blur-sm rounded-[2rem] p-8 border border-white/50">
                 <h2 className="text-2xl font-bold text-[#001e40] mb-6 flex items-center gap-2 font-headline">
                   <span className="material-symbols-outlined text-[#001e40]">assignment</span>This Week&apos;s Homework
                 </h2>
