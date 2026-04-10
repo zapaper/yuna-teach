@@ -56,6 +56,10 @@ export default function HomePage({
       setUser(foundUser || null);
       setTests(testsData.tests);
       setExamPapers(examsData.papers);
+      // Save all students for admin quiz assignment
+      const students = (usersData.users as User[]).filter((u: User) => u.role === "STUDENT");
+      setAllStudents(students.map((s: User) => ({ id: s.id, name: s.name, level: s.level })));
+      if (students.length > 0 && !quizStudentId) setQuizStudentId(students[0].id);
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
@@ -142,6 +146,8 @@ export default function HomePage({
   const [showQuizSetup, setShowQuizSetup] = useState(false);
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
+  const [quizStudentId, setQuizStudentId] = useState("");
+  const [allStudents, setAllStudents] = useState<{ id: string; name: string; level: number | null }[]>([]);
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
