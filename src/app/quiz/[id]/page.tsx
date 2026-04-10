@@ -1330,8 +1330,8 @@ function OeqQuestionCard({
               ref={onCanvasRef}
               tool={tool}
               onStrokeStart={onStrokeStart}
-              defaultHeight={drawableDiagramBase64 ? 360 : 300}
-              backgroundImage={drawableDiagramBase64}
+              defaultHeight={300}
+              backgroundImage={null}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
               canvasId={question.id}
               savedHeight={savedHeights?.[question.id]}
