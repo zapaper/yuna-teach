@@ -1264,10 +1264,13 @@ function OeqQuestionCard({
                     {question.transcribedStem}
                   </p>
                 )}
-                {question.diagramImageData && (
+                {(question.diagramImageData || drawableDiagramBase64) && (
                   <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={`data:image/jpeg;base64,${question.diagramImageData}`}
+                      src={question.diagramImageData
+                        ? `data:image/jpeg;base64,${question.diagramImageData}`
+                        : drawableDiagramBase64!.startsWith("data:") ? drawableDiagramBase64! : `data:image/jpeg;base64,${drawableDiagramBase64}`}
                       alt="Diagram"
                       className="w-full rounded-lg"
                     />
