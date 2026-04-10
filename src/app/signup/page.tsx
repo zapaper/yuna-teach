@@ -232,7 +232,7 @@ function SignupFlow() {
                       type="text"
                       value={parentName}
                       onChange={e => setParentName(e.target.value)}
-                      placeholder="Sarah Johnson"
+                      placeholder="User name"
                       className="w-full px-5 py-4 border-0 rounded-xl transition-all duration-200"
                       style={{
                         background: "#eff4ff",
@@ -244,8 +244,9 @@ function SignupFlow() {
 
                   {/* Email */}
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold px-1" style={{ color: "rgba(11,28,48,0.8)" }}>
+                    <label className="text-sm font-semibold px-1 flex items-center gap-2" style={{ color: "rgba(11,28,48,0.8)" }}>
                       Email Address
+                      <span className="font-normal text-xs" style={{ color: "rgba(11,28,48,0.35)" }}>For password recovery</span>
                     </label>
                     <input
                       type="email"
@@ -323,7 +324,7 @@ function SignupFlow() {
                   <img
                     className="w-full h-full object-cover"
                     alt="Mother and child learning together"
-                    src="/girlmom.jpg"
+                    src="/step1.png"
                   />
                 </div>
               </div>
@@ -471,7 +472,7 @@ function SignupFlow() {
                   <img
                     alt="Student learning"
                     className="w-full h-auto object-contain"
-                    src="/boyself2.png"
+                    src="/step2.png"
                   />
                 </div>
               </div>
@@ -565,7 +566,7 @@ function SignupFlow() {
                 <img
                   alt="Celebratory learning moment"
                   className="w-full max-w-lg drop-shadow-2xl"
-                  src="/owlfly_t.png"
+                  src="/step3.png"
                   style={{ borderRadius: "40px" }}
                 />
               </div>
