@@ -569,20 +569,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const QuizModal = () => !showQuiz ? null : (
     <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowQuiz(false)}>
       <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-        <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-4">Assign Daily Quiz</h3>
-        {user.linkedStudents.length >= 1 && (
-          <>
-            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Student</p>
-            <div className="flex gap-2 mb-4 flex-wrap">
-              {user.linkedStudents.map(s => (
-                <button key={s.id} onClick={() => setQuizStudentId(s.id)}
-                  className={`px-3 py-1.5 rounded-xl border-2 text-sm font-medium transition-all ${quizStudentId === s.id ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-                  {s.name}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+        <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-1">Assign Daily Quiz</h3>
+        <p className="text-sm text-[#43474f] mb-4">For <span className="font-bold text-[#001e40]">{selectedStudent?.name ?? "student"}</span>{selectedStudent?.level ? ` (P${selectedStudent.level})` : ""}</p>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
         <div className="flex gap-2 mb-4">
           {(["math", "science", "english"] as const).map(s => (
@@ -855,7 +843,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           Assign Focused Practice
         </button>
         <button
-          onClick={() => setShowQuiz(true)}
+          onClick={() => { setQuizStudentId(selectedStudentId); setShowQuiz(true); }}
           className="w-full bg-white/10 text-white font-bold py-3.5 rounded-xl active:scale-95 transition-transform mt-2 border border-white/20"
         >
           Assign Daily Quiz
@@ -1654,7 +1642,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <span className="material-symbols-outlined text-xl">arrow_forward</span>
                     </button>
                     <button
-                      onClick={() => setShowQuiz(true)}
+                      onClick={() => { setQuizStudentId(selectedStudentId); setShowQuiz(true); }}
                       className="bg-white/10 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:-translate-y-0.5 transition-all border border-white/20"
                     >
                       Daily Quiz
