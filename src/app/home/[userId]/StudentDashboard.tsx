@@ -143,13 +143,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     return () => { document.removeEventListener("visibilitychange", onVisible); clearInterval(poll); };
   }, [userId]);
 
-  // First-time student popup
+  // First-time student popup — only if student has no completed papers
   useEffect(() => {
-    if (firstQuiz) {
+    if (firstQuiz && examPapers.filter(p => p.completedAt).length === 0) {
       const timer = setTimeout(() => setShowFirstQuizPopup(true), 1500);
       return () => clearTimeout(timer);
     }
-  }, [firstQuiz]);
+  }, [firstQuiz, examPapers]);
 
   useEffect(() => {
     fetch(`/api/user/${userId}/quiz-badge`)

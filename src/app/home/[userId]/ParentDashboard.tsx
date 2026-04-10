@@ -1448,61 +1448,97 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </div>
             </div>
 
-            {completedPapers.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-[#c3c6d1]">
-                <span className="material-symbols-outlined text-4xl text-[#c3c6d1] mb-3 block">history</span>
-                <p className="font-bold text-[#001e40]">No completed papers yet</p>
-                <p className="text-sm text-[#43474f] mt-1">Completed papers will appear here.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {[...completedPapers]
-                  .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
-                  .map(paper => {
-                    const pct = scorePct(paper);
-                    const isMarking = paper.markingStatus === "in_progress";
-                    return (
-                      <div key={paper.id} onClick={() => {
-                          if (isMarking) return;
-                          const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
-                          if (isQuizOrFocused || paper.completedAt) {
-                            router.push(`/exam/${paper.id}/review?userId=${userId}`);
-                          } else {
-                            const masterId = paper.sourceExamId ?? paper.id;
-                            router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
-                          }
-                        }}
-                        className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow ${isMarking ? "opacity-60" : "cursor-pointer hover:shadow-md"}`}>
-                        <div className="w-11 h-11 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#001e40] shrink-0">
-                          <span className="material-symbols-outlined text-lg">{activityIcon(paper)}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
-                          <p className="text-xs text-[#43474f]">
-                            {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
-                            {paper.subject && <> &middot; {paper.subject}</>}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {(paper.paperType === "quiz" || paper.paperType === "focused") && (
-                            <button onClick={(e) => handleDeletePaper(e, paper.id)}
-                              className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
-                              <span className="material-symbols-outlined text-base">close</span>
-                            </button>
-                          )}
-                          {isMarking ? (
-                            <span className="text-xs font-extrabold text-blue-500">Marking…</span>
-                          ) : pct !== null ? (
-                            <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
-                          ) : (
-                            <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
-                          )}
-                        </div>
+            {(() => {
+              const unstartedPapers = studentPapers.filter(p => !p.completedAt && (p.paperType === "quiz" || p.paperType === "focused"));
+              const allActivities = [...unstartedPapers, ...completedPapers];
+              if (allActivities.length === 0) return (
+                <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-[#c3c6d1]">
+                  <span className="material-symbols-outlined text-4xl text-[#c3c6d1] mb-3 block">history</span>
+                  <p className="font-bold text-[#001e40]">No papers yet</p>
+                  <p className="text-sm text-[#43474f] mt-1">Assigned and completed papers will appear here.</p>
+                </div>
+              );
+              return (
+                <div className="space-y-3">
+                  {/* Unstarted papers first */}
+                  {unstartedPapers.length > 0 && (
+                    <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-1 mt-2">Assigned — Not Started</p>
+                  )}
+                  {unstartedPapers.map(paper => (
+                    <div key={paper.id} className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-2xl bg-[#ffddb4]/40 flex items-center justify-center text-[#d58d00] shrink-0">
+                        <span className="material-symbols-outlined text-lg">assignment</span>
                       </div>
-                    );
-                  })}
-              </div>
-            )}
+                      <div className="flex-1 min-w-0">
+                        <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
+                        <p className="text-xs text-[#43474f]">
+                          Assigned {relativeDate(paper.createdAt)}
+                          {paper.subject && <> &middot; {paper.subject}</>}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={(e) => handleDeletePaper(e, paper.id)}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Delete quiz"
+                        >
+                          <span className="material-symbols-outlined text-lg">delete</span>
+                        </button>
+                        <span className="text-[10px] font-extrabold text-[#d58d00] uppercase">Not started</span>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Completed papers */}
+                  {completedPapers.length > 0 && unstartedPapers.length > 0 && (
+                    <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-1 mt-4">Completed</p>
+                  )}
+                  {[...completedPapers]
+                    .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+                    .map(paper => {
+                      const pct = scorePct(paper);
+                      const isMarking = paper.markingStatus === "in_progress";
+                      return (
+                        <div key={paper.id} onClick={() => {
+                            if (isMarking) return;
+                            const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
+                            if (isQuizOrFocused || paper.completedAt) {
+                              router.push(`/exam/${paper.id}/review?userId=${userId}`);
+                            } else {
+                              const masterId = paper.sourceExamId ?? paper.id;
+                              router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
+                            }
+                          }}
+                          className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow ${isMarking ? "opacity-60" : "cursor-pointer hover:shadow-md"}`}>
+                          <div className="w-11 h-11 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#001e40] shrink-0">
+                            <span className="material-symbols-outlined text-lg">{activityIcon(paper)}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
+                            <p className="text-xs text-[#43474f]">
+                              {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
+                              {paper.subject && <> &middot; {paper.subject}</>}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                              <button onClick={(e) => handleDeletePaper(e, paper.id)}
+                                className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                <span className="material-symbols-outlined text-base">close</span>
+                              </button>
+                            )}
+                            {isMarking ? (
+                              <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                            ) : pct !== null ? (
+                              <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              );
+            })()}
           </div>
         )}
 
