@@ -16,14 +16,14 @@ export default function HomePage() {
           <div className="hidden md:flex items-center gap-8 font-medium text-sm">
             <a className="text-on-surface-variant hover:text-tertiary transition-colors" href="#demo-video">How it Works</a>
             <Link className="text-on-surface-variant hover:text-tertiary transition-colors" href="/login">Login</Link>
-            <Link href="/login" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-sm">
+            <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-sm">
               Try Free
             </Link>
           </div>
           {/* Mobile nav */}
           <div className="md:hidden flex items-center gap-3">
             <Link href="/login" className="text-xs text-on-surface-variant hover:text-tertiary transition-colors font-medium">Login</Link>
-            <Link href="/login" className="px-4 py-2 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-xs">
+            <Link href="/signup" className="px-4 py-2 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-xs">
               Try Free
             </Link>
           </div>
@@ -47,7 +47,7 @@ export default function HomePage() {
                 MarkForYou empowers your child and you to master primary school Math and Science (P4-6) with instant grading and feedback. We do all the hard work on marking and targeted practice so that you can focus on being the coach!
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/login" className="w-full lg:w-auto text-center px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
+                <Link href="/signup" className="w-full lg:w-auto text-center px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
                   Try Free Now
                 </Link>
               </div>
@@ -233,7 +233,7 @@ export default function HomePage() {
                 Join the MarkForYou.com family and transform study time from a struggle into a shared victory.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-6">
-                <Link href="/login" className="w-full sm:w-auto px-12 py-5 bg-tertiary text-white font-extrabold rounded-full text-lg hover:bg-on-tertiary-container transition-colors shadow-lg">
+                <Link href="/signup" className="w-full sm:w-auto px-12 py-5 bg-tertiary text-white font-extrabold rounded-full text-lg hover:bg-on-tertiary-container transition-colors shadow-lg">
                   Start Your Free Trial
                 </Link>
                 <p className="text-on-tertiary-container font-semibold italic text-sm">No credit card required to start.</p>

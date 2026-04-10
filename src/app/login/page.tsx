@@ -369,10 +369,10 @@ export default function LoginPage() {
             </button>
 
             <p className="text-center text-on-surface-variant text-xs mt-4">
-              Already have an account?{" "}
-              <button type="button" onClick={() => document.getElementById("identity")?.focus()} className="text-primary font-bold">
-                Login above
-              </button>
+              New here?{" "}
+              <Link href="/signup" className="text-primary font-bold hover:underline">
+                Sign up for free
+              </Link>
             </p>
           </div>
         </div>
