@@ -128,6 +128,7 @@ function SignupFlow() {
       const user = await res.json();
       setParentId(user.id);
       setStep(2);
+      window.scrollTo({ top: 0 });
     } catch {
       setParentError("Something went wrong. Please try again.");
     } finally {
@@ -165,6 +166,7 @@ function SignupFlow() {
       const user = await res.json();
       setStudentId(user.id);
       setStep(3);
+      window.scrollTo({ top: 0 });
     } catch {
       setStudentError("Something went wrong. Please try again.");
     } finally {
@@ -201,7 +203,7 @@ function SignupFlow() {
       }
       const quiz = await res.json();
       // Open quiz in new tab for student, redirect parent to dashboard
-      window.open(`/quiz/${quiz.id}`, "_blank");
+      window.open(`/quiz/${quiz.id}?userId=${studentId}`, "_blank");
       router.push(`/home/${parentId}`);
     } catch {
       alert("Something went wrong. Please try again.");
@@ -385,7 +387,7 @@ function SignupFlow() {
         {step === 2 && (
           <div className="w-full flex flex-col lg:flex-row items-center gap-16 lg:gap-24 pt-8">
             {/* Form */}
-            <div className="w-full lg:w-1/2 space-y-8">
+            <div className="w-full lg:w-1/2 space-y-8 order-2 lg:order-1">
               <div className="space-y-4">
                 <div
                   className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-xs tracking-widest uppercase"
@@ -512,7 +514,7 @@ function SignupFlow() {
             </div>
 
             {/* Illustration */}
-            <div className="w-full lg:w-1/2 flex justify-center">
+            <div className="w-full lg:w-1/2 flex justify-center order-1 lg:order-2">
               <div className="relative w-full max-w-lg">
                 <div className="absolute inset-0 rounded-[3rem] rotate-3 scale-105 opacity-50" style={{ background: "#dce9ff" }} />
                 <div className="absolute inset-0 rounded-[3rem] -rotate-2 opacity-30" style={{ background: "#d5e3ff" }} />
@@ -596,15 +598,11 @@ function SignupFlow() {
                   {/* Go to dashboard */}
                   <button
                     onClick={() => router.push(`/home/${parentId}`)}
-                    className="w-full p-8 rounded-[2rem] transition-all duration-300 flex items-center justify-between gap-4 text-left"
-                    style={{ background: "#eff4ff", border: "1px solid rgba(255,255,255,0.5)" }}
-                    onMouseEnter={e => { (e.target as HTMLButtonElement).style.background = "#d3e4fe"; }}
-                    onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = "#eff4ff"; }}
+                    className="w-full px-8 py-5 rounded-xl font-bold text-lg shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+                    style={{ background: "#006c49", color: "#ffffff" }}
                   >
-                    <div>
-                      <h4 className="font-bold mb-1" style={{ color: "#001e40" }}>Go to Parent Homepage</h4>
-                      <p className="text-xs" style={{ color: "#43474f" }}>Explore the dashboard and child settings first.</p>
-                    </div>
+                    Go to Parent Homepage
+                    <span className="material-symbols-outlined">arrow_forward</span>
                   </button>
                 </div>
               </div>

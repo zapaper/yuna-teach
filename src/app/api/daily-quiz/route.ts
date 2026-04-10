@@ -152,19 +152,17 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  const questionSelect = {
+  // Light select for pool building (excludes large imageData/answerImageData blobs)
+  const questionSelectLight = {
     id: true,
     questionNum: true,
     examPaperId: true,
-    imageData: true,
     answer: true,
-    answerImageData: true,
     marksAvailable: true,
     syllabusTopic: true,
     pageIndex: true,
     transcribedStem: true,
     transcribedOptions: true,
-    transcribedOptionImages: true,
     transcribedSubparts: true,
     diagramImageData: true,
     diagramBounds: true,
@@ -184,39 +182,25 @@ export async function POST(request: NextRequest) {
   const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
 
   // Find all clean-extracted questions from master papers (matching level + semester)
-  // For English: don't filter by examType (English papers don't follow WA1/WA2 schedule)
+  // Light query first (no blobs) — full data loaded later for selected questions only
   const allQuestions = await prisma.examQuestion.findMany({
     where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes),
-    select: questionSelect,
+    select: questionSelectLight,
   });
 
-  // Debug: for English, log what we found
-  if (subject === "english") {
-    // Also check how many questions exist without the filters
-    const totalEnglishQs = await prisma.examQuestion.count({
-      where: { examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
-    });
-    const withStem = await prisma.examQuestion.count({
-      where: { transcribedStem: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
-    });
-    const withAnswer = await prisma.examQuestion.count({
-      where: { answer: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
-    });
-    const withBoth = await prisma.examQuestion.count({
-      where: { transcribedStem: { not: null }, answer: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
-    });
-    const withBothNoFilter = await prisma.examQuestion.count({
-      where: { transcribedStem: { not: null }, answer: { not: null }, examPaper: { sourceExamId: null, paperType: null, subject: { contains: "english", mode: "insensitive" } } },
-    });
-    console.log(`[English Quiz] Total: ${totalEnglishQs}, stem: ${withStem}, answer: ${withAnswer}, both: ${withBothNoFilter}, level="${levelFilter}", examType=${subject === "english" ? "none" : JSON.stringify(allowedExamTypes)}, after filter: ${allQuestions.length}`);
-    if (allQuestions.length > 0) {
-      const topics = new Map<string, number>();
-      for (const q of allQuestions) { topics.set(q.syllabusTopic ?? "null", (topics.get(q.syllabusTopic ?? "null") ?? 0) + 1); }
-      console.log(`[English Quiz] By topic:`, Object.fromEntries(topics));
-    }
-  }
-
   type Q = typeof allQuestions[number];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type FullQ = Q & { imageData: string | null; answerImageData: string | null; transcribedOptionImages: any };
+
+  // Hydrate lightweight questions with large blob fields — only for the final selected set
+  async function hydrateBlobs(ids: string[]): Promise<Map<string, { imageData: string | null; answerImageData: string | null; transcribedOptionImages: unknown }>> {
+    if (ids.length === 0) return new Map();
+    const rows = await prisma.examQuestion.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, imageData: true, answerImageData: true, transcribedOptionImages: true },
+    });
+    return new Map(rows.map(r => [r.id, r]));
+  }
 
   // Strip trailing letter(s) from a question number to get the base, e.g. "35ab" → "35", "35c" → "35", "12" → "12"
   function baseNum(questionNum: string) {
@@ -609,7 +593,11 @@ export async function POST(request: NextRequest) {
       sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
     }
 
-    const totalMarks = allSelected.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
+    // Hydrate selected questions with blob data
+    const blobMap = await hydrateBlobs(allSelected.map(q => q.id));
+    const allSelectedFull = allSelected.map(q => ({ ...q, ...blobMap.get(q.id) })) as FullQ[];
+
+    const totalMarks = allSelectedFull.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
     const levelLabel = levelFilter ? `P${student!.level} ` : "";
     const allLabels: string[] = [];
     if (selectedGrammar.length > 0) allLabels.push("Grammar MCQ");
@@ -633,14 +621,15 @@ export async function POST(request: NextRequest) {
           quizType: "mcq",
           englishSections: sections,
           sourceLabels: Object.fromEntries(
-            allSelected.map((q, i) => {
+            allSelectedFull.map((q, i) => {
               const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);
               return [String(i + 1), parts.length > 0 ? parts.join(" ") : null];
             })
           ),
         },
         questions: {
-          create: allSelected.map((q, i) => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          create: allSelectedFull.map((q, i) => ({
             questionNum: String(i + 1),
             imageData: q.imageData,
             answer: q.answer,
@@ -656,7 +645,7 @@ export async function POST(request: NextRequest) {
             diagramImageData: q.diagramImageData,
             diagramBounds: q.diagramBounds ?? undefined,
             sourceQuestionId: q.id,
-          })),
+          })) as any,
         },
       },
     });
@@ -687,7 +676,7 @@ export async function POST(request: NextRequest) {
     const prevLevelFilter = `Primary ${student.level - 1}`;
     const prevLevelQuestions = await prisma.examQuestion.findMany({
       where: questionWhere(prevLevelFilter, null),
-      select: questionSelect,
+      select: questionSelectLight,
     });
     const prevFresh = prevLevelQuestions.filter(q => !usedSourceIds.has(q.id));
     const prevUsed  = prevLevelQuestions.filter(q =>  usedSourceIds.has(q.id));
@@ -780,7 +769,12 @@ export async function POST(request: NextRequest) {
   }
 
   const allSelected = [...selectedMcq, ...selectedOeq];
-  const totalMarks = allSelected.reduce((sum, q) => sum + (isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1)), 0);
+
+  // Hydrate selected questions with blob data
+  const blobMap2 = await hydrateBlobs(allSelected.map(q => q.id));
+  const allSelectedFull2 = allSelected.map(q => ({ ...q, ...blobMap2.get(q.id) })) as FullQ[];
+
+  const totalMarks = allSelectedFull2.reduce((sum, q) => sum + (isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1)), 0);
   const levelLabel = levelFilter ? `P${student!.level} ` : "";
 
   const paper = await prisma.examPaper.create({
@@ -798,14 +792,15 @@ export async function POST(request: NextRequest) {
       metadata: {
         quizType,
         sourceLabels: Object.fromEntries(
-          allSelected.map((q, i) => {
+          allSelectedFull2.map((q, i) => {
             const parts = [q.examPaper.year, q.examPaper.examType, q.examPaper.school].filter(Boolean);
             return [String(i + 1), parts.length > 0 ? parts.join(" ") : null];
           })
         ),
       },
       questions: {
-        create: allSelected.map((q, i) => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        create: allSelectedFull2.map((q, i) => ({
           questionNum: String(i + 1),
           imageData: q.imageData,
           answer: q.answer,
@@ -821,7 +816,7 @@ export async function POST(request: NextRequest) {
           diagramImageData: q.diagramImageData,
           diagramBounds: q.diagramBounds ?? undefined,
           sourceQuestionId: q.id,
-        })),
+        })) as any,
       },
     },
   });

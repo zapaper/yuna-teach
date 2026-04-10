@@ -268,7 +268,11 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   async function fetchElaboration(questionId: string) {
-    if (elaborations[questionId]) return;
+    if (elaborations[questionId]) {
+      // Already fetched — just expand
+      setExpandedElabs(prev => new Set(prev).add(questionId));
+      return;
+    }
     setElaborating(questionId);
     try {
       const res = await fetch(`/api/exam/${id}/elaborate`, {
@@ -279,6 +283,8 @@ function ExamReviewContent({ id }: { id: string }) {
       if (res.ok) {
         const { elaboration } = await res.json();
         setElaborations((prev) => ({ ...prev, [questionId]: elaboration }));
+        // Auto-expand after fetch completes
+        setExpandedElabs(prev => new Set(prev).add(questionId));
       }
     } catch {
       // ignore
