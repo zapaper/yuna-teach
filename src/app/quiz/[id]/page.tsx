@@ -1325,6 +1325,14 @@ function OeqQuestionCard({
               })}
             </div>
           ) : (
+            <>
+            {/* Show drawable diagram as reference above canvas */}
+            {drawableDiagramBase64 && (
+              <div className="mb-3 p-3 bg-[#eff4ff] rounded-2xl border border-[#d3e4fe]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={drawableDiagramBase64.startsWith("data:") ? drawableDiagramBase64 : `data:image/jpeg;base64,${drawableDiagramBase64}`} alt="Diagram" className="w-full rounded-lg" />
+              </div>
+            )}
             <ResizableCanvas
               ref={onCanvasRef}
               tool={tool}
@@ -1336,6 +1344,7 @@ function OeqQuestionCard({
               savedHeight={savedHeights?.[question.id]}
               onHeightChange={onHeightChange}
             />
+            </>
           )}
         </div>
       </div>
