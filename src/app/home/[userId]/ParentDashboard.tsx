@@ -242,6 +242,44 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const avgScore = scoredPapers.length > 0
     ? Math.round(scoredPapers.reduce((s, p) => s + (p.score! / parseFloat(p.totalMarks!) * 100), 0) / scoredPapers.length)
     : null;
+
+  // ── Performance chart data (3 data points per subject line) ──
+  const SUBJ_COLORS: Record<string, string> = { math: "#006c49", science: "#3a5f94", english: "#001e40" };
+  const SUBJ_LABELS: Record<string, string> = { math: "Math", science: "Science", english: "English" };
+  type ChartLine = { subject: string; color: string; label: string; points: number[]; avg: number };
+  const chartLines: ChartLine[] = (() => {
+    // Group scored papers by subject, sorted by completedAt asc
+    const bySubj: Record<string, number[]> = {};
+    const sorted = [...scoredPapers].sort((a, b) => new Date(a.completedAt!).getTime() - new Date(b.completedAt!).getTime());
+    for (const p of sorted) {
+      const subj = (p.subject ?? "").toLowerCase();
+      const key = subj.includes("math") ? "math" : subj.includes("sci") ? "science" : subj.includes("eng") ? "english" : null;
+      if (!key) continue;
+      if (!bySubj[key]) bySubj[key] = [];
+      bySubj[key].push(Math.round((p.score! / parseFloat(p.totalMarks!)) * 100));
+    }
+    const lines: ChartLine[] = [];
+    for (const [subj, scores] of Object.entries(bySubj)) {
+      if (scores.length < 3) continue; // need at least 3 to chart
+      let groupSize: number;
+      if (scores.length <= 5) groupSize = 1;
+      else if (scores.length <= 8) groupSize = 2;
+      else groupSize = 3;
+      // Take last (3 * groupSize) scores
+      const tail = scores.slice(-(3 * groupSize));
+      const pts: number[] = [];
+      for (let i = 0; i < 3; i++) {
+        const chunk = tail.slice(i * groupSize, (i + 1) * groupSize);
+        pts.push(Math.round(chunk.reduce((a, b) => a + b, 0) / chunk.length));
+      }
+      const avg = Math.round(pts.reduce((a, b) => a + b, 0) / pts.length);
+      lines.push({ subject: subj, color: SUBJ_COLORS[subj] ?? "#737780", label: SUBJ_LABELS[subj] ?? subj, points: pts, avg });
+    }
+    return lines;
+  })();
+  const showChart = chartLines.length > 0;
+  const overallChartAvg = showChart ? Math.round(chartLines.reduce((s, l) => s + l.avg, 0) / chartLines.length) : null;
+
   const recentActivities = [...completedPapers]
     .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
     .slice(0, 3);
@@ -1587,33 +1625,83 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
                 {/* Stats — 5 cols */}
                 <div className="col-span-5 flex flex-col gap-5">
-                  {/* Avg score */}
+                  {/* Performance chart or avg score */}
                   <div className="bg-white rounded-3xl p-6 flex-1 shadow-sm relative overflow-hidden">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-[#43474f] font-medium mb-1">Average Score</p>
-                        <h3 className="font-headline text-5xl font-black text-[#001e40]">
-                          {avgScore !== null ? <>{avgScore}<span className="text-2xl font-bold">%</span></> : <span className="text-2xl text-[#c3c6d1]">—</span>}
-                        </h3>
-                      </div>
-                      <button
-                        onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
-                        className="w-14 h-14 rounded-2xl bg-[#6cf8bb]/30 flex items-center justify-center text-[#006c49] hover:bg-[#6cf8bb]/50 transition-colors cursor-pointer"
-                        title="View Full Report"
-                      >
-                        <span className="material-symbols-outlined text-3xl">trending_up</span>
-                      </button>
-                    </div>
-                    {avgScore !== null && (
-                      <div className="mt-5">
-                        <div className="flex justify-between text-xs font-extrabold uppercase tracking-wide text-[#43474f] mb-2">
-                          <span>Progress</span><span>{avgScore}%</span>
+                    {showChart ? (<>
+                      {/* Chart header */}
+                      <div className="flex justify-between items-center mb-4">
+                        <div>
+                          <h3 className="font-headline text-lg font-bold text-[#001e40]">Average Performance</h3>
+                          <p className="text-[#43474f] text-xs">Last {chartLines[0].points.length > 1 ? "3 active periods" : "3 papers"}</p>
                         </div>
-                        <div className="w-full h-3 bg-[#dce9ff] rounded-full overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-[#006c49] to-[#4edea3] rounded-full transition-all duration-700" style={{ width: `${avgScore}%` }} />
+                        <div className="text-right">
+                          <p className="font-headline text-3xl font-extrabold text-[#001e40]">
+                            {overallChartAvg}<span className="text-sm font-normal text-[#006c49] ml-1">%</span>
+                          </p>
                         </div>
                       </div>
-                    )}
+                      {/* SVG line chart */}
+                      <div className="relative min-h-[120px]">
+                        <svg viewBox="0 0 300 120" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                          {chartLines.map(line => {
+                            // Map percentage to y: 100% → y=5, 0% → y=115
+                            const yScale = (pct: number) => 115 - (pct / 100) * 110;
+                            const pts = line.points;
+                            const d = `M 0 ${yScale(pts[0])} L 150 ${yScale(pts[1])} L 300 ${yScale(pts[2])}`;
+                            return (
+                              <g key={line.subject}>
+                                <path d={d} fill="none" stroke={line.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <circle cx="0" cy={yScale(pts[0])} r="3" fill={line.color} />
+                                <circle cx="150" cy={yScale(pts[1])} r="3" fill={line.color} />
+                                <circle cx="300" cy={yScale(pts[2])} r="3.5" fill={line.color} />
+                              </g>
+                            );
+                          })}
+                        </svg>
+                      </div>
+                      {/* X-axis labels */}
+                      <div className="flex justify-between mt-3 px-1">
+                        <span className="text-[10px] text-[#737780] font-medium">Period 1</span>
+                        <span className="text-[10px] text-[#737780] font-medium">Period 2</span>
+                        <span className="text-[10px] text-[#001e40] font-bold">Latest</span>
+                      </div>
+                      {/* Legend */}
+                      <div className="mt-4 flex gap-4 border-t border-[#e5eeff] pt-3">
+                        {chartLines.map(l => (
+                          <div key={l.subject} className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full" style={{ background: l.color }} />
+                            <span className="text-[10px] text-[#43474f] font-medium">{l.label} {l.avg}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>) : (<>
+                      {/* Simple average (less than 3 papers per subject) */}
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-[#43474f] font-medium mb-1">Average Score</p>
+                          <h3 className="font-headline text-5xl font-black text-[#001e40]">
+                            {avgScore !== null ? <>{avgScore}<span className="text-2xl font-bold">%</span></> : <span className="text-2xl text-[#c3c6d1]">—</span>}
+                          </h3>
+                        </div>
+                        <button
+                          onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
+                          className="w-14 h-14 rounded-2xl bg-[#6cf8bb]/30 flex items-center justify-center text-[#006c49] hover:bg-[#6cf8bb]/50 transition-colors cursor-pointer"
+                          title="View Full Report"
+                        >
+                          <span className="material-symbols-outlined text-3xl">trending_up</span>
+                        </button>
+                      </div>
+                      {avgScore !== null && (
+                        <div className="mt-5">
+                          <div className="flex justify-between text-xs font-extrabold uppercase tracking-wide text-[#43474f] mb-2">
+                            <span>Progress</span><span>{avgScore}%</span>
+                          </div>
+                          <div className="w-full h-3 bg-[#dce9ff] rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-[#006c49] to-[#4edea3] rounded-full transition-all duration-700" style={{ width: `${avgScore}%` }} />
+                          </div>
+                        </div>
+                      )}
+                    </>)}
                   </div>
                   {/* Papers */}
                   <div className="bg-[#eff4ff] rounded-3xl p-6 flex items-center gap-5 shadow-sm">
