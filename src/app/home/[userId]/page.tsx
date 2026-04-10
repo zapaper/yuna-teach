@@ -141,7 +141,7 @@ export default function HomePage({
   const [showAllPapers, setShowAllPapers] = useState(false);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
-  const [quizSubject, setQuizSubject] = useState<"math" | "science">("math");
+  const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -961,7 +961,7 @@ export default function HomePage({
 
             <label className="text-sm font-medium text-slate-600 mb-2 block">Subject</label>
             <div className="flex gap-2 mb-4">
-              {(["math", "science"] as const).map(s => (
+              {(["math", "science", "english"] as const).map(s => (
                 <button
                   key={s}
                   onClick={() => setQuizSubject(s)}
@@ -969,7 +969,7 @@ export default function HomePage({
                     quizSubject === s ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-100 text-slate-600 hover:border-slate-200"
                   }`}
                 >
-                  {s === "math" ? "Mathematics" : "Science"}
+                  {s === "math" ? "Mathematics" : s === "science" ? "Science" : "English"}
                 </button>
               ))}
             </div>
