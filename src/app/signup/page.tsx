@@ -203,7 +203,7 @@ function SignupFlow() {
       }
       const quiz = await res.json();
       // Open quiz in new tab for student, redirect parent to dashboard
-      window.open(`/quiz/${quiz.id}?userId=${studentId}`, "_blank");
+      window.open(`/quiz/${quiz.id}?userId=${studentId}&diagnostic=1&parentId=${parentId}`, "_blank");
       router.push(`/home/${parentId}`);
     } catch {
       alert("Something went wrong. Please try again.");

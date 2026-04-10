@@ -391,7 +391,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
                         <span className="text-lg font-extrabold">{quizBadge.badge}</span>
                       </div>
-                      <span className="text-xs text-[#43474f] font-medium">{quizBadge.count} quizzes completed</span>
+                      <span className="text-xs text-[#43474f] font-medium">{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"} completed</span>
                     </div>
                 )}
                 </div>
