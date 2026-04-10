@@ -212,7 +212,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       const data = await res.json();
       if (!res.ok) { setEnterError(data.error || "Invalid code"); return; }
       setEnterSuccess(true);
-      setTimeout(() => { setShowLinkModal(false); router.refresh(); }, 1500);
+      setTimeout(() => { window.location.reload(); }, 1500);
     } catch { setEnterError("Something went wrong"); }
     finally { setEnterLoading(false); }
   }
