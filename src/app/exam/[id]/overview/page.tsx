@@ -657,10 +657,15 @@ function ExamOverviewContent({ id }: { id: string }) {
       ) : (
         <h1 className="text-2xl font-bold text-slate-800 mb-1">{paper.title}</h1>
       )}
-      <p className="text-sm text-slate-400 mb-6">
-        {paper.school ? <span>{paper.school} · </span> : null}
-        <span>Added {new Date(paper.createdAt).toLocaleDateString()}</span>
-      </p>
+      <div className="flex items-center justify-between mb-6">
+        <p className="text-sm text-slate-400">
+          {paper.school ? <span>{paper.school} · </span> : null}
+          <span>Added {new Date(paper.createdAt).toLocaleDateString()}</span>
+        </p>
+        {isAdmin && (
+          <GenerateTestQuizButton paperId={id} userId={userId} />
+        )}
+      </div>
 
       {/* Paper Summary */}
       <Section title="Paper Summary">
@@ -1708,5 +1713,36 @@ function InfoRow({ label, value, highlight }: {
       <span className="text-sm text-slate-500">{label}</span>
       <span className={`text-sm ${valueClass}`}>{value ?? "—"}</span>
     </div>
+  );
+}
+
+function GenerateTestQuizButton({ paperId, userId }: { paperId: string; userId: string }) {
+  const [generating, setGenerating] = useState(false);
+  return (
+    <button
+      onClick={async () => {
+        if (generating) return;
+        setGenerating(true);
+        try {
+          const res = await fetch("/api/daily-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, sourcePaperId: paperId }),
+          });
+          const data = await res.json();
+          if (res.ok && data.id) {
+            window.open(`/quiz/${data.id}?userId=${userId}`, "_blank");
+          } else {
+            alert(data.error || "Failed to generate");
+          }
+        } catch { alert("Something went wrong"); }
+        finally { setGenerating(false); }
+      }}
+      disabled={generating}
+      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 text-sm font-bold hover:bg-purple-100 transition-colors disabled:opacity-50"
+    >
+      <span className="material-symbols-outlined text-base">{generating ? "hourglass_top" : "science"}</span>
+      {generating ? "Generating..." : "Generate Test Quiz"}
+    </button>
   );
 }

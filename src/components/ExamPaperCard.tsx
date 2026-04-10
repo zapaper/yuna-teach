@@ -377,36 +377,6 @@ export default function ExamPaperCard({
         </button>
       )}
 
-      {/* Generate Test Quiz — admin only, clean extracted papers */}
-      {isAdmin && paper.cleanExtracted && !paper.paperType && (
-        <button
-          onClick={async (e) => {
-            e.preventDefault();
-            if (generatingTestQuiz) return;
-            setGeneratingTestQuiz(true);
-            try {
-              const res = await fetch("/api/daily-quiz", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, sourcePaperId: paper.id }),
-              });
-              const data = await res.json();
-              if (res.ok && data.id) {
-                window.open(`/quiz/${data.id}?userId=${userId}`, "_blank");
-              } else {
-                alert(data.error || "Failed to generate test quiz");
-              }
-            } catch { alert("Something went wrong"); }
-            finally { setGeneratingTestQuiz(false); }
-          }}
-          disabled={generatingTestQuiz}
-          className="absolute top-3 right-28 p-2 rounded-full text-purple-500 hover:bg-purple-50 transition-colors z-10 disabled:opacity-50"
-          title="Generate Test Quiz"
-        >
-          <span className="material-symbols-outlined text-lg">{generatingTestQuiz ? "hourglass_top" : "science"}</span>
-        </button>
-      )}
-
       {/* Tag Syllabus button — Math papers, parents only, not already tagged */}
       {isAdmin && isTaggablePaper && !isExtracting && !extractionFailed && !paper.syllabusTagged && (
         <button
