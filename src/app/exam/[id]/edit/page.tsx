@@ -188,11 +188,9 @@ function ExamEditContent({ id }: { id: string }) {
   }
 
   async function deleteQuestion(questionId: string) {
-    // Clear clean extraction data, don't delete the question itself
+    // Actually delete the question from the database
     await fetch(`/api/exam/questions/${questionId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transcribedStem: null, transcribedOptions: null, transcribedSubparts: null }),
+      method: "DELETE",
     });
     setPaper((prev) =>
       prev
@@ -336,6 +334,20 @@ function ExamEditContent({ id }: { id: string }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
           });
+        }
+      }
+
+      // Deduplicate: remove blank duplicate questions (same questionNum + syllabusTopic)
+      const seen = new Map<string, string>();
+      for (const q of paper.questions) {
+        const key = `${q.questionNum}:${q.syllabusTopic ?? ""}`;
+        if (seen.has(key)) {
+          // Keep the one with transcribedStem, delete the blank one
+          if (!q.transcribedStem?.trim()) {
+            await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
+          }
+        } else {
+          seen.set(key, q.id);
         }
       }
 
