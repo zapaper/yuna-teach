@@ -581,7 +581,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           ))}
         </div>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
-        {quizSubject !== "english" ? (
+        {quizSubject !== "english" ? (<>
           <div className="flex gap-2 mb-5">
             <button onClick={() => setQuizType("mcq")}
               className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
@@ -592,7 +592,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               MCQ + Written
             </button>
           </div>
-        ) : (
+          {quizType === "mcq-oeq" && (
+            <p className="text-[10px] text-[#c3c6d1] -mt-3 mb-4 flex items-center gap-1">
+              <span className="material-symbols-outlined text-xs">stylus_note</span>
+              Stylus recommended for written questions
+            </p>
+          )}
+        </>) : (
           <div className="mb-5">
             <p className="text-[10px] text-[#43474f] mb-3">Select sections to include:</p>
             <div className="space-y-2">
