@@ -113,6 +113,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [showQuizSetup, setShowQuizSetup] = useState(false);
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
+  const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>>([]);
@@ -240,7 +241,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       const res = await fetch("/api/daily-quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, quizType, subject: quizSubject }),
+        body: JSON.stringify({
+          userId,
+          quizType: quizSubject === "english" ? "mcq" : quizType,
+          subject: quizSubject,
+          ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) { alert(data.error || "Failed to create quiz"); return; }
@@ -605,20 +611,55 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               ))}
             </div>
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
-            <div className="space-y-2 mb-6">
-              {([["mcq", "MCQ Only", "20 multiple choice questions"], ["mcq-oeq", "MCQ + Written", "10 MCQ + 5 open-ended questions"]] as const).map(([val, label, desc]) => (
-                <button key={val} onClick={() => setQuizType(val)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${quizType === val ? "border-[#006c49] bg-[#006c49]/5" : "border-slate-100"}`}>
-                  <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${quizType === val ? "border-[#006c49]" : "border-slate-300"}`}>
-                    {quizType === val && <span className="w-2.5 h-2.5 rounded-full bg-[#006c49]" />}
-                  </span>
-                  <div>
-                    <p className={`text-sm font-medium ${quizType === val ? "text-[#006c49]" : "text-slate-700"}`}>{label}</p>
-                    <p className="text-xs text-slate-400">{desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+            {quizSubject !== "english" ? (
+              <div className="space-y-2 mb-6">
+                {([["mcq", "MCQ Only", "20 multiple choice questions"], ["mcq-oeq", "MCQ + Written", "10 MCQ + 5 open-ended questions"]] as const).map(([val, label, desc]) => (
+                  <button key={val} onClick={() => setQuizType(val)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${quizType === val ? "border-[#006c49] bg-[#006c49]/5" : "border-slate-100"}`}>
+                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${quizType === val ? "border-[#006c49]" : "border-slate-300"}`}>
+                      {quizType === val && <span className="w-2.5 h-2.5 rounded-full bg-[#006c49]" />}
+                    </span>
+                    <div>
+                      <p className={`text-sm font-medium ${quizType === val ? "text-[#006c49]" : "text-slate-700"}`}>{label}</p>
+                      <p className="text-xs text-slate-400">{desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="mb-6">
+                <p className="text-[10px] text-[#43474f] mb-3">Select sections to include:</p>
+                <div className="space-y-2">
+                  {[
+                    { key: "grammar-mcq", label: "Grammar MCQ" },
+                    { key: "vocab-mcq", label: "Vocabulary MCQ" },
+                    { key: "vocab-cloze", label: "Vocabulary Cloze" },
+                    { key: "visual-text", label: "Visual Text" },
+                    { key: "grammar-cloze", label: "Grammar Cloze" },
+                    { key: "editing", label: "Editing" },
+                    { key: "comprehension-cloze", label: "Comprehension Cloze" },
+                    { key: "synthesis", label: "Synthesis" },
+                    { key: "comprehension-oeq", label: "Comprehension OEQ" },
+                  ].map(s => (
+                    <label key={s.key} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={englishSections.has(s.key)}
+                        onChange={() => {
+                          setEnglishSections(prev => {
+                            const next = new Set(prev);
+                            next.has(s.key) ? next.delete(s.key) : next.add(s.key);
+                            return next;
+                          });
+                        }}
+                        className="w-4 h-4 accent-[#006c49] rounded"
+                      />
+                      <span className="text-sm text-[#001e40]">{s.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="flex gap-3">
               <button onClick={() => setShowQuizSetup(false)} className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-medium">Cancel</button>
               <button onClick={startQuiz} disabled={creatingQuiz}
