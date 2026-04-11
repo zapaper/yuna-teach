@@ -66,11 +66,12 @@ function scorePct(paper: ExamPaperSummary) {
 
 export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
   const router = useRouter();
-  const allAvatars = ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4","/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
-  const bearOnly = ["/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
+  const bunnyVideos = ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4"];
+  const bearVideos = ["/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
+  const avatarMap: Record<string, string[]> = { admin: bunnyVideos, papa: bearVideos };
   const nameLower = user.name?.toLowerCase() ?? "";
-  const hasAvatar = nameLower === "admin" || nameLower === "papa";
-  const avatarVideos = nameLower === "papa" ? bearOnly : allAvatars;
+  const avatarVideos = avatarMap[nameLower] ?? null;
+  const hasAvatar = !!avatarVideos;
   const [bunnySrc, setBunnySrc] = useState(() => avatarVideos[Math.floor(Math.random() * avatarVideos.length)]);
   const [nextSrc, setNextSrc] = useState<string | null>(null);
   const bunnyRef = useRef<HTMLVideoElement>(null);
