@@ -648,28 +648,23 @@ function ExamReviewContent({ id }: { id: string }) {
                 </div>
               </div>
             </div>
-            {/* Sticker + collapsible summary */}
-            {data.feedbackSummary ? (
-              <details className="mt-4 group">
-                <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer select-none flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm transition-transform group-open:rotate-90">chevron_right</span>
-                  Summary
-                  {/* Sticker inline when summary collapsed */}
-                  {sticker && (
-                    <span className="group-open:hidden ml-auto">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/stickers/${sticker}`} alt="Sticker" className="w-12 h-12 object-contain drop-shadow-md" />
-                    </span>
-                  )}
-                </summary>
-                <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
-              </details>
-            ) : sticker ? (
-              <div className="flex justify-center mt-4">
+            {/* Sticker top-right corner */}
+            {sticker && (
+              <div className="absolute top-3 right-3 z-10 group-open:hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/stickers/${sticker}`} alt="Sticker" className="w-20 h-20 object-contain drop-shadow-md" />
               </div>
-            ) : null}
+            )}
+            {/* Collapsible summary */}
+            {data.feedbackSummary && (
+              <details className="mt-4">
+                <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer select-none flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm">expand_more</span>
+                  Summary
+                </summary>
+                <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
+              </details>
+            )}
             {/* Sticker button */}
             {!isStudent && (
               <div className="mt-3 relative">
@@ -694,7 +689,6 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="hidden lg:grid grid-cols-3 gap-6 my-10">
           <div className="col-span-2 bg-white rounded-3xl p-8 flex flex-row items-center gap-8 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
-            {/* Sticker overlay removed — standalone panel below */}
             <div
               className="relative z-10 flex flex-col items-center justify-center w-44 h-44 rounded-full shrink-0"
               style={{ background: `radial-gradient(closest-side, white 82%, transparent 82%), conic-gradient(${scoreBorderColor} ${pct ?? 0}%, #dce9ff 0)` }}
@@ -711,23 +705,25 @@ function ExamReviewContent({ id }: { id: string }) {
                 {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
               </h1>
               {data.feedbackSummary ? (
-                <details className="mb-4 group">
-                  <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm transition-transform group-open:rotate-90">chevron_right</span>
-                    Summary
-                    {sticker && (
-                      <span className="group-open:hidden ml-auto">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`/stickers/${sticker}`} alt="Sticker" className="w-16 h-16 object-contain drop-shadow-md" />
-                      </span>
-                    )}
-                  </summary>
-                  <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
-                </details>
+                <div className="mb-4 relative">
+                  {sticker && (
+                    <div className="absolute -top-2 right-0 z-10">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
+                    </div>
+                  )}
+                  <details>
+                    <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none flex items-center gap-2">
+                      <span className="material-symbols-outlined text-sm">expand_more</span>
+                      Summary
+                    </summary>
+                    <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
+                  </details>
+                </div>
               ) : sticker ? (
-                <div className="mb-4 flex justify-center">
+                <div className="mb-4">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/stickers/${sticker}`} alt="Sticker" className="w-28 h-28 object-contain drop-shadow-md" />
+                  <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
                 </div>
               ) : null}
               {data.bookletScores && data.bookletScores.length > 0 && (
@@ -777,13 +773,6 @@ function ExamReviewContent({ id }: { id: string }) {
                 <p className="font-headline text-xl font-bold text-[#ba1a1a]">{incorrectQuestions.length}</p>
               </div>
             </div>
-            {/* Sticker panel */}
-            {sticker && (
-              <div className="bg-white rounded-3xl p-5 flex items-center justify-center shadow-sm flex-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
-              </div>
-            )}
           </div>
         </section>
 
