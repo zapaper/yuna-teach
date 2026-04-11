@@ -1722,7 +1722,7 @@ function ExamReviewContent({ id }: { id: string }) {
             {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG", "star_t.PNG", "rocket_t.PNG", "cat_t.PNG"].map(s => (
               <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-4 rounded-2xl hover:bg-[#eff4ff]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-24 h-24 object-contain" />
+                <img src={`/stickers/thumbs/${s}`} alt={s.replace("_t.PNG", "")} className="w-24 h-24 object-contain" />
               </button>
             ))}
           </div>
