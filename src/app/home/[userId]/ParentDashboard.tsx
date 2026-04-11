@@ -66,17 +66,27 @@ function scorePct(paper: ExamPaperSummary) {
 
 export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
   const router = useRouter();
-  const [bunnySrc, setBunnySrc] = useState(`/avatars/bunny${Math.floor(Math.random() * 4) + 1}.mp4`);
+  const avatarVideos = ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4","/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
+  const [bunnySrc, setBunnySrc] = useState(() => avatarVideos[Math.floor(Math.random() * avatarVideos.length)]);
+  const [nextSrc, setNextSrc] = useState<string | null>(null);
   const bunnyRef = useRef<HTMLVideoElement>(null);
+  const preloadRef = useRef<HTMLVideoElement>(null);
   const nextBunny = () => {
     const cur = bunnySrc;
     let next: string;
-    do { next = `/avatars/bunny${Math.floor(Math.random() * 4) + 1}.mp4`; } while (next === cur);
-    setBunnySrc(next);
+    do { next = avatarVideos[Math.floor(Math.random() * avatarVideos.length)]; } while (next === cur);
+    setNextSrc(next);
+  };
+  // When preload video is ready, swap it in
+  const onPreloadReady = () => {
+    if (nextSrc) {
+      setBunnySrc(nextSrc);
+      setNextSrc(null);
+    }
   };
   useEffect(() => {
     const v = bunnyRef.current;
-    if (v) { v.load(); v.play().catch(() => {}); }
+    if (v) { v.currentTime = 0; v.play().catch(() => {}); }
   }, [bunnySrc]);
 
   // Data
@@ -1189,9 +1199,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
         <div className="flex items-center gap-3">
           {user.name?.toLowerCase() === "admin" && (
-            <div className="w-[4.5rem] h-[4.5rem] rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0">
+            <div className="w-[4.5rem] h-[4.5rem] rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative">
               <video ref={bunnyRef} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
                 className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+              {nextSrc && <video ref={preloadRef} src={nextSrc} muted playsInline preload="auto" onCanPlayThrough={onPreloadReady} className="absolute inset-0 invisible" />}
             </div>
           )}
           <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
@@ -1243,7 +1254,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
           {user.name?.toLowerCase() === "admin" ? (
-            <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0"
+            <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative"
               onClick={() => { bunnyRef.current?.play().catch(() => {}); }}>
               <video src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
                 className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
