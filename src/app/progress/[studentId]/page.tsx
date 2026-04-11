@@ -472,9 +472,21 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
   // Aggregate entries into groups of 3 (average) for robustness
   const GROUP_SIZE = 3;
   const aggregated: TimelineEntry[] = [];
-  if (entries.length <= 3) {
-    // 1-3 entries: show individually
-    aggregated.push(...entries);
+  if (entries.length < GROUP_SIZE) {
+    // Not enough for a single group — show as one averaged point
+    const mergedTopics: Record<string, { sum: number; count: number }> = {};
+    for (const e of entries) {
+      for (const [topic, pct] of Object.entries(e.topics)) {
+        if (!mergedTopics[topic]) mergedTopics[topic] = { sum: 0, count: 0 };
+        mergedTopics[topic].sum += pct;
+        mergedTopics[topic].count++;
+      }
+    }
+    const avgTopics: Record<string, number> = {};
+    for (const [topic, { sum, count }] of Object.entries(mergedTopics)) {
+      avgTopics[topic] = Math.round(sum / count);
+    }
+    aggregated.push({ title: `Avg of ${entries.length}`, date: entries[entries.length - 1].date, topics: avgTopics });
   } else {
     // Group into chunks of 3, take last N*3 entries
     const usable = entries.slice(-(Math.floor(entries.length / GROUP_SIZE) * GROUP_SIZE));
@@ -492,11 +504,7 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
       for (const [topic, { sum, count }] of Object.entries(mergedTopics)) {
         avgTopics[topic] = Math.round(sum / count);
       }
-      aggregated.push({
-        title: `Avg of ${chunk.length}`,
-        date: chunk[chunk.length - 1].date,
-        topics: avgTopics,
-      });
+      aggregated.push({ title: `Avg of ${chunk.length}`, date: chunk[chunk.length - 1].date, topics: avgTopics });
     }
   }
 
@@ -504,7 +512,7 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
   const topicColorMap: Record<string, string> = {};
   allTopics.forEach((t, i) => { topicColorMap[t] = TOPIC_COLORS[i % TOPIC_COLORS.length]; });
 
-  const W = 600, H = 300, padL = 40, padR = 20, padT = 16, padB = 40;
+  const W = 600, H = 260, padL = 40, padR = 20, padT = 16, padB = 20;
   const chartW = W - padL - padR;
   const chartH = H - padT - padB;
   const n = aggregated.length;
@@ -512,12 +520,6 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
 
   function x(i: number) { return padL + (n > 1 ? i * xStep : chartW / 2); }
   function y(pct: number) { return padT + chartH - (pct / 100) * chartH; }
-  function dateLabel(iso: string) {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return `${d.getDate()}/${d.getMonth() + 1}`;
-  }
-
   return (
     <div>
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-4">
@@ -536,9 +538,6 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
               <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
             </g>
           ))}
-          {aggregated.map((e, i) => (
-            <text key={i} x={x(i)} y={H - padB + 16} textAnchor="middle" fill="#737780" fontSize={9}>{dateLabel(e.date)}</text>
-          ))}
           {allTopics.map(topic => {
             const color = topicColorMap[topic];
             const points = aggregated.map((e, i) => e.topics[topic] !== undefined ? { idx: i, pct: e.topics[topic] } : null).filter(Boolean) as { idx: number; pct: number }[];
@@ -553,6 +552,7 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
           })}
         </svg>
       </div>
+      <p className="text-[10px] text-[#c3c6d1] mt-2 text-right italic">Each data point is average of three quizzes/papers</p>
     </div>
   );
 }

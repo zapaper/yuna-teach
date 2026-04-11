@@ -601,15 +601,16 @@ export async function POST(request: NextRequest) {
 
     const totalMarks = allSelectedFull.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
     const levelLabel = levelFilter ? `P${student!.level} ` : "";
-    const allLabels: string[] = [];
-    if (selectedGrammar.length > 0) allLabels.push("Grammar MCQ");
-    if (selectedVocab.length > 0) allLabels.push("Vocab MCQ");
-    allLabels.push(...activeLabels);
-    const sectionSummary = allLabels.length > 0 ? allLabels.join(" + ") : "English";
+    // Check if any non-MCQ sections are included
+    const hasOeq = selectedExtra.some(q => {
+      const t = (q.syllabusTopic ?? "").toLowerCase();
+      return t.includes("editing") || t.includes("cloze") || t.includes("synthesis") || t.includes("comprehension");
+    });
+    const engQuizType = hasOeq ? "MCQ + OEQ" : "MCQ";
 
     const paper = await prisma.examPaper.create({
       data: {
-        title: `${levelLabel}Daily Quiz – English (${sectionSummary})`,
+        title: `${levelLabel}English Quiz ${engQuizType}`,
         subject: "English Language",
         level: levelFilter || null,
         userId,
