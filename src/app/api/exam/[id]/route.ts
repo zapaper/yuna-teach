@@ -365,7 +365,7 @@ export async function DELETE(
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
-    select: { paperType: true, assignedToId: true, completedAt: true, userId: true },
+    select: { paperType: true, assignedToId: true, completedAt: true, userId: true, sourceExamId: true },
   });
 
   if (!paper) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -379,13 +379,21 @@ export async function DELETE(
 
   if (!callerIsAdmin) {
     if (paper.paperType === "quiz") {
-      // Students can delete their own quizzes
-      if (paper.assignedToId !== requesterId) {
+      // Students/parents can delete quizzes they own or are assigned to
+      if (paper.assignedToId !== requesterId && paper.userId !== requesterId) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
-    } else if (paper.paperType !== "focused") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    } else if (paper.userId !== requesterId) {
+    } else if (paper.sourceExamId) {
+      // Clone (student instance of exam paper) — parent who created it can delete
+      if (paper.userId !== requesterId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } else if (paper.paperType === "focused") {
+      if (paper.userId !== requesterId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    } else {
+      // Master/original paper — non-admin cannot delete
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
   }

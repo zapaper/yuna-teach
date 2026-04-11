@@ -152,13 +152,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   }, [userId, selectedStudentId]);
 
   const recFetchingRef = useRef<string | null>(null);
-  useEffect(() => {
+  function fetchInsight(forceRefresh = false) {
     if (!selectedStudentId || recFetchingRef.current === selectedStudentId) return;
     const key = `recs-fetched-${selectedStudentId}`;
-    const cached = localStorage.getItem(key);
-    if (cached && JSON.parse(cached).date === new Date().toDateString()) {
-      setAiInsight(JSON.parse(cached).insight);
-      return;
+    if (!forceRefresh) {
+      const cached = localStorage.getItem(key);
+      if (cached && JSON.parse(cached).date === new Date().toDateString()) {
+        setAiInsight(JSON.parse(cached).insight);
+        return;
+      }
     }
     recFetchingRef.current = selectedStudentId;
     setAiInsight("");
@@ -175,7 +177,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       })
       .catch(() => {})
       .finally(() => { recFetchingRef.current = null; setRecLoading(false); });
-  }, [userId, selectedStudentId]);
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchInsight(); }, [userId, selectedStudentId]);
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
@@ -798,10 +803,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   const AiInsightCard = () => (
     <div className="relative">
-      <div className="absolute -top-3 -right-2 z-10 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full shadow flex items-center gap-1.5">
+      <button onClick={() => fetchInsight(true)} disabled={recLoading} className="absolute -top-3 -right-2 z-10 bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full shadow flex items-center gap-1.5 hover:bg-white transition-colors disabled:opacity-60">
         <span className="material-symbols-outlined text-[#ffb952] text-base" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
         <span className="text-[10px] font-extrabold text-[#001e40] tracking-widest uppercase">AI Insight</span>
-      </div>
+      </button>
       <div className="bg-[#003366] text-white p-7 rounded-[2.5rem] relative overflow-hidden flex flex-col">
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#006c49]/20 rounded-full blur-3xl -mr-16 -mt-16" />
         <h3 className="font-headline font-bold text-xl mb-3 pr-8 leading-tight">
@@ -1455,7 +1460,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </div>
 
             {(() => {
-              const unstartedPapers = studentPapers.filter(p => !p.completedAt && (p.paperType === "quiz" || p.paperType === "focused"));
+              const unstartedPapers = studentPapers.filter(p => !p.completedAt && (p.paperType === "quiz" || p.paperType === "focused" || p.sourceExamId));
               const allActivities = [...unstartedPapers, ...completedPapers];
               if (allActivities.length === 0) return (
                 <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-[#c3c6d1]">
@@ -1525,7 +1530,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </p>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            {(paper.paperType === "quiz" || paper.paperType === "focused") && (
+                            {(paper.paperType === "quiz" || paper.paperType === "focused" || paper.sourceExamId) && (
                               <button onClick={(e) => handleDeletePaper(e, paper.id)}
                                 className="w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
                                 <span className="material-symbols-outlined text-base">close</span>
@@ -1629,10 +1634,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   <div className="absolute top-0 right-0 w-64 h-64 bg-[#006c49]/20 rounded-full blur-3xl -mr-20 -mt-20" />
                   <div className="flex flex-col flex-1">
                     <div className="flex items-center gap-2 mb-5">
-                      <div className="px-3 py-1 bg-[#006c49]/20 backdrop-blur-md rounded-full border border-[#006c49]/30 flex items-center gap-2">
+                      <button onClick={() => fetchInsight(true)} disabled={recLoading} className="px-3 py-1 bg-[#006c49]/20 backdrop-blur-md rounded-full border border-[#006c49]/30 flex items-center gap-2 hover:bg-[#006c49]/30 transition-colors cursor-pointer disabled:opacity-60">
                         <span className="material-symbols-outlined text-[#4edea3] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
                         <span className="text-xs font-extrabold uppercase tracking-wider text-[#4edea3]">AI Smart Insights</span>
-                      </div>
+                      </button>
                     </div>
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
                       {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
