@@ -162,6 +162,8 @@ export class AudioSequencer {
     this.replayRequested = true;
     this.skipController?.abort();
     this.skipController = null;
+    // Resume if paused so the loop can process the request
+    if (this.paused) this.resume();
   }
 
   private previousRequested = false;
@@ -169,11 +171,13 @@ export class AudioSequencer {
     this.previousRequested = true;
     this.skipController?.abort();
     this.skipController = null;
+    if (this.paused) this.resume();
   }
 
   skip() {
     this.skipController?.abort();
     this.skipController = null;
+    if (this.paused) this.resume();
   }
 
   pause() {

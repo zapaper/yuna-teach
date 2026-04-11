@@ -558,9 +558,9 @@ function PassageLine({
             onChange={e => qId && onAnswer(qId, sectionType === "grammar-cloze" ? e.target.value.toUpperCase() : e.target.value)}
             onFocus={onFocusInput}
             className={`border-b-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-300"} focus:border-[#003366] outline-none text-center font-bold text-sm bg-transparent ${
-              sectionType === "grammar-cloze" ? "w-8" : "w-24"
+              sectionType === "grammar-cloze" ? "w-16" : "w-24"
             }`}
-            maxLength={sectionType === "grammar-cloze" ? 1 : 20}
+            maxLength={sectionType === "grammar-cloze" ? 8 : 20}
             placeholder={sectionType === "grammar-cloze" ? "_" : "________"}
           />
         </span>

@@ -104,14 +104,17 @@ export default function BeginTestMode({
 
   function handleNext() {
     sequencerRef.current?.skip();
+    if (status === "paused") setStatus("playing");
   }
 
   function handlePrevious() {
     sequencerRef.current?.previous();
+    if (status === "paused") setStatus("playing");
   }
 
   function handleReplay() {
     sequencerRef.current?.replay();
+    if (status === "paused") setStatus("playing");
   }
 
   return (

@@ -406,7 +406,7 @@ function ScanPageContent() {
                   Scan Spelling / 听写
                 </h2>
                 <p className="text-[#43474f] text-base lg:text-lg leading-relaxed max-w-md mx-auto">
-                  Transform your handwritten notes into personalised practice tests instantly.
+                  Transform your spelling list into personalised test instantly.
                 </p>
               </div>
 
