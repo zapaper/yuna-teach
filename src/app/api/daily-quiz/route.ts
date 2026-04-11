@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       for (const [topic, qs] of sectionMap) {
         const topicLower = topic.toLowerCase();
         // Don't set passage for standalone MCQ sections (Grammar MCQ, Vocabulary MCQ)
-        const isStandaloneMcq = (topicLower.includes("grammar") && !topicLower.includes("cloze"))
+        const isStandaloneMcq = (topicLower.includes("grammar") && !topicLower.includes("cloze") && !topicLower.includes("editing"))
           || (topicLower.includes("vocab") && !topicLower.includes("cloze"));
         const passage = isStandaloneMcq ? undefined : (ocrTexts?.[topic]?.ocrText ?? ocrTexts?.[topic]?.passageOcrText);
         englishSectionsMeta.push({
