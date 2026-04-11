@@ -102,6 +102,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [remarking, setRemarking] = useState(false);
   const [advisoryDismissed, setAdvisoryDismissed] = useState(false);
   const [released, setReleased] = useState(false);
+  const [pendingReviewIds, setPendingReviewIds] = useState<string[]>([]);
   const [sticker, setSticker] = useState<string | null>(null);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
 
@@ -174,6 +175,23 @@ function ExamReviewContent({ id }: { id: string }) {
     }
     fetchData();
   }, [id]);
+
+  // Fetch pending review papers for "Reviewed, next" button
+  useEffect(() => {
+    if (!assignedToId || !userId || userId === assignedToId) return; // only for parents
+    fetch(`/api/exam?userId=${userId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d?.papers) return;
+        // Find papers assigned to this student that are completed but not released
+        const pending = (d.papers as Array<{ id: string; assignedToId: string; completedAt: string | null; markingStatus: string | null }>)
+          .filter(p => p.assignedToId === assignedToId && p.completedAt && p.markingStatus === "complete")
+          .map(p => p.id)
+          .filter(pid => pid !== id); // exclude current
+        setPendingReviewIds(pending);
+      })
+      .catch(() => {});
+  }, [assignedToId, userId, id]);
 
   function getSubmissionPage(originalPageIdx: number): number {
     const hiddenSet = new Set([
@@ -782,14 +800,38 @@ function ExamReviewContent({ id }: { id: string }) {
         {(!isStudent || englishSections) && (
           <div className="mb-4 flex justify-end gap-2">
             {!isStudent && !released && (
-              <button
-                onClick={handleRelease}
-                disabled={releasing}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-[#006c49] text-[#006c49] text-sm font-bold hover:bg-[#006c49]/10 transition-all disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-base">check_circle</span>
-                {releasing ? "Saving…" : released ? "Reviewed" : "Mark as Reviewed"}
-              </button>
+              <>
+                <button
+                  onClick={handleRelease}
+                  disabled={releasing}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-[#006c49] text-[#006c49] text-sm font-bold hover:bg-[#006c49]/10 transition-all disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-base">check_circle</span>
+                  {releasing ? "Saving…" : "Mark as Reviewed"}
+                </button>
+                {pendingReviewIds.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      setReleasing(true);
+                      try {
+                        await fetch(`/api/exam/${id}`, {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ markingStatus: "released" }),
+                        });
+                        router.push(`/exam/${pendingReviewIds[0]}/review?userId=${userId}`);
+                      } catch {
+                        setReleasing(false);
+                      }
+                    }}
+                    disabled={releasing}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#006c49] text-white text-sm font-bold hover:bg-[#004d35] transition-all disabled:opacity-50"
+                  >
+                    Reviewed, next
+                    <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </button>
+                )}
+              </>
             )}
             {released && !isStudent && (
               <span className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#006c49]">
