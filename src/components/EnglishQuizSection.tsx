@@ -473,6 +473,18 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
             </label>
           );
         }
+        // Answer lines: [LINES: N]
+        const linesMatch = trimmed.match(/^\[LINES:\s*(\d+)\]\s*$/i);
+        if (linesMatch) {
+          const count = parseInt(linesMatch[1]);
+          return (
+            <div key={li} className="my-1">
+              {Array.from({ length: count }, (_, i) => (
+                <div key={i} className="border-b-2 border-slate-300 my-3 h-5" />
+              ))}
+            </div>
+          );
+        }
         // Answer line: ___ (3+ underscores)
         if (trimmed.match(/^_{3,}$/)) {
           return <div key={li} className="border-b-2 border-slate-300 my-2 h-6" />;

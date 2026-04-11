@@ -208,7 +208,8 @@ function QuizContent({ id }: { id: string }) {
   }
 
   const mcqQuestions = paper.questions.filter(q => isMcq(q.answer));
-  const oeqQuestions = paper.questions.filter(q => !isMcq(q.answer) && !typedSectionQIds.has(q.id));
+  // English quizzes: all questions are typed (no canvas OEQ)
+  const oeqQuestions = isEnglishQuiz ? [] : paper.questions.filter(q => !isMcq(q.answer) && !typedSectionQIds.has(q.id));
   const hasOeq = oeqQuestions.length > 0;
 
   function selectMcqAnswer(questionId: string, option: string) {

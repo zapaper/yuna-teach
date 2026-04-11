@@ -56,7 +56,11 @@ export async function POST(request: NextRequest) {
       let idx = 0;
       const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string }> | undefined;
       for (const [topic, qs] of sectionMap) {
-        const passage = ocrTexts?.[topic]?.ocrText ?? ocrTexts?.[topic]?.passageOcrText;
+        const topicLower = topic.toLowerCase();
+        // Don't set passage for standalone MCQ sections (Grammar MCQ, Vocabulary MCQ)
+        const isStandaloneMcq = (topicLower.includes("grammar") && !topicLower.includes("cloze"))
+          || (topicLower.includes("vocab") && !topicLower.includes("cloze"));
+        const passage = isStandaloneMcq ? undefined : (ocrTexts?.[topic]?.ocrText ?? ocrTexts?.[topic]?.passageOcrText);
         englishSectionsMeta.push({
           label: topic,
           startIndex: idx,
