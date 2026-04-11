@@ -42,7 +42,30 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
     <div className="mb-12">
       {/* Section header */}
       <div className="mb-6">
-        <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sectionLabel.toUpperCase()}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sectionLabel.toUpperCase()}</h2>
+          {onToggleFlag && (sectionType === "grammar-cloze" || sectionType === "editing" || sectionType === "comprehension-cloze") && (() => {
+            const allFlagged = questions.every(q => flaggedIds?.has(q.id));
+            const anyFlagged = questions.some(q => flaggedIds?.has(q.id));
+            return (
+              <button
+                onClick={() => {
+                  // If all flagged → unflag all; otherwise → flag all
+                  for (const q of questions) {
+                    const isFlagged = flaggedIds?.has(q.id);
+                    if (allFlagged && isFlagged) onToggleFlag(q.id); // unflag
+                    if (!allFlagged && !isFlagged) onToggleFlag(q.id); // flag
+                  }
+                }}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${anyFlagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}
+                title={allFlagged ? "Unflag section" : "Flag section for review"}
+              >
+                <span className="material-symbols-outlined text-sm" style={anyFlagged ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+                Flag
+              </button>
+            );
+          })()}
+        </div>
         {sectionType === "grammar-cloze" && <p className="text-[#737780] mt-1 text-sm">From the list of words given, choose the most suitable word, and write its letter (A to Q) in the blank.</p>}
         {sectionType === "editing" && <p className="text-[#737780] mt-1 text-sm">Each of the underlined words contains either a spelling or grammatical error. Type the correct word in each of the boxes.</p>}
         {sectionType === "comprehension-cloze" && <p className="text-[#737780] mt-1 text-sm">Fill in each blank with a suitable word.</p>}
