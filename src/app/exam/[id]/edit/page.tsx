@@ -283,10 +283,13 @@ function ExamEditContent({ id }: { id: string }) {
     if (!paper || savingClean) return;
     setSavingClean(true);
     try {
-      const metadata = paper.metadata;
+      // Fetch fresh paper data to avoid using stale state (e.g. after deleting questions)
+      const freshRes = await fetch(`/api/exam/${id}`);
+      const freshPaper: ExamPaperDetail = await freshRes.json();
+      const metadata = freshPaper.metadata;
       const ocrTexts = metadata?.sectionOcrTexts ?? {};
 
-      for (const q of paper.questions) {
+      for (const q of freshPaper.questions) {
         const topic = q.syllabusTopic ?? "";
         const topicLower = topic.toLowerCase();
         const sectionOcr = ocrTexts[topic];
@@ -339,7 +342,7 @@ function ExamEditContent({ id }: { id: string }) {
 
       // Deduplicate: remove blank duplicate questions (same questionNum + syllabusTopic)
       const seen = new Map<string, string>();
-      for (const q of paper.questions) {
+      for (const q of freshPaper.questions) {
         const key = `${q.questionNum}:${q.syllabusTopic ?? ""}`;
         if (seen.has(key)) {
           // Keep the one with transcribedStem, delete the blank one
