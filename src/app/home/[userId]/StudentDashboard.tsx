@@ -111,7 +111,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
-  const [quizSubject, setQuizSubject] = useState<"math" | "science">("math");
+  const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
@@ -597,10 +597,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Daily Quiz</h3>
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
             <div className="flex gap-2 mb-4">
-              {(["math", "science"] as const).map(s => (
+              {(["math", "science", "english"] as const).map(s => (
                 <button key={s} onClick={() => setQuizSubject(s)}
                   className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${quizSubject === s ? "border-[#006c49] bg-[#006c49]/5 text-[#006c49]" : "border-slate-200 text-slate-600"}`}>
-                  {s === "math" ? "Mathematics" : "Science"}
+                  {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
                 </button>
               ))}
             </div>
