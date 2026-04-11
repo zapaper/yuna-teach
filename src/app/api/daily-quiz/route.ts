@@ -54,13 +54,23 @@ export async function POST(request: NextRequest) {
       }
       englishSectionsMeta = [];
       let idx = 0;
-      const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string }> | undefined;
+      const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string; passagePageIndices?: number[] }> | undefined;
       for (const [topic, qs] of sectionMap) {
         const topicLower = topic.toLowerCase();
         // Don't set passage for standalone MCQ sections (Grammar MCQ, Vocabulary MCQ)
         const isStandaloneMcq = (topicLower.includes("grammar") && !topicLower.includes("cloze") && !topicLower.includes("editing"))
           || (topicLower.includes("vocab") && !topicLower.includes("cloze"));
-        const passage = isStandaloneMcq ? undefined : (ocrTexts?.[topic]?.ocrText ?? ocrTexts?.[topic]?.passageOcrText);
+        const isVisualText = topicLower.includes("visual") && topicLower.includes("text");
+        // Visual text: use [VISUAL_PAGES:paperId:pageIndices] format to load scanned pages
+        const sectionOcr = ocrTexts?.[topic];
+        let passage: string | undefined;
+        if (isStandaloneMcq) {
+          passage = undefined;
+        } else if (isVisualText && sectionOcr?.passagePageIndices?.length) {
+          passage = `[VISUAL_PAGES:${paper.id}:${sectionOcr.passagePageIndices.join(",")}]`;
+        } else {
+          passage = sectionOcr?.ocrText ?? sectionOcr?.passageOcrText;
+        }
         englishSectionsMeta.push({
           label: topic,
           startIndex: idx,
