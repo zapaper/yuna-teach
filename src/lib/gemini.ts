@@ -33,7 +33,7 @@ const FALLBACK_MODELS: Record<string, string> = {
   "gemini-3.1-pro-preview": "gemini-2.5-flash",
 };
 
-async function generateContentWithRetry(
+export async function generateContentWithRetry(
   params: GenerateContentParams,
   maxRetries = 2,
   delayMs = 5000,

@@ -44,6 +44,9 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
   const [ocrDrafts, setOcrDrafts] = useState<Record<string, string>>({});
   const [editingPassage, setEditingPassage] = useState<string | null>(null);
   const [passageDrafts, setPassageDrafts] = useState<Record<string, string>>({});
+  const [reextractPages, setReextractPages] = useState<Record<string, string>>({});
+  const [reextracting, setReextracting] = useState<string | null>(null);
+  const [reextractResult, setReextractResult] = useState<Record<string, string>>({});
 
   return (
     <div className="space-y-6">
@@ -184,6 +187,73 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                     </div>
                   </div>
                 )}
+
+                {/* Re-extract section from pages */}
+                <div className="p-4 bg-blue-50/50 border-b border-blue-100">
+                  <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-2">Re-extract from Pages</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. 4,5 or 4-6"
+                      value={reextractPages[sec.name] ?? ""}
+                      onChange={e => setReextractPages(prev => ({ ...prev, [sec.name]: e.target.value }))}
+                      className="w-36 px-3 py-1.5 rounded-lg border border-blue-200 text-sm focus:outline-none focus:border-blue-400"
+                    />
+                    <button
+                      disabled={reextracting === sec.name || !(reextractPages[sec.name]?.trim())}
+                      onClick={async () => {
+                        const input = reextractPages[sec.name]?.trim();
+                        if (!input) return;
+                        // Parse page input: "4,5" or "4-6" → 0-indexed array
+                        const indices: number[] = [];
+                        for (const part of input.split(",")) {
+                          const trimmed = part.trim();
+                          if (trimmed.includes("-")) {
+                            const [a, b] = trimmed.split("-").map(s => parseInt(s.trim()));
+                            if (!isNaN(a) && !isNaN(b)) {
+                              for (let i = a; i <= b; i++) indices.push(i - 1); // 1-indexed → 0-indexed
+                            }
+                          } else {
+                            const n = parseInt(trimmed);
+                            if (!isNaN(n)) indices.push(n - 1);
+                          }
+                        }
+                        if (indices.length === 0) return;
+                        setReextracting(sec.name);
+                        setReextractResult(prev => ({ ...prev, [sec.name]: "" }));
+                        try {
+                          const res = await fetch(`/api/exam/${paper.id}/reextract-section`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ pageIndices: indices, sectionName: sec.name }),
+                          });
+                          const data = await res.json();
+                          if (!res.ok) {
+                            setReextractResult(prev => ({ ...prev, [sec.name]: `Error: ${data.error}` }));
+                          } else {
+                            setReextractResult(prev => ({ ...prev, [sec.name]: `Done! ${data.questionsUpdated}/${data.questionsExtracted} questions updated. Reload to see changes.` }));
+                          }
+                        } catch {
+                          setReextractResult(prev => ({ ...prev, [sec.name]: "Error: request failed" }));
+                        } finally {
+                          setReextracting(null);
+                        }
+                      }}
+                      className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      {reextracting === sec.name ? (
+                        <><span className="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white inline-block" /> Extracting...</>
+                      ) : (
+                        <><span className="material-symbols-outlined text-sm">refresh</span> Re-extract</>
+                      )}
+                    </button>
+                  </div>
+                  {reextractResult[sec.name] && (
+                    <p className={`text-xs mt-2 font-medium ${reextractResult[sec.name].startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
+                      {reextractResult[sec.name]}
+                    </p>
+                  )}
+                </div>
 
                 {/* OCR text */}
                 {ocrData && (
