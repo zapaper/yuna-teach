@@ -97,6 +97,7 @@ function SignupFlow() {
 
   // ── Step 3: Diagnostic quiz state ──
   const [quizLoading, setQuizLoading] = useState<string | null>(null); // "math" | "science" | "english"
+  const [diagnosticType, setDiagnosticType] = useState<"mcq" | "mcq-oeq">("mcq");
 
   // ── Step 1 handler ──
   async function handleParentSignup(e: React.FormEvent) {
@@ -182,12 +183,15 @@ function SignupFlow() {
       const body: Record<string, unknown> = {
         userId: parentId,
         studentId,
-        quizType: "mcq",
+        quizType: diagnosticType,
         subject,
       };
-      // For English diagnostic: grammar MCQ + vocab MCQ + comprehension cloze
       if (subject === "english") {
-        body.englishSections = ["Grammar MCQ", "Vocabulary MCQ", "Comprehension Cloze"];
+        const sections = ["grammar-mcq", "vocab-mcq"];
+        if (diagnosticType === "mcq-oeq") {
+          sections.push("editing", "comprehension-cloze");
+        }
+        body.englishSections = sections;
       }
 
       const res = await fetch("/api/daily-quiz", {
@@ -574,7 +578,7 @@ function SignupFlow() {
                     <div className="relative z-10 w-full">
                       <h3 className="text-2xl font-bold mb-2">Start Diagnostic Quiz</h3>
                       <p className="text-white/70 text-sm mb-6">Choose a core subject to begin the discovery journey.</p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 mb-5">
                         {(["math", "science", "english"] as const).map(subj => (
                           <button
                             key={subj}
@@ -592,6 +596,35 @@ function SignupFlow() {
                           </button>
                         ))}
                       </div>
+                      {/* Quiz type toggle */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setDiagnosticType("mcq")}
+                          className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                          style={{
+                            background: diagnosticType === "mcq" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
+                            border: diagnosticType === "mcq" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                          }}
+                        >
+                          MCQ Only
+                        </button>
+                        <button
+                          onClick={() => setDiagnosticType("mcq-oeq")}
+                          className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                          style={{
+                            background: diagnosticType === "mcq-oeq" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
+                            border: diagnosticType === "mcq-oeq" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                          }}
+                        >
+                          MCQ + OEQ
+                        </button>
+                      </div>
+                      {diagnosticType === "mcq-oeq" && (
+                        <p className="text-white/40 text-[10px] mt-2 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-xs">stylus_note</span>
+                          Stylus recommended for written questions
+                        </p>
+                      )}
                     </div>
                   </div>
 

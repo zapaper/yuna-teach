@@ -61,7 +61,6 @@ export async function GET(req: NextRequest) {
         where: {
           assignedToId: student.id,
           markingStatus: { in: ["complete", "released"] },
-          paperType: { not: "quiz" },
         },
         select: {
           subject: true,
