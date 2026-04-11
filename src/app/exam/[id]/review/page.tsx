@@ -689,6 +689,12 @@ function ExamReviewContent({ id }: { id: string }) {
         <section className="hidden lg:grid grid-cols-3 gap-6 my-10">
           <div className="col-span-2 bg-white rounded-3xl p-8 flex flex-row items-center gap-8 relative overflow-hidden shadow-sm">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#6cf8bb]/10 rounded-full -mr-20 -mt-20 blur-3xl" />
+            {sticker && (
+              <div className="absolute top-4 right-4 z-20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/stickers/${sticker}`} alt="Sticker" className="w-36 h-36 object-contain drop-shadow-lg" />
+              </div>
+            )}
             <div
               className="relative z-10 flex flex-col items-center justify-center w-44 h-44 rounded-full shrink-0"
               style={{ background: `radial-gradient(closest-side, white 82%, transparent 82%), conic-gradient(${scoreBorderColor} ${pct ?? 0}%, #dce9ff 0)` }}
@@ -704,28 +710,15 @@ function ExamReviewContent({ id }: { id: string }) {
               <h1 className="font-headline text-3xl font-extrabold text-[#001e40] mb-2">
                 {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
               </h1>
-              {data.feedbackSummary ? (
-                <div className="mb-4 relative">
-                  {sticker && (
-                    <div className="absolute -top-2 right-0 z-10">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
-                    </div>
-                  )}
-                  <details>
-                    <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none flex items-center gap-2">
-                      <span className="material-symbols-outlined text-sm">expand_more</span>
-                      Summary
-                    </summary>
-                    <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
-                  </details>
-                </div>
-              ) : sticker ? (
-                <div className="mb-4">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/stickers/${sticker}`} alt="Sticker" className="w-24 h-24 object-contain drop-shadow-md" />
-                </div>
-              ) : null}
+              {data.feedbackSummary && (
+                <details className="mb-4">
+                  <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none flex items-center gap-2">
+                    <span className="material-symbols-outlined text-sm">expand_more</span>
+                    Summary
+                  </summary>
+                  <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
+                </details>
+              )}
               {data.bookletScores && data.bookletScores.length > 0 && (
                 <div className="flex flex-wrap gap-3">
                   {data.bookletScores.map((b) => (
