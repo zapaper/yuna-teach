@@ -1730,7 +1730,7 @@ function ExamReviewContent({ id }: { id: string }) {
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[200]" onClick={() => setShowStickerPicker(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl grid grid-cols-2 gap-6" onClick={e => e.stopPropagation()}>
             <p className="col-span-2 text-center font-headline font-bold text-[#001e40] text-lg">Pick a sticker!</p>
-            {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG", "star_t.PNG", "rocket_t.PNG", "cat_t.png"].map(s => (
+            {["unicorn_t.PNG", "trex_t.PNG", "pizza_t.PNG", "wizard_t.PNG", "star_t.PNG", "rocket_t.PNG", "cat_t.PNG"].map(s => (
               <button key={s} onClick={() => saveSticker(s)} className="hover:scale-110 transition-transform p-4 rounded-2xl hover:bg-[#eff4ff]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={`/stickers/${s}`} alt={s.replace("_t.PNG", "")} className="w-24 h-24 object-contain" />
