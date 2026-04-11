@@ -1175,9 +1175,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* DESKTOP TOP BAR                                                     */}
       {/* ════════════════════════════════════════════════════════════════════ */}
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
-        <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
-          {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
-        </h1>
+        <div className="flex items-center gap-3">
+          {user.name?.toLowerCase() === "admin" && (
+            <video src="/avatars/bunny3.mp4" autoPlay loop muted playsInline className="w-12 h-12 object-contain" style={{ mixBlendMode: "multiply" }} />
+          )}
+          <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
+            {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
+          </h1>
+        </div>
         <div className="flex items-center gap-5">
           <button className="relative" onClick={() => { if (adminNotifs.length > 0) setShowAdminNotifs(true); }}>
             <span className="material-symbols-outlined text-[#43474f] cursor-pointer hover:text-[#001e40]">notifications</span>
@@ -1222,7 +1227,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
-          <img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" />
+          {user.name?.toLowerCase() === "admin" ? (
+            <video src="/avatars/bunny3.mp4" autoPlay loop muted playsInline className="w-8 h-8 object-contain" style={{ mixBlendMode: "multiply" }} />
+          ) : (
+            <img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" />
+          )}
           <img src="/markforyou2_t.png" alt="Markforyou" className="h-6 object-contain" />
         </div>
         <div className="flex items-center gap-4">
