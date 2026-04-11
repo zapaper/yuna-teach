@@ -398,18 +398,8 @@ export async function DELETE(
     }
   }
 
-  // For focused tests assigned to a student, soft-delete by transferring ownership
-  // so it disappears from parent's list but stays for the student
-  // Quiz papers are always hard-deleted
-  if (paper.paperType === "focused" && paper.assignedToId && paper.completedAt) {
-    // Transfer ownership to the student so it stays on their homepage
-    await prisma.examPaper.update({
-      where: { id },
-      data: { userId: paper.assignedToId },
-    });
-  } else {
-    await prisma.examPaper.delete({ where: { id } });
-  }
+  // Hard-delete the paper (quizzes, focused, clones)
+  await prisma.examPaper.delete({ where: { id } });
 
   // Clean up submission files from disk
   try {
