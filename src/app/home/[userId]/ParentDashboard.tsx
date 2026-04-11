@@ -66,7 +66,11 @@ function scorePct(paper: ExamPaperSummary) {
 
 export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
   const router = useRouter();
-  const avatarVideos = ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4","/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
+  const allAvatars = ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4","/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
+  const bearOnly = ["/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
+  const nameLower = user.name?.toLowerCase() ?? "";
+  const hasAvatar = nameLower === "admin" || nameLower === "papa";
+  const avatarVideos = nameLower === "papa" ? bearOnly : allAvatars;
   const [bunnySrc, setBunnySrc] = useState(() => avatarVideos[Math.floor(Math.random() * avatarVideos.length)]);
   const [nextSrc, setNextSrc] = useState<string | null>(null);
   const bunnyRef = useRef<HTMLVideoElement>(null);
@@ -1173,7 +1177,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <span className="block text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Beta</span>
             </div>
           </button>
-          {user.name?.toLowerCase() === "admin" && (
+          {hasAvatar && (
             <div className="pt-4 mt-2 border-t border-[#c3c6d1]/40 space-y-1">
               <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Admin</p>
               <button onClick={() => router.push(`/exam/upload?userId=${userId}`)} className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-600 hover:bg-red-50 hover:text-red-700 rounded-xl font-medium transition-all hover:translate-x-1">
@@ -1198,7 +1202,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
         <div className="flex items-center gap-3">
-          {user.name?.toLowerCase() === "admin" && (
+          {hasAvatar && (
             <div className="w-[4.5rem] h-[4.5rem] rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative">
               <video ref={bunnyRef} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
                 className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
@@ -1225,7 +1229,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
-                  {user.name?.toLowerCase() === "admin" && (
+                  {hasAvatar && (
                     <button
                       onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
@@ -1253,7 +1257,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
-          {user.name?.toLowerCase() === "admin" ? (
+          {hasAvatar ? (
             <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative"
               onClick={() => { bunnyRef.current?.play().catch(() => {}); }}>
               <video src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
@@ -1280,7 +1284,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </button>
             {showProfileMenu && (
               <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
-                {user.name?.toLowerCase() === "admin" && (
+                {hasAvatar && (
                   <button
                     onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
