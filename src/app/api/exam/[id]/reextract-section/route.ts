@@ -52,8 +52,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 - PARAGRAPH INDENTATION: When the original text shows a NEW PARAGRAPH (indented first line), start that line with exactly 4 spaces.
 - Preserve PARAGRAPH SPACING: use ONE blank line between paragraphs.
 - Do NOT include page break markers, page numbers, or page indicators
-- For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
-- For Vocabulary Cloze MCQ where an UNDERLINED WORD replaces the blank (student must find the most similar word): use double underscores to mark the underlined word: "... word **(16) __highlighted__** word ..." — the __double underscores__ render as underlined text in the UI.
+- For Vocabulary Cloze MCQ: each question has an UNDERLINED WORD in the passage. The word is printed in a visually different way (underlined, bold, or italic) from the surrounding text. Mark the question number and the underlined word inline: "... word **(16) __underlinedWord__** word ..." — the __double underscores__ render as underlined text in the UI. The MCQ options are shown separately below each question.
+- If the Vocabulary Cloze has a BLANK instead of an underlined word, use: "... word **(16)________** word ..."
 - Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title.
 Output ONLY the clean passage/question text, no commentary.` });
 
@@ -104,8 +104,11 @@ ${ocrText}
 For EACH question, extract:
 - questionNum: the question number as string (e.g. "${secFirstQ}")
 - stem: the full question text. If the OCR text wraps across multiple lines, JOIN them into one sentence.${secLabel.toLowerCase().includes("vocabulary cloze") ? `
-  For Vocabulary Cloze MCQ: the stem MUST include the sentence from the passage that contains the blank. Extract the sentence with "________" (8 underscores) where the blank is. E.g. "The boy was ________ when he saw the gift."
-  If the word is UNDERLINED instead of a blank (student finds most similar word), use __double underscores__: "The boy was __elated__ when he saw the gift."` : ""}${isMcqSection ? `
+  For Vocabulary Cloze MCQ: the stem MUST include the sentence from the passage that contains the underlined/highlighted word.
+  In the passage, each question has a WORD that is UNDERLINED (printed differently from surrounding text). The student must choose the closest meaning from 4 options.
+  Use __double underscores__ around the underlined word: "The boy was __elated__ when he saw the gift."
+  If there is a blank instead of an underlined word, use "________" (8 underscores): "The boy was ________ when he saw the gift."
+  The OCR text marks underlined words as **(...) __word__** — extract just the sentence containing that word.` : ""}${isMcqSection ? `
 - options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc.` : ""}
 - syllabusTopic: "${secLabel}"
 
