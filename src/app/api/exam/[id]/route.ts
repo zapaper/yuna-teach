@@ -378,18 +378,24 @@ export async function DELETE(
   const callerIsAdmin = requester?.name?.toLowerCase() === "admin";
 
   if (!callerIsAdmin) {
-    if (paper.paperType === "quiz") {
-      // Students/parents can delete quizzes they own or are assigned to
-      if (paper.assignedToId !== requesterId && paper.userId !== requesterId) {
+    // Check if requester is a parent linked to the assigned student
+    let isLinkedParent = false;
+    if (requesterId && paper.assignedToId) {
+      const link = await prisma.parentStudent.findFirst({
+        where: { parentId: requesterId, studentId: paper.assignedToId },
+      });
+      isLinkedParent = !!link;
+    }
+    const isOwner = paper.userId === requesterId || paper.assignedToId === requesterId;
+
+    if (paper.paperType === "quiz" || paper.paperType === "focused") {
+      // Owner, assigned student, or linked parent can delete
+      if (!isOwner && !isLinkedParent) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     } else if (paper.sourceExamId) {
-      // Clone (student instance of exam paper) — parent who created it can delete
-      if (paper.userId !== requesterId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-    } else if (paper.paperType === "focused") {
-      if (paper.userId !== requesterId) {
+      // Clone — owner or linked parent can delete
+      if (!isOwner && !isLinkedParent) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     } else {
