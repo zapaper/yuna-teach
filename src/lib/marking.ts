@@ -1874,6 +1874,21 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     const mcqQuestions = paper.questions.filter(q => isMcqAnswer(q.answer) || typedSectionQIds.has(q.id));
     const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id));
 
+    // Re-score MCQ questions (in case answer keys changed)
+    for (const q of paper.questions.filter(q2 => isMcqAnswer(q2.answer))) {
+      const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
+      const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+      const isCorrect = studentAns !== "" && studentAns === correctAns;
+      const marks = isCorrect ? (q.marksAvailable ?? 1) : 0;
+      if (q.marksAwarded !== marks) {
+        await prisma.examQuestion.update({
+          where: { id: q.id },
+          data: { marksAwarded: marks, markingNotes: isCorrect ? "Correct" : `Student: (${studentAns}), Correct: (${correctAns})` },
+        });
+        q.marksAwarded = marks;
+      }
+    }
+
     // Score typed section questions (always re-score on re-mark, in case answer keys changed)
     const ai = getAI();
     for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && !isMcqAnswer(qq.answer))) {
