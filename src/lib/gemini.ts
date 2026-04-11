@@ -2566,6 +2566,8 @@ export async function analyzeExamBatch(
         if (n.includes("comprehension") && n.includes("cloze")) return "Comprehension Cloze";
         if (n.includes("synthesis") || n.includes("transformation")) return "Synthesis / Transformation";
         if (n.includes("comprehension") && (n.includes("open") || n.includes("oeq"))) return "Comprehension Open Ended";
+        // Bare "comprehension" or "comprehension 1/2" without "cloze" = OEQ
+        if (n.match(/^comprehension\s*\d*$/) && !n.includes("cloze")) return "Comprehension Open Ended";
         return name;
       };
 
