@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
         const isStandaloneMcq = (topicLower.includes("grammar") && !topicLower.includes("cloze") && !topicLower.includes("editing"))
           || (topicLower.includes("vocab") && !topicLower.includes("cloze"));
         const isVisualText = topicLower.includes("visual") && topicLower.includes("text");
+        const isCompOeq = topicLower.includes("comprehension") && !topicLower.includes("cloze");
         // Visual text: use [VISUAL_PAGES:paperId:pageIndices] format to load scanned pages
         const sectionOcr = ocrTexts?.[topic];
         let passage: string | undefined;
@@ -68,6 +69,9 @@ export async function POST(request: NextRequest) {
           passage = undefined;
         } else if (isVisualText && sectionOcr?.passagePageIndices?.length) {
           passage = `[VISUAL_PAGES:${paper.id}:${sectionOcr.passagePageIndices.join(",")}]`;
+        } else if (isCompOeq) {
+          // Comp OEQ: prefer passageOcrText (reading passage), NOT ocrText (question text)
+          passage = sectionOcr?.passageOcrText ?? sectionOcr?.ocrText;
         } else {
           passage = sectionOcr?.ocrText ?? sectionOcr?.passageOcrText;
         }
