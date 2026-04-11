@@ -48,10 +48,10 @@ export async function GET(request: NextRequest) {
               { sourceExamId: null, paperType: null },
               { sourceExamId: null, paperType: "focused", userId, assignedToId: null },
               { sourceExamId: null, paperType: "focused", userId, assignedToId: userId },
+              { paperType: "focused", assignedToId: { in: linkedStudentIds } },
               { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
               // Also include regular paper clones assigned to linked students
               { sourceExamId: { not: null }, paperType: null, assignedToId: { in: linkedStudentIds } },
-              { sourceExamId: { not: null }, paperType: "focused", assignedToId: { in: linkedStudentIds } },
             ],
           };
         } else {
@@ -70,10 +70,10 @@ export async function GET(request: NextRequest) {
                 ...(adminUser ? { userId: adminUser.id } : {}),
               },
               { sourceExamId: null, paperType: "focused", userId },
+              { paperType: "focused", assignedToId: { in: linkedStudentIds } },
               { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
               // Also include regular paper clones assigned to linked students
               { sourceExamId: { not: null }, paperType: null, assignedToId: { in: linkedStudentIds } },
-              { sourceExamId: { not: null }, paperType: "focused", assignedToId: { in: linkedStudentIds } },
             ],
           };
         }
