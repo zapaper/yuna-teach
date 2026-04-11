@@ -204,6 +204,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                       onClick={async () => {
                         const input = reextractPages[sec.name]?.trim();
                         if (!input) return;
+                        if (!confirm(`This will re-extract questions for "${sec.name}" from the selected pages and OVERWRITE existing stems/options. Continue?`)) return;
                         // Parse page input: "4,5" or "4-6" → 0-indexed array
                         const indices: number[] = [];
                         for (const part of input.split(",")) {
