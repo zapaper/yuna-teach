@@ -68,6 +68,22 @@ Output ONLY the clean passage/question text, no commentary.` });
   const ocrText = ocrResponse.text?.trim() ?? "";
   console.log(`[Re-extract] ${secLabel}: OCR result (${ocrText.length} chars)`);
 
+  // Step 1b: For sections with passages (vocab cloze, grammar cloze, editing, comp cloze),
+  // also extract the passage as a separate passageOcrText
+  const isVocabCloze = secLabel.toLowerCase().includes("vocab") && secLabel.toLowerCase().includes("cloze");
+  const needsPassage = isVocabCloze
+    || (secLabel.toLowerCase().includes("grammar") && secLabel.toLowerCase().includes("cloze"))
+    || secLabel.toLowerCase().includes("editing")
+    || (secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("cloze"));
+
+  let passageOcrText = "";
+  if (needsPassage && ocrText) {
+    // The ocrText already contains the full passage + questions.
+    // For vocab cloze: passage is the prose with blanks, questions are the MCQ options below.
+    // Store the full ocrText as the passage since it includes inline markers.
+    passageOcrText = ocrText;
+  }
+
   // Find existing questions for this section to get question range
   const sectionQs = paper.questions.filter(q =>
     (q.syllabusTopic ?? "").toLowerCase().replace(/\s+/g, "") === secLabel.toLowerCase().replace(/\s+/g, "")
@@ -153,6 +169,7 @@ Return ONLY valid JSON:
     ...(allOcr[secKey] ?? {}),
     ocrText,
     pageIndices,
+    ...(passageOcrText ? { passageOcrText } : {}),
   };
   await prisma.examPaper.update({
     where: { id },
