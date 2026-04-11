@@ -479,10 +479,12 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
             </div>
           );
         }
-        // Tick box: [ ] or [✓] or [x]
-        if (trimmed.match(/^\[[ x✓✗]\]\s/i)) {
+        // Tick box: [ ] or [✓] or [x] — at start OR end of line
+        const tickStartMatch = trimmed.match(/^\[[ x✓✗]\]\s*(.*)/i);
+        const tickEndMatch = !tickStartMatch ? trimmed.match(/^(.*?)\s*\[[ x✓✗]\]\s*$/i) : null;
+        if (tickStartMatch || tickEndMatch) {
           const tickKey = `tick${tickIdx++}`;
-          const content = trimmed.replace(/^\[[ x✓✗]\]\s*/i, "");
+          const content = tickStartMatch ? tickStartMatch[1] : tickEndMatch![1];
           const isChecked = tableCells[tickKey] === "true";
           return (
             <label key={li} className="flex items-start gap-2 cursor-pointer text-base text-[#001e40] my-1">
