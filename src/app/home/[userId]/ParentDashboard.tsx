@@ -66,16 +66,18 @@ function scorePct(paper: ExamPaperSummary) {
 
 export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
   const router = useRouter();
-  const [bunnyIdx, setBunnyIdx] = useState(() => Math.floor(Math.random() * 4));
-  const bunnyRefs = useRef<(HTMLVideoElement | null)[]>([null, null, null, null]);
-  const nextBunny = () => setBunnyIdx(i => { let n; do { n = Math.floor(Math.random() * 4); } while (n === i); return n; });
+  const [bunnySrc, setBunnySrc] = useState(`/avatars/bunny${Math.floor(Math.random() * 4) + 1}.mp4`);
+  const bunnyRef = useRef<HTMLVideoElement>(null);
+  const nextBunny = () => {
+    const cur = bunnySrc;
+    let next: string;
+    do { next = `/avatars/bunny${Math.floor(Math.random() * 4) + 1}.mp4`; } while (next === cur);
+    setBunnySrc(next);
+  };
   useEffect(() => {
-    bunnyRefs.current.forEach((v, i) => {
-      if (!v) return;
-      if (i === bunnyIdx) { v.currentTime = 0; v.play().catch(() => {}); }
-      else { v.pause(); }
-    });
-  }, [bunnyIdx]);
+    const v = bunnyRef.current;
+    if (v) { v.load(); v.play().catch(() => {}); }
+  }, [bunnySrc]);
 
   // Data
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
@@ -1187,14 +1189,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
         <div className="flex items-center gap-3">
           {user.name?.toLowerCase() === "admin" && (
-            <span className="relative w-[4.5rem] h-[4.5rem] shrink-0 block">
-              {[1,2,3,4].map((n, i) => (
-                <video key={n} ref={el => { bunnyRefs.current[i] = el; }} src={`/avatars/bunny${n}.mp4`} muted playsInline preload="auto"
-                  onEnded={nextBunny}
-                  className={`absolute inset-0 w-full h-full object-contain ${bunnyIdx === i ? "" : "invisible"}`}
-                  style={{ mixBlendMode: "multiply" }} />
-              ))}
-            </span>
+            <video ref={bunnyRef} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
+              className="w-[4.5rem] h-[4.5rem] object-contain" style={{ mixBlendMode: "multiply" }} />
           )}
           <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
             {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
@@ -1245,14 +1241,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
           {user.name?.toLowerCase() === "admin" ? (
-            <span className="relative w-12 h-12 shrink-0 block">
-              {[1,2,3,4].map((n, i) => (
-                <video key={n} src={`/avatars/bunny${n}.mp4`} muted playsInline preload="auto"
-                  onEnded={nextBunny}
-                  className={`absolute inset-0 w-full h-full object-contain ${bunnyIdx === i ? "" : "invisible"}`}
-                  style={{ mixBlendMode: "multiply" }} />
-              ))}
-            </span>
+            <video src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
+              className="w-12 h-12 object-contain" style={{ mixBlendMode: "multiply" }} />
           ) : (
             <img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" />
           )}
