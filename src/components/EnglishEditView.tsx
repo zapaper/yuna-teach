@@ -47,6 +47,9 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
   const [reextractPages, setReextractPages] = useState<Record<string, string>>({});
   const [reextracting, setReextracting] = useState<string | null>(null);
   const [reextractResult, setReextractResult] = useState<Record<string, string>>({});
+  const [passagePages, setPassagePages] = useState<Record<string, string>>({});
+  const [reextractingPassage, setReextractingPassage] = useState<string | null>(null);
+  const [passageResult, setPassageResult] = useState<Record<string, string>>({});
 
   return (
     <div className="space-y-6">
@@ -97,6 +100,73 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         )
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Re-extract passage from pages */}
+                {sec.name.toLowerCase().includes("comprehension") && (
+                  <div className="p-4 bg-amber-50/50 border-b border-amber-100">
+                    <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider mb-2">Re-extract Passage</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. 7,8"
+                        value={passagePages[sec.name] ?? ""}
+                        onChange={e => setPassagePages(prev => ({ ...prev, [sec.name]: e.target.value }))}
+                        className="w-36 px-3 py-1.5 rounded-lg border border-amber-200 text-sm focus:outline-none focus:border-amber-400"
+                      />
+                      <button
+                        disabled={reextractingPassage === sec.name || !(passagePages[sec.name]?.trim())}
+                        onClick={async () => {
+                          const input = passagePages[sec.name]?.trim();
+                          if (!input) return;
+                          if (!confirm(`Re-extract the reading passage for "${sec.name}" from the selected pages?`)) return;
+                          const indices: number[] = [];
+                          for (const part of input.split(",")) {
+                            const trimmed = part.trim();
+                            if (trimmed.includes("-")) {
+                              const [a, b] = trimmed.split("-").map(s => parseInt(s.trim()));
+                              if (!isNaN(a) && !isNaN(b)) for (let i = a; i <= b; i++) indices.push(i - 1);
+                            } else {
+                              const n = parseInt(trimmed);
+                              if (!isNaN(n)) indices.push(n - 1);
+                            }
+                          }
+                          if (indices.length === 0) return;
+                          setReextractingPassage(sec.name);
+                          setPassageResult(prev => ({ ...prev, [sec.name]: "" }));
+                          try {
+                            const res = await fetch(`/api/exam/${paper.id}/reextract-passage`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ pageIndices: indices, sectionName: sec.name }),
+                            });
+                            const data = await res.json();
+                            if (!res.ok) {
+                              setPassageResult(prev => ({ ...prev, [sec.name]: `Error: ${data.error}` }));
+                            } else {
+                              setPassageResult(prev => ({ ...prev, [sec.name]: `Done! Passage extracted (${data.charCount} chars). Reload to see.` }));
+                            }
+                          } catch {
+                            setPassageResult(prev => ({ ...prev, [sec.name]: "Error: request failed" }));
+                          } finally {
+                            setReextractingPassage(null);
+                          }
+                        }}
+                        className="px-4 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-bold hover:bg-amber-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        {reextractingPassage === sec.name ? (
+                          <><span className="animate-spin rounded-full h-3 w-3 border-2 border-white/30 border-t-white inline-block" /> Extracting...</>
+                        ) : (
+                          <><span className="material-symbols-outlined text-sm">menu_book</span> Re-extract Passage</>
+                        )}
+                      </button>
+                    </div>
+                    {passageResult[sec.name] && (
+                      <p className={`text-xs mt-2 font-medium ${passageResult[sec.name].startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
+                        {passageResult[sec.name]}
+                      </p>
+                    )}
                   </div>
                 )}
 
