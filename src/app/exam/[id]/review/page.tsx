@@ -1197,22 +1197,38 @@ function ExamReviewContent({ id }: { id: string }) {
                                 </div>
                               ) : (
                                 /* Grammar Cloze / Editing / Comp Cloze */
-                                qCorrect ? (
-                                  <p className="text-sm text-[#006c49] font-semibold">
-                                    <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                                    {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
-                                  </p>
-                                ) : (
-                                  <div className="space-y-1">
-                                    <p className="text-sm text-[#ba1a1a] font-semibold">
-                                      <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
-                                      Your answer: {studentAns ? (isGrammarCloze ? `${studentAns.toUpperCase()}: ${studentWord || "—"}` : `"${studentAns}"`) : "No answer"}
-                                    </p>
+                                <>
+                                  {qCorrect ? (
                                     <p className="text-sm text-[#006c49] font-semibold">
-                                      Correct answer: {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
+                                      <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                      {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
                                     </p>
-                                  </div>
-                                )
+                                  ) : (
+                                    <div className="space-y-1">
+                                      <p className="text-sm text-[#ba1a1a] font-semibold">
+                                        <span className="material-symbols-outlined text-sm align-middle mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>cancel</span>
+                                        Your answer: {studentAns ? (isGrammarCloze ? `${studentAns.toUpperCase()}: ${studentWord || "—"}` : `"${studentAns}"`) : "No answer"}
+                                      </p>
+                                      <p className="text-sm text-[#006c49] font-semibold">
+                                        Correct answer: {isGrammarCloze ? `${correctAns.toUpperCase()}: ${correctWord}` : isEditing ? `"${correctAns}"` : correctAns}
+                                      </p>
+                                    </div>
+                                  )}
+                                  {/* Parent score edit */}
+                                  {!isStudent && (
+                                    <button
+                                      onClick={() => {
+                                        const newMarks = qCorrect ? 0 : (q.marksAvailable ?? 1);
+                                        updateMarks(q.id, newMarks);
+                                      }}
+                                      disabled={savingMarks}
+                                      className="mt-1 text-[10px] font-bold text-[#737780] hover:text-[#003366] transition-colors flex items-center gap-1 disabled:opacity-50"
+                                    >
+                                      <span className="material-symbols-outlined text-xs">edit</span>
+                                      {qCorrect ? "Mark as wrong" : "Mark as correct"}
+                                    </button>
+                                  )}
+                                </>
                               )}
                               {/* Marking notes/reason for wrong/partial */}
                               {q.markingNotes && !q.markingNotes.startsWith("Wrong.") && q.markingNotes !== "Correct" && q.markingNotes !== "No answer" && (
