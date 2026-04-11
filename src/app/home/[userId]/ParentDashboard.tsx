@@ -1189,8 +1189,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
         <div className="flex items-center gap-3">
           {user.name?.toLowerCase() === "admin" && (
-            <video ref={bunnyRef} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
-              className="w-[4.5rem] h-[4.5rem] object-contain" style={{ mixBlendMode: "multiply" }} />
+            <div className="w-[4.5rem] h-[4.5rem] rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0">
+              <video ref={bunnyRef} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
+                className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+            </div>
           )}
           <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
             {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
@@ -1241,8 +1243,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
           {user.name?.toLowerCase() === "admin" ? (
-            <video src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
-              className="w-12 h-12 object-contain" style={{ mixBlendMode: "multiply" }} />
+            <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0"
+              onClick={() => { bunnyRef.current?.play().catch(() => {}); }}>
+              <video src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
+                className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+            </div>
           ) : (
             <img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" />
           )}
