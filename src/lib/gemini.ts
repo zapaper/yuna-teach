@@ -948,7 +948,15 @@ Booklet B examples:
 
 IMPORTANT: "startPage" = page with first question number. "endPage" = last page with questions for this section. Include "startPage", "endPage", and "questionRange" for ALL sections in BOTH Booklet A and Booklet B.
 For Visual Text Comprehension, also include "visualPages" — the 0-based page indices of the visual text/poster pages that appear BEFORE the questions.
-For Comprehension OEQ, also include "passagePages" — the 0-based page indices of the reading passage pages in Booklet A (usually the last 1-2 pages of Booklet A, containing the reading passage that the OEQ questions are about).
+For Comprehension OEQ, also include "passagePages" — the 0-based page indices of the reading passage pages. For P5/P6 papers, the passage is usually in Booklet A (last 1-2 pages). For P4 English papers, the passage may appear on the page(s) IMMEDIATELY BEFORE the comprehension questions (in the same booklet, not a separate one), since P4 papers are often shorter with fewer sections and no separate Booklet A/B split.
+
+### P4 ENGLISH PAPERS — Important differences:
+- P4 English papers are typically shorter with fewer questions per section
+- The paper may NOT be split into Booklet A + Booklet B — all sections may be in a single booklet
+- The Comprehension OEQ reading passage often appears on the page(s) directly before the OEQ questions, NOT in a separate booklet
+- Sections may have fewer questions (e.g. 5 Grammar MCQ instead of 10, 3-5 Comprehension OEQ instead of 8)
+- Some sections may be absent entirely (e.g. no Visual Text, no Synthesis)
+- Set "passagePages" to the actual pages where the passage appears, even if they are right before the questions
 
 #### Non-gradable sections:
 For English Preliminary and End-of-Year exams, certain papers cannot be auto-graded and must be excluded from question extraction:
