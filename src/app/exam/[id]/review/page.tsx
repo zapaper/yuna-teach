@@ -4,6 +4,22 @@ import { Suspense, useEffect, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
 import FormattedText from "@/components/FormattedText";
+import React from "react";
+
+function renderUnderline(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  const regex = /__([^_]+)__/g;
+  let lastIdx = 0;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > lastIdx) parts.push(text.slice(lastIdx, m.index));
+    parts.push(<span key={m.index} className="underline decoration-2">{m[1]}</span>);
+    lastIdx = m.index + m[0].length;
+  }
+  if (lastIdx === 0) return text;
+  if (lastIdx < text.length) parts.push(text.slice(lastIdx));
+  return <>{parts}</>;
+}
 
 interface ReviewQuestion {
   id: string;
@@ -1302,7 +1318,7 @@ function ExamReviewContent({ id }: { id: string }) {
                           return (
                             <>
                               <h3 className="font-headline text-lg lg:text-xl font-semibold text-[#001e40] leading-relaxed whitespace-pre-wrap">
-                                {currentQ.transcribedStem}
+                                {renderUnderline(currentQ.transcribedStem!)}
                               </h3>
                               {currentQ.diagramImageData && !drawableDiagram && (
                                 // eslint-disable-next-line @next/next/no-img-element

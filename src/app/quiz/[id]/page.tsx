@@ -798,10 +798,17 @@ function QuizContent({ id }: { id: string }) {
                             while ((m = regex.exec(line)) !== null) {
                               if (m.index > lastIdx2) parts.push(<span key={`t${lastIdx2}`}>{renderUnderline(line.slice(lastIdx2, m.index))}</span>);
                               const qNum = m[1];
+                              const content = (m[2] ?? "").trim();
+                              // Check if content has an underlined word (__word__)
+                              const underlineMatch = content.match(/^_*\s*__([^_]+)__\s*_*$/);
                               parts.push(
                                 <span key={`q${qNum}`} className="inline-flex items-center gap-0.5 mx-0.5">
                                   <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1 rounded">({qNum})</span>
-                                  <span className="border-b-2 border-[#001e40]/30 px-2 text-sm">________</span>
+                                  {underlineMatch ? (
+                                    <span className="underline decoration-2 font-semibold text-[#001e40] px-1">{underlineMatch[1]}</span>
+                                  ) : (
+                                    <span className="border-b-2 border-[#001e40]/30 px-2 text-sm">________</span>
+                                  )}
                                 </span>
                               );
                               lastIdx2 = m.index + m[0].length;
