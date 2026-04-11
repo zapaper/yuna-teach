@@ -52,6 +52,20 @@ export async function POST(request: NextRequest) {
         if (!sectionMap.has(topic)) sectionMap.set(topic, []);
         sectionMap.get(topic)!.push(q);
       }
+      // Sort sections in standard English paper order
+      const sectionOrder = ["Grammar MCQ", "Vocabulary MCQ", "Vocabulary Cloze MCQ", "Visual Text Comprehension MCQ", "Grammar Cloze", "Editing (Spelling & Grammar)", "Comprehension Cloze", "Synthesis / Transformation", "Comprehension Open Ended"];
+      const sortedTopics = [...sectionMap.keys()].sort((a, b) => {
+        const ai = sectionOrder.indexOf(a);
+        const bi = sectionOrder.indexOf(b);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      });
+
+      // Rebuild allQs in section order so question indices match section metadata
+      const reorderedQs: typeof allQs = [];
+      for (const topic of sortedTopics) reorderedQs.push(...sectionMap.get(topic)!);
+      allQs.length = 0;
+      allQs.push(...reorderedQs);
+
       englishSectionsMeta = [];
       let idx = 0;
       const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string; passagePageIndices?: number[] }> | undefined;

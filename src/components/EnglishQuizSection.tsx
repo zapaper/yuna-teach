@@ -741,10 +741,15 @@ function ReadingPassage({ text }: { text: string }) {
   if (isTable) {
     // Parse table rows, skip header separator
     const rows: string[][] = [];
+    let pastHeader = false;
     for (const line of lines) {
-      if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) continue;
+      if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) { pastHeader = true; continue; }
       if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+        pastHeader = true;
         rows.push(line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim()));
+      } else if (pastHeader && !line.trim()) {
+        // Empty line between table rows = paragraph break
+        rows.push(["", "", ""]);
       }
     }
     // First row is header — skip it
