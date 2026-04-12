@@ -157,6 +157,19 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [showPastWork, setShowPastWork] = useState(false);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
+  const arenaActions = ["ready", "attack", "defend"] as const;
+  const [arenaAction, setArenaAction] = useState(0);
+  useEffect(() => {
+    if (!showArena || !hasArena) return;
+    const interval = setInterval(() => {
+      setArenaAction(prev => {
+        let next: number;
+        do { next = Math.floor(Math.random() * arenaActions.length); } while (next === prev);
+        return next;
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [showArena, hasArena, arenaActions.length]);
   const [arenaData, setArenaData] = useState<{ leaderboard: Array<{ id: string; name: string; points: number; pct: number }>; playerRank: number | null; playerEntry: { id: string; name: string; points: number; pct: number } | null } | null>(null);
 
   const fetchData = useRef<() => void>(undefined);
@@ -731,7 +744,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {showArena && (
                   <div className="rounded-2xl flex" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
                       {/* Leaderboard table */}
-                      <div className="flex-1 p-5">
+                      <div className="w-64 shrink-0 p-5">
                         <h3 className="text-white font-headline font-bold text-lg mb-3">Weekly Arena</h3>
                         <table className="w-full">
                           <thead>
@@ -777,25 +790,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         </table>
                         <p className="text-white/30 text-[9px] mt-3 italic">Resets every Monday</p>
                       </div>
-                      {/* Player avatar — GIF with screen blend directly on arena bg */}
-                      <div className="w-36 flex items-center justify-center p-4">
+                      {/* Player avatar — cycling actions, flipped to face right */}
+                      <div className="flex-1 flex items-end justify-end p-4">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                          const isHa = myPoints >= 200;
-                          const isLa = myPoints >= 100 && !isHa;
+                          const tier = myPoints >= 200 ? "ha" : "la";
+                          const action = arenaActions[arenaAction];
+                          const gifSrc = `/avatars/fight/bunny_${tier}_${action}.gif`;
                           return (
-                            <div className="w-28 h-28">
-                              {isHa ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
-                              ) : isLa ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
-                              ) : (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
-                              )}
-                            </div>
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={action} src={gifSrc} alt={action} className="h-48 object-contain" style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }} />
                           );
                         })()}
                       </div>
@@ -877,8 +881,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 Arena Battle
               </button>
               {showArena && (
-                <div className="rounded-2xl flex p-4 gap-3" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
-                  <div className="flex-1">
+                <div className="rounded-2xl flex flex-col p-4" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
+                  <div>
                     <h3 className="text-white font-headline font-bold text-base mb-2">Weekly Arena</h3>
                     <table className="w-full">
                       <thead>
@@ -924,9 +928,18 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </table>
                     <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
                   </div>
-                  <div className="w-20 shrink-0 flex items-center justify-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-20 h-20 object-contain" style={{ mixBlendMode: "screen" }} />
+                  {/* Player avatar — below table, flipped facing right */}
+                  <div className="flex justify-end mt-2">
+                    {(() => {
+                      const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
+                      const tier = myPoints >= 200 ? "ha" : "la";
+                      const action = arenaActions[arenaAction];
+                      const gifSrc = `/avatars/fight/bunny_${tier}_${action}.gif`;
+                      return (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={action} src={gifSrc} alt={action} className="h-36 object-contain" style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }} />
+                      );
+                    })()}
                   </div>
                 </div>
               )}
