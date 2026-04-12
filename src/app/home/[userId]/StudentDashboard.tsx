@@ -468,13 +468,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </div>
                   )}
                   {quizBadge.image && (
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-2 bg-[#d3e4fe] text-[#001e40] px-4 py-2 rounded-full">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
-                        <span className="text-lg font-extrabold">{quizBadge.badge}</span>
-                      </div>
-                      <span className="text-xs text-[#43474f] font-medium">{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"} completed</span>
+                    <div className="flex items-center gap-2 bg-[#d3e4fe] text-[#001e40] px-4 py-2 rounded-full">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={quizBadge.image} alt={quizBadge.badge} className="w-8 h-8 object-contain" />
+                      <span className="text-lg font-extrabold">{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"} completed</span>
                     </div>
                   )}
                   <div className="flex items-center gap-2 bg-[#e5eeff] text-[#001e40] px-4 py-2 rounded-full">
@@ -631,7 +628,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <p className="text-sm text-[#43474f]">Ready to learn today?</p>
             <div className="flex flex-wrap gap-2 mt-3">
               {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1.5 bg-[#ffddb4] text-[#291800] px-3 py-1.5 rounded-full text-sm font-extrabold"><span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
-              {quizBadge && quizBadge.image && <div className="flex items-center gap-1.5 bg-[#d3e4fe] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={quizBadge.image} alt={quizBadge.badge} className="w-6 h-6 object-contain" />{quizBadge.badge}</div>}
+              {quizBadge && quizBadge.image && <div className="flex items-center gap-1.5 bg-[#d3e4fe] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={quizBadge.image} alt={quizBadge.badge} className="w-6 h-6 object-contain" />{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"}</div>}
               <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">
                 <span className="material-symbols-outlined text-base text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                 {totalPoints} Points
