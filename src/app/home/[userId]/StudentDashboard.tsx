@@ -105,10 +105,13 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
 export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
   const hasAvatar = user.settings?.avatar === true;
+  const avatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? "bunny";
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
+  const [showPointsMilestone, setShowPointsMilestone] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
@@ -159,6 +162,17 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       .then(d => { if (d?.badge) setQuizBadge({ badge: d.badge, image: d.badgeImage, count: d.completedQuizzes, streak: d.streak ?? 0 }); })
       .catch(() => {});
   }, [userId]);
+
+  // Check 100-point milestone (only if avatar toggle is on)
+  useEffect(() => {
+    if (!hasAvatar || examPapers.length === 0) return;
+    const pts = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0);
+    const milestoneKey = `points-milestone-100-${userId}`;
+    if (pts >= 100 && !localStorage.getItem(milestoneKey)) {
+      localStorage.setItem(milestoneKey, "1");
+      setShowPointsMilestone(true);
+    }
+  }, [hasAvatar, examPapers, userId]);
 
   // Fetch admin notifications
   useEffect(() => {
@@ -310,6 +324,49 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         </div>
       )}
 
+      {/* 100-point milestone — avatar selection */}
+      {showPointsMilestone && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+            <div className="w-16 h-16 rounded-full bg-[#ffddb4]/50 flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-outlined text-3xl text-[#d58d00]" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
+            </div>
+            <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Congratulations!</h2>
+            <p className="text-sm text-[#43474f] mb-6">
+              You have scored more than 100 points. You can now select your profile avatar!
+            </p>
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {["bunny", "bear"].map(animal => (
+                <button
+                  key={animal}
+                  onClick={() => setSelectedAvatar(animal)}
+                  className={`p-3 rounded-2xl border-2 transition-all ${selectedAvatar === animal ? "border-[#006c49] bg-[#006c49]/5 scale-105" : "border-slate-200 hover:border-[#a7c8ff]"}`}
+                >
+                  <video src={`/avatars/${animal}1.mp4`} autoPlay loop muted playsInline className="w-20 h-20 mx-auto object-contain" style={{ mixBlendMode: "multiply" }} />
+                  <p className="text-xs font-bold text-[#001e40] mt-1 capitalize">{animal}</p>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={async () => {
+                if (selectedAvatar) {
+                  await fetch("/api/users", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId, settings: { avatar: true, avatarType: selectedAvatar } }),
+                  });
+                }
+                setShowPointsMilestone(false);
+                if (selectedAvatar) window.location.reload();
+              }}
+              className="px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors"
+            >
+              {selectedAvatar ? "Set Avatar" : "Maybe Later"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Admin notification popup */}
       {showAdminNotifs && adminNotifs.length > 0 && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
@@ -380,7 +437,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <div className="relative">
                 <button onClick={() => setShowProfileMenu(v => !v)} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${hasAvatar ? "border-2 border-[#a7c8ff] bg-white overflow-hidden" : "bg-[#d3e4fe] text-[#001e40]"}`}>
                   {hasAvatar ? (
-                    <video src="/avatars/bunny1.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                    <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                   ) : initials(user.name)}
                 </button>
                 {showProfileMenu && (<>

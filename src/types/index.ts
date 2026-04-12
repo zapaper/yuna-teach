@@ -7,7 +7,7 @@ export interface User {
   email: string | null;
   role: Role;
   level: number | null;
-  settings?: { avatar?: boolean; crystalCurrency?: boolean } | null;
+  settings?: { avatar?: boolean; avatarType?: string; crystalCurrency?: boolean } | null;
   createdAt: string;
   emailVerified?: boolean;
   subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
