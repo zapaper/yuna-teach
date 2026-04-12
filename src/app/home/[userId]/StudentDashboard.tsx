@@ -789,12 +789,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           return (
                             <div className="w-28 h-28 flex items-center justify-center">
                               {isHa ? (
-                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               ) : isLa ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" />
                               ) : (
-                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               )}
                             </div>
                           );
@@ -937,12 +937,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           return (
                             <div className="w-20 h-20 flex items-center justify-center">
                               {isHa ? (
-                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               ) : isLa ? (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" />
                               ) : (
-                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               )}
                             </div>
                           );
