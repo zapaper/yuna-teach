@@ -7,10 +7,11 @@ export interface User {
   email: string | null;
   role: Role;
   level: number | null;
+  settings?: { avatar?: boolean; crystalCurrency?: boolean } | null;
   createdAt: string;
   emailVerified?: boolean;
   subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
-  linkedStudents: { id: string; name: string; level?: number | null }[];
+  linkedStudents: { id: string; name: string; level?: number | null; settings?: { avatar?: boolean; crystalCurrency?: boolean } | null }[];
   linkedParents: { id: string; name: string }[];
 }
 

@@ -104,6 +104,7 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
 
 export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
+  const hasAvatar = user.settings?.avatar === true;
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
@@ -376,7 +377,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               </button>
               {quizBadge && <span className="material-symbols-outlined hover:opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>}
               <div className="relative">
-                <button onClick={() => setShowProfileMenu(v => !v)} className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center text-xs font-bold text-[#001e40]">{initials(user.name)}</button>
+                <button onClick={() => setShowProfileMenu(v => !v)} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${hasAvatar ? "border-2 border-[#a7c8ff] bg-white overflow-hidden" : "bg-[#d3e4fe] text-[#001e40]"}`}>
+                  {hasAvatar ? (
+                    <video src="/avatars/bunny1.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                  ) : initials(user.name)}
+                </button>
                 {showProfileMenu && (<>
                   <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
                   <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-[#e5eeff] py-2 w-40 z-50">
@@ -539,7 +544,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <div className="flex items-center gap-2">
             <button onClick={() => openLinkModal("share")} className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full">{hasParent ? "+" : "Link"}</button>
             <div className="relative">
-              <button onClick={() => setShowProfileMenu(v => !v)} className="w-8 h-8 rounded-full bg-[#d3e4fe] flex items-center justify-center text-xs font-bold text-[#001e40]">{initials(user.name)}</button>
+              <button onClick={() => setShowProfileMenu(v => !v)} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${hasAvatar ? "border-2 border-[#a7c8ff] bg-white overflow-hidden" : "bg-[#d3e4fe] text-[#001e40]"}`}>
+                {hasAvatar ? (
+                  <video src="/avatars/bunny1.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                ) : initials(user.name)}
+              </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-[#e5eeff] py-2 w-40 z-50">
                   <div className="px-4 py-2 border-b border-[#e5eeff]">

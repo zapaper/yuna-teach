@@ -110,6 +110,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       : (user.linkedStudents[0]?.id ?? "")
   );
   const [showStudentMenu, setShowStudentMenu] = useState(false);
+  const [, setSettingsTick] = useState(0);
   const [activeView, setActiveView] = useState<"progress" | "papers" | "activities">(initialView === "papers" ? "papers" : "progress");
 
   // Modals
@@ -1664,6 +1665,49 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </div>
                       </div>
                     ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Student Settings */}
+              {selectedStudent && (
+                <section className="mt-8">
+                  <h3 className="font-headline font-bold text-lg text-[#001e40] mb-4">Student Settings</h3>
+                  <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 space-y-4">
+                    {[
+                      { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
+                      { key: "crystalCurrency" as const, label: "Crystal Currency", desc: "Enable crystal rewards for quizzes" },
+                    ].map(item => {
+                      const isOn = selectedStudent?.settings?.[item.key] === true;
+                      return (
+                        <div key={item.key} className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-[#001e40]">{item.label}</p>
+                            <p className="text-xs text-[#43474f]">{item.desc}</p>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              const newVal = !isOn;
+                              await fetch("/api/users", {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ userId: selectedStudentId, settings: { [item.key]: newVal } }),
+                              });
+                              // Update local state
+                              if (selectedStudent) {
+                                selectedStudent.settings = { ...(selectedStudent.settings ?? {}), [item.key]: newVal };
+                                setSettingsTick(t => t + 1);
+                              }
+                            }}
+                            className={`w-12 h-7 rounded-full transition-colors relative ${isOn ? "bg-[#006c49]" : "bg-slate-200"}`}
+                          >
+                            <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${isOn ? "left-5.5 translate-x-0" : "left-0.5"}`}
+                              style={isOn ? { left: "1.375rem" } : { left: "0.125rem" }}
+                            />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
               )}

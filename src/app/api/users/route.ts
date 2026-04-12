@@ -5,7 +5,7 @@ export async function GET() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
     include: {
-      parentLinks: { include: { student: { select: { id: true, name: true, level: true } } } },
+      parentLinks: { include: { student: { select: { id: true, name: true, level: true, settings: true } } } },
       studentLinks: { include: { parent: { select: { id: true, name: true } } } },
     },
   });
@@ -17,8 +17,9 @@ export async function GET() {
       email: u.email,
       role: u.role,
       level: u.level,
+      settings: u.settings,
       createdAt: u.createdAt.toISOString(),
-      linkedStudents: u.parentLinks.map((l) => l.student),
+      linkedStudents: u.parentLinks.map((l) => ({ ...l.student, settings: l.student.settings as Record<string, boolean> | null })),
       linkedParents: u.studentLinks.map((l) => l.parent),
     })),
   });
@@ -151,4 +152,16 @@ export async function POST(request: NextRequest) {
     },
     { status: 201 }
   );
+}
+
+export async function PATCH(request: NextRequest) {
+  const { userId, settings } = await request.json();
+  if (!userId || !settings) {
+    return NextResponse.json({ error: "userId and settings required" }, { status: 400 });
+  }
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { settings: true } });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  const merged = { ...((user.settings as Record<string, unknown>) ?? {}), ...settings };
+  await prisma.user.update({ where: { id: userId }, data: { settings: merged } });
+  return NextResponse.json({ success: true, settings: merged });
 }
