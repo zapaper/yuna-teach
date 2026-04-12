@@ -746,7 +746,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                             </tr>
                           </thead>
                           <tbody>
-                            {arenaData.leaderboard.map((entry, i) => {
+                            {Array.from({ length: 10 }, (_, i) => {
+                              const entry = arenaData.leaderboard[i];
+                              if (!entry) return (
+                                <tr key={`empty-${i}`} className="text-white/20">
+                                  <td className="py-1 text-xs">{i + 1}</td>
+                                  <td className="py-1 text-xs">—</td>
+                                  <td className="py-1 text-xs text-right">0</td>
+                                  <td className="py-1 text-xs text-right">—</td>
+                                </tr>
+                              );
                               const isMe = entry.id === userId;
                               return (
                                 <tr key={entry.id} className={isMe ? "text-[#ffddb4] font-bold" : "text-white/80"}>
@@ -757,16 +766,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                                 </tr>
                               );
                             })}
-                            {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 && (
-                              <>
-                                <tr><td colSpan={4} className="text-center text-white/30 text-xs py-1">...</td></tr>
-                                <tr className="text-[#ffddb4] font-bold">
-                                  <td className="py-1 text-xs">{arenaData.playerRank}</td>
-                                  <td className="py-1 text-xs">{arenaData.playerEntry.name} ⭐</td>
-                                  <td className="py-1 text-xs text-right">{arenaData.playerEntry.points}</td>
-                                  <td className="py-1 text-xs text-right">{arenaData.playerEntry.pct}%</td>
-                                </tr>
-                              </>
+                            {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 ? (
+                              <tr className="text-[#ffddb4] font-bold border-t border-white/10">
+                                <td className="py-1 text-xs">{arenaData.playerRank}</td>
+                                <td className="py-1 text-xs">{arenaData.playerEntry.name} ⭐</td>
+                                <td className="py-1 text-xs text-right">{arenaData.playerEntry.points}</td>
+                                <td className="py-1 text-xs text-right">{arenaData.playerEntry.pct}%</td>
+                              </tr>
+                            ) : (
+                              <tr className="text-white/10"><td className="py-1 text-xs" colSpan={4}>&nbsp;</td></tr>
                             )}
                           </tbody>
                         </table>
@@ -776,9 +784,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <div className="w-36 flex items-center justify-center p-4">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                          const videoSrc = myPoints >= 400
+                          const videoSrc = myPoints >= 200
                             ? "/avatars/fight/bunny_ha_ready.mp4"
-                            : myPoints >= 200
+                            : myPoints >= 100
                               ? "/avatars/fight/bunny_la_ready.mp4"
                               : `/avatars/${avatarType}1.mp4`;
                           return (
@@ -863,7 +871,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <section className="mb-8">
               <button onClick={() => setShowArena(!showArena)} className="flex items-center gap-2 text-xs font-bold text-[#43474f] mb-3">
                 <span className="material-symbols-outlined text-sm">{showArena ? "expand_less" : "expand_more"}</span>
-                <span className="material-symbols-outlined text-sm text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
+                <span className="material-symbols-outlined text-sm text-[#737780]" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
                 Arena Battle
               </button>
               {showArena && (
@@ -883,7 +891,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                             </tr>
                           </thead>
                           <tbody>
-                            {arenaData.leaderboard.map((entry, i) => {
+                            {Array.from({ length: 10 }, (_, i) => {
+                              const entry = arenaData.leaderboard[i];
+                              if (!entry) return (
+                                <tr key={`empty-${i}`} className="text-white/20">
+                                  <td className="py-0.5 text-[10px]">{i + 1}</td>
+                                  <td className="py-0.5 text-[10px]">—</td>
+                                  <td className="py-0.5 text-[10px] text-right">0</td>
+                                  <td className="py-0.5 text-[10px] text-right">—</td>
+                                </tr>
+                              );
                               const isMe = entry.id === userId;
                               return (
                                 <tr key={entry.id} className={isMe ? "text-[#ffddb4] font-bold" : "text-white/80"}>
@@ -894,15 +911,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                                 </tr>
                               );
                             })}
-                            {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 && (<>
-                              <tr><td colSpan={4} className="text-center text-white/30 text-[9px] py-0.5">...</td></tr>
-                              <tr className="text-[#ffddb4] font-bold">
+                            {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 ? (
+                              <tr className="text-[#ffddb4] font-bold border-t border-white/10">
                                 <td className="py-0.5 text-[10px]">{arenaData.playerRank}</td>
                                 <td className="py-0.5 text-[10px]">{arenaData.playerEntry.name} ⭐</td>
                                 <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.points}</td>
                                 <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.pct}%</td>
                               </tr>
-                            </>)}
+                            ) : (
+                              <tr className="text-white/10"><td className="py-0.5 text-[10px]" colSpan={4}>&nbsp;</td></tr>
+                            )}
                           </tbody>
                         </table>
                         <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
@@ -910,7 +928,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <div className="w-24 shrink-0 flex items-center justify-center">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                          const videoSrc = myPoints >= 400 ? "/avatars/fight/bunny_ha_ready.mp4" : myPoints >= 200 ? "/avatars/fight/bunny_la_ready.mp4" : `/avatars/${avatarType}1.mp4`;
+                          const videoSrc = myPoints >= 200 ? "/avatars/fight/bunny_ha_ready.mp4" : myPoints >= 100 ? "/avatars/fight/bunny_la_ready.mp4" : `/avatars/${avatarType}1.mp4`;
                           return (
                             <div className="w-20 h-20 rounded-xl border-2 border-white/20 overflow-hidden bg-white flex items-center justify-center">
                               <video src={videoSrc} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
