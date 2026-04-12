@@ -196,6 +196,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       { points: 250, key: `points-milestone-250-${userId}`, msg: "You have scored more than 250 points! A new Tiger avatar has been unlocked!" },
       { points: 1000, key: `points-milestone-1000-${userId}`, msg: "You have scored more than 1000 points! A new Merlion avatar has been unlocked!" },
       { points: 1250, key: `points-milestone-1250-${userId}`, msg: "You have scored more than 1250 points! A new Dragon avatar has been unlocked!" },
+      { points: 1500, key: `points-milestone-1500-${userId}`, msg: "You have scored more than 1500 points! A new Unicorn avatar has been unlocked!" },
     ];
     for (const m of milestones) {
       if (pts >= m.points && !localStorage.getItem(m.key)) {
@@ -377,6 +378,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 { key: "otter", label: "Otter", points: 750 },
                 { key: "merlion", label: "Merlion", points: 1000 },
                 { key: "dragon", label: "Dragon", points: 1250 },
+                { key: "uni", label: "Unicorn", points: 1500 },
               ].map(animal => {
                 const unlocked = totalPoints >= animal.points;
                 const isSelected = (selectedAvatar ?? avatarType) === animal.key;
@@ -431,6 +433,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 { key: "otter", label: "Otter", points: 750 },
                 { key: "merlion", label: "Merlion", points: 1000 },
                 { key: "dragon", label: "Dragon", points: 1250 },
+                { key: "uni", label: "Unicorn", points: 1500 },
               ].map(animal => {
                 const unlocked = totalPoints >= animal.points;
                 const isSelected = (selectedAvatar ?? avatarType) === animal.key;
