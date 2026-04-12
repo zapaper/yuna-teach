@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  // Light select for pool building (excludes large imageData/answerImageData blobs)
+  // Light select for pool building (excludes large blob fields)
   const questionSelectLight = {
     id: true,
     questionNum: true,
@@ -194,42 +194,44 @@ export async function POST(request: NextRequest) {
     syllabusTopic: true,
     pageIndex: true,
     transcribedStem: true,
-    transcribedOptions: true,
     transcribedSubparts: true,
-    diagramImageData: true,
+    // diagramImageData needed for mergeOeqGroup (Math/Science only)
+    ...(subject !== "english" ? { diagramImageData: true } : {}),
     diagramBounds: true,
     examPaper: {
       select: { id: true, year: true, examType: true, school: true, pageCount: true },
     },
   };
 
-  // Get source question IDs already used in this student's previous quizzes
-  const previousQuizQuestions = await prisma.examQuestion.findMany({
-    where: {
-      sourceQuestionId: { not: null },
-      examPaper: { assignedToId: targetStudentId, paperType: "quiz" },
-    },
-    select: { sourceQuestionId: true },
-  });
+  // Run both queries in parallel for speed
+  const [previousQuizQuestions, allQuestions] = await Promise.all([
+    // Get source question IDs already used in this student's previous quizzes
+    prisma.examQuestion.findMany({
+      where: {
+        sourceQuestionId: { not: null },
+        examPaper: { assignedToId: targetStudentId, paperType: "quiz" },
+      },
+      select: { sourceQuestionId: true },
+    }),
+    // Find all clean-extracted questions from master papers (matching level + semester)
+    // Light query first (no blobs) — full data loaded later for selected questions only
+    prisma.examQuestion.findMany({
+      where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes),
+      select: questionSelectLight,
+    }),
+  ]);
   const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
-
-  // Find all clean-extracted questions from master papers (matching level + semester)
-  // Light query first (no blobs) — full data loaded later for selected questions only
-  const allQuestions = await prisma.examQuestion.findMany({
-    where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes),
-    select: questionSelectLight,
-  });
 
   type Q = typeof allQuestions[number];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type FullQ = Q & { imageData: string | null; answerImageData: string | null; transcribedOptionImages: any };
+  type FullQ = Q & { imageData: string | null; answerImageData: string | null; transcribedOptions: any; transcribedOptionImages: any; diagramImageData: string | null };
 
   // Hydrate lightweight questions with large blob fields — only for the final selected set
-  async function hydrateBlobs(ids: string[]): Promise<Map<string, { imageData: string | null; answerImageData: string | null; transcribedOptionImages: unknown }>> {
+  async function hydrateBlobs(ids: string[]): Promise<Map<string, Record<string, unknown>>> {
     if (ids.length === 0) return new Map();
     const rows = await prisma.examQuestion.findMany({
       where: { id: { in: ids } },
-      select: { id: true, imageData: true, answerImageData: true, transcribedOptionImages: true },
+      select: { id: true, imageData: true, answerImageData: true, transcribedOptions: true, transcribedOptionImages: true, diagramImageData: true },
     });
     return new Map(rows.map(r => [r.id, r]));
   }
