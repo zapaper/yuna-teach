@@ -1737,6 +1737,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 space-y-4">
                     {[
                       { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
+                      { key: "pvp" as const, label: "PvP Student", desc: "Allow student to participate in peer challenges" },
                     ].map(item => {
                       const isOn = selectedStudent?.settings?.[item.key] === true;
                       return (
