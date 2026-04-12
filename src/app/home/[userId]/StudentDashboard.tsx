@@ -106,6 +106,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const router = useRouter();
   const hasAvatar = user.settings?.avatar === true;
   const avatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? "bunny";
+  const [avatarIdx, setAvatarIdx] = useState(() => Math.floor(Math.random() * 4));
+  const avatarSrc = `/avatars/${avatarType}${avatarIdx + 1}.mp4`;
+  const avatarRef = useRef<HTMLVideoElement>(null);
+  const nextAvatar = () => setAvatarIdx(i => { let n; do { n = Math.floor(Math.random() * 4); } while (n === i); return n; });
+  useEffect(() => {
+    const v = avatarRef.current;
+    if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+  }, [avatarIdx]);
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
@@ -523,7 +531,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <div className="flex items-center gap-4">
                 {hasAvatar && (
                   <button onClick={() => setShowAvatarPicker(true)} className="w-16 h-16 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 hover:border-[#003366] hover:scale-105 transition-all cursor-pointer">
-                    <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
+                    <video ref={avatarRef} src={avatarSrc} autoPlay muted playsInline onEnded={nextAvatar} className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
                   </button>
                 )}
                 <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
@@ -697,7 +705,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <div className="flex items-center gap-3">
               {hasAvatar && (
                 <button onClick={() => setShowAvatarPicker(true)} className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 hover:border-[#003366] transition-all">
-                  <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
+                  <video src={avatarSrc} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
                 </button>
               )}
               <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
