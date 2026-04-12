@@ -157,31 +157,42 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [showPastWork, setShowPastWork] = useState(false);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
-  const arenaActions = ["ready", "attack", "defend"] as const;
+  // Paired actions: [avatarAction, slimeAction]
+  const arenaPairs = [
+    { avatar: "attack", slime: "hit" },
+    { avatar: "defend", slime: "attack" },
+    { avatar: "ready", slime: "dead" },
+  ] as const;
+  const arenaActions = arenaPairs;
   const [arenaAction, setArenaAction] = useState(0);
   const [arenaGifReady, setArenaGifReady] = useState(true);
   // Preload all arena GIFs
+  // Preload all arena GIFs (bunny + slime)
   useEffect(() => {
     if (!hasArena) return;
     for (const tier of ["la", "ha"]) {
-      for (const act of arenaActions) {
+      for (const act of ["ready", "attack", "defend", "hit"]) {
         const img = new Image();
         img.src = `/avatars/fight/bunny_${tier}_${act}.gif`;
       }
     }
-  }, [hasArena, arenaActions]);
+    for (const act of ["attack", "hit", "dead"]) {
+      const img = new Image();
+      img.src = `/avatars/fight/slime_${act}.gif`;
+    }
+  }, [hasArena]);
   useEffect(() => {
     if (!showArena || !hasArena) return;
     const interval = setInterval(() => {
       setArenaGifReady(false);
       setArenaAction(prev => {
         let next: number;
-        do { next = Math.floor(Math.random() * arenaActions.length); } while (next === prev);
+        do { next = Math.floor(Math.random() * arenaPairs.length); } while (next === prev);
         return next;
       });
     }, 3000);
     return () => clearInterval(interval);
-  }, [showArena, hasArena, arenaActions.length]);
+  }, [showArena, hasArena, arenaPairs.length]);
   const [arenaData, setArenaData] = useState<{ leaderboard: Array<{ id: string; name: string; points: number; pct: number }>; playerRank: number | null; playerEntry: { id: string; name: string; points: number; pct: number } | null } | null>(null);
 
   const fetchData = useRef<() => void>(undefined);
@@ -802,20 +813,35 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         </table>
                         <p className="text-white/30 text-[9px] mt-3 italic">Resets every Monday</p>
                       </div>
-                      {/* Player avatar — cycling actions, flipped to face right */}
-                      <div className="flex-1 flex items-end justify-start pl-[5%] p-4 relative">
-                        {(() => {
-                          const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                          const tier = myPoints >= 200 ? "ha" : "la";
-                          return arenaActions.map((act, i) => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img key={act} src={`/avatars/fight/bunny_${tier}_${act}.gif`} alt={act}
-                              className={`h-48 object-contain absolute bottom-4 ${arenaAction === i ? "" : "invisible"}`}
-                              style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
-                              onLoad={() => { if (arenaAction === i) setArenaGifReady(true); }}
-                            />
-                          ));
-                        })()}
+                      {/* Battle scene — avatar (left, facing right) vs slime (right, facing left) */}
+                      <div className="flex-1 flex items-end justify-center p-4 gap-2">
+                        {/* Avatar */}
+                        <div className="relative h-48 w-40">
+                          {(() => {
+                            const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
+                            const tier = myPoints >= 200 ? "ha" : "la";
+                            return arenaPairs.map((pair, i) => (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img key={pair.avatar} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
+                                className={`h-48 object-contain absolute bottom-0 left-0 ${arenaAction === i ? "" : "invisible"}`}
+                                style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
+                                onLoad={() => { if (arenaAction === i) setArenaGifReady(true); }}
+                              />
+                            ));
+                          })()}
+                        </div>
+                        {/* Slime */}
+                        <div className="relative h-48 w-40">
+                          {arenaPairs.map((pair, i) => (
+                            pair.slime ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img key={pair.slime} src={`/avatars/fight/slime_${pair.slime}.gif`} alt={pair.slime}
+                                className={`h-36 object-contain absolute bottom-0 right-0 ${arenaAction === i ? "" : "invisible"}`}
+                                style={{ mixBlendMode: "screen" }}
+                              />
+                            ) : null
+                          ))}
+                        </div>
                       </div>
                   </div>
                 )}
@@ -942,19 +968,34 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </table>
                     <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
                   </div>
-                  {/* Player avatar — below table, flipped facing right */}
-                  <div className="flex justify-start pl-[5%] mt-2 relative h-32">
-                    {(() => {
-                      const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                      const tier = myPoints >= 200 ? "ha" : "la";
-                      return arenaActions.map((act, i) => (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img key={act} src={`/avatars/fight/bunny_${tier}_${act}.gif`} alt={act}
-                          className={`h-32 object-contain absolute bottom-0 left-0 ${arenaAction === i ? "" : "invisible"}`}
-                          style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
-                        />
-                      ));
-                    })()}
+                  {/* Battle scene — avatar vs slime, below table */}
+                  <div className="flex justify-center items-end mt-2 gap-1 h-28">
+                    {/* Avatar */}
+                    <div className="relative h-28 w-24">
+                      {(() => {
+                        const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
+                        const tier = myPoints >= 200 ? "ha" : "la";
+                        return arenaPairs.map((pair, i) => (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img key={pair.avatar} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
+                            className={`h-28 object-contain absolute bottom-0 left-0 ${arenaAction === i ? "" : "invisible"}`}
+                            style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
+                          />
+                        ));
+                      })()}
+                    </div>
+                    {/* Slime */}
+                    <div className="relative h-28 w-24">
+                      {arenaPairs.map((pair, i) => (
+                        pair.slime ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img key={pair.slime} src={`/avatars/fight/slime_${pair.slime}.gif`} alt={pair.slime}
+                            className={`h-24 object-contain absolute bottom-0 right-0 ${arenaAction === i ? "" : "invisible"}`}
+                            style={{ mixBlendMode: "screen" }}
+                          />
+                        ) : null
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
