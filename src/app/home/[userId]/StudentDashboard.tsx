@@ -792,7 +792,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                                 <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               ) : isLa ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" />
+                                <video src="/avatars/fight/bunny_la_ready.mov" autoPlay loop muted playsInline className="w-full h-full object-contain" />
                               ) : (
                                 <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               )}
@@ -940,7 +940,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                                 <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               ) : isLa ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" />
+                                <video src="/avatars/fight/bunny_la_ready.mov" autoPlay loop muted playsInline className="w-full h-full object-contain" />
                               ) : (
                                 <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                               )}
