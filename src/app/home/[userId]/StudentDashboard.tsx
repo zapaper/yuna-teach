@@ -130,6 +130,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
   const [showPointsMilestone, setShowPointsMilestone] = useState(false);
+  const [milestoneMessage, setMilestoneMessage] = useState("");
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
@@ -184,14 +185,22 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       .catch(() => {});
   }, [userId]);
 
-  // Check 100-point milestone (only if avatar toggle is on)
+  // Check point milestones (only if avatar toggle is on)
   useEffect(() => {
     if (!hasAvatar || examPapers.length === 0) return;
     const pts = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0);
-    const milestoneKey = `points-milestone-100-${userId}`;
-    if (pts >= 100 && !localStorage.getItem(milestoneKey)) {
-      localStorage.setItem(milestoneKey, "1");
-      setShowPointsMilestone(true);
+    const milestones = [
+      { points: 100, key: `points-milestone-100-${userId}`, msg: "You have scored more than 100 points. You can now select your profile avatar!" },
+      { points: 500, key: `points-milestone-500-${userId}`, msg: "You have scored more than 500 points! A new Fox avatar has been unlocked!" },
+      { points: 800, key: `points-milestone-800-${userId}`, msg: "You have scored more than 800 points! A new Otter avatar has been unlocked!" },
+    ];
+    for (const m of milestones) {
+      if (pts >= m.points && !localStorage.getItem(m.key)) {
+        localStorage.setItem(m.key, "1");
+        setMilestoneMessage(m.msg);
+        setShowPointsMilestone(true);
+        break; // show one at a time
+      }
     }
   }, [hasAvatar, examPapers, userId]);
 
@@ -345,7 +354,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         </div>
       )}
 
-      {/* 100-point milestone — avatar selection */}
+      {/* Points milestone — avatar selection */}
       {showPointsMilestone && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
@@ -354,19 +363,32 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             </div>
             <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Congratulations!</h2>
             <p className="text-sm text-[#43474f] mb-6">
-              You have scored more than 100 points. You can now select your profile avatar!
+              {milestoneMessage}
             </p>
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              {["bunny", "bear"].map(animal => (
-                <button
-                  key={animal}
-                  onClick={() => setSelectedAvatar(animal)}
-                  className={`p-3 rounded-2xl border-2 transition-all ${selectedAvatar === animal ? "border-[#006c49] bg-[#006c49]/5 scale-105" : "border-slate-200 hover:border-[#a7c8ff]"}`}
-                >
-                  <video src={`/avatars/${animal}1.mp4`} autoPlay loop muted playsInline className="w-20 h-20 mx-auto object-contain" style={{ mixBlendMode: "multiply" }} />
-                  <p className="text-xs font-bold text-[#001e40] mt-1 capitalize">{animal}</p>
-                </button>
-              ))}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              {[
+                { key: "bunny", label: "Bunny", points: 0 },
+                { key: "bear", label: "Bear", points: 0 },
+                { key: "fox", label: "Fox", points: 500 },
+                { key: "otter", label: "Otter", points: 800 },
+              ].map(animal => {
+                const unlocked = totalPoints >= animal.points;
+                const isSelected = (selectedAvatar ?? avatarType) === animal.key;
+                return (
+                  <button
+                    key={animal.key}
+                    onClick={() => unlocked && setSelectedAvatar(animal.key)}
+                    disabled={!unlocked}
+                    className={`p-3 rounded-2xl border-2 transition-all relative ${isSelected ? "border-[#006c49] bg-[#006c49]/5 scale-105" : unlocked ? "border-slate-200 hover:border-[#a7c8ff]" : "border-slate-100 opacity-40"}`}
+                  >
+                    <video src={`/avatars/${animal.key}1.mp4`} autoPlay loop muted playsInline className="w-16 h-16 mx-auto object-contain" style={{ mixBlendMode: "multiply" }} />
+                    <p className="text-xs font-bold text-[#001e40] mt-1">{animal.label}</p>
+                    {animal.points > 0 && !unlocked && (
+                      <p className="text-[9px] text-[#737780]">{animal.points} pts</p>
+                    )}
+                  </button>
+                );
+              })}
             </div>
             <button
               onClick={async () => {
@@ -394,10 +416,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="font-headline text-lg font-extrabold text-[#001e40] text-center mb-1">Choose Your Avatar</h2>
             <p className="text-xs text-[#43474f] text-center mb-5">Tap to select</p>
-            <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="grid grid-cols-3 gap-3 mb-5">
               {[
                 { key: "bunny", label: "Bunny", points: 0 },
                 { key: "bear", label: "Bear", points: 0 },
+                { key: "fox", label: "Fox", points: 500 },
+                { key: "otter", label: "Otter", points: 800 },
               ].map(animal => {
                 const unlocked = totalPoints >= animal.points;
                 const isSelected = (selectedAvatar ?? avatarType) === animal.key;
