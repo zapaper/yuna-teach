@@ -344,16 +344,33 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       ? `Start assigning a daily quiz for AI to diagnose ${selectedStudent?.name ?? "your child"}'s strengths and gaps.`
       : `${selectedStudent?.name ?? "Your child"} has averaged ${avgScore}% across ${completedPapers.length} completed ${completedPapers.length === 1 ? "paper" : "papers"}.`);
 
-  // Weekly schedule helpers
+  // Weekly schedule helpers (Sunday to Saturday)
   const todayDate = new Date();
-  const dayOfWeek = todayDate.getDay();
-  const monday = new Date(todayDate);
-  monday.setDate(todayDate.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-  const weekDays = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(monday); d.setDate(monday.getDate() + i); return d;
+  const dayOfWeek = todayDate.getDay(); // 0=Sun
+  const sunday = new Date(todayDate);
+  sunday.setDate(todayDate.getDate() - dayOfWeek);
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sunday); d.setDate(sunday.getDate() + i); return d;
   });
-  const DAY_LABELS = ["MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  const DAY_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const isToday = (d: Date) => d.toDateString() === todayDate.toDateString();
+
+  // Group student papers by day of week for scheduler
+  const papersByDay = weekDays.map(d => {
+    const dayStr = d.toDateString();
+    return studentPapers.filter(p => new Date(p.createdAt).toDateString() === dayStr);
+  });
+
+  function shortenTitle(title: string) {
+    return title
+      .replace(/^P\d+\s+/, "")
+      .replace(/Daily Quiz –\s*/, "")
+      .replace(/\s*\(MCQ\)$/, "")
+      .replace(/\s*\(MCQ \+ OEQ\)$/, " +OEQ")
+      .replace(/Quiz MCQ \+ OEQ$/, "Quiz +OEQ")
+      .replace(/Quiz MCQ$/, "Quiz")
+      .slice(0, 20);
+  }
 
   // Master papers (not assigned = available to assign)
   const masterPapers = examPapers.filter(p => !p.assignedToId && p.paperType === null);
@@ -1656,6 +1673,36 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 <ActivitiesList />
               </section>
 
+              {/* This Week scheduler — mobile */}
+              <section className="mt-8">
+                <h3 className="font-headline font-bold text-lg text-[#001e40] mb-4">This Week</h3>
+                <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                  {weekDays.map((day, di) => {
+                    const papers = papersByDay[di];
+                    const today = isToday(day);
+                    return (
+                      <div key={di} className={`min-w-[5.5rem] flex-shrink-0 rounded-2xl p-2.5 ${today ? "bg-[#003366] text-white" : "bg-white border border-slate-100"}`}>
+                        <p className={`text-[10px] font-bold text-center mb-1 ${today ? "text-white/70" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
+                        <p className={`text-xs font-extrabold text-center mb-2 ${today ? "text-white" : "text-[#001e40]"}`}>{day.getDate()}</p>
+                        <div className="space-y-1.5">
+                          {papers.map(p => (
+                            <div key={p.id} onClick={() => {
+                              if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
+                              else if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${selectedStudentId}`);
+                            }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate cursor-pointer ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : today ? "bg-white/20 text-white" : "bg-[#eff4ff] text-[#001e40]"}`}>
+                              {shortenTitle(p.title)}
+                            </div>
+                          ))}
+                          <button onClick={() => { setShowQuiz(true); }} className={`w-full rounded-lg py-1 text-xs font-bold ${today ? "text-white/50 hover:text-white" : "text-[#c3c6d1] hover:text-[#003366]"} transition-colors`}>
+                            +
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
               {/* Recent Spelling */}
               {spellingTests.length > 0 && (
                 <section className="mt-8">
@@ -1855,6 +1902,39 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <h3 className={`font-headline text-3xl font-black ${pendingRelease.length === 0 ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>{pendingRelease.length}</h3>
                     </button>
                   </div>
+                </div>
+              </div>
+
+              {/* This Week scheduler — desktop */}
+              <div className="bg-white rounded-3xl p-6 shadow-sm mb-8">
+                <h4 className="font-headline text-xl font-extrabold text-[#001e40] mb-5 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#003366]">calendar_month</span>
+                  This Week
+                </h4>
+                <div className="grid grid-cols-7 gap-3">
+                  {weekDays.map((day, di) => {
+                    const papers = papersByDay[di];
+                    const today = isToday(day);
+                    return (
+                      <div key={di} className={`rounded-2xl p-3 min-h-[140px] flex flex-col ${today ? "bg-[#003366] text-white" : "bg-[#f8f9ff] border border-slate-100"}`}>
+                        <p className={`text-[10px] font-bold text-center ${today ? "text-white/70" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
+                        <p className={`text-sm font-extrabold text-center mb-3 ${today ? "text-white" : "text-[#001e40]"}`}>{day.getDate()}</p>
+                        <div className="space-y-1.5 flex-1">
+                          {papers.map(p => (
+                            <div key={p.id} onClick={() => {
+                              if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
+                              else if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${selectedStudentId}`);
+                            }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate cursor-pointer hover:opacity-80 transition-opacity ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : today ? "bg-white/20 text-white" : "bg-white text-[#001e40] shadow-sm"}`}>
+                              {shortenTitle(p.title)}
+                            </div>
+                          ))}
+                        </div>
+                        <button onClick={() => setShowQuiz(true)} className={`mt-2 w-full rounded-lg py-1 text-sm font-bold ${today ? "text-white/40 hover:text-white" : "text-[#c3c6d1] hover:text-[#003366]"} transition-colors`}>
+                          +
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
