@@ -155,6 +155,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz">("home");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPastWork, setShowPastWork] = useState(false);
+  const [showArena, setShowArena] = useState(false);
+  const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
+  const [arenaData, setArenaData] = useState<{ leaderboard: Array<{ id: string; name: string; points: number; pct: number }>; playerRank: number | null; playerEntry: { id: string; name: string; points: number; pct: number } | null } | null>(null);
 
   const fetchData = useRef<() => void>(undefined);
   fetchData.current = () => {
@@ -208,6 +211,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       }
     }
   }, [hasAvatar, examPapers, userId]);
+
+  // Fetch arena leaderboard
+  useEffect(() => {
+    if (!hasArena) return;
+    fetch(`/api/arena?studentId=${userId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setArenaData(d); })
+      .catch(() => {});
+  }, [hasArena, userId]);
 
   // Fetch admin notifications
   useEffect(() => {
@@ -707,6 +719,80 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 )}
               </section>
             )}
+
+            {/* Arena Battle panel */}
+            {hasArena && arenaData && (
+              <section className="mt-8">
+                <button onClick={() => setShowArena(!showArena)} className="flex items-center gap-2 text-sm font-bold text-[#43474f] hover:text-[#001e40] transition-colors mb-4">
+                  <span className="material-symbols-outlined text-base">{showArena ? "expand_less" : "expand_more"}</span>
+                  <span className="material-symbols-outlined text-base text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
+                  Arena Battle
+                </button>
+                {showArena && (
+                  <div className="rounded-2xl overflow-hidden relative" style={{ background: "#1a1a2e" }}>
+                    {/* Backdrop */}
+                    <img src="/avatars/fight/battlearena.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                    <div className="relative z-10 flex">
+                      {/* Leaderboard table */}
+                      <div className="flex-1 p-5">
+                        <h3 className="text-white font-headline font-bold text-lg mb-3">Weekly Arena</h3>
+                        <table className="w-full">
+                          <thead>
+                            <tr className="text-white/50 text-[10px] uppercase tracking-wider">
+                              <th className="text-left pb-2 font-semibold">#</th>
+                              <th className="text-left pb-2 font-semibold">Name</th>
+                              <th className="text-right pb-2 font-semibold">Points</th>
+                              <th className="text-right pb-2 font-semibold">Score</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {arenaData.leaderboard.map((entry, i) => {
+                              const isMe = entry.id === userId;
+                              return (
+                                <tr key={entry.id} className={isMe ? "text-[#ffddb4] font-bold" : "text-white/80"}>
+                                  <td className="py-1 text-xs">{i + 1}</td>
+                                  <td className="py-1 text-xs">{isMe ? `${entry.name} ⭐` : entry.name}</td>
+                                  <td className="py-1 text-xs text-right">{entry.points}</td>
+                                  <td className="py-1 text-xs text-right">{entry.pct}%</td>
+                                </tr>
+                              );
+                            })}
+                            {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 && (
+                              <>
+                                <tr><td colSpan={4} className="text-center text-white/30 text-xs py-1">...</td></tr>
+                                <tr className="text-[#ffddb4] font-bold">
+                                  <td className="py-1 text-xs">{arenaData.playerRank}</td>
+                                  <td className="py-1 text-xs">{arenaData.playerEntry.name} ⭐</td>
+                                  <td className="py-1 text-xs text-right">{arenaData.playerEntry.points}</td>
+                                  <td className="py-1 text-xs text-right">{arenaData.playerEntry.pct}%</td>
+                                </tr>
+                              </>
+                            )}
+                          </tbody>
+                        </table>
+                        <p className="text-white/30 text-[9px] mt-3 italic">Resets every Monday</p>
+                      </div>
+                      {/* Player avatar */}
+                      <div className="w-36 flex items-center justify-center p-4">
+                        {(() => {
+                          const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
+                          const videoSrc = myPoints >= 400
+                            ? "/avatars/fight/bunny_ha_ready.mp4"
+                            : myPoints >= 200
+                              ? "/avatars/fight/bunny_la_ready.mp4"
+                              : `/avatars/${avatarType}1.mp4`;
+                          return (
+                            <div className="w-28 h-28 rounded-2xl border-2 border-white/20 overflow-hidden bg-white/10 flex items-center justify-center">
+                              <video src={videoSrc} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
         </main>
       </div>
@@ -771,6 +857,73 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             </section>
           )}
           {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, 10).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}</div>}</section>}
+
+          {/* Arena Battle — mobile */}
+          {hasArena && arenaData && (
+            <section className="mb-8">
+              <button onClick={() => setShowArena(!showArena)} className="flex items-center gap-2 text-xs font-bold text-[#43474f] mb-3">
+                <span className="material-symbols-outlined text-sm">{showArena ? "expand_less" : "expand_more"}</span>
+                <span className="material-symbols-outlined text-sm text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
+                Arena Battle
+              </button>
+              {showArena && (
+                <div className="rounded-2xl overflow-hidden relative" style={{ background: "#1a1a2e" }}>
+                  <img src="/avatars/fight/battlearena.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
+                  <div className="relative z-10 p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1">
+                        <h3 className="text-white font-headline font-bold text-base mb-2">Weekly Arena</h3>
+                        <table className="w-full">
+                          <thead>
+                            <tr className="text-white/50 text-[9px] uppercase tracking-wider">
+                              <th className="text-left pb-1">#</th>
+                              <th className="text-left pb-1">Name</th>
+                              <th className="text-right pb-1">Pts</th>
+                              <th className="text-right pb-1">%</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {arenaData.leaderboard.map((entry, i) => {
+                              const isMe = entry.id === userId;
+                              return (
+                                <tr key={entry.id} className={isMe ? "text-[#ffddb4] font-bold" : "text-white/80"}>
+                                  <td className="py-0.5 text-[10px]">{i + 1}</td>
+                                  <td className="py-0.5 text-[10px]">{isMe ? `${entry.name} ⭐` : entry.name}</td>
+                                  <td className="py-0.5 text-[10px] text-right">{entry.points}</td>
+                                  <td className="py-0.5 text-[10px] text-right">{entry.pct}%</td>
+                                </tr>
+                              );
+                            })}
+                            {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 && (<>
+                              <tr><td colSpan={4} className="text-center text-white/30 text-[9px] py-0.5">...</td></tr>
+                              <tr className="text-[#ffddb4] font-bold">
+                                <td className="py-0.5 text-[10px]">{arenaData.playerRank}</td>
+                                <td className="py-0.5 text-[10px]">{arenaData.playerEntry.name} ⭐</td>
+                                <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.points}</td>
+                                <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.pct}%</td>
+                              </tr>
+                            </>)}
+                          </tbody>
+                        </table>
+                        <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
+                      </div>
+                      <div className="w-24 shrink-0 flex items-center justify-center">
+                        {(() => {
+                          const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
+                          const videoSrc = myPoints >= 400 ? "/avatars/fight/bunny_ha_ready.mp4" : myPoints >= 200 ? "/avatars/fight/bunny_la_ready.mp4" : `/avatars/${avatarType}1.mp4`;
+                          return (
+                            <div className="w-20 h-20 rounded-xl border-2 border-white/20 overflow-hidden bg-white/10 flex items-center justify-center">
+                              <video src={videoSrc} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       </div>
 
