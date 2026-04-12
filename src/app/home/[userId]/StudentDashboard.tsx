@@ -157,9 +157,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [showPastWork, setShowPastWork] = useState(false);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
-  // Paired actions: [avatarAction, slimeAction]
+  // Paired actions: [avatarAction, slimeAction] — weighted pool for frequency
   const arenaPairs = [
     { avatar: "attack", slime: "hit" },
+    { avatar: "attack", slime: "hit" },
+    { avatar: "attack", slime: "hit" },
+    { avatar: "defend", slime: "attack" },
+    { avatar: "defend", slime: "attack" },
     { avatar: "defend", slime: "attack" },
     { avatar: "ready", slime: "dead" },
   ] as const;
@@ -813,34 +817,35 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         </table>
                         <p className="text-white/30 text-[9px] mt-3 italic">Resets every Monday</p>
                       </div>
-                      {/* Battle scene — avatar (left, facing right) vs slime (right, facing left) */}
-                      <div className="flex-1 flex items-end justify-center p-4 gap-2">
-                        {/* Avatar */}
-                        <div className="relative h-48 w-40">
+                      {/* Battle scene — avatar (left, facing right) vs slime (right), overlapping */}
+                      <div className="flex-1 flex items-end justify-center p-4">
+                        <div className="relative h-48" style={{ width: "280px" }}>
+                          {/* Avatar — above slime (z-10) */}
                           {(() => {
                             const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                             const tier = myPoints >= 200 ? "ha" : "la";
-                            return arenaPairs.map((pair, i) => (
+                            const uniqueActions = [{ avatar: "attack", slime: "hit" }, { avatar: "defend", slime: "attack" }, { avatar: "ready", slime: "dead" }] as const;
+                            const currentPair = arenaPairs[arenaAction];
+                            return uniqueActions.map(pair => (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img key={pair.avatar} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
-                                className={`h-48 object-contain absolute bottom-0 left-0 ${arenaAction === i ? "" : "invisible"}`}
+                              <img key={`a-${pair.avatar}`} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
+                                className={`h-48 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === pair.avatar ? "" : "invisible"}`}
                                 style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
-                                onLoad={() => { if (arenaAction === i) setArenaGifReady(true); }}
+                                onLoad={() => { if (currentPair.avatar === pair.avatar) setArenaGifReady(true); }}
                               />
                             ));
                           })()}
-                        </div>
-                        {/* Slime */}
-                        <div className="relative h-48 w-40">
-                          {arenaPairs.map((pair, i) => (
-                            pair.slime ? (
+                          {/* Slime — behind avatar */}
+                          {[{ s: "hit" }, { s: "attack" }, { s: "dead" }].map(({ s }) => {
+                            const currentPair = arenaPairs[arenaAction];
+                            return (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img key={pair.slime} src={`/avatars/fight/slime_${pair.slime}.gif`} alt={pair.slime}
-                                className={`h-36 object-contain absolute bottom-0 right-0 ${arenaAction === i ? "" : "invisible"}`}
+                              <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                                className={`h-36 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
                                 style={{ mixBlendMode: "screen" }}
                               />
-                            ) : null
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                   </div>
@@ -968,33 +973,34 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </table>
                     <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
                   </div>
-                  {/* Battle scene — avatar vs slime, below table */}
-                  <div className="flex justify-center items-end mt-2 gap-1 h-28">
-                    {/* Avatar */}
-                    <div className="relative h-28 w-24">
+                  {/* Battle scene — avatar vs slime, overlapping */}
+                  <div className="flex justify-center items-end mt-2">
+                    <div className="relative h-28" style={{ width: "200px" }}>
+                      {/* Avatar — above slime (z-10) */}
                       {(() => {
                         const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                         const tier = myPoints >= 200 ? "ha" : "la";
-                        return arenaPairs.map((pair, i) => (
+                        const uniqueActions = [{ avatar: "attack", slime: "hit" }, { avatar: "defend", slime: "attack" }, { avatar: "ready", slime: "dead" }] as const;
+                        const currentPair = arenaPairs[arenaAction];
+                        return uniqueActions.map(pair => (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img key={pair.avatar} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
-                            className={`h-28 object-contain absolute bottom-0 left-0 ${arenaAction === i ? "" : "invisible"}`}
+                          <img key={`a-${pair.avatar}`} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
+                            className={`h-28 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === pair.avatar ? "" : "invisible"}`}
                             style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
                           />
                         ));
                       })()}
-                    </div>
-                    {/* Slime */}
-                    <div className="relative h-28 w-24">
-                      {arenaPairs.map((pair, i) => (
-                        pair.slime ? (
+                      {/* Slime — behind avatar */}
+                      {[{ s: "hit" }, { s: "attack" }, { s: "dead" }].map(({ s }) => {
+                        const currentPair = arenaPairs[arenaAction];
+                        return (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img key={pair.slime} src={`/avatars/fight/slime_${pair.slime}.gif`} alt={pair.slime}
-                            className={`h-24 object-contain absolute bottom-0 right-0 ${arenaAction === i ? "" : "invisible"}`}
+                          <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                            className={`h-20 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
                             style={{ mixBlendMode: "screen" }}
                           />
-                        ) : null
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
