@@ -66,19 +66,24 @@ function scorePct(paper: ExamPaperSummary) {
 
 export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
   const router = useRouter();
-  const bunnyVideos = ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4"];
-  const bearVideos = ["/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"];
-  const avatarMap: Record<string, string[]> = { admin: bunnyVideos, papa: bearVideos };
+  const avatarTypeMap: Record<string, string[]> = {
+    bunny: ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4"],
+    bear: ["/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"],
+  };
+  const defaultAvatarMap: Record<string, string> = { admin: "bunny", papa: "bear" };
   const nameLower = user.name?.toLowerCase() ?? "";
-  const avatarVideos = avatarMap[nameLower] ?? null;
+  const parentAvatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? defaultAvatarMap[nameLower] ?? null;
+  const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
-  const [bunnySrc, setBunnySrc] = useState(() => avatarVideos[Math.floor(Math.random() * avatarVideos.length)]);
+  const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
+  const [bunnySrc, setBunnySrc] = useState(() => avatarVideos ? avatarVideos[Math.floor(Math.random() * avatarVideos.length)] : "");
   const [nextSrc, setNextSrc] = useState<string | null>(null);
   const bunnyRef = useRef<HTMLVideoElement>(null);
   const preloadRef = useRef<HTMLVideoElement>(null);
   const nextBunny = () => {
     const cur = bunnySrc;
     let next: string;
+    if (!avatarVideos) return;
     do { next = avatarVideos[Math.floor(Math.random() * avatarVideos.length)]; } while (next === cur);
     setNextSrc(next);
   };
@@ -1230,11 +1235,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <header className="hidden lg:flex fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 backdrop-blur-xl items-center justify-between px-8 py-4 shadow-sm">
         <div className="flex items-center gap-3">
           {hasAvatar && (
-            <div className="w-[4.5rem] h-[4.5rem] rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative">
+            <button onClick={() => setShowParentAvatarPicker(true)} className="w-[4.5rem] h-[4.5rem] rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative hover:border-[#003366] hover:scale-105 transition-all cursor-pointer">
               <video ref={bunnyRef} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
-                className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
               {nextSrc && <video ref={preloadRef} src={nextSrc} muted playsInline preload="auto" onCanPlayThrough={onPreloadReady} className="absolute inset-0 invisible" />}
-            </div>
+            </button>
           )}
           <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
             {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
@@ -2141,6 +2146,45 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       </nav>
 
       {/* Diagnostic welcome modal */}
+      {/* Parent avatar picker */}
+      {showParentAvatarPicker && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4" onClick={() => setShowParentAvatarPicker(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h2 className="font-headline text-lg font-extrabold text-[#001e40] text-center mb-1">Choose Your Avatar</h2>
+            <p className="text-xs text-[#43474f] text-center mb-5">Tap to select</p>
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              {[
+                { key: "bunny", label: "Bunny" },
+                { key: "bear", label: "Bear" },
+              ].map(animal => {
+                const isSelected = (parentAvatarType ?? "bunny") === animal.key;
+                return (
+                  <button
+                    key={animal.key}
+                    onClick={async () => {
+                      await fetch("/api/users", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId, settings: { avatarType: animal.key } }),
+                      });
+                      setShowParentAvatarPicker(false);
+                      window.location.reload();
+                    }}
+                    className={`p-3 rounded-2xl border-2 transition-all ${isSelected ? "border-[#006c49] bg-[#006c49]/5 scale-105" : "border-slate-200 hover:border-[#a7c8ff]"}`}
+                  >
+                    <video src={`/avatars/${animal.key}1.mp4`} autoPlay loop muted playsInline className="w-20 h-20 mx-auto object-contain" style={{ mixBlendMode: "multiply" }} />
+                    <p className="text-xs font-bold text-[#001e40] mt-1">{animal.label}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={() => setShowParentAvatarPicker(false)} className="w-full py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {showDiagnosticWelcome && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
           style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}
