@@ -545,23 +545,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
               </button>
               {quizBadge && <span className="material-symbols-outlined hover:opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>}
-              <div className="relative">
-                <button onClick={() => setShowProfileMenu(v => !v)} className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#d3e4fe] text-[#001e40]">
-                  {initials(user.name)}
-                </button>
-                {showProfileMenu && (<>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
-                  <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-[#e5eeff] py-2 w-40 z-50">
-                    <div className="px-4 py-2 border-b border-[#e5eeff]">
-                      <p className="text-sm font-bold text-[#001e40] truncate">{user.name}</p>
-                      <p className="text-[10px] text-[#43474f]">Student</p>
-                    </div>
-                    <button onClick={() => router.push("/login")} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-red-50 transition-colors">
-                      <span className="material-symbols-outlined text-base">logout</span>Log out
-                    </button>
-                  </div>
-                </>)}
-              </div>
+              <button onClick={() => router.push("/login")} className="text-[#43474f] hover:text-[#ba1a1a] transition-colors" title="Log out">
+                <span className="material-symbols-outlined">logout</span>
+              </button>
             </div>
           </header>
           <div className="px-6 lg:px-10 py-8 max-w-5xl mx-auto">
@@ -719,24 +705,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <div className="flex items-center gap-2"><img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" /><img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" /></div>
           <div className="flex items-center gap-2">
             <button onClick={() => openLinkModal("share")} className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full">{hasParent ? "+" : "Link"}</button>
-            <div className="relative">
-              <button onClick={() => setShowProfileMenu(v => !v)} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${hasAvatar ? "border-2 border-[#a7c8ff] bg-white overflow-hidden" : "bg-[#d3e4fe] text-[#001e40]"}`}>
-                {hasAvatar ? (
-                  <video src="/avatars/bunny1.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
-                ) : initials(user.name)}
-              </button>
-              {showProfileMenu && (
-                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-[#e5eeff] py-2 w-40 z-50">
-                  <div className="px-4 py-2 border-b border-[#e5eeff]">
-                    <p className="text-sm font-bold text-[#001e40] truncate">{user.name}</p>
-                    <p className="text-[10px] text-[#43474f]">Student</p>
-                  </div>
-                  <button onClick={() => router.push("/login")} className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-red-50 transition-colors">
-                    <span className="material-symbols-outlined text-base">logout</span>Log out
-                  </button>
-                </div>
-              )}
-            </div>
+            <button onClick={() => router.push("/login")} className="text-[#43474f] hover:text-[#ba1a1a] transition-colors" title="Log out">
+              <span className="material-symbols-outlined text-xl">logout</span>
+            </button>
           </div>
         </header>
         <div className="px-5">
