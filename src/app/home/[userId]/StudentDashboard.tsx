@@ -268,6 +268,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     });
   const recentTests = tests.slice(0, 6);
 
+  const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0);
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
 
   // ─── Derived data for new layout ───
@@ -418,7 +419,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       </div>
                       <span className="text-xs text-[#43474f] font-medium">{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"} completed</span>
                     </div>
-                )}
+                  )}
+                  <div className="flex items-center gap-2 bg-[#e5eeff] text-[#001e40] px-4 py-2 rounded-full">
+                    <span className="material-symbols-outlined text-xl text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    <span className="text-lg font-extrabold">{totalPoints} Points</span>
+                  </div>
                 </div>
               )}
             </section>
@@ -570,6 +575,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <div className="flex flex-wrap gap-2 mt-3">
               {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1.5 bg-[#ffddb4] text-[#291800] px-3 py-1.5 rounded-full text-sm font-extrabold"><span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
               {quizBadge && quizBadge.image && <div className="flex items-center gap-1.5 bg-[#d3e4fe] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={quizBadge.image} alt={quizBadge.badge} className="w-6 h-6 object-contain" />{quizBadge.badge}</div>}
+              <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">
+                <span className="material-symbols-outlined text-base text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                {totalPoints} Points
+              </div>
             </div>
           </section>
           <section className="mb-8">
