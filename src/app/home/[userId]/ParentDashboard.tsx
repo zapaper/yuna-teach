@@ -1671,16 +1671,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 <PerformanceCards />
               </section>
 
-              <section>
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="font-headline font-bold text-lg text-[#001e40]">Recent Activities</h3>
-                  <button onClick={() => setActiveView("activities")} className="text-xs font-extrabold text-[#003366]">View All</button>
-                </div>
-                <ActivitiesList />
-              </section>
-
               {/* This Week scheduler — mobile */}
-              <section className="mt-8">
+              <section>
                 <h3 className="font-headline font-bold text-lg text-[#001e40] mb-4">This Week</h3>
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
                   {weekDays.map((day, di) => {
@@ -1707,6 +1699,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     );
                   })}
                 </div>
+              </section>
+
+              <section className="mt-8">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="font-headline font-bold text-lg text-[#001e40]">Recent Activities</h3>
+                  <button onClick={() => setActiveView("activities")} className="text-xs font-extrabold text-[#003366]">View All</button>
+                </div>
+                <ActivitiesList />
               </section>
 
               {/* Recent Spelling */}
