@@ -729,10 +729,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   Arena Battle
                 </button>
                 {showArena && (
-                  <div className="rounded-2xl overflow-hidden relative" style={{ background: "#1a1a2e" }}>
+                  <div className="rounded-2xl relative" style={{ background: "#1a1a2e" }}>
                     {/* Backdrop */}
                     <img src="/avatars/fight/battlearena.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                    <div className="relative z-10 flex">
+                    <div className="relative flex" style={{ isolation: "auto" }}>
                       {/* Leaderboard table */}
                       <div className="flex-1 p-5">
                         <h3 className="text-white font-headline font-bold text-lg mb-3">Weekly Arena</h3>
