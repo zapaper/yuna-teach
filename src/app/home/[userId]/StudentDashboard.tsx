@@ -111,7 +111,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
   const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
   const [showPointsMilestone, setShowPointsMilestone] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
   const [quizBadge, setQuizBadge] = useState<{ badge: string; image: string; count: number; streak: number } | null>(null);
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
@@ -367,6 +369,69 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         </div>
       )}
 
+      {/* Avatar picker modal */}
+      {showAvatarPicker && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4" onClick={() => setShowAvatarPicker(false)}>
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h2 className="font-headline text-lg font-extrabold text-[#001e40] text-center mb-1">Choose Your Avatar</h2>
+            <p className="text-xs text-[#43474f] text-center mb-5">Tap to select</p>
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              {[
+                { key: "bunny", label: "Bunny", points: 0 },
+                { key: "bear", label: "Bear", points: 0 },
+              ].map(animal => {
+                const unlocked = totalPoints >= animal.points;
+                const isSelected = (selectedAvatar ?? avatarType) === animal.key;
+                return (
+                  <button
+                    key={animal.key}
+                    onClick={() => unlocked && setSelectedAvatar(animal.key)}
+                    disabled={!unlocked}
+                    className={`p-3 rounded-2xl border-2 transition-all relative ${isSelected ? "border-[#006c49] bg-[#006c49]/5 scale-105" : unlocked ? "border-slate-200 hover:border-[#a7c8ff]" : "border-slate-100 opacity-40"}`}
+                  >
+                    <video src={`/avatars/${animal.key}1.mp4`} autoPlay loop muted playsInline className="w-20 h-20 mx-auto object-contain" style={{ mixBlendMode: "multiply" }} />
+                    <p className="text-xs font-bold text-[#001e40] mt-1">{animal.label}</p>
+                    {animal.points > 0 && !unlocked && (
+                      <p className="text-[10px] text-[#737780] mt-0.5">{animal.points} pts to unlock</p>
+                    )}
+                    {animal.points > 0 && unlocked && (
+                      <span className="absolute top-1 right-1 material-symbols-outlined text-[#006c49] text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowAvatarPicker(false)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const chosen = selectedAvatar ?? avatarType;
+                  if (chosen === avatarType) { setShowAvatarPicker(false); return; }
+                  setSavingAvatar(true);
+                  await fetch("/api/users", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId, settings: { avatarType: chosen } }),
+                  });
+                  setSavingAvatar(false);
+                  setShowAvatarPicker(false);
+                  window.location.reload();
+                }}
+                disabled={savingAvatar}
+                className="flex-1 py-2.5 rounded-xl bg-[#003366] text-white font-bold text-sm disabled:opacity-50"
+              >
+                {savingAvatar ? "Saving..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Admin notification popup */}
       {showAdminNotifs && adminNotifs.length > 0 && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
@@ -435,10 +500,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               </button>
               {quizBadge && <span className="material-symbols-outlined hover:opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>}
               <div className="relative">
-                <button onClick={() => setShowProfileMenu(v => !v)} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${hasAvatar ? "border-2 border-[#a7c8ff] bg-white overflow-hidden" : "bg-[#d3e4fe] text-[#001e40]"}`}>
-                  {hasAvatar ? (
-                    <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
-                  ) : initials(user.name)}
+                <button onClick={() => setShowProfileMenu(v => !v)} className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-[#d3e4fe] text-[#001e40]">
+                  {initials(user.name)}
                 </button>
                 {showProfileMenu && (<>
                   <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
@@ -459,9 +522,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <section className="mb-12">
               <div className="flex items-center gap-4">
                 {hasAvatar && (
-                  <div className="w-16 h-16 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0">
-                    <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
-                  </div>
+                  <button onClick={() => setShowAvatarPicker(true)} className="w-16 h-16 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 hover:border-[#003366] hover:scale-105 transition-all cursor-pointer">
+                    <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
+                  </button>
                 )}
                 <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
               </div>
@@ -633,9 +696,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <section className="mb-8 mt-2">
             <div className="flex items-center gap-3">
               {hasAvatar && (
-                <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0">
-                  <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
-                </div>
+                <button onClick={() => setShowAvatarPicker(true)} className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 hover:border-[#003366] transition-all">
+                  <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
+                </button>
               )}
               <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
             </div>
