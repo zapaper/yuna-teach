@@ -784,14 +784,18 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <div className="w-36 flex items-center justify-center p-4">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                          const videoSrc = myPoints >= 200
-                            ? "/avatars/fight/bunny_ha_ready.mp4"
-                            : myPoints >= 100
-                              ? "/avatars/fight/bunny_la_ready.mp4"
-                              : `/avatars/${avatarType}1.mp4`;
+                          const isHa = myPoints >= 200;
+                          const isLa = myPoints >= 100 && !isHa;
                           return (
                             <div className="w-28 h-28 flex items-center justify-center">
-                              <video src={videoSrc} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                              {isHa ? (
+                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                              ) : isLa ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" />
+                              ) : (
+                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                              )}
                             </div>
                           );
                         })()}
@@ -928,10 +932,18 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <div className="w-24 shrink-0 flex items-center justify-center">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                          const videoSrc = myPoints >= 200 ? "/avatars/fight/bunny_ha_ready.mp4" : myPoints >= 100 ? "/avatars/fight/bunny_la_ready.mp4" : `/avatars/${avatarType}1.mp4`;
+                          const isHa = myPoints >= 200;
+                          const isLa = myPoints >= 100 && !isHa;
                           return (
                             <div className="w-20 h-20 flex items-center justify-center">
-                              <video src={videoSrc} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                              {isHa ? (
+                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                              ) : isLa ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" />
+                              ) : (
+                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
+                              )}
                             </div>
                           );
                         })()}
