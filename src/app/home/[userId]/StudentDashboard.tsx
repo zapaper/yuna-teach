@@ -372,10 +372,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               {[
                 { key: "bunny", label: "Bunny", points: 0 },
                 { key: "bear", label: "Bear", points: 0 },
+                { key: "tiger", label: "Tiger", points: 250 },
                 { key: "fox", label: "Fox", points: 500 },
                 { key: "otter", label: "Otter", points: 750 },
                 { key: "merlion", label: "Merlion", points: 1000 },
-                { key: "tiger", label: "Tiger", points: 250 },
                 { key: "dragon", label: "Dragon", points: 1250 },
               ].map(animal => {
                 const unlocked = totalPoints >= animal.points;
@@ -426,10 +426,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               {[
                 { key: "bunny", label: "Bunny", points: 0 },
                 { key: "bear", label: "Bear", points: 0 },
+                { key: "tiger", label: "Tiger", points: 250 },
                 { key: "fox", label: "Fox", points: 500 },
                 { key: "otter", label: "Otter", points: 750 },
                 { key: "merlion", label: "Merlion", points: 1000 },
-                { key: "tiger", label: "Tiger", points: 250 },
                 { key: "dragon", label: "Dragon", points: 1250 },
               ].map(animal => {
                 const unlocked = totalPoints >= animal.points;
