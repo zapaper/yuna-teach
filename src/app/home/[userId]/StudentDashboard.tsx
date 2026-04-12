@@ -943,14 +943,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
                   </div>
                   {/* Player avatar — below table, flipped facing right */}
-                  <div className="flex justify-end mt-2 relative h-32">
+                  <div className="flex justify-start pl-[5%] mt-2 relative h-32">
                     {(() => {
                       const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                       const tier = myPoints >= 200 ? "ha" : "la";
                       return arenaActions.map((act, i) => (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img key={act} src={`/avatars/fight/bunny_${tier}_${act}.gif`} alt={act}
-                          className={`h-32 object-contain absolute bottom-0 right-0 ${arenaAction === i ? "" : "invisible"}`}
+                          className={`h-32 object-contain absolute bottom-0 left-0 ${arenaAction === i ? "" : "invisible"}`}
                           style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
                         />
                       ));
