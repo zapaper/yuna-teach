@@ -782,7 +782,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                               ? "/avatars/fight/bunny_la_ready.mp4"
                               : `/avatars/${avatarType}1.mp4`;
                           return (
-                            <div className="w-28 h-28 rounded-2xl border-2 border-white/20 overflow-hidden bg-white/10 flex items-center justify-center">
+                            <div className="w-28 h-28 rounded-2xl border-2 border-white/20 overflow-hidden bg-white flex items-center justify-center">
                               <video src={videoSrc} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                             </div>
                           );
@@ -912,7 +912,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                           const videoSrc = myPoints >= 400 ? "/avatars/fight/bunny_ha_ready.mp4" : myPoints >= 200 ? "/avatars/fight/bunny_la_ready.mp4" : `/avatars/${avatarType}1.mp4`;
                           return (
-                            <div className="w-20 h-20 rounded-xl border-2 border-white/20 overflow-hidden bg-white/10 flex items-center justify-center">
+                            <div className="w-20 h-20 rounded-xl border-2 border-white/20 overflow-hidden bg-white flex items-center justify-center">
                               <video src={videoSrc} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
                             </div>
                           );
