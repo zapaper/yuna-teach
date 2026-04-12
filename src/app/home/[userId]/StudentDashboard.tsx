@@ -803,7 +803,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         <p className="text-white/30 text-[9px] mt-3 italic">Resets every Monday</p>
                       </div>
                       {/* Player avatar — cycling actions, flipped to face right */}
-                      <div className="flex-1 flex items-end justify-center p-4 relative">
+                      <div className="flex-1 flex items-end justify-start pl-[5%] p-4 relative">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                           const tier = myPoints >= 200 ? "ha" : "la";
