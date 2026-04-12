@@ -457,7 +457,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           </header>
           <div className="px-6 lg:px-10 py-8 max-w-5xl mx-auto">
             <section className="mb-12">
-              <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+              <div className="flex items-center gap-4">
+                {hasAvatar && (
+                  <div className="w-16 h-16 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0">
+                    <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                  </div>
+                )}
+                <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+              </div>
               <p className="text-lg text-[#43474f] font-medium">Ready to learn today? You&apos;re doing great!</p>
               {quizBadge && (
                 <div className="flex flex-wrap items-center gap-4 mt-6">
@@ -624,7 +631,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         </header>
         <div className="px-5">
           <section className="mb-8 mt-2">
-            <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+            <div className="flex items-center gap-3">
+              {hasAvatar && (
+                <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0">
+                  <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                </div>
+              )}
+              <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+            </div>
             <p className="text-sm text-[#43474f]">Ready to learn today?</p>
             <div className="flex flex-wrap gap-2 mt-3">
               {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1.5 bg-[#ffddb4] text-[#291800] px-3 py-1.5 rounded-full text-sm font-extrabold"><span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
