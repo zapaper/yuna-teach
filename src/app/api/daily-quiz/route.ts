@@ -304,7 +304,18 @@ export async function POST(request: NextRequest) {
       if (!vocabClozePapers.has(key)) vocabClozePapers.set(key, []);
       vocabClozePapers.get(key)!.push(q);
     }
-    const vocabClozeSets = shuffle([...vocabClozePapers.values()]);
+    // Sort sets: all-fresh first, then partially fresh, then all-used
+    const sortByFreshness = (sets: (typeof allPool)[]) => {
+      return sets.sort((a, b) => {
+        const aFresh = a.filter(q => !usedSourceIds.has(q.id)).length;
+        const bFresh = b.filter(q => !usedSourceIds.has(q.id)).length;
+        const aRatio = a.length > 0 ? aFresh / a.length : 0;
+        const bRatio = b.length > 0 ? bFresh / b.length : 0;
+        if (aRatio !== bRatio) return bRatio - aRatio; // more fresh first
+        return Math.random() - 0.5; // shuffle within same freshness
+      });
+    };
+    const vocabClozeSets = sortByFreshness([...vocabClozePapers.values()]);
 
     // Visual Text MCQ: group by paper
     const visualTextAll = allPool.filter(q => q.syllabusTopic?.toLowerCase().includes("visual") && q.syllabusTopic?.toLowerCase().includes("text") && isMcq(q.answer));
@@ -314,7 +325,7 @@ export async function POST(request: NextRequest) {
       if (!visualTextPapers.has(key)) visualTextPapers.set(key, []);
       visualTextPapers.get(key)!.push(q);
     }
-    const visualTextSets = shuffle([...visualTextPapers.values()]);
+    const visualTextSets = sortByFreshness([...visualTextPapers.values()]);
 
     // Select Grammar/Vocab MCQ based on user choices
     const selectedSections = new Set(englishSections ?? ["grammar-mcq", "vocab-mcq", "vocab-cloze"]);
@@ -359,9 +370,10 @@ export async function POST(request: NextRequest) {
       } else if (section === "visual-text" && visualTextSets.length > 0) {
         sectionQs = visualTextSets[0];
       } else if (section === "synthesis") {
-        const synthPool = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
-        shuffle(synthPool);
-        sectionQs = synthPool.slice(0, 5);
+        const synthAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
+        const synthFresh = shuffle(synthAll.filter(q => !usedSourceIds.has(q.id)));
+        const synthUsed = shuffle(synthAll.filter(q => usedSourceIds.has(q.id)));
+        sectionQs = [...synthFresh, ...synthUsed].slice(0, 5);
       } else {
         const matcher = topicMatchers[section];
         if (matcher) {
@@ -371,7 +383,7 @@ export async function POST(request: NextRequest) {
             if (!papers.has(q.examPaperId)) papers.set(q.examPaperId, []);
             papers.get(q.examPaperId)!.push(q);
           }
-          const paperSets = shuffle([...papers.values()]);
+          const paperSets = sortByFreshness([...papers.values()]);
           if (paperSets.length > 0) sectionQs = paperSets[0];
         }
       }
