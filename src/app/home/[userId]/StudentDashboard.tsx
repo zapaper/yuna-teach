@@ -104,7 +104,7 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
 
 export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
-  const hasAvatar = user.settings?.avatar === true;
+  const hasAvatar = user.settings?.avatar !== false; // default on for all students
   const avatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? "bunny";
   const [avatarSrc, setAvatarSrc] = useState(() => `/avatars/${avatarType}${Math.floor(Math.random() * 4) + 1}.mp4`);
   const [nextAvatarSrc, setNextAvatarSrc] = useState<string | null>(null);
@@ -192,7 +192,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     const milestones = [
       { points: 100, key: `points-milestone-100-${userId}`, msg: "You have scored more than 100 points. You can now select your profile avatar!" },
       { points: 500, key: `points-milestone-500-${userId}`, msg: "You have scored more than 500 points! A new Fox avatar has been unlocked!" },
-      { points: 800, key: `points-milestone-800-${userId}`, msg: "You have scored more than 800 points! A new Otter avatar has been unlocked!" },
+      { points: 750, key: `points-milestone-750-${userId}`, msg: "You have scored more than 750 points! A new Otter avatar has been unlocked!" },
     ];
     for (const m of milestones) {
       if (pts >= m.points && !localStorage.getItem(m.key)) {
@@ -370,7 +370,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 { key: "bunny", label: "Bunny", points: 0 },
                 { key: "bear", label: "Bear", points: 0 },
                 { key: "fox", label: "Fox", points: 500 },
-                { key: "otter", label: "Otter", points: 800 },
+                { key: "otter", label: "Otter", points: 750 },
               ].map(animal => {
                 const unlocked = totalPoints >= animal.points;
                 const isSelected = (selectedAvatar ?? avatarType) === animal.key;
@@ -421,7 +421,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 { key: "bunny", label: "Bunny", points: 0 },
                 { key: "bear", label: "Bear", points: 0 },
                 { key: "fox", label: "Fox", points: 500 },
-                { key: "otter", label: "Otter", points: 800 },
+                { key: "otter", label: "Otter", points: 750 },
               ].map(animal => {
                 const unlocked = totalPoints >= animal.points;
                 const isSelected = (selectedAvatar ?? avatarType) === animal.key;

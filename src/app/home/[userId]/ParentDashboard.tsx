@@ -76,6 +76,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
+  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean } | null>(null);
   const [bunnySrc, setBunnySrc] = useState(() => avatarVideos ? avatarVideos[Math.floor(Math.random() * avatarVideos.length)] : "");
   const [nextSrc, setNextSrc] = useState<string | null>(null);
   const bunnyRef = useRef<HTMLVideoElement>(null);
@@ -1686,19 +1687,19 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     const papers = papersByDay[di];
                     const today = isToday(day);
                     return (
-                      <div key={di} className={`min-w-[5.5rem] flex-shrink-0 rounded-2xl p-2.5 ${today ? "bg-[#003366] text-white" : "bg-white border border-slate-100"}`}>
-                        <p className={`text-[10px] font-bold text-center mb-1 ${today ? "text-white/70" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
-                        <p className={`text-xs font-extrabold text-center mb-2 ${today ? "text-white" : "text-[#001e40]"}`}>{day.getDate()}</p>
+                      <div key={di} className={`min-w-[5.5rem] flex-shrink-0 rounded-2xl p-2.5 ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-white border border-slate-100"}`}>
+                        <p className={`text-[10px] font-bold text-center mb-1 ${today ? "text-[#003366]" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
+                        <p className={`text-xs font-extrabold text-center mb-2 ${today ? "text-[#003366]" : "text-[#001e40]"}`}>{day.getDate()}</p>
                         <div className="space-y-1.5">
                           {papers.map(p => (
                             <div key={p.id} onClick={() => {
                               if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                              else if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${selectedStudentId}`);
-                            }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate cursor-pointer ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : today ? "bg-white/20 text-white" : "bg-[#eff4ff] text-[#001e40]"}`}>
+                              else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
+                            }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate cursor-pointer ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : "bg-[#eff4ff] text-[#001e40]"}`}>
                               {shortenTitle(p.title)}
                             </div>
                           ))}
-                          <button onClick={() => { setShowQuiz(true); }} className={`w-full rounded-lg py-1 text-xs font-bold ${today ? "text-white/50 hover:text-white" : "text-[#c3c6d1] hover:text-[#003366]"} transition-colors`}>
+                          <button onClick={() => { setShowQuiz(true); }} className="w-full rounded-lg py-1 text-xs font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
                             +
                           </button>
                         </div>
@@ -1921,20 +1922,20 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     const papers = papersByDay[di];
                     const today = isToday(day);
                     return (
-                      <div key={di} className={`rounded-2xl p-3 min-h-[140px] flex flex-col ${today ? "bg-[#003366] text-white" : "bg-[#f8f9ff] border border-slate-100"}`}>
-                        <p className={`text-[10px] font-bold text-center ${today ? "text-white/70" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
-                        <p className={`text-sm font-extrabold text-center mb-3 ${today ? "text-white" : "text-[#001e40]"}`}>{day.getDate()}</p>
+                      <div key={di} className={`rounded-2xl p-3 min-h-[140px] flex flex-col ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-[#f8f9ff] border border-slate-100"}`}>
+                        <p className={`text-[10px] font-bold text-center ${today ? "text-[#003366]" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
+                        <p className={`text-sm font-extrabold text-center mb-3 ${today ? "text-[#003366]" : "text-[#001e40]"}`}>{day.getDate()}</p>
                         <div className="space-y-1.5 flex-1">
                           {papers.map(p => (
                             <div key={p.id} onClick={() => {
                               if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                              else if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${selectedStudentId}`);
-                            }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate cursor-pointer hover:opacity-80 transition-opacity ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : today ? "bg-white/20 text-white" : "bg-white text-[#001e40] shadow-sm"}`}>
+                              else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
+                            }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate cursor-pointer hover:opacity-80 transition-opacity ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : "bg-[#eff4ff] text-[#001e40] shadow-sm"}`}>
                               {shortenTitle(p.title)}
                             </div>
                           ))}
                         </div>
-                        <button onClick={() => setShowQuiz(true)} className={`mt-2 w-full rounded-lg py-1 text-sm font-bold ${today ? "text-white/40 hover:text-white" : "text-[#c3c6d1] hover:text-[#003366]"} transition-colors`}>
+                        <button onClick={() => setShowQuiz(true)} className="mt-2 w-full rounded-lg py-1 text-sm font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
                           +
                         </button>
                       </div>
@@ -2146,6 +2147,34 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       </nav>
 
       {/* Diagnostic welcome modal */}
+      {/* Scheduler paper popup */}
+      {schedulerPopup && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
+          <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
+            <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{schedulerPopup.title}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={async (e) => {
+                  const id = schedulerPopup.id;
+                  setSchedulerPopup(null);
+                  await handleDeletePaper(e as unknown as React.MouseEvent, id);
+                }}
+                className="flex-1 py-2.5 rounded-xl border-2 border-[#ba1a1a]/30 text-[#ba1a1a] text-sm font-bold hover:bg-red-50 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-base">delete</span>
+                Delete
+              </button>
+              <button
+                onClick={() => setSchedulerPopup(null)}
+                className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 text-sm font-bold hover:bg-slate-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Parent avatar picker */}
       {showParentAvatarPicker && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4" onClick={() => setShowParentAvatarPicker(false)}>
