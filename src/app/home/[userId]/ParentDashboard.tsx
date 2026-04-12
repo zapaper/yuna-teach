@@ -2088,6 +2088,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <div className="space-y-5">
                         {[
                           { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
+                          { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
                         ].map(item => {
                           const isOn = selectedStudent?.settings?.[item.key] === true;
                           return (
