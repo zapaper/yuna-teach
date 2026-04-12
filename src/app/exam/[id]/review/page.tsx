@@ -477,8 +477,13 @@ function ExamReviewContent({ id }: { id: string }) {
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
 
-  const totalM = totalMarks ? Number(totalMarks) : null;
-  const pct = totalM && totalM > 0 ? Math.round(((data.score ?? 0) / totalM) * 100) : null;
+  // Exclude skipped questions from score calculation
+  const skippedQs = data.questions.filter(q => q.studentAnswer === "__SKIPPED__");
+  const skippedMarks = skippedQs.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
+  const effectiveTotalMarks = totalMarks ? Number(totalMarks) - skippedMarks : null;
+  const effectiveScore = (data.score ?? 0);
+  const totalM = effectiveTotalMarks;
+  const pct = totalM && totalM > 0 ? Math.round((effectiveScore / totalM) * 100) : null;
   const scoreBorderColor = pct === null ? "#d3e4fe"
     : pct >= 75 ? "#6cf8bb"
     : pct >= 50 ? "#ffb952"

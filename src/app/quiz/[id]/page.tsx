@@ -98,6 +98,7 @@ function QuizContent({ id }: { id: string }) {
 
   // MCQ answers: questionId -> selected option (1-4)
   const [mcqAnswers, setMcqAnswers] = useState<Record<string, string>>({});
+  const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
 
   // OEQ drawing
   const isEnglishQuiz = !!paper?.metadata?.englishSections;
@@ -284,27 +285,29 @@ function QuizContent({ id }: { id: string }) {
 
     setSubmitting(true);
     try {
-      // Score MCQ instantly
+      // Score MCQ instantly (exclude skipped)
       let correct = 0;
-      for (const q of mcqQuestions) {
+      const unskippedMcq = mcqQuestions.filter(q => !skippedIds.has(q.id));
+      for (const q of unskippedMcq) {
         const selected = mcqAnswers[q.id];
         const correctAns = normalizeMcqAnswer(q.answer);
         if (selected === correctAns) correct++;
       }
-      setMcqScore({ correct, total: mcqQuestions.length });
+      setMcqScore({ correct, total: unskippedMcq.length });
 
       // Save MCQ answers to DB via PATCH
       await Promise.all(
-        mcqQuestions.map(q =>
-          fetch(`/api/exam/questions/${q.id}`, {
+        mcqQuestions.map(q => {
+          const isSkipped = skippedIds.has(q.id);
+          return fetch(`/api/exam/questions/${q.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              studentAnswer: mcqAnswers[q.id] || null,
-              marksAwarded: mcqAnswers[q.id] === normalizeMcqAnswer(q.answer) ? (q.marksAvailable ?? 1) : 0,
+              studentAnswer: isSkipped ? "__SKIPPED__" : (mcqAnswers[q.id] || null),
+              marksAwarded: isSkipped ? null : (mcqAnswers[q.id] === normalizeMcqAnswer(q.answer) ? (q.marksAvailable ?? 1) : 0),
             }),
-          })
-        )
+          });
+        })
       );
 
       // Save & score typed section answers
@@ -864,6 +867,8 @@ function QuizContent({ id }: { id: string }) {
                       onSelect={(opt) => selectMcqAnswer(q.id, opt)}
                       flagged={flaggedIds.has(q.id)}
                       onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                      skipped={skippedIds.has(q.id)}
+                      onSkip={() => setSkippedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
                     />
               ))}
             </div>
@@ -919,6 +924,8 @@ function McqQuestionCard({
   onToggleFlag,
   tool = "pen",
   hideScratchPad,
+  skipped,
+  onSkip,
 }: {
   question: QuizQuestion;
   index: number;
@@ -929,6 +936,8 @@ function McqQuestionCard({
   onToggleFlag?: () => void;
   tool?: DrawTool;
   hideScratchPad?: boolean;
+  skipped?: boolean;
+  onSkip?: () => void;
 }) {
   const options = question.transcribedOptions as string[] | null;
   const optionImages = question.transcribedOptionImages as string[] | null;
@@ -954,7 +963,19 @@ function McqQuestionCard({
                 <span className="material-symbols-outlined text-sm" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
               </button>
             )}
+            {onSkip && (
+              <button onClick={onSkip} className={`flex items-center gap-0.5 text-[10px] font-medium px-2 py-0.5 rounded-md transition-colors ml-auto ${skipped ? "text-[#d58d00] bg-amber-50" : "text-[#c3c6d1] hover:text-[#d58d00] hover:bg-amber-50"}`}>
+                <span className="material-symbols-outlined text-sm">block</span>
+                {skipped ? "Skipped" : "Skip"}
+              </button>
+            )}
           </div>
+
+          {skipped ? (
+            <div className="py-4 text-center">
+              <p className="text-sm text-[#d58d00] font-medium italic">Question skipped — will not be scored</p>
+            </div>
+          ) : (<>
 
           {!hideStem && question.transcribedStem && (
             <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">
@@ -1047,6 +1068,7 @@ function McqQuestionCard({
           )}
           {/* Expandable scratch area for workings (math/science only) */}
           {!hideScratchPad && <McqScratchPad tool={tool} />}
+          </>)}
         </div>
       </div>
     </article>

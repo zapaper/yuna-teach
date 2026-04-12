@@ -202,6 +202,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                         type="text"
                         spellCheck={false}
                         autoComplete="off"
+                        autoCorrect="off"
                         autoCapitalize="none"
                         value={value}
                         onFocus={() => onToolChange?.("type")}
@@ -259,6 +260,8 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                       <textarea
                         spellCheck={false}
                         autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
                         value={textVal}
                         onChange={e => {
                           if (isJson) {
@@ -463,6 +466,9 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
                       key={ci}
                       type="text"
                       spellCheck={false}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
                       value={tableCells[cellKey] ?? ""}
                       onChange={e => updateTableCell(cellKey, e.target.value)}
                       className={`text-center text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
@@ -590,6 +596,7 @@ function PassageLine({
             type="text"
             spellCheck={false}
             autoComplete="off"
+            autoCorrect="off"
             autoCapitalize={sectionType === "grammar-cloze" ? "characters" : "none"}
             value={qId ? (answers[qId] ?? "") : ""}
             onChange={e => qId && onAnswer(qId, sectionType === "grammar-cloze" ? e.target.value.toUpperCase() : e.target.value)}
@@ -615,6 +622,7 @@ function PassageLine({
             onFocus={onFocusInput}
             spellCheck={false}
             autoComplete="off"
+            autoCorrect="off"
             autoCapitalize="none"
             className={`border-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-200"} focus:border-[#003366] outline-none rounded px-2 py-0.5 text-sm w-28 bg-white`}
             placeholder="correct word"
