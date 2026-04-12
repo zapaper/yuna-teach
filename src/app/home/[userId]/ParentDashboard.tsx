@@ -1269,8 +1269,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         <div className="flex items-center gap-2.5">
           {hasAvatar ? (
             <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative"
-              onClick={() => { bunnyRef.current?.play().catch(() => {}); }}>
-              <video key={bunnySrc} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
+              onClick={(e) => { const v = (e.currentTarget.querySelector("video") as HTMLVideoElement); v?.play().catch(() => {}); }}>
+              <video src={avatarVideos[0]} autoPlay loop muted playsInline
                 className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
             </div>
           ) : (
