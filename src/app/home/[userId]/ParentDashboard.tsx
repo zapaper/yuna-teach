@@ -572,7 +572,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               })}
             </div>
           ) : (
-            <p className="text-sm text-[#43474f] py-2 text-center">No auto-detected weak topics. Enter one below.</p>
+            <p className="text-sm text-[#43474f] py-2 text-center">No auto-detected weak topics. Choose one below.</p>
           )}
 
           {/* Topic selection — dropdown or manual entry */}
@@ -581,7 +581,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             <select
               value={customTopic}
               onChange={e => { setCustomTopic(e.target.value); setCustomError(""); }}
-              className="flex-1 px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none bg-white"
+              className="flex-1 min-w-0 px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none bg-white truncate"
             >
               <option value="">Select a topic…</option>
               {(focusedSubject === "math"
@@ -1991,6 +1991,48 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </div>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Student Settings — Desktop */}
+                  {selectedStudent && (
+                    <div className="bg-white rounded-3xl p-8 shadow-sm mt-8">
+                      <h4 className="font-headline text-xl font-extrabold text-[#001e40] mb-5">Student Settings</h4>
+                      <div className="space-y-5">
+                        {[
+                          { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
+                          { key: "crystalCurrency" as const, label: "Crystal Currency", desc: "Enable crystal rewards for quizzes" },
+                        ].map(item => {
+                          const isOn = selectedStudent?.settings?.[item.key] === true;
+                          return (
+                            <div key={item.key} className="flex items-center justify-between">
+                              <div>
+                                <p className="font-semibold text-[#001e40]">{item.label}</p>
+                                <p className="text-sm text-[#43474f]">{item.desc}</p>
+                              </div>
+                              <button
+                                onClick={async () => {
+                                  const newVal = !isOn;
+                                  await fetch("/api/users", {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ userId: selectedStudentId, settings: { [item.key]: newVal } }),
+                                  });
+                                  if (selectedStudent) {
+                                    selectedStudent.settings = { ...(selectedStudent.settings ?? {}), [item.key]: newVal };
+                                    setSettingsTick(t => t + 1);
+                                  }
+                                }}
+                                className={`w-12 h-7 rounded-full transition-colors relative ${isOn ? "bg-[#006c49]" : "bg-slate-200"}`}
+                              >
+                                <span className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform"
+                                  style={isOn ? { left: "1.375rem" } : { left: "0.125rem" }}
+                                />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
