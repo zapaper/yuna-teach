@@ -725,7 +725,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <section className="mt-8">
                 <button onClick={() => setShowArena(!showArena)} className="flex items-center gap-2 text-sm font-bold text-[#43474f] hover:text-[#001e40] transition-colors mb-4">
                   <span className="material-symbols-outlined text-base">{showArena ? "expand_less" : "expand_more"}</span>
-                  <span className="material-symbols-outlined text-base text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
+                  <span className="material-symbols-outlined text-base text-[#737780]" style={{ fontVariationSettings: "'FILL' 1" }}>swords</span>
                   Arena Battle
                 </button>
                 {showArena && (
