@@ -92,6 +92,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   useEffect(() => {
     const v = bunnyRef.current;
     if (v) { v.currentTime = 0; v.play().catch(() => {}); }
+    // Resume on visibility change (iOS pauses background videos)
+    function onVisible() {
+      if (document.visibilityState === "visible") {
+        bunnyRef.current?.play().catch(() => {});
+      }
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [bunnySrc]);
 
   // Data
@@ -1262,7 +1270,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           {hasAvatar ? (
             <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative"
               onClick={() => { bunnyRef.current?.play().catch(() => {}); }}>
-              <video src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
+              <video key={bunnySrc} src={bunnySrc} autoPlay muted playsInline onEnded={nextBunny}
                 className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
             </div>
           ) : (
