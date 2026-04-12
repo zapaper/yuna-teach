@@ -756,7 +756,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {showArena && (
                   <div className="rounded-2xl flex" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
                       {/* Leaderboard table */}
-                      <div className="flex-1 p-5">
+                      <div className="w-[40%] shrink-0 p-5">
                         <h3 className="text-white font-headline font-bold text-lg mb-3">Weekly Arena</h3>
                         <table className="w-full">
                           <thead>
@@ -803,7 +803,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         <p className="text-white/30 text-[9px] mt-3 italic">Resets every Monday</p>
                       </div>
                       {/* Player avatar — cycling actions, flipped to face right */}
-                      <div className="w-48 shrink-0 flex items-end justify-center p-4 relative">
+                      <div className="flex-1 flex items-end justify-center p-4 relative">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                           const tier = myPoints >= 200 ? "ha" : "la";
@@ -895,8 +895,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 Arena Battle
               </button>
               {showArena && (
-                <div className="rounded-2xl flex p-4 gap-2" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
-                  <div className="flex-1 min-w-0">
+                <div className="rounded-2xl flex flex-col p-4" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
+                  <div>
                     <h3 className="text-white font-headline font-bold text-base mb-2">Weekly Arena</h3>
                     <table className="w-full">
                       <thead>
@@ -942,15 +942,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </table>
                     <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
                   </div>
-                  {/* Player avatar — right side, flipped facing right */}
-                  <div className="w-24 shrink-0 flex items-end relative">
+                  {/* Player avatar — below table, flipped facing right */}
+                  <div className="flex justify-end mt-2 relative h-32">
                     {(() => {
                       const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                       const tier = myPoints >= 200 ? "ha" : "la";
                       return arenaActions.map((act, i) => (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img key={act} src={`/avatars/fight/bunny_${tier}_${act}.gif`} alt={act}
-                          className={`w-24 object-contain absolute bottom-0 ${arenaAction === i ? "" : "invisible"}`}
+                          className={`h-32 object-contain absolute bottom-0 right-0 ${arenaAction === i ? "" : "invisible"}`}
                           style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
                         />
                       ));
