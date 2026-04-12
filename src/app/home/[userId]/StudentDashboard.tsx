@@ -729,10 +729,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   Arena Battle
                 </button>
                 {showArena && (
-                  <div className="rounded-2xl relative" style={{ background: "#1a1a2e" }}>
-                    {/* Backdrop */}
-                    <img src="/avatars/fight/battlearena.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                    <div className="relative flex" style={{ isolation: "auto" }}>
+                  <div className="rounded-2xl flex" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
                       {/* Leaderboard table */}
                       <div className="flex-1 p-5">
                         <h3 className="text-white font-headline font-bold text-lg mb-3">Weekly Arena</h3>
@@ -780,30 +777,28 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         </table>
                         <p className="text-white/30 text-[9px] mt-3 italic">Resets every Monday</p>
                       </div>
-                      {/* Player avatar */}
+                      {/* Player avatar — GIF with screen blend directly on arena bg */}
                       <div className="w-36 flex items-center justify-center p-4">
                         {(() => {
                           const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
                           const isHa = myPoints >= 200;
                           const isLa = myPoints >= 100 && !isHa;
                           return (
-                            <div className="w-28 h-28 flex items-center justify-center">
+                            <div className="w-28 h-28">
                               {isHa ? (
-                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
                               ) : isLa ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <div className="w-full h-full relative" style={{ background: "#1a1a2e" }}>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain absolute inset-0" style={{ mixBlendMode: "screen" }} />
-                                </div>
+                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
                               ) : (
-                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain" style={{ mixBlendMode: "screen" }} />
                               )}
                             </div>
                           );
                         })()}
                       </div>
-                    </div>
                   </div>
                 )}
               </section>
@@ -882,79 +877,56 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 Arena Battle
               </button>
               {showArena && (
-                <div className="rounded-2xl overflow-hidden relative" style={{ background: "#1a1a2e" }}>
-                  <img src="/avatars/fight/battlearena.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
-                  <div className="relative z-10 p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <h3 className="text-white font-headline font-bold text-base mb-2">Weekly Arena</h3>
-                        <table className="w-full">
-                          <thead>
-                            <tr className="text-white/50 text-[9px] uppercase tracking-wider">
-                              <th className="text-left pb-1">#</th>
-                              <th className="text-left pb-1">Name</th>
-                              <th className="text-right pb-1">Pts</th>
-                              <th className="text-right pb-1">%</th>
+                <div className="rounded-2xl flex p-4 gap-3" style={{ background: `#1a1a2e url(/avatars/fight/battlearena.jpg) center/cover`, backgroundBlendMode: "overlay" }}>
+                  <div className="flex-1">
+                    <h3 className="text-white font-headline font-bold text-base mb-2">Weekly Arena</h3>
+                    <table className="w-full">
+                      <thead>
+                        <tr className="text-white/50 text-[9px] uppercase tracking-wider">
+                          <th className="text-left pb-1">#</th>
+                          <th className="text-left pb-1">Name</th>
+                          <th className="text-right pb-1">Pts</th>
+                          <th className="text-right pb-1">%</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.from({ length: 10 }, (_, i) => {
+                          const entry = arenaData.leaderboard[i];
+                          if (!entry) return (
+                            <tr key={`empty-${i}`} className="text-white/20">
+                              <td className="py-0.5 text-[10px]">{i + 1}</td>
+                              <td className="py-0.5 text-[10px]">—</td>
+                              <td className="py-0.5 text-[10px] text-right">0</td>
+                              <td className="py-0.5 text-[10px] text-right">—</td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {Array.from({ length: 10 }, (_, i) => {
-                              const entry = arenaData.leaderboard[i];
-                              if (!entry) return (
-                                <tr key={`empty-${i}`} className="text-white/20">
-                                  <td className="py-0.5 text-[10px]">{i + 1}</td>
-                                  <td className="py-0.5 text-[10px]">—</td>
-                                  <td className="py-0.5 text-[10px] text-right">0</td>
-                                  <td className="py-0.5 text-[10px] text-right">—</td>
-                                </tr>
-                              );
-                              const isMe = entry.id === userId;
-                              return (
-                                <tr key={entry.id} className={isMe ? "text-[#ffddb4] font-bold" : "text-white/80"}>
-                                  <td className="py-0.5 text-[10px]">{i + 1}</td>
-                                  <td className="py-0.5 text-[10px]">{isMe ? `${entry.name} ⭐` : entry.name}</td>
-                                  <td className="py-0.5 text-[10px] text-right">{entry.points}</td>
-                                  <td className="py-0.5 text-[10px] text-right">{entry.pct}%</td>
-                                </tr>
-                              );
-                            })}
-                            {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 ? (
-                              <tr className="text-[#ffddb4] font-bold border-t border-white/10">
-                                <td className="py-0.5 text-[10px]">{arenaData.playerRank}</td>
-                                <td className="py-0.5 text-[10px]">{arenaData.playerEntry.name} ⭐</td>
-                                <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.points}</td>
-                                <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.pct}%</td>
-                              </tr>
-                            ) : (
-                              <tr className="text-white/10"><td className="py-0.5 text-[10px]" colSpan={4}>&nbsp;</td></tr>
-                            )}
-                          </tbody>
-                        </table>
-                        <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
-                      </div>
-                      <div className="w-24 shrink-0 flex items-center justify-center">
-                        {(() => {
-                          const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                          const isHa = myPoints >= 200;
-                          const isLa = myPoints >= 100 && !isHa;
-                          return (
-                            <div className="w-20 h-20 flex items-center justify-center">
-                              {isHa ? (
-                                <video src="/avatars/fight/bunny_ha_ready.mp4" autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
-                              ) : isLa ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <div className="w-full h-full relative" style={{ background: "#1a1a2e" }}>
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-full h-full object-contain absolute inset-0" style={{ mixBlendMode: "screen" }} />
-                                </div>
-                              ) : (
-                                <video src={`/avatars/${avatarType}1.mp4`} autoPlay loop muted playsInline className="w-full h-full object-contain" style={{ mixBlendMode: "multiply" }} />
-                              )}
-                            </div>
                           );
-                        })()}
-                      </div>
-                    </div>
+                          const isMe = entry.id === userId;
+                          return (
+                            <tr key={entry.id} className={isMe ? "text-[#ffddb4] font-bold" : "text-white/80"}>
+                              <td className="py-0.5 text-[10px]">{i + 1}</td>
+                              <td className="py-0.5 text-[10px]">{isMe ? `${entry.name} ⭐` : entry.name}</td>
+                              <td className="py-0.5 text-[10px] text-right">{entry.points}</td>
+                              <td className="py-0.5 text-[10px] text-right">{entry.pct}%</td>
+                            </tr>
+                          );
+                        })}
+                        {arenaData.playerEntry && arenaData.playerRank && arenaData.playerRank > 10 ? (
+                          <tr className="text-[#ffddb4] font-bold border-t border-white/10">
+                            <td className="py-0.5 text-[10px]">{arenaData.playerRank}</td>
+                            <td className="py-0.5 text-[10px]">{arenaData.playerEntry.name} ⭐</td>
+                            <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.points}</td>
+                            <td className="py-0.5 text-[10px] text-right">{arenaData.playerEntry.pct}%</td>
+                          </tr>
+                        ) : (
+                          <tr className="text-white/10"><td className="py-0.5 text-[10px]" colSpan={4}>&nbsp;</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                    <p className="text-white/30 text-[8px] mt-2 italic">Resets every Monday</p>
+                  </div>
+                  <div className="w-20 shrink-0 flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/avatars/fight/bunny_la_ready.gif" alt="Ready" className="w-20 h-20 object-contain" style={{ mixBlendMode: "screen" }} />
                   </div>
                 </div>
               )}
