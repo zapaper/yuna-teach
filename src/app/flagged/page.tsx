@@ -124,20 +124,22 @@ function FlaggedContent() {
           {items.map((item) => (
             <div
               key={item.questionId}
-              onClick={() => {
-                const examId = item.cloneId ?? item.paperId;
-                const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
-                const path = isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`;
-                window.open(`${path}?userId=${userId}`, "_blank");
-              }}
-              className="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:border-primary-200 transition-colors cursor-pointer"
+              className="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden"
             >
               {/* Top row: question identity */}
               <div className="px-4 py-2.5 border-b border-slate-50">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-bold text-slate-800">
-                    Q{item.questionNum}
-                  </span>
+                  <button
+                    onClick={() => {
+                      const examId = item.cloneId ?? item.paperId;
+                      const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
+                      const path = isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`;
+                      window.open(`${path}?userId=${userId}`, "_blank");
+                    }}
+                    className="text-sm font-bold text-primary-600 hover:text-primary-800 underline underline-offset-2"
+                  >
+                    Q{item.questionNum} ↗
+                  </button>
                   <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     <button
                       onClick={(e) => handleDelete(item, e)}
