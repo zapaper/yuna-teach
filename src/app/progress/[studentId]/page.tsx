@@ -167,7 +167,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
       <header className="sticky top-0 z-50 bg-[#f8f9ff]/90 backdrop-blur-lg border-b border-[#e5eeff]">
         <div className="max-w-4xl mx-auto px-5 lg:px-8 py-4 flex items-center justify-between gap-4">
           <button
-            onClick={() => parentId ? router.push(`/home/${parentId}`) : router.back()}
+            onClick={() => parentId ? router.push(`/home/${parentId}?student=${studentId}`) : router.back()}
             className="flex items-center gap-1.5 text-sm font-semibold text-[#43474f] hover:text-[#001e40] transition-colors"
           >
             <span className="material-symbols-outlined text-lg">arrow_back</span>
@@ -369,7 +369,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#f8f9ff]/90 backdrop-blur-lg border-t border-[#e5eeff] flex justify-around items-center py-3 z-50">
         <button
-          onClick={() => parentId ? router.push(`/home/${parentId}`) : router.back()}
+          onClick={() => parentId ? router.push(`/home/${parentId}?student=${studentId}`) : router.back()}
           className="flex flex-col items-center gap-1 text-[#43474f]"
         >
           <span className="material-symbols-outlined">dashboard</span>
