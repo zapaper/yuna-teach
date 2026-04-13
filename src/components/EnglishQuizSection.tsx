@@ -177,6 +177,11 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                     {sectionType === "synthesis" && synthQuestion && (
                       <RichStemText text={synthQuestion} answers={answers} questionId={q.id} onAnswer={onAnswer} />
                     )}
+                    {sectionType === "synthesis" && !synthQuestion && q.imageData && q.imageData.length > 100 && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={q.imageData.startsWith("data:") ? q.imageData : `data:image/jpeg;base64,${q.imageData}`}
+                        alt={`Question ${q.questionNum}`} className="max-w-full rounded-lg border border-slate-100 mb-2" />
+                    )}
                     {sectionType === "comprehension-oeq" && (
                       <RichStemText text={cleanStem} answers={answers} questionId={q.id} onAnswer={onAnswer} />
                     )}
