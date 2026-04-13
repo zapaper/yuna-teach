@@ -385,7 +385,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   }
 
   // Master papers (not assigned = available to assign)
-  const masterPapers = examPapers.filter(p => !p.assignedToId && p.paperType === null);
+  // English exam papers are temporarily disabled from the parent Set Papers flow
+  const masterPapers = examPapers.filter(p => !p.assignedToId && p.paperType === null && !(p.subject ?? "").toLowerCase().includes("english"));
 
   // Available subjects and exam types from master papers
   const availableSubjects = Array.from(new Set(masterPapers.map(p => p.subject).filter(Boolean))) as string[];
