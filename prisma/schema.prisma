@@ -140,9 +140,29 @@ model ExamQuestion {
   // Source tracking: for quiz/focused questions copied from master papers
   sourceQuestionId        String?  // ID of the original ExamQuestion this was copied from
 
+  // Synthetic question generation (admin)
+  syntheticGenerated      Boolean  @default(false)
+  syntheticQuestions      SyntheticQuestion[]
+
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
 
   @@map("exam_questions")
+}
+
+model SyntheticQuestion {
+  id               String   @id @default(cuid())
+  sourceQuestionId String
+  variant          String   // "simple" | "similar"
+  stem             String
+  options          Json     // string[4]
+  correctAnswer    Int      // 1-4
+  diagramImageData String?  // base64 new diagram (optional)
+  createdAt        DateTime @default(now())
+
+  sourceQuestion   ExamQuestion @relation(fields: [sourceQuestionId], references: [id], onDelete: Cascade)
+
+  @@index([sourceQuestionId])
+  @@map("synthetic_questions")
 }
 
 model ParentStudent {

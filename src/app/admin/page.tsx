@@ -70,6 +70,13 @@ function AdminContent() {
       href: `/admin/papers?userId=${userId}`,
       color: "bg-green-50 text-green-600",
     },
+    {
+      icon: "auto_awesome",
+      label: "Generate Synthetic Qn",
+      description: "Use AI to create variants of clean-extracted math MCQs.",
+      href: `/admin/synthetic?userId=${userId}`,
+      color: "bg-purple-50 text-purple-600",
+    },
   ];
 
   return (

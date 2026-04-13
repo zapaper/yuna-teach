@@ -197,6 +197,96 @@ export async function transcribeMathMcqQuestion(
 }
 
 // ---------------------------------------------------------------------------
+// Synthetic Math MCQ generation — admin synthetic question generator
+// ---------------------------------------------------------------------------
+
+export type SyntheticMcqVariant = {
+  stem: string;
+  options: [string, string, string, string];
+  correctAnswer: number; // 1-4
+  diagramDescription?: string; // text description of new diagram (if original had one)
+};
+
+const SYNTHETIC_MATH_MCQ_PROMPT = `You are generating synthetic practice MCQ questions for a Singapore primary school Mathematics exam.
+
+You will be given ONE original MCQ question (stem + 4 options + correct answer). Your task is to produce TWO variants:
+
+1. "simple" — SAME underlying question, but with changed numbers (and/or reordered answer options so the correct answer is in a different position). The mathematical structure and wording must stay almost identical; only numbers and option order should change.
+
+2. "similar" — a DIFFERENT but related question testing the same underlying skill/concept. Reword the context and change the numbers, but keep the same learning objective. This should feel like a cousin of the original, not a clone.
+
+For BOTH variants you MUST:
+- Include exactly 4 options.
+- Compute and provide the correct answer yourself (number 1-4 indicating which option is correct).
+- Double-check the arithmetic. The correct answer must be mathematically valid.
+- Preserve units and notation style from the original.
+- If the original has a diagram, describe what the new diagram would look like in "diagramDescription" (1-2 sentences). If no diagram, omit this field.
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "simple": {
+    "stem": "...",
+    "options": ["...", "...", "...", "..."],
+    "correctAnswer": 1,
+    "diagramDescription": "..."
+  },
+  "similar": {
+    "stem": "...",
+    "options": ["...", "...", "...", "..."],
+    "correctAnswer": 1,
+    "diagramDescription": "..."
+  }
+}`;
+
+export async function generateSyntheticMathMcq(
+  stem: string,
+  options: [string, string, string, string],
+  correctAnswer: number,
+  diagramBase64: string | null,
+): Promise<{ simple: SyntheticMcqVariant; similar: SyntheticMcqVariant }> {
+  const contextText = `Original question:
+Stem: ${stem}
+Options:
+(1) ${options[0]}
+(2) ${options[1]}
+(3) ${options[2]}
+(4) ${options[3]}
+Correct answer: (${correctAnswer})
+${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagram."}`;
+
+  const parts: Array<{ text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } }> = [];
+  if (diagramBase64) {
+    const clean = diagramBase64.replace(/^data:image\/\w+;base64,/, "");
+    parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+  }
+  parts.push({ text: `${SYNTHETIC_MATH_MCQ_PROMPT}\n\n${contextText}` });
+
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts }],
+    config: { responseMimeType: "application/json", temperature: 0.6 },
+  });
+
+  const text = response.text ?? "";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+
+  function normalize(v: Record<string, unknown>): SyntheticMcqVariant {
+    const opts = Array.isArray(v.options) ? v.options : [];
+    return {
+      stem: String(v.stem ?? ""),
+      options: [String(opts[0] ?? ""), String(opts[1] ?? ""), String(opts[2] ?? ""), String(opts[3] ?? "")],
+      correctAnswer: Math.max(1, Math.min(4, parseInt(String(v.correctAnswer ?? 1), 10) || 1)),
+      ...(v.diagramDescription ? { diagramDescription: String(v.diagramDescription) } : {}),
+    };
+  }
+
+  return {
+    simple: normalize(parsed.simple ?? {}),
+    similar: normalize(parsed.similar ?? {}),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Math open-ended transcription
 // ---------------------------------------------------------------------------
 

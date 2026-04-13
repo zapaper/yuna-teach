@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { generateSyntheticMathMcq } from "@/lib/gemini";
+
+async function requireAdmin(userId: string | null) {
+  if (!userId) return false;
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+  return u?.name?.toLowerCase() === "admin";
+}
+
+// POST { userId, questionId } → runs AI and returns { simple, similar } draft variants (not saved)
+export async function POST(request: NextRequest) {
+  const { userId, questionId } = await request.json();
+  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!questionId) return NextResponse.json({ error: "Missing questionId" }, { status: 400 });
+
+  const q = await prisma.examQuestion.findUnique({
+    where: { id: questionId },
+    select: {
+      id: true,
+      transcribedStem: true,
+      transcribedOptions: true,
+      answer: true,
+      diagramImageData: true,
+    },
+  });
+  if (!q || !q.transcribedStem || !q.transcribedOptions) {
+    return NextResponse.json({ error: "Question not found or not cleanly transcribed" }, { status: 404 });
+  }
+
+  const options = q.transcribedOptions as unknown as string[];
+  if (!Array.isArray(options) || options.length !== 4) {
+    return NextResponse.json({ error: "Question does not have 4 options" }, { status: 400 });
+  }
+
+  const answerNum = parseInt((q.answer ?? "").replace(/[().]/g, "").trim(), 10);
+  if (!(answerNum >= 1 && answerNum <= 4)) {
+    return NextResponse.json({ error: "Invalid correct answer" }, { status: 400 });
+  }
+
+  try {
+    const variants = await generateSyntheticMathMcq(
+      q.transcribedStem,
+      [options[0] ?? "", options[1] ?? "", options[2] ?? "", options[3] ?? ""],
+      answerNum,
+      q.diagramImageData ?? null,
+    );
+    return NextResponse.json(variants);
+  } catch (err) {
+    console.error("[synthetic/generate] failed", err);
+    return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+  }
+}
