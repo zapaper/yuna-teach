@@ -138,6 +138,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
+  const [assignMode, setAssignMode] = useState<"quiz" | "focused">("quiz");
+  const [focusedTopic, setFocusedTopic] = useState("");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -634,20 +636,42 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const QuizModal = () => !showQuiz ? null : (
     <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => { setShowQuiz(false); setQuizTargetDay(null); }}>
       <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
-        <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-1">Assign Daily Quiz</h3>
+        <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-1">{assignMode === "quiz" ? "Assign Daily Quiz" : "Assign Focused Practice"}</h3>
         <p className="text-sm text-[#43474f] mb-4">
           For <span className="font-bold text-[#001e40]">{selectedStudent?.name ?? "student"}</span>{selectedStudent?.level ? ` (P${selectedStudent.level})` : ""}
           {quizTargetDay && <> · <span className="font-bold text-[#003366]">{quizTargetDay.toLocaleDateString(undefined, { weekday: "long" })}</span></>}
         </p>
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
+          {(["quiz", "focused"] as const).map(m => (
+            <button key={m} onClick={() => { setAssignMode(m); if (m === "focused" && quizSubject === "english") setQuizSubject("math"); }}
+              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${assignMode === m ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500"}`}>
+              {m === "quiz" ? "Daily Quiz" : "Focused Practice"}
+            </button>
+          ))}
+        </div>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
         <div className="flex gap-2 mb-4">
-          {(["math", "science", "english"] as const).map(s => (
+          {(assignMode === "focused" ? (["math", "science"] as const) : (["math", "science", "english"] as const)).map(s => (
             <button key={s} onClick={() => setQuizSubject(s)}
               className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
               {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
             </button>
           ))}
         </div>
+        {assignMode === "focused" && (
+          <div className="mb-5">
+            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Topic</p>
+            <select value={focusedTopic} onChange={e => setFocusedTopic(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none bg-white">
+              <option value="">Select a topic…</option>
+              {(quizSubject === "math"
+                ? ["Basic math operations", "Fractions", "Percentage", "Ratio", "Algebra", "Area and circumference of circle", "Volume of cube and cuboid", "Geometry", "Statistics", "Time", "Volume measurement"]
+                : ["Diversity of living and non-living things", "Diversity of materials", "Life cycles in plants and animals", "Plant parts and functions", "Human digestive system", "Cycles in matter", "Water cycle, evaporation, condensation", "Plant respiratory and circulatory systems", "Human respiratory and circulatory systems", "Reproduction in plants and animals", "Light energy and uses", "Heat energy and uses", "Electrical system and circuits", "Photosynthesis", "Energy conversion", "Interaction of forces (Magnets)", "Interaction of forces (Frictional force, gravitational force, elastic spring force)", "Interactions within the environment"]
+              ).map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        )}
+        {assignMode === "quiz" && (<>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
         {quizSubject !== "english" ? (<>
           <div className="flex gap-2 mb-5">
@@ -701,13 +725,33 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </div>
           </div>
         )}
+        </>)}
         <div className="flex gap-3">
           <button onClick={() => { setShowQuiz(false); setQuizTargetDay(null); }} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
           <button
-            disabled={creatingQuiz || !quizStudentId}
+            disabled={creatingQuiz || !quizStudentId || (assignMode === "focused" && !focusedTopic)}
             onClick={async () => {
               setCreatingQuiz(true);
               try {
+                const scheduledForIso = quizTargetDay ? (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() : undefined;
+                if (assignMode === "focused") {
+                  const res = await fetch("/api/focused-test", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      parentId: userId,
+                      studentId: quizStudentId,
+                      subject: quizSubject === "math" ? "Mathematics" : "Science",
+                      topic: focusedTopic,
+                      ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                    }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) { alert(data.error || "Failed"); return; }
+                  setShowQuiz(false); setQuizTargetDay(null); setFocusedTopic("");
+                  await refreshPapers();
+                  return;
+                }
                 const res = await fetch("/api/daily-quiz", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -716,7 +760,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     quizType: quizSubject === "english" ? "mcq" : quizType,
                     subject: quizSubject,
                     ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
-                    ...(quizTargetDay ? { scheduledFor: (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() } : {}),
+                    ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
                   }),
                 });
                 const data = await res.json();
@@ -733,7 +777,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               finally { setCreatingQuiz(false); }
             }}
             className="flex-1 py-3 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50">
-            {creatingQuiz ? "Creating..." : "Assign"}
+            {creatingQuiz ? "Creating..." : assignMode === "focused" ? "Assign Practice" : "Assign Quiz"}
           </button>
         </div>
       </div>

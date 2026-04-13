@@ -201,7 +201,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                         key={key}
                         type="text"
                         spellCheck={false}
-                        autoComplete="off"
+                        autoComplete="one-time-code"
                         autoCorrect="off"
                         autoCapitalize="none"
                         value={value}
@@ -259,7 +259,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                     <div className="mt-3 ml-[52px]">
                       <textarea
                         spellCheck={false}
-                        autoComplete="off"
+                        autoComplete="one-time-code"
                         autoCorrect="off"
                         autoCapitalize="none"
                         value={textVal}
@@ -466,7 +466,7 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
                       key={ci}
                       type="text"
                       spellCheck={false}
-                      autoComplete="off"
+                      autoComplete="one-time-code"
                       autoCorrect="off"
                       autoCapitalize="none"
                       value={tableCells[cellKey] ?? ""}
@@ -595,7 +595,7 @@ function PassageLine({
           <input
             type="text"
             spellCheck={false}
-            autoComplete="off"
+            autoComplete="one-time-code"
             autoCorrect="off"
             autoCapitalize={sectionType === "grammar-cloze" ? "characters" : "none"}
             value={qId ? (answers[qId] ?? "") : ""}
@@ -621,7 +621,7 @@ function PassageLine({
             onChange={e => qId && onAnswer(qId, e.target.value)}
             onFocus={onFocusInput}
             spellCheck={false}
-            autoComplete="off"
+            autoComplete="one-time-code"
             autoCorrect="off"
             autoCapitalize="none"
             className={`border-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-200"} focus:border-[#003366] outline-none rounded px-2 py-0.5 text-sm w-28 bg-white`}

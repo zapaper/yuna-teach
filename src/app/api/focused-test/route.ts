@@ -12,7 +12,8 @@ function baseNum(questionNum: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const { parentId, studentId, subject, topic } = await request.json();
+  const { parentId, studentId, subject, topic, scheduledFor } = await request.json();
+  const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
 
   if (!parentId || !subject || !topic) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -165,6 +166,7 @@ export async function POST(request: NextRequest) {
       level: levelFilter || null,
       userId: parentId,
       assignedToId: studentId || null,
+      ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
       paperType: "focused",
       instantFeedback: true,
       pageCount: 0,
