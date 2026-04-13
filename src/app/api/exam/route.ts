@@ -136,6 +136,7 @@ export async function GET(request: NextRequest) {
       subject: p.subject,
       questionCount: p._count.questions,
       createdAt: p.createdAt.toISOString(),
+      scheduledFor: p.scheduledFor?.toISOString() ?? null,
       assignedToId: p.assignedToId,
       assignedToName: p.assignedTo?.name ?? null,
       completedAt: p.completedAt?.toISOString() ?? null,

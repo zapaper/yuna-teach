@@ -81,6 +81,7 @@ model ExamPaper {
   pageCount Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  scheduledFor DateTime @default(now())
   userId       String
   assignedToId String?
   score            Float?

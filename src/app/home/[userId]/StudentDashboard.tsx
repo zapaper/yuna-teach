@@ -387,14 +387,31 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   // ─── Derived data for new layout ───
   const now = new Date();
-  const fiveDaysAgo = new Date(now.getTime() - 5 * 86400000);
   // Use local date strings to avoid UTC timezone mismatch (e.g. SGT = UTC+8)
   const localDateStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   const todayStr = localDateStr(now);
-  const todayActivities = studentPapers.filter(p => localDateStr(new Date(p.createdAt ?? "")) === todayStr);
+  const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+  const tomorrowStr = localDateStr(tomorrow);
+  // Start of this week (Sunday)
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay()); weekStart.setHours(0, 0, 0, 0);
+  const paperDate = (p: ExamPaperSummary) => new Date(p.scheduledFor ?? p.createdAt ?? "");
+  const paperDateStr = (p: ExamPaperSummary) => localDateStr(paperDate(p));
+  const WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const weekdayLabel = (p: ExamPaperSummary) => WEEKDAY_LABELS[paperDate(p).getDay()];
+
+  // Today = papers scheduled for today only
+  const todayActivities = studentPapers.filter(p => paperDateStr(p) === todayStr);
   const todayTodo = todayActivities.filter(p => !p.completedAt);
   const todayDone = todayActivities.filter(p => p.completedAt);
-  const weekHomework = studentPapers.filter(p => !p.completedAt && new Date(p.createdAt ?? "") >= fiveDaysAgo && localDateStr(new Date(p.createdAt ?? "")) !== todayStr);
+  // This week's homework: undone papers from Sunday..today (excluding today) + tomorrow's scheduled
+  const weekHomework = studentPapers.filter(p => {
+    if (p.completedAt) return false;
+    const ds = paperDateStr(p);
+    if (ds === todayStr) return false;
+    const d = paperDate(p);
+    const inWeekSoFar = d >= weekStart && d < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return inWeekSoFar || ds === tomorrowStr;
+  });
 
   function goToPaper(p: ExamPaperSummary) {
     if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${userId}`);
@@ -675,7 +692,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
-                        <span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span>
+                        <span className="text-[10px] text-[#43474f]">Due today</span>
                       </div>
                       <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full shrink-0">DONE</span>
                     </div>
@@ -685,7 +702,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <div className="w-6 h-6 rounded border-2 border-[#c3c6d1]" />
                       <div className="flex-1 min-w-0">
                         <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
-                        <span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span>
+                        <span className="text-[10px] text-[#43474f]">Due today</span>
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${p.timeSpentSeconds > 0 ? "bg-[#fef3c7] text-[#92400e]" : "bg-[#dce9ff] text-[#737780]"}`}>{p.timeSpentSeconds > 0 ? "IN PROGRESS" : "TODO"}</span>
                     </div>
@@ -707,7 +724,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           <span className="material-symbols-outlined text-[#006c49] group-hover:text-white">{paperIcon(p)}</span>
                         </div>
                         <h3 className="font-bold text-lg leading-tight mb-2">{p.title}</h3>
-                        <p className="text-sm opacity-70">{relativeDate(p.createdAt)}</p>
+                        <p className="text-sm opacity-70">{weekdayLabel(p)}</p>
                       </div>
                     ))}
                   </div>
@@ -832,7 +849,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       </div>
                       {/* Battle scene — avatar (left, facing right) vs slime (right), overlapping */}
                       <div className="flex-1 flex items-end justify-center p-4">
-                        <div className="relative h-48" style={{ width: "280px" }}>
+                        <div className="relative h-48" style={{ width: "340px" }}>
                           {/* Avatar — above slime (z-10) */}
                           {(() => {
                             const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
@@ -863,7 +880,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           {showSlash && (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={`/avatars/fight/slash.gif?t=${arenaAction}`} alt="slash"
-                              className="h-32 object-contain absolute bottom-4 left-1/2 -translate-x-1/2 z-20"
+                              className="h-64 object-contain absolute -bottom-2 left-1/2 -translate-x-1/2 z-20"
                               style={{ mixBlendMode: "screen" }}
                             />
                           )}
@@ -911,12 +928,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <section className="mb-8">
             <h2 className="text-lg font-bold text-[#001e40] mb-4 flex items-center gap-2 font-headline"><span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities</h2>
             <div className="space-y-3">
-              {todayDone.map(p => <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full shrink-0">DONE</span></div>)}
-              {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">{relativeDate(p.createdAt)}</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span></div>)}
+              {todayDone.map(p => <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full shrink-0">DONE</span></div>)}
+              {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span></div>)}
               {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
           </section>
-          {weekHomework.length > 0 && <section className="mb-8"><h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2><div className="space-y-3">{weekHomework.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{relativeDate(p.createdAt)}</p></div></div>)}</div></section>}
+          {weekHomework.length > 0 && <section className="mb-8"><h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2><div className="space-y-3">{weekHomework.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p></div></div>)}</div></section>}
           <h2 className="text-lg font-bold text-[#001e40] mb-3 font-headline">Self-learning</h2>
           <section className="mb-8 grid grid-cols-2 gap-3">
             <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
@@ -1026,7 +1043,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       {showSlash && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={`/avatars/fight/slash.gif?t=${arenaAction}`} alt="slash"
-                          className="h-20 object-contain absolute bottom-2 left-1/2 -translate-x-1/2 z-20"
+                          className="h-40 object-contain absolute -bottom-1 left-1/2 -translate-x-1/2 z-20"
                           style={{ mixBlendMode: "screen" }}
                         />
                       )}

@@ -60,6 +60,7 @@ export interface ExamPaperSummary {
   subject: string | null;
   questionCount: number;
   createdAt: string;
+  scheduledFor: string | null;
   assignedToId: string | null;
   assignedToName: string | null;
   completedAt: string | null;

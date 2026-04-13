@@ -12,14 +12,16 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishSections, sourcePaperId } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishSections, sourcePaperId, scheduledFor } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
     subject?: "math" | "science" | "english";
     englishSections?: string[];
     sourcePaperId?: string; // admin: generate test quiz from specific paper
+    scheduledFor?: string; // ISO date; when the quiz should appear on the student's dashboard
   };
+  const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
 
   // ── Admin: generate test quiz from a specific paper ──
   if (sourcePaperId) {
@@ -106,6 +108,7 @@ export async function POST(request: NextRequest) {
         level: paper.level,
         userId,
         assignedToId: userId,
+        ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
         paperType: "quiz",
         instantFeedback: true,
         pageCount: 0,
@@ -661,6 +664,7 @@ export async function POST(request: NextRequest) {
         level: levelFilter || null,
         userId,
         assignedToId: targetStudentId,
+        ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
         paperType: "quiz",
         instantFeedback: true,
         pageCount: 0,
@@ -833,6 +837,7 @@ export async function POST(request: NextRequest) {
       level: levelFilter || null,
       userId,
       assignedToId: targetStudentId,
+      ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
       paperType: "quiz",
       instantFeedback: true,
       pageCount: 0,

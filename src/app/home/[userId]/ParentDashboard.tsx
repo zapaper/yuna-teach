@@ -77,6 +77,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const hasAvatar = !!avatarVideos;
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
   const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean } | null>(null);
+  const [quizTargetDay, setQuizTargetDay] = useState<Date | null>(null);
   const [bunnySrc, setBunnySrc] = useState(() => avatarVideos ? avatarVideos[Math.floor(Math.random() * avatarVideos.length)] : "");
   const [nextSrc, setNextSrc] = useState<string | null>(null);
   const bunnyRef = useRef<HTMLVideoElement>(null);
@@ -361,10 +362,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const DAY_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   const isToday = (d: Date) => d.toDateString() === todayDate.toDateString();
 
-  // Group student papers by day of week for scheduler
+  // Group student papers by day of week for scheduler (by scheduledFor, falling back to createdAt)
   const papersByDay = weekDays.map(d => {
     const dayStr = d.toDateString();
-    return studentPapers.filter(p => new Date(p.createdAt).toDateString() === dayStr);
+    return studentPapers.filter(p => new Date(p.scheduledFor ?? p.createdAt).toDateString() === dayStr);
   });
 
   function shortenTitle(title: string) {
@@ -631,10 +632,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   };
 
   const QuizModal = () => !showQuiz ? null : (
-    <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowQuiz(false)}>
+    <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => { setShowQuiz(false); setQuizTargetDay(null); }}>
       <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
         <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-1">Assign Daily Quiz</h3>
-        <p className="text-sm text-[#43474f] mb-4">For <span className="font-bold text-[#001e40]">{selectedStudent?.name ?? "student"}</span>{selectedStudent?.level ? ` (P${selectedStudent.level})` : ""}</p>
+        <p className="text-sm text-[#43474f] mb-4">
+          For <span className="font-bold text-[#001e40]">{selectedStudent?.name ?? "student"}</span>{selectedStudent?.level ? ` (P${selectedStudent.level})` : ""}
+          {quizTargetDay && <> · <span className="font-bold text-[#003366]">{quizTargetDay.toLocaleDateString(undefined, { weekday: "long" })}</span></>}
+        </p>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
         <div className="flex gap-2 mb-4">
           {(["math", "science", "english"] as const).map(s => (
@@ -698,7 +702,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         )}
         <div className="flex gap-3">
-          <button onClick={() => setShowQuiz(false)} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
+          <button onClick={() => { setShowQuiz(false); setQuizTargetDay(null); }} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
           <button
             disabled={creatingQuiz || !quizStudentId}
             onClick={async () => {
@@ -712,11 +716,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     quizType: quizSubject === "english" ? "mcq" : quizType,
                     subject: quizSubject,
                     ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
+                    ...(quizTargetDay ? { scheduledFor: (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() } : {}),
                   }),
                 });
                 const data = await res.json();
                 if (!res.ok) { alert(data.error || "Failed"); return; }
                 setShowQuiz(false);
+                setQuizTargetDay(null);
                 // First-time user: auto-open student tab only if this student has no prior quizzes
                 const studentHasPriorQuizzes = examPapers.some(p => p.assignedToId === quizStudentId && p.paperType === "quiz");
                 if (!studentHasPriorQuizzes) {
@@ -1691,7 +1697,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               {shortenTitle(p.title)}
                             </div>
                           ))}
-                          <button onClick={() => { setShowQuiz(true); }} className="w-full rounded-lg py-1 text-xs font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
+                          <button onClick={() => { setQuizTargetDay(day); setShowQuiz(true); }} className="w-full rounded-lg py-1 text-xs font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
                             +
                           </button>
                         </div>
@@ -1802,7 +1808,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <span className="material-symbols-outlined text-xl">arrow_forward</span>
                     </button>
                     <button
-                      onClick={() => { setQuizStudentId(selectedStudentId); setShowQuiz(true); }}
+                      onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }}
                       className="bg-white/10 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:-translate-y-0.5 transition-all border border-white/20"
                     >
                       Daily Quiz
@@ -1936,7 +1942,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </div>
                           ))}
                         </div>
-                        <button onClick={() => setShowQuiz(true)} className="mt-2 w-full rounded-lg py-1 text-sm font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
+                        <button onClick={() => { setQuizTargetDay(day); setShowQuiz(true); }} className="mt-2 w-full rounded-lg py-1 text-sm font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
                           +
                         </button>
                       </div>
