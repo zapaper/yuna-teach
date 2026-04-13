@@ -170,6 +170,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [arenaGifReady, setArenaGifReady] = useState(true);
   const [showSlash, setShowSlash] = useState(false);
   const [showShield, setShowShield] = useState(false);
+  const [monster, setMonster] = useState<"slime" | "mushroom">("slime");
+  // map arena "slime" action names to mushroom file names (dead → die)
+  const mushroomAct = (a: string) => (a === "dead" ? "die" : a);
   // Preload all arena GIFs
   // Preload all arena GIFs (bunny + slime)
   useEffect(() => {
@@ -183,6 +186,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     for (const act of ["attack", "hit", "dead"]) {
       const img = new Image();
       img.src = `/avatars/fight/slime_${act}.gif`;
+    }
+    // Preload mushroom videos (mp4)
+    for (const act of ["attack", "hit", "die"]) {
+      const v = document.createElement("video");
+      v.src = `/avatars/fight/mushroom_${act}.mp4`;
+      v.preload = "auto";
     }
     const slashImg = new Image();
     slashImg.src = "/avatars/fight/slash.gif";
@@ -211,7 +220,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     if (!showArena || !hasArena) return;
     const interval = setInterval(() => {
       setArenaGifReady(false);
-      setArenaAction(prev => (prev + 1) % arenaPairs.length);
+      setArenaAction(prev => {
+        const next = (prev + 1) % arenaPairs.length;
+        // When we loop back to 0, swap to the other monster
+        if (next === 0) setMonster(m => (m === "slime" ? "mushroom" : "slime"));
+        return next;
+      });
     }, 3000);
     return () => clearInterval(interval);
   }, [showArena, hasArena, arenaPairs.length]);
@@ -870,17 +884,27 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                               />
                             ));
                           })()}
-                          {/* Slime — behind avatar */}
-                          {[{ s: "hit" }, { s: "attack" }, { s: "dead" }].map(({ s }) => {
+                          {/* Monster — behind avatar (alternates slime / mushroom each cycle) */}
+                          {(() => {
                             const currentPair = arenaPairs[arenaAction];
+                            if (monster === "slime") {
+                              return ["hit", "attack", "dead"].map(s => (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                                  className={`h-36 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
+                                  style={{ mixBlendMode: "screen" }}
+                                />
+                              ));
+                            }
+                            const act = mushroomAct(currentPair.slime);
                             return (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
-                                className={`h-36 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
+                              <video key={`m-${arenaAction}`} src={`/avatars/fight/mushroom_${act}.mp4`}
+                                autoPlay muted playsInline loop={act !== "die"}
+                                className="h-36 object-contain absolute bottom-0 right-0"
                                 style={{ mixBlendMode: "screen" }}
                               />
                             );
-                          })}
+                          })()}
                           {/* Slash — between avatar and slime */}
                           {showSlash && (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -1041,17 +1065,27 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           />
                         ));
                       })()}
-                      {/* Slime — behind avatar */}
-                      {[{ s: "hit" }, { s: "attack" }, { s: "dead" }].map(({ s }) => {
+                      {/* Monster — behind avatar (alternates slime / mushroom each cycle) */}
+                      {(() => {
                         const currentPair = arenaPairs[arenaAction];
+                        if (monster === "slime") {
+                          return ["hit", "attack", "dead"].map(s => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                              className={`h-20 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
+                              style={{ mixBlendMode: "screen" }}
+                            />
+                          ));
+                        }
+                        const act = mushroomAct(currentPair.slime);
                         return (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
-                            className={`h-20 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
+                          <video key={`m-${arenaAction}`} src={`/avatars/fight/mushroom_${act}.mp4`}
+                            autoPlay muted playsInline loop={act !== "die"}
+                            className="h-20 object-contain absolute bottom-0 right-0"
                             style={{ mixBlendMode: "screen" }}
                           />
                         );
-                      })}
+                      })()}
                       {/* Slash — between avatar and slime */}
                       {showSlash && (
                         // eslint-disable-next-line @next/next/no-img-element
