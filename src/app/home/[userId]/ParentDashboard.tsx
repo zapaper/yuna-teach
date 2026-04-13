@@ -1813,7 +1813,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               {shortenTitle(p.title)}
                             </div>
                           ))}
-                          <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="w-full rounded-lg py-1 text-xs font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
+                          <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="w-full rounded-lg py-1.5 text-base font-extrabold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] transition-colors">
                             +
                           </button>
                         </div>
@@ -2058,7 +2058,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </div>
                           ))}
                         </div>
-                        <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="mt-2 w-full rounded-lg py-1 text-sm font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
+                        <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="mt-2 w-full rounded-lg py-2 text-lg font-extrabold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] transition-colors">
                           +
                         </button>
                       </div>
