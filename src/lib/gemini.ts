@@ -205,6 +205,7 @@ export type SyntheticMcqVariant = {
   options: [string, string, string, string];
   correctAnswer: number; // 1-4
   diagramDescription?: string; // text description of new diagram (if original had one)
+  diagramImageData?: string | null; // base64 generated diagram (filled by generate route, optional)
 };
 
 const SYNTHETIC_MATH_MCQ_PROMPT = `You are generating synthetic practice MCQ questions for a Singapore primary school Mathematics exam.
@@ -237,6 +238,55 @@ Return ONLY valid JSON, no markdown fences:
     "diagramDescription": "..."
   }
 }`;
+
+/**
+ * Generate a fresh diagram image for a synthetic variant, using the original
+ * diagram as reference and the variant's own stem/description as the target.
+ * Returns base64 (no data: prefix) or null on failure.
+ */
+export async function generateSyntheticDiagramImage(
+  originalDiagramBase64: string,
+  variantStem: string,
+  diagramDescription: string,
+): Promise<string | null> {
+  try {
+    const clean = originalDiagramBase64.replace(/^data:image\/\w+;base64,/, "");
+    const prompt = `Create a clean, simple black-on-white educational diagram for a Singapore primary school maths question. Use the reference image only for style guidance (line weights, labels, general layout). Do NOT copy the numbers or labels from the reference.
+
+New question: ${variantStem}
+
+Diagram to draw: ${diagramDescription}
+
+Requirements:
+- White background, clear black lines, clean labels in a simple sans-serif.
+- Include only the figures/labels needed by the new question.
+- No shading, no colour fills, no decorative elements.
+- Make sure any numbers/labels shown are consistent with the new question.
+- No question text, no answer options, no watermarks — diagram only.`;
+
+    const response = await generateContentWithRetry({
+      model: "gemini-2.5-flash-image-preview",
+      contents: [{
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg", data: clean } },
+          { text: prompt },
+        ],
+      }],
+      config: { responseModalities: ["IMAGE", "TEXT"] },
+    });
+
+    const parts = response.candidates?.[0]?.content?.parts ?? [];
+    for (const p of parts) {
+      const inline = (p as { inlineData?: { data?: string; mimeType?: string } }).inlineData;
+      if (inline?.data) return inline.data;
+    }
+    return null;
+  } catch (err) {
+    console.error("[generateSyntheticDiagramImage] failed", err);
+    return null;
+  }
+}
 
 export async function generateSyntheticMathMcq(
   stem: string,

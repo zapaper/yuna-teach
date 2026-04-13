@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { generateSyntheticMathMcq } from "@/lib/gemini";
+import { generateSyntheticMathMcq, generateSyntheticDiagramImage } from "@/lib/gemini";
 
 async function requireAdmin(userId: string | null) {
   if (!userId) return false;
@@ -45,6 +45,21 @@ export async function POST(request: NextRequest) {
       answerNum,
       q.diagramImageData ?? null,
     );
+
+    // If original had a diagram, also generate a fresh diagram image for each variant (in parallel).
+    if (q.diagramImageData) {
+      const [simpleImg, similarImg] = await Promise.all([
+        variants.simple.diagramDescription
+          ? generateSyntheticDiagramImage(q.diagramImageData, variants.simple.stem, variants.simple.diagramDescription)
+          : Promise.resolve(null),
+        variants.similar.diagramDescription
+          ? generateSyntheticDiagramImage(q.diagramImageData, variants.similar.stem, variants.similar.diagramDescription)
+          : Promise.resolve(null),
+      ]);
+      variants.simple.diagramImageData = simpleImg;
+      variants.similar.diagramImageData = similarImg;
+    }
+
     return NextResponse.json(variants);
   } catch (err) {
     console.error("[synthetic/generate] failed", err);

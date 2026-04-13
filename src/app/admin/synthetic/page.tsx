@@ -285,9 +285,17 @@ function VariantEditor({ title, variant, onStem, onOption, onCorrect }: {
       <textarea value={variant.stem} onChange={e => onStem(e.target.value)}
         rows={3}
         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none resize-none mb-3" />
-      {variant.diagramDescription && (
+      {variant.diagramImageData && (
+        <div className="mb-3">
+          <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Generated diagram</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={variant.diagramImageData.startsWith("data:") ? variant.diagramImageData : `data:image/png;base64,${variant.diagramImageData}`}
+            alt="synthetic diagram" className="max-w-sm rounded-lg border border-slate-200" />
+        </div>
+      )}
+      {variant.diagramDescription && !variant.diagramImageData && (
         <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-[10px] font-bold uppercase text-amber-600 mb-0.5">Diagram suggestion</p>
+          <p className="text-[10px] font-bold uppercase text-amber-600 mb-0.5">Diagram suggestion (image generation failed)</p>
           <p className="text-xs text-amber-800">{variant.diagramDescription}</p>
         </div>
       )}
