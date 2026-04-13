@@ -1872,7 +1872,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
       return n === "1" || n === "2" || n === "3" || n === "4";
     };
     const mcqQuestions = paper.questions.filter(q => isMcqAnswer(q.answer) || typedSectionQIds.has(q.id));
-    const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id));
+    const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");
 
     // Re-score MCQ questions (in case answer keys changed)
     for (const q of paper.questions.filter(q2 => isMcqAnswer(q2.answer))) {

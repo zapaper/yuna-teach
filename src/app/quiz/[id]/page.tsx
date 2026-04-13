@@ -363,8 +363,19 @@ function QuizContent({ id }: { id: string }) {
         );
       }
 
-      // Save ALL OEQ drawings (including inline synthesis/comp OEQ sections)
-      const allOeqWithHandles = paper!.questions.filter(q => oeqCanvasHandles.current[q.id]);
+      // Persist skip flag for OEQ questions so the marker doesn't try to score them
+      const skippedOeqIds = paper!.questions.filter(q => skippedIds.has(q.id) && oeqCanvasHandles.current[q.id]).map(q => q.id);
+      if (skippedOeqIds.length > 0) {
+        await Promise.all(skippedOeqIds.map(qid =>
+          fetch(`/api/exam/questions/${qid}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ studentAnswer: "__SKIPPED__", marksAwarded: null }),
+          })
+        ));
+      }
+      // Save ALL OEQ drawings (skip the ones the student marked as skipped)
+      const allOeqWithHandles = paper!.questions.filter(q => oeqCanvasHandles.current[q.id] && !skippedIds.has(q.id));
       if (allOeqWithHandles.length > 0) {
         const form = new FormData();
         form.append("action", "save");
@@ -902,6 +913,8 @@ function QuizContent({ id }: { id: string }) {
                   onHeightChange={(cid, h) => { canvasHeights.current[cid] = h; }}
                   flagged={flaggedIds.has(q.id)}
                   onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                  skipped={skippedIds.has(q.id)}
+                  onSkip={() => setSkippedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
                 />
               ))}
             </div>
@@ -1266,6 +1279,8 @@ function OeqQuestionCard({
   onHeightChange,
   flagged,
   onToggleFlag,
+  skipped,
+  onSkip,
 }: {
   question: QuizQuestion;
   index: number;
@@ -1279,6 +1294,8 @@ function OeqQuestionCard({
   onHeightChange?: (id: string, h: number) => void;
   flagged?: boolean;
   onToggleFlag?: () => void;
+  skipped?: boolean;
+  onSkip?: () => void;
 }) {
   const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
   // Strip "{questionNum}(a)" / "{questionNum} (a)" prefix from stem + subpart text so we display "(a) ..." consistently.
@@ -1353,6 +1370,12 @@ function OeqQuestionCard({
               <span className="material-symbols-outlined text-sm" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
             </button>
           )}
+          {onSkip && (
+            <button onClick={onSkip} className={`flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-md transition-colors ${skipped ? "text-[#d58d00] bg-amber-50" : "text-[#c3c6d1] hover:text-[#d58d00] hover:bg-amber-50"}`}>
+              <span className="material-symbols-outlined text-sm">skip_next</span>
+              {skipped ? "Skipped" : "Skip"}
+            </button>
+          )}
         </div>
 
         {/* Desktop: number badge + flag */}
@@ -1365,10 +1388,16 @@ function OeqQuestionCard({
               <span className="material-symbols-outlined text-sm" style={flagged ? { fontVariationSettings: "'FILL' 1" } : undefined}>flag</span>
             </button>
           )}
+          {onSkip && (
+            <button onClick={onSkip} className={`flex items-center gap-0.5 text-[10px] font-medium mt-1 px-2 py-0.5 rounded-md transition-colors ${skipped ? "text-[#d58d00] bg-amber-50" : "text-[#c3c6d1] hover:text-[#d58d00] hover:bg-amber-50"}`}>
+              <span className="material-symbols-outlined text-sm">skip_next</span>
+              {skipped ? "Skipped" : "Skip"}
+            </button>
+          )}
         </div>
 
         {/* Content */}
-        <div className="flex-grow space-y-4 lg:space-y-6 w-full min-w-0">
+        <div className={`flex-grow space-y-4 lg:space-y-6 w-full min-w-0 ${skipped ? "opacity-50" : ""}`}>
           {/* Question header — scratch-drawable on desktop only */}
           <div className="relative">
             <div className="flex justify-between items-start gap-4">

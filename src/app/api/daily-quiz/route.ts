@@ -798,11 +798,22 @@ export async function POST(request: NextRequest) {
 
     const combinedAnswer = [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
 
+    // Dedupe subparts by label — if multiple group members share the same label,
+    // keep the first occurrence (which carries the diagram if any was attached).
+    const seenLabels = new Set<string>();
+    const uniqueSubparts: Subpart[] = [];
+    for (const sp of allSubparts) {
+      const key = sp.label.toLowerCase();
+      if (seenLabels.has(key)) continue;
+      seenLabels.add(key);
+      uniqueSubparts.push(sp);
+    }
+
     return {
       ...first,
       answer: combinedAnswer || first.answer,
       transcribedStem: combinedStem,
-      transcribedSubparts: allSubparts.length > 0 ? [...allSubparts, ...sentinels] : null,
+      transcribedSubparts: uniqueSubparts.length > 0 ? [...uniqueSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
       diagramImageData,
     };
