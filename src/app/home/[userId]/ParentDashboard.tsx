@@ -1136,7 +1136,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   const sideNavItems = [
     { icon: "edit_note", label: "听写", href: `/scan?userId=${userId}` },
-    { icon: "psychology", label: "Focus Quiz", onClick: () => setShowFocused(true) },
+    { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
+    { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
     { icon: "auto_fix_high", label: "Solver", href: `/solver?userId=${userId}` },
     { icon: "insights", label: "Progress", onClick: () => setActiveView("progress"), active: activeView === "progress" },
