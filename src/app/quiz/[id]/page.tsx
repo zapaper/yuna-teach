@@ -1281,6 +1281,14 @@ function OeqQuestionCard({
   onToggleFlag?: () => void;
 }) {
   const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
+  // Strip "{questionNum}(a)" / "{questionNum} (a)" prefix from stem + subpart text so we display "(a) ..." consistently.
+  const stripQnPrefix = (t: string) => {
+    const qn = question.questionNum?.replace(/[^\d]/g, "") ?? "";
+    if (!qn) return t;
+    return t
+      .replace(new RegExp(`\\b${qn}\\s*\\(([a-z])\\)`, "gi"), "($1)")
+      .replace(new RegExp(`^\\s*${qn}\\s+`, ""), "");
+  };
   // rebuild ref image map from sentinels
   const subRefMap: Record<string, string> = {};
   if (allSubparts) for (const sp of allSubparts) if (sp.label.startsWith("_subref-")) subRefMap[sp.label.slice(8)] = sp.diagramBase64 ?? "";
@@ -1367,7 +1375,7 @@ function OeqQuestionCard({
               <div className="flex-1 min-w-0">
                 {question.transcribedStem && (
                   <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
-                    {question.transcribedStem}
+                    {stripQnPrefix(question.transcribedStem)}
                   </p>
                 )}
                 {/* Show diagram as static image only if NOT drawable (drawable shows on canvas) */}
@@ -1399,7 +1407,10 @@ function OeqQuestionCard({
               {subparts!.map(sp => {
                 const marksMatch = sp.text.match(/\[(\d+)\s*(?:m(?:ark)?s?)?\]$/i);
                 const spMarks = marksMatch ? parseInt(marksMatch[1]) : null;
-                const spText = marksMatch ? sp.text.slice(0, -marksMatch[0].length).trim() : sp.text;
+                const rawText = marksMatch ? sp.text.slice(0, -marksMatch[0].length).trim() : sp.text;
+                // Drop a leading "7(a)" / "(a)" that duplicates the sub-part label we already render.
+                const labelRe = new RegExp(`^(\\s*\\d*\\s*\\(?${sp.label}\\)?\\s*[.)]*\\s*)`, "i");
+                const spText = stripQnPrefix(rawText).replace(labelRe, "");
                 return (
                 <div key={sp.label} className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20">
                   <div className="px-5 pt-4 pb-2">

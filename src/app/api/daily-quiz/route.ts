@@ -12,7 +12,7 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishSections, sourcePaperId, scheduledFor } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishSections, sourcePaperId, scheduledFor, focused } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
@@ -20,8 +20,10 @@ export async function POST(request: NextRequest) {
     englishSections?: string[];
     sourcePaperId?: string; // admin: generate test quiz from specific paper
     scheduledFor?: string; // ISO date; when the quiz should appear on the student's dashboard
+    focused?: boolean; // when true + english + single section, take 2x questions for that section
   };
   const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
+  const isFocusedEnglish = !!focused && subject === "english";
 
   // ── Admin: generate test quiz from a specific paper ──
   if (sourcePaperId) {
@@ -342,8 +344,9 @@ export async function POST(request: NextRequest) {
       console.log(`[English Quiz] Vocab candidates: ${vocabAll.length} (MCQ: ${vocabAll.filter(q => isMcq(q.answer)).length}), sample answers: [${vocabAll.slice(0, 3).map(q => q.answer).join(", ")}]`);
     }
     console.log(`[English Quiz] Pools: grammar=${grammarMcqPool.length}, vocab=${vocabMcqPool.length}, vocabCloze=${vocabClozeSets.length} sets, visualText=${visualTextSets.length} sets`);
-    const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, 5) : [];
-    const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, 5) : [];
+    const mcqTake = isFocusedEnglish ? 10 : 5;
+    const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, mcqTake) : [];
+    const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, mcqTake) : [];
     console.log(`[English Quiz] Selected: grammar=${selectedGrammar.length}, vocab=${selectedVocab.length}`);
     const selectedExtra: typeof allPool = [];
     const sectionLabels: Record<string, string> = {
@@ -371,14 +374,14 @@ export async function POST(request: NextRequest) {
     for (const section of orderedSections) {
       let sectionQs: typeof allPool = [];
       if (section === "vocab-cloze" && vocabClozeSets.length > 0) {
-        sectionQs = vocabClozeSets[0];
+        sectionQs = isFocusedEnglish && vocabClozeSets[1] ? [...vocabClozeSets[0], ...vocabClozeSets[1]] : vocabClozeSets[0];
       } else if (section === "visual-text" && visualTextSets.length > 0) {
-        sectionQs = visualTextSets[0];
+        sectionQs = isFocusedEnglish && visualTextSets[1] ? [...visualTextSets[0], ...visualTextSets[1]] : visualTextSets[0];
       } else if (section === "synthesis") {
         const synthAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
         const synthFresh = shuffle(synthAll.filter(q => !usedSourceIds.has(q.id)));
         const synthUsed = shuffle(synthAll.filter(q => usedSourceIds.has(q.id)));
-        sectionQs = [...synthFresh, ...synthUsed].slice(0, 5);
+        sectionQs = [...synthFresh, ...synthUsed].slice(0, isFocusedEnglish ? 10 : 5);
       } else {
         const matcher = topicMatchers[section];
         if (matcher) {
@@ -389,7 +392,9 @@ export async function POST(request: NextRequest) {
             papers.get(q.examPaperId)!.push(q);
           }
           const paperSets = sortByFreshness([...papers.values()]);
-          if (paperSets.length > 0) sectionQs = paperSets[0];
+          if (paperSets.length > 0) {
+            sectionQs = isFocusedEnglish && paperSets[1] ? [...paperSets[0], ...paperSets[1]] : paperSets[0];
+          }
         }
       }
       if (sectionQs.length > 0) {

@@ -654,14 +654,40 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         </div>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
         <div className="flex gap-2 mb-4">
-          {(assignMode === "focused" ? (["math", "science"] as const) : (["math", "science", "english"] as const)).map(s => (
+          {(["math", "science", "english"] as const).map(s => (
             <button key={s} onClick={() => setQuizSubject(s)}
               className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
               {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
             </button>
           ))}
         </div>
-        {assignMode === "focused" && (() => {
+        {assignMode === "focused" && quizSubject === "english" && (
+          <div className="mb-5">
+            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Pick one section (2x questions)</p>
+            <div className="space-y-2">
+              {[
+                { key: "grammar-mcq", label: "Grammar MCQ" },
+                { key: "vocab-mcq", label: "Vocabulary MCQ" },
+                { key: "vocab-cloze", label: "Vocabulary Cloze" },
+                { key: "visual-text", label: "Visual Text Comprehension" },
+                { key: "grammar-cloze", label: "Grammar Cloze" },
+                { key: "editing", label: "Editing (Spelling & Grammar)" },
+                { key: "comprehension-cloze", label: "Comprehension Cloze" },
+                { key: "synthesis", label: "Synthesis & Transformation" },
+                { key: "comprehension-oeq", label: "Comprehension OEQ" },
+              ].map(s => {
+                const selected = englishSections.size === 1 && englishSections.has(s.key);
+                return (
+                  <button key={s.key} onClick={() => setEnglishSections(new Set([s.key]))}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selected ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+        {assignMode === "focused" && quizSubject !== "english" && (() => {
           const weakDetected = allTopics
             .filter(t => t.subject.toLowerCase().includes(quizSubject === "math" ? "math" : "science") && t.pct < 65)
             .slice(0, 3);
@@ -762,12 +788,32 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         <div className="flex gap-3">
           <button onClick={() => { setShowQuiz(false); setQuizTargetDay(null); }} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
           <button
-            disabled={creatingQuiz || !quizStudentId || (assignMode === "focused" && !focusedTopic)}
+            disabled={creatingQuiz || !quizStudentId || (assignMode === "focused" && quizSubject !== "english" && !focusedTopic) || (assignMode === "focused" && quizSubject === "english" && englishSections.size !== 1)}
             onClick={async () => {
               setCreatingQuiz(true);
               try {
                 const scheduledForIso = quizTargetDay ? (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() : undefined;
                 if (assignMode === "focused") {
+                  if (quizSubject === "english") {
+                    // Focused English: doubled single-section quiz via daily-quiz
+                    const res = await fetch("/api/daily-quiz", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        userId: quizStudentId,
+                        quizType: "mcq",
+                        subject: "english",
+                        englishSections: [...englishSections],
+                        focused: true,
+                        ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) { alert(data.error || "Failed"); return; }
+                    setShowQuiz(false); setQuizTargetDay(null);
+                    await refreshPapers();
+                    return;
+                  }
                   const res = await fetch("/api/focused-test", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

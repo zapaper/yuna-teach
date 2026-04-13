@@ -1608,7 +1608,7 @@ CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin ve
 
 Instructions:
 1. Read the student's blue-ink handwritten answer from Image 2.
-2. If the question has multiple sub-parts (a), (b), (c), mark EACH sub-part separately against its corresponding expected answer. Report marks and notes per sub-part.
+2. If the question has multiple sub-parts labelled (a), (b), (c) etc., you MUST mark EACH sub-part separately. The expected answer may contain all parts on one line (e.g. "(a) 12 cm (b) 25 cm") or separated — extract each sub-part from it. For every labelled sub-part in the question, give a separate award and note. If the expected answer only lists one sub-part, still report on the other sub-parts as "(x) no answer key provided" and award them 0 — never skip them silently. Split the total marks across sub-parts as fairly as possible.
 3. Compare against the expected answer.
    - If correct → FULL MARKS.
    - For written/worked answers: check if working/steps are partially correct → award PARTIAL marks.
