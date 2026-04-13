@@ -27,6 +27,7 @@ interface FlaggedItem {
   syllabusTopic: string | null;
   studentName: string | null;
   parentName: string | null;
+  flaggedBy: { id: string; name: string; role: string } | null;
   sourcePaperId: string | null;
   sourceQuestionNum: string | null;
   sourceLabel: string | null;
@@ -186,6 +187,9 @@ function FlaggedContent() {
                   {[item.subject, item.level ? (/^\d+$/.test(item.level) ? `Primary ${item.level}` : item.level) : null].filter(Boolean).join(" · ")}
                   {item.studentName ? ` · ${item.studentName}` : ""}
                 </p>
+                {item.flaggedBy && (
+                  <p className="text-[10px] text-amber-600 mt-0.5 font-semibold">Flagged by: {item.flaggedBy.name} ({item.flaggedBy.role.toLowerCase()})</p>
+                )}
                 {item.syllabusTopic && (
                   <p className="text-[10px] text-slate-400 mt-0.5">Topic: {item.syllabusTopic}</p>
                 )}

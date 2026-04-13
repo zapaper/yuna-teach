@@ -15,6 +15,7 @@ export async function GET(_request: NextRequest) {
       markingNotes: true,
       studentAnswer: true,
       flaggedAt: true,
+      flaggedByUserId: true,
       transcribedStem: true,
       syllabusTopic: true,
       sourceQuestionId: true,
@@ -36,6 +37,13 @@ export async function GET(_request: NextRequest) {
       },
     },
   });
+
+  // Batch-fetch flagger user info
+  const flaggerIds = [...new Set(flagged.map(q => q.flaggedByUserId).filter(Boolean) as string[])];
+  const flaggers = flaggerIds.length > 0
+    ? await prisma.user.findMany({ where: { id: { in: flaggerIds } }, select: { id: true, name: true, role: true } })
+    : [];
+  const flaggerMap = new Map(flaggers.map(u => [u.id, u]));
 
   // Batch-fetch source question info for quiz/focused questions
   const sourceIds = flagged.map(q => q.sourceQuestionId).filter(Boolean) as string[];
@@ -108,6 +116,7 @@ export async function GET(_request: NextRequest) {
       syllabusTopic: q.syllabusTopic,
       studentName: q.examPaper.assignedTo?.name ?? null,
       parentName: q.examPaper.user?.name ?? null,
+      flaggedBy: q.flaggedByUserId ? (flaggerMap.get(q.flaggedByUserId) ?? null) : null,
       // Source question link (for editing) — only available when sourceQuestionId is set
       sourcePaperId: src?.paperId ?? null,
       sourceQuestionNum: src?.questionNum ?? null,
