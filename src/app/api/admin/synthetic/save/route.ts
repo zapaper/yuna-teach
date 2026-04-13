@@ -35,3 +35,14 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ ok: true });
 }
+
+// DELETE { userId, questionId, variant } → removes the variant row (reject).
+export async function DELETE(request: NextRequest) {
+  const { userId, questionId, variant } = await request.json();
+  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!questionId || (variant !== "simple" && variant !== "similar")) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+  }
+  await prisma.syntheticQuestion.deleteMany({ where: { sourceQuestionId: questionId, variant } });
+  return NextResponse.json({ ok: true });
+}

@@ -14,10 +14,14 @@ type Question = {
   options: string[];
   correctAnswer: number;
   diagramImageData: string | null;
+  syntheticGenerated?: boolean;
+  syntheticQuestions?: Array<{ variant: string; stem: string; options: string[]; correctAnswer: number; diagramImageData: string | null }>;
   paperTitle: string;
   paperYear: string | null;
   paperSchool: string | null;
 };
+
+type Decision = "accepted" | "rejected" | null;
 
 type Variant = {
   stem: string;
@@ -46,6 +50,8 @@ function SyntheticContent() {
   const [loading, setLoading] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [drafts, setDrafts] = useState<Record<string, Drafts>>({});
+  const [decisions, setDecisions] = useState<Record<string, { simple: Decision; similar: Decision }>>({});
+  const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [savingState, setSavingState] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -62,9 +68,31 @@ function SyntheticContent() {
     try {
       const res = await fetch(`/api/admin/synthetic/batch?userId=${userId}&subject=${subject}`);
       const data = await res.json();
-      setQuestions(data.questions ?? []);
+      const qs: Question[] = data.questions ?? [];
+      setQuestions(qs);
       setCurrentIdx(0);
-      setDrafts({});
+      // Prefill drafts + decisions from any existing SyntheticQuestion rows
+      const nextDrafts: Record<string, Drafts> = {};
+      const nextDecisions: Record<string, { simple: Decision; similar: Decision }> = {};
+      for (const q of qs) {
+        if (q.syntheticQuestions && q.syntheticQuestions.length > 0) {
+          const simple = q.syntheticQuestions.find(x => x.variant === "simple");
+          const similar = q.syntheticQuestions.find(x => x.variant === "similar");
+          if (simple && similar) {
+            nextDrafts[q.id] = {
+              simple: { stem: simple.stem, options: simple.options, correctAnswer: simple.correctAnswer, diagramImageData: simple.diagramImageData },
+              similar: { stem: similar.stem, options: similar.options, correctAnswer: similar.correctAnswer, diagramImageData: similar.diagramImageData },
+            };
+          }
+          nextDecisions[q.id] = {
+            simple: simple ? "accepted" : null,
+            similar: similar ? "accepted" : null,
+          };
+        }
+      }
+      setDrafts(nextDrafts);
+      setDecisions(nextDecisions);
+      setLockedIds(new Set());
     } finally {
       setLoading(false);
     }
@@ -103,20 +131,32 @@ function SyntheticContent() {
     showToast("Generation complete");
   }
 
-  async function acceptVariant(q: Question, which: "simple" | "similar") {
+  async function setDecision(q: Question, which: "simple" | "similar", decision: Exclude<Decision, null>) {
     const d = drafts[q.id];
     if (!d) return;
     const key = `save-${q.id}-${which}`;
     setSavingState(key);
     try {
-      const res = await fetch("/api/admin/synthetic/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, questionId: q.id, variant: which, data: d[which] }),
-      });
-      const data = await res.json();
-      if (!res.ok) { showToast(data.error ?? "Save failed"); return; }
-      showToast(`${which === "simple" ? "Simple" : "Similar"} saved`);
+      if (decision === "accepted") {
+        const res = await fetch("/api/admin/synthetic/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, questionId: q.id, variant: which, data: d[which] }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.error ?? "Save failed"); return; }
+      } else {
+        const res = await fetch("/api/admin/synthetic/save", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, questionId: q.id, variant: which }),
+        });
+        if (!res.ok) { showToast("Reject failed"); return; }
+      }
+      setDecisions(prev => ({
+        ...prev,
+        [q.id]: { ...(prev[q.id] ?? { simple: null, similar: null }), [which]: decision },
+      }));
     } finally {
       setSavingState(null);
     }
@@ -132,9 +172,8 @@ function SyntheticContent() {
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error ?? "Mark failed"); return; }
-      showToast("Marked generated");
-      setQuestions(prev => prev.filter(x => x.id !== q.id));
-      setCurrentIdx(idx => Math.max(0, Math.min(idx, questions.length - 2)));
+      showToast("Marked generated — locked");
+      setLockedIds(prev => { const next = new Set(prev); next.add(q.id); return next; });
     } finally {
       setSavingState(null);
     }
@@ -168,6 +207,8 @@ function SyntheticContent() {
   const q = questions[currentIdx];
   const d = q ? drafts[q.id] : null;
   const anyDrafts = Object.keys(drafts).length > 0;
+  const locked = q ? lockedIds.has(q.id) : false;
+  const qDecisions = q ? (decisions[q.id] ?? { simple: null, similar: null }) : { simple: null as Decision, similar: null as Decision };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -256,30 +297,33 @@ function SyntheticContent() {
               )}
 
               {d && (
-                <>
-                  <VariantEditor title="Simple variant (changed numbers / reordered)" variant={d.simple}
+                <div className={locked ? "opacity-40 pointer-events-none" : ""}>
+                  <VariantEditor title="Simple variant (changed numbers / reordered)" variant={d.simple} disabled={locked}
                     onStem={s => updateVariant(q.id, "simple", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "simple", i, v)}
                     onCorrect={n => updateVariant(q.id, "simple", { correctAnswer: n })} />
-                  <button onClick={() => acceptVariant(q, "simple")} disabled={savingState === `save-${q.id}-simple`}
-                    className="w-full py-2.5 rounded-xl bg-green-600 text-white font-bold mb-4 disabled:opacity-50">
-                    {savingState === `save-${q.id}-simple` ? "Saving…" : "Accept Simple"}
-                  </button>
+                  <DecisionButtons which="simple" decision={qDecisions.simple} savingState={savingState}
+                    questionId={q.id}
+                    onChoose={dec => setDecision(q, "simple", dec)} />
 
-                  <VariantEditor title="Similar variant (related but different)" variant={d.similar}
+                  <VariantEditor title="Similar variant (related but different)" variant={d.similar} disabled={locked}
                     onStem={s => updateVariant(q.id, "similar", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "similar", i, v)}
                     onCorrect={n => updateVariant(q.id, "similar", { correctAnswer: n })} />
-                  <button onClick={() => acceptVariant(q, "similar")} disabled={savingState === `save-${q.id}-similar`}
-                    className="w-full py-2.5 rounded-xl bg-green-600 text-white font-bold mb-4 disabled:opacity-50">
-                    {savingState === `save-${q.id}-similar` ? "Saving…" : "Accept Similar"}
-                  </button>
+                  <DecisionButtons which="similar" decision={qDecisions.similar} savingState={savingState}
+                    questionId={q.id}
+                    onChoose={dec => setDecision(q, "similar", dec)} />
+                </div>
+              )}
 
-                  <button onClick={() => markGenerated(q)} disabled={savingState === `mark-${q.id}`}
-                    className="w-full py-3 rounded-xl bg-slate-800 text-white font-bold disabled:opacity-50">
-                    {savingState === `mark-${q.id}` ? "Marking…" : "Mark Generated (skip in future)"}
-                  </button>
-                </>
+              {d && !locked && (
+                <button onClick={() => markGenerated(q)} disabled={savingState === `mark-${q.id}`}
+                  className="w-full py-3 rounded-xl bg-slate-800 text-white font-bold disabled:opacity-50 mt-4">
+                  {savingState === `mark-${q.id}` ? "Marking…" : "Mark Generated (lock this question)"}
+                </button>
+              )}
+              {locked && (
+                <p className="text-center text-xs font-bold text-slate-500 mt-4">Locked · marked generated</p>
               )}
             </>
           )}
@@ -295,9 +339,32 @@ function SyntheticContent() {
   );
 }
 
-function VariantEditor({ title, variant, onStem, onOption, onCorrect }: {
+function DecisionButtons({ which, decision, savingState, questionId, onChoose }: {
+  which: "simple" | "similar";
+  decision: Decision;
+  savingState: string | null;
+  questionId: string;
+  onChoose: (d: "accepted" | "rejected") => void;
+}) {
+  const saving = savingState === `save-${questionId}-${which}`;
+  return (
+    <div className="flex gap-2 mb-4">
+      <button onClick={() => onChoose("accepted")} disabled={saving}
+        className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition-all disabled:opacity-50 ${decision === "accepted" ? "bg-green-600 border-green-600 text-white" : "border-green-600 text-green-600 bg-white"}`}>
+        {saving && decision !== "accepted" ? "…" : "Accept"}
+      </button>
+      <button onClick={() => onChoose("rejected")} disabled={saving}
+        className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition-all disabled:opacity-50 ${decision === "rejected" ? "bg-red-500 border-red-500 text-white" : "border-red-400 text-red-500 bg-white"}`}>
+        {saving && decision !== "rejected" ? "…" : "Don't Accept"}
+      </button>
+    </div>
+  );
+}
+
+function VariantEditor({ title, variant, disabled, onStem, onOption, onCorrect }: {
   title: string;
   variant: Variant;
+  disabled?: boolean;
   onStem: (s: string) => void;
   onOption: (i: number, v: string) => void;
   onCorrect: (n: number) => void;
@@ -305,9 +372,9 @@ function VariantEditor({ title, variant, onStem, onOption, onCorrect }: {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-3">
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{title}</p>
-      <textarea value={variant.stem} onChange={e => onStem(e.target.value)}
+      <textarea value={variant.stem} onChange={e => onStem(e.target.value)} disabled={disabled}
         rows={3}
-        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none resize-none mb-3" />
+        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none resize-none mb-3 disabled:bg-slate-50" />
       {variant.diagramImageData && (
         <div className="mb-3">
           <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Generated diagram</p>
