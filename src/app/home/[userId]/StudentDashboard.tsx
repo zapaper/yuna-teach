@@ -185,6 +185,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     if (type === "bear") return { prefix: `/avatars/fight/bear_la`, ext: "gif", isVideo: false };
     if (type === "tiger") return { prefix: `/avatars/fight/tiger_la`, ext: "mp4", isVideo: true };
     if (type === "fox") return { prefix: `/avatars/fight/fox_la`, ext: "mp4", isVideo: true };
+    if (type === "otter") return { prefix: `/avatars/fight/otter_la`, ext: "mp4", isVideo: true };
     return { prefix: `/avatars/fight/bunny_${tier}`, ext: "gif", isVideo: false };
   }
 
@@ -201,7 +202,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       const img = new Image();
       img.src = `/avatars/fight/bear_la_${act}.gif`;
     }
-    for (const brand of ["tiger", "fox"]) {
+    for (const brand of ["tiger", "fox", "otter"]) {
       for (const act of ["ready", "attack", "defend", "hit"]) {
         const v = document.createElement("video");
         v.src = `/avatars/fight/${brand}_la_${act}.mp4`;
