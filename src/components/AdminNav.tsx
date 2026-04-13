@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { icon: "upload_file",   label: "Upload",        path: "/exam/upload" },
   { icon: "library_books", label: "Papers",        path: "/admin/papers" },
   { icon: "auto_awesome",  label: "Synthetic",     path: "/admin/synthetic" },
+  { icon: "tune",          label: "Subpart Marks", path: "/admin/subpart-marks" },
   { icon: "feedback",      label: "Feedback",      path: "/admin/feedback" },
 ];
 

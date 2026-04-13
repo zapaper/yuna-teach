@@ -394,6 +394,63 @@ Return ONLY valid JSON, no markdown fences:
 export type OpenEndedSubpart = { label: string; text: string };
 export type TranscribedOpenEnded = { stem: string; subparts: OpenEndedSubpart[]; diagram: DiagramBounds | null };
 
+/**
+ * Read per-sub-part marks from a question image. The marks usually appear as `[1]`, `[2m]`, `[2 marks]`
+ * near the end of each sub-part line. Returns a map of sub-part label → marks (integer).
+ * Labels not found get 0.
+ */
+export async function extractSubpartMarks(
+  imageBase64: string,
+  labels: string[],
+): Promise<Record<string, number>> {
+  if (labels.length === 0) return {};
+  const prompt = `Look at this Singapore primary school exam question image.
+
+The question has the following sub-parts: ${labels.map(l => `(${l})`).join(", ")}.
+
+For EACH sub-part, find the marks indicator printed next to it. Marks indicators look like:
+- [1] or [2]
+- [1m] or [2 marks]
+- [1 mark]
+
+They are usually printed at the end of each sub-part's question line, just before the answer area.
+
+Return ONLY valid JSON, no markdown fences:
+{ "${labels[0]}": 1, "${labels[1] ?? labels[0]}": 2 }
+
+Rules:
+- Only include a label if you can clearly see a marks indicator for it.
+- Use integer marks (1, 2, 3, ...). If a sub-part shows "[½]" or non-integer, round down.
+- Omit labels whose marks cannot be determined — do NOT guess.
+- Do NOT include any label that is not in the list above.`;
+
+  try {
+    const response = await generateContentWithRetry({
+      model: "gemini-2.5-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: prompt },
+        ],
+      }],
+      config: { responseMimeType: "application/json", temperature: 0.1 },
+    });
+    const text = response.text ?? "";
+    const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+    const out: Record<string, number> = {};
+    for (const label of labels) {
+      const v = parsed?.[label];
+      const n = typeof v === "number" ? v : parseInt(String(v ?? ""), 10);
+      if (Number.isFinite(n) && n >= 0 && n <= 20) out[label] = n;
+    }
+    return out;
+  } catch (err) {
+    console.error("[extractSubpartMarks] failed", err);
+    return {};
+  }
+}
+
 export async function transcribeMathOpenEndedQuestion(
   imageBase64: string
 ): Promise<TranscribedOpenEnded> {
