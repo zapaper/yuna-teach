@@ -662,29 +662,21 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           ))}
         </div>
         {assignMode === "focused" && quizSubject === "english" && (
-          <div className="mb-5">
-            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Pick one section (2x questions)</p>
-            <div className="space-y-2">
-              {[
-                { key: "grammar-mcq", label: "Grammar MCQ" },
-                { key: "vocab-mcq", label: "Vocabulary MCQ" },
-                { key: "vocab-cloze", label: "Vocabulary Cloze" },
-                { key: "visual-text", label: "Visual Text Comprehension" },
-                { key: "grammar-cloze", label: "Grammar Cloze" },
-                { key: "editing", label: "Editing (Spelling & Grammar)" },
-                { key: "comprehension-cloze", label: "Comprehension Cloze" },
-                { key: "synthesis", label: "Synthesis & Transformation" },
-                { key: "comprehension-oeq", label: "Comprehension OEQ" },
-              ].map(s => {
-                const selected = englishSections.size === 1 && englishSections.has(s.key);
-                return (
-                  <button key={s.key} onClick={() => setEnglishSections(new Set([s.key]))}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${selected ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
+          <div className="mb-4">
+            <p className="text-[10px] font-extrabold text-[#43474f] uppercase tracking-wider mb-1.5">Pick one section (2x questions)</p>
+            <select value={[...englishSections][0] ?? ""} onChange={e => setEnglishSections(new Set(e.target.value ? [e.target.value] : []))}
+              className="w-full px-3 py-2 rounded-xl border-2 border-[#c3c6d1] text-xs font-medium text-[#001e40] focus:border-[#003366] focus:outline-none bg-white">
+              <option value="">Select a section…</option>
+              <option value="grammar-mcq">Grammar MCQ</option>
+              <option value="vocab-mcq">Vocabulary MCQ</option>
+              <option value="vocab-cloze">Vocabulary Cloze</option>
+              <option value="visual-text">Visual Text Comprehension</option>
+              <option value="grammar-cloze">Grammar Cloze</option>
+              <option value="editing">Editing (Spelling & Grammar)</option>
+              <option value="comprehension-cloze">Comprehension Cloze</option>
+              <option value="synthesis">Synthesis & Transformation</option>
+              <option value="comprehension-oeq">Comprehension OEQ</option>
+            </select>
           </div>
         )}
         {assignMode === "focused" && quizSubject !== "english" && (() => {
