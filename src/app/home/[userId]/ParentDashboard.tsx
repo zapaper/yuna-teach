@@ -1054,7 +1054,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         const isMarking = paper.markingStatus === "in_progress";
         return (
           <div key={paper.id} onClick={() => {
-              if (isMarking) return;
               const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
               if (isQuizOrFocused || paper.completedAt) {
                 router.push(`/exam/${paper.id}/review?userId=${userId}`);
@@ -1669,7 +1668,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       const isMarking = paper.markingStatus === "in_progress";
                       return (
                         <div key={paper.id} onClick={() => {
-                            if (isMarking) return;
                             const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
                             if (isQuizOrFocused || paper.completedAt) {
                               router.push(`/exam/${paper.id}/review?userId=${userId}`);
