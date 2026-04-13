@@ -127,7 +127,8 @@ function FlaggedContent() {
               onClick={() => {
                 const examId = item.cloneId ?? item.paperId;
                 const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
-                router.push(isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`);
+                const path = isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`;
+                window.open(`${path}?userId=${userId}`, "_blank");
               }}
               className="w-full text-left bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden hover:border-primary-200 transition-colors cursor-pointer"
             >
