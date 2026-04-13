@@ -900,7 +900,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                                 {["hit", "attack", "die"].map(s => (
                                   <video key={`m-${s}`} src={`/avatars/fight/mushroom_${s}.mp4`}
                                     autoPlay muted playsInline loop={s !== "die"}
-                                    className={`h-36 object-contain absolute bottom-0 right-6 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
+                                    className={`h-36 object-contain absolute bottom-2 right-12 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
                                     style={{ mixBlendMode: "screen" }}
                                   />
                                 ))}
@@ -1083,7 +1083,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                             {["hit", "attack", "die"].map(s => (
                               <video key={`m-${s}`} src={`/avatars/fight/mushroom_${s}.mp4`}
                                 autoPlay muted playsInline loop={s !== "die"}
-                                className={`h-20 object-contain absolute bottom-0 right-4 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
+                                className={`h-20 object-contain absolute bottom-1 right-8 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
                                 style={{ mixBlendMode: "screen" }}
                               />
                             ))}
