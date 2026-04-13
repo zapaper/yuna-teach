@@ -1113,15 +1113,15 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     if (!ctx || !lastPos.current) return;
     const pos = getPos(e);
     const isEraser = tool === "eraser" || tool === "eraser-large";
-    ctx.globalCompositeOperation = isEraser ? "destination-out" : "source-over";
-    ctx.strokeStyle = isEraser ? "rgba(0,0,0,1)" : "#0066cc";
-    ctx.lineWidth = tool === "eraser-large" ? 60 : tool === "eraser" ? 20 : 2;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = isEraser ? "#ffffff" : "#0066cc";
+    ctx.lineWidth = tool === "eraser-large" ? 80 : tool === "eraser" ? 28 : 2;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
-    ctx.globalCompositeOperation = "source-over";
     lastPos.current = pos;
   }
   function onCanvasUp() { isDrawing.current = false; lastPos.current = null; }
@@ -1155,11 +1155,20 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     canvas.style.height = `${height}px`;
     const newW = w * 2;
     const newH = height * 2;
+    // Stash old content into a temp canvas (so we can drawImage it back over a white fill)
+    let tempCanvas: HTMLCanvasElement | null = null;
+    if (savedImage) {
+      tempCanvas = document.createElement("canvas");
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      tempCanvas.getContext("2d")!.putImageData(savedImage, 0, 0);
+    }
     canvas.width = newW;
     canvas.height = newH;
-    // Restore content
-    if (savedImage && ctx) {
-      ctx.putImageData(savedImage, 0, 0);
+    if (ctx) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, newW, newH);
+      if (tempCanvas) ctx.drawImage(tempCanvas, 0, 0, newW, newH);
     }
   }, [height]);
 
