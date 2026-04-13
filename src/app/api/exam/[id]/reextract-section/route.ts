@@ -108,7 +108,13 @@ For EACH question, extract:
   In the passage, each question has a WORD that is UNDERLINED (printed differently from surrounding text). The student must choose the closest meaning from 4 options.
   Use __double underscores__ around the underlined word: "The boy was __elated__ when he saw the gift."
   If there is a blank instead of an underlined word, use "________" (8 underscores): "The boy was ________ when he saw the gift."
-  The OCR text marks underlined words as **(...) __word__** — extract just the sentence containing that word.` : ""}${isMcqSection ? `
+  The OCR text marks underlined words as **(...) __word__** — extract just the sentence containing that word.` : ""}${secLabel.toLowerCase().includes("synthesis") ? `
+  For Synthesis & Transformation: the stem MUST contain TWO things in order:
+    1. The original printed source sentence(s) the student is rewriting (the line above the answer area). NEVER omit this — even if the OCR only shows the source sentence on the line above, you must copy it into the stem.
+    2. A blank line, then the answer area template with **bold keyword** + ____________________ underscores (one or two lines).
+  Full example stem (use this exact shape):
+  "John drew a picture of his dog. Then he framed it up.\\n\\n**Instead of** ________________________________\\n________________________________"
+  If the source sentence is missing from the OCR, leave a placeholder like "[source sentence]" rather than silently dropping it. Bold the keyword/joining word with **double asterisks**.` : ""}${isMcqSection ? `
 - options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc.` : ""}
 - syllabusTopic: "${secLabel}"
 

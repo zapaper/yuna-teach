@@ -138,7 +138,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
-  const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
+  // Students who are blocked from MCQ-only math/science quizzes (must do MCQ + Written)
+  const MCQ_ONLY_BLOCKED_IDS = new Set(["cmmbbyvs30004qa9yinn3drl6", "cmm5wf91d000ryrxwaddlo6xh"]);
+  const mcqOnlyBlocked = MCQ_ONLY_BLOCKED_IDS.has(userId);
+  const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">(mcqOnlyBlocked ? "mcq-oeq" : "mcq");
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
@@ -1133,18 +1136,21 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
             {quizSubject !== "english" ? (
               <div className="space-y-2 mb-6">
-                {([["mcq", "MCQ Only", "20 multiple choice questions"], ["mcq-oeq", "MCQ + Written", "10 MCQ + 5 open-ended questions"]] as const).map(([val, label, desc]) => (
-                  <button key={val} onClick={() => setQuizType(val)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${quizType === val ? "border-[#006c49] bg-[#006c49]/5" : "border-slate-100"}`}>
-                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${quizType === val ? "border-[#006c49]" : "border-slate-300"}`}>
-                      {quizType === val && <span className="w-2.5 h-2.5 rounded-full bg-[#006c49]" />}
-                    </span>
-                    <div>
-                      <p className={`text-sm font-medium ${quizType === val ? "text-[#006c49]" : "text-slate-700"}`}>{label}</p>
-                      <p className="text-xs text-slate-400">{desc}</p>
-                    </div>
-                  </button>
-                ))}
+                {([["mcq", "MCQ Only", "20 multiple choice questions"], ["mcq-oeq", "MCQ + Written", "10 MCQ + 5 open-ended questions"]] as const).map(([val, label, desc]) => {
+                  const blocked = val === "mcq" && mcqOnlyBlocked;
+                  return (
+                    <button key={val} onClick={() => { if (!blocked) setQuizType(val); }} disabled={blocked}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${blocked ? "border-slate-100 opacity-40 cursor-not-allowed" : quizType === val ? "border-[#006c49] bg-[#006c49]/5" : "border-slate-100"}`}>
+                      <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${quizType === val && !blocked ? "border-[#006c49]" : "border-slate-300"}`}>
+                        {quizType === val && !blocked && <span className="w-2.5 h-2.5 rounded-full bg-[#006c49]" />}
+                      </span>
+                      <div>
+                        <p className={`text-sm font-medium ${quizType === val && !blocked ? "text-[#006c49]" : "text-slate-700"}`}>{label}</p>
+                        <p className="text-xs text-slate-400">{blocked ? "Not available — please do MCQ + Written" : desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <div className="mb-6">

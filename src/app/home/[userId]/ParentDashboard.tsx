@@ -742,16 +742,24 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         {assignMode === "quiz" && (<>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
         {quizSubject !== "english" ? (<>
-          <div className="flex gap-2 mb-5">
-            <button onClick={() => setQuizType("mcq")}
-              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-              MCQ Only
-            </button>
-            <button onClick={() => setQuizType("mcq-oeq")}
-              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq-oeq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-              MCQ + Written
-            </button>
-          </div>
+          {(() => {
+            const MCQ_ONLY_BLOCKED = new Set(["cmmbbyvs30004qa9yinn3drl6", "cmm5wf91d000ryrxwaddlo6xh"]);
+            const mcqBlocked = MCQ_ONLY_BLOCKED.has(quizStudentId);
+            // Auto-flip to mcq-oeq if selected student is blocked
+            if (mcqBlocked && quizType === "mcq") setTimeout(() => setQuizType("mcq-oeq"), 0);
+            return (
+              <div className="flex gap-2 mb-5">
+                <button onClick={() => { if (!mcqBlocked) setQuizType("mcq"); }} disabled={mcqBlocked}
+                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${mcqBlocked ? "border-[#c3c6d1]/40 text-[#c3c6d1]/60 opacity-50 cursor-not-allowed" : quizType === "mcq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                  MCQ Only
+                </button>
+                <button onClick={() => setQuizType("mcq-oeq")}
+                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq-oeq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                  MCQ + Written
+                </button>
+              </div>
+            );
+          })()}
           {quizType === "mcq-oeq" && (
             <p className="text-[10px] text-[#c3c6d1] -mt-3 mb-4 flex items-center gap-1">
               <span className="material-symbols-outlined text-xs">stylus_note</span>
