@@ -180,6 +180,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   useEffect(() => { refreshPapers(); }, [refreshPapers]);
 
+  // Keep quiz modal target student in sync with the currently selected student
+  useEffect(() => { if (selectedStudentId) setQuizStudentId(selectedStudentId); }, [selectedStudentId]);
+
   useEffect(() => {
     if (!selectedStudentId) return;
     setLoadingProgress(true);
@@ -658,19 +661,49 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </button>
           ))}
         </div>
-        {assignMode === "focused" && (
-          <div className="mb-5">
-            <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Topic</p>
-            <select value={focusedTopic} onChange={e => setFocusedTopic(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none bg-white">
-              <option value="">Select a topic…</option>
-              {(quizSubject === "math"
-                ? ["Basic math operations", "Fractions", "Percentage", "Ratio", "Algebra", "Area and circumference of circle", "Volume of cube and cuboid", "Geometry", "Statistics", "Time", "Volume measurement"]
-                : ["Diversity of living and non-living things", "Diversity of materials", "Life cycles in plants and animals", "Plant parts and functions", "Human digestive system", "Cycles in matter", "Water cycle, evaporation, condensation", "Plant respiratory and circulatory systems", "Human respiratory and circulatory systems", "Reproduction in plants and animals", "Light energy and uses", "Heat energy and uses", "Electrical system and circuits", "Photosynthesis", "Energy conversion", "Interaction of forces (Magnets)", "Interaction of forces (Frictional force, gravitational force, elastic spring force)", "Interactions within the environment"]
-              ).map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-        )}
+        {assignMode === "focused" && (() => {
+          const weakDetected = allTopics
+            .filter(t => t.subject.toLowerCase().includes(quizSubject === "math" ? "math" : "science") && t.pct < 65)
+            .slice(0, 3);
+          return (
+            <>
+              <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
+              <div className="flex gap-2 mb-4">
+                {(["mcq", "mcq-oeq"] as const).map(t => (
+                  <button key={t} onClick={() => setFocusedType(t)}
+                    className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${focusedType === t ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                    {t === "mcq" ? "MCQ Only" : "MCQ + Written"}
+                  </button>
+                ))}
+              </div>
+              {weakDetected.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Weakest Topics</p>
+                  <div className="space-y-1.5">
+                    {weakDetected.map(t => (
+                      <button key={t.topic} onClick={() => setFocusedTopic(t.topic)}
+                        className={`w-full flex items-center justify-between text-left px-3 py-2 rounded-xl border-2 transition-all ${focusedTopic === t.topic ? "border-[#006c49] bg-[#6cf8bb]/20" : "border-[#c3c6d1] bg-white"}`}>
+                        <span className="text-sm font-bold text-[#001e40] truncate pr-2">{t.topic}</span>
+                        <span className="text-xs text-[#ba1a1a] font-extrabold shrink-0">{t.pct}%</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="mb-5">
+                <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Or Choose Topic</p>
+                <select value={focusedTopic} onChange={e => setFocusedTopic(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border-2 border-[#c3c6d1] text-sm focus:border-[#003366] focus:outline-none bg-white">
+                  <option value="">Select a topic…</option>
+                  {(quizSubject === "math"
+                    ? ["Basic math operations", "Fractions", "Percentage", "Ratio", "Algebra", "Area and circumference of circle", "Volume of cube and cuboid", "Geometry", "Statistics", "Time", "Volume measurement"]
+                    : ["Diversity of living and non-living things", "Diversity of materials", "Life cycles in plants and animals", "Plant parts and functions", "Human digestive system", "Cycles in matter", "Water cycle, evaporation, condensation", "Plant respiratory and circulatory systems", "Human respiratory and circulatory systems", "Reproduction in plants and animals", "Light energy and uses", "Heat energy and uses", "Electrical system and circuits", "Photosynthesis", "Energy conversion", "Interaction of forces (Magnets)", "Interaction of forces (Frictional force, gravitational force, elastic spring force)", "Interactions within the environment"]
+                  ).map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </>
+          );
+        })()}
         {assignMode === "quiz" && (<>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
         {quizSubject !== "english" ? (<>
@@ -743,6 +776,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       studentId: quizStudentId,
                       subject: quizSubject === "math" ? "Mathematics" : "Science",
                       topic: focusedTopic,
+                      type: focusedType,
                       ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
                     }),
                   });
@@ -1741,7 +1775,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               {shortenTitle(p.title)}
                             </div>
                           ))}
-                          <button onClick={() => { setQuizTargetDay(day); setShowQuiz(true); }} className="w-full rounded-lg py-1 text-xs font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
+                          <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="w-full rounded-lg py-1 text-xs font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
                             +
                           </button>
                         </div>
@@ -1791,8 +1825,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     ].map(item => {
                       const isOn = selectedStudent?.settings?.[item.key] === true;
                       return (
-                        <div key={item.key} className="flex items-center justify-between">
-                          <div>
+                        <div key={item.key} className="flex items-center justify-between gap-4">
+                          <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-[#001e40]">{item.label}</p>
                             <p className="text-xs text-[#43474f]">{item.desc}</p>
                           </div>
@@ -1810,7 +1844,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 setSettingsTick(t => t + 1);
                               }
                             }}
-                            className={`w-12 h-7 rounded-full transition-colors relative ${isOn ? "bg-[#006c49]" : "bg-slate-200"}`}
+                            className={`shrink-0 w-12 h-7 rounded-full transition-colors relative ${isOn ? "bg-[#006c49]" : "bg-slate-200"}`}
                           >
                             <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${isOn ? "left-5.5 translate-x-0" : "left-0.5"}`}
                               style={isOn ? { left: "1.375rem" } : { left: "0.125rem" }}
@@ -1986,7 +2020,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </div>
                           ))}
                         </div>
-                        <button onClick={() => { setQuizTargetDay(day); setShowQuiz(true); }} className="mt-2 w-full rounded-lg py-1 text-sm font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
+                        <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="mt-2 w-full rounded-lg py-1 text-sm font-bold text-[#c3c6d1] hover:text-[#003366] transition-colors">
                           +
                         </button>
                       </div>

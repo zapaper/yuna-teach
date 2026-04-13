@@ -12,8 +12,9 @@ function baseNum(questionNum: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const { parentId, studentId, subject, topic, scheduledFor } = await request.json();
+  const { parentId, studentId, subject, topic, scheduledFor, type } = await request.json();
   const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
+  const mcqOnly = type === "mcq";
 
   if (!parentId || !subject || !topic) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -144,11 +145,12 @@ export async function POST(request: NextRequest) {
   shuffle(oeqPool);
 
   // Take up to 5 MCQ + up to 5 OEQ; fill remaining slots from whichever has more
-  const targetMcq = Math.min(5, mcqPool.length);
-  const targetOeq = Math.min(5, oeqPool.length);
+  // When mcqOnly, use only MCQ pool for all 10 slots
+  const targetMcq = mcqOnly ? Math.min(10, mcqPool.length) : Math.min(5, mcqPool.length);
+  const targetOeq = mcqOnly ? 0 : Math.min(5, oeqPool.length);
   const remaining = 10 - targetMcq - targetOeq;
   const extraMcq = Math.min(remaining, mcqPool.length - targetMcq);
-  const extraOeq = remaining - extraMcq > 0 ? Math.min(remaining - extraMcq, oeqPool.length - targetOeq) : 0;
+  const extraOeq = !mcqOnly && remaining - extraMcq > 0 ? Math.min(remaining - extraMcq, oeqPool.length - targetOeq) : 0;
 
   const selectedMcq = mcqPool.slice(0, targetMcq + extraMcq);
   const selectedOeq = oeqPool.slice(0, targetOeq + extraOeq).map(mergeOeqGroup);
