@@ -6,6 +6,7 @@ const NAV_ITEMS = [
   { icon: "flag",          label: "Flagged Q&A",  path: "/flagged" },
   { icon: "upload_file",   label: "Upload",        path: "/exam/upload" },
   { icon: "library_books", label: "Papers",        path: "/admin/papers" },
+  { icon: "auto_awesome",  label: "Synthetic",     path: "/admin/synthetic" },
   { icon: "feedback",      label: "Feedback",      path: "/admin/feedback" },
 ];
 
