@@ -177,13 +177,35 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   // map arena "slime" action names to mushroom file names (dead → die)
   const mushroomAct = (a: string) => (a === "dead" ? "die" : a);
   // Preload all arena GIFs
-  // Preload all arena GIFs (bunny + slime)
+  // Fight avatar resolution — pick the right prefix/extension for the player's avatar type.
+  // bunny: gif, tiered (ha unlocked at 200 pts); bear: gif la only; tiger/fox: mp4 la only.
+  function fightAvatarCfg(type: string, points: number): { prefix: string; ext: "gif" | "mp4"; isVideo: boolean } {
+    const haEligible = type === "bunny" && points >= 200;
+    const tier = haEligible ? "ha" : "la";
+    if (type === "bear") return { prefix: `/avatars/fight/bear_la`, ext: "gif", isVideo: false };
+    if (type === "tiger") return { prefix: `/avatars/fight/tiger_la`, ext: "mp4", isVideo: true };
+    if (type === "fox") return { prefix: `/avatars/fight/fox_la`, ext: "mp4", isVideo: true };
+    return { prefix: `/avatars/fight/bunny_${tier}`, ext: "gif", isVideo: false };
+  }
+
+  // Preload all arena fight assets for the player's avatar type + slime + mushroom
   useEffect(() => {
     if (!hasArena) return;
     for (const tier of ["la", "ha"]) {
       for (const act of ["ready", "attack", "defend", "hit"]) {
         const img = new Image();
         img.src = `/avatars/fight/bunny_${tier}_${act}.gif`;
+      }
+    }
+    for (const act of ["ready", "attack", "defend", "hit"]) {
+      const img = new Image();
+      img.src = `/avatars/fight/bear_la_${act}.gif`;
+    }
+    for (const brand of ["tiger", "fox"]) {
+      for (const act of ["ready", "attack", "defend", "hit"]) {
+        const v = document.createElement("video");
+        v.src = `/avatars/fight/${brand}_la_${act}.mp4`;
+        v.preload = "auto";
       }
     }
     for (const act of ["attack", "hit", "dead"]) {
@@ -875,15 +897,21 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           {/* Avatar — above slime (z-10) */}
                           {(() => {
                             const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                            const tier = myPoints >= 200 ? "ha" : "la";
-                            const uniqueActions = [{ avatar: "attack", slime: "hit" }, { avatar: "defend", slime: "attack" }, { avatar: "ready", slime: "dead" }] as const;
+                            const cfg = fightAvatarCfg(avatarType, myPoints);
+                            const acts = ["attack", "defend", "ready"] as const;
                             const currentPair = arenaPairs[arenaAction];
-                            return uniqueActions.map(pair => (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img key={`a-${pair.avatar}`} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
-                                className={`h-48 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === pair.avatar ? "" : "invisible"}`}
+                            return acts.map(act => cfg.isVideo ? (
+                              <video key={`a-${act}`} src={`${cfg.prefix}_${act}.${cfg.ext}`}
+                                autoPlay muted playsInline loop
+                                className={`h-48 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === act ? "" : "invisible"}`}
                                 style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
-                                onLoad={() => { if (currentPair.avatar === pair.avatar) setArenaGifReady(true); }}
+                              />
+                            ) : (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img key={`a-${act}`} src={`${cfg.prefix}_${act}.${cfg.ext}`} alt={act}
+                                className={`h-48 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === act ? "" : "invisible"}`}
+                                style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
+                                onLoad={() => { if (currentPair.avatar === act) setArenaGifReady(true); }}
                               />
                             ));
                           })()}
@@ -1059,13 +1087,19 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       {/* Avatar — above slime (z-10) */}
                       {(() => {
                         const myPoints = arenaData.playerEntry?.points ?? arenaData.leaderboard.find(e => e.id === userId)?.points ?? 0;
-                        const tier = myPoints >= 200 ? "ha" : "la";
-                        const uniqueActions = [{ avatar: "attack", slime: "hit" }, { avatar: "defend", slime: "attack" }, { avatar: "ready", slime: "dead" }] as const;
+                        const cfg = fightAvatarCfg(avatarType, myPoints);
+                        const acts = ["attack", "defend", "ready"] as const;
                         const currentPair = arenaPairs[arenaAction];
-                        return uniqueActions.map(pair => (
+                        return acts.map(act => cfg.isVideo ? (
+                          <video key={`a-${act}`} src={`${cfg.prefix}_${act}.${cfg.ext}`}
+                            autoPlay muted playsInline loop
+                            className={`h-28 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === act ? "" : "invisible"}`}
+                            style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
+                          />
+                        ) : (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img key={`a-${pair.avatar}`} src={`/avatars/fight/bunny_${tier}_${pair.avatar}.gif`} alt={pair.avatar}
-                            className={`h-28 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === pair.avatar ? "" : "invisible"}`}
+                          <img key={`a-${act}`} src={`${cfg.prefix}_${act}.${cfg.ext}`} alt={act}
+                            className={`h-28 object-contain absolute bottom-0 left-0 z-10 ${currentPair.avatar === act ? "" : "invisible"}`}
                             style={{ mixBlendMode: "screen", transform: "scaleX(-1)" }}
                           />
                         ));

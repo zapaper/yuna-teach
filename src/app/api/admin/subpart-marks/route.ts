@@ -15,7 +15,7 @@ function subsNeedMarks(subs: unknown): Subpart[] {
   if (!Array.isArray(subs)) return [];
   const real = subs.filter((s: Subpart) => s && typeof s.label === "string" && !s.label.startsWith("_"));
   // needs marks if NONE of the sub-parts have a [N] marker
-  const anyWithMarks = real.some((s: Subpart) => /\[(\d+)\s*(?:m(?:ark)?s?)?\]/i.test(String(s.text ?? "")));
+  const anyWithMarks = real.some((s: Subpart) => /\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i.test(String(s.text ?? "")));
   return anyWithMarks ? [] : real;
 }
 
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       const m = marks[sp.label];
       if (!m) return sp;
       // Only append if text doesn't already have [N]
-      if (/\[(\d+)\s*(?:m(?:ark)?s?)?\]/i.test(String(sp.text ?? ""))) return sp;
+      if (/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i.test(String(sp.text ?? ""))) return sp;
       const newText = `${String(sp.text ?? "").trim()} [${m}]`.trim();
       return { ...sp, text: newText };
     });
