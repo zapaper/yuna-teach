@@ -170,6 +170,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const arenaActions = arenaPairs;
   const [arenaAction, setArenaAction] = useState(0);
   const [arenaGifReady, setArenaGifReady] = useState(true);
+  const [showSlash, setShowSlash] = useState(false);
   // Preload all arena GIFs
   // Preload all arena GIFs (bunny + slime)
   useEffect(() => {
@@ -184,7 +185,19 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       const img = new Image();
       img.src = `/avatars/fight/slime_${act}.gif`;
     }
+    const slashImg = new Image();
+    slashImg.src = "/avatars/fight/slash.gif";
   }, [hasArena]);
+
+  // Trigger slash 1s after avatar attacks
+  useEffect(() => {
+    if (!showArena || !hasArena) return;
+    const currentPair = arenaPairs[arenaAction];
+    if (currentPair.avatar !== "attack") { setShowSlash(false); return; }
+    const t1 = setTimeout(() => setShowSlash(true), 1000);
+    const t2 = setTimeout(() => setShowSlash(false), 1500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [arenaAction, showArena, hasArena, arenaPairs]);
   useEffect(() => {
     if (!showArena || !hasArena) return;
     const interval = setInterval(() => {
@@ -846,6 +859,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                               />
                             );
                           })}
+                          {/* Slash — between avatar and slime */}
+                          {showSlash && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={`/avatars/fight/slash.gif?t=${arenaAction}`} alt="slash"
+                              className="h-32 object-contain absolute bottom-4 left-1/2 -translate-x-1/2 z-20"
+                              style={{ mixBlendMode: "screen" }}
+                            />
+                          )}
                         </div>
                       </div>
                   </div>
@@ -1001,6 +1022,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           />
                         );
                       })}
+                      {/* Slash — between avatar and slime */}
+                      {showSlash && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={`/avatars/fight/slash.gif?t=${arenaAction}`} alt="slash"
+                          className="h-20 object-contain absolute bottom-2 left-1/2 -translate-x-1/2 z-20"
+                          style={{ mixBlendMode: "screen" }}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
