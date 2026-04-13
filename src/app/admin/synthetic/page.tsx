@@ -54,6 +54,8 @@ function SyntheticContent() {
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [savingState, setSavingState] = useState<string | null>(null);
+  const [regenPrompts, setRegenPrompts] = useState<Record<string, string>>({});
+  const [regenerating, setRegenerating] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -187,6 +189,31 @@ function SyntheticContent() {
     });
   }
 
+  async function regenerateDiagram(q: Question, which: "simple" | "similar") {
+    const d = drafts[q.id];
+    if (!d) return;
+    const key = `${q.id}-${which}`;
+    setRegenerating(key);
+    try {
+      const res = await fetch("/api/admin/synthetic/regen-diagram", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          sourceQuestionId: q.id,
+          variantStem: d[which].stem,
+          diagramDescription: d[which].diagramDescription,
+          userPrompt: regenPrompts[key],
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error ?? "Regen failed"); return; }
+      updateVariant(q.id, which, { diagramImageData: data.diagramImageData });
+    } finally {
+      setRegenerating(null);
+    }
+  }
+
   function updateOption(qId: string, which: "simple" | "similar", idx: number, value: string) {
     setDrafts(prev => {
       const curr = prev[qId];
@@ -299,6 +326,11 @@ function SyntheticContent() {
               {d && (
                 <div className={locked ? "opacity-40 pointer-events-none" : ""}>
                   <VariantEditor title="Simple variant (changed numbers / reordered)" variant={d.simple} disabled={locked}
+                    hasOriginalDiagram={!!q.diagramImageData}
+                    regenPrompt={regenPrompts[`${q.id}-simple`] ?? ""}
+                    setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-simple`]: v }))}
+                    regenerating={regenerating === `${q.id}-simple`}
+                    onRegenDiagram={() => regenerateDiagram(q, "simple")}
                     onStem={s => updateVariant(q.id, "simple", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "simple", i, v)}
                     onCorrect={n => updateVariant(q.id, "simple", { correctAnswer: n })} />
@@ -307,6 +339,11 @@ function SyntheticContent() {
                     onChoose={dec => setDecision(q, "simple", dec)} />
 
                   <VariantEditor title="Similar variant (related but different)" variant={d.similar} disabled={locked}
+                    hasOriginalDiagram={!!q.diagramImageData}
+                    regenPrompt={regenPrompts[`${q.id}-similar`] ?? ""}
+                    setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-similar`]: v }))}
+                    regenerating={regenerating === `${q.id}-similar`}
+                    onRegenDiagram={() => regenerateDiagram(q, "similar")}
                     onStem={s => updateVariant(q.id, "similar", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "similar", i, v)}
                     onCorrect={n => updateVariant(q.id, "similar", { correctAnswer: n })} />
@@ -361,10 +398,15 @@ function DecisionButtons({ which, decision, savingState, questionId, onChoose }:
   );
 }
 
-function VariantEditor({ title, variant, disabled, onStem, onOption, onCorrect }: {
+function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenPrompt, setRegenPrompt, regenerating, onRegenDiagram, onStem, onOption, onCorrect }: {
   title: string;
   variant: Variant;
   disabled?: boolean;
+  hasOriginalDiagram?: boolean;
+  regenPrompt?: string;
+  setRegenPrompt?: (v: string) => void;
+  regenerating?: boolean;
+  onRegenDiagram?: () => void;
   onStem: (s: string) => void;
   onOption: (i: number, v: string) => void;
   onCorrect: (n: number) => void;
@@ -387,6 +429,22 @@ function VariantEditor({ title, variant, disabled, onStem, onOption, onCorrect }
         <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-[10px] font-bold uppercase text-amber-600 mb-0.5">Diagram suggestion (image generation failed)</p>
           <p className="text-xs text-amber-800">{variant.diagramDescription}</p>
+        </div>
+      )}
+      {hasOriginalDiagram && onRegenDiagram && (
+        <div className="mb-3 p-2 border border-dashed border-slate-200 rounded-lg space-y-1.5">
+          <textarea
+            value={regenPrompt ?? ""}
+            onChange={e => setRegenPrompt?.(e.target.value)}
+            placeholder="Optional: describe how to redraw the diagram (e.g. 'use a clearer bar model', 'add labels A, B, C')"
+            rows={2}
+            disabled={disabled}
+            className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 focus:border-slate-500 outline-none resize-none disabled:bg-slate-50"
+          />
+          <button onClick={onRegenDiagram} disabled={disabled || regenerating}
+            className="w-full py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold disabled:opacity-50">
+            {regenerating ? "Regenerating diagram…" : variant.diagramImageData ? "Regenerate diagram" : "Generate diagram"}
+          </button>
         </div>
       )}
       <div className="space-y-2">
