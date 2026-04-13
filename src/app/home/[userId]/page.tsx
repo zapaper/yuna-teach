@@ -446,12 +446,48 @@ export default function HomePage({
     );
   }
 
+  const adminNotifPopup = showAdminNotifs && adminNotifs.length > 0 ? (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4">
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">💬</span>
+          <h3 className="font-semibold text-lg text-slate-800">Reply from Admin</h3>
+        </div>
+        {adminNotifs.map((n) => (
+          <div key={n.questionId} className="bg-slate-50 rounded-xl px-4 py-3 space-y-1">
+            <p className="text-xs text-slate-400 font-medium">{n.paperTitle} · Q{n.questionNum}</p>
+            <p className="text-sm text-slate-700 whitespace-pre-wrap">{n.adminReply}</p>
+          </div>
+        ))}
+        <button
+          onClick={() => {
+            setShowAdminNotifs(false);
+            fetch("/api/notifications", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId, questionIds: adminNotifs.map(n => n.questionId) }),
+            }).catch(() => {});
+          }}
+          className="w-full py-2.5 rounded-xl bg-[#003366] text-white font-semibold hover:bg-[#001e40] transition-colors"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  ) : null;
+
   if (isParent && user) {
-    return <ParentDashboard userId={userId} user={user} initialStudentId={searchParams.get("student") ?? searchParams.get("studentId") ?? undefined} initialView={searchParams.get("view") ?? undefined} initialOpenQuiz={searchParams.get("openQuiz") === "1"} diagnosticWelcome={searchParams.get("diagnosticWelcome") === "1"} />;
+    return <>
+      <ParentDashboard userId={userId} user={user} initialStudentId={searchParams.get("student") ?? searchParams.get("studentId") ?? undefined} initialView={searchParams.get("view") ?? undefined} initialOpenQuiz={searchParams.get("openQuiz") === "1"} diagnosticWelcome={searchParams.get("diagnosticWelcome") === "1"} />
+      {adminNotifPopup}
+    </>;
   }
 
   if (!isAdmin && user) {
-    return <StudentDashboard userId={userId} user={user} firstQuiz={searchParams.get("firstQuiz") === "1"} />;
+    return <>
+      <StudentDashboard userId={userId} user={user} firstQuiz={searchParams.get("firstQuiz") === "1"} />
+      {adminNotifPopup}
+    </>;
   }
 
   return (
