@@ -219,6 +219,9 @@ function AdminPapersContent() {
                     {" · "}
                     <span>{paper.questionCount}q</span>
                     {paper.assignmentCount > 0 && <span className="text-blue-500"> · {paper.assignmentCount} assigned</span>}
+                    {(paper.paperType === "focused" || paper.paperType === "quiz") && (
+                      <span className="text-slate-500"> · {new Date(paper.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
+                    )}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
