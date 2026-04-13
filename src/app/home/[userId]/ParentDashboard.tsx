@@ -78,6 +78,22 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
   const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean } | null>(null);
   const [quizTargetDay, setQuizTargetDay] = useState<Date | null>(null);
+
+  async function reschedulePaper(paperId: string, newDay: Date) {
+    const d = new Date(newDay); d.setHours(9, 0, 0, 0);
+    // Optimistic local update
+    setExamPapers(prev => prev.map(p => p.id === paperId ? { ...p, scheduledFor: d.toISOString() } : p));
+    try {
+      await fetch(`/api/exam/${paperId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduledFor: d.toISOString() }),
+      });
+    } catch {
+      // revert on failure
+      await refreshPapers();
+    }
+  }
   const [bunnySrc, setBunnySrc] = useState(() => avatarVideos ? avatarVideos[Math.floor(Math.random() * avatarVideos.length)] : "");
   const [nextSrc, setNextSrc] = useState<string | null>(null);
   const bunnyRef = useRef<HTMLVideoElement>(null);
@@ -1801,15 +1817,25 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     const papers = papersByDay[di];
                     const today = isToday(day);
                     return (
-                      <div key={di} className={`min-w-[5.5rem] flex-shrink-0 rounded-2xl p-2.5 ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-white border border-slate-100"}`}>
+                      <div key={di}
+                        onDragOver={e => { e.preventDefault(); }}
+                        onDrop={e => {
+                          e.preventDefault();
+                          const id = e.dataTransfer.getData("text/plain");
+                          if (id) reschedulePaper(id, day);
+                        }}
+                        className={`min-w-[5.5rem] flex-shrink-0 rounded-2xl p-2.5 ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-white border border-slate-100"}`}>
                         <p className={`text-[10px] font-bold text-center mb-1 ${today ? "text-[#003366]" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
                         <p className={`text-xs font-extrabold text-center mb-2 ${today ? "text-[#003366]" : "text-[#001e40]"}`}>{day.getDate()}</p>
                         <div className="space-y-1.5">
                           {papers.map(p => (
-                            <div key={p.id} onClick={() => {
-                              if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                              else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
-                            }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate cursor-pointer ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : "bg-[#eff4ff] text-[#001e40]"}`}>
+                            <div key={p.id}
+                              draggable={!p.completedAt}
+                              onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
+                              onClick={() => {
+                                if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
+                              }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
                               {shortenTitle(p.title)}
                             </div>
                           ))}
@@ -2045,15 +2071,25 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     const papers = papersByDay[di];
                     const today = isToday(day);
                     return (
-                      <div key={di} className={`rounded-2xl p-3 min-h-[140px] flex flex-col ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-[#f8f9ff] border border-slate-100"}`}>
+                      <div key={di}
+                        onDragOver={e => { e.preventDefault(); }}
+                        onDrop={e => {
+                          e.preventDefault();
+                          const id = e.dataTransfer.getData("text/plain");
+                          if (id) reschedulePaper(id, day);
+                        }}
+                        className={`rounded-2xl p-3 min-h-[140px] flex flex-col ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-[#f8f9ff] border border-slate-100"}`}>
                         <p className={`text-[10px] font-bold text-center ${today ? "text-[#003366]" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
                         <p className={`text-sm font-extrabold text-center mb-3 ${today ? "text-[#003366]" : "text-[#001e40]"}`}>{day.getDate()}</p>
                         <div className="space-y-1.5 flex-1">
                           {papers.map(p => (
-                            <div key={p.id} onClick={() => {
-                              if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                              else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
-                            }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate cursor-pointer hover:opacity-80 transition-opacity ${p.completedAt ? "bg-[#d1fae5] text-[#006c49]" : "bg-[#eff4ff] text-[#001e40] shadow-sm"}`}>
+                            <div key={p.id}
+                              draggable={!p.completedAt}
+                              onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
+                              onClick={() => {
+                                if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
+                              }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
                               {shortenTitle(p.title)}
                             </div>
                           ))}

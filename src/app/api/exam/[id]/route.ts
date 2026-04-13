@@ -243,6 +243,7 @@ export async function PATCH(
   if ("markingStatus" in body) data.markingStatus = body.markingStatus ?? null;
   if ("examType" in body) data.examType = body.examType || null;
   if ("title" in body && typeof body.title === "string") data.title = body.title;
+  if ("scheduledFor" in body) data.scheduledFor = body.scheduledFor ? new Date(body.scheduledFor) : new Date();
   if ("extractionStatus" in body) data.extractionStatus = body.extractionStatus || null;
   if ("visible" in body && typeof body.visible === "boolean") data.visible = body.visible;
   if ("skipPages" in body && Array.isArray(body.skipPages)) {
