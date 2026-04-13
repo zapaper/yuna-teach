@@ -189,7 +189,7 @@ function SyntheticContent() {
     });
   }
 
-  async function regenerateDiagram(q: Question, which: "simple" | "similar") {
+  async function regenerateDiagram(q: Question, which: "simple" | "similar", reset = false) {
     const d = drafts[q.id];
     if (!d) return;
     const key = `${q.id}-${which}`;
@@ -203,12 +203,13 @@ function SyntheticContent() {
           sourceQuestionId: q.id,
           variantStem: d[which].stem,
           diagramDescription: d[which].diagramDescription,
-          userPrompt: regenPrompts[key],
+          userPrompt: reset ? undefined : regenPrompts[key],
         }),
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error ?? "Regen failed"); return; }
       updateVariant(q.id, which, { diagramImageData: data.diagramImageData });
+      if (reset) setRegenPrompts(prev => ({ ...prev, [key]: "" }));
     } finally {
       setRegenerating(null);
     }
@@ -337,6 +338,7 @@ function SyntheticContent() {
                     setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-simple`]: v }))}
                     regenerating={regenerating === `${q.id}-simple`}
                     onRegenDiagram={() => regenerateDiagram(q, "simple")}
+                    onResetDiagram={() => regenerateDiagram(q, "simple", true)}
                     onStem={s => updateVariant(q.id, "simple", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "simple", i, v)}
                     onCorrect={n => updateVariant(q.id, "simple", { correctAnswer: n })} />
@@ -350,6 +352,7 @@ function SyntheticContent() {
                     setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-similar`]: v }))}
                     regenerating={regenerating === `${q.id}-similar`}
                     onRegenDiagram={() => regenerateDiagram(q, "similar")}
+                    onResetDiagram={() => regenerateDiagram(q, "similar", true)}
                     onStem={s => updateVariant(q.id, "similar", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "similar", i, v)}
                     onCorrect={n => updateVariant(q.id, "similar", { correctAnswer: n })} />
@@ -404,7 +407,7 @@ function DecisionButtons({ which, decision, savingState, questionId, onChoose }:
   );
 }
 
-function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenPrompt, setRegenPrompt, regenerating, onRegenDiagram, onStem, onOption, onCorrect }: {
+function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenPrompt, setRegenPrompt, regenerating, onRegenDiagram, onResetDiagram, onStem, onOption, onCorrect }: {
   title: string;
   variant: Variant;
   disabled?: boolean;
@@ -413,6 +416,7 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
   setRegenPrompt?: (v: string) => void;
   regenerating?: boolean;
   onRegenDiagram?: () => void;
+  onResetDiagram?: () => void;
   onStem: (s: string) => void;
   onOption: (i: number, v: string) => void;
   onCorrect: (n: number) => void;
@@ -447,10 +451,19 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
             disabled={disabled}
             className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 focus:border-slate-500 outline-none resize-none disabled:bg-slate-50"
           />
-          <button onClick={onRegenDiagram} disabled={disabled || regenerating}
-            className="w-full py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold disabled:opacity-50">
-            {regenerating ? "Regenerating diagram…" : variant.diagramImageData ? "Regenerate diagram" : "Generate diagram"}
-          </button>
+          <div className="flex gap-1.5">
+            <button onClick={onRegenDiagram} disabled={disabled || regenerating}
+              className="flex-1 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold disabled:opacity-50">
+              {regenerating ? "Regenerating…" : variant.diagramImageData ? "Regenerate diagram" : "Generate diagram"}
+            </button>
+            {onResetDiagram && (
+              <button onClick={onResetDiagram} disabled={disabled || regenerating}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-xs font-bold disabled:opacity-50"
+                title="Regenerate from original AI description, ignoring the prompt above">
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       )}
       <div className="space-y-2">

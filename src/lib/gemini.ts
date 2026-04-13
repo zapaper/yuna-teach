@@ -2975,9 +2975,12 @@ For EACH question, extract:
 - options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc. You MUST include all 4 options for every MCQ question. Options may also wrap across lines — join them.` : ""}${isClozeSection ? `
 - blankContext: the sentence fragment around the blank, with "___" where the blank is` : ""}${isEditingSection ? `
 - errorWord: the underlined/erroneous word the student must correct` : ""}${secLabel.toLowerCase().includes("synthesis") ? `
-  For Synthesis: include the question sentence, any given word (e.g. "Use: although"), then the answer area as:
-  "**Starting word** ________________________________\\n________________________________"
-  Bold the starting word, then two full lines of underscores for the student to write on.` : ""}${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? `
+  For Synthesis: the stem MUST contain TWO things in order:
+    1. The original printed source sentence(s) the student is rewriting (the line above the answer area). NEVER omit this — even if the OCR text only shows the source sentence on the line above, you must copy it into the stem.
+    2. A blank line, then the answer area template with **bold keyword** + ____________________ underscores (one or two lines).
+  Full example stem (use this exact shape):
+  "John drew a picture of his dog. Then he framed it up.\\n\\n**Instead of** ________________________________\\n________________________________"
+  If the source sentence is missing from the OCR, leave a placeholder like "[source sentence]" rather than silently dropping it. Bold the keyword/joining word with **double asterisks**.` : ""}${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? `
   For Comprehension OEQ: include the FULL question text in RICH TEXT format.
   - If the question contains a TABLE, include it as a markdown table (| col1 | col2 |) in the stem — do NOT summarize as "[TABLE: ...]"
   - If the question contains checkboxes, use [ ] and [x]
