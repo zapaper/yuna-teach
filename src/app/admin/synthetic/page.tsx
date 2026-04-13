@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 
+type Subject = "math" | "science" | "english";
+
 type Question = {
   id: string;
   questionNum: string;
@@ -39,11 +41,12 @@ function SyntheticContent() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [subject, setSubject] = useState<Subject>("math");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [drafts, setDrafts] = useState<Record<string, Drafts>>({});
-  const [generating, setGenerating] = useState<string | null>(null);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [savingState, setSavingState] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -57,7 +60,7 @@ function SyntheticContent() {
   const loadBatch = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/synthetic/batch?userId=${userId}`);
+      const res = await fetch(`/api/admin/synthetic/batch?userId=${userId}&subject=${subject}`);
       const data = await res.json();
       setQuestions(data.questions ?? []);
       setCurrentIdx(0);
@@ -65,7 +68,7 @@ function SyntheticContent() {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, subject]);
 
   useEffect(() => { if (allowed) loadBatch(); }, [allowed, loadBatch]);
 
@@ -74,35 +77,46 @@ function SyntheticContent() {
     setTimeout(() => setToast(null), 2500);
   }
 
-  async function generateFor(q: Question) {
-    setGenerating(q.id);
-    try {
-      const res = await fetch("/api/admin/synthetic/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, questionId: q.id }),
-      });
-      const data = await res.json();
-      if (!res.ok) { showToast(data.error ?? "Generation failed"); return; }
-      setDrafts(prev => ({ ...prev, [q.id]: data }));
-    } finally {
-      setGenerating(null);
-    }
+  async function generateOne(q: Question) {
+    const res = await fetch("/api/admin/synthetic/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, questionId: q.id, subject }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as { simple: Variant; similar: Variant };
   }
 
-  async function saveFor(q: Question) {
+  async function generateAll() {
+    if (questions.length === 0) return;
+    setBulkProgress({ done: 0, total: questions.length });
+    let done = 0;
+    await Promise.all(questions.map(async q => {
+      const result = await generateOne(q);
+      done += 1;
+      setBulkProgress({ done, total: questions.length });
+      if (result) {
+        setDrafts(prev => ({ ...prev, [q.id]: result }));
+      }
+    }));
+    setBulkProgress(null);
+    showToast("Generation complete");
+  }
+
+  async function acceptVariant(q: Question, which: "simple" | "similar") {
     const d = drafts[q.id];
     if (!d) return;
-    setSavingState(`save-${q.id}`);
+    const key = `save-${q.id}-${which}`;
+    setSavingState(key);
     try {
       const res = await fetch("/api/admin/synthetic/save", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, questionId: q.id, simple: d.simple, similar: d.similar }),
+        body: JSON.stringify({ userId, questionId: q.id, variant: which, data: d[which] }),
       });
       const data = await res.json();
       if (!res.ok) { showToast(data.error ?? "Save failed"); return; }
-      showToast("Saved");
+      showToast(`${which === "simple" ? "Simple" : "Similar"} saved`);
     } finally {
       setSavingState(null);
     }
@@ -119,7 +133,6 @@ function SyntheticContent() {
       const data = await res.json();
       if (!res.ok) { showToast(data.error ?? "Mark failed"); return; }
       showToast("Marked generated");
-      // Remove from local batch
       setQuestions(prev => prev.filter(x => x.id !== q.id));
       setCurrentIdx(idx => Math.max(0, Math.min(idx, questions.length - 2)));
     } finally {
@@ -154,6 +167,7 @@ function SyntheticContent() {
 
   const q = questions[currentIdx];
   const d = q ? drafts[q.id] : null;
+  const anyDrafts = Object.keys(drafts).length > 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -163,7 +177,7 @@ function SyntheticContent() {
           <div>
             <Link href={`/admin?userId=${userId}`} className="text-xs text-slate-400 hover:text-slate-600">← Admin</Link>
             <h1 className="text-lg font-bold text-slate-800">Generate Synthetic Questions</h1>
-            <p className="text-xs text-slate-400">Math MCQ · batch of 10</p>
+            <p className="text-xs text-slate-400">MCQ · batch of 10</p>
           </div>
           <button onClick={loadBatch} disabled={loading}
             className="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold disabled:opacity-50">
@@ -171,96 +185,105 @@ function SyntheticContent() {
           </button>
         </div>
 
-        {loading && <div className="p-8 text-center text-sm text-slate-400">Loading…</div>}
-
-        {!loading && questions.length === 0 && (
-          <div className="p-8 text-center text-sm text-slate-400">No more clean math MCQ questions pending generation.</div>
-        )}
-
-        {!loading && q && (
-          <div className="max-w-3xl mx-auto px-4 py-6">
-            {/* Navigation */}
-            <div className="flex items-center justify-between mb-4">
-              <button onClick={() => setCurrentIdx(i => Math.max(0, i - 1))} disabled={currentIdx === 0}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 disabled:opacity-30">
-                ← Prev
+        <div className="max-w-3xl mx-auto px-4 py-5">
+          {/* Subject picker */}
+          <div className="flex gap-2 mb-4">
+            {(["math", "science", "english"] as const).map(s => (
+              <button key={s} onClick={() => setSubject(s)}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${subject === s ? "border-slate-800 bg-slate-800 text-white" : "border-slate-200 bg-white text-slate-600"}`}>
+                {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
               </button>
-              <p className="text-xs text-slate-500 font-bold">Question {currentIdx + 1} of {questions.length}</p>
-              <button onClick={() => setCurrentIdx(i => Math.min(questions.length - 1, i + 1))} disabled={currentIdx >= questions.length - 1}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 disabled:opacity-30">
-                Next →
-              </button>
-            </div>
-
-            {/* Original question */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-4">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original · {q.paperYear ?? ""} {q.paperSchool ?? ""}</p>
-                <p className="text-[10px] text-slate-400">{q.paperTitle} · Q{q.questionNum}</p>
-              </div>
-              <p className="text-sm text-slate-800 font-medium whitespace-pre-wrap mb-3">{q.stem}</p>
-              {q.diagramImageData && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={q.diagramImageData.startsWith("data:") ? q.diagramImageData : `data:image/jpeg;base64,${q.diagramImageData}`}
-                  alt="diagram" className="max-w-sm rounded-lg border border-slate-200 mb-3" />
-              )}
-              <div className="space-y-1.5">
-                {q.options.map((opt, i) => {
-                  const isCorrect = i + 1 === q.correctAnswer;
-                  return (
-                    <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-lg text-sm ${isCorrect ? "bg-green-50 border border-green-200 text-green-800 font-bold" : "bg-slate-50 text-slate-700"}`}>
-                      <span className="shrink-0">({i + 1})</span>
-                      <span className="flex-1">{opt}</span>
-                      {isCorrect && <span className="text-[10px] font-bold uppercase shrink-0">Correct</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Generate button */}
-            {!d && (
-              <button onClick={() => generateFor(q)} disabled={generating === q.id}
-                className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold disabled:opacity-50">
-                {generating === q.id ? "Generating with AI…" : "Generate 2 Variants"}
-              </button>
-            )}
-
-            {d && (
-              <>
-                {/* Simple variant */}
-                <VariantEditor title="Simple variant (changed numbers / reordered)" variant={d.simple}
-                  onStem={s => updateVariant(q.id, "simple", { stem: s })}
-                  onOption={(i, v) => updateOption(q.id, "simple", i, v)}
-                  onCorrect={n => updateVariant(q.id, "simple", { correctAnswer: n })} />
-
-                {/* Similar variant */}
-                <VariantEditor title="Similar variant (related but different)" variant={d.similar}
-                  onStem={s => updateVariant(q.id, "similar", { stem: s })}
-                  onOption={(i, v) => updateOption(q.id, "similar", i, v)}
-                  onCorrect={n => updateVariant(q.id, "similar", { correctAnswer: n })} />
-
-                {/* Regenerate */}
-                <button onClick={() => generateFor(q)} disabled={generating === q.id}
-                  className="w-full py-2 rounded-xl border border-slate-300 text-slate-600 text-sm font-bold mb-3 disabled:opacity-50">
-                  {generating === q.id ? "Regenerating…" : "Regenerate with AI"}
-                </button>
-
-                {/* Accept / Mark */}
-                <div className="flex gap-3 mb-2">
-                  <button onClick={() => saveFor(q)} disabled={savingState === `save-${q.id}`}
-                    className="flex-1 py-3 rounded-xl bg-green-600 text-white font-bold disabled:opacity-50">
-                    {savingState === `save-${q.id}` ? "Saving…" : "Accept Options"}
-                  </button>
-                </div>
-                <button onClick={() => markGenerated(q)} disabled={savingState === `mark-${q.id}`}
-                  className="w-full py-3 rounded-xl bg-slate-800 text-white font-bold disabled:opacity-50">
-                  {savingState === `mark-${q.id}` ? "Marking…" : "Mark Generated (skip in future)"}
-                </button>
-              </>
-            )}
+            ))}
           </div>
-        )}
+
+          {/* Generate-all button */}
+          {questions.length > 0 && !anyDrafts && (
+            <button onClick={generateAll} disabled={bulkProgress !== null}
+              className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold mb-4 disabled:opacity-50">
+              {bulkProgress ? `Generating ${bulkProgress.done} / ${bulkProgress.total}…` : `Generate 10 ${subject} variants in parallel`}
+            </button>
+          )}
+
+          {loading && <div className="p-8 text-center text-sm text-slate-400">Loading…</div>}
+
+          {!loading && questions.length === 0 && (
+            <div className="p-8 text-center text-sm text-slate-400">No more clean {subject} MCQ questions pending generation.</div>
+          )}
+
+          {!loading && q && (
+            <>
+              {/* Navigation */}
+              <div className="flex items-center justify-between mb-4">
+                <button onClick={() => setCurrentIdx(i => Math.max(0, i - 1))} disabled={currentIdx === 0}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 disabled:opacity-30">
+                  ← Prev
+                </button>
+                <p className="text-xs text-slate-500 font-bold">Question {currentIdx + 1} of {questions.length}</p>
+                <button onClick={() => setCurrentIdx(i => Math.min(questions.length - 1, i + 1))} disabled={currentIdx >= questions.length - 1}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-600 disabled:opacity-30">
+                  Next →
+                </button>
+              </div>
+
+              {/* Original question */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original · {q.paperYear ?? ""} {q.paperSchool ?? ""}</p>
+                  <p className="text-[10px] text-slate-400">{q.paperTitle} · Q{q.questionNum}</p>
+                </div>
+                <p className="text-sm text-slate-800 font-medium whitespace-pre-wrap mb-3">{q.stem}</p>
+                {q.diagramImageData && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={q.diagramImageData.startsWith("data:") ? q.diagramImageData : `data:image/jpeg;base64,${q.diagramImageData}`}
+                    alt="diagram" className="max-w-sm rounded-lg border border-slate-200 mb-3" />
+                )}
+                <div className="space-y-1.5">
+                  {q.options.map((opt, i) => {
+                    const isCorrect = i + 1 === q.correctAnswer;
+                    return (
+                      <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-lg text-sm ${isCorrect ? "bg-green-50 border border-green-200 text-green-800 font-bold" : "bg-slate-50 text-slate-700"}`}>
+                        <span className="shrink-0">({i + 1})</span>
+                        <span className="flex-1">{opt}</span>
+                        {isCorrect && <span className="text-[10px] font-bold uppercase shrink-0">Correct</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {!d && bulkProgress === null && (
+                <p className="text-center text-xs text-slate-400 py-4">No variants generated yet for this question. Click the generate button above.</p>
+              )}
+
+              {d && (
+                <>
+                  <VariantEditor title="Simple variant (changed numbers / reordered)" variant={d.simple}
+                    onStem={s => updateVariant(q.id, "simple", { stem: s })}
+                    onOption={(i, v) => updateOption(q.id, "simple", i, v)}
+                    onCorrect={n => updateVariant(q.id, "simple", { correctAnswer: n })} />
+                  <button onClick={() => acceptVariant(q, "simple")} disabled={savingState === `save-${q.id}-simple`}
+                    className="w-full py-2.5 rounded-xl bg-green-600 text-white font-bold mb-4 disabled:opacity-50">
+                    {savingState === `save-${q.id}-simple` ? "Saving…" : "Accept Simple"}
+                  </button>
+
+                  <VariantEditor title="Similar variant (related but different)" variant={d.similar}
+                    onStem={s => updateVariant(q.id, "similar", { stem: s })}
+                    onOption={(i, v) => updateOption(q.id, "similar", i, v)}
+                    onCorrect={n => updateVariant(q.id, "similar", { correctAnswer: n })} />
+                  <button onClick={() => acceptVariant(q, "similar")} disabled={savingState === `save-${q.id}-similar`}
+                    className="w-full py-2.5 rounded-xl bg-green-600 text-white font-bold mb-4 disabled:opacity-50">
+                    {savingState === `save-${q.id}-similar` ? "Saving…" : "Accept Similar"}
+                  </button>
+
+                  <button onClick={() => markGenerated(q)} disabled={savingState === `mark-${q.id}`}
+                    className="w-full py-3 rounded-xl bg-slate-800 text-white font-bold disabled:opacity-50">
+                    {savingState === `mark-${q.id}` ? "Marking…" : "Mark Generated (skip in future)"}
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </div>
 
         {toast && (
           <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-sm px-4 py-2 rounded-xl shadow-lg z-50">
@@ -280,7 +303,7 @@ function VariantEditor({ title, variant, onStem, onOption, onCorrect }: {
   onCorrect: (n: number) => void;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-4">
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-3">
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{title}</p>
       <textarea value={variant.stem} onChange={e => onStem(e.target.value)}
         rows={3}

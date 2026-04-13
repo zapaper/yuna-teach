@@ -9,46 +9,28 @@ async function requireAdmin(userId: string | null) {
 
 type VariantIn = { stem: string; options: string[]; correctAnswer: number; diagramImageData?: string | null };
 
-// POST { userId, questionId, simple, similar } → saves both variants as SyntheticQuestion rows.
-// Replaces any existing rows for that sourceQuestionId so admin can re-accept after edits.
+// POST { userId, questionId, variant: "simple"|"similar", data } → upserts a single variant row.
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { userId, questionId, simple, similar } = body as { userId: string; questionId: string; simple: VariantIn; similar: VariantIn };
+  const { userId, questionId, variant, data } = body as { userId: string; questionId: string; variant: "simple" | "similar"; data: VariantIn };
   if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  if (!questionId || !simple || !similar) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-
-  function validate(v: VariantIn, label: string) {
-    if (!v.stem?.trim()) throw new Error(`${label}: stem required`);
-    if (!Array.isArray(v.options) || v.options.length !== 4) throw new Error(`${label}: need 4 options`);
-    if (!(v.correctAnswer >= 1 && v.correctAnswer <= 4)) throw new Error(`${label}: correctAnswer 1-4`);
+  if (!questionId || !data || (variant !== "simple" && variant !== "similar")) {
+    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
-  try {
-    validate(simple, "simple");
-    validate(similar, "similar");
-  } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 400 });
-  }
+  if (!data.stem?.trim()) return NextResponse.json({ error: "stem required" }, { status: 400 });
+  if (!Array.isArray(data.options) || data.options.length !== 4) return NextResponse.json({ error: "need 4 options" }, { status: 400 });
+  if (!(data.correctAnswer >= 1 && data.correctAnswer <= 4)) return NextResponse.json({ error: "correctAnswer 1-4" }, { status: 400 });
 
-  await prisma.syntheticQuestion.deleteMany({ where: { sourceQuestionId: questionId } });
-  await prisma.syntheticQuestion.createMany({
-    data: [
-      {
-        sourceQuestionId: questionId,
-        variant: "simple",
-        stem: simple.stem,
-        options: simple.options,
-        correctAnswer: simple.correctAnswer,
-        diagramImageData: simple.diagramImageData ?? null,
-      },
-      {
-        sourceQuestionId: questionId,
-        variant: "similar",
-        stem: similar.stem,
-        options: similar.options,
-        correctAnswer: similar.correctAnswer,
-        diagramImageData: similar.diagramImageData ?? null,
-      },
-    ],
+  await prisma.syntheticQuestion.deleteMany({ where: { sourceQuestionId: questionId, variant } });
+  await prisma.syntheticQuestion.create({
+    data: {
+      sourceQuestionId: questionId,
+      variant,
+      stem: data.stem,
+      options: data.options,
+      correctAnswer: data.correctAnswer,
+      diagramImageData: data.diagramImageData ?? null,
+    },
   });
 
   return NextResponse.json({ ok: true });

@@ -208,18 +208,30 @@ export type SyntheticMcqVariant = {
   diagramImageData?: string | null; // base64 generated diagram (filled by generate route, optional)
 };
 
-const SYNTHETIC_MATH_MCQ_PROMPT = `You are generating synthetic practice MCQ questions for a Singapore primary school Mathematics exam.
+function syntheticMcqPrompt(subject: "math" | "science" | "english"): string {
+  const subjectLabel = subject === "math" ? "Mathematics" : subject === "science" ? "Science" : "English";
+  const variantOneRule = subject === "math"
+    ? `"simple" — SAME underlying question, but with changed numbers (and/or reordered answer options so the correct answer is in a different position). The mathematical structure and wording must stay almost identical; only numbers and option order should change.`
+    : subject === "science"
+    ? `"simple" — SAME underlying question, but swap key entities for equivalent ones in the same concept family (e.g. different plant/animal/material/object), and/or reorder answer options so the correct answer is in a different position. Keep the wording structure almost identical.`
+    : `"simple" — SAME underlying question, but swap the tested word/phrase for one that tests the same grammar/vocabulary point, and/or reorder the answer options so the correct answer is in a different position. Keep the wording structure almost identical.`;
+  const correctnessRule = subject === "math"
+    ? `Double-check the arithmetic. The correct answer must be mathematically valid.`
+    : subject === "science"
+    ? `Double-check the science reasoning. The correct answer must be factually correct.`
+    : `Double-check the grammar/vocabulary. The correct answer must be unambiguously correct.`;
+  return `You are generating synthetic practice MCQ questions for a Singapore primary school ${subjectLabel} exam.
 
 You will be given ONE original MCQ question (stem + 4 options + correct answer). Your task is to produce TWO variants:
 
-1. "simple" — SAME underlying question, but with changed numbers (and/or reordered answer options so the correct answer is in a different position). The mathematical structure and wording must stay almost identical; only numbers and option order should change.
+1. ${variantOneRule}
 
-2. "similar" — a DIFFERENT but related question testing the same underlying skill/concept. Reword the context and change the numbers, but keep the same learning objective. This should feel like a cousin of the original, not a clone.
+2. "similar" — a DIFFERENT but related question testing the same underlying skill/concept. Reword the context and change the specifics, but keep the same learning objective. This should feel like a cousin of the original, not a clone.
 
 For BOTH variants you MUST:
 - Include exactly 4 options.
 - Compute and provide the correct answer yourself (number 1-4 indicating which option is correct).
-- Double-check the arithmetic. The correct answer must be mathematically valid.
+- ${correctnessRule}
 - Preserve units and notation style from the original.
 - If the original has a diagram, describe what the new diagram would look like in "diagramDescription" (1-2 sentences). If no diagram, omit this field.
 
@@ -238,6 +250,7 @@ Return ONLY valid JSON, no markdown fences:
     "diagramDescription": "..."
   }
 }`;
+}
 
 /**
  * Generate a fresh diagram image for a synthetic variant, using the original
@@ -293,6 +306,7 @@ export async function generateSyntheticMathMcq(
   options: [string, string, string, string],
   correctAnswer: number,
   diagramBase64: string | null,
+  subject: "math" | "science" | "english" = "math",
 ): Promise<{ simple: SyntheticMcqVariant; similar: SyntheticMcqVariant }> {
   const contextText = `Original question:
 Stem: ${stem}
@@ -309,7 +323,7 @@ ${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagr
     const clean = diagramBase64.replace(/^data:image\/\w+;base64,/, "");
     parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
   }
-  parts.push({ text: `${SYNTHETIC_MATH_MCQ_PROMPT}\n\n${contextText}` });
+  parts.push({ text: `${syntheticMcqPrompt(subject)}\n\n${contextText}` });
 
   const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",

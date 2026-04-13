@@ -10,7 +10,8 @@ async function requireAdmin(userId: string | null) {
 
 // POST { userId, questionId } → runs AI and returns { simple, similar } draft variants (not saved)
 export async function POST(request: NextRequest) {
-  const { userId, questionId } = await request.json();
+  const { userId, questionId, subject } = await request.json() as { userId: string; questionId: string; subject?: "math" | "science" | "english" };
+  const subj: "math" | "science" | "english" = subject === "science" || subject === "english" ? subject : "math";
   if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!questionId) return NextResponse.json({ error: "Missing questionId" }, { status: 400 });
 
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
       [options[0] ?? "", options[1] ?? "", options[2] ?? "", options[3] ?? ""],
       answerNum,
       q.diagramImageData ?? null,
+      subj,
     );
 
     // If original had a diagram, also generate a fresh diagram image for each variant (in parallel).

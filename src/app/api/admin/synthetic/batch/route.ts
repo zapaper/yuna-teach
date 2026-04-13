@@ -12,6 +12,8 @@ async function requireAdmin(userId: string | null) {
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
   if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const subjectParam = (request.nextUrl.searchParams.get("subject") ?? "math").toLowerCase();
+  const subjectMatch = subjectParam === "science" ? "science" : subjectParam === "english" ? "english" : "math";
 
   const questions = await prisma.examQuestion.findMany({
     where: {
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
       examPaper: {
         sourceExamId: null,
         paperType: null,
-        subject: { contains: "math", mode: "insensitive" },
+        subject: { contains: subjectMatch, mode: "insensitive" },
       },
     },
     select: {

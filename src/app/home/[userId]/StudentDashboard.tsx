@@ -887,22 +887,24 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                           {/* Monster — behind avatar (alternates slime / mushroom each cycle) */}
                           {(() => {
                             const currentPair = arenaPairs[arenaAction];
-                            if (monster === "slime") {
-                              return ["hit", "attack", "dead"].map(s => (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
-                                  className={`h-36 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
-                                  style={{ mixBlendMode: "screen" }}
-                                />
-                              ));
-                            }
-                            const act = mushroomAct(currentPair.slime);
+                            const mAct = mushroomAct(currentPair.slime);
                             return (
-                              <video key={`m-${arenaAction}`} src={`/avatars/fight/mushroom_${act}.mp4`}
-                                autoPlay muted playsInline loop={act !== "die"}
-                                className="h-36 object-contain absolute bottom-0 right-0"
-                                style={{ mixBlendMode: "screen" }}
-                              />
+                              <>
+                                {["hit", "attack", "dead"].map(s => (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                                    className={`h-36 object-contain absolute bottom-0 right-0 ${monster === "slime" && currentPair.slime === s ? "" : "invisible"}`}
+                                    style={{ mixBlendMode: "screen" }}
+                                  />
+                                ))}
+                                {["hit", "attack", "die"].map(s => (
+                                  <video key={`m-${s}`} src={`/avatars/fight/mushroom_${s}.mp4`}
+                                    autoPlay muted playsInline loop={s !== "die"}
+                                    className={`h-36 object-contain absolute bottom-0 right-6 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
+                                    style={{ mixBlendMode: "screen" }}
+                                  />
+                                ))}
+                              </>
                             );
                           })()}
                           {/* Slash — between avatar and slime */}
@@ -1068,22 +1070,24 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       {/* Monster — behind avatar (alternates slime / mushroom each cycle) */}
                       {(() => {
                         const currentPair = arenaPairs[arenaAction];
-                        if (monster === "slime") {
-                          return ["hit", "attack", "dead"].map(s => (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
-                              className={`h-20 object-contain absolute bottom-0 right-0 ${currentPair.slime === s ? "" : "invisible"}`}
-                              style={{ mixBlendMode: "screen" }}
-                            />
-                          ));
-                        }
-                        const act = mushroomAct(currentPair.slime);
+                        const mAct = mushroomAct(currentPair.slime);
                         return (
-                          <video key={`m-${arenaAction}`} src={`/avatars/fight/mushroom_${act}.mp4`}
-                            autoPlay muted playsInline loop={act !== "die"}
-                            className="h-20 object-contain absolute bottom-0 right-0"
-                            style={{ mixBlendMode: "screen" }}
-                          />
+                          <>
+                            {["hit", "attack", "dead"].map(s => (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img key={`s-${s}`} src={`/avatars/fight/slime_${s}.gif`} alt={s}
+                                className={`h-20 object-contain absolute bottom-0 right-0 ${monster === "slime" && currentPair.slime === s ? "" : "invisible"}`}
+                                style={{ mixBlendMode: "screen" }}
+                              />
+                            ))}
+                            {["hit", "attack", "die"].map(s => (
+                              <video key={`m-${s}`} src={`/avatars/fight/mushroom_${s}.mp4`}
+                                autoPlay muted playsInline loop={s !== "die"}
+                                className={`h-20 object-contain absolute bottom-0 right-4 ${monster === "mushroom" && mAct === s ? "" : "invisible"}`}
+                                style={{ mixBlendMode: "screen" }}
+                              />
+                            ))}
+                          </>
                         );
                       })()}
                       {/* Slash — between avatar and slime */}
