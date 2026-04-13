@@ -322,6 +322,12 @@ function SyntheticContent() {
               {!d && bulkProgress === null && (
                 <p className="text-center text-xs text-slate-400 py-4">No variants generated yet for this question. Click the generate button above.</p>
               )}
+              {!d && bulkProgress !== null && (
+                <div className="flex items-center justify-center gap-2 py-6 text-sm font-bold text-blue-600">
+                  <span className="inline-block animate-spin rounded-full h-4 w-4 border-2 border-blue-200 border-t-blue-500" />
+                  Still generating…
+                </div>
+              )}
 
               {d && (
                 <div className={locked ? "opacity-40 pointer-events-none" : ""}>
