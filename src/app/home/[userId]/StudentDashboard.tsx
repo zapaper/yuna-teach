@@ -157,20 +157,19 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [showPastWork, setShowPastWork] = useState(false);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
-  // Paired actions: [avatarAction, slimeAction] — weighted pool for frequency
+  // Fixed battle sequence: attack, attack, defend, attack, kill
   const arenaPairs = [
     { avatar: "attack", slime: "hit" },
     { avatar: "attack", slime: "hit" },
+    { avatar: "defend", slime: "attack" },
     { avatar: "attack", slime: "hit" },
-    { avatar: "defend", slime: "attack" },
-    { avatar: "defend", slime: "attack" },
-    { avatar: "defend", slime: "attack" },
     { avatar: "ready", slime: "dead" },
   ] as const;
   const arenaActions = arenaPairs;
   const [arenaAction, setArenaAction] = useState(0);
   const [arenaGifReady, setArenaGifReady] = useState(true);
   const [showSlash, setShowSlash] = useState(false);
+  const [showShield, setShowShield] = useState(false);
   // Preload all arena GIFs
   // Preload all arena GIFs (bunny + slime)
   useEffect(() => {
@@ -198,15 +197,21 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     const t2 = setTimeout(() => setShowSlash(false), 1500);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [arenaAction, showArena, hasArena, arenaPairs]);
+
+  // Trigger shield while avatar defends
+  useEffect(() => {
+    if (!showArena || !hasArena) return;
+    const currentPair = arenaPairs[arenaAction];
+    if (currentPair.avatar !== "defend") { setShowShield(false); return; }
+    const t1 = setTimeout(() => setShowShield(true), 500);
+    const t2 = setTimeout(() => setShowShield(false), 2500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [arenaAction, showArena, hasArena, arenaPairs]);
   useEffect(() => {
     if (!showArena || !hasArena) return;
     const interval = setInterval(() => {
       setArenaGifReady(false);
-      setArenaAction(prev => {
-        let next: number;
-        do { next = Math.floor(Math.random() * arenaPairs.length); } while (next === prev);
-        return next;
-      });
+      setArenaAction(prev => (prev + 1) % arenaPairs.length);
     }, 3000);
     return () => clearInterval(interval);
   }, [showArena, hasArena, arenaPairs.length]);
@@ -884,6 +889,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                               style={{ mixBlendMode: "screen" }}
                             />
                           )}
+                          {/* Shield — over avatar when defending */}
+                          {showShield && (
+                            <video key={`shield-${arenaAction}`} src="/avatars/fight/shield.mp4"
+                              autoPlay muted playsInline
+                              className="h-48 object-contain absolute bottom-0 left-0 z-20"
+                              style={{ mixBlendMode: "screen" }}
+                            />
+                          )}
                         </div>
                       </div>
                   </div>
@@ -1044,6 +1057,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={`/avatars/fight/slash.gif?t=${arenaAction}`} alt="slash"
                           className="h-40 object-contain absolute -bottom-1 left-1/2 -translate-x-1/2 z-20"
+                          style={{ mixBlendMode: "screen" }}
+                        />
+                      )}
+                      {/* Shield — over avatar when defending */}
+                      {showShield && (
+                        <video key={`shield-${arenaAction}`} src="/avatars/fight/shield.mp4"
+                          autoPlay muted playsInline
+                          className="h-28 object-contain absolute bottom-0 left-0 z-20"
                           style={{ mixBlendMode: "screen" }}
                         />
                       )}
