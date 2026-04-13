@@ -278,7 +278,7 @@ Requirements:
 - No question text, no answer options, no watermarks — diagram only.`;
 
     const response = await generateContentWithRetry({
-      model: "gemini-2.5-flash-image-preview",
+      model: "gemini-2.5-flash-image",
       contents: [{
         role: "user",
         parts: [
