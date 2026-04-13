@@ -108,7 +108,7 @@ function isWrittenQuestion(answer: string | null): boolean {
 
 /** Step 1 pre-check: ask Gemini if there is any handwritten blue ink in the image.
  *  Returns true if blue ink is detected, false if blank. */
-async function hasBlueInk(imageBase64: string, label: string): Promise<boolean> {
+async function hasBlueInk(imageBase64: string, label: string, mimeType: "image/jpeg" | "image/png" = "image/jpeg"): Promise<boolean> {
   const prompt = `Look at this image carefully. Is there ANY handwritten writing or marks that could be a student's answer?
 
 This includes:
@@ -129,7 +129,7 @@ Reply with ONLY one word: YES or NO.`;
       getAI().models.generateContent({
         model: "gemini-2.5-flash",
         contents: [{ role: "user", parts: [
-          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { inlineData: { mimeType, data: imageBase64 } },
           { text: prompt },
         ]}],
         config: { temperature: 0.1 },
@@ -2116,20 +2116,19 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         const realSubs = subparts?.filter(sp => !sp.label.startsWith("_")) ?? [];
         const hasDrawable = subparts?.some(sp => sp.label === "_drawable") ?? false;
 
-        // For drawable diagram OEQ: pre-check for blue ink using ink-only image
+        // For drawable diagram OEQ: pre-check for blue ink using composite first (blue-on-white),
+        // then fall back to ink-only PNG with correct mime type.
         if (hasDrawable && realSubs.length === 0) {
           let inkFound = true; // default to true if check fails
           try {
-            const inkPath = path.join(subDir, `page_${i}_ink.png`);
-            const inkBuffer = await fs.readFile(inkPath);
-            const inkBase64 = inkBuffer.toString("base64");
-            inkFound = await hasBlueInk(inkBase64, `quiz-drawable-Q${q.questionNum}`);
+            const pagePath = path.join(subDir, `page_${i}.jpg`);
+            const pageBuffer = await fs.readFile(pagePath);
+            inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/jpeg");
           } catch {
-            // If ink file not found, try checking the composite
             try {
-              const pagePath = path.join(subDir, `page_${i}.jpg`);
-              const pageBuffer = await fs.readFile(pagePath);
-              inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`);
+              const inkPath = path.join(subDir, `page_${i}_ink.png`);
+              const inkBuffer = await fs.readFile(inkPath);
+              inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/png");
             } catch {
               inkFound = false;
             }
@@ -2147,18 +2146,18 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           console.log(`[quiz-marking] Drawable Q${q.questionNum}: ink detected — proceeding to mark`);
         }
 
-        // For regular OEQ (non-drawable, non-subpart): blue ink pre-check
+        // For regular OEQ (non-drawable, non-subpart): blue ink pre-check using composite first.
         if (!hasDrawable && realSubs.length === 0) {
           let inkFound = true;
           try {
-            const inkPath = path.join(subDir, `page_${i}_ink.png`);
-            const inkBuffer = await fs.readFile(inkPath);
-            inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`);
+            const pagePath = path.join(subDir, `page_${i}.jpg`);
+            const pageBuffer = await fs.readFile(pagePath);
+            inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`, "image/jpeg");
           } catch {
             try {
-              const pagePath = path.join(subDir, `page_${i}.jpg`);
-              const pageBuffer = await fs.readFile(pagePath);
-              inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`);
+              const inkPath = path.join(subDir, `page_${i}_ink.png`);
+              const inkBuffer = await fs.readFile(inkPath);
+              inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`, "image/png");
             } catch {
               inkFound = false;
             }
