@@ -966,23 +966,74 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ── Shared content blocks ─────────────────────────────────────────────────
 
   const MetricsGrid = () => (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="bg-white p-6 rounded-[2rem] shadow-[0_20px_40px_rgba(11,28,48,0.06)]">
-        <p className="text-xs font-extrabold text-[#006c49] mb-1 tracking-wider uppercase">Avg Score</p>
-        {avgScore !== null ? (
-          <>
-            <div className="flex items-end gap-1">
-              <span className="font-headline text-3xl font-extrabold text-[#001e40]">{avgScore}</span>
-              <span className="text-lg font-bold text-[#001e40] mb-1">%</span>
+    <div className="space-y-4">
+      {showChart ? (
+        <div className="bg-white p-5 rounded-[2rem] shadow-[0_20px_40px_rgba(11,28,48,0.06)]">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <h3 className="font-headline text-base font-bold text-[#001e40]">Average Performance</h3>
+              <p className="text-[#43474f] text-[10px]">Last {chartMaxPts} papers per subject</p>
             </div>
-            <div className="mt-3 w-full h-1.5 bg-[#dce9ff] rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[#006c49] to-[#4edea3] rounded-full transition-all duration-700" style={{ width: `${avgScore}%` }} />
-            </div>
-          </>
-        ) : (
-          <p className="text-sm text-[#43474f] mt-2">{loadingPapers ? "Loading…" : "No data yet"}</p>
-        )}
-      </div>
+            <p className="font-headline text-2xl font-extrabold text-[#001e40]">
+              {overallChartAvg}<span className="text-xs font-normal text-[#006c49] ml-0.5">%</span>
+            </p>
+          </div>
+          <div className="relative min-h-[110px]">
+            <svg viewBox="0 0 330 120" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+              <text x="22" y="9" textAnchor="end" fontSize="8" fill="#737780" fontFamily="Inter, sans-serif">100</text>
+              <text x="22" y="64" textAnchor="end" fontSize="8" fill="#737780" fontFamily="Inter, sans-serif">50</text>
+              <text x="22" y="118" textAnchor="end" fontSize="8" fill="#737780" fontFamily="Inter, sans-serif">0</text>
+              <line x1="30" y1="5" x2="330" y2="5" stroke="#e5eeff" strokeWidth="0.5" />
+              <line x1="30" y1="60" x2="330" y2="60" stroke="#e5eeff" strokeWidth="0.5" />
+              <line x1="30" y1="115" x2="330" y2="115" stroke="#e5eeff" strokeWidth="0.5" />
+              {chartLines.map(line => {
+                const yScale = (pct: number) => 115 - (pct / 100) * 110;
+                const pts = line.points;
+                const n = pts.length;
+                const chartW = 300;
+                const offsetX = 30;
+                const slotW = chartMaxPts > 1 ? chartW / (chartMaxPts - 1) : chartW;
+                const startSlot = chartMaxPts - n;
+                const coords = pts.map((pct, i) => ({ x: offsetX + (startSlot + i) * slotW, y: yScale(pct) }));
+                const d = coords.map((c, i) => `${i === 0 ? "M" : "L"} ${c.x} ${c.y}`).join(" ");
+                return (
+                  <g key={line.subject}>
+                    <path d={d} fill="none" stroke={line.color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                    {coords.map((c, i) => (
+                      <circle key={i} cx={c.x} cy={c.y} r={i === n - 1 ? 3.5 : 3} fill={line.color} />
+                    ))}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+          <div className="mt-3 flex gap-3 border-t border-[#e5eeff] pt-2 flex-wrap">
+            {chartLines.map(l => (
+              <div key={l.subject} className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ background: l.color }} />
+                <span className="text-[10px] text-[#43474f] font-medium">{l.label} {l.avg}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white p-6 rounded-[2rem] shadow-[0_20px_40px_rgba(11,28,48,0.06)]">
+          <p className="text-xs font-extrabold text-[#006c49] mb-1 tracking-wider uppercase">Avg Score</p>
+          {avgScore !== null ? (
+            <>
+              <div className="flex items-end gap-1">
+                <span className="font-headline text-3xl font-extrabold text-[#001e40]">{avgScore}</span>
+                <span className="text-lg font-bold text-[#001e40] mb-1">%</span>
+              </div>
+              <div className="mt-3 w-full h-1.5 bg-[#dce9ff] rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-[#006c49] to-[#4edea3] rounded-full transition-all duration-700" style={{ width: `${avgScore}%` }} />
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-[#43474f] mt-2">{loadingPapers ? "Loading…" : "No data yet"}</p>
+          )}
+        </div>
+      )}
       <div className="bg-white p-6 rounded-[2rem] shadow-[0_20px_40px_rgba(11,28,48,0.06)]">
         <p className="text-xs font-extrabold text-[#d58d00] mb-1 tracking-wider uppercase">Papers</p>
         <div className="flex items-end gap-1">
