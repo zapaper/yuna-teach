@@ -22,6 +22,7 @@ function renderUnderline(text: string): React.ReactNode {
 }
 
 interface ReviewQuestion {
+  orderIndex: number;
   id: string;
   questionNum: string;
   pageIndex: number;
