@@ -2395,16 +2395,31 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       )}
 
       {/* Parent avatar picker */}
-      {showParentAvatarPicker && (
+      {showParentAvatarPicker && (() => {
+        const isAdminUser = user.name?.toLowerCase() === "admin";
+        const whitetigerUnlockedParent = (user.settings as Record<string, unknown> | null)?.whitetiger === true;
+        const parentAvatars = isAdminUser ? [
+          { key: "bunny", label: "Bunny" },
+          { key: "bear", label: "Bear" },
+          { key: "tiger", label: "Tiger" },
+          { key: "fox", label: "Fox" },
+          { key: "otter", label: "Otter" },
+          { key: "uni", label: "Unicorn" },
+          { key: "dragon", label: "Dragon" },
+          { key: "merlion", label: "Merlion" },
+          { key: "qilin", label: "Qilin" },
+          ...(whitetigerUnlockedParent ? [{ key: "whitetiger", label: "White Tiger" }] : []),
+        ] : [
+          { key: "bunny", label: "Bunny" },
+          { key: "bear", label: "Bear" },
+        ];
+        return (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[200] p-4" onClick={() => setShowParentAvatarPicker(false)}>
-          <div className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="font-headline text-lg font-extrabold text-[#001e40] text-center mb-1">Choose Your Avatar</h2>
             <p className="text-xs text-[#43474f] text-center mb-5">Tap to select</p>
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              {[
-                { key: "bunny", label: "Bunny" },
-                { key: "bear", label: "Bear" },
-              ].map(animal => {
+            <div className={`grid ${isAdminUser ? "grid-cols-3" : "grid-cols-2"} gap-3 mb-5`}>
+              {parentAvatars.map(animal => {
                 const isSelected = (parentAvatarType ?? "bunny") === animal.key;
                 return (
                   <button
@@ -2431,7 +2446,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </button>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {showDiagnosticWelcome && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
