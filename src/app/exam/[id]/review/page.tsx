@@ -480,11 +480,9 @@ function ExamReviewContent({ id }: { id: string }) {
   // For quiz OEQ: index of currentQ among all OEQ questions (no text or image MCQ options)
   const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions && !q.transcribedOptionImages);
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
-  // Focused tests upload files at the full question orderIndex (not OEQ-sequential).
-  // Daily quizzes upload at OEQ-sequential. So pick the right index for the image URL.
-  const currentQSubmissionPage = paperType === "focused" && currentQ
-    ? currentQ.orderIndex
-    : currentQOeqIndex;
+  // Both daily quizzes and focused tests upload OEQ canvases via the quiz page at the
+  // OEQ-sequential index. Use the same index for the image URL.
+  const currentQSubmissionPage = currentQOeqIndex;
 
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
