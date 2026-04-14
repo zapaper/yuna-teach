@@ -343,6 +343,28 @@ function TranscribeEditContent({ id }: { id: string }) {
 
   // Save all to DB
   async function handleSaveAll() {
+    // Pre-save validation — warn about problematic questions so admin knows what will be broken in quizzes.
+    const problems: string[] = [];
+    for (const q of questions) {
+      const stem = (q.stem ?? "").trim();
+      if (!stem) problems.push(`Q${q.questionNum}: empty stem`);
+      if (q.type === "mcq") {
+        const hasText = !!q.options && q.options.every(o => String(o ?? "").trim().length > 0);
+        const hasImages = !!q.optionImages && q.optionImages.some(o => !!o);
+        if (!hasText && !hasImages) problems.push(`Q${q.questionNum}: MCQ with no options (neither text nor image crops)`);
+      }
+      if (q.type === "open" && !q.answer?.trim()) problems.push(`Q${q.questionNum}: open-ended with no answer`);
+    }
+    if (problems.length > 0) {
+      const ok = window.confirm(
+        `${problems.length} question${problems.length > 1 ? "s" : ""} look${problems.length > 1 ? "" : "s"} incomplete:\n\n` +
+        problems.slice(0, 20).join("\n") +
+        (problems.length > 20 ? `\n…and ${problems.length - 20} more` : "") +
+        `\n\nSave anyway?`
+      );
+      if (!ok) return;
+    }
+
     setSaving(true);
     setSaveMsg(null);
     try {
