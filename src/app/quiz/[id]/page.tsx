@@ -120,6 +120,20 @@ function QuizContent({ id }: { id: string }) {
   const [savingProgress, setSavingProgress] = useState(false);
   const [progressSaved, setProgressSaved] = useState(false);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+
+  // Toggle flag locally AND persist immediately to the DB so the flag survives even if the quiz is never submitted.
+  function toggleFlag(qId: string) {
+    setFlaggedIds(prev => {
+      const next = new Set(prev);
+      next.has(qId) ? next.delete(qId) : next.add(qId);
+      return next;
+    });
+    fetch(`/api/exam/${id}/flag`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questionId: qId, userId }),
+    }).catch(() => {});
+  }
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Badge system
@@ -407,17 +421,6 @@ function QuizContent({ id }: { id: string }) {
           }
         }
         await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
-      }
-
-      // Persist any flags the student raised during the quiz
-      if (flaggedIds.size > 0) {
-        await Promise.all([...flaggedIds].map(qid =>
-          fetch(`/api/exam/${id}/flag`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ questionId: qid, userId }),
-          }).catch(() => {})
-        ));
       }
 
       // Save time and mark as completed
@@ -765,7 +768,7 @@ function QuizContent({ id }: { id: string }) {
                         onToolChange={(t) => setTool(t)}
                         emptyFieldIds={emptyFieldIds}
                         flaggedIds={flaggedIds}
-                        onToggleFlag={(qId) => setFlaggedIds(prev => { const n = new Set(prev); n.has(qId) ? n.delete(qId) : n.add(qId); return n; })}
+                        onToggleFlag={(qId) => toggleFlag(qId)}
                       />
                     );
                   }
@@ -785,7 +788,7 @@ function QuizContent({ id }: { id: string }) {
                         onToolChange={(t) => setTool(t)}
                         emptyFieldIds={emptyFieldIds}
                         flaggedIds={flaggedIds}
-                        onToggleFlag={(qId) => setFlaggedIds(prev => { const n = new Set(prev); n.has(qId) ? n.delete(qId) : n.add(qId); return n; })}
+                        onToggleFlag={(qId) => toggleFlag(qId)}
                       />
                     );
                   }
@@ -862,7 +865,7 @@ function QuizContent({ id }: { id: string }) {
                             selected={mcqAnswers[q.id] ?? null}
                             onSelect={(opt) => selectMcqAnswer(q.id, opt)}
                             flagged={flaggedIds.has(q.id)}
-                            onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                            onToggleFlag={() => toggleFlag(q.id)}
                             tool={tool}
                             hideScratchPad
                           />
@@ -888,7 +891,7 @@ function QuizContent({ id }: { id: string }) {
                       selected={mcqAnswers[q.id] ?? null}
                       onSelect={(opt) => selectMcqAnswer(q.id, opt)}
                       flagged={flaggedIds.has(q.id)}
-                      onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                      onToggleFlag={() => toggleFlag(q.id)}
                       skipped={skippedIds.has(q.id)}
                       onSkip={() => setSkippedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
                     />
@@ -923,7 +926,7 @@ function QuizContent({ id }: { id: string }) {
                   savedHeights={canvasHeights.current}
                   onHeightChange={(cid, h) => { canvasHeights.current[cid] = h; }}
                   flagged={flaggedIds.has(q.id)}
-                  onToggleFlag={() => setFlaggedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                  onToggleFlag={() => toggleFlag(q.id)}
                   skipped={skippedIds.has(q.id)}
                   onSkip={() => setSkippedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
                 />

@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-async function requireAdmin(userId: string | null) {
-  if (!userId) return false;
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-  return u?.name?.toLowerCase() === "admin";
-}
+import { isSessionAdmin } from "@/lib/session";
 
 // Get or create a synthetic bank paper scoped to a given subject + level.
 // These papers look like normal master papers (sourceExamId: null, paperType: null)
@@ -40,7 +36,7 @@ async function getOrCreateSyntheticBankPaper(adminUserId: string, subject: strin
 // the synthetic bank paper for the source's subject+level.
 export async function POST(request: NextRequest) {
   const { userId, questionId } = await request.json();
-  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!questionId) return NextResponse.json({ error: "Missing questionId" }, { status: 400 });
 
   const source = await prisma.examQuestion.findUnique({

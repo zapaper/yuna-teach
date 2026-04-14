@@ -3,11 +3,7 @@ import { prisma } from "@/lib/db";
 import { extractSubpartMarks } from "@/lib/gemini";
 import { Prisma } from "@prisma/client";
 
-async function requireAdmin(userId: string | null) {
-  if (!userId) return false;
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-  return u?.name?.toLowerCase() === "admin";
-}
+import { isSessionAdmin } from "@/lib/session";
 
 type Subpart = { label: string; text: string; diagramBase64?: string | null };
 
@@ -22,7 +18,7 @@ function subsNeedMarks(subs: unknown): Subpart[] {
 // GET → count affected questions (optionally filter by subject)
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
-  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const subject = request.nextUrl.searchParams.get("subject")?.toLowerCase() ?? null;
 
   const qs = await prisma.examQuestion.findMany({
@@ -53,7 +49,7 @@ export async function GET(request: NextRequest) {
 // POST { ids: [...] } → process in sequence, update transcribedSubparts
 export async function POST(request: NextRequest) {
   const { userId, ids } = await request.json() as { userId: string; ids: string[] };
-  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!Array.isArray(ids) || ids.length === 0) return NextResponse.json({ error: "ids required" }, { status: 400 });
 
   const results: { id: string; updated: number; marks?: Record<string, number>; error?: string }[] = [];

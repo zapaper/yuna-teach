@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { setSession, clearSession } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -36,6 +37,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Wrong password" }, { status: 401 });
   }
 
+  // Set signed session cookie so privileged routes (admin) can trust the caller
+  await setSession(user.id);
+
   return NextResponse.json({
     id: user.id,
     name: user.name,
@@ -48,4 +52,10 @@ export async function POST(request: NextRequest) {
     linkedStudents: user.parentLinks.map((l) => l.student),
     linkedParents: user.studentLinks.map((l) => l.parent),
   });
+}
+
+// DELETE /api/auth — log out, clear session cookie
+export async function DELETE() {
+  await clearSession();
+  return NextResponse.json({ ok: true });
 }

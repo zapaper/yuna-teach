@@ -2,17 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateSyntheticMathMcq, generateSyntheticDiagramImage } from "@/lib/gemini";
 
-async function requireAdmin(userId: string | null) {
-  if (!userId) return false;
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-  return u?.name?.toLowerCase() === "admin";
-}
+import { isSessionAdmin } from "@/lib/session";
 
 // POST { userId, questionId } → runs AI and returns { simple, similar } draft variants (not saved)
 export async function POST(request: NextRequest) {
   const { userId, questionId, subject } = await request.json() as { userId: string; questionId: string; subject?: "math" | "science" | "english" };
   const subj: "math" | "science" | "english" = subject === "science" || subject === "english" ? subject : "math";
-  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!questionId) return NextResponse.json({ error: "Missing questionId" }, { status: 400 });
 
   const q = await prisma.examQuestion.findUnique({

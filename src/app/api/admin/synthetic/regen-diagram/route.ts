@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateSyntheticDiagramImage } from "@/lib/gemini";
 
-async function requireAdmin(userId: string | null) {
-  if (!userId) return false;
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-  return u?.name?.toLowerCase() === "admin";
-}
+import { isSessionAdmin } from "@/lib/session";
 
-// POST { userId, sourceQuestionId, variantStem, diagramDescription?, userPrompt? }
-// → returns { diagramImageData } (base64) or { error }
+// POST { sourceQuestionId, variantStem, diagramDescription?, userPrompt?, mode? }
+// mode = "reset" → tells the AI to replicate the original diagram as closely as possible (for "simple" variants),
+//        otherwise → uses the diagramDescription + admin's userPrompt
 export async function POST(request: NextRequest) {
-  const { userId, sourceQuestionId, variantStem, diagramDescription, userPrompt } = await request.json();
-  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { sourceQuestionId, variantStem, diagramDescription, userPrompt, mode } = await request.json();
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!sourceQuestionId || !variantStem) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
   const source = await prisma.examQuestion.findUnique({
@@ -21,11 +18,16 @@ export async function POST(request: NextRequest) {
   });
   if (!source?.diagramImageData) return NextResponse.json({ error: "Source has no diagram" }, { status: 404 });
 
-  const description = [diagramDescription, userPrompt && `Additional instructions from admin: ${userPrompt}`]
-    .filter(Boolean)
-    .join("\n\n");
+  let description: string;
+  if (mode === "reset") {
+    description = `REPLICATE the reference diagram as closely as possible. Match the layout, line style, labels, and visual structure exactly. Only change numbers/labels where they would conflict with the new question wording. If a value in the reference diagram appears as a number in the new question stem, update that value; otherwise keep it identical to the reference. Do not invent new visual elements that aren't in the reference.`;
+  } else {
+    description = [diagramDescription, userPrompt && `Additional instructions from admin: ${userPrompt}`]
+      .filter(Boolean)
+      .join("\n\n") || "Generate a diagram appropriate for this question.";
+  }
 
-  const img = await generateSyntheticDiagramImage(source.diagramImageData, variantStem, description || "Generate a diagram appropriate for this question.");
+  const img = await generateSyntheticDiagramImage(source.diagramImageData, variantStem, description);
   if (!img) return NextResponse.json({ error: "Generation failed" }, { status: 500 });
   return NextResponse.json({ diagramImageData: img });
 }

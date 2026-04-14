@@ -199,11 +199,11 @@ function SyntheticContent() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
           sourceQuestionId: q.id,
           variantStem: d[which].stem,
           diagramDescription: d[which].diagramDescription,
           userPrompt: reset ? undefined : regenPrompts[key],
+          ...(reset ? { mode: "reset" } : {}),
         }),
       });
       const data = await res.json();

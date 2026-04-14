@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
-async function requireAdmin(userId: string | null) {
-  if (!userId) return false;
-  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-  return u?.name?.toLowerCase() === "admin";
-}
+import { isSessionAdmin } from "@/lib/session";
 
 // Returns up to 10 clean math MCQ questions that have not yet had synthetic questions generated.
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!(await requireAdmin(userId))) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const subjectParam = (request.nextUrl.searchParams.get("subject") ?? "math").toLowerCase();
   const subjectMatch = subjectParam === "science" ? "science" : subjectParam === "english" ? "english" : "math";
 

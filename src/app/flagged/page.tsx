@@ -86,7 +86,7 @@ function FlaggedContent() {
       await fetch(`/api/exam/questions/${item.questionId}/reply`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adminUserId: userId, message }),
+        body: JSON.stringify({ message }),
       });
       setReplySent(prev => ({ ...prev, [item.questionId]: true }));
       setReplyDraft(prev => ({ ...prev, [item.questionId]: "" }));
