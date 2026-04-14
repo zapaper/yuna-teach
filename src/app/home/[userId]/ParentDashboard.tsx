@@ -66,10 +66,12 @@ function scorePct(paper: ExamPaperSummary) {
 
 export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
   const router = useRouter();
-  const avatarTypeMap: Record<string, string[]> = {
-    bunny: ["/avatars/bunny1.mp4","/avatars/bunny2.mp4","/avatars/bunny3.mp4","/avatars/bunny4.mp4"],
-    bear: ["/avatars/bear1.mp4","/avatars/bear2.mp4","/avatars/bear3.mp4","/avatars/bear4.mp4"],
-  };
+  const avatarTypeMap: Record<string, string[]> = Object.fromEntries(
+    ["bunny","bear","tiger","fox","otter","uni","dragon","merlion","qilin","whitetiger"].map(k => [
+      k,
+      [1,2,3,4].map(n => `/avatars/${k}${n}.mp4`),
+    ])
+  );
   const defaultAvatarMap: Record<string, string> = { admin: "bunny", papa: "bear" };
   const nameLower = user.name?.toLowerCase() ?? "";
   const parentAvatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? defaultAvatarMap[nameLower] ?? null;
