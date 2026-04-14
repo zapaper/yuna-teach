@@ -1696,16 +1696,49 @@ export async function markFocusedTest(paperId: string): Promise<void> {
         }
       }
 
-      // Student's handwritten answer — read at the question's FULL orderIndex
+      // Student's handwritten answer — follow the same flow as quiz OEQ marking:
+      // 1. try the composite JPG (background + ink)
+      // 2. fall back to the ink-only PNG if composite is missing
+      // 3. do a blue-ink pre-check so questions with no drawing are cleanly tagged "No answer detected"
       let hasSubmission = false;
+      let submissionBase64: string | null = null;
+      let submissionMime: "image/jpeg" | "image/png" = "image/jpeg";
       try {
         const pagePath = path.join(subDir, `page_${submissionIndex}.jpg`);
         const pageBuffer = await fs.readFile(pagePath);
-        parts.push({ text: "Student's handwritten answer:" });
-        parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
+        submissionBase64 = pageBuffer.toString("base64");
+        submissionMime = "image/jpeg";
         hasSubmission = true;
       } catch {
-        // No submission image for this question
+        // fall through to ink-only PNG
+      }
+      if (!hasSubmission) {
+        try {
+          const inkPath = path.join(subDir, `page_${submissionIndex}_ink.png`);
+          const inkBuffer = await fs.readFile(inkPath);
+          submissionBase64 = inkBuffer.toString("base64");
+          submissionMime = "image/png";
+          hasSubmission = true;
+        } catch {
+          // truly nothing on disk for this question
+        }
+      }
+
+      // Blue-ink pre-check — if we have a file but it's visually blank, treat as no answer
+      if (hasSubmission && submissionBase64) {
+        const inkFound = await hasBlueInk(submissionBase64, `focused-q${q.questionNum}`, submissionMime);
+        if (!inkFound) {
+          console.log(`[focused-marking] Q${q.questionNum}: pre-check found no ink — marking 0`);
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No blue ink found (pre-check)" },
+            })
+          );
+          continue;
+        }
+        parts.push({ text: "Student's handwritten answer:" });
+        parts.push({ inlineData: { mimeType: submissionMime, data: submissionBase64 } });
       }
 
       // Add expected answer image if available

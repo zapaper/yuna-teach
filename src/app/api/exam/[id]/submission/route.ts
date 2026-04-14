@@ -95,6 +95,7 @@ export async function POST(
   await ensureDir(dir);
 
   let pageCount = 0;
+  const written: string[] = [];
   for (const [key, value] of formData.entries()) {
     if (!(value instanceof File)) continue;
     if (key.startsWith("page_") && key.endsWith("_ink")) {
@@ -102,14 +103,17 @@ export async function POST(
       const n = key.slice(5, -4); // "page_0_ink" → "0"
       const buffer = Buffer.from(await value.arrayBuffer());
       await fs.writeFile(path.join(dir, `page_${n}_ink.png`), buffer);
+      written.push(`${n}_ink(${buffer.length}b)`);
     } else if (key.startsWith("page_")) {
       // Composite JPEG (for parent viewing)
       const n = key.slice(5); // "page_0" → "0"
       const buffer = Buffer.from(await value.arrayBuffer());
       await fs.writeFile(path.join(dir, `page_${n}.jpg`), buffer);
+      written.push(`${n}(${buffer.length}b)`);
       pageCount++;
     }
   }
+  console.log(`[submission] ${id} action=${action} wrote: [${written.join(", ")}]`);
 
   if (action === "submit") {
     const updatedPaper = await prisma.examPaper.update({
