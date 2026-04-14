@@ -164,6 +164,23 @@ function SyntheticContent() {
     }
   }
 
+  async function skipQuestion(q: Question) {
+    setSavingState(`skip-${q.id}`);
+    try {
+      const res = await fetch("/api/admin/synthetic/skip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: q.id }),
+      });
+      if (!res.ok) { showToast("Skip failed"); return; }
+      showToast("Skipped — moved to end of queue");
+      setQuestions(prev => prev.filter(x => x.id !== q.id));
+      setCurrentIdx(idx => Math.max(0, Math.min(idx, questions.length - 2)));
+    } finally {
+      setSavingState(null);
+    }
+  }
+
   async function markGenerated(q: Question) {
     setSavingState(`mark-${q.id}`);
     try {
@@ -366,6 +383,12 @@ function SyntheticContent() {
                 <button onClick={() => markGenerated(q)} disabled={savingState === `mark-${q.id}`}
                   className="w-full py-3 rounded-xl bg-slate-800 text-white font-bold disabled:opacity-50 mt-4">
                   {savingState === `mark-${q.id}` ? "Marking…" : "Mark Generated (lock this question)"}
+                </button>
+              )}
+              {!locked && (
+                <button onClick={() => skipQuestion(q)} disabled={savingState === `skip-${q.id}`}
+                  className="w-full py-2 rounded-xl border border-slate-300 text-slate-600 text-xs font-bold disabled:opacity-50 mt-2">
+                  {savingState === `skip-${q.id}` ? "Skipping…" : "Skip — come back later"}
                 </button>
               )}
               {locked && (

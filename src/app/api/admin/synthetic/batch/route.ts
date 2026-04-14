@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       },
       examPaper: { select: { id: true, title: true, year: true, school: true } },
     },
-    orderBy: { id: "asc" },
+    orderBy: [{ syntheticSkipped: "asc" }, { id: "asc" }],
     take: 20, // fetch a few extra in case some have invalid answer format
   });
 
