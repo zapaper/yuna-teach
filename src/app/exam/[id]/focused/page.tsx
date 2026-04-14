@@ -47,6 +47,10 @@ function FocusedTestContent({ id }: { id: string }) {
   const [hasInk, setHasInk] = useState<boolean[]>([]);
   const lastDrawnIdx = useRef<number | null>(null);
   const [inkBlobs, setInkBlobs] = useState<(Blob | null)[]>([]);
+  // Parallel array: composite snapshot (question image + ink) per question, for upload when canvas is unmounted
+  const compositeBlobsRef = useRef<(Blob | null)[]>([]);
+  // MCQ answers: questionIndex → selected option ("1"|"2"|"3"|"4")
+  const [mcqAnswers, setMcqAnswers] = useState<Record<number, string>>({});
 
   useEffect(() => {
     (async () => {
@@ -125,22 +129,77 @@ function FocusedTestContent({ id }: { id: string }) {
     });
   }, [id, elapsed]);
 
+  // Capture the currently-displayed canvas into inkBlobs[currentIdx] and compositeBlobsRef[currentIdx].
+  // Call this BEFORE navigating away, saving progress, or submitting — so we never lose a live drawing.
+  const captureCurrentCanvas = useCallback(async () => {
+    const handle = canvasHandles.current[currentIdx];
+    if (!handle) return;
+    try {
+      const [ink, composite] = await Promise.all([handle.exportInk(), handle.exportImage()]);
+      setInkBlobs(prev => {
+        const next = [...prev];
+        next[currentIdx] = ink;
+        return next;
+      });
+      compositeBlobsRef.current[currentIdx] = composite;
+    } catch { /* ignore */ }
+  }, [currentIdx]);
+
+  // Wrap setCurrentIdx so we always snapshot the live canvas before unmounting it
+  async function navigateTo(nextIdx: number) {
+    if (nextIdx === currentIdx) return;
+    await captureCurrentCanvas();
+    setCurrentIdx(nextIdx);
+  }
+
+  async function saveProgress() {
+    if (!paper) return;
+    await captureCurrentCanvas();
+    const form = new FormData();
+    form.append("action", "save");
+    for (let i = 0; i < paper.questions.length; i++) {
+      const ink = inkBlobs[i] ?? (i === currentIdx ? null : null);
+      const composite = compositeBlobsRef.current[i];
+      if (ink) form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+      if (composite) form.append(`page_${i}`, composite, `page_${i}.jpg`);
+    }
+    await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+  }
+
   async function handleSubmit() {
     if (!paper || submitting) return;
     setSubmitting(true);
     try {
+      // Snapshot the live canvas so the currently-viewed drawing is preserved
+      await captureCurrentCanvas();
+
+      // Score MCQs client-side and persist studentAnswer/marksAwarded so the marker can count them
+      const mcqUpdates = paper.questions.map((q, i) => {
+        const correct = (q.answer ?? "").replace(/[().]/g, "").trim();
+        const isMcq = ["1","2","3","4"].includes(correct);
+        if (!isMcq) return null;
+        const selected = mcqAnswers[i] ?? null;
+        const isCorrect = !!selected && selected === correct;
+        return fetch(`/api/exam/questions/${q.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            studentAnswer: selected,
+            marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
+            markingNotes: selected ? (isCorrect ? "Correct" : `Student: ${selected}, Correct: ${correct}`) : "No answer",
+          }),
+        });
+      }).filter(Boolean);
+      if (mcqUpdates.length > 0) await Promise.all(mcqUpdates);
+
+      // Upload each question's composite + ink from the snapshot arrays (covers every visited canvas)
       const form = new FormData();
       form.append("action", "submit");
       for (let i = 0; i < paper.questions.length; i++) {
-        const handle = canvasHandles.current[i];
-        if (handle) {
-          const [composite, ink] = await Promise.all([
-            handle.exportImage(),
-            handle.exportInk(),
-          ]);
-          form.append(`page_${i}`, composite, `page_${i}.jpg`);
-          form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
-        }
+        const composite = compositeBlobsRef.current[i];
+        const ink = inkBlobs[i];
+        if (composite) form.append(`page_${i}`, composite, `page_${i}.jpg`);
+        if (ink) form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
       }
       await Promise.all([
         fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
@@ -293,6 +352,28 @@ function FocusedTestContent({ id }: { id: string }) {
             }}
           />
         </div>
+        {/* MCQ option picker — only shown for MCQ questions */}
+        {(() => {
+          const correctLetter = (currentQ.answer ?? "").replace(/[().]/g, "").trim();
+          if (!["1","2","3","4"].includes(correctLetter)) return null;
+          const selected = mcqAnswers[currentIdx] ?? null;
+          return (
+            <div className="bg-white border-t border-slate-100 px-4 py-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Select your answer</p>
+              <div className="grid grid-cols-4 gap-2">
+                {["1","2","3","4"].map(opt => (
+                  <button
+                    key={opt}
+                    onClick={() => setMcqAnswers(prev => ({ ...prev, [currentIdx]: opt }))}
+                    className={`py-3 rounded-xl border-2 font-bold transition-all ${selected === opt ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"}`}
+                  >
+                    ({opt})
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Bottom bar */}
@@ -303,11 +384,11 @@ function FocusedTestContent({ id }: { id: string }) {
             {questions.map((q, i) => (
               <button
                 key={q.id}
-                onClick={() => setCurrentIdx(i)}
+                onClick={() => navigateTo(i)}
                 className={`w-2.5 h-2.5 rounded-full transition-colors ${
                   i === currentIdx
                     ? "bg-primary-500"
-                    : hasInk[i]
+                    : hasInk[i] || mcqAnswers[i]
                     ? "bg-green-400"
                     : "bg-slate-200"
                 }`}
@@ -317,7 +398,14 @@ function FocusedTestContent({ id }: { id: string }) {
 
           <div className="flex gap-3">
             <button
-              onClick={() => setCurrentIdx((i) => Math.max(0, i - 1))}
+              onClick={() => saveProgress().catch(() => {})}
+              className="px-3 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-medium hover:bg-slate-50"
+              title="Save progress so you can safely refresh"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => navigateTo(Math.max(0, currentIdx - 1))}
               disabled={currentIdx === 0}
               className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 disabled:opacity-30 text-sm"
             >
@@ -325,7 +413,7 @@ function FocusedTestContent({ id }: { id: string }) {
             </button>
             {currentIdx < questions.length - 1 ? (
               <button
-                onClick={() => setCurrentIdx((i) => i + 1)}
+                onClick={() => navigateTo(currentIdx + 1)}
                 className="flex-1 py-2.5 rounded-xl bg-primary-600 text-white font-medium hover:bg-primary-700 text-sm"
               >
                 Next

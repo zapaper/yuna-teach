@@ -1665,6 +1665,11 @@ export async function markFocusedTest(paperId: string): Promise<void> {
       const q = oeqQuestions[i];
       const expectedAnswer = q.answer || "?";
       const marksAvailable = q.marksAvailable ?? 1;
+      // Files are uploaded by the focused page at the full question orderIndex
+      // (page_0..page_{n-1} where n = total questions), NOT at the OEQ-sequential
+      // index. Reading with the wrong index causes Q6..Q10 OEQ to be marked
+      // against Q1..Q5 MCQ canvases. Use orderIndex.
+      const submissionIndex = q.orderIndex;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [];
@@ -1691,10 +1696,10 @@ export async function markFocusedTest(paperId: string): Promise<void> {
         }
       }
 
-      // Student's handwritten answer — OEQ-only sequential index (page_0, page_1, ...)
+      // Student's handwritten answer — read at the question's FULL orderIndex
       let hasSubmission = false;
       try {
-        const pagePath = path.join(subDir, `page_${i}.jpg`);
+        const pagePath = path.join(subDir, `page_${submissionIndex}.jpg`);
         const pageBuffer = await fs.readFile(pagePath);
         parts.push({ text: "Student's handwritten answer:" });
         parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
