@@ -214,8 +214,12 @@ function ExamReviewContent({ id }: { id: string }) {
     try {
       const res = await fetch(`/api/exam/${id}/mark`, { method: "POST" });
       if (res.ok) {
-        const studentParam = assignedToId ? `?student=${assignedToId}` : "";
-        router.push(`/home/${userId}${studentParam}`);
+        // Land parents on the selected-student progress view so they can see marking progress
+        const isStudentSelf = userId === assignedToId;
+        const target = assignedToId && !isStudentSelf
+          ? `/home/${userId}?view=progress&student=${assignedToId}`
+          : `/home/${userId}`;
+        router.push(target);
       }
     } catch {
       setRemarking(false);
