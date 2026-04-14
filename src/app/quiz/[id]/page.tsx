@@ -409,6 +409,17 @@ function QuizContent({ id }: { id: string }) {
         await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
       }
 
+      // Persist any flags the student raised during the quiz
+      if (flaggedIds.size > 0) {
+        await Promise.all([...flaggedIds].map(qid =>
+          fetch(`/api/exam/${id}/flag`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ questionId: qid, userId }),
+          }).catch(() => {})
+        ));
+      }
+
       // Save time and mark as completed
       await fetch(`/api/exam/${id}`, {
         method: "PATCH",
