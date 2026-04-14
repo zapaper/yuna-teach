@@ -373,16 +373,22 @@ export async function POST(request: NextRequest) {
 
     for (const section of orderedSections) {
       let sectionQs: typeof allPool = [];
+      // Passage-bound sections CANNOT be doubled by concatenating two papers — each passage is tied to
+      // exactly one set of question blanks, and only one passage can be shown to the student. So when
+      // isFocusedEnglish is on, we still only take ONE paper's set for passage-bound sections.
       if (section === "vocab-cloze" && vocabClozeSets.length > 0) {
-        sectionQs = isFocusedEnglish && vocabClozeSets[1] ? [...vocabClozeSets[0], ...vocabClozeSets[1]] : vocabClozeSets[0];
+        sectionQs = vocabClozeSets[0];
       } else if (section === "visual-text" && visualTextSets.length > 0) {
-        sectionQs = isFocusedEnglish && visualTextSets[1] ? [...visualTextSets[0], ...visualTextSets[1]] : visualTextSets[0];
+        sectionQs = visualTextSets[0];
       } else if (section === "synthesis") {
+        // Synthesis items are independent (not passage-bound), safe to double.
         const synthAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
         const synthFresh = shuffle(synthAll.filter(q => !usedSourceIds.has(q.id)));
         const synthUsed = shuffle(synthAll.filter(q => usedSourceIds.has(q.id)));
         sectionQs = [...synthFresh, ...synthUsed].slice(0, isFocusedEnglish ? 10 : 5);
       } else {
+        // grammar-cloze, editing, comprehension-cloze, comprehension-oeq — all passage-bound.
+        // Never concat two papers here; pick the first fresh paper set only.
         const matcher = topicMatchers[section];
         if (matcher) {
           const matchedQs = allPool.filter(q => matcher((q.syllabusTopic ?? "").toLowerCase()));
@@ -392,9 +398,7 @@ export async function POST(request: NextRequest) {
             papers.get(q.examPaperId)!.push(q);
           }
           const paperSets = sortByFreshness([...papers.values()]);
-          if (paperSets.length > 0) {
-            sectionQs = isFocusedEnglish && paperSets[1] ? [...paperSets[0], ...paperSets[1]] : paperSets[0];
-          }
+          if (paperSets.length > 0) sectionQs = paperSets[0];
         }
       }
       if (sectionQs.length > 0) {
