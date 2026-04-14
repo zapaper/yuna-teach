@@ -106,6 +106,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const router = useRouter();
   const hasAvatar = user.settings?.avatar !== false; // default on for all students
   const avatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? "bunny";
+  const whitetigerUnlocked = (user.settings as Record<string, unknown> | null)?.whitetiger === true;
   const [avatarSrc, setAvatarSrc] = useState(() => `/avatars/${avatarType}${Math.floor(Math.random() * 4) + 1}.mp4`);
   const [nextAvatarSrc, setNextAvatarSrc] = useState<string | null>(null);
   const avatarRef = useRef<HTMLVideoElement>(null);
@@ -508,8 +509,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 { key: "dragon", label: "Dragon", points: 1250 },
                 { key: "merlion", label: "Merlion", points: 1500 },
                 { key: "qilin", label: "Qilin", points: 1750 },
+                ...(whitetigerUnlocked ? [{ key: "whitetiger", label: "White Tiger", points: 0, special: true as const }] : []),
               ].map(animal => {
-                const unlocked = totalPoints >= animal.points;
+                const unlocked = "special" in animal ? true : totalPoints >= animal.points;
                 const isSelected = (selectedAvatar ?? avatarType) === animal.key;
                 return (
                   <button
@@ -564,8 +566,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 { key: "dragon", label: "Dragon", points: 1250 },
                 { key: "merlion", label: "Merlion", points: 1500 },
                 { key: "qilin", label: "Qilin", points: 1750 },
+                ...(whitetigerUnlocked ? [{ key: "whitetiger", label: "White Tiger", points: 0, special: true as const }] : []),
               ].map(animal => {
-                const unlocked = totalPoints >= animal.points;
+                const unlocked = "special" in animal ? true : totalPoints >= animal.points;
                 const isSelected = (selectedAvatar ?? avatarType) === animal.key;
                 return (
                   <button
