@@ -1095,9 +1095,16 @@ function ExamReviewContent({ id }: { id: string }) {
                           qCorrect ? "bg-[#d1fae5]/30 border-[#006c49]/20" : isPartialQ ? "bg-[#fef3c7]/30 border-[#633f00]/20" : "bg-[#ffdad6]/30 border-[#ba1a1a]/20"
                         }`}>
                           <div className="flex items-start gap-3">
-                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                              qCorrect ? "bg-[#006c49] text-white" : isPartialQ ? "bg-[#633f00] text-white" : "bg-[#ba1a1a] text-white"
-                            }`}>{displayNum}</span>
+                            <div className="flex flex-col items-center gap-1 shrink-0">
+                              <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                                qCorrect ? "bg-[#006c49] text-white" : isPartialQ ? "bg-[#633f00] text-white" : "bg-[#ba1a1a] text-white"
+                              }`}>{displayNum}</span>
+                              <button onClick={() => toggleFlag(q.id)} disabled={flagging === q.id}
+                                title={flaggedIds.has(q.id) ? "Flagged" : "Flag this question"}
+                                className={`transition-colors disabled:opacity-50 ${flaggedIds.has(q.id) ? "text-[#ba1a1a]" : "text-[#737780] hover:text-[#ba1a1a]"}`}>
+                                <span className="material-symbols-outlined text-base" style={flaggedIds.has(q.id) ? { fontVariationSettings: "'FILL' 1" } : {}}>flag</span>
+                              </button>
+                            </div>
                             <div className="flex-1 min-w-0">
                               {/* Synthesis / Comp OEQ: show question + typed answer */}
                               {(isSynthesis || isCompOeq) ? (
