@@ -47,8 +47,12 @@ function FocusedTestContent({ id }: { id: string }) {
   const [hasInk, setHasInk] = useState<boolean[]>([]);
   const lastDrawnIdx = useRef<number | null>(null);
   const [inkBlobs, setInkBlobs] = useState<(Blob | null)[]>([]);
-  // Parallel array: composite snapshot (question image + ink) per question, for upload when canvas is unmounted
+  // Snapshots — kept as refs so they never race with React state. compositeBlobsRef is the
+  // composite JPG (question image + ink), inkBlobsRef is the ink-only PNG. Both are the source
+  // of truth on submit. The state setInkBlobs is only used to pass the latest ink back to the
+  // mounted canvas as its inkBlob prop so returning to a question shows prior strokes.
   const compositeBlobsRef = useRef<(Blob | null)[]>([]);
+  const inkBlobsRef = useRef<(Blob | null)[]>([]);
   // MCQ answers: questionIndex → selected option ("1"|"2"|"3"|"4")
   const [mcqAnswers, setMcqAnswers] = useState<Record<number, string>>({});
 
@@ -129,36 +133,40 @@ function FocusedTestContent({ id }: { id: string }) {
     });
   }, [id, elapsed]);
 
-  // Capture the currently-displayed canvas into inkBlobs[currentIdx] and compositeBlobsRef[currentIdx].
-  // Call this BEFORE navigating away, saving progress, or submitting — so we never lose a live drawing.
-  const captureCurrentCanvas = useCallback(async () => {
-    const handle = canvasHandles.current[currentIdx];
-    if (!handle) return;
+  // Capture the live canvas at index `idx` into both refs (and mirror ink to state so
+  // the re-mounted canvas can restore strokes when you come back to this question).
+  const captureCanvasAt = useCallback(async (idx: number) => {
+    const handle = canvasHandles.current[idx];
+    if (!handle) { console.log(`[focused] no handle at idx=${idx}`); return; }
     try {
       const [ink, composite] = await Promise.all([handle.exportInk(), handle.exportImage()]);
+      compositeBlobsRef.current[idx] = composite;
+      inkBlobsRef.current[idx] = ink;
       setInkBlobs(prev => {
         const next = [...prev];
-        next[currentIdx] = ink;
+        next[idx] = ink;
         return next;
       });
-      compositeBlobsRef.current[currentIdx] = composite;
-    } catch { /* ignore */ }
-  }, [currentIdx]);
+      console.log(`[focused] captured idx=${idx} ink=${ink.size}b composite=${composite.size}b`);
+    } catch (e) {
+      console.log(`[focused] capture failed idx=${idx}`, e);
+    }
+  }, []);
 
   // Wrap setCurrentIdx so we always snapshot the live canvas before unmounting it
   async function navigateTo(nextIdx: number) {
     if (nextIdx === currentIdx) return;
-    await captureCurrentCanvas();
+    await captureCanvasAt(currentIdx);
     setCurrentIdx(nextIdx);
   }
 
   async function saveProgress() {
     if (!paper) return;
-    await captureCurrentCanvas();
+    await captureCanvasAt(currentIdx);
     const form = new FormData();
     form.append("action", "save");
     for (let i = 0; i < paper.questions.length; i++) {
-      const ink = inkBlobs[i] ?? (i === currentIdx ? null : null);
+      const ink = inkBlobsRef.current[i];
       const composite = compositeBlobsRef.current[i];
       if (ink) form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
       if (composite) form.append(`page_${i}`, composite, `page_${i}.jpg`);
@@ -171,7 +179,7 @@ function FocusedTestContent({ id }: { id: string }) {
     setSubmitting(true);
     try {
       // Snapshot the live canvas so the currently-viewed drawing is preserved
-      await captureCurrentCanvas();
+      await captureCanvasAt(currentIdx);
 
       // Score MCQs client-side and persist studentAnswer/marksAwarded so the marker can count them
       const mcqUpdates = paper.questions.map((q, i) => {
@@ -192,15 +200,17 @@ function FocusedTestContent({ id }: { id: string }) {
       }).filter(Boolean);
       if (mcqUpdates.length > 0) await Promise.all(mcqUpdates);
 
-      // Upload each question's composite + ink from the snapshot arrays (covers every visited canvas)
+      // Upload each question's composite + ink from the snapshot refs (covers every visited canvas)
       const form = new FormData();
       form.append("action", "submit");
+      let uploaded = 0;
       for (let i = 0; i < paper.questions.length; i++) {
         const composite = compositeBlobsRef.current[i];
-        const ink = inkBlobs[i];
-        if (composite) form.append(`page_${i}`, composite, `page_${i}.jpg`);
+        const ink = inkBlobsRef.current[i];
+        if (composite) { form.append(`page_${i}`, composite, `page_${i}.jpg`); uploaded++; }
         if (ink) form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
       }
+      console.log(`[focused] submit uploading ${uploaded}/${paper.questions.length} composite files`);
       await Promise.all([
         fetch(`/api/exam/${id}/submission`, { method: "POST", body: form }),
         saveTimeToServer(),
@@ -350,6 +360,7 @@ function FocusedTestContent({ id }: { id: string }) {
                 return next;
               });
             }}
+            onStrokeEnd={() => { captureCanvasAt(currentIdx).catch(() => {}); }}
           />
         </div>
         {/* MCQ option picker — only shown for MCQ questions */}
@@ -438,8 +449,8 @@ function FocusedTestContent({ id }: { id: string }) {
 
 const AnswerCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; questionImageSrc: string; inkBlob?: Blob; onStrokeStart: () => void }
->(function AnswerCanvas({ tool, questionImageSrc, inkBlob, onStrokeStart }, ref) {
+  { tool: DrawTool; questionImageSrc: string; inkBlob?: Blob; onStrokeStart: () => void; onStrokeEnd?: () => void }
+>(function AnswerCanvas({ tool, questionImageSrc, inkBlob, onStrokeStart, onStrokeEnd }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
@@ -593,6 +604,8 @@ const AnswerCanvas = forwardRef<
   toolRef.current = tool;
   const onStrokeStartRef = useRef(onStrokeStart);
   onStrokeStartRef.current = onStrokeStart;
+  const onStrokeEndRef = useRef(onStrokeEnd);
+  onStrokeEndRef.current = onStrokeEnd;
 
   // Stable native event listeners — attached once, never re-attached
   useEffect(() => {
@@ -698,6 +711,8 @@ const AnswerCanvas = forwardRef<
         redrawComposite();
       }
       scheduleSnapshotCapture();
+      // Notify parent the stroke is complete so it can snapshot the canvas to its refs
+      onStrokeEndRef.current?.();
     }
 
     function handleContextMenu(e: Event) {
