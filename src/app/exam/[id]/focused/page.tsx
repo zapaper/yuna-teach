@@ -153,10 +153,41 @@ function FocusedTestContent({ id }: { id: string }) {
     }
   }, []);
 
+  // Autosave: every time we capture, also POST this single question's files so the server
+  // has a fresh copy even if the student never clicks Save or Submit.
+  const autoSaveQuestion = useCallback(async (idx: number) => {
+    const composite = compositeBlobsRef.current[idx];
+    const ink = inkBlobsRef.current[idx];
+    if (!composite && !ink) return;
+    const form = new FormData();
+    form.append("action", "save");
+    if (composite) form.append(`page_${idx}`, composite, `page_${idx}.jpg`);
+    if (ink) form.append(`page_${idx}_ink`, ink, `page_${idx}_ink.png`);
+    try {
+      const res = await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+      console.log(`[focused] autosave idx=${idx} ${res.ok ? "ok" : `failed ${res.status}`}`);
+    } catch (e) {
+      console.log(`[focused] autosave idx=${idx} error`, e);
+    }
+  }, [id]);
+
+  // Debounce autosave — accumulate strokes for 1s before uploading
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleAutosave = useCallback((idx: number) => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      captureCanvasAt(idx).then(() => autoSaveQuestion(idx));
+    }, 800);
+  }, [captureCanvasAt, autoSaveQuestion]);
+
   // Wrap setCurrentIdx so we always snapshot the live canvas before unmounting it
   async function navigateTo(nextIdx: number) {
     if (nextIdx === currentIdx) return;
+    // Flush any pending autosave immediately
+    if (autoSaveTimer.current) { clearTimeout(autoSaveTimer.current); autoSaveTimer.current = null; }
     await captureCanvasAt(currentIdx);
+    // Fire-and-forget autosave for the question we're leaving so its files exist on disk
+    autoSaveQuestion(currentIdx).catch(() => {});
     setCurrentIdx(nextIdx);
   }
 
@@ -178,8 +209,11 @@ function FocusedTestContent({ id }: { id: string }) {
     if (!paper || submitting) return;
     setSubmitting(true);
     try {
-      // Snapshot the live canvas so the currently-viewed drawing is preserved
+      // Flush any debounced autosave and snapshot the live canvas
+      if (autoSaveTimer.current) { clearTimeout(autoSaveTimer.current); autoSaveTimer.current = null; }
       await captureCanvasAt(currentIdx);
+      // Fire one final autosave for the live canvas before the submit FormData goes out
+      await autoSaveQuestion(currentIdx).catch(() => {});
 
       // Score MCQs client-side and persist studentAnswer/marksAwarded so the marker can count them
       const mcqUpdates = paper.questions.map((q, i) => {
@@ -360,7 +394,7 @@ function FocusedTestContent({ id }: { id: string }) {
                 return next;
               });
             }}
-            onStrokeEnd={() => { captureCanvasAt(currentIdx).catch(() => {}); }}
+            onStrokeEnd={() => { scheduleAutosave(currentIdx); }}
           />
         </div>
         {/* MCQ option picker — only shown for MCQ questions */}
