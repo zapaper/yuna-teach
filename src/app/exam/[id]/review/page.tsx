@@ -94,6 +94,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [flagging, setFlagging] = useState<string | null>(null);
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
+  const [paperType, setPaperType] = useState<string | null>(null);
   const [releasing, setReleasing] = useState(false);
   const [englishSections, setEnglishSections] = useState<Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | null>(null);
   const [expandedElabs, setExpandedElabs] = useState<Set<string>>(new Set());
@@ -125,6 +126,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setInstantFeedback(paper.instantFeedback === true);
           paperIsQuiz = paper.paperType === "quiz" || paper.paperType === "focused";
           setIsQuiz(paperIsQuiz);
+          setPaperType(paper.paperType ?? null);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
@@ -477,6 +479,11 @@ function ExamReviewContent({ id }: { id: string }) {
   // For quiz OEQ: index of currentQ among all OEQ questions (no text or image MCQ options)
   const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions && !q.transcribedOptionImages);
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
+  // Focused tests upload files at the full question orderIndex (not OEQ-sequential).
+  // Daily quizzes upload at OEQ-sequential. So pick the right index for the image URL.
+  const currentQSubmissionPage = paperType === "focused" && currentQ
+    ? currentQ.orderIndex
+    : currentQOeqIndex;
 
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
@@ -1485,7 +1492,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                           {isQuiz && currentQOeqIndex >= 0 && (
                                             // eslint-disable-next-line @next/next/no-img-element
                                             <img
-                                              src={`/api/exam/${id}/submission?page=${currentQOeqIndex}&subpart=${sp.label.toLowerCase()}`}
+                                              src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                               alt={`Written answer for (${sp.label})`}
                                               className="w-full h-auto rounded-2xl border border-[#e5eeff]"
                                               onError={(e) => {
@@ -1493,7 +1500,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                                 // Fallback to combined image (only on first subpart to avoid duplicates)
                                                 if (sp === realSubs[0] && !img.dataset.fallback) {
                                                   img.dataset.fallback = "1";
-                                                  img.src = `/api/exam/${id}/submission?page=${currentQOeqIndex}`;
+                                                  img.src = `/api/exam/${id}/submission?page=${currentQSubmissionPage}`;
                                                 } else if (img.dataset.fallback) {
                                                   img.style.display = "none";
                                                 } else {
@@ -1566,7 +1573,7 @@ function ExamReviewContent({ id }: { id: string }) {
                           <div className="rounded-2xl overflow-hidden border border-[#e5eeff]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={`/api/exam/${id}/submission?page=${currentQOeqIndex}`}
+                              src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
                               alt={`Written answer for Q${currentQ.questionNum}`}
                               className="w-full h-auto"
                             />
