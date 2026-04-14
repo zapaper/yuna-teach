@@ -1390,6 +1390,10 @@ function ExamReviewContent({ id }: { id: string }) {
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
                               )}
+                              {drawableDiagram && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={toSrc(drawableDiagram)} alt="Question diagram" className="w-full rounded-xl border border-[#e5eeff]" />
+                              )}
                               {/* MCQ options — image grid */}
                               {currentQ.transcribedOptionImages && currentQ.transcribedOptionImages.some(img => img) && (
                                 <div className="grid grid-cols-2 gap-3 mt-2">
@@ -1511,6 +1515,21 @@ function ExamReviewContent({ id }: { id: string }) {
                                         </div>
                                       );
                                     })}
+                                    {/* Full correct answer (worked solution + answer image) — shown alongside per-part breakdowns */}
+                                    {(currentQ.answer || currentQ.answerImageData) && (
+                                      <div className="mt-3">
+                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Correct Answer</p>
+                                        {currentQ.answer && (
+                                          <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
+                                            {renderWithNewlines(currentQ.answer)}
+                                          </div>
+                                        )}
+                                        {currentQ.answerImageData && (
+                                          // eslint-disable-next-line @next/next/no-img-element
+                                          <img src={currentQ.answerImageData} alt="Answer diagram" className="mt-2 max-w-full rounded-xl border border-[#e5eeff]" />
+                                        )}
+                                      </div>
+                                    )}
                                     {/* Marking notes for subpart questions */}
                                     {currentQ.markingNotes && (
                                       <div className="mt-2">
