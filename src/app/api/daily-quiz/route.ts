@@ -817,7 +817,11 @@ export async function POST(request: NextRequest) {
       ...first,
       answer: combinedAnswer || first.answer,
       transcribedStem: combinedStem,
-      transcribedSubparts: uniqueSubparts.length > 0 ? [...uniqueSubparts, ...sentinels] : null,
+      // Preserve sentinels (like _drawable) even when there are no real sub-parts —
+      // otherwise a single-part OEQ with a drawable diagram loses its canvas background.
+      transcribedSubparts: (uniqueSubparts.length > 0 || sentinels.length > 0)
+        ? [...uniqueSubparts, ...sentinels]
+        : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
       diagramImageData,
     };
