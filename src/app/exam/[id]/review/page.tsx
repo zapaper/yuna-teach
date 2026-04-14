@@ -477,10 +477,16 @@ function ExamReviewContent({ id }: { id: string }) {
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
 
-  // Percentage uses the SAME denominator as the displayed "X / Y" score so they stay in sync.
+  // Skipped questions still appear in review, but their marks are excluded from the denominator.
+  const skippedQs = data.questions.filter(q => q.studentAnswer === "__SKIPPED__");
+  const skippedMarks = skippedQs.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
   const effectiveScore = (data.score ?? 0);
-  const totalM = totalMarks ? Number(totalMarks) : null;
+  const rawTotal = totalMarks ? Number(totalMarks) : null;
+  const totalM = rawTotal !== null ? Math.max(0, rawTotal - skippedMarks) : null;
   const pct = totalM && totalM > 0 ? Math.round((effectiveScore / totalM) * 100) : null;
+  const denominatorLabel = rawTotal !== null
+    ? (skippedMarks > 0 ? `${rawTotal} − ${skippedMarks} skipped` : String(rawTotal))
+    : "";
   const scoreBorderColor = pct === null ? "#d3e4fe"
     : pct >= 75 ? "#6cf8bb"
     : pct >= 50 ? "#ffb952"
@@ -642,7 +648,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
                 </h2>
                 <p className="text-sm text-[#43474f] font-medium mt-0.5">
-                  {pct !== null ? `${data.score ?? 0} / ${totalMarks} marks` : paperTitle}
+                  {pct !== null ? `${data.score ?? 0} / ${denominatorLabel} marks` : paperTitle}
                 </p>
                 <div className="flex gap-2 flex-wrap mt-2">
                   <span className="px-3 py-1 bg-[#eff4ff] rounded-full text-[10px] font-bold text-[#001e40]">{writtenQuestions.length} Qs</span>
@@ -705,7 +711,7 @@ function ExamReviewContent({ id }: { id: string }) {
                 {pct !== null ? `${pct}%` : `${data.score ?? 0}`}
               </span>
               <span className="text-xs font-medium text-[#43474f] mt-1">
-                {pct !== null ? `${data.score ?? 0} / ${totalMarks}` : "Score"}
+                {pct !== null ? `${data.score ?? 0} / ${denominatorLabel}` : "Score"}
               </span>
             </div>
             <div className="flex-1">
@@ -1274,10 +1280,11 @@ function ExamReviewContent({ id }: { id: string }) {
 
             {/* Current question card (standard per-question view) */}
             {currentQ && !isTypedSection && (() => {
-              const isCorrect = (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 1);
-              const isPartial = !isCorrect && (currentQ.marksAwarded ?? 0) > 0;
-              const badgeBg = isCorrect ? "#d1fae5" : isPartial ? "#fef3c7" : "#ffdad6";
-              const badgeText = isCorrect ? "#006c49" : isPartial ? "#633f00" : "#ba1a1a";
+              const isSkippedQ = currentQ.studentAnswer === "__SKIPPED__";
+              const isCorrect = !isSkippedQ && (currentQ.marksAwarded ?? 0) >= (currentQ.marksAvailable ?? 1);
+              const isPartial = !isSkippedQ && !isCorrect && (currentQ.marksAwarded ?? 0) > 0;
+              const badgeBg = isSkippedQ ? "#e5eeff" : isCorrect ? "#d1fae5" : isPartial ? "#fef3c7" : "#ffdad6";
+              const badgeText = isSkippedQ ? "#43474f" : isCorrect ? "#006c49" : isPartial ? "#633f00" : "#ba1a1a";
               // Check if this question has subparts with per-part answers shown inline
               const subs = currentQ.transcribedSubparts as { label: string }[] | null;
               const realSubLabels = subs?.filter(s => !s.label.startsWith("_")) ?? [];
@@ -1334,6 +1341,12 @@ function ExamReviewContent({ id }: { id: string }) {
                             {!isStudent && <span className="material-symbols-outlined text-[10px] ml-1 align-middle opacity-40">edit</span>}
                           </span>
                         )
+                      )}
+                      {isSkippedQ && (
+                        <span className="flex items-center gap-1 text-xs font-bold text-[#43474f] bg-[#eff4ff] px-2 py-0.5 rounded-full">
+                          <span className="material-symbols-outlined text-base">skip_next</span>
+                          Skipped
+                        </span>
                       )}
                       {isCorrect && (
                         <span className="flex items-center gap-1 text-xs font-bold text-[#006c49]">

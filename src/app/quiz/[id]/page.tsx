@@ -1106,17 +1106,32 @@ function McqQuestionCard({
 function McqScratchPad({ tool }: { tool: DrawTool }) {
   const [height, setHeight] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const dragStart = useRef<{ y: number; h: number } | null>(null);
+  // Undo history — snapshot of the canvas before each new stroke
+  const history = useRef<ImageData[]>([]);
   function getPos(e: React.PointerEvent) {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
     return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
   }
 
+  function snapshotForUndo() {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || canvas.width === 0) return;
+    try {
+      history.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      if (history.current.length > 30) history.current.shift();
+    } catch { /* ignore */ }
+  }
+
   function onCanvasDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
+    snapshotForUndo();
     isDrawing.current = true;
     lastPos.current = getPos(e);
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -1126,10 +1141,19 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx || !lastPos.current) return;
     const pos = getPos(e);
-    const isEraser = tool === "eraser" || tool === "eraser-large";
-    ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = isEraser ? "#ffffff" : "#0066cc";
-    ctx.lineWidth = tool === "eraser-large" ? 80 : tool === "eraser" ? 28 : 2;
+    const currentTool = toolRef.current;
+    const isEraser = currentTool === "eraser" || currentTool === "eraser-large";
+    if (isEraser) {
+      // destination-out — every pixel the stroke covers becomes transparent.
+      // With the parent div bg-white behind the canvas, erasing looks like drawing white.
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+      ctx.lineWidth = currentTool === "eraser-large" ? 80 : 32;
+    } else {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = "#0066cc";
+      ctx.lineWidth = 3;
+    }
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.beginPath();
@@ -1138,7 +1162,21 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     ctx.stroke();
     lastPos.current = pos;
   }
-  function onCanvasUp() { isDrawing.current = false; lastPos.current = null; }
+  function onCanvasUp() {
+    isDrawing.current = false;
+    lastPos.current = null;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (ctx) ctx.globalCompositeOperation = "source-over";
+  }
+
+  function handleUndo() {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || history.current.length === 0) return;
+    const snap = history.current.pop()!;
+    ctx.putImageData(snap, 0, 0);
+  }
 
   function onHandleDown(e: React.PointerEvent) {
     e.preventDefault();
@@ -1152,7 +1190,7 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
   }
   function onHandleUp() { dragStart.current = null; }
 
-  // Preserve canvas content on resize
+  // Re-size + preserve content
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || height === 0) return;
@@ -1160,36 +1198,28 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     if (!parent) return;
     const w = parent.offsetWidth;
     const ctx = canvas.getContext("2d");
-    // Save existing content before resize
-    let savedImage: ImageData | null = null;
+    let tempCanvas: HTMLCanvasElement | null = null;
     if (ctx && canvas.width > 0 && canvas.height > 0) {
-      savedImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      tempCanvas = document.createElement("canvas");
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      tempCanvas.getContext("2d")!.drawImage(canvas, 0, 0);
     }
     canvas.style.width = `${w}px`;
     canvas.style.height = `${height}px`;
     const newW = w * 2;
     const newH = height * 2;
-    // Stash old content into a temp canvas (so we can drawImage it back over a white fill)
-    let tempCanvas: HTMLCanvasElement | null = null;
-    if (savedImage) {
-      tempCanvas = document.createElement("canvas");
-      tempCanvas.width = canvas.width;
-      tempCanvas.height = canvas.height;
-      tempCanvas.getContext("2d")!.putImageData(savedImage, 0, 0);
-    }
     canvas.width = newW;
     canvas.height = newH;
-    if (ctx) {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, newW, newH);
-      if (tempCanvas) ctx.drawImage(tempCanvas, 0, 0, newW, newH);
-    }
+    if (ctx && tempCanvas) ctx.drawImage(tempCanvas, 0, 0, newW, newH);
+    // Clear history on resize (image coordinates change)
+    history.current = [];
   }, [height]);
 
   return (
     <div className="mt-3">
       {height > 0 && (
-        <div className="border border-[#d3e4fe] rounded-t-xl overflow-hidden bg-white">
+        <div className="border border-[#d3e4fe] rounded-t-xl overflow-hidden bg-white relative">
           <canvas
             ref={canvasRef}
             style={{ touchAction: "none", width: "100%", height: `${height}px` }}
@@ -1198,6 +1228,14 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
             onPointerUp={onCanvasUp}
             onPointerCancel={onCanvasUp}
           />
+          <button
+            onClick={handleUndo}
+            type="button"
+            title="Undo last stroke"
+            className="absolute top-1 right-1 w-8 h-8 rounded-full bg-white/90 border border-[#d3e4fe] shadow-sm flex items-center justify-center text-[#43474f] hover:text-[#001e40]"
+          >
+            <span className="material-symbols-outlined text-base">undo</span>
+          </button>
         </div>
       )}
       <div
