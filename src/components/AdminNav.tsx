@@ -8,6 +8,7 @@ const NAV_ITEMS = [
   { icon: "library_books", label: "Papers",        path: "/admin/papers" },
   { icon: "auto_awesome",  label: "Synthetic",     path: "/admin/synthetic" },
   { icon: "tune",          label: "Subpart Marks", path: "/admin/subpart-marks" },
+  { icon: "build",         label: "Fix Questions", path: "/admin/fix-questions" },
   { icon: "feedback",      label: "Feedback",      path: "/admin/feedback" },
 ];
 
