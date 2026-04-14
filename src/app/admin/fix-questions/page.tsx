@@ -39,6 +39,7 @@ function FixQuestionsContent() {
   const [answer, setAnswer] = useState("");
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -75,6 +76,27 @@ function FixQuestionsContent() {
   }
 
   const current = items[idx];
+
+  async function extractOcr() {
+    if (!current) return;
+    setExtracting(true);
+    try {
+      const res = await fetch("/api/admin/broken-questions/transcribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: current.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) { flash(data.error ?? "Extract failed"); return; }
+      if (typeof data.stem === "string") setStem(data.stem);
+      if (Array.isArray(data.options) && data.options.length === 4) {
+        setOptions(data.options.map((o: string) => String(o ?? "")));
+      }
+      flash(`Extracted (${data.type ?? "?"}) — review and Save`);
+    } finally {
+      setExtracting(false);
+    }
+  }
 
   async function save(opts: { advance: boolean; removeFromList: boolean }) {
     if (!current) return;
@@ -175,6 +197,17 @@ function FixQuestionsContent() {
                 <img src={current.imageData.startsWith("data:") ? current.imageData : `data:image/jpeg;base64,${current.imageData}`}
                   alt="question" className="w-full rounded-lg border border-slate-200" />
               )}
+
+              <div className="flex gap-2">
+                <button onClick={extractOcr} disabled={extracting}
+                  className="flex-1 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold disabled:opacity-50">
+                  {extracting ? "Extracting…" : "Extract OCR"}
+                </button>
+                <a href={`/exam/${current.paperId}/edit?userId=${userId}`} target="_blank" rel="noopener"
+                  className="flex-1 py-2 text-center rounded-xl border border-slate-300 text-slate-700 text-sm font-bold hover:bg-slate-50">
+                  Recrop ↗
+                </a>
+              </div>
 
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Stem</label>
