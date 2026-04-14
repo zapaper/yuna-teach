@@ -295,9 +295,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       { points: 500, key: `points-milestone-500-${userId}`, msg: "You have scored more than 500 points! A new Fox avatar has been unlocked!" },
       { points: 750, key: `points-milestone-750-${userId}`, msg: "You have scored more than 750 points! A new Otter avatar has been unlocked!" },
       { points: 250, key: `points-milestone-250-${userId}`, msg: "You have scored more than 250 points! A new Tiger avatar has been unlocked!" },
-      { points: 1000, key: `points-milestone-1000-${userId}`, msg: "You have scored more than 1000 points! A new Merlion avatar has been unlocked!" },
+      { points: 1000, key: `points-milestone-1000-${userId}`, msg: "You have scored more than 1000 points! A new Unicorn avatar has been unlocked!" },
       { points: 1250, key: `points-milestone-1250-${userId}`, msg: "You have scored more than 1250 points! A new Dragon avatar has been unlocked!" },
-      { points: 1500, key: `points-milestone-1500-${userId}`, msg: "You have scored more than 1500 points! A new Unicorn avatar has been unlocked!" },
+      { points: 1500, key: `points-milestone-1500-${userId}`, msg: "You have scored more than 1500 points! A new Merlion avatar has been unlocked!" },
       { points: 1750, key: `points-milestone-1750-${userId}`, msg: "You have scored more than 1750 points! The legendary Qilin avatar has been unlocked!" },
     ];
     for (const m of milestones) {
