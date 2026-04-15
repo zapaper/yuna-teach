@@ -288,7 +288,7 @@ export default function HomePage() {
                 Stop marking. <span className="text-tertiary">Start coaching.</span>
               </h2>
               <p className="text-on-tertiary-container text-base md:text-xl mb-8 lg:mb-10 max-w-2xl mx-auto">
-                Try now and see your child&apos;s work marked instantly, weak spots identified and next steps to be taken. Free, no credit card.
+                Try now and see your child&apos;s homework marked instantly, weak spots identified and next steps recommended. FREE, no credit card.
               </p>
               <div className="flex justify-center">
                 <Link href="/signup" className="w-full sm:w-auto px-12 py-5 bg-tertiary text-white font-extrabold rounded-full text-lg hover:bg-on-tertiary-container transition-colors shadow-lg">
