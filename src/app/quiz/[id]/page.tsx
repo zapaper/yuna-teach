@@ -490,7 +490,21 @@ function QuizContent({ id }: { id: string }) {
         const badgeRes = await fetch(`/api/user/${userId}/quiz-badge`);
         if (badgeRes.ok) {
           const badgeData = await badgeRes.json();
-          if (badgeData.newBadge) setBadgePopup(badgeData.newBadge);
+          // Only show each badge tier once per user. The server returns newBadge
+          // whenever the current count equals a milestone (1/3/10), which means the
+          // Bronze popup would re-fire on every subsequent quiz until the student
+          // reaches the Silver threshold. Gate on localStorage.
+          if (badgeData.newBadge?.badge) {
+            try {
+              const key = `mfy-badge-shown-${userId}-${badgeData.newBadge.badge}`;
+              if (!localStorage.getItem(key)) {
+                setBadgePopup(badgeData.newBadge);
+                localStorage.setItem(key, "1");
+              }
+            } catch {
+              setBadgePopup(badgeData.newBadge);
+            }
+          }
         }
       } catch { /* badge check is non-critical */ }
 
