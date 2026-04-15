@@ -1969,8 +1969,10 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && !isMcqAnswer(qq.answer))) {
       const qTopicLower = (q.syllabusTopic ?? "").toLowerCase();
       const isGrammarClozeQ = qTopicLower.includes("grammar") && qTopicLower.includes("cloze");
-      const studentAns = stripQuotes((q.studentAnswer ?? "").toUpperCase());
-      const correctAns = stripQuotes((q.answer ?? "").toUpperCase());
+      const studentAnsRaw = (q.studentAnswer ?? "").trim();
+      const studentAns = stripQuotes(studentAnsRaw.toUpperCase());
+      const rawCorrect = stripQuotes(q.answer ?? "");
+      const correctAns = rawCorrect.toUpperCase();
       let isCorrect = false;
       let acceptableAnswers: string[] = [];
       if (isGrammarClozeQ) {
@@ -1983,6 +1985,19 @@ export async function markQuizPaper(paperId: string): Promise<void> {
       } else {
         acceptableAnswers = correctAns.split("/").map(a => stripQuotes(a.trim()));
         isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
+        // Capitalization check: if the matching answer-key alternative starts with a
+        // capital letter (i.e. the blank is at the start of a sentence), require the
+        // student to have capitalized their first letter.
+        if (isCorrect) {
+          const rawAlts = rawCorrect.split("/").map(a => stripQuotes(a.trim()));
+          const matchingAlt = rawAlts.find(a => a.toUpperCase() === studentAns);
+          if (matchingAlt && /^[A-Z]/.test(matchingAlt)) {
+            const studentFirst = studentAnsRaw.match(/[A-Za-z]/)?.[0] ?? "";
+            if (studentFirst && studentFirst !== studentFirst.toUpperCase()) {
+              isCorrect = false;
+            }
+          }
+        }
       }
 
       // For Comp Cloze: if simple compare fails, use AI to check if student's word is valid

@@ -392,10 +392,24 @@ function QuizContent({ id }: { id: string }) {
               const studentLetter = (studentCmp.match(/\b[A-Z]\b/) ?? [""])[0];
               isCorrect = !!studentLetter && letters.has(studentLetter);
             } else {
-              const correctCmp = stripQuotes((q.answer ?? "").toUpperCase());
+              const rawCorrect = stripQuotes(q.answer ?? "");
+              const correctCmp = rawCorrect.toUpperCase();
               // Accept any slash-separated alternative (e.g., "tempted/enticed/inclined")
               const acceptableAnswers = correctCmp.split("/").map(a => stripQuotes(a.trim()));
               isCorrect = studentCmp !== "" && acceptableAnswers.includes(studentCmp);
+              // Capitalization check: if the answer key starts with a capital letter
+              // (i.e. the blank is at the start of a sentence), require the student
+              // to have capitalized their first letter too.
+              if (isCorrect) {
+                const rawAlts = rawCorrect.split("/").map(a => stripQuotes(a.trim()));
+                const matchingAlt = rawAlts.find(a => a.toUpperCase() === studentCmp);
+                if (matchingAlt && /^[A-Z]/.test(matchingAlt)) {
+                  const studentFirst = studentAns.match(/[A-Za-z]/)?.[0] ?? "";
+                  if (studentFirst && studentFirst !== studentFirst.toUpperCase()) {
+                    isCorrect = false;
+                  }
+                }
+              }
             }
             return fetch(`/api/exam/questions/${q.id}`, {
               method: "PATCH",
