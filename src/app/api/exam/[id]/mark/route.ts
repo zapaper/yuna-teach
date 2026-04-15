@@ -139,6 +139,7 @@ export async function POST(
 ) {
   const { id } = await params;
   const questionId = request.nextUrl.searchParams.get("questionId");
+  console.log(`[mark API] POST /api/exam/${id}/mark${questionId ? `?questionId=${questionId}` : ""}`);
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
@@ -146,15 +147,18 @@ export async function POST(
   });
 
   if (!paper) {
+    console.warn(`[mark API] Paper ${id} not found`);
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
   if (!paper.completedAt) {
+    console.warn(`[mark API] Paper ${id} has no completedAt`);
     return NextResponse.json(
       { error: "Paper has not been submitted yet" },
       { status: 400 }
     );
   }
+  console.log(`[mark API] Paper ${id}: paperType=${paper.paperType}, markingStatus=${paper.markingStatus}`);
 
   if (questionId) {
     // Re-mark single question — fire and forget

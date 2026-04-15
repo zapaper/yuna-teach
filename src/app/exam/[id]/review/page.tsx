@@ -216,17 +216,25 @@ function ExamReviewContent({ id }: { id: string }) {
   async function handleRemark() {
     if (!confirm("Re-mark this paper? This will re-run AI marking on all questions and override any manual score changes.")) return;
     setRemarking(true);
+    console.log(`[review] Re-mark requested for paper ${id}`);
     try {
       const res = await fetch(`/api/exam/${id}/mark`, { method: "POST" });
-      if (res.ok) {
-        // Land parents on the selected-student progress view so they can see marking progress
-        const isStudentSelf = userId === assignedToId;
-        const target = assignedToId && !isStudentSelf
-          ? `/home/${userId}?view=progress&student=${assignedToId}`
-          : `/home/${userId}`;
-        router.push(target);
+      console.log(`[review] Re-mark POST → status ${res.status}`);
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        alert(`Re-mark failed (HTTP ${res.status}): ${body || "no body"}`);
+        setRemarking(false);
+        return;
       }
-    } catch {
+      // Land parents on the selected-student progress view so they can see marking progress
+      const isStudentSelf = userId === assignedToId;
+      const target = assignedToId && !isStudentSelf
+        ? `/home/${userId}?view=progress&student=${assignedToId}`
+        : `/home/${userId}`;
+      router.push(target);
+    } catch (err) {
+      console.error(`[review] Re-mark fetch threw`, err);
+      alert(`Re-mark failed: ${err instanceof Error ? err.message : String(err)}`);
       setRemarking(false);
     }
   }
