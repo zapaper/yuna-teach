@@ -1996,7 +1996,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
                               }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
-                                <span className="material-symbols-outlined text-[11px] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                <span className="material-symbols-outlined shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "9px" }}>check_circle</span>
                               )}
                               <span className="truncate">{shortenTitle(p.title)}</span>
                             </div>
@@ -2251,7 +2251,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   <span className="material-symbols-outlined text-[#003366]">calendar_month</span>
                   This Week
                 </h4>
-                <div className="grid grid-cols-7 gap-3">
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
                   {weekDays.map((day, di) => {
                     const papers = papersByDay[di];
                     const today = isToday(day);
@@ -2267,7 +2267,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           const id = e.dataTransfer.getData("text/plain");
                           if (id) reschedulePaper(id, day);
                         }}
-                        className={`rounded-2xl p-3 min-h-[140px] flex flex-col ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-[#f8f9ff] border border-slate-100"}`}>
+                        className={`rounded-2xl p-3 min-h-[140px] min-w-[10rem] flex-shrink-0 flex flex-col ${today ? "bg-white border-2 border-[#a7c8ff]" : "bg-[#f8f9ff] border border-slate-100"}`}>
                         <p className={`text-[10px] font-bold text-center ${today ? "text-[#003366]" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
                         <p className={`text-sm font-extrabold text-center mb-3 ${today ? "text-[#003366]" : "text-[#001e40]"}`}>{day.getDate()}</p>
                         <div className="space-y-1.5 flex-1">
@@ -2280,7 +2280,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
                               }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
-                                <span className="material-symbols-outlined text-[12px] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                                <span className="material-symbols-outlined text-[10px] shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "10px" }}>check_circle</span>
                               )}
                               <span className="truncate">{shortenTitle(p.title)}</span>
                             </div>
