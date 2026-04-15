@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef, useImperativeHandle, forwardRef, use } from "react";
+import { Suspense, useEffect, useMemo, useState, useRef, useImperativeHandle, forwardRef, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnglishQuizSection from "@/components/EnglishQuizSection";
 
@@ -504,28 +504,38 @@ function QuizContent({ id }: { id: string }) {
             </div>
           )}
 
-          {markingOeq && (
-            markingDone ? (
-              <div className="bg-[#6cf8bb]/20 rounded-2xl p-4 mb-4 flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
-                <p className="text-sm font-semibold text-[#006c49]">All answers marked!</p>
-              </div>
-            ) : (
-              <div className="bg-[#eff4ff] rounded-2xl p-4 mb-4 flex items-center gap-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#dce9ff] border-t-[#003366] shrink-0" />
-                <p className="text-sm text-[#43474f]">AI is marking your written answers…</p>
-              </div>
-            )
+          {markingOeq && !markingDone && (
+            <MarkingStatus isEnglish={isEnglishQuiz} />
+          )}
+
+          {markingOeq && markingDone && (
+            <div className="bg-[#6cf8bb]/20 rounded-2xl p-4 mb-4 flex items-center gap-3 animate-[fadeIn_0.4s_ease-out]">
+              <span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
+              <p className="text-sm font-semibold text-[#006c49]">All answers marked!</p>
+            </div>
           )}
 
           <div className="flex gap-3 mt-6">
-            <button
-              onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
-              disabled={markingOeq && !markingDone}
-              className="flex-1 px-4 py-3 rounded-2xl bg-[#001e40] text-white font-bold text-sm hover:bg-[#003366] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {markingOeq && !markingDone ? "Marking in progress…" : "Review Answers"}
-            </button>
+            {markingOeq && markingDone ? (
+              <button
+                key="done-button"
+                onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
+                className="flex-1 px-4 py-4 rounded-2xl bg-[#006c49] text-white font-extrabold text-base hover:bg-[#004d35] transition-colors shadow-lg animate-[popIn_0.5s_cubic-bezier(0.34,1.56,0.64,1)]"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>celebration</span>
+                  Done! Let&apos;s see the results
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
+                disabled={markingOeq && !markingDone}
+                className="flex-1 px-4 py-3 rounded-2xl bg-[#001e40] text-white font-bold text-sm hover:bg-[#003366] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {markingOeq && !markingDone ? "Marking in progress…" : "Review Answers"}
+              </button>
+            )}
             <button
               onClick={() => router.push(`/home/${userId}`)}
               className="flex-1 px-4 py-3 rounded-2xl bg-[#eff4ff] text-[#001e40] font-bold text-sm hover:bg-[#dce9ff] transition-colors"
@@ -971,6 +981,57 @@ function QuizContent({ id }: { id: string }) {
 }
 
 /* ────────────── MCQ Question Card ────────────── */
+
+/** Rotating marking-in-progress status messages, subject-aware. */
+function MarkingStatus({ isEnglish }: { isEnglish: boolean }) {
+  const messages = useMemo(() => {
+    const common = [
+      "Please wait while our AI is marking…",
+      "Pondering over your work…",
+      "Thinking carefully…",
+    ];
+    const english = [
+      "Measuring with our grammar ruler…",
+      "Checking spelling and tense…",
+      "Reading your sentences out loud…",
+      "Counting commas and full stops…",
+    ];
+    const mathSci = [
+      "Crunching the numbers…",
+      "Checking your working steps…",
+      "Cross-checking with the answer key…",
+      "Looking for the key concepts…",
+    ];
+    return [...common, ...(isEnglish ? english : mathSci)];
+  }, [isEnglish]);
+
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx(i => (i + 1) % messages.length), 2500);
+    return () => clearInterval(t);
+  }, [messages.length]);
+
+  return (
+    <div className="bg-gradient-to-r from-[#eff4ff] to-[#dce9ff] rounded-2xl p-5 mb-4 flex items-center gap-4 overflow-hidden">
+      <div className="relative shrink-0">
+        <div className="animate-spin rounded-full h-8 w-8 border-[3px] border-[#dce9ff] border-t-[#003366]" />
+        <span className="absolute inset-0 flex items-center justify-center text-[#003366]">
+          <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+        </span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p key={idx} className="text-sm font-semibold text-[#001e40] animate-[fadeIn_0.5s_ease-out] truncate">
+          {messages[idx]}
+        </p>
+        <div className="flex gap-1 mt-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#003366]/40 animate-[bounce_1s_ease-in-out_infinite]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#003366]/40 animate-[bounce_1s_ease-in-out_0.2s_infinite]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#003366]/40 animate-[bounce_1s_ease-in-out_0.4s_infinite]" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function McqQuestionCard({
   question,
