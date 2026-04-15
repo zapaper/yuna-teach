@@ -195,9 +195,9 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                     const storedParts = (answers[q.id] ?? "").split("|||");
                     const value = inputCount > 1 ? (storedParts[inputIdx] ?? "") : (answers[q.id] ?? "");
                     return (
-                      <input
+                      <textarea
                         key={key}
-                        type="text"
+                        rows={2}
                         spellCheck={false}
                         autoComplete="one-time-code"
                         autoCorrect="off"
@@ -214,29 +214,29 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                             onAnswer(q.id, e.target.value);
                           }
                         }}
-                        className="flex-1 min-w-[120px] border-2 border-slate-200 focus:border-[#003366] outline-none rounded-lg px-3 py-2 text-base text-[#001e40]"
+                        className="w-full sm:flex-1 sm:min-w-[200px] border-2 border-slate-200 focus:border-[#003366] outline-none rounded-lg px-3 py-2 text-base text-[#001e40] resize-y leading-relaxed"
                         placeholder="Type your answer..."
                       />
                     );
                   };
 
                   if (isStartingWord) {
-                    // Starting word: keyword + input on same line
+                    // Starting word: keyword on its own line, then full-width textarea below on mobile
                     return (
-                      <div className="mt-3 ml-[52px] flex items-center gap-2">
-                        <span className="font-bold text-base text-[#001e40] shrink-0">{synthAnswerParts[0].content}</span>
+                      <div className="mt-3 ml-[52px] flex flex-col sm:flex-row sm:items-start gap-2">
+                        <span className="font-bold text-base text-[#001e40] shrink-0 sm:pt-2">{synthAnswerParts[0].content}</span>
                         {makeInput(0, "in0")}
                       </div>
                     );
                   }
 
-                  // Mid-sentence keyword: all inline — [input] keyword [input]
+                  // Mid-sentence keyword: stack vertically on mobile, inline on sm+
                   let inputIdx = 0;
                   return (
-                    <div className="mt-3 ml-[52px] flex flex-wrap items-center gap-2">
+                    <div className="mt-3 ml-[52px] flex flex-col sm:flex-row sm:flex-wrap sm:items-start gap-2">
                       {synthAnswerParts.map((part) => {
                         if (part.type === "keyword") {
-                          return <span key={part.key} className="font-bold text-base text-[#001e40] shrink-0">{part.content}</span>;
+                          return <span key={part.key} className="font-bold text-base text-[#001e40] shrink-0 sm:pt-2">{part.content}</span>;
                         }
                         const idx = inputIdx++;
                         return makeInput(idx, part.key);
