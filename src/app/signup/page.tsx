@@ -207,9 +207,9 @@ function SignupFlow() {
         return;
       }
       const quiz = await res.json();
-      // Open quiz in new tab for student, redirect parent to dashboard
-      window.open(`/quiz/${quiz.id}?userId=${studentId}&diagnostic=1&parentId=${parentId}`, "_blank");
-      router.push(`/home/${parentId}`);
+      // Navigate the current tab into the student quiz; the quiz review page will
+      // surface a 'Open parent homepage' button after submission.
+      router.push(`/quiz/${quiz.id}?userId=${studentId}&diagnostic=1&parentId=${parentId}`);
     } catch {
       alert("Something went wrong. Please try again.");
       setQuizLoading(null);
