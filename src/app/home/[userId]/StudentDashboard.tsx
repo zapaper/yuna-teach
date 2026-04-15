@@ -132,6 +132,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
+  // Avatar gate: parent permission AND >= 100 earned points. Computed here so
+  // it's available to the milestone useEffect below.
+  const earnedPoints = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0);
+  const hasAvatar = parentAllowedAvatar && earnedPoints >= 100;
   const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
   const [showPointsMilestone, setShowPointsMilestone] = useState(false);
   const [milestoneMessage, setMilestoneMessage] = useState("");
@@ -432,8 +436,6 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const recentTests = tests.slice(0, 6);
 
   const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0);
-  // Resolved avatar gate — requires parent permission AND >= 100 points unlocked.
-  const hasAvatar = parentAllowedAvatar && totalPoints >= 100;
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
 
   // ─── Derived data for new layout ───
