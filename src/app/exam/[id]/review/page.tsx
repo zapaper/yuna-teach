@@ -464,6 +464,7 @@ function ExamReviewContent({ id }: { id: string }) {
       const label = sec.label.toLowerCase();
       const isGrouped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
+        label.includes("vocab cloze") || (label.includes("vocab") && label.includes("cloze")) ||
         label.includes("synthesis") || label.includes("comprehension oeq") || label.includes("comprehension open");
       if (isGrouped) {
         const secQs = data.questions.slice(sec.startIndex, sec.endIndex + 1);
@@ -1075,6 +1076,7 @@ function ExamReviewContent({ id }: { id: string }) {
               const isEditing = currentSectionLabel.includes("editing");
               const isSynthesis = currentSectionLabel.includes("synthesis");
               const isCompOeq = currentSectionLabel.includes("comprehension oeq") || currentSectionLabel.includes("comprehension open");
+              const isVocabCloze = currentSectionLabel.includes("vocab") && currentSectionLabel.includes("cloze");
               const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
               const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
 
@@ -1152,6 +1154,14 @@ function ExamReviewContent({ id }: { id: string }) {
                                 <span key={`q${num}`} className="inline-flex items-center gap-0.5 mx-0.5">
                                   <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({num})</span>
                                   <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{word}</span>
+                                </span>
+                              );
+                            } else if (isVocabCloze && word) {
+                              // Vocab cloze: show the underlined word the student must replace
+                              parts.push(
+                                <span key={`q${num}`} className="inline-flex items-center gap-0.5 mx-0.5">
+                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({num})</span>
+                                  <span className="underline decoration-2 font-semibold text-[#001e40] px-1 text-sm">{word}</span>
                                 </span>
                               );
                             } else {
