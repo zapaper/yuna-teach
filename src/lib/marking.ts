@@ -1622,6 +1622,20 @@ Return ONLY valid JSON (no markdown fences):
 export async function markFocusedTest(paperId: string): Promise<void> {
   console.log(`[focused-marking] Starting for ${paperId}`);
 
+  // English focused practice reuses the English typed-section logic in
+  // markQuizPaper (which handles grammar cloze letter extraction, editing
+  // quote stripping, synthesis |||/keyword insertion, comp OEQ, etc.).
+  // Delegate to avoid duplicating that whole branch here.
+  const paperKind = await prisma.examPaper.findUnique({
+    where: { id: paperId },
+    select: { metadata: true },
+  });
+  const hasEnglishSections = !!(paperKind?.metadata as { englishSections?: unknown } | null)?.englishSections;
+  if (hasEnglishSections) {
+    console.log(`[focused-marking] Paper ${paperId} is English — delegating to markQuizPaper`);
+    return markQuizPaper(paperId);
+  }
+
   try {
     await prisma.examPaper.update({
       where: { id: paperId },
@@ -1640,70 +1654,8 @@ export async function markFocusedTest(paperId: string): Promise<void> {
       return n === "1" || n === "2" || n === "3" || n === "4";
     };
 
-    // English focused practice: typed sections (grammar cloze, editing, comp cloze,
-    // vocab cloze MCQ, visual text MCQ) are scored by direct compare, not by reading
-    // a canvas image. Leave their client-side marks alone. Synthesis / comp OEQ are
-    // typed as text and AI-marked below.
-    const focusedMeta = paper.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number }> } | null;
-    const focusedTypedQIds = new Set<string>();
-    const focusedAiTypedQIds = new Set<string>();
-    if (focusedMeta?.englishSections) {
-      for (const sec of focusedMeta.englishSections) {
-        const label = sec.label.toLowerCase();
-        const isSimpleTyped = label.includes("grammar cloze") || label.includes("editing") ||
-          label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
-          label.includes("visual text") || (label.includes("vocab") && label.includes("cloze"));
-        const isAiTyped = label.includes("synthesis") ||
-          (label.includes("comprehension") && (label.includes("oeq") || label.includes("open")));
-        if (isSimpleTyped) {
-          for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
-            focusedTypedQIds.add(paper.questions[i].id);
-          }
-        }
-        if (isAiTyped) {
-          for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
-            focusedAiTypedQIds.add(paper.questions[i].id);
-          }
-        }
-      }
-    }
-
-    // Re-score typed-simple sections (grammar/comp/vocab cloze, editing, visual text MCQ)
-    // just like markQuizPaper does, so re-mark also works on focused English.
-    const stripQuotes = (s: string) => s.replace(/^["'`\s]+|["'`\s]+$/g, "");
-    for (const q of paper.questions.filter(qq => focusedTypedQIds.has(qq.id) && !isMcqQ(qq.answer))) {
-      const qTopicLower = (q.syllabusTopic ?? "").toLowerCase();
-      const isGrammarClozeQ = qTopicLower.includes("grammar") && qTopicLower.includes("cloze");
-      const studentAns = stripQuotes((q.studentAnswer ?? "").toUpperCase());
-      const correctAns = stripQuotes((q.answer ?? "").toUpperCase());
-      let isCorrect = false;
-      if (isGrammarClozeQ) {
-        const letters = new Set(correctAns.match(/\b[A-Z]\b/g) ?? []);
-        const studentLetter = (studentAns.match(/\b[A-Z]\b/) ?? [""])[0];
-        isCorrect = !!studentLetter && letters.has(studentLetter);
-      } else {
-        const acceptable = correctAns.split("/").map(a => stripQuotes(a.trim()));
-        isCorrect = studentAns !== "" && acceptable.includes(studentAns);
-      }
-      const marks = isCorrect ? (q.marksAvailable ?? 1) : 0;
-      if (q.marksAwarded !== marks) {
-        await prisma.examQuestion.update({
-          where: { id: q.id },
-          data: {
-            marksAwarded: marks,
-            markingNotes: studentAns ? (isCorrect ? "Correct" : `"${studentAns}" — correct answer: "${(q.answer ?? "").trim()}"`) : "No answer",
-          },
-        });
-        q.marksAwarded = marks;
-      }
-    }
-
-    // MCQ + typed-simple pool is considered 'already marked'; exclude them from the
-    // canvas/AI OEQ loop below. Synthesis / comp OEQ stay in oeqQuestions because
-    // they still need AI marking, but they'll go through the typed-answer branch
-    // inside the loop (same as markQuizPaper).
-    const mcqQuestions = paper.questions.filter(q => isMcqQ(q.answer) || focusedTypedQIds.has(q.id));
-    const oeqQuestions = paper.questions.filter(q => !isMcqQ(q.answer) && !focusedTypedQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");
+    const mcqQuestions = paper.questions.filter(q => isMcqQ(q.answer));
+    const oeqQuestions = paper.questions.filter(q => !isMcqQ(q.answer));
 
     let totalAwarded = mcqQuestions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
     const updates: ReturnType<typeof prisma.examQuestion.update>[] = [];
@@ -1728,54 +1680,6 @@ export async function markFocusedTest(paperId: string): Promise<void> {
       const q = oeqQuestions[i];
       const expectedAnswer = q.answer || "?";
       const marksAvailable = q.marksAvailable ?? 1;
-
-      // Synthesis / Comprehension OEQ (focused English): these are typed text, not a
-      // canvas drawing. Send the student's typed answer to Gemini for scoring just
-      // like markQuizPaper does. Skip the canvas-image path entirely.
-      if (focusedAiTypedQIds.has(q.id) && q.studentAnswer && !q.studentAnswer.startsWith("data:")) {
-        try {
-          const resp = await withTimeout(
-            ai.models.generateContent({
-              model: "gemini-2.5-flash",
-              contents: [{ role: "user", parts: [{ text: `You are marking a primary-school English answer.
-
-Question: ${q.transcribedStem ?? ""}
-
-Student's typed answer:
----
-${q.studentAnswer.trim()}
----
-
-Expected answer: ${expectedAnswer}
-Marks available: ${marksAvailable}
-
-Mark this answer. For Synthesis & Transformation, the student must use the required keyword correctly and convey the same meaning; allow slight grammatically-correct variations. For Comprehension OEQ, be lenient on language and strict on content. Do NOT deduct for punctuation. Return JSON only: {"marksAwarded": <number>, "feedback": "<one sentence>"}.` }] }],
-              config: { responseMimeType: "application/json", temperature: 0.1 },
-            }),
-            GEMINI_TIMEOUT_MS,
-            `focused-typed-Q${q.questionNum}`
-          );
-          const parsed = extractJson(resp.text ?? "") as { marksAwarded?: number; feedback?: string };
-          const awarded = Math.min(marksAvailable, Math.max(0, Number(parsed?.marksAwarded) || 0));
-          totalAwarded += awarded;
-          updates.push(
-            prisma.examQuestion.update({
-              where: { id: q.id },
-              data: { marksAwarded: awarded, markingNotes: parsed?.feedback ?? `Typed answer marked: ${awarded}/${marksAvailable}` },
-            })
-          );
-          console.log(`[focused-marking] Typed Q${q.questionNum}: "${q.studentAnswer.slice(0, 60)}" → ${awarded}/${marksAvailable}`);
-        } catch (err) {
-          console.error(`[focused-marking] Typed Q${q.questionNum} failed:`, err);
-          updates.push(
-            prisma.examQuestion.update({
-              where: { id: q.id },
-              data: { marksAwarded: 0, markingNotes: "Marking failed" },
-            })
-          );
-        }
-        continue;
-      }
 
       // Students open focused tests via /quiz/[id] (the quiz page). The quiz page
       // uploads OEQ canvases at the OEQ-sequential index (page_0..page_{n-1} where
