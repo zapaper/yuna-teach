@@ -2116,13 +2116,14 @@ Mark this answer. Compare the student's typed answer against the expected answer
 
 SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks ONLY for genuine spelling errors (misspelled words). Do NOT deduct for punctuation (periods, commas, apostrophes, capitalisation). Do NOT flag missing or extra periods — ignore all punctuation completely.
 
-For Synthesis & Transformation: This tests SENTENCE FORMATION, not synonyms. Be STRICT:
-- The student must rewrite using the EXACT words from the expected answer. Do NOT accept synonyms (e.g. "finishing" instead of "completing" is WRONG — deduct 0.5).
-- Do NOT deduct for periods, commas, or other punctuation. Ignore punctuation entirely.
-- Deduct 0.5 for each grammar error (wrong tense, subject-verb agreement, etc.).
-- Deduct 0.5 for each word changed to a synonym that differs from the expected answer.
-- The starting/joining word is included in the expected answer.
-- Award up to full marks if the sentence structure and meaning match the expected answer with the correct words.
+For Synthesis & Transformation: This tests SENTENCE FORMATION. Be FAIR but not loose:
+- The student's rewrite must use the required keyword(s) in the correct grammatical form.
+- Allow slight variations that are grammatically correct AND do not change the meaning of the expected answer (e.g. minor word-order differences, equivalent connectors, or synonyms that preserve meaning and register). Do NOT penalise these.
+- Do NOT deduct for periods, commas, capitalisation, or any punctuation. Ignore punctuation entirely.
+- Deduct 0.5 for each genuine grammar error (wrong tense, subject-verb agreement, wrong form of the keyword, etc.).
+- Deduct 0.5 if the rewritten sentence changes the meaning of the original sentence.
+- The starting/joining word is included in the expected answer; the student must use it.
+- Award full marks if the sentence is grammatical, uses the keyword correctly, and conveys the same meaning as the expected answer — even if some wording differs.
 For Comprehension OEQ: This tests READING COMPREHENSION. Be LENIENT on language, STRICT on content:
 - Mark based on whether the answer shows understanding of the passage and addresses the question.
 - The student's answer does NOT need to match the expected answer word-for-word. Accept any answer that conveys the same meaning or key idea.
