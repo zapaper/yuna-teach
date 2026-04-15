@@ -2000,7 +2000,9 @@ export async function markQuizPaper(paperId: string): Promise<void> {
         }
       }
 
-      // For Comp Cloze: if simple compare fails, use AI to check if student's word is valid
+      // For Comp Cloze: if simple compare fails, use AI to check if student's word is valid.
+      // Pass the RAW student answer (original case preserved) so the AI can flag a
+      // missing capital letter at the start of a sentence. Same for the answer key.
       const qTopic = (q.syllabusTopic ?? "").toLowerCase();
       const isCompClozeQ = qTopic.includes("comprehension") && qTopic.includes("cloze");
       if (!isCorrect && studentAns && isCompClozeQ) {
@@ -2012,14 +2014,23 @@ export async function markQuizPaper(paperId: string): Promise<void> {
             const sec = meta.englishSections.find(s => qIdx >= s.startIndex && qIdx <= s.endIndex);
             if (sec?.passage) passageCtx = sec.passage;
           }
+          const studentRaw = (q.studentAnswer ?? "").trim();
+          const correctRaw = (q.answer ?? "").trim();
           const aiResp = await withTimeout(
             ai.models.generateContent({
               model: "gemini-2.5-flash",
-              contents: [{ role: "user", parts: [{ text: `A student filled in blank (${q.questionNum}) in this comprehension cloze passage with "${studentAns.toLowerCase()}". The answer key says: "${correctAns.toLowerCase()}".
-${passageCtx ? `\nPassage:\n${passageCtx}\n` : ""}
-Is the student's word "${studentAns.toLowerCase()}" an acceptable alternative that fits the blank grammatically and meaningfully in context? Only accept if the word fits naturally and preserves the meaning.
+              contents: [{ role: "user", parts: [{ text: `You are marking a Primary-school Comprehension Cloze blank.
 
-Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
+A student filled in blank (${q.questionNum}) with "${studentRaw}".
+The answer key (accepted alternatives, slash-separated) is: "${correctRaw}".
+${passageCtx ? `\nPassage:\n${passageCtx}\n` : ""}
+Decide whether the student's word fits the blank grammatically AND in meaning. Be fair:
+- Accept any synonym or variation that preserves the sentence meaning.
+- Check grammatical fit: tense, number, word class.
+- Check CAPITALIZATION: if the blank is at the start of a sentence (i.e. after a full stop, or it's the first word of a paragraph), the student's word must begin with a capital letter. Otherwise reject.
+- Spelling matters — misspelled words are NOT accepted.
+
+Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence explaining why, citing grammar/meaning/capitalization>"}` }] }],
               config: { responseMimeType: "application/json", temperature: 0.1 },
             }),
             15000,
@@ -2027,19 +2038,18 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
           );
           const parsed = extractJson(aiResp.text ?? "") as { accepted?: boolean; reason?: string };
           if (parsed.accepted) {
-            console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: AI accepted "${studentAns}" (key: "${correctAns}") — ${parsed.reason}`);
+            console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: AI accepted "${studentRaw}" (key: "${correctRaw}") — ${parsed.reason}`);
             await prisma.examQuestion.update({
               where: { id: q.id },
-              data: { marksAwarded: q.marksAvailable ?? 1, markingNotes: `Accepted: "${studentAns}" (${parsed.reason})` },
+              data: { marksAwarded: q.marksAvailable ?? 1, markingNotes: `Accepted: "${studentRaw}" — ${parsed.reason ?? ""}` },
             });
             q.marksAwarded = q.marksAvailable ?? 1;
             continue;
           }
-          console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: AI rejected "${studentAns}" — ${parsed.reason}`);
-          // Save with AI reason
+          console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: AI rejected "${studentRaw}" — ${parsed.reason}`);
           await prisma.examQuestion.update({
             where: { id: q.id },
-            data: { marksAwarded: 0, markingNotes: parsed.reason ?? `"${studentAns}" does not fit the blank. Correct answer: "${correctAns}"` },
+            data: { marksAwarded: 0, markingNotes: parsed.reason ?? `"${studentRaw}" does not fit the blank. Correct answer: "${correctRaw}"` },
           });
           q.marksAwarded = 0;
           continue;
