@@ -137,11 +137,24 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [recLoading, setRecLoading] = useState(false);
 
   // UI state
-  const [selectedStudentId, setSelectedStudentId] = useState(
+  const [selectedStudentId, setSelectedStudentIdRaw] = useState(
     (initialStudentId && user.linkedStudents.some(s => s.id === initialStudentId))
       ? initialStudentId
       : (user.linkedStudents[0]?.id ?? "")
   );
+  // Sync selected student to URL so back-navigation (e.g. from a quiz review)
+  // returns the parent to the same student.
+  const setSelectedStudentId = (id: string) => {
+    setSelectedStudentIdRaw(prev => {
+      if (prev === id) return prev;
+      const qs = new URLSearchParams(window.location.search);
+      if (id) qs.set("student", id);
+      else qs.delete("student");
+      const url = `/home/${userId}${qs.toString() ? `?${qs.toString()}` : ""}`;
+      window.history.replaceState(null, "", url);
+      return id;
+    });
+  };
   const [showStudentMenu, setShowStudentMenu] = useState(false);
   const [, setSettingsTick] = useState(0);
   type ActiveView = "progress" | "papers" | "activities";
@@ -160,14 +173,32 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       return resolved;
     });
   };
+  // On mount, make sure the URL reflects the currently selected student so
+  // back-navigation from a quiz/review restores it.
+  useEffect(() => {
+    if (!selectedStudentId) return;
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get("student") !== selectedStudentId) {
+      qs.set("student", selectedStudentId);
+      const url = `/home/${userId}${qs.toString() ? `?${qs.toString()}` : ""}`;
+      window.history.replaceState(null, "", url);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Respond to browser back/forward
   useEffect(() => {
     const handler = () => {
-      const v = new URLSearchParams(window.location.search).get("view") ?? undefined;
-      setActiveViewRaw(parseView(v));
+      const qs = new URLSearchParams(window.location.search);
+      setActiveViewRaw(parseView(qs.get("view") ?? undefined));
+      const sid = qs.get("student");
+      if (sid && user.linkedStudents.some(s => s.id === sid)) {
+        setSelectedStudentIdRaw(sid);
+      }
     };
     window.addEventListener("popstate", handler);
     return () => window.removeEventListener("popstate", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Modals
