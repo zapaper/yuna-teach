@@ -38,7 +38,7 @@ export default function HomePage() {
             <div className="relative z-10">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-tertiary-container text-on-tertiary-container font-semibold text-xs mb-6 uppercase tracking-wider">
                 <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
-                Built for Primary School Parents
+                Built for Parents, By Parents
               </div>
               <h1 className="font-headline text-3xl md:text-6xl font-extrabold text-primary leading-tight mb-5 text-balance">
                 Targeted practice to <span className="text-tertiary">accelerate your child&apos;s mastery</span> of Math, Science and English.
