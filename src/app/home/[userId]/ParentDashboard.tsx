@@ -429,7 +429,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   // Master papers (not assigned = available to assign)
   // English exam papers are temporarily disabled from the parent Set Papers flow
-  const masterPapers = examPapers.filter(p => !p.assignedToId && p.paperType === null && !(p.subject ?? "").toLowerCase().includes("english"));
+  const masterPapers = examPapers.filter(p => !p.assignedToId && p.paperType === null && !(p.subject ?? "").toLowerCase().includes("english") && !p.title.startsWith("[Synthetic Bank]"));
 
   // Available subjects and exam types from master papers (dedup case-insensitively, keep first casing seen)
   const dedupKeepFirst = (vals: (string | null)[]) => {
