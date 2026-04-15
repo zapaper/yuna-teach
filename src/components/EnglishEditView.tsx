@@ -675,36 +675,66 @@ function QuestionRow({
           />
         )}
 
-        {/* Answer */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">Ans:</span>
-          {editAnswer ? (
-            <input
-              value={answerDraft}
-              onChange={e => setAnswerDraft(e.target.value)}
-              onBlur={() => {
-                if (answerDraft !== (q.answer ?? "")) {
-                  onSave(q.id, { answer: answerDraft || null });
-                }
-                setEditAnswer(false);
-              }}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  (e.target as HTMLInputElement).blur();
-                }
-              }}
-              autoFocus
-              className="flex-1 text-sm px-2 py-0.5 rounded border border-blue-300 focus:outline-none focus:border-blue-500 bg-white"
-            />
-          ) : (
-            <span
-              onClick={() => { setAnswerDraft(q.answer ?? ""); setEditAnswer(true); }}
-              className="text-sm text-slate-700 cursor-pointer hover:text-blue-600 truncate"
-            >
-              {q.answer || <span className="text-slate-300 italic">no answer</span>}
-            </span>
-          )}
-        </div>
+        {/* Answer — OEQ gets its own full-width textarea, MCQ stays inline */}
+        {(() => {
+          const isMcqQ = !!(q.transcribedOptions && Array.isArray(q.transcribedOptions) && (q.transcribedOptions as string[]).length > 0);
+          if (isMcqQ) {
+            return (
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">Ans:</span>
+                {editAnswer ? (
+                  <input
+                    value={answerDraft}
+                    onChange={e => setAnswerDraft(e.target.value)}
+                    onBlur={() => {
+                      if (answerDraft !== (q.answer ?? "")) onSave(q.id, { answer: answerDraft || null });
+                      setEditAnswer(false);
+                    }}
+                    onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                    autoFocus
+                    className="flex-1 text-sm px-2 py-0.5 rounded border border-blue-300 focus:outline-none focus:border-blue-500 bg-white"
+                  />
+                ) : (
+                  <span
+                    onClick={() => { setAnswerDraft(q.answer ?? ""); setEditAnswer(true); }}
+                    className="text-sm text-slate-700 cursor-pointer hover:text-blue-600 truncate"
+                  >
+                    {q.answer || <span className="text-slate-300 italic">no answer</span>}
+                  </span>
+                )}
+              </div>
+            );
+          }
+          // OEQ — full-width on its own line
+          return (
+            <div className="mt-2">
+              <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Answer</p>
+              {editAnswer ? (
+                <textarea
+                  value={answerDraft}
+                  onChange={e => setAnswerDraft(e.target.value)}
+                  onBlur={() => {
+                    if (answerDraft !== (q.answer ?? "")) onSave(q.id, { answer: answerDraft || null });
+                    setEditAnswer(false);
+                  }}
+                  rows={Math.min(8, Math.max(3, (answerDraft.match(/\n/g)?.length ?? 0) + 2))}
+                  autoFocus
+                  className="w-full text-xs font-mono px-3 py-2 rounded-lg border border-blue-300 focus:outline-none focus:border-blue-500 bg-white resize-y"
+                  placeholder="Type the model answer here. Use | to separate sub-parts."
+                />
+              ) : (
+                <div
+                  onClick={() => { setAnswerDraft(q.answer ?? ""); setEditAnswer(true); }}
+                  className="text-xs text-slate-700 cursor-pointer hover:bg-blue-50 rounded-lg p-2 border border-dashed border-slate-200 whitespace-pre-wrap leading-relaxed min-h-[2rem]"
+                >
+                  {q.answer
+                    ? q.answer.replace(/\s*\|\s*/g, "\n")
+                    : <span className="text-slate-300 italic">click to add answer</span>}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Marks */}
