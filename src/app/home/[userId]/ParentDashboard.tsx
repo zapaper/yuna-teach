@@ -444,7 +444,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // Group student papers by day of week for scheduler (by scheduledFor, falling back to createdAt)
   const papersByDay = weekDays.map(d => {
     const dayStr = d.toDateString();
-    return studentPapers.filter(p => new Date(p.scheduledFor ?? p.createdAt).toDateString() === dayStr);
+    const forDay = studentPapers.filter(p => new Date(p.scheduledFor ?? p.createdAt).toDateString() === dayStr);
+    // Undone first, done below
+    return forDay.sort((a, b) => Number(!!a.completedAt) - Number(!!b.completedAt));
   });
 
   function shortenTitle(title: string) {
