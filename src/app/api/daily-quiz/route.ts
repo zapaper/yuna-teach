@@ -682,15 +682,25 @@ export async function POST(request: NextRequest) {
     });
     const engQuizType = hasOeq ? "MCQ + OEQ" : "MCQ";
 
+    // Focused English: title by the selected section, e.g. "P5 Focus: Grammar Cloze"
+    let engTitle: string;
+    if (isFocusedEnglish && (englishSections?.length ?? 0) === 1) {
+      const secKey = englishSections![0];
+      const secLabel = sectionLabels[secKey] ?? secKey;
+      engTitle = `${levelLabel}Focus: ${secLabel}`;
+    } else {
+      engTitle = `${levelLabel}English Quiz ${engQuizType}`;
+    }
+
     const paper = await prisma.examPaper.create({
       data: {
-        title: `${levelLabel}English Quiz ${engQuizType}`,
+        title: engTitle,
         subject: "English Language",
         level: levelFilter || null,
         userId,
         assignedToId: targetStudentId,
         ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
-        paperType: "quiz",
+        paperType: isFocusedEnglish ? "focused" : "quiz",
         instantFeedback: true,
         pageCount: 0,
         extractionStatus: "ready",
