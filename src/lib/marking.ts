@@ -1947,11 +1947,27 @@ export async function markQuizPaper(paperId: string): Promise<void> {
 
     // Score typed section questions (always re-score on re-mark, in case answer keys changed)
     const ai = getAI();
+    // Strip surrounding quotes the extractor sometimes bakes into the answer key
+    // (e.g. "expressing" → expressing) before comparing.
+    const stripQuotes = (s: string) => s.replace(/^["'`\s]+|["'`\s]+$/g, "");
     for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && !isMcqAnswer(qq.answer))) {
-      const studentAns = (q.studentAnswer ?? "").trim().toUpperCase();
-      const correctAns = (q.answer ?? "").trim().toUpperCase();
-      const acceptableAnswers = correctAns.split("/").map(a => a.trim());
-      const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
+      const qTopicLower = (q.syllabusTopic ?? "").toLowerCase();
+      const isGrammarClozeQ = qTopicLower.includes("grammar") && qTopicLower.includes("cloze");
+      const studentAns = stripQuotes((q.studentAnswer ?? "").toUpperCase());
+      const correctAns = stripQuotes((q.answer ?? "").toUpperCase());
+      let isCorrect = false;
+      let acceptableAnswers: string[] = [];
+      if (isGrammarClozeQ) {
+        // Grammar cloze answer keys look like "H (most)", "K or P", "L/P" — students
+        // type a single letter, so accept any standalone capital letter in the key.
+        const letters = new Set(correctAns.match(/\b[A-Z]\b/g) ?? []);
+        const studentLetter = (studentAns.match(/\b[A-Z]\b/) ?? [""])[0];
+        isCorrect = !!studentLetter && letters.has(studentLetter);
+        acceptableAnswers = [...letters];
+      } else {
+        acceptableAnswers = correctAns.split("/").map(a => stripQuotes(a.trim()));
+        isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
+      }
 
       // For Comp Cloze: if simple compare fails, use AI to check if student's word is valid
       const qTopic = (q.syllabusTopic ?? "").toLowerCase();

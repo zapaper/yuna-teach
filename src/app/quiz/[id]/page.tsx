@@ -379,17 +379,31 @@ function QuizContent({ id }: { id: string }) {
             const isGrammarClozeQ = (q.syllabusTopic ?? "").toLowerCase().includes("grammar") && (q.syllabusTopic ?? "").toLowerCase().includes("cloze");
             const studentAns = (mcqAnswers[q.id] ?? "").trim();
             const studentCmp = studentAns.toUpperCase();
-            const correctCmp = (q.answer ?? "").trim().toUpperCase();
-            // Accept any slash-separated alternative (e.g., "tempted/enticed/inclined")
-            const acceptableAnswers = correctCmp.split("/").map(a => a.trim());
-            const isCorrect = studentCmp !== "" && acceptableAnswers.includes(studentCmp);
+            // Strip surrounding quotes the extractor sometimes bakes into the answer key
+            // (e.g. "expressing" → expressing) before comparing.
+            const stripQuotes = (s: string) => s.replace(/^["'`\s]+|["'`\s]+$/g, "");
+            let isCorrect = false;
+            if (isGrammarClozeQ) {
+              // Grammar cloze answers can be "H (most)", "K or P", "L/P" etc. The student
+              // types just a single letter — accept if it matches ANY standalone capital
+              // letter in the answer key.
+              const rawAns = (q.answer ?? "").toUpperCase();
+              const letters = new Set((rawAns.match(/\b[A-Z]\b/g) ?? []));
+              const studentLetter = (studentCmp.match(/\b[A-Z]\b/) ?? [""])[0];
+              isCorrect = !!studentLetter && letters.has(studentLetter);
+            } else {
+              const correctCmp = stripQuotes((q.answer ?? "").toUpperCase());
+              // Accept any slash-separated alternative (e.g., "tempted/enticed/inclined")
+              const acceptableAnswers = correctCmp.split("/").map(a => stripQuotes(a.trim()));
+              isCorrect = studentCmp !== "" && acceptableAnswers.includes(studentCmp);
+            }
             return fetch(`/api/exam/questions/${q.id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 studentAnswer: (isGrammarClozeQ ? studentAns.toUpperCase() : studentAns) || null,
                 marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
-                markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${correctCmp}"`) : "No answer",
+                markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${(q.answer ?? "").trim()}"`) : "No answer",
               }),
             });
           })

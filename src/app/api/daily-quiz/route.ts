@@ -392,8 +392,10 @@ export async function POST(request: NextRequest) {
     const orderedSections = sectionOrder.filter(s => selectedSections.has(s));
 
     // Sections that can be doubled by rendering TWO independent passages
-    // (distinct paper sets) back-to-back in focused mode.
-    const DOUBLABLE_PASSAGE_SECTIONS = new Set(["vocab-cloze", "grammar-cloze", "comprehension-cloze"]);
+    // (distinct paper sets) back-to-back in focused mode. Vocab / grammar /
+    // comprehension cloze + editing + visual text all have "one passage + N
+    // questions" structure, so each doubled section = 2 passages.
+    const DOUBLABLE_PASSAGE_SECTIONS = new Set(["vocab-cloze", "grammar-cloze", "comprehension-cloze", "editing"]);
 
     const pushSectionGroup = (section: string, qs: typeof allPool, occurrence: number, total: number) => {
       if (qs.length === 0) return;
@@ -407,9 +409,10 @@ export async function POST(request: NextRequest) {
     };
 
     for (const section of orderedSections) {
-      // Visual text: single passage only (per spec)
+      // Visual text: 1 passage normally, 2 distinct passages in focused mode
       if (section === "visual-text") {
-        if (visualTextSets.length > 0) pushSectionGroup(section, visualTextSets[0], 1, 1);
+        const take = isFocusedEnglish && visualTextSets.length >= 2 ? 2 : Math.min(1, visualTextSets.length);
+        for (let i = 0; i < take; i++) pushSectionGroup(section, visualTextSets[i], i + 1, take);
         continue;
       }
       // Vocab cloze: 2 distinct passage sets for focused practice
