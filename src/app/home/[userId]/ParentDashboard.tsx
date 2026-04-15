@@ -1529,7 +1529,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
-                  {hasAvatar && (
+                  {nameLower === "admin" && (
                     <button
                       onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
