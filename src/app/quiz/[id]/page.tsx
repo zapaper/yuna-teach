@@ -513,7 +513,7 @@ function QuizContent({ id }: { id: string }) {
             ) : (
               <div className="bg-[#eff4ff] rounded-2xl p-4 mb-4 flex items-center gap-3">
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-[#dce9ff] border-t-[#003366] shrink-0" />
-                <p className="text-sm text-[#43474f]">AI is marking your answers…</p>
+                <p className="text-sm text-[#43474f]">AI is marking your written answers…</p>
               </div>
             )
           )}
