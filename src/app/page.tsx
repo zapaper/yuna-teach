@@ -284,15 +284,16 @@ export default function HomePage() {
             </div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-tertiary/5 rounded-full -mr-32 -mt-32"></div>
             <div className="relative z-10">
-              <h2 className="font-headline text-2xl md:text-5xl font-extrabold text-primary mb-5 lg:mb-6">Ready to see your child smile while learning?</h2>
+              <h2 className="font-headline text-2xl md:text-5xl font-extrabold text-primary mb-5 lg:mb-6">
+                Stop marking. <span className="text-tertiary">Start coaching.</span>
+              </h2>
               <p className="text-on-tertiary-container text-base md:text-xl mb-8 lg:mb-10 max-w-2xl mx-auto">
-                Join the MarkForYou.com family and transform study time from a struggle into a shared victory.
+                Try now and see your child&apos;s work marked instantly, weak spots identified and next steps to be taken. Free, no credit card.
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-6">
+              <div className="flex justify-center">
                 <Link href="/signup" className="w-full sm:w-auto px-12 py-5 bg-tertiary text-white font-extrabold rounded-full text-lg hover:bg-on-tertiary-container transition-colors shadow-lg">
-                  Start Your Free Trial
+                  Try now FREE
                 </Link>
-                <p className="text-on-tertiary-container font-semibold italic text-sm">No credit card required to start.</p>
               </div>
             </div>
           </div>
