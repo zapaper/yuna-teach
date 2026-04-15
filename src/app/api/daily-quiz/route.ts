@@ -371,42 +371,58 @@ export async function POST(request: NextRequest) {
     const sectionOrder = ["vocab-cloze", "visual-text", "grammar-cloze", "editing", "comprehension-cloze", "synthesis", "comprehension-oeq"];
     const orderedSections = sectionOrder.filter(s => selectedSections.has(s));
 
+    // Sections that can be doubled by rendering TWO independent passages
+    // (distinct paper sets) back-to-back in focused mode.
+    const DOUBLABLE_PASSAGE_SECTIONS = new Set(["vocab-cloze", "grammar-cloze", "comprehension-cloze"]);
+
+    const pushSectionGroup = (section: string, qs: typeof allPool, occurrence: number, total: number) => {
+      if (qs.length === 0) return;
+      // Sort by original question number so passage markers align
+      const sorted = [...qs].sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+      const baseLabel = sectionLabels[section] ?? section;
+      const label = total > 1 ? `${baseLabel} (${occurrence}/${total})` : baseLabel;
+      selectedExtra.push(...sorted);
+      activeLabels.push(label);
+      extraSectionGroups.push({ key: section, label, questions: sorted });
+    };
+
     for (const section of orderedSections) {
-      let sectionQs: typeof allPool = [];
-      // Passage-bound sections CANNOT be doubled by concatenating two papers — each passage is tied to
-      // exactly one set of question blanks, and only one passage can be shown to the student. So when
-      // isFocusedEnglish is on, we still only take ONE paper's set for passage-bound sections.
-      if (section === "vocab-cloze" && vocabClozeSets.length > 0) {
-        sectionQs = vocabClozeSets[0];
-      } else if (section === "visual-text" && visualTextSets.length > 0) {
-        sectionQs = visualTextSets[0];
-      } else if (section === "synthesis") {
-        // Synthesis items are independent (not passage-bound), safe to double.
+      // Visual text: single passage only (per spec)
+      if (section === "visual-text") {
+        if (visualTextSets.length > 0) pushSectionGroup(section, visualTextSets[0], 1, 1);
+        continue;
+      }
+      // Vocab cloze: 2 distinct passage sets for focused practice
+      if (section === "vocab-cloze") {
+        const take = isFocusedEnglish && vocabClozeSets.length >= 2 ? 2 : Math.min(1, vocabClozeSets.length);
+        for (let i = 0; i < take; i++) pushSectionGroup(section, vocabClozeSets[i], i + 1, take);
+        continue;
+      }
+      // Synthesis: flat 10 questions (or 5 for non-focused), not passage-bound
+      if (section === "synthesis") {
         const synthAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
         const synthFresh = shuffle(synthAll.filter(q => !usedSourceIds.has(q.id)));
         const synthUsed = shuffle(synthAll.filter(q => usedSourceIds.has(q.id)));
-        sectionQs = [...synthFresh, ...synthUsed].slice(0, isFocusedEnglish ? 10 : 5);
-      } else {
-        // grammar-cloze, editing, comprehension-cloze, comprehension-oeq — all passage-bound.
-        // Never concat two papers here; pick the first fresh paper set only.
-        const matcher = topicMatchers[section];
-        if (matcher) {
-          const matchedQs = allPool.filter(q => matcher((q.syllabusTopic ?? "").toLowerCase()));
-          const papers = new Map<string, typeof allPool>();
-          for (const q of matchedQs) {
-            if (!papers.has(q.examPaperId)) papers.set(q.examPaperId, []);
-            papers.get(q.examPaperId)!.push(q);
-          }
-          const paperSets = sortByFreshness([...papers.values()]);
-          if (paperSets.length > 0) sectionQs = paperSets[0];
-        }
+        pushSectionGroup(section, [...synthFresh, ...synthUsed].slice(0, isFocusedEnglish ? 10 : 5), 1, 1);
+        continue;
       }
-      if (sectionQs.length > 0) {
-        // Sort by original question number to match passage marker order
-        sectionQs.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
-        selectedExtra.push(...sectionQs);
-        activeLabels.push(sectionLabels[section] ?? section);
-        extraSectionGroups.push({ key: section, label: sectionLabels[section] ?? section, questions: sectionQs });
+      // grammar-cloze, editing, comprehension-cloze, comprehension-oeq — passage-bound.
+      const matcher = topicMatchers[section];
+      if (!matcher) continue;
+      const matchedQs = allPool.filter(q => matcher((q.syllabusTopic ?? "").toLowerCase()));
+      const papersMap = new Map<string, typeof allPool>();
+      for (const q of matchedQs) {
+        if (!papersMap.has(q.examPaperId)) papersMap.set(q.examPaperId, []);
+        papersMap.get(q.examPaperId)!.push(q);
+      }
+      const paperSets = sortByFreshness([...papersMap.values()]);
+      if (paperSets.length === 0) continue;
+      if (isFocusedEnglish && DOUBLABLE_PASSAGE_SECTIONS.has(section) && paperSets.length >= 2) {
+        pushSectionGroup(section, paperSets[0], 1, 2);
+        pushSectionGroup(section, paperSets[1], 2, 2);
+      } else {
+        // editing, comprehension-oeq, or only one paper available — single passage
+        pushSectionGroup(section, paperSets[0], 1, 1);
       }
     }
 
