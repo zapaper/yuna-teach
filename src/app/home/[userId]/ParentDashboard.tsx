@@ -216,7 +216,20 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
-  const [showDiagnosticWelcome, setShowDiagnosticWelcome] = useState(diagnosticWelcome ?? false);
+  const [showDiagnosticWelcome, setShowDiagnosticWelcome] = useState(() => {
+    if (!diagnosticWelcome) return false;
+    try {
+      const key = `mfy-welcome-shown-${userId}`;
+      if (typeof window !== "undefined" && window.localStorage.getItem(key)) return false;
+    } catch { /* ignore */ }
+    return true;
+  });
+  useEffect(() => {
+    if (!showDiagnosticWelcome) return;
+    try {
+      if (typeof window !== "undefined") window.localStorage.setItem(`mfy-welcome-shown-${userId}`, "1");
+    } catch { /* ignore */ }
+  }, [showDiagnosticWelcome, userId]);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [sendingFeedback, setSendingFeedback] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
