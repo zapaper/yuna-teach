@@ -44,23 +44,16 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
       <div className="mb-6">
         <div className="flex items-center gap-3">
           <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sectionLabel.toUpperCase()}</h2>
-          {onToggleFlag && (sectionType === "grammar-cloze" || sectionType === "editing" || sectionType === "comprehension-cloze") && (() => {
-            const allFlagged = questions.every(q => flaggedIds?.has(q.id));
-            const anyFlagged = questions.some(q => flaggedIds?.has(q.id));
+          {onToggleFlag && (sectionType === "grammar-cloze" || sectionType === "editing" || sectionType === "comprehension-cloze") && questions.length > 0 && (() => {
+            const firstQ = questions[0];
+            const isFlagged = !!flaggedIds?.has(firstQ.id);
             return (
               <button
-                onClick={() => {
-                  // If all flagged → unflag all; otherwise → flag all
-                  for (const q of questions) {
-                    const isFlagged = flaggedIds?.has(q.id);
-                    if (allFlagged && isFlagged) onToggleFlag(q.id); // unflag
-                    if (!allFlagged && !isFlagged) onToggleFlag(q.id); // flag
-                  }
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${anyFlagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}
-                title={allFlagged ? "Unflag section" : "Flag section for review"}
+                onClick={() => onToggleFlag(firstQ.id)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${isFlagged ? "text-[#ba1a1a] bg-red-50" : "text-[#737780] hover:text-[#ba1a1a] hover:bg-red-50"}`}
+                title={isFlagged ? "Unflag section" : "Flag section for review"}
               >
-                <span className="material-symbols-outlined text-sm" style={anyFlagged ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+                <span className="material-symbols-outlined text-sm" style={isFlagged ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
                 Flag
               </button>
             );
