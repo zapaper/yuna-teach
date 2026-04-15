@@ -606,9 +606,13 @@ function SignupFlow() {
                                 border: isSelected ? "1px solid rgba(108,248,187,0.8)" : "1px solid rgba(255,255,255,0.1)",
                               }}
                             >
-                              <span className="material-symbols-outlined text-sm">
-                                {subj === "math" ? "functions" : subj === "science" ? "science" : "translate"}
-                              </span>
+                              {subj === "english" ? (
+                                <span className="font-extrabold text-base leading-none">A</span>
+                              ) : (
+                                <span className="material-symbols-outlined text-sm">
+                                  {subj === "math" ? "functions" : "science"}
+                                </span>
+                              )}
                               {subj.charAt(0).toUpperCase() + subj.slice(1)}
                             </button>
                           );
@@ -635,7 +639,7 @@ function SignupFlow() {
                             border: diagnosticType === "mcq-oeq" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
                           }}
                         >
-                          MCQ + OEQ
+                          MCQ and written
                         </button>
                       </div>
                       {diagnosticType === "mcq-oeq" && (
