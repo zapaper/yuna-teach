@@ -247,7 +247,7 @@ export default function HomePage() {
                 <span className="absolute top-4 left-6 font-headline text-6xl lg:text-7xl font-extrabold text-tertiary leading-none select-none" aria-hidden="true">&ldquo;</span>
                 <blockquote className="relative pt-6">
                   <p className="text-base lg:text-lg text-on-surface leading-relaxed mb-6">
-                    I used to spend hours every Saturday marking and hunting for the right practice questions. Now it&apos;s seconds. The AI actually knows where my kid is weak better than me.
+                    I used to spend hours every Saturday marking and hunting for the right practice questions. Now it&apos;s seconds. The AI actually knows where my kid is weak in better than I do.
                   </p>
                   <figcaption className="text-sm font-bold text-primary">
                     — Peter, <span className="text-on-surface-variant font-semibold">P6 Father, Hougang</span>
