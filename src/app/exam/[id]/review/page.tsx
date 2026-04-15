@@ -1517,27 +1517,19 @@ function ExamReviewContent({ id }: { id: string }) {
                                             </div>
                                           )}
                                           {hasPartAnswers && partAnswer && (
-                                            <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff]">
+                                            <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
                                               <span className="text-[9px] font-bold uppercase tracking-wider text-[#43474f] opacity-60 block mb-0.5">Correct Answer</span>
-                                              {partAnswer}
+                                              {partAnswer.replace(/\s*\|\s*/g, "\n")}
                                             </div>
                                           )}
                                         </div>
                                       );
                                     })}
-                                    {/* Full correct answer (worked solution + answer image) — shown alongside per-part breakdowns */}
-                                    {(currentQ.answer || currentQ.answerImageData) && (
+                                    {/* Answer diagram (if any) — per-part text answers are already shown above */}
+                                    {currentQ.answerImageData && (
                                       <div className="mt-3">
-                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Correct Answer</p>
-                                        {currentQ.answer && (
-                                          <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
-                                            {renderWithNewlines(currentQ.answer)}
-                                          </div>
-                                        )}
-                                        {currentQ.answerImageData && (
-                                          // eslint-disable-next-line @next/next/no-img-element
-                                          <img src={currentQ.answerImageData} alt="Answer diagram" className="mt-2 max-w-full rounded-xl border border-[#e5eeff]" />
-                                        )}
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={currentQ.answerImageData} alt="Answer diagram" className="max-w-full rounded-xl border border-[#e5eeff]" />
                                       </div>
                                     )}
                                     {/* Marking notes for subpart questions */}
