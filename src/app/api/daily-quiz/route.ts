@@ -741,7 +741,12 @@ export async function POST(request: NextRequest) {
     const blobMap = await hydrateBlobs(allSelected.map(q => q.id));
     const allSelectedFull = allSelected.map(q => ({ ...q, ...blobMap.get(q.id) })) as FullQ[];
 
-    const totalMarks = allSelectedFull.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
+    // Use the SAME marksAvailable fallback that question creation uses below, so
+    // paper.totalMarks matches the sum of per-question marksAvailable. Otherwise a
+    // synthesis question with null marksAvailable ends up counted as 1 here and 2
+    // there, and the student's percentage can go above 100%.
+    const resolveMarks = (q: FullQ) => q.marksAvailable ?? ((q.syllabusTopic ?? "").toLowerCase().includes("synthesis") ? 2 : 1);
+    const totalMarks = allSelectedFull.reduce((sum, q) => sum + resolveMarks(q), 0);
     const levelLabel = levelFilter ? `P${student!.level} ` : "";
     // Check if any non-MCQ sections are included
     const hasOeq = selectedExtra.some(q => {
@@ -790,7 +795,7 @@ export async function POST(request: NextRequest) {
             imageData: q.imageData,
             answer: q.answer,
             answerImageData: q.answerImageData,
-            marksAvailable: q.marksAvailable ?? ((q.syllabusTopic ?? "").toLowerCase().includes("synthesis") ? 2 : 1),
+            marksAvailable: resolveMarks(q),
             syllabusTopic: q.syllabusTopic,
             pageIndex: 0,
             orderIndex: i,

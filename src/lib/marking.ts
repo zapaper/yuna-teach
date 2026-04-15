@@ -2133,12 +2133,21 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
             const kwMatch = q.transcribedStem.match(/\*\*([^*]+)\*\*/);
             if (kwMatch) {
               const keyword = kwMatch[1].trim();
+              const kwEsc = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
               // If answer has ||| (before/after keyword), combine
               if (q.studentAnswer.includes("|||")) {
-                const [before, after] = q.studentAnswer.split("|||");
-                fullStudentAnswer = `${before.trim()} ${keyword} ${after.trim()}`.trim();
+                const [beforeRaw, afterRaw] = q.studentAnswer.split("|||");
+                // Strip an accidentally-duplicated keyword from the end of `before`
+                // and the start of `after`, so a student who re-typed the keyword in
+                // one of the inputs doesn't end up with "... whom whom ..." in the
+                // stitched sentence.
+                const before = beforeRaw.trim().replace(new RegExp(`\\s*\\b${kwEsc}\\b\\s*$`, "i"), "").trim();
+                const after = afterRaw.trim().replace(new RegExp(`^\\s*\\b${kwEsc}\\b\\s*`, "i"), "").trim();
+                fullStudentAnswer = `${before} ${keyword} ${after}`.replace(/\s+/g, " ").trim();
               } else {
-                fullStudentAnswer = `${keyword} ${q.studentAnswer}`.trim();
+                // Starting-word synthesis: strip a duplicated keyword from the start
+                const after = q.studentAnswer.trim().replace(new RegExp(`^\\s*\\b${kwEsc}\\b\\s*`, "i"), "").trim();
+                fullStudentAnswer = `${keyword} ${after}`.replace(/\s+/g, " ").trim();
               }
             }
           }

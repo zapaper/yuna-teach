@@ -514,7 +514,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const effectiveScore = (data.score ?? 0);
   const rawTotal = totalMarks ? Number(totalMarks) : null;
   const totalM = rawTotal !== null ? Math.max(0, rawTotal - skippedMarks) : null;
-  const pct = totalM && totalM > 0 ? Math.round((effectiveScore / totalM) * 100) : null;
+  const pct = totalM && totalM > 0 ? Math.min(100, Math.round((effectiveScore / totalM) * 100)) : null;
   const denominatorLabel = rawTotal !== null
     ? (skippedMarks > 0 ? `${rawTotal} − ${skippedMarks} skipped` : String(rawTotal))
     : "";

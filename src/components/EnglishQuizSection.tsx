@@ -215,7 +215,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                           }
                         }}
                         className="w-full sm:flex-1 sm:min-w-[200px] border-2 border-slate-200 focus:border-[#003366] outline-none rounded-lg px-3 py-2 text-base text-[#001e40] resize-y leading-relaxed"
-                        placeholder="Type your answer..."
+                        placeholder={inputCount > 1 ? (inputIdx === 0 ? "Before the keyword…" : "After the keyword (don't re-type it)…") : "Type your answer…"}
                       />
                     );
                   };
