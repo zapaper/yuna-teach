@@ -158,9 +158,16 @@ function FlaggedContent() {
                       )}
                     </button>
                     {(item.paperType === "quiz" || item.paperType === "focused") && (
-                      <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
-                        {item.paperType === "focused" ? "Focused" : "Quiz"}
-                      </span>
+                      <button
+                        onClick={() => {
+                          const examId = item.cloneId ?? item.paperId;
+                          window.open(`/exam/${examId}/review?userId=${userId}`, "_blank");
+                        }}
+                        className="text-[10px] font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded underline underline-offset-2"
+                        title="Open quiz review"
+                      >
+                        {item.paperType === "focused" ? "Focused ↗" : "Quiz ↗"}
+                      </button>
                     )}
                     {item.year && (
                       <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
