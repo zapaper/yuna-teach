@@ -62,13 +62,24 @@ function SignupFlow() {
   const [checkingParentEmail, setCheckingParentEmail] = useState(false);
   const parentEmailDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Simple RFC-5322-ish email shape check — enough to catch obviously bad input.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const [parentEmailInvalid, setParentEmailInvalid] = useState(false);
   const checkParentEmail = useCallback((em: string) => {
     if (parentEmailDebounce.current) clearTimeout(parentEmailDebounce.current);
-    if (!em.trim()) { setParentEmailAvail(null); return; }
+    const trimmed = em.trim();
+    if (!trimmed) { setParentEmailAvail(null); setParentEmailInvalid(false); return; }
+    if (!EMAIL_RE.test(trimmed)) {
+      setParentEmailAvail(null);
+      setParentEmailInvalid(true);
+      setCheckingParentEmail(false);
+      return;
+    }
+    setParentEmailInvalid(false);
     setCheckingParentEmail(true);
     parentEmailDebounce.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/users/check?email=${encodeURIComponent(em.trim())}`);
+        const res = await fetch(`/api/users/check?email=${encodeURIComponent(trimmed)}`);
         const data = await res.json();
         setParentEmailAvail(data.available);
       } catch { setParentEmailAvail(null); }
@@ -107,6 +118,7 @@ function SignupFlow() {
     if (!parentName.trim()) { setParentError("Name is required."); return; }
     if (parentNameAvail === false) { setParentError("This name is already taken."); return; }
     if (!parentEmail.trim()) { setParentError("Email is required."); return; }
+    if (!EMAIL_RE.test(parentEmail.trim())) { setParentError("Please enter a valid email address."); return; }
     if (parentEmailAvail === false) { setParentError("This email is already registered."); return; }
     if (!parentPassword) { setParentError("Password is required."); return; }
 
@@ -311,8 +323,19 @@ function SignupFlow() {
                       style={{ background: "#eff4ff", color: "#0b1c30" }}
                     />
                     {parentEmail.trim() && (
-                      <p className={`text-xs mt-1 ml-1 ${checkingParentEmail ? "text-gray-400" : parentEmailAvail === true ? "text-green-600" : parentEmailAvail === false ? "text-red-500" : "text-gray-400"}`}>
-                        {checkingParentEmail ? "Checking..." : parentEmailAvail === true ? "Email available" : parentEmailAvail === false ? "Email is already registered" : ""}
+                      <p className={`text-xs mt-1 ml-1 ${
+                        parentEmailInvalid ? "text-red-500"
+                        : checkingParentEmail ? "text-gray-400"
+                        : parentEmailAvail === true ? "text-green-600"
+                        : parentEmailAvail === false ? "text-red-500"
+                        : "text-gray-400"
+                      }`}>
+                        {parentEmailInvalid
+                          ? "Please enter a valid email address"
+                          : checkingParentEmail ? "Checking..."
+                          : parentEmailAvail === true ? "Email available"
+                          : parentEmailAvail === false ? "Email is already registered"
+                          : ""}
                       </p>
                     )}
                   </div>
@@ -353,7 +376,7 @@ function SignupFlow() {
 
                 <button
                   type="submit"
-                  disabled={parentLoading || parentNameAvail === false || parentEmailAvail === false}
+                  disabled={parentLoading || parentNameAvail === false || parentEmailAvail === false || parentEmailInvalid}
                   className="w-full py-5 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-60"
                   style={{ background: "linear-gradient(to bottom right, #001e40, #003366)", color: "#ffffff" }}
                 >

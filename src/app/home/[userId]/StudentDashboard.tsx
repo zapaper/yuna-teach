@@ -104,7 +104,10 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
 
 export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
-  const hasAvatar = user.settings?.avatar !== false; // default on for all students
+  // Avatar gating: requires BOTH (a) the parent has explicitly enabled it on the
+  // student's settings (settings.avatar === true) AND (b) the student has earned
+  // the 100-point unlock threshold. New students start with avatar off.
+  const parentAllowedAvatar = user.settings?.avatar === true;
   const avatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? "bunny";
   const whitetigerUnlocked = (user.settings as Record<string, unknown> | null)?.whitetiger === true;
   const [avatarSrc, setAvatarSrc] = useState(() => `/avatars/${avatarType}${Math.floor(Math.random() * 4) + 1}.mp4`);
@@ -429,6 +432,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const recentTests = tests.slice(0, 6);
 
   const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0);
+  // Resolved avatar gate — requires parent permission AND >= 100 points unlocked.
+  const hasAvatar = parentAllowedAvatar && totalPoints >= 100;
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
 
   // ─── Derived data for new layout ───
