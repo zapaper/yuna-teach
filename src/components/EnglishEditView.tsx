@@ -438,6 +438,13 @@ function QuestionRow({
   const [stemDraft, setStemDraft] = useState(q.transcribedStem ?? "");
   const [redoingTable, setRedoingTable] = useState(false);
   const [showTopicMenu, setShowTopicMenu] = useState(false);
+  const [editingOptions, setEditingOptions] = useState(false);
+  const [optionsDraft, setOptionsDraft] = useState<string[]>(() => {
+    const existing = (q.transcribedOptions as string[] | null) ?? [];
+    const padded = [...existing];
+    while (padded.length < 4) padded.push("");
+    return padded.slice(0, 4);
+  });
 
   return (
     <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
@@ -529,14 +536,63 @@ function QuestionRow({
                   <OcrRichText text={answerArea} />
                 </div>
               )}
-              {options.length > 0 && (
-                <div className="flex flex-col gap-0.5 mt-2 mb-2 ml-4">
+              {options.length > 0 && !editingOptions && (
+                <div className="flex flex-col gap-0.5 mt-2 mb-1 ml-4">
                   {options.map((opt, i) => (
                     <span key={i} className="text-xs text-slate-600">
                       <span className="font-bold text-slate-400">({i + 1})</span> {opt}
                     </span>
                   ))}
+                  <button
+                    onClick={() => {
+                      const existing = (q.transcribedOptions as string[] | null) ?? [];
+                      const padded = [...existing];
+                      while (padded.length < 4) padded.push("");
+                      setOptionsDraft(padded.slice(0, 4));
+                      setEditingOptions(true);
+                    }}
+                    className="text-[10px] text-blue-600 hover:text-blue-800 font-medium self-start mt-1"
+                  >Edit options</button>
                 </div>
+              )}
+              {editingOptions && (
+                <div className="mt-2 mb-2 ml-4 space-y-1">
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-400 w-5 shrink-0">({i + 1})</span>
+                      <input
+                        value={optionsDraft[i] ?? ""}
+                        onChange={e => {
+                          const next = [...optionsDraft];
+                          next[i] = e.target.value;
+                          setOptionsDraft(next);
+                        }}
+                        className="flex-1 text-xs px-2 py-1 rounded border border-blue-200 bg-white focus:outline-none focus:border-blue-400"
+                        placeholder={`Option ${i + 1}`}
+                      />
+                    </div>
+                  ))}
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={async () => {
+                        const cleaned = optionsDraft.map(o => o.trim());
+                        await onSave(q.id, { transcribedOptions: cleaned });
+                        setEditingOptions(false);
+                      }}
+                      className="px-3 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700"
+                    >Save</button>
+                    <button
+                      onClick={() => setEditingOptions(false)}
+                      className="px-3 py-1 rounded-lg text-slate-400 text-[10px] font-bold hover:text-slate-600"
+                    >Cancel</button>
+                  </div>
+                </div>
+              )}
+              {options.length === 0 && !editingOptions && (q.syllabusTopic?.toLowerCase().includes("mcq")) && (
+                <button
+                  onClick={() => { setOptionsDraft(["", "", "", ""]); setEditingOptions(true); }}
+                  className="text-[10px] text-blue-600 hover:text-blue-800 font-medium ml-4 mt-1"
+                >+ Add options</button>
               )}
             </>
           );
