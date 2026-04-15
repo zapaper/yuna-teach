@@ -228,8 +228,8 @@ export default function HomePage() {
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-secondary mb-6 lg:mb-8 shadow-sm">
                   <span className="material-symbols-outlined text-[32px]">dataset</span>
                 </div>
-                <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-3 lg:mb-4">3,000 questions. Instant marking and worked solutions.</h3>
-                <p className="text-on-surface-variant leading-relaxed text-base lg:text-lg">Our AI model is trained on the MOE syllabus and top school past-year papers — no waiting until the next lesson.</p>
+                <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-3 lg:mb-4">3,000+ questions</h3>
+                <p className="text-on-surface-variant leading-relaxed text-base lg:text-lg">Our AI model is trained on MOE syllabus and top schools past-year papers — and it&apos;s constantly improving.</p>
               </div>
             </div>
           </div>
