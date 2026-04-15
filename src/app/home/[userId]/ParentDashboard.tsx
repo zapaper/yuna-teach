@@ -320,6 +320,23 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     } catch { /* silent */ }
   }
 
+  async function handleRemarkPaper(e: React.MouseEvent, paperId: string) {
+    e.stopPropagation();
+    if (!confirm("Marking is stuck or taking too long. Force a re-mark now?")) return;
+    try {
+      const res = await fetch(`/api/exam/${paperId}/mark`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        alert(`Re-mark failed (HTTP ${res.status}): ${body || "no body"}`);
+        return;
+      }
+      setAssignToast("Re-mark requested — refresh in a moment");
+      setTimeout(() => setAssignToast(null), 3000);
+    } catch (err) {
+      alert(`Re-mark failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   // ── Link modal helpers ────────────────────────────────────────────────────
 
   async function fetchMyCode() {
@@ -1263,7 +1280,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 </button>
               )}
               {isMarking ? (
-                <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                  <button
+                    onClick={(e) => handleRemarkPaper(e, paper.id)}
+                    title="Force re-mark"
+                    className="text-[10px] font-bold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] px-2 py-0.5 rounded-full transition-colors"
+                  >Re-mark</button>
+                </div>
               ) : pct !== null ? (
                 <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
               ) : (
@@ -1908,7 +1932,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               </button>
                             )}
                             {isMarking ? (
-                              <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                                <button
+                                  onClick={(e) => handleRemarkPaper(e, paper.id)}
+                                  title="Force re-mark"
+                                  className="text-[10px] font-bold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] px-2 py-0.5 rounded-full transition-colors"
+                                >Re-mark</button>
+                              </div>
                             ) : pct !== null ? (
                               <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
                             ) : (
@@ -2403,7 +2434,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </div>
                             <div className="text-right shrink-0">
                               {isMarking ? (
-                                <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-extrabold text-blue-500">Marking…</span>
+                                  <button
+                                    onClick={(e) => handleRemarkPaper(e, paper.id)}
+                                    title="Force re-mark"
+                                    className="text-[10px] font-bold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] px-2 py-0.5 rounded-full transition-colors"
+                                  >Re-mark</button>
+                                </div>
                               ) : (<>
                                 <span className="text-xs text-[#43474f] block">{relativeDate(paper.completedAt!)}</span>
                                 {pct !== null ? (

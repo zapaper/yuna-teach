@@ -735,16 +735,18 @@ function QuestionCard({
         {q.marksAvailable && (
           <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{q.marksAvailable}m</span>
         )}
-        <span className="text-xs text-slate-400 flex items-center gap-1">
-          Ans:
-          <input
-            type="text"
-            value={q.answer}
-            onChange={e => onUpdateAnswer(e.target.value)}
-            className="w-16 text-xs px-1.5 py-0.5 rounded-md border border-slate-200 bg-white focus:outline-none focus:border-primary-400 text-center"
-            placeholder={isMcq ? "1-4" : "answer"}
-          />
-        </span>
+        {isMcq && (
+          <span className="text-xs text-slate-400 flex items-center gap-1">
+            Ans:
+            <input
+              type="text"
+              value={q.answer}
+              onChange={e => onUpdateAnswer(e.target.value)}
+              className="w-16 text-xs px-1.5 py-0.5 rounded-md border border-slate-200 bg-white focus:outline-none focus:border-primary-400 text-center"
+              placeholder="1-4"
+            />
+          </span>
+        )}
         <button
           onClick={onRecrop}
           title="Choose question zone from PDF"
@@ -946,6 +948,20 @@ function QuestionCard({
               ) : (
                 <span className="text-xs text-slate-400 italic">Select "Drawable diagram" above and drag on the image</span>
               )}
+            </div>
+          )}
+
+          {/* OEQ model answer — full-width textarea */}
+          {!isMcq && (
+            <div className="mt-3">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Model Answer</label>
+              <textarea
+                value={q.answer ?? ""}
+                onChange={e => onUpdateAnswer(e.target.value)}
+                rows={Math.min(8, Math.max(3, ((q.answer ?? "").match(/\n/g)?.length ?? 0) + 2))}
+                placeholder="Type the full model answer. Use | to separate sub-parts."
+                className="w-full text-xs font-mono px-3 py-2 rounded-lg border border-slate-200 bg-white focus:outline-none focus:border-blue-400 resize-y leading-relaxed"
+              />
             </div>
           )}
 
