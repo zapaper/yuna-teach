@@ -329,7 +329,7 @@ function TestPageContent({ id }: { id: string }) {
               <button
                 key={word.id}
                 onClick={() => playWord(word.text)}
-                className={`relative group cursor-pointer p-5 lg:p-6 rounded-2xl transition-all hover:-translate-y-1 text-center ${
+                className={`relative group cursor-pointer p-3 sm:p-5 lg:p-6 rounded-2xl transition-all hover:-translate-y-1 text-center min-w-0 ${
                   isSelected
                     ? "bg-[#d3e4fe] ring-2 ring-[#001e40] shadow-md"
                     : "bg-white shadow-[0_4px_20px_rgba(11,28,48,0.04)] hover:bg-[#eff4ff] hover:shadow-md"
@@ -338,7 +338,7 @@ function TestPageContent({ id }: { id: string }) {
                 <div className={`absolute top-2.5 right-2.5 transition-opacity ${isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}>
                   <span className="material-symbols-outlined text-[#001e40] text-base">edit</span>
                 </div>
-                <p className="text-3xl font-bold text-[#001e40] mb-1">{word.text}</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#001e40] mb-1 break-all leading-tight">{word.text}</p>
                 <p className={`text-[10px] font-bold tracking-widest uppercase ${
                   isPlaying ? "text-[#006c49]" : isSelected ? "text-[#003366]" : "text-[#737780]"
                 }`}>

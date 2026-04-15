@@ -610,9 +610,9 @@ function PassageLine({
     } else if (sectionType === "editing") {
       // Editing: show question number + error word + correction input
       parts.push(
-        <span key={`q${qNum}`} className="relative z-20 inline-flex items-center gap-1 mx-1">
-          <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({displayNum})</span>
-          <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{content}</span>
+        <span key={`q${qNum}`} className="relative z-20 inline-flex items-center gap-1 mx-1 align-middle whitespace-nowrap">
+          <span className="text-[9px] sm:text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({displayNum})</span>
+          <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-[11px] sm:text-sm break-all">{content}</span>
           <input
             type="text"
             value={qId ? (answers[qId] ?? "") : ""}
@@ -622,8 +622,8 @@ function PassageLine({
             autoComplete="one-time-code"
             autoCorrect="off"
             autoCapitalize="none"
-            className={`border-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-200"} focus:border-[#003366] outline-none rounded px-2 py-0.5 text-sm w-28 bg-white`}
-            placeholder="correct word"
+            className={`border-2 ${qId && emptyFieldIds?.has(qId) ? "border-red-500 bg-red-50" : "border-slate-200"} focus:border-[#003366] outline-none rounded px-1.5 py-0.5 text-[11px] sm:text-sm w-20 sm:w-28 bg-white`}
+            placeholder="correct"
           />
         </span>
       );
