@@ -492,10 +492,15 @@ function QuizContent({ id }: { id: string }) {
 
       // Trigger marking (handles both MCQ-only and MCQ+OEQ)
       await fetch(`/api/exam/${id}/mark`, { method: "POST" });
-      // Start polling if there are AI-marked questions (OEQ canvas or typed synthesis/comp OEQ)
+      // Start polling if there are AI-marked questions. English comp cloze runs a
+      // per-question AI synonym/grammar check on the server, so include it here too —
+      // otherwise the review page renders the client's instant simple-compare marks
+      // before the server AI has had a chance to update them.
       const hasAiMarking = hasOeq || (isEnglishQuiz && paper!.questions.some(q => {
         const t = (q.syllabusTopic ?? "").toLowerCase();
-        return t.includes("synthesis") || (t.includes("comprehension") && (t.includes("open") || t.includes("oeq")));
+        return t.includes("synthesis")
+          || (t.includes("comprehension") && (t.includes("open") || t.includes("oeq")))
+          || (t.includes("comprehension") && t.includes("cloze"));
       }));
       if (hasAiMarking) setMarkingOeq(true);
 

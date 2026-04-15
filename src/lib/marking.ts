@@ -2005,7 +2005,11 @@ export async function markQuizPaper(paperId: string): Promise<void> {
       // missing capital letter at the start of a sentence. Same for the answer key.
       const qTopic = (q.syllabusTopic ?? "").toLowerCase();
       const isCompClozeQ = qTopic.includes("comprehension") && qTopic.includes("cloze");
+      if (isCompClozeQ) {
+        console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: student="${studentAnsRaw}" key="${rawCorrect}" simpleMatch=${isCorrect}`);
+      }
       if (!isCorrect && studentAns && isCompClozeQ) {
+        console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: calling AI fallback`);
         try {
           // Get passage context for the AI
           let passageCtx = "";
