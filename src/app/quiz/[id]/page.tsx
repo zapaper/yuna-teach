@@ -36,7 +36,7 @@ interface QuizPaper {
   requesterIsAdmin?: boolean;
 }
 
-type DrawTool = "select" | "type" | "pen" | "eraser" | "eraser-large";
+type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
 
 /* ────────────── helpers ────────────── */
 
@@ -102,7 +102,7 @@ function QuizContent({ id }: { id: string }) {
 
   // OEQ drawing
   const isEnglishQuiz = !!paper?.metadata?.englishSections;
-  const [tool, setTool] = useState<DrawTool>("select");
+  const [tool, setTool] = useState<DrawTool>("pen");
   const toolInitRef = useRef(false);
   if (isEnglishQuiz && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
@@ -634,13 +634,6 @@ function QuizContent({ id }: { id: string }) {
             </button>
           )}
           <button
-            onClick={() => setTool("select")}
-            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "select" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
-          >
-            <span className="material-symbols-outlined text-xl">arrow_selector_tool</span>
-            <span>Select</span>
-          </button>
-          <button
             onClick={() => setTool("pen")}
             className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
           >
@@ -704,13 +697,6 @@ function QuizContent({ id }: { id: string }) {
                 Type
               </button>
             )}
-            <button
-              onClick={() => setTool("select")}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "select" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
-            >
-              <span className="material-symbols-outlined text-xl">arrow_selector_tool</span>
-              Select
-            </button>
             <button
               onClick={() => setTool("pen")}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "pen" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
@@ -1177,7 +1163,7 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
   function onCanvasDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
     const t = toolRef.current;
-    if (t === "select" || t === "type") return;
+    if (t === "type") return;
     snapshotForUndo();
     isDrawing.current = true;
     lastPos.current = getPos(e);
@@ -1904,7 +1890,7 @@ const BlankCanvas = forwardRef<
     }
 
     function handlePointerDown(e: PointerEvent) {
-      if (toolRef.current === "select" || toolRef.current === "type") return;
+      if (toolRef.current === "type") return;
       e.preventDefault();
       cancelPendingCapture();
       onStrokeStartRef.current();
