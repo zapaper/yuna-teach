@@ -1911,6 +1911,25 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     const mcqQuestions = paper.questions.filter(q => isMcqAnswer(q.answer) || typedSectionQIds.has(q.id));
     const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");
 
+    // English-only typed OEQ sections (synthesis, comprehension OEQ) — these store the
+    // student's answer as typed text in studentAnswer. All other OEQ questions (math,
+    // science, English written) use the canvas image on disk, regardless of what
+    // studentAnswer currently contains (may be a stale "No answer detected" from a
+    // previous marking run).
+    const aiTypedOeqQIds = new Set<string>();
+    if (meta?.englishSections) {
+      for (const sec of meta.englishSections) {
+        const label = sec.label.toLowerCase();
+        const isAiTyped = label.includes("synthesis") ||
+          (label.includes("comprehension") && (label.includes("oeq") || label.includes("open")));
+        if (isAiTyped) {
+          for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
+            aiTypedOeqQIds.add(paper.questions[i].id);
+          }
+        }
+      }
+    }
+
     // Re-score MCQ questions (in case answer keys changed)
     for (const q of paper.questions.filter(q2 => isMcqAnswer(q2.answer))) {
       const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
@@ -2031,8 +2050,12 @@ Return JSON: {"accepted": true/false, "reason": "<brief reason>"}` }] }],
           }
         }
 
-        // Check if this is a typed answer (synthesis, comp OEQ in English quiz)
-        if (q.studentAnswer && !q.studentAnswer.startsWith("data:")) {
+        // Check if this is a typed answer (synthesis, comp OEQ in English quiz).
+        // Only trust studentAnswer as typed text when the question is actually in a
+        // synthesis/comprehension-OEQ section. For all other OEQs, studentAnswer may
+        // be a stale marker like "No answer detected" from a previous marking run —
+        // ignore it and re-read the canvas image.
+        if (aiTypedOeqQIds.has(q.id) && q.studentAnswer && !q.studentAnswer.startsWith("data:")) {
           const qTopic = (q.syllabusTopic ?? "").toLowerCase();
           const isSynthesisQ = qTopic.includes("synthesis");
 
