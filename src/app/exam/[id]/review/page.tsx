@@ -108,6 +108,19 @@ function ExamReviewContent({ id }: { id: string }) {
   const [pendingReviewIds, setPendingReviewIds] = useState<string[]>([]);
   const [sticker, setSticker] = useState<string | null>(null);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
+  // Show a one-time congratulations popup the first time a student lands on the review page.
+  useEffect(() => {
+    if (!isStudent || !userId || !data || !isQuiz) return;
+    if (data.markingStatus !== "complete" && data.markingStatus !== "released") return;
+    try {
+      const key = `mfy-first-quiz-popup-${userId}`;
+      if (!localStorage.getItem(key)) {
+        setShowFirstQuizPopup(true);
+        localStorage.setItem(key, "1");
+      }
+    } catch { /* localStorage may be unavailable */ }
+  }, [isStudent, userId, data, isQuiz]);
 
   useEffect(() => {
     async function fetchData() {
@@ -624,6 +637,33 @@ function ExamReviewContent({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
+      {/* First-quiz congratulations popup (one-time per student) */}
+      {showFirstQuizPopup && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4"
+          onClick={() => setShowFirstQuizPopup(false)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl text-center animate-[popIn_0.5s_cubic-bezier(0.34,1.56,0.64,1)]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-20 h-20 rounded-full bg-[#6cf8bb]/30 flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-outlined text-4xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>celebration</span>
+            </div>
+            <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">Congratulations on finishing your first quiz!</h2>
+            <p className="text-sm text-[#43474f] leading-relaxed mb-6">
+              With each quiz, the AI gets smarter in identifying the weak topics, and can build <strong className="font-bold text-[#001e40]">focused practice</strong> quizzes targeting those as well.
+            </p>
+            <button
+              onClick={() => setShowFirstQuizPopup(false)}
+              className="px-8 py-3 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
+            >
+              Let&apos;s see my results
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Top bar ── */}
       <header className="fixed top-0 w-full z-50 bg-[#f8f9ff] backdrop-blur-xl shadow-sm">
         {/* Mobile: centered title */}
