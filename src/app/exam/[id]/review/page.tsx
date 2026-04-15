@@ -96,6 +96,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
   const [paperType, setPaperType] = useState<string | null>(null);
+  const [canvasHeights, setCanvasHeights] = useState<Record<string, number>>({});
   const [releasing, setReleasing] = useState(false);
   const [englishSections, setEnglishSections] = useState<Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | null>(null);
   const [expandedElabs, setExpandedElabs] = useState<Set<string>>(new Set());
@@ -132,6 +133,7 @@ function ExamReviewContent({ id }: { id: string }) {
           setSkipPages(paper.metadata?.skipPages ?? []);
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
           if (paper.metadata?.sticker) setSticker(paper.metadata.sticker);
+          if (paper.metadata?.canvasHeights) setCanvasHeights(paper.metadata.canvasHeights as Record<string, number>);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
           const sp = paper.metadata?.skipPages ?? [];
@@ -1488,26 +1490,32 @@ function ExamReviewContent({ id }: { id: string }) {
                                             <img src={imgSrc} alt={`(${sp.label}) diagram`} className="w-full rounded-xl border border-[#e5eeff]" />
                                           )}
                                           {/* Per-subpart submission image (falls back to combined) */}
-                                          {isQuiz && currentQOeqIndex >= 0 && (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img
-                                              src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
-                                              alt={`Written answer for (${sp.label})`}
-                                              className="w-full h-auto rounded-2xl border border-[#e5eeff]"
-                                              onError={(e) => {
-                                                const img = e.target as HTMLImageElement;
-                                                // Fallback to combined image (only on first subpart to avoid duplicates)
-                                                if (sp === realSubs[0] && !img.dataset.fallback) {
-                                                  img.dataset.fallback = "1";
-                                                  img.src = `/api/exam/${id}/submission?page=${currentQSubmissionPage}`;
-                                                } else if (img.dataset.fallback) {
-                                                  img.style.display = "none";
-                                                } else {
-                                                  img.style.display = "none";
-                                                }
-                                              }}
-                                            />
-                                          )}
+                                          {isQuiz && currentQOeqIndex >= 0 && (() => {
+                                            const spCanvasId = `${currentQ.id}_${sp.label}`;
+                                            const spDefault = sp.diagramBase64 ? 340 : 260;
+                                            const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 600);
+                                            return (
+                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white" style={{ aspectRatio: `800 / ${spVisible * 2}` }}>
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
+                                                  alt={`Written answer for (${sp.label})`}
+                                                  className="w-full h-auto block"
+                                                  onError={(e) => {
+                                                    const img = e.target as HTMLImageElement;
+                                                    if (sp === realSubs[0] && !img.dataset.fallback) {
+                                                      img.dataset.fallback = "1";
+                                                      img.src = `/api/exam/${id}/submission?page=${currentQSubmissionPage}`;
+                                                    } else if (img.dataset.fallback) {
+                                                      img.style.display = "none";
+                                                    } else {
+                                                      img.style.display = "none";
+                                                    }
+                                                  }}
+                                                />
+                                              </div>
+                                            );
+                                          })()}
                                           {hasPartAnswers && partStudent && (
                                             <div className={`text-sm leading-relaxed rounded-xl p-3 ${
                                               partIsCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
@@ -1559,17 +1567,24 @@ function ExamReviewContent({ id }: { id: string }) {
                     {isQuiz && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !hasInlinePartAnswers && realSubLabels.length === 0 && (
                       <div className="space-y-4 mb-4">
                         {/* Written answer image */}
-                        <div>
-                          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
-                          <div className="rounded-2xl overflow-hidden border border-[#e5eeff]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
-                              alt={`Written answer for Q${currentQ.questionNum}`}
-                              className="w-full h-auto"
-                            />
-                          </div>
-                        </div>
+                        {(() => {
+                          const hasDrawable = !!(currentQ.transcribedSubparts as { label: string }[] | null)?.find(s => s.label === "_drawable");
+                          const defaultH = hasDrawable ? 360 : 300;
+                          const visibleH = Math.min(canvasHeights[currentQ.id] ?? defaultH, 600);
+                          return (
+                            <div>
+                              <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
+                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white" style={{ aspectRatio: `400 / ${visibleH}` }}>
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
+                                  alt={`Written answer for Q${currentQ.questionNum}`}
+                                  className="w-full h-auto block"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })()}
                         {/* Detected answer */}
                         {studentAnswerText && (
                           <div>

@@ -704,7 +704,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
       console.log(`[marking] remarkSingle Q${question.questionNum}: no blue ink detected — awarding 0`);
       await prisma.examQuestion.update({
         where: { id: questionId },
-        data: { marksAwarded: 0, markingNotes: "Detected: No answer detected | No blue ink found (pre-check)" },
+        data: { marksAwarded: 0, markingNotes: "Detected: No answer detected | No written answer found" },
       });
       const allMarks = paper.questions.map((q) =>
         q.id === questionId ? 0 : (q.marksAwarded ?? 0)
@@ -1081,7 +1081,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
                     marksAvailable: q.marksAvailable ?? 0,
                     marksAwarded: 0,
                     studentAnswer: "No answer detected",
-                    notes: "No blue ink found (pre-check)",
+                    notes: "No written answer found",
                   }] as QuestionMarkResult[];
                 }
 
@@ -1157,7 +1157,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
                 marksAvailable: q.marksAvailable ?? 0,
                 marksAwarded: 0,
                 studentAnswer: "No answer detected",
-                notes: "No blue ink found (pre-check)",
+                notes: "No written answer found",
               } as QuestionMarkResult;
             }
           }
@@ -1233,7 +1233,7 @@ export async function markExamPaper(paperId: string): Promise<void> {
       const r = resultMap.get(q.id);
       if (!r) return false;
       // Skip verification for questions already confirmed blank by pre-check
-      if (r.notes?.includes("pre-check")) return false;
+      if (r.notes?.includes("No written answer found")) return false;
       // Skip MCQ — blind detection is already unbiased, re-detection unlikely to differ
       if (isMcqAnswer(q.answer) && !isClozeQuestion(q.syllabusTopic)) return false;
       return r.marksAwarded < r.marksAvailable;
@@ -1731,7 +1731,7 @@ export async function markFocusedTest(paperId: string): Promise<void> {
           updates.push(
             prisma.examQuestion.update({
               where: { id: q.id },
-              data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No blue ink found (pre-check)" },
+              data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No written answer found" },
             })
           );
           continue;
@@ -2175,7 +2175,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             updates.push(
               prisma.examQuestion.update({
                 where: { id: q.id },
-                data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No drawing detected (pre-check)" },
+                data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No written answer found" },
               })
             );
             continue;
@@ -2204,7 +2204,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             updates.push(
               prisma.examQuestion.update({
                 where: { id: q.id },
-                data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No blue ink found (pre-check)" },
+                data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No written answer found" },
               })
             );
             continue;

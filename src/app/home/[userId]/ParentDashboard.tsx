@@ -1963,8 +1963,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
                                 else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
-                              }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
-                              {shortenTitle(p.title)}
+                              }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
+                              {p.markingStatus === "released" && (
+                                <span className="material-symbols-outlined text-[11px] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                              )}
+                              <span className="truncate">{shortenTitle(p.title)}</span>
                             </div>
                           ))}
                           {overflow > 0 && (
@@ -2244,8 +2247,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
                                 else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
-                              }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
-                              {shortenTitle(p.title)}
+                              }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
+                              {p.markingStatus === "released" && (
+                                <span className="material-symbols-outlined text-[12px] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                              )}
+                              <span className="truncate">{shortenTitle(p.title)}</span>
                             </div>
                           ))}
                           {overflow > 0 && (
