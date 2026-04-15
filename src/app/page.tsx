@@ -240,7 +240,7 @@ export default function HomePage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-8 lg:mb-10">
               <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">05 &middot; PARENTS SAY</span>
-              <h2 className="font-headline text-3xl lg:text-4xl font-extrabold text-primary">What other Singapore parents tell us</h2>
+              <h2 className="font-headline text-3xl lg:text-4xl font-extrabold text-primary">What parents tell us</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
               <figure className="relative bg-white p-8 lg:p-10 rounded-3xl shadow-sm border border-surface-container-high">
