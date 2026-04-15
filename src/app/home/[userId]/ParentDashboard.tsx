@@ -51,7 +51,7 @@ function activityIcon(paper: ExamPaperSummary) {
   if (paper.paperType === "focused") return "psychology";
   if (paper.paperType === "quiz") return "quiz";
   const s = (paper.subject ?? "").toLowerCase();
-  if (s.includes("english")) return "translate";
+  if (s.includes("english")) return "abc";
   if (s.includes("science")) return "science";
   return "description";
 }
@@ -1687,7 +1687,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         }`}
                       >
                         <span className="material-symbols-outlined text-sm">
-                          {s.toLowerCase().includes("math") ? "calculate" : s.toLowerCase().includes("science") ? "science" : "translate"}
+                          {s.toLowerCase().includes("math") ? "calculate" : s.toLowerCase().includes("science") ? "science" : "abc"}
                         </span>
                         {s}
                       </button>

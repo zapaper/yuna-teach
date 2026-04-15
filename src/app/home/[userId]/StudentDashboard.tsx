@@ -467,7 +467,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     if (p.paperType === "quiz") return "quiz";
     if (p.paperType === "focused") return "psychology";
     const s = (p.subject ?? "").toLowerCase();
-    return s.includes("science") ? "biotech" : s.includes("english") ? "translate" : "calculate";
+    return s.includes("science") ? "biotech" : s.includes("english") ? "abc" : "calculate";
   }
 
   return (
