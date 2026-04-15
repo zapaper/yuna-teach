@@ -432,6 +432,8 @@ async function extractExamPaperCore(
       ]);
 
       console.log(`[extraction] English text-based: ${questions.length} questions saved.`);
+      // Fire-and-forget AI audit of the freshly extracted Q&A
+      import("@/lib/audit-qa").then(m => m.auditPaper(paperId).catch(e => console.error(`[extraction] auditPaper failed:`, e)));
       return;
     }
 
@@ -788,6 +790,9 @@ async function extractExamPaperCore(
     console.log(
       `[extraction] Paper ${paperId} done. ${questions.length} questions extracted.`
     );
+    // Fire-and-forget AI audit (English/Science) — flags suspicious Q&A so the
+    // edit view can highlight them in red. Skipped for other subjects.
+    import("@/lib/audit-qa").then(m => m.auditPaper(paperId).catch(e => console.error(`[extraction] auditPaper failed:`, e)));
   } catch (err) {
     console.error(`[extraction] Failed for ${paperId}:`, err);
     await prisma.examPaper

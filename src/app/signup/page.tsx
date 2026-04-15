@@ -98,6 +98,7 @@ function SignupFlow() {
   // ── Step 3: Diagnostic quiz state ──
   const [quizLoading, setQuizLoading] = useState<string | null>(null); // "math" | "science" | "english"
   const [diagnosticType, setDiagnosticType] = useState<"mcq" | "mcq-oeq">("mcq");
+  const [diagnosticSubject, setDiagnosticSubject] = useState<"math" | "science" | "english" | null>(null);
 
   // ── Step 1 handler ──
   async function handleParentSignup(e: React.FormEvent) {
@@ -266,7 +267,7 @@ function SignupFlow() {
                 </p>
               </header>
 
-              <form className="space-y-6" onSubmit={handleParentSignup}>
+              <form className="space-y-6" onSubmit={handleParentSignup} autoComplete="off">
                 <div className="grid grid-cols-1 gap-6">
                   {/* Full Name */}
                   <div className="space-y-2">
@@ -278,6 +279,9 @@ function SignupFlow() {
                       value={parentName}
                       onChange={e => { setParentName(e.target.value); checkParentName(e.target.value); }}
                       placeholder="User name"
+                      name="mfy-new-username"
+                      autoComplete="off"
+                      spellCheck={false}
                       className="w-full px-5 py-4 border-0 rounded-xl transition-all duration-200"
                       style={{
                         background: "#eff4ff",
@@ -324,6 +328,8 @@ function SignupFlow() {
                         value={parentPassword}
                         onChange={e => setParentPassword(e.target.value)}
                         placeholder="••••••••"
+                        name="mfy-new-password"
+                        autoComplete="new-password"
                         className="w-full px-5 py-4 border-0 rounded-xl transition-all duration-200"
                         style={{ background: "#eff4ff", color: "#0b1c30" }}
                       />
@@ -410,7 +416,7 @@ function SignupFlow() {
                 </p>
               </div>
 
-              <form className="space-y-6" onSubmit={handleStudentSignup}>
+              <form className="space-y-6" onSubmit={handleStudentSignup} autoComplete="off">
                 {/* Username */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold ml-1" style={{ color: "#0b1c30" }}>
@@ -421,6 +427,9 @@ function SignupFlow() {
                     value={studentName}
                     onChange={e => { setStudentName(e.target.value); checkName(e.target.value); }}
                     placeholder="e.g. SpaceExplorer123"
+                    name="mfy-student-username"
+                    autoComplete="off"
+                    spellCheck={false}
                     className="w-full px-6 py-4 rounded-xl border-0 outline-none transition-all"
                     style={{
                       background: "#eff4ff",
@@ -468,6 +477,8 @@ function SignupFlow() {
                       value={studentPassword}
                       onChange={e => setStudentPassword(e.target.value)}
                       placeholder="••••••••"
+                      name="mfy-student-password"
+                      autoComplete="new-password"
                       className="w-full px-6 py-4 rounded-xl border-0 outline-none transition-all"
                       style={{ background: "#eff4ff", boxShadow: "inset 0 0 0 1px rgba(195,198,209,0.2)", color: "#0b1c30" }}
                     />
@@ -480,6 +491,8 @@ function SignupFlow() {
                       type="password"
                       value={studentPwConfirm}
                       onChange={e => setStudentPwConfirm(e.target.value)}
+                      name="mfy-student-pw-confirm"
+                      autoComplete="new-password"
                       placeholder="••••••••"
                       className="w-full px-6 py-4 rounded-xl border-0 outline-none transition-all"
                       style={{ background: "#eff4ff", boxShadow: "inset 0 0 0 1px rgba(195,198,209,0.2)", color: "#0b1c30" }}
@@ -578,26 +591,32 @@ function SignupFlow() {
                     <div className="relative z-10 w-full">
                       <h3 className="text-2xl font-bold mb-2">Start Diagnostic Quiz</h3>
                       <p className="text-white/70 text-sm mb-6">Choose a core subject to begin the discovery journey.</p>
+                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">1. Pick a subject</p>
                       <div className="flex flex-wrap gap-2 mb-5">
-                        {(["math", "science", "english"] as const).map(subj => (
-                          <button
-                            key={subj}
-                            onClick={() => handleStartQuiz(subj)}
-                            disabled={!!quizLoading}
-                            className="px-5 py-2.5 backdrop-blur-md rounded-full text-sm font-semibold transition-colors flex items-center gap-2 disabled:opacity-50"
-                            style={{ background: "rgba(255,255,255,0.1)" }}
-                            onMouseEnter={e => { if (!quizLoading) (e.target as HTMLButtonElement).style.background = "rgba(255,255,255,0.2)"; }}
-                            onMouseLeave={e => { (e.target as HTMLButtonElement).style.background = "rgba(255,255,255,0.1)"; }}
-                          >
-                            <span className="material-symbols-outlined text-sm">
-                              {subj === "math" ? "functions" : subj === "science" ? "science" : "translate"}
-                            </span>
-                            {quizLoading === subj ? "Creating..." : subj.charAt(0).toUpperCase() + subj.slice(1)}
-                          </button>
-                        ))}
+                        {(["math", "science", "english"] as const).map(subj => {
+                          const isSelected = diagnosticSubject === subj;
+                          return (
+                            <button
+                              key={subj}
+                              onClick={() => setDiagnosticSubject(subj)}
+                              disabled={!!quizLoading}
+                              className="px-5 py-2.5 backdrop-blur-md rounded-full text-sm font-semibold transition-colors flex items-center gap-2 disabled:opacity-50"
+                              style={{
+                                background: isSelected ? "rgba(108,248,187,0.3)" : "rgba(255,255,255,0.1)",
+                                border: isSelected ? "1px solid rgba(108,248,187,0.8)" : "1px solid rgba(255,255,255,0.1)",
+                              }}
+                            >
+                              <span className="material-symbols-outlined text-sm">
+                                {subj === "math" ? "functions" : subj === "science" ? "science" : "translate"}
+                              </span>
+                              {subj.charAt(0).toUpperCase() + subj.slice(1)}
+                            </button>
+                          );
+                        })}
                       </div>
                       {/* Quiz type toggle */}
-                      <div className="flex gap-2">
+                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">2. Pick question type</p>
+                      <div className="flex gap-2 mb-5">
                         <button
                           onClick={() => setDiagnosticType("mcq")}
                           className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
@@ -620,11 +639,19 @@ function SignupFlow() {
                         </button>
                       </div>
                       {diagnosticType === "mcq-oeq" && (
-                        <p className="text-white/40 text-[10px] mt-2 flex items-center gap-1">
+                        <p className="text-white/40 text-[10px] mb-3 flex items-center gap-1">
                           <span className="material-symbols-outlined text-xs">stylus_note</span>
                           Stylus recommended for written questions
                         </p>
                       )}
+                      <button
+                        onClick={() => diagnosticSubject && handleStartQuiz(diagnosticSubject)}
+                        disabled={!diagnosticSubject || !!quizLoading}
+                        className="w-full py-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-40"
+                        style={{ background: "#6cf8bb", color: "#001e40" }}
+                      >
+                        {quizLoading ? "Creating quiz…" : "Start Quiz"}
+                      </button>
                     </div>
                   </div>
 

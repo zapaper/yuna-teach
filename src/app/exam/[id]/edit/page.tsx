@@ -361,6 +361,9 @@ function ExamEditContent({ id }: { id: string }) {
         body: JSON.stringify({ extractionStatus: "ready" }),
       });
 
+      // Clear any AI audit flags — admin has reviewed the Q&A
+      await fetch(`/api/exam/${id}/audit-qa`, { method: "DELETE" }).catch(() => {});
+
       await fetchPaper();
       alert("Clean questions saved successfully!");
     } catch (err) {

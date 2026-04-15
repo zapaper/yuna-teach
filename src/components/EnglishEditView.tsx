@@ -37,6 +37,7 @@ function groupBySection(questions: ExamQuestionItem[]) {
 export default function EnglishEditView({ paper, pageImages, onSave, onDelete, onSaveOcr, onRegenerateOcr, saving }: Props) {
   const metadata = paper.metadata;
   const ocrTexts = metadata?.sectionOcrTexts ?? {};
+  const auditFlags = ((metadata as { auditFlags?: Record<string, string> } | null)?.auditFlags ?? {}) as Record<string, string>;
   const sections = groupBySection(paper.questions);
 
   const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.name ?? null);
@@ -392,6 +393,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         onSave={onSave}
                         onDelete={onDelete}
                         saving={saving}
+                        auditFlag={auditFlags[q.id]}
                       />
                     ))}
                   </div>
@@ -425,11 +427,13 @@ function QuestionRow({
   onSave,
   onDelete,
   saving,
+  auditFlag,
 }: {
   question: ExamQuestionItem;
   onSave: (questionId: string, data: Record<string, unknown>) => Promise<void>;
   onDelete?: (questionId: string) => void;
   saving: string | null;
+  auditFlag?: string;
 }) {
   const [editAnswer, setEditAnswer] = useState(false);
   const [answerDraft, setAnswerDraft] = useState(q.answer ?? "");
@@ -447,12 +451,18 @@ function QuestionRow({
   });
 
   return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+    <div className={`flex items-start gap-3 p-3 rounded-xl ${auditFlag ? "bg-red-50 border border-red-200" : "bg-slate-50 border border-slate-100"}`}>
       {/* Question number */}
       <div className="flex flex-col items-center gap-1 shrink-0">
-        <span className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-700">
+        <span
+          className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${auditFlag ? "bg-red-100 border border-red-400 text-red-700" : "bg-white border border-slate-200 text-slate-700"}`}
+          title={auditFlag ?? undefined}
+        >
           {q.questionNum}
         </span>
+        {auditFlag && (
+          <span className="text-[8px] text-red-600 font-bold" title={auditFlag}>flagged</span>
+        )}
         {/* Topic selector */}
         <div className="relative">
           <button
