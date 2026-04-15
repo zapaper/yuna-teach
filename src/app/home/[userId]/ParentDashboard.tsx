@@ -2655,7 +2655,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </div>
             <div className="px-8 pb-8 text-center">
               <p className="leading-relaxed" style={{ color: "#43474f", fontSize: "15px" }}>
-                This is your homepage, where you can assign daily quiz or more focused practice (e.g. on a topic). You can also track your child&apos;s progress over time.
+                Here you can track your student&apos;s progress, as well as assign him daily quizzes, focused practices or full papers. There&apos;s also a weekly panel for you to set assignments for the week.
               </p>
             </div>
             <div className="px-8 pb-8">

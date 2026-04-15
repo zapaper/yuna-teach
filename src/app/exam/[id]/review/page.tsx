@@ -108,19 +108,16 @@ function ExamReviewContent({ id }: { id: string }) {
   const [pendingReviewIds, setPendingReviewIds] = useState<string[]>([]);
   const [sticker, setSticker] = useState<string | null>(null);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const isDiagnostic = searchParams?.get("diagnostic") === "1";
+  const diagnosticParentId = searchParams?.get("parentId") ?? "";
   const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
-  // Show a one-time congratulations popup the first time a student lands on the review page.
+  // Show a one-time congratulations popup when the student lands on the review page from
+  // their first diagnostic quiz (URL has ?diagnostic=1&parentId=...).
   useEffect(() => {
-    if (!isStudent || !userId || !data || !isQuiz) return;
+    if (!isDiagnostic || !data || !isQuiz) return;
     if (data.markingStatus !== "complete" && data.markingStatus !== "released") return;
-    try {
-      const key = `mfy-first-quiz-popup-${userId}`;
-      if (!localStorage.getItem(key)) {
-        setShowFirstQuizPopup(true);
-        localStorage.setItem(key, "1");
-      }
-    } catch { /* localStorage may be unavailable */ }
-  }, [isStudent, userId, data, isQuiz]);
+    setShowFirstQuizPopup(true);
+  }, [isDiagnostic, data, isQuiz]);
 
   useEffect(() => {
     async function fetchData() {
@@ -637,7 +634,7 @@ function ExamReviewContent({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
-      {/* First-quiz congratulations popup (one-time per student) */}
+      {/* First-quiz congratulations popup — shown when the student lands here from the diagnostic flow */}
       {showFirstQuizPopup && (
         <div
           className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4"
@@ -652,13 +649,13 @@ function ExamReviewContent({ id }: { id: string }) {
             </div>
             <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-3">Congratulations on finishing your first quiz!</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-6">
-              With each quiz, the AI gets smarter in identifying the weak topics, and can build <strong className="font-bold text-[#001e40]">focused practice</strong> quizzes targeting those as well.
+              With each quiz, the AI gets smarter in identifying weak areas. You can build <strong className="font-bold text-[#001e40]">focused practices</strong> for those. Click &ldquo;Open parent homepage&rdquo; when you are done reviewing this quiz with your student.
             </p>
             <button
               onClick={() => setShowFirstQuizPopup(false)}
               className="px-8 py-3 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
             >
-              Let&apos;s see my results
+              Got it
             </button>
           </div>
         </div>
@@ -868,8 +865,29 @@ function ExamReviewContent({ id }: { id: string }) {
                 <p className="font-headline text-xl font-bold text-[#ba1a1a]">{incorrectQuestions.length}</p>
               </div>
             </div>
+            {/* Diagnostic flow only — open parent homepage in a new tab */}
+            {isDiagnostic && diagnosticParentId && (
+              <button
+                onClick={() => window.open(`/home/${diagnosticParentId}?diagnosticWelcome=1`, "_blank")}
+                className="bg-[#003366] text-white rounded-3xl p-5 flex items-center justify-center gap-3 shadow-md hover:bg-[#001e40] transition-colors font-bold text-sm"
+              >
+                <span className="material-symbols-outlined">open_in_new</span>
+                Open parent homepage
+              </button>
+            )}
           </div>
         </section>
+
+        {/* Mobile-only diagnostic CTA — same intent, sits below the score card */}
+        {isDiagnostic && diagnosticParentId && (
+          <button
+            onClick={() => window.open(`/home/${diagnosticParentId}?diagnosticWelcome=1`, "_blank")}
+            className="lg:hidden w-full bg-[#003366] text-white rounded-2xl p-4 flex items-center justify-center gap-2 shadow-md hover:bg-[#001e40] transition-colors font-bold text-sm mb-5"
+          >
+            <span className="material-symbols-outlined text-base">open_in_new</span>
+            Open parent homepage
+          </button>
+        )}
 
         {/* Advisory — parents only */}
         {!isStudent && !advisoryDismissed && (

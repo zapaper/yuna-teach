@@ -89,7 +89,9 @@ function QuizContent({ id }: { id: string }) {
   const userId = searchParams.get("userId") ?? "";
   const isDiagnostic = searchParams.get("diagnostic") === "1";
   const diagnosticParentId = searchParams.get("parentId") ?? "";
-  const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
+  // Build the URL suffix that forwards the diagnostic flag (and parent id) to the review page
+  // so the first-quiz popup + 'Open parent homepage' button render there instead of here.
+  const diagnosticSuffix = isDiagnostic && diagnosticParentId ? `&diagnostic=1&parentId=${diagnosticParentId}` : "";
 
   const [paper, setPaper] = useState<QuizPaper | null>(null);
   const [loading, setLoading] = useState(true);
@@ -479,7 +481,6 @@ function QuizContent({ id }: { id: string }) {
       } catch { /* badge check is non-critical */ }
 
       setSubmitted(true);
-      if (isDiagnostic) setShowDiagnosticModal(true);
     } finally {
       setSubmitting(false);
     }
@@ -522,7 +523,7 @@ function QuizContent({ id }: { id: string }) {
             {markingOeq && markingDone ? (
               <button
                 key="done-button"
-                onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
+                onClick={() => router.push(`/exam/${id}/review?userId=${userId}${diagnosticSuffix}`)}
                 className="flex-1 px-4 py-4 rounded-2xl bg-[#006c49] text-white font-extrabold text-base hover:bg-[#004d35] transition-colors shadow-lg animate-[popIn_0.5s_cubic-bezier(0.34,1.56,0.64,1)]"
               >
                 <span className="inline-flex items-center gap-2">
@@ -532,7 +533,7 @@ function QuizContent({ id }: { id: string }) {
               </button>
             ) : (
               <button
-                onClick={() => router.push(`/exam/${id}/review?userId=${userId}`)}
+                onClick={() => router.push(`/exam/${id}/review?userId=${userId}${diagnosticSuffix}`)}
                 disabled={markingOeq && !markingDone}
                 className="flex-1 px-4 py-3 rounded-2xl bg-[#001e40] text-white font-bold text-sm hover:bg-[#003366] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
@@ -549,7 +550,7 @@ function QuizContent({ id }: { id: string }) {
         </div>
 
         {/* Badge milestone popup */}
-        {badgePopup && !showDiagnosticModal && (
+        {badgePopup && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
             onClick={() => setBadgePopup(null)}>
             <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center"
@@ -570,61 +571,6 @@ function QuizContent({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Diagnostic quiz completion modal */}
-        {showDiagnosticModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}
-          >
-            <div className="w-full max-w-md rounded-lg overflow-hidden flex flex-col"
-              style={{ background: "#ffffff", boxShadow: "0 20px 40px rgba(11,28,48,0.06)" }}
-            >
-              {/* Header */}
-              <div className="px-6 pt-8 pb-4 flex flex-col items-center text-center">
-                <div className="mb-4 w-12 h-12 rounded-full flex items-center justify-center relative"
-                  style={{ background: "#d3e4fe" }}
-                >
-                  <span className="material-symbols-outlined text-2xl" style={{ color: "#003366", fontVariationSettings: "'FILL' 1" }}>
-                    notifications
-                  </span>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full"
-                    style={{ background: "#006c49", border: "2px solid #ffffff" }}
-                  />
-                </div>
-                <h3 className="text-xl font-extrabold tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#0b1c30" }}>
-                  Congratulations!
-                </h3>
-              </div>
-
-              {/* Body */}
-              <div className="px-8 pb-8 text-center">
-                <p className="leading-relaxed" style={{ color: "#43474f", fontSize: "15px" }}>
-                  Congratulations on finishing your first diagnostic quiz. Let&apos;s open a new tab for the parent&apos;s homepage to see the diagnostics.
-                </p>
-              </div>
-
-              {/* Action */}
-              <div className="px-8 pb-8">
-                <button
-                  onClick={() => {
-                    setShowDiagnosticModal(false);
-                    if (diagnosticParentId) {
-                      window.open(`/home/${diagnosticParentId}?diagnosticWelcome=1`, "_blank");
-                    }
-                  }}
-                  className="w-full py-4 px-6 text-white font-bold rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
-                  style={{
-                    fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    background: "linear-gradient(to right, #001e40, #003366)",
-                    boxShadow: "0 4px 12px rgba(0,30,64,0.15)",
-                  }}
-                >
-                  Go parent&apos;s homepage
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     );
   }
