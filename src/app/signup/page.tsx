@@ -296,7 +296,7 @@ function SignupFlow() {
                   <div className="space-y-2">
                     <label className="text-sm font-semibold px-1 flex items-center gap-2" style={{ color: "rgba(11,28,48,0.8)" }}>
                       Email Address
-                      <span className="font-normal text-xs" style={{ color: "rgba(11,28,48,0.35)" }}>For password recovery</span>
+                      <span className="font-normal text-xs" style={{ color: "rgba(11,28,48,0.35)" }}>For password recovery. We may send feature updates for Beta.</span>
                     </label>
                     <input
                       type="email"
