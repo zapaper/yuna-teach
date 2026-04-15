@@ -41,15 +41,21 @@ export default function HomePage() {
                 Built for Parents, By Parents
               </div>
               <h1 className="font-headline text-3xl md:text-6xl font-extrabold text-primary leading-tight mb-5 text-balance">
-                Targeted practice to <span className="text-tertiary">accelerate your child&apos;s mastery</span> of Math, Science and English.
+                Stop marking. <span className="text-tertiary">Start coaching.</span>
               </h1>
-              <p className="text-on-surface-variant text-base md:text-xl leading-relaxed mb-8 max-w-xl">
-                MarkForYou empowers your child and you to master primary school Math, Science and English (P4-6) with instant grading and feedback. We do all the hard work on marking and targeted practice so that you can focus on being the coach!
+              <p className="text-on-surface-variant text-base md:text-xl leading-relaxed mb-4 max-w-xl">
+                MarkForYou instantly marks your child&apos;s written homework, spots their weak topics and builds the next custom practice automatically. Built by Singapore parents who were tired of marking.
+              </p>
+              <p className="text-on-surface-variant text-sm md:text-base font-semibold mb-8 max-w-xl">
+                Primary 4-6. Math, Science and English. More coming.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/signup" className="w-full lg:w-auto text-center px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
-                  Try Free Now
+                <Link href="/signup" className="w-full sm:w-auto text-center px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
+                  Try now free
                 </Link>
+                <a href="#demo-video" className="w-full sm:w-auto text-center px-10 py-4 bg-white text-primary font-bold rounded-full border-2 border-primary/10 hover:border-primary/30 hover:scale-105 transition-all text-lg">
+                  Watch a 30-second demo
+                </a>
               </div>
             </div>
             <div className="relative">
