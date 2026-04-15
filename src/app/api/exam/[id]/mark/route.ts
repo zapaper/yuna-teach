@@ -151,12 +151,34 @@ export async function POST(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  // Paper is considered submittable-for-marking if:
+  //   (a) completedAt is set (normal happy path), or
+  //   (b) it already has a markingStatus (previously attempted a mark), or
+  //   (c) there's at least one studentAnswer on file (student did answer something)
+  // If none of those, bounce. Otherwise, backfill completedAt and proceed —
+  // this covers cases where the student's PATCH to set completedAt failed but
+  // their submission files + answers are on disk.
   if (!paper.completedAt) {
-    console.warn(`[mark API] Paper ${id} has no completedAt`);
-    return NextResponse.json(
-      { error: "Paper has not been submitted yet" },
-      { status: 400 }
-    );
+    const hasActivity = paper.markingStatus !== null;
+    let hasAnswers = false;
+    if (!hasActivity) {
+      const answered = await prisma.examQuestion.count({
+        where: { examPaperId: id, NOT: { studentAnswer: null } },
+      });
+      hasAnswers = answered > 0;
+    }
+    if (!hasActivity && !hasAnswers) {
+      console.warn(`[mark API] Paper ${id} has no completedAt and no activity — refusing to mark`);
+      return NextResponse.json(
+        { error: "Paper has not been submitted yet" },
+        { status: 400 }
+      );
+    }
+    console.log(`[mark API] Paper ${id} has no completedAt but has activity — backfilling completedAt=now`);
+    await prisma.examPaper.update({
+      where: { id },
+      data: { completedAt: new Date() },
+    });
   }
   console.log(`[mark API] Paper ${id}: paperType=${paper.paperType}, markingStatus=${paper.markingStatus}`);
 
