@@ -274,6 +274,12 @@ export default function HomePage() {
                 <li><a className="hover:text-tertiary transition-colors" href="#demo-video">How it Works</a></li>
               </ul>
             </div>
+            <div>
+              <h4 className="font-bold text-primary mb-4">Company</h4>
+              <ul className="space-y-3 text-sm text-on-surface-variant">
+                <li><Link className="hover:text-tertiary transition-colors" href="/about">About Us</Link></li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -291,6 +297,12 @@ export default function HomePage() {
             <h4 className="font-bold text-primary mb-6">Product</h4>
             <ul className="space-y-4 text-sm text-on-surface-variant">
               <li><a className="hover:text-tertiary transition-colors" href="#demo-video">How it Works</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold text-primary mb-6">Company</h4>
+            <ul className="space-y-4 text-sm text-on-surface-variant">
+              <li><Link className="hover:text-tertiary transition-colors" href="/about">About Us</Link></li>
             </ul>
           </div>
         </div>
