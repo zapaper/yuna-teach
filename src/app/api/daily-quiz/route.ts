@@ -300,16 +300,36 @@ export async function POST(request: NextRequest) {
       return (t === "vocabulary" || t === "vocabulary mcq" || (t.includes("vocab") && !t.includes("cloze"))) && isMcq(q.answer) && hasStemOrImage(q);
     }));
 
-    // Vocab Cloze MCQ: group by paper (all questions from same paper go together)
+    // Vocab Cloze MCQ: group by paper, then split each paper's set into 5-question
+    // sub-passages. A single source paper often has TWO 5-question vocab cloze passages
+    // (e.g. Q11-Q15 + Q16-Q20). Treating them as one 10-question set means the rendered
+    // quiz mixes both passages without showing either one as context. Split by
+    // question-number sequence so each sub-set maps to one passage.
     const vocabClozeAll = allPool.filter(q => {
       const t = (q.syllabusTopic ?? "").toLowerCase();
       return (t.includes("vocabulary") && t.includes("cloze")) && isMcq(q.answer);
     });
-    const vocabClozePapers = new Map<string, typeof allPool>();
+    const vocabClozePaperGroups = new Map<string, typeof allPool>();
     for (const q of vocabClozeAll) {
       const key = q.examPaperId;
-      if (!vocabClozePapers.has(key)) vocabClozePapers.set(key, []);
-      vocabClozePapers.get(key)!.push(q);
+      if (!vocabClozePaperGroups.has(key)) vocabClozePaperGroups.set(key, []);
+      vocabClozePaperGroups.get(key)!.push(q);
+    }
+    const vocabClozePapers = new Map<string, typeof allPool>();
+    let vocabClozeSplitIdx = 0;
+    for (const [paperId, qs] of vocabClozePaperGroups.entries()) {
+      const sorted = [...qs].sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+      const CHUNK = 5;
+      if (sorted.length <= CHUNK) {
+        vocabClozePapers.set(paperId, sorted);
+        continue;
+      }
+      for (let i = 0; i < sorted.length; i += CHUNK) {
+        const chunk = sorted.slice(i, i + CHUNK);
+        if (chunk.length > 0) {
+          vocabClozePapers.set(`${paperId}#${vocabClozeSplitIdx++}`, chunk);
+        }
+      }
     }
     // Sort sets: all-fresh first, then partially fresh, then all-used
     const sortByFreshness = (sets: (typeof allPool)[]) => {
@@ -609,6 +629,34 @@ export async function POST(request: NextRequest) {
           if (!passage) {
             console.warn(`[English Quiz] Visual Text: ALL methods failed, using VISUAL_TEXT_SOURCE fallback`);
             passage = `[VISUAL_TEXT_SOURCE:${sourcePaperId}]`;
+          }
+        }
+      }
+
+      // For vocab cloze sets that came from a paper with multiple passages, narrow
+      // the passage text to just the paragraph(s) containing this chunk's question
+      // numbers. The full sectionOcrText holds both passages, so without this trim
+      // both groups would render the same combined passage.
+      if (passage && !passage.startsWith("[") && group.key === "vocab-cloze") {
+        const targetNums = new Set(group.questions.map(q => parseInt(q.questionNum)).filter(n => !isNaN(n)));
+        if (targetNums.size > 0) {
+          const allMk: { num: number; index: number; end: number }[] = [];
+          const re = /\*\*\((\d+)\)[^*]*\*\*/g;
+          let mk;
+          while ((mk = re.exec(passage)) !== null) {
+            allMk.push({ num: parseInt(mk[1]), index: mk.index, end: mk.index + mk[0].length });
+          }
+          const inChunk = allMk.filter(m => targetNums.has(m.num));
+          if (inChunk.length > 0 && inChunk.length < allMk.length) {
+            // Walk to the nearest paragraph boundary on either side of the chunk's markers
+            const first = inChunk[0].index;
+            const last = inChunk[inChunk.length - 1].end;
+            let start = passage.lastIndexOf("\n\n", first);
+            start = start < 0 ? 0 : start + 2;
+            let endNl = passage.indexOf("\n\n", last);
+            if (endNl < 0) endNl = passage.length;
+            passage = passage.slice(start, endNl).trim();
+            console.log(`[English Quiz] ${group.label}: narrowed passage to paragraph(s) containing Q${[...targetNums].sort((a,b)=>a-b).join(",")}`);
           }
         }
       }
