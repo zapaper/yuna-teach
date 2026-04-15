@@ -743,18 +743,26 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${p.timeSpentSeconds > 0 ? "bg-[#fef3c7] text-[#92400e]" : "bg-[#dce9ff] text-[#737780]"}`}>{p.timeSpentSeconds > 0 ? "IN PROGRESS" : "TODO"}</span>
                     </div>
                   ))}
-                  {todayDone.map(p => (
-                    <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-4 p-5 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="w-6 h-6 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center">
-                        <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                  {todayDone.map(p => {
+                    const pct = scorePct(p);
+                    return (
+                      <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-4 p-5 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                        <div className="w-6 h-6 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center">
+                          <span className="material-symbols-outlined text-white text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
+                          <span className="text-[10px] text-[#43474f]">Due today</span>
+                        </div>
+                        <span className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>
+                          {pct !== null && (
+                            <span className={`text-sm font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>
+                          )}
+                        </span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-[#0b1c30] truncate block">{p.title}</span>
-                        <span className="text-[10px] text-[#43474f]">Due today</span>
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-1 bg-[#6cf8bb] text-[#006c49] rounded-full shrink-0">DONE</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {todayActivities.length === 0 && (
                     <div className="text-center py-6"><span className="material-symbols-outlined text-3xl text-[#c3c6d1] mb-2 block">event_available</span><p className="text-sm text-[#43474f]">No activities yet today</p></div>
                   )}
@@ -1003,7 +1011,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <h2 className="text-lg font-bold text-[#001e40] mb-4 flex items-center gap-2 font-headline"><span className="material-symbols-outlined text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>Today&apos;s Activities</h2>
             <div className="space-y-3">
               {todayTodo.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#c3c6d1]" /><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#dce9ff] text-[#737780] rounded-full shrink-0">TODO</span></div>)}
-              {todayDone.map(p => <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full shrink-0">DONE</span></div>)}
+              {todayDone.map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-4 bg-[#6cf8bb]/20 border border-[#6cf8bb]/30 rounded-2xl cursor-pointer"><div className="w-5 h-5 rounded border-2 border-[#006c49] bg-[#006c49] flex items-center justify-center"><span className="material-symbols-outlined text-white text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>check</span></div><div className="flex-1 min-w-0"><span className="font-semibold text-sm text-[#0b1c30] truncate block">{p.title}</span><span className="text-[10px] text-[#43474f]">Due today</span></div><span className="flex items-center gap-1 shrink-0"><span className="text-[9px] font-bold px-2 py-0.5 bg-[#6cf8bb] text-[#006c49] rounded-full">DONE</span>{pct !== null && <span className={`text-xs font-extrabold ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</span></div>; })}
               {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
           </section>
