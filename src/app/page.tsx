@@ -41,10 +41,10 @@ export default function HomePage() {
                 Built for Primary School Parents
               </div>
               <h1 className="font-headline text-3xl md:text-6xl font-extrabold text-primary leading-tight mb-5 text-balance">
-                Targeted practice to <span className="text-tertiary">accelerate your child&apos;s mastery</span> of Math, Science, English & Chinese.
+                Targeted practice to <span className="text-tertiary">accelerate your child&apos;s mastery</span> of Math, Science and English.
               </h1>
               <p className="text-on-surface-variant text-base md:text-xl leading-relaxed mb-8 max-w-xl">
-                MarkForYou empowers your child and you to master primary school Math, Science, English, and Chinese 听写 (P4-6) with instant grading and feedback. We do all the hard work on marking and targeted practice so that you can focus on being the coach!
+                MarkForYou empowers your child and you to master primary school Math, Science and English (P4-6) with instant grading and feedback. We do all the hard work on marking and targeted practice so that you can focus on being the coach!
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/signup" className="w-full lg:w-auto text-center px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
@@ -65,7 +65,7 @@ export default function HomePage() {
         <section className="py-16 lg:py-24 bg-white px-6">
           <div className="max-w-4xl mx-auto text-center mb-10 lg:mb-16">
             <h2 className="font-headline text-2xl md:text-4xl font-extrabold text-primary mb-4 lg:mb-6">
-              Do you and your child struggle with Primary School Math, Science, English or Chinese?
+              Do you and your child struggle with Primary School Math, Science or English?
             </h2>
             <p className="text-on-surface-variant text-base lg:text-lg">We understand the late nights and the frustration of &ldquo;endless drilling.&rdquo;</p>
           </div>

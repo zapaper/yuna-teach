@@ -10,11 +10,11 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "MarkForYou.com | Empowering Your Child's Learning Journey",
-  description: "Targeted practice to accelerate your child's mastery of Math and Science.",
+  description: "Targeted practice to accelerate your child's mastery of Math, Science and English.",
   metadataBase: new URL("https://markforyou.com"),
   openGraph: {
     title: "MarkForYou.com",
-    description: "Targeted practice to accelerate your child's mastery of Math and Science.",
+    description: "Targeted practice to accelerate your child's mastery of Math, Science and English.",
     siteName: "MarkForYou.com",
     type: "website",
   },
