@@ -235,6 +235,40 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── Social Proof ── */}
+        <section className="py-10 lg:py-14 bg-surface-container-lowest px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-8 lg:mb-10">
+              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">05 &middot; PARENTS SAY</span>
+              <h2 className="font-headline text-3xl lg:text-4xl font-extrabold text-primary">What other Singapore parents tell us</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+              <figure className="relative bg-white p-8 lg:p-10 rounded-3xl shadow-sm border border-surface-container-high">
+                <span className="absolute top-4 left-6 font-headline text-6xl lg:text-7xl font-extrabold text-tertiary leading-none select-none" aria-hidden="true">&ldquo;</span>
+                <blockquote className="relative pt-6">
+                  <p className="text-base lg:text-lg text-on-surface leading-relaxed mb-6">
+                    I used to spend hours every Saturday marking and hunting for the right practice questions. Now it&apos;s seconds. The AI actually knows where my kid is weak better than me.
+                  </p>
+                  <figcaption className="text-sm font-bold text-primary">
+                    — Peter, <span className="text-on-surface-variant font-semibold">P6 Father, Hougang</span>
+                  </figcaption>
+                </blockquote>
+              </figure>
+              <figure className="relative bg-white p-8 lg:p-10 rounded-3xl shadow-sm border border-surface-container-high">
+                <span className="absolute top-4 left-6 font-headline text-6xl lg:text-7xl font-extrabold text-tertiary leading-none select-none" aria-hidden="true">&ldquo;</span>
+                <blockquote className="relative pt-6">
+                  <p className="text-base lg:text-lg text-on-surface leading-relaxed mb-6">
+                    My son won&apos;t sit down for a 45-minute paper, but he&apos;ll do four 10-minute quizzes in a row because he sees his score straight away.
+                  </p>
+                  <figcaption className="text-sm font-bold text-primary">
+                    — Melissa, <span className="text-on-surface-variant font-semibold">P6 Mum, Kovan</span>
+                  </figcaption>
+                </blockquote>
+              </figure>
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA Section ── */}
         <section className="py-10 lg:py-14 px-6">
           <div className="max-w-5xl mx-auto bg-tertiary-container rounded-[3rem] p-8 md:p-14 text-center relative overflow-hidden soft-glow">
