@@ -44,7 +44,7 @@ export default function HomePage() {
                 Stop marking. <span className="text-tertiary">Start coaching.</span>
               </h1>
               <p className="text-on-surface-variant text-base md:text-xl leading-relaxed mb-4 max-w-xl">
-                MarkForYou <strong className="font-bold text-primary">instantly marks</strong> your child&apos;s <strong className="font-bold text-primary">written homework</strong>, <strong className="font-bold text-primary">spots their weak topics</strong> and builds the next custom practice automatically. Built by Singapore parents who were tired of marking.
+                MarkForYou <strong className="font-bold text-primary">instantly marks</strong> your child&apos;s <strong className="font-bold text-primary">written homework</strong>, <strong className="font-bold text-primary">spots their weak topics</strong> and builds the next custom practice automatically.<span className="hidden sm:inline"> Built by Singapore parents who were tired of marking.</span>
               </p>
               <p className="text-on-surface-variant text-sm md:text-base font-semibold mb-8 max-w-xl">
                 Primary 4-6. Math, Science and English. More coming.
