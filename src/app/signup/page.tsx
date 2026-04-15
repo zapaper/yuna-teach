@@ -639,10 +639,10 @@ function SignupFlow() {
                             border: diagnosticType === "mcq-oeq" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
                           }}
                         >
-                          MCQ and written
+                          {diagnosticSubject === "english" ? "MCQ and Cloze" : "MCQ and written"}
                         </button>
                       </div>
-                      {diagnosticType === "mcq-oeq" && (
+                      {diagnosticType === "mcq-oeq" && diagnosticSubject !== "english" && (
                         <p className="text-white/40 text-[10px] mb-3 flex items-center gap-1">
                           <span className="material-symbols-outlined text-xs">stylus_note</span>
                           Stylus recommended for written questions

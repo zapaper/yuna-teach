@@ -583,15 +583,6 @@ function QuizContent({ id }: { id: string }) {
       {/* ── Mobile Top Bar (floating pill) ── */}
       <header className="lg:hidden fixed top-0 w-full z-50 px-6 py-4 flex justify-center bg-[#f8f9ff]/80 backdrop-blur-md">
         <div className="bg-white/90 backdrop-blur-xl rounded-full px-2 py-1.5 flex items-center gap-0.5 shadow-lg border border-white/30">
-          {isEnglishQuiz && (
-            <button
-              onClick={() => setTool("type")}
-              className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "type" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
-            >
-              <span className="material-symbols-outlined text-xl">keyboard</span>
-              <span>Type</span>
-            </button>
-          )}
           <button
             onClick={() => setTool("pen")}
             className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
@@ -647,15 +638,6 @@ function QuizContent({ id }: { id: string }) {
         <div className="flex items-center gap-4">
           {/* Drawing tools */}
           <div className="flex items-center bg-[#eff4ff] rounded-lg p-1 border border-[#c3c6d1]/10">
-            {isEnglishQuiz && (
-              <button
-                onClick={() => setTool("type")}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "type" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
-              >
-                <span className="material-symbols-outlined text-xl">keyboard</span>
-                Type
-              </button>
-            )}
             <button
               onClick={() => setTool("pen")}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "pen" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}

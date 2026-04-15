@@ -426,7 +426,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const allSelected = [...selectedGrammar, ...selectedVocab, ...selectedExtra];
+    let allSelected = [...selectedGrammar, ...selectedVocab, ...selectedExtra];
     if (allSelected.length === 0) {
       return NextResponse.json({ error: "Not enough English questions available" }, { status: 404 });
     }
@@ -613,9 +613,13 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Clean passage: keep only the first N markers, truncate after the last one
+      // Clean passage: keep only the first N markers, truncate after the last one.
+      // Also handle the inverse case — if the passage has FEWER markers than questions
+      // (e.g. OCR missed half the blanks, or the question list was over-merged), trim
+      // the question list down so each rendered question lines up with a real blank.
       if (passage && !passage.startsWith("[")) {
         const qCount = group.questions.length;
+        const usesInlineMarkersHere = ["grammar-cloze", "editing", "comprehension-cloze", "vocab-cloze"].includes(group.key);
         const allMarkers: { num: number; fullMatch: string; index: number }[] = [];
         const markerRegex = /\*\*\((\d+)\)[^*]*\*\*/g;
         let mm;
@@ -623,13 +627,22 @@ export async function POST(request: NextRequest) {
           allMarkers.push({ num: parseInt(mm[1]), fullMatch: mm[0], index: mm.index });
         }
         if (allMarkers.length > qCount) {
-          // Truncate passage right after the last kept marker (removes other section content entirely)
+          // Passage has too many markers — truncate the passage to the first qCount markers
           const lastKept = allMarkers[qCount - 1];
           const cutPoint = lastKept.index + lastKept.fullMatch.length;
-          // Keep a bit after the last marker (rest of the sentence/line)
           const nextNewline = passage.indexOf("\n", cutPoint);
           passage = passage.slice(0, nextNewline >= 0 ? nextNewline : cutPoint).trimEnd();
-          console.log(`[English Quiz] Truncated passage after marker ${qCount} (removed ${allMarkers.length - qCount} extra markers)`);
+          console.log(`[English Quiz] ${group.label}: truncated passage to ${qCount} markers (was ${allMarkers.length})`);
+        } else if (usesInlineMarkersHere && allMarkers.length > 0 && allMarkers.length < qCount) {
+          // Passage has too few markers — trim the questions to match so we don't end
+          // up rendering 10 questions next to a passage with only 5 blanks.
+          const drop = group.questions.slice(allMarkers.length);
+          group.questions = group.questions.slice(0, allMarkers.length);
+          const dropIds = new Set(drop.map(q => q.id));
+          for (let i = selectedExtra.length - 1; i >= 0; i--) {
+            if (dropIds.has(selectedExtra[i].id)) selectedExtra.splice(i, 1);
+          }
+          console.warn(`[English Quiz] ${group.label}: trimmed ${drop.length} questions to match passage marker count (${allMarkers.length} markers, was ${qCount} questions)`);
         }
 
         // Rewrite remaining markers to match quiz numbering (position-based)
@@ -668,6 +681,10 @@ export async function POST(request: NextRequest) {
       idx += group.questions.length;
       sectionLetter = String.fromCharCode(sectionLetter.charCodeAt(0) + 1);
     }
+
+    // Rebuild allSelected after any in-loop trimming so we don't try to create quiz
+    // questions for IDs that were dropped to match the passage marker count.
+    allSelected = [...selectedGrammar, ...selectedVocab, ...selectedExtra];
 
     // Hydrate selected questions with blob data
     const blobMap = await hydrateBlobs(allSelected.map(q => q.id));
