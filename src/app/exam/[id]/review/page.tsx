@@ -507,6 +507,33 @@ function ExamReviewContent({ id }: { id: string }) {
   const denominatorLabel = rawTotal !== null
     ? (skippedMarks > 0 ? `${rawTotal} − ${skippedMarks} skipped` : String(rawTotal))
     : "";
+  // Compute weak topics: group by syllabusTopic, take topics with marks awarded < 60%, lowest 3.
+  const weakTopics: string[] = (() => {
+    const byTopic: Record<string, { awarded: number; available: number }> = {};
+    for (const q of data.questions) {
+      const topic = (q.syllabusTopic ?? "").trim();
+      if (!topic) continue;
+      if (q.studentAnswer === "__SKIPPED__") continue;
+      const a = q.marksAvailable ?? 0;
+      if (a <= 0) continue;
+      if (!byTopic[topic]) byTopic[topic] = { awarded: 0, available: 0 };
+      byTopic[topic].awarded += q.marksAwarded ?? 0;
+      byTopic[topic].available += a;
+    }
+    return Object.entries(byTopic)
+      .filter(([, v]) => v.available > 0 && v.awarded / v.available < 0.6)
+      .sort((a, b) => (a[1].awarded / a[1].available) - (b[1].awarded / b[1].available))
+      .slice(0, 3)
+      .map(([t]) => t);
+  })();
+  // Friendly one-liner encouragement based on percentage
+  const encouragement = pct === null ? "Keep going!"
+    : pct >= 90 ? "Outstanding work!"
+    : pct >= 80 ? "Excellent work!"
+    : pct >= 70 ? "Great job!"
+    : pct >= 60 ? "Good effort!"
+    : pct >= 40 ? "Keep practising!"
+    : "Don't give up — let's review!";
   const scoreBorderColor = pct === null ? "#d3e4fe"
     : pct >= 75 ? "#6cf8bb"
     : pct >= 50 ? "#ffb952"
@@ -665,15 +692,18 @@ function ExamReviewContent({ id }: { id: string }) {
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="font-headline font-bold text-xl text-[#001e40]">
-                  {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
+                  {pct !== null ? `${pct}% ${encouragement}` : encouragement}
                 </h2>
-                <p className="text-sm text-[#43474f] font-medium mt-0.5">
-                  {pct !== null ? `${data.score ?? 0} / ${denominatorLabel} marks` : paperTitle}
-                </p>
-                <div className="flex gap-2 flex-wrap mt-2">
-                  <span className="px-3 py-1 bg-[#eff4ff] rounded-full text-[10px] font-bold text-[#001e40]">{writtenQuestions.length} Qs</span>
-                  <span className="px-3 py-1 bg-[#ffdad6] rounded-full text-[10px] font-bold text-[#ba1a1a]">{incorrectQuestions.length} to review</span>
-                </div>
+                {weakTopics.length > 0 && (
+                  <>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mt-2 mb-1">Weak areas identified</p>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {weakTopics.map(t => (
+                        <span key={t} className="px-2.5 py-0.5 bg-[#ffdad6] rounded-full text-[10px] font-bold text-[#ba1a1a]">{t}</span>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             {/* Sticker top-right corner */}
@@ -683,14 +713,11 @@ function ExamReviewContent({ id }: { id: string }) {
                 <img src={`/stickers/${sticker}`} alt="Sticker" className="w-20 h-20 object-contain drop-shadow-md" />
               </div>
             )}
-            {/* Collapsible summary */}
+            {/* Detailed AI summary tucked away — keeps the panel simple */}
             {data.feedbackSummary && (
-              <details className="mt-4">
-                <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer select-none flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm">expand_more</span>
-                  Summary
-                </summary>
-                <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
+              <details className="mt-3">
+                <summary className="text-[10px] font-semibold text-[#43474f]/70 uppercase tracking-wide cursor-pointer select-none">More details</summary>
+                <p className="text-xs text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
               </details>
             )}
             {/* Sticker button */}
@@ -736,14 +763,21 @@ function ExamReviewContent({ id }: { id: string }) {
             </div>
             <div className="flex-1">
               <h1 className="font-headline text-3xl font-extrabold text-[#001e40] mb-2">
-                {pct !== null && pct >= 75 ? "Well done!" : pct !== null && pct >= 50 ? "Good effort!" : "Keep practising!"}
+                {pct !== null ? `${pct}% ${encouragement}` : encouragement}
               </h1>
+              {weakTopics.length > 0 && (
+                <div className="mb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-1.5">Weak areas identified</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {weakTopics.map(t => (
+                      <span key={t} className="px-3 py-1 bg-[#ffdad6] rounded-full text-xs font-bold text-[#ba1a1a]">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
               {data.feedbackSummary && (
                 <details className="mb-4">
-                  <summary className="text-xs font-semibold text-[#43474f] uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm">expand_more</span>
-                    Summary
-                  </summary>
+                  <summary className="text-[10px] font-semibold text-[#43474f]/70 uppercase tracking-wide cursor-pointer hover:text-[#001e40] select-none">More details</summary>
                   <p className="text-sm text-[#43474f] leading-relaxed whitespace-pre-line mt-2 max-h-32 overflow-y-auto">{data.feedbackSummary}</p>
                 </details>
               )}
