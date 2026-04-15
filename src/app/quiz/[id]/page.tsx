@@ -320,7 +320,7 @@ function QuizContent({ id }: { id: string }) {
     const answerableTotal = allAnswerableQs.filter(q => !oeqCanvasHandles.current[q.id] && !skippedIds.has(q.id)).length;
     if (answerableTotal > 0 && unansweredCount / answerableTotal > 0.2) {
       const answered = answerableTotal - unansweredCount;
-      if (!confirm(`You answered ${answered} of ${answerableTotal} questions. Submit anyway?`)) return;
+      if (!confirm(`You answered ${answered} of ${answerableTotal} MCQ questions (written answers not counted). Submit anyway?`)) return;
     }
 
     setSubmitting(true);
