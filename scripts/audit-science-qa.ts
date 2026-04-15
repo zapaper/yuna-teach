@@ -33,8 +33,12 @@ type Row = {
   transcribedOptions: unknown;
   transcribedSubparts: unknown;
   answer: string | null;
-  examPaper: { title: string };
+  examPaper: { title: string; school: string | null; year: string | null; examType: string | null; level: string | null };
 };
+
+function fullPaperTitle(p: Row["examPaper"]): string {
+  return [p.level, "Science", p.examType, p.school, p.year].filter(Boolean).join(" · ") || p.title;
+}
 
 async function auditBatch(rows: Row[]): Promise<{ id: string; reason: string }[]> {
   const items = rows.map((q, i) => {
@@ -45,7 +49,7 @@ async function auditBatch(rows: Row[]): Promise<{ id: string; reason: string }[]
       `[${i}] id=${q.id}`,
       `Type: ${isMcq ? "MCQ" : "OEQ"}`,
       `Topic: ${q.syllabusTopic}`,
-      `Paper: ${q.examPaper.title}`,
+      `Paper: ${fullPaperTitle(q.examPaper)}`,
       `Stem: ${briefStem(q.transcribedStem)}`,
       opts ? `Options:\n${opts}` : "",
       subs ? `Sub-parts:\n${subs}` : "",
@@ -114,7 +118,7 @@ async function main() {
       transcribedOptions: true,
       transcribedSubparts: true,
       answer: true,
-      examPaper: { select: { title: true } },
+      examPaper: { select: { title: true, school: true, year: true, examType: true, level: true } },
     },
     orderBy: [{ examPaperId: "asc" }, { orderIndex: "asc" }],
   });
@@ -135,7 +139,7 @@ async function main() {
   console.log(`\n=== ${allIssues.length} potentially wrong Science Q&A ===\n`);
   const byPaper: Record<string, typeof allIssues> = {};
   for (const it of allIssues) {
-    (byPaper[it.row.examPaper.title] ??= []).push(it);
+    (byPaper[fullPaperTitle(it.row.examPaper)] ??= []).push(it);
   }
   for (const [paper, items] of Object.entries(byPaper)) {
     console.log(`\n## ${paper}`);
