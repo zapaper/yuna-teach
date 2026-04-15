@@ -56,7 +56,7 @@ export async function POST(
     return NextResponse.json({ elaboration: question.elaboration });
   }
 
-  const isQuiz = question.examPaper?.paperType === "quiz";
+  const isQuiz = question.examPaper?.paperType === "quiz" || question.examPaper?.paperType === "focused";
   const parts: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [];
 
   // For cloze/editing questions without stems, still use the quiz path for passage context
