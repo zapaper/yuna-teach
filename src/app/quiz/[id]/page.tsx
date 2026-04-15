@@ -505,7 +505,10 @@ function QuizContent({ id }: { id: string }) {
           )}
 
           {markingOeq && !markingDone && (
-            <MarkingStatus isEnglish={isEnglishQuiz} />
+            <>
+              <MarkingStatus isEnglish={isEnglishQuiz} />
+              <ForceRemarkButton paperId={id} />
+            </>
           )}
 
           {markingOeq && markingDone && (
@@ -1029,6 +1032,48 @@ function MarkingStatus({ isEnglish }: { isEnglish: boolean }) {
           <span className="w-1.5 h-1.5 rounded-full bg-[#003366]/40 animate-[bounce_1s_ease-in-out_0.4s_infinite]" />
         </div>
       </div>
+    </div>
+  );
+}
+
+/** "Marking taking too long?" recovery button — fires a re-mark POST while the
+ * paper is still in_progress. Shown after a 60s grace period so a normal mark
+ * cycle isn't interrupted. */
+function ForceRemarkButton({ paperId }: { paperId: string }) {
+  const [showAfterGrace, setShowAfterGrace] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowAfterGrace(true), 60_000);
+    return () => clearTimeout(t);
+  }, []);
+  if (!showAfterGrace) return null;
+  return (
+    <div className="text-center mb-4 -mt-2">
+      <button
+        type="button"
+        disabled={submitting || done}
+        onClick={async () => {
+          if (!confirm("Marking is taking longer than usual. Force a re-mark now?")) return;
+          setSubmitting(true);
+          try {
+            const res = await fetch(`/api/exam/${paperId}/mark`, { method: "POST" });
+            if (res.ok) {
+              setDone(true);
+              setTimeout(() => setDone(false), 4000);
+            } else {
+              alert(`Re-mark failed (HTTP ${res.status})`);
+            }
+          } catch (err) {
+            alert(`Re-mark failed: ${err instanceof Error ? err.message : String(err)}`);
+          } finally {
+            setSubmitting(false);
+          }
+        }}
+        className="text-xs font-semibold text-[#43474f] hover:text-[#ba1a1a] underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
+      >
+        {done ? "✓ Re-mark requested" : submitting ? "Requesting…" : "Marking taking too long? Force re-mark"}
+      </button>
     </div>
   );
 }
