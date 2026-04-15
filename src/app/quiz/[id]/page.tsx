@@ -36,7 +36,7 @@ interface QuizPaper {
   requesterIsAdmin?: boolean;
 }
 
-type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
+type DrawTool = "select" | "type" | "pen" | "eraser" | "eraser-large";
 
 /* ────────────── helpers ────────────── */
 
@@ -102,19 +102,30 @@ function QuizContent({ id }: { id: string }) {
 
   // OEQ drawing
   const isEnglishQuiz = !!paper?.metadata?.englishSections;
-  const [tool, setTool] = useState<DrawTool>("pen");
+  const [tool, setTool] = useState<DrawTool>("select");
   const toolInitRef = useRef(false);
   if (isEnglishQuiz && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
   const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
+  const lastDrawnSubLabel = useRef<Record<string, string | null>>({});
+  function undoLastStroke() {
+    const qid = lastDrawnId.current;
+    if (!qid) return;
+    const subLabel = lastDrawnSubLabel.current[qid];
+    if (subLabel) {
+      const spHandle = oeqSubpartHandles.current[qid]?.[subLabel];
+      if (spHandle) { spHandle.undo(); return; }
+    }
+    oeqCanvasHandles.current[qid]?.undo();
+  }
   const canvasHeights = useRef<Record<string, number>>({});
 
   // Submission
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [emptyFieldIds, setEmptyFieldIds] = useState<Set<string>>(new Set());
-  const [mcqScore, setMcqScore] = useState<{ correct: number; total: number } | null>(null);
+  const [mcqScore, setMcqScore] = useState<{ correct: number; total: number; marksEarned: number; marksTotal: number } | null>(null);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
@@ -297,17 +308,36 @@ function QuizContent({ id }: { id: string }) {
   async function handleSubmit() {
     if (submitting) return;
 
+    // Warn if a large share of questions are unanswered
+    const allAnswerableQs = paper?.questions ?? [];
+    const unansweredCount = allAnswerableQs.filter(q => {
+      if (skippedIds.has(q.id)) return false;
+      // Non-canvas questions: empty/missing mcqAnswers counts as unanswered
+      const hasCanvas = !!oeqCanvasHandles.current[q.id];
+      if (!hasCanvas) return !mcqAnswers[q.id] || mcqAnswers[q.id].trim() === "";
+      return false; // canvas OEQs: can't cheaply tell if blank, skip the check
+    }).length;
+    const answerableTotal = allAnswerableQs.filter(q => !oeqCanvasHandles.current[q.id] && !skippedIds.has(q.id)).length;
+    if (answerableTotal > 0 && unansweredCount / answerableTotal > 0.2) {
+      const answered = answerableTotal - unansweredCount;
+      if (!confirm(`You answered ${answered} of ${answerableTotal} questions. Submit anyway?`)) return;
+    }
+
     setSubmitting(true);
     try {
       // Score MCQ instantly (exclude skipped)
       let correct = 0;
+      let marksEarned = 0;
+      let marksTotal = 0;
       const unskippedMcq = mcqQuestions.filter(q => !skippedIds.has(q.id));
       for (const q of unskippedMcq) {
         const selected = mcqAnswers[q.id];
         const correctAns = normalizeMcqAnswer(q.answer);
-        if (selected === correctAns) correct++;
+        const qMarks = q.marksAvailable ?? 1;
+        marksTotal += qMarks;
+        if (selected === correctAns) { correct++; marksEarned += qMarks; }
       }
-      setMcqScore({ correct, total: unskippedMcq.length });
+      setMcqScore({ correct, total: unskippedMcq.length, marksEarned, marksTotal });
 
       // Save MCQ answers to DB via PATCH
       await Promise.all(
@@ -469,8 +499,8 @@ function QuizContent({ id }: { id: string }) {
           {mcqScore && mcqScore.total > 0 && (
             <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4">
               <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-2">MCQ Score</p>
-              <p className="font-headline text-5xl font-black text-[#001e40]">{mcqScore.correct}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.total}</span></p>
-              <p className="text-sm font-bold text-[#006c49] mt-2">{Math.round((mcqScore.correct / mcqScore.total) * 100)}%</p>
+              <p className="font-headline text-5xl font-black text-[#001e40]">{mcqScore.marksEarned}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span></p>
+              <p className="text-sm font-bold text-[#006c49] mt-2">{mcqScore.marksTotal > 0 ? Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100) : 0}% &middot; {mcqScore.correct}/{mcqScore.total} questions</p>
             </div>
           )}
 
@@ -604,6 +634,13 @@ function QuizContent({ id }: { id: string }) {
             </button>
           )}
           <button
+            onClick={() => setTool("select")}
+            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "select" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
+          >
+            <span className="material-symbols-outlined text-xl">arrow_selector_tool</span>
+            <span>Select</span>
+          </button>
+          <button
             onClick={() => setTool("pen")}
             className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
           >
@@ -617,7 +654,7 @@ function QuizContent({ id }: { id: string }) {
             <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
           </button>
           <button
-            onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
+            onClick={undoLastStroke}
             className="p-3 rounded-full text-[#737780] hover:text-[#001e40] transition-colors"
           >
             <span className="material-symbols-outlined text-xl">undo</span>
@@ -668,6 +705,13 @@ function QuizContent({ id }: { id: string }) {
               </button>
             )}
             <button
+              onClick={() => setTool("select")}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "select" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
+            >
+              <span className="material-symbols-outlined text-xl">arrow_selector_tool</span>
+              Select
+            </button>
+            <button
               onClick={() => setTool("pen")}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "pen" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}
             >
@@ -682,7 +726,7 @@ function QuizContent({ id }: { id: string }) {
               {tool === "eraser-large" ? "Big Erase" : "Erase"}
             </button>
             <button
-              onClick={() => { if (lastDrawnId.current) oeqCanvasHandles.current[lastDrawnId.current]?.undo(); }}
+              onClick={undoLastStroke}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[#737780] hover:bg-[#dce9ff] transition-colors font-headline text-[10px] uppercase tracking-wider font-bold"
             >
               <span className="material-symbols-outlined text-xl">undo</span>
@@ -920,7 +964,8 @@ function QuizContent({ id }: { id: string }) {
                   tool={tool}
                   onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
                   onSubpartRefs={(refs) => { oeqSubpartHandles.current[q.id] = refs; }}
-                  onStrokeStart={() => { lastDrawnId.current = q.id; }}
+                  onStrokeStart={() => { lastDrawnId.current = q.id; lastDrawnSubLabel.current[q.id] = null; }}
+                  onSubpartStrokeStart={(label) => { lastDrawnId.current = q.id; lastDrawnSubLabel.current[q.id] = label; }}
                   paperId={id}
                   oeqIndex={idx}
                   savedHeights={canvasHeights.current}
@@ -1131,6 +1176,8 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
 
   function onCanvasDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
+    const t = toolRef.current;
+    if (t === "select" || t === "type") return;
     snapshotForUndo();
     isDrawing.current = true;
     lastPos.current = getPos(e);
@@ -1314,10 +1361,11 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     return () => obs.disconnect();
   }, []);
 
+  const isActive = tool === "pen" || tool === "eraser" || tool === "eraser-large";
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 z-10 cursor-crosshair"
+      className={`absolute inset-0 z-10 ${isActive ? "cursor-crosshair" : "pointer-events-none"}`}
       style={{ touchAction: "none" }}
       onPointerDown={onDown}
       onPointerMove={onMove}
@@ -1334,6 +1382,7 @@ function OeqQuestionCard({
   onCanvasRef,
   onSubpartRefs,
   onStrokeStart,
+  onSubpartStrokeStart,
   paperId,
   oeqIndex,
   savedHeights,
@@ -1349,6 +1398,7 @@ function OeqQuestionCard({
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
   onSubpartRefs?: (refs: Record<string, AnswerCanvasHandle | null>) => void;
   onStrokeStart: () => void;
+  onSubpartStrokeStart?: (label: string) => void;
   paperId: string;
   oeqIndex: number;
   savedHeights?: Record<string, number>;
@@ -1521,7 +1571,7 @@ function OeqQuestionCard({
                   <ResizableCanvas
                     ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
                     tool={tool}
-                    onStrokeStart={onStrokeStart}
+                    onStrokeStart={() => { onStrokeStart(); onSubpartStrokeStart?.(sp.label); }}
                     defaultHeight={sp.diagramBase64 ? 340 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
                     savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink`}
@@ -1854,6 +1904,7 @@ const BlankCanvas = forwardRef<
     }
 
     function handlePointerDown(e: PointerEvent) {
+      if (toolRef.current === "select" || toolRef.current === "type") return;
       e.preventDefault();
       cancelPendingCapture();
       onStrokeStartRef.current();

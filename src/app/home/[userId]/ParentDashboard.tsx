@@ -144,7 +144,31 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   );
   const [showStudentMenu, setShowStudentMenu] = useState(false);
   const [, setSettingsTick] = useState(0);
-  const [activeView, setActiveView] = useState<"progress" | "papers" | "activities">(initialView === "papers" ? "papers" : "progress");
+  type ActiveView = "progress" | "papers" | "activities";
+  const parseView = (v: string | undefined): ActiveView =>
+    v === "papers" || v === "activities" ? v : "progress";
+  const [activeView, setActiveViewRaw] = useState<ActiveView>(parseView(initialView));
+  // Sync activeView to the URL so browser back/forward, refresh, and deep links all work.
+  const setActiveView: typeof setActiveViewRaw = (next) => {
+    setActiveViewRaw(prev => {
+      const resolved = typeof next === "function" ? (next as (p: ActiveView) => ActiveView)(prev) : next;
+      const qs = new URLSearchParams(window.location.search);
+      if (resolved === "progress") qs.delete("view");
+      else qs.set("view", resolved);
+      const url = `/home/${userId}${qs.toString() ? `?${qs.toString()}` : ""}`;
+      if (prev !== resolved) window.history.pushState(null, "", url);
+      return resolved;
+    });
+  };
+  // Respond to browser back/forward
+  useEffect(() => {
+    const handler = () => {
+      const v = new URLSearchParams(window.location.search).get("view") ?? undefined;
+      setActiveViewRaw(parseView(v));
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, []);
 
   // Modals
   const [showFocused, setShowFocused] = useState(false);
@@ -183,6 +207,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // Filters for papers view
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [examTypeFilter, setExamTypeFilter] = useState<string | null>(null);
+  const [expandedWeekDay, setExpandedWeekDay] = useState<number | null>(null);
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
 
   const hasStudents = user.linkedStudents.length > 0;
@@ -406,15 +431,25 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // English exam papers are temporarily disabled from the parent Set Papers flow
   const masterPapers = examPapers.filter(p => !p.assignedToId && p.paperType === null && !(p.subject ?? "").toLowerCase().includes("english"));
 
-  // Available subjects and exam types from master papers
-  const availableSubjects = Array.from(new Set(masterPapers.map(p => p.subject).filter(Boolean))) as string[];
-  const availableExamTypes = Array.from(new Set(masterPapers.map(p => p.examType).filter(Boolean))) as string[];
+  // Available subjects and exam types from master papers (dedup case-insensitively, keep first casing seen)
+  const dedupKeepFirst = (vals: (string | null)[]) => {
+    const seen = new Map<string, string>();
+    for (const v of vals) {
+      if (!v) continue;
+      const k = v.trim().toLowerCase();
+      if (!seen.has(k)) seen.set(k, v.trim());
+    }
+    return Array.from(seen.values());
+  };
+  const availableSubjects = dedupKeepFirst(masterPapers.map(p => p.subject));
+  const availableExamTypes = dedupKeepFirst(masterPapers.map(p => p.examType));
 
   // Filtered papers for Set Papers view — filter by selected student's level + subject + examType
   const selectedStudentLevel = selectedStudent?.level ?? null;
+  const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
   const filteredPapers = masterPapers.filter(p => {
-    if (subjectFilter && p.subject !== subjectFilter) return false;
-    if (examTypeFilter && p.examType !== examTypeFilter) return false;
+    if (subjectFilter && norm(p.subject) !== norm(subjectFilter)) return false;
+    if (examTypeFilter && norm(p.examType) !== norm(examTypeFilter)) return false;
     // Only show papers matching the selected student's level
     if (selectedStudentLevel && p.level && !p.level.includes(String(selectedStudentLevel))) return false;
     return true;
@@ -875,8 +910,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               } catch { alert("Something went wrong"); }
               finally { setCreatingQuiz(false); }
             }}
-            className="flex-1 py-3 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50">
-            {creatingQuiz ? "Creating..." : assignMode === "focused" ? "Assign Practice" : "Assign Quiz"}
+            className="flex-1 py-3 rounded-xl bg-[#006c49] text-white font-bold disabled:opacity-50 flex items-center justify-center gap-2">
+            {creatingQuiz && <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
+            {creatingQuiz ? "Creating…" : assignMode === "focused" ? "Assign Practice" : "Assign Quiz"}
           </button>
         </div>
       </div>
@@ -1472,7 +1508,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     </button>
                   )}
                   <button
-                    onClick={() => { setShowProfileMenu(false); router.push("/"); }}
+                    onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} router.push("/"); }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
                   >
                     <span className="material-symbols-outlined text-base">logout</span>
@@ -1527,7 +1563,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   </button>
                 )}
                 <button
-                  onClick={() => { setShowProfileMenu(false); router.push("/"); }}
+                  onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} router.push("/"); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
                 >
                   <span className="material-symbols-outlined text-base">logout</span>
@@ -1682,12 +1718,31 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           setAssigningPaperId(null);
                         }
                       }
+                      async function handleUnassign(e: React.MouseEvent) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!selectedStudentId || isAssigning) return;
+                        if (!confirm(`Remove "${p.title}" from ${selectedStudent?.name ?? "student"}'s queue?`)) return;
+                        setAssigningPaperId(p.id);
+                        try {
+                          const res = await fetch(`/api/exam/${p.id}/unassign`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ studentId: selectedStudentId }),
+                          });
+                          if (!res.ok) { alert("Failed to unassign paper."); return; }
+                          await refreshPapers();
+                          setAssignToast(`Paper removed from ${selectedStudent?.name ?? "student"}`);
+                          setTimeout(() => setAssignToast(null), 3000);
+                        } finally {
+                          setAssigningPaperId(null);
+                        }
+                      }
+                      const isAssigned = p.assignmentCount > 0;
                       return (
-                        <button
+                        <div
                           key={p.id}
-                          onClick={handleAssign}
-                          disabled={isAssigning}
-                          className="w-full bg-white rounded-[1.5rem] p-4 flex items-center gap-4 text-left hover:bg-[#eff4ff] transition-colors active:scale-[0.98] disabled:opacity-60"
+                          className="w-full bg-white rounded-[1.5rem] p-4 flex items-center gap-4 text-left"
                           style={{ boxShadow: "0 4px 20px rgba(11,28,48,0.04)" }}
                         >
                           <div className="w-12 h-12 rounded-2xl bg-[#dce9ff] flex items-center justify-center text-[#001e40] shrink-0">
@@ -1702,15 +1757,23 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               {[p.subject, p.examType, p.level].filter(Boolean).join(" · ")}
                             </p>
                           </div>
-                          {isAssigning ? null : p.assignmentCount > 0 ? (
-                            <div className="flex flex-col items-end gap-1 shrink-0">
+                          {isAssigned ? (
+                            <div className="flex items-center gap-2 shrink-0">
                               <span className="material-symbols-outlined text-[#006c49] text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                              <span className="text-[10px] font-bold text-[#006c49]">Assign again</span>
+                              <button
+                                onClick={handleUnassign}
+                                disabled={isAssigning}
+                                className="text-xs font-bold text-[#ba1a1a] bg-[#ffdad6] px-3 py-1.5 rounded-xl hover:bg-[#ffc1bb] transition-colors disabled:opacity-50"
+                              >Remove</button>
                             </div>
                           ) : (
-                            <span className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl shrink-0">Assign</span>
+                            <button
+                              onClick={handleAssign}
+                              disabled={isAssigning}
+                              className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
+                            >Assign</button>
                           )}
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -1877,6 +1940,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   {weekDays.map((day, di) => {
                     const papers = papersByDay[di];
                     const today = isToday(day);
+                    const expanded = expandedWeekDay === di;
+                    const MAX_VISIBLE = 3;
+                    const visiblePapers = expanded ? papers : papers.slice(0, MAX_VISIBLE);
+                    const overflow = papers.length - MAX_VISIBLE;
                     return (
                       <div key={di}
                         onDragOver={e => { e.preventDefault(); }}
@@ -1889,7 +1956,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         <p className={`text-[10px] font-bold text-center mb-1 ${today ? "text-[#003366]" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
                         <p className={`text-xs font-extrabold text-center mb-2 ${today ? "text-[#003366]" : "text-[#001e40]"}`}>{day.getDate()}</p>
                         <div className="space-y-1.5">
-                          {papers.map(p => (
+                          {visiblePapers.map(p => (
                             <div key={p.id}
                               draggable={!p.completedAt}
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
@@ -1900,6 +1967,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               {shortenTitle(p.title)}
                             </div>
                           ))}
+                          {overflow > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setExpandedWeekDay(expanded ? null : di)}
+                              className="w-full rounded-lg py-0.5 text-[9px] font-bold text-[#003366] hover:bg-[#dce9ff] transition-colors"
+                            >
+                              {expanded ? "Less" : `+${overflow}`}
+                            </button>
+                          )}
                           <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="w-full rounded-lg py-1.5 text-base font-extrabold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] transition-colors">
                             +
                           </button>
@@ -2113,9 +2189,23 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <h3 className="font-headline text-3xl font-black text-[#001e40]">{completedPapers.length} <span className="text-sm font-semibold text-[#43474f]">Total</span></h3>
                     </div>
                     <div className="w-px h-12 bg-[#c3c6d1]/40" />
-                    <button className="flex-1 text-left hover:opacity-80 transition-opacity" onClick={() => pendingRelease.length > 0 && setShowPendingReview(true)}>
-                      <p className={`font-medium mb-1 ${pendingRelease.length === 0 ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>Pending Review</p>
-                      <h3 className={`font-headline text-3xl font-black ${pendingRelease.length === 0 ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>{pendingRelease.length}</h3>
+                    <button
+                      className={`flex-1 text-left rounded-2xl p-2 -m-2 transition-all ${pendingRelease.length > 0 ? "hover:bg-[#ffdad6] cursor-pointer" : "cursor-default"}`}
+                      onClick={() => pendingRelease.length > 0 && setShowPendingReview(true)}
+                      disabled={pendingRelease.length === 0}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`font-medium mb-1 ${pendingRelease.length === 0 ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>Pending Review</p>
+                          <h3 className={`font-headline text-3xl font-black ${pendingRelease.length === 0 ? "text-[#006c49]" : "text-[#ba1a1a]"}`}>{pendingRelease.length}</h3>
+                        </div>
+                        {pendingRelease.length > 0 && (
+                          <span className="material-symbols-outlined text-[#ba1a1a]">chevron_right</span>
+                        )}
+                      </div>
+                      {pendingRelease.length > 0 && (
+                        <p className="text-[10px] font-bold text-[#ba1a1a]/70 mt-1 uppercase tracking-wider">Tap to review</p>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -2131,6 +2221,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   {weekDays.map((day, di) => {
                     const papers = papersByDay[di];
                     const today = isToday(day);
+                    const expanded = expandedWeekDay === di;
+                    const MAX_VISIBLE = 4;
+                    const visiblePapers = expanded ? papers : papers.slice(0, MAX_VISIBLE);
+                    const overflow = papers.length - MAX_VISIBLE;
                     return (
                       <div key={di}
                         onDragOver={e => { e.preventDefault(); }}
@@ -2143,7 +2237,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         <p className={`text-[10px] font-bold text-center ${today ? "text-[#003366]" : "text-[#43474f]"}`}>{DAY_LABELS[di]}</p>
                         <p className={`text-sm font-extrabold text-center mb-3 ${today ? "text-[#003366]" : "text-[#001e40]"}`}>{day.getDate()}</p>
                         <div className="space-y-1.5 flex-1">
-                          {papers.map(p => (
+                          {visiblePapers.map(p => (
                             <div key={p.id}
                               draggable={!p.completedAt}
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
@@ -2154,6 +2248,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               {shortenTitle(p.title)}
                             </div>
                           ))}
+                          {overflow > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setExpandedWeekDay(expanded ? null : di)}
+                              className="w-full rounded-lg px-2 py-1 text-[10px] font-bold text-[#003366] hover:bg-[#dce9ff] transition-colors"
+                            >
+                              {expanded ? "Show less" : `+${overflow} more`}
+                            </button>
+                          )}
                         </div>
                         <button onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(day); setShowQuiz(true); }} className="mt-2 w-full rounded-lg py-2 text-lg font-extrabold text-[#003366] bg-[#dce9ff] hover:bg-[#a7c8ff] transition-colors">
                           +

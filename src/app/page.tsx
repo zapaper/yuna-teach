@@ -41,10 +41,10 @@ export default function HomePage() {
                 Built for Primary School Parents
               </div>
               <h1 className="font-headline text-3xl md:text-6xl font-extrabold text-primary leading-tight mb-5 text-balance">
-                Targeted practice to <span className="text-tertiary">accelerate your child&apos;s mastery</span> of Math and Science.
+                Targeted practice to <span className="text-tertiary">accelerate your child&apos;s mastery</span> of Math, Science, English & Chinese.
               </h1>
               <p className="text-on-surface-variant text-base md:text-xl leading-relaxed mb-8 max-w-xl">
-                MarkForYou empowers your child and you to master primary school Math and Science (P4-6) with instant grading and feedback. We do all the hard work on marking and targeted practice so that you can focus on being the coach!
+                MarkForYou empowers your child and you to master primary school Math, Science, English, and Chinese 听写 (P4-6) with instant grading and feedback. We do all the hard work on marking and targeted practice so that you can focus on being the coach!
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/signup" className="w-full lg:w-auto text-center px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
@@ -65,7 +65,7 @@ export default function HomePage() {
         <section className="py-16 lg:py-24 bg-white px-6">
           <div className="max-w-4xl mx-auto text-center mb-10 lg:mb-16">
             <h2 className="font-headline text-2xl md:text-4xl font-extrabold text-primary mb-4 lg:mb-6">
-              Do you and your child struggle with Primary School Math and Science?
+              Do you and your child struggle with Primary School Math, Science, English or Chinese?
             </h2>
             <p className="text-on-surface-variant text-base lg:text-lg">We understand the late nights and the frustration of &ldquo;endless drilling.&rdquo;</p>
           </div>
@@ -255,14 +255,6 @@ export default function HomePage() {
               <span className="text-lg font-bold text-primary">MarkForYou.com</span>
             </div>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-5">Redefining personalised education through warm, AI-powered targeted practice that makes parents&apos; lives easier.</p>
-            <div className="flex gap-4">
-              <a className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:text-tertiary transition-all" href="#">
-                <span className="material-symbols-outlined text-[18px]">public</span>
-              </a>
-              <a className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:text-tertiary transition-all" href="#">
-                <span className="material-symbols-outlined text-[18px]">group</span>
-              </a>
-            </div>
           </div>
           {/* Links — 2 col grid */}
           <div className="grid grid-cols-2 gap-6">
@@ -270,7 +262,6 @@ export default function HomePage() {
               <h4 className="font-bold text-primary mb-4">Product</h4>
               <ul className="space-y-3 text-sm text-on-surface-variant">
                 <li><a className="hover:text-tertiary transition-colors" href="#demo-video">How it Works</a></li>
-                <li><a className="hover:text-tertiary transition-colors" href="#">Pricing Plans</a></li>
               </ul>
             </div>
           </div>
@@ -285,20 +276,11 @@ export default function HomePage() {
               <span className="text-xl font-bold text-primary">MarkForYou.com</span>
             </div>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-6">Redefining personalised education through warm, AI-powered targeted practice that makes parents&apos; lives easier.</p>
-            <div className="flex gap-4">
-              <a className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:text-tertiary transition-all" href="#">
-                <span className="material-symbols-outlined text-[18px]">public</span>
-              </a>
-              <a className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:text-tertiary transition-all" href="#">
-                <span className="material-symbols-outlined text-[18px]">group</span>
-              </a>
-            </div>
           </div>
           <div>
             <h4 className="font-bold text-primary mb-6">Product</h4>
             <ul className="space-y-4 text-sm text-on-surface-variant">
               <li><a className="hover:text-tertiary transition-colors" href="#demo-video">How it Works</a></li>
-              <li><a className="hover:text-tertiary transition-colors" href="#">Pricing Plans</a></li>
             </ul>
           </div>
         </div>

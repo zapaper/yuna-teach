@@ -1564,7 +1564,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     ) : null}
 
                     {/* Quiz OEQ (non-subpart): stacked layout — written answer, detected, correct */}
-                    {isQuiz && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !hasInlinePartAnswers && (
+                    {isQuiz && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !hasInlinePartAnswers && realSubLabels.length === 0 && (
                       <div className="space-y-4 mb-4">
                         {/* Written answer image */}
                         <div>

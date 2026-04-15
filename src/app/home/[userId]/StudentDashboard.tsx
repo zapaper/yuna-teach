@@ -658,7 +658,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <div className="w-12 h-12 rounded-full bg-[#d3e4fe] flex items-center justify-center text-[#001e40] font-extrabold">{initials(user.name)}</div>
               <div>
                 <p className="font-bold text-[#0b1c30]">{user.name}</p>
-                {user.linkedParents?.length > 0 && <p className="text-xs text-[#43474f]">{user.linkedParents[0].name}</p>}
+                {user.linkedParents?.length > 0 && <p className="text-xs text-[#43474f]">Parent: {user.linkedParents[0].name}</p>}
               </div>
             </div>
           </div>
@@ -767,13 +767,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {weekHomework.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {weekHomework.map(p => (
-                      <div key={p.id} onClick={() => goToPaper(p)} className="bg-white p-6 rounded-3xl group cursor-pointer hover:bg-[#001e40] hover:text-white transition-all duration-300 shadow-sm">
+                      <button key={p.id} type="button" onClick={() => goToPaper(p)} className="text-left bg-white p-6 rounded-3xl group cursor-pointer hover:bg-[#001e40] hover:text-white transition-all duration-300 shadow-sm">
                         <div className="w-12 h-12 rounded-2xl bg-[#006c49]/10 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-colors">
                           <span className="material-symbols-outlined text-[#006c49] group-hover:text-white">{paperIcon(p)}</span>
                         </div>
                         <h3 className="font-bold text-lg leading-tight mb-2">{p.title}</h3>
                         <p className="text-sm opacity-70">{weekdayLabel(p)}</p>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 ) : (
@@ -1007,7 +1007,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
           </section>
-          {weekHomework.length > 0 && <section className="mb-8"><h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2><div className="space-y-3">{weekHomework.map(p => <div key={p.id} onClick={() => goToPaper(p)} className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p></div></div>)}</div></section>}
+          {weekHomework.length > 0 && <section className="mb-8"><h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2><div className="space-y-3">{weekHomework.map(p => <button key={p.id} type="button" onClick={() => goToPaper(p)} className="w-full text-left flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p></div></button>)}</div></section>}
           <h2 className="text-lg font-bold text-[#001e40] mb-3 font-headline">Self-learning</h2>
           <section className="mb-8 grid grid-cols-2 gap-3">
             <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>

@@ -21,7 +21,7 @@ interface Props {
   sectionType: "grammar-cloze" | "editing" | "comprehension-cloze" | "visual-text-mcq" | "synthesis" | "comprehension-oeq";
   answers: Record<string, string>;
   onAnswer: (questionId: string, answer: string) => void;
-  tool?: "type" | "pen" | "eraser" | "eraser-large";
+  tool?: "select" | "type" | "pen" | "eraser" | "eraser-large";
   onToolChange?: (tool: "type") => void;
   emptyFieldIds?: Set<string>;
   flaggedIds?: Set<string>;
