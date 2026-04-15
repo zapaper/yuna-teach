@@ -193,31 +193,43 @@ export default function HomePage() {
         {/* ── Features Bento Grid ── */}
         <section className="py-10 lg:py-14 bg-white px-6" id="features">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-8 lg:mb-10">
+            <div className="text-center mb-6 lg:mb-8">
               <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">04 &middot; FEATURES</span>
               <h2 className="font-headline text-3xl lg:text-4xl font-extrabold text-primary">Everything you need for mastery</h2>
             </div>
+
+            {/* Stat strip */}
+            <div className="mb-8 lg:mb-10 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm md:text-base font-bold text-primary">
+              <span>3,000+ questions</span>
+              <span className="text-tertiary">&bull;</span>
+              <span>Handwriting-friendly</span>
+              <span className="text-tertiary">&bull;</span>
+              <span>Marks in seconds</span>
+              <span className="text-tertiary">&bull;</span>
+              <span>Built by Singapore parents</span>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               <div className="bg-surface-container-low p-8 lg:p-10 rounded-3xl border border-surface-container-high flex flex-col items-center text-center h-full">
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-tertiary mb-6 lg:mb-8 shadow-sm">
                   <span className="material-symbols-outlined text-[32px]">auto_fix_high</span>
                 </div>
-                <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-3 lg:mb-4">Personalised bite-size practices</h3>
-                <p className="text-on-surface-variant leading-relaxed text-base lg:text-lg">Take a quick practice quiz tailored to your child&apos;s learning gaps while waiting for the bus.</p>
+                <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-3 lg:mb-4">A 10-minute drill on exactly what they got wrong</h3>
+                <p className="text-on-surface-variant leading-relaxed text-base lg:text-lg">Tailored while they wait for the school bus.</p>
               </div>
               <div className="bg-primary text-white p-8 lg:p-10 rounded-3xl flex flex-col items-center text-center h-full shadow-xl">
                 <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-tertiary-fixed mb-6 lg:mb-8">
                   <span className="material-symbols-outlined text-[32px]">edit_note</span>
                 </div>
-                <h3 className="font-headline text-xl lg:text-2xl font-bold mb-3 lg:mb-4">Grades MCQ and written open-ended questions</h3>
-                <p className="text-white/80 leading-relaxed text-base lg:text-lg">Simulate real exam settings. Instant marking for even hand-written assignments (including messy ones). Master science key words and concepts and math heuristics.</p>
+                <h3 className="font-headline text-xl lg:text-2xl font-bold mb-3 lg:mb-4">Marks handwritten answers — even messy ones — in seconds</h3>
+                <p className="text-white/80 leading-relaxed text-base lg:text-lg">Step-by-step feedback on Math heuristics, Science keywords and grammar rules.</p>
               </div>
               <div className="bg-secondary-container/30 p-8 lg:p-10 rounded-3xl border border-secondary/10 flex flex-col items-center text-center h-full">
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-secondary mb-6 lg:mb-8 shadow-sm">
                   <span className="material-symbols-outlined text-[32px]">dataset</span>
                 </div>
-                <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-3 lg:mb-4">Unlimited practice with instant feedback</h3>
-                <p className="text-on-surface-variant leading-relaxed text-base lg:text-lg">Instant marking and feedback with detailed explanation. 3,000 questions drawn from top school past year papers and in-house generation.</p>
+                <h3 className="font-headline text-xl lg:text-2xl font-bold text-primary mb-3 lg:mb-4">3,000 questions. Instant marking and worked solutions.</h3>
+                <p className="text-on-surface-variant leading-relaxed text-base lg:text-lg">Our AI model is trained on the MOE syllabus and top school past-year papers — no waiting until the next lesson.</p>
               </div>
             </div>
           </div>
