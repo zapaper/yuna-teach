@@ -71,7 +71,7 @@ export default function HomePage() {
         <section className="py-10 lg:py-14 bg-surface-container-low px-6" id="demo-video">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-6 lg:mb-8">
-              <span className="inline-block font-headline text-xs font-extrabold text-tertiary tracking-[0.2em] mb-2">01 &middot; HOW IT WORKS</span>
+              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">01 &middot; HOW IT WORKS</span>
               <h2 className="font-headline text-2xl md:text-4xl font-extrabold text-primary">See MarkForYou in 30 seconds</h2>
             </div>
             <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl bg-black">
@@ -90,7 +90,7 @@ export default function HomePage() {
         {/* ── Problem & Empathy Section ── */}
         <section className="py-10 lg:py-14 bg-white px-6">
           <div className="max-w-4xl mx-auto text-center mb-8 lg:mb-10">
-            <span className="inline-block font-headline text-xs font-extrabold text-tertiary tracking-[0.2em] mb-2">02 &middot; THE PROBLEM</span>
+            <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">02 &middot; THE PROBLEM</span>
             <h2 className="font-headline text-2xl md:text-4xl font-extrabold text-primary mb-3 lg:mb-4">
               Do you and your child struggle with Primary School Math, Science or English?
             </h2>
@@ -152,7 +152,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="w-full lg:w-1/2">
-              <span className="inline-block font-headline text-xs font-extrabold text-tertiary tracking-[0.2em] mb-2">03 &middot; THE SOLUTION</span>
+              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">03 &middot; THE SOLUTION</span>
               <h2 className="font-headline text-2xl md:text-5xl font-extrabold text-primary mb-5 lg:mb-6 leading-tight">
                 MarkForYou is designed to address your child&apos;s learning needs at his own pace.
               </h2>
@@ -194,7 +194,7 @@ export default function HomePage() {
         <section className="py-10 lg:py-14 bg-white px-6" id="features">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-8 lg:mb-10">
-              <span className="inline-block font-headline text-xs font-extrabold text-tertiary tracking-[0.2em] mb-2">04 &middot; FEATURES</span>
+              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">04 &middot; FEATURES</span>
               <h2 className="font-headline text-3xl lg:text-4xl font-extrabold text-primary">Everything you need for mastery</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
