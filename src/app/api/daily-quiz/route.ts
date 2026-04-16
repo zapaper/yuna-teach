@@ -755,12 +755,34 @@ export async function POST(request: NextRequest) {
     });
     const engQuizType = hasOeq ? "MCQ + OEQ" : "MCQ";
 
+    // Short section labels for the weekly-calendar title. Kept concise so the
+    // title fits inside the day card without overflow.
+    const shortSectionLabels: Record<string, string> = {
+      "grammar-mcq": "Grammar MCQ",
+      "vocab-mcq": "Vocab MCQ",
+      "vocab-cloze": "Vocab Cloze",
+      "visual-text": "Visual Text",
+      "grammar-cloze": "Grammar Cloze",
+      "editing": "Editing",
+      "comprehension-cloze": "Compre Cloze",
+      "synthesis": "Synthesis",
+      "comprehension-oeq": "Compre OEQ",
+    };
+    const selectedSectionKeys = englishSections ?? [];
+    const firstShort = selectedSectionKeys.length > 0
+      ? (shortSectionLabels[selectedSectionKeys[0]] ?? selectedSectionKeys[0])
+      : null;
+    const extraMarker = selectedSectionKeys.length > 1 ? "+" : "";
+
     // Focused English: title by the selected section, e.g. "P5 Focus: Grammar Cloze"
     let engTitle: string;
     if (isFocusedEnglish && (englishSections?.length ?? 0) === 1) {
       const secKey = englishSections![0];
       const secLabel = sectionLabels[secKey] ?? secKey;
       engTitle = `${levelLabel}Focus: ${secLabel}`;
+    } else if (firstShort) {
+      // Daily English quiz: show the first selected section, with '+' if there are more.
+      engTitle = `${levelLabel}${firstShort}${extraMarker}`;
     } else {
       engTitle = `${levelLabel}English Quiz ${engQuizType}`;
     }
