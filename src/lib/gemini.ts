@@ -696,6 +696,12 @@ Your task:
    - Teacher marks, ticks, circles, or other annotations
    - Page numbers or other non-word text
 4. Clean each word: remove any stray marks or punctuation artifacts
+5. SPECIAL CASE — 默写 (mò xiě / passage dictation):
+   If the title contains "默写", this is a PASSAGE DICTATION, not a word list.
+   The content is typically one paragraph or a few sentences joined together
+   that the student must write from memory. In this case, extract the ENTIRE
+   passage as a SINGLE entry in the words array (the full paragraph as one
+   "text" value). Do NOT split it into individual words or characters.
 
 Return a JSON object with this exact structure:
 {
@@ -707,6 +713,20 @@ Return a JSON object with this exact structure:
       "words": [
         { "text": "种族", "orderIndex": 1 },
         { "text": "华人", "orderIndex": 2 }
+      ]
+    }
+  ]
+}
+
+For 默写, the words array would have a single entry like:
+{
+  "tests": [
+    {
+      "title": "默写(一)",
+      "subtitle": "",
+      "language": "CHINESE",
+      "words": [
+        { "text": "春天来了，花园里百花盛开，蝴蝶在花丛中飞来飞去。", "orderIndex": 1 }
       ]
     }
   ]
