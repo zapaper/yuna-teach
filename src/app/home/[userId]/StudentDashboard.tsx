@@ -274,9 +274,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   useEffect(() => {
     fetchData.current?.();
     function onVisible() { if (document.visibilityState === "visible") fetchData.current?.(); }
+    // Refetch on browser back/forward (SPA navigation keeps the component mounted
+    // so the userId dep doesn't re-trigger, and visibilitychange doesn't fire for
+    // in-tab navigation).
+    function onPopState() { fetchData.current?.(); }
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("popstate", onPopState);
     const poll = setInterval(() => fetchData.current?.(), 30000);
-    return () => { document.removeEventListener("visibilitychange", onVisible); clearInterval(poll); };
+    return () => { document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("popstate", onPopState); clearInterval(poll); };
   }, [userId]);
 
   // First-time student popup — only if student has no completed papers
