@@ -23,6 +23,7 @@ export async function GET(_req: NextRequest) {
     syllabusTopic: string | null;
     transcribedStem: string | null;
     transcribedOptions: unknown;
+    transcribedSubparts: { label: string; text: string }[] | null;
     answer: string | null;
     imageData: string | null;
     diagramImageData: string | null;
