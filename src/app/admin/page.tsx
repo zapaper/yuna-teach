@@ -50,6 +50,13 @@ function AdminContent() {
       color: "bg-red-50 text-red-600",
     },
     {
+      icon: "fact_check",
+      label: "Vet Q&A (AI Audit)",
+      description: "Review AI-flagged answer key issues one by one. Edit stem, options, answer.",
+      href: `/admin/vet-qa?userId=${userId}`,
+      color: "bg-purple-50 text-purple-600",
+    },
+    {
       icon: "upload_file",
       label: "Upload Exam Papers",
       description: "Upload a PDF exam paper and extract questions via AI.",
