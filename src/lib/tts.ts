@@ -48,20 +48,29 @@ function expandPunctuation(text: string, language: "CHINESE" | "ENGLISH" | "JAPA
   return result;
 }
 
+// Voice key → Google Cloud TTS voice name mapping
+const CHINESE_VOICE_MAP: Record<string, { name: string; ssmlGender: string }> = {
+  female:  { name: "cmn-CN-Standard-A", ssmlGender: "FEMALE" },
+  male:    { name: "cmn-CN-Standard-C", ssmlGender: "MALE" },
+  female2: { name: "cmn-CN-Wavenet-A",  ssmlGender: "FEMALE" },
+  male2:   { name: "cmn-CN-Wavenet-B",  ssmlGender: "MALE" },
+};
+
 // Google Cloud TTS — used for Chinese and Japanese
 async function synthesizeSpeechGoogle(
   text: string,
   speed: number,
   language: "CHINESE" | "JAPANESE" = "CHINESE",
-  voice: "male" | "female" = "female"
+  voice: string = "female"
 ): Promise<ArrayBuffer> {
   const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_CLOUD_API_KEY is not set");
 
-  const ssmlGender = voice === "male" ? "MALE" : "FEMALE";
+  const mapped = CHINESE_VOICE_MAP[voice];
+  const ssmlGender = mapped?.ssmlGender ?? (voice === "male" ? "MALE" : "FEMALE");
   const voiceConfig = language === "JAPANESE"
     ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Standard-C" : "ja-JP-Standard-B", ssmlGender }
-    : { languageCode: "cmn-CN", name: voice === "male" ? "cmn-CN-Standard-C" : "cmn-CN-Standard-A", ssmlGender };
+    : { languageCode: "cmn-CN", name: mapped?.name ?? "cmn-CN-Standard-A", ssmlGender };
   // Only log on error, not every call
 
   const response = await fetch(
@@ -132,7 +141,7 @@ async function synthesizeSpeechFish(
 export async function synthesizeSpeech(
   text: string,
   language: "CHINESE" | "ENGLISH" | "JAPANESE",
-  options?: { expandPunct?: boolean; speed?: number; voice?: "male" | "female" }
+  options?: { expandPunct?: boolean; speed?: number; voice?: string }
 ): Promise<ArrayBuffer> {
   const speed = options?.speed ?? 0.9;
   const voice = options?.voice ?? "female";

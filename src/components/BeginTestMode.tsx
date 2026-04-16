@@ -8,7 +8,7 @@ interface BeginTestModeProps {
   words: WordItem[];
   language: "CHINESE" | "ENGLISH" | "JAPANESE";
   delaySeconds: number;
-  voice?: "male" | "female";
+  voice?: string;
   onStop: () => void;
 }
 

@@ -34,7 +34,13 @@ function TestPageContent({ id }: { id: string }) {
   const [test, setTest] = useState<SpellingTestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [delaySeconds, setDelaySeconds] = useState(3.5);
-  const [voice, setVoice] = useState<"male" | "female">("female");
+  const VOICE_OPTIONS = [
+    { key: "female", label: "Female 1" },
+    { key: "male", label: "Male 1" },
+    { key: "female2", label: "Female 2", neural: true },
+    { key: "male2", label: "Male 2", neural: true },
+  ] as const;
+  const [voice, setVoice] = useState<string>("female");
   const [testMode, setTestMode] = useState(false);
   const [playingWord, setPlayingWord] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -287,16 +293,36 @@ function TestPageContent({ id }: { id: string }) {
           )}
         </div>
 
-        {/* Search — desktop only */}
-        <div className="hidden md:flex items-center bg-white rounded-full border border-[#e5eeff] px-3 py-2 gap-2 w-60 focus-within:ring-2 focus-within:ring-[#003366]/10 transition-all">
-          <span className="material-symbols-outlined text-[#737780] text-xl">search</span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search words..."
-            className="bg-transparent outline-none text-sm text-[#0b1c30] placeholder:text-[#737780] flex-1"
-          />
+        <div className="flex items-center gap-3">
+          {/* Voice toggle */}
+          <div className="flex items-center gap-1">
+            {VOICE_OPTIONS.map(v => (
+              <button
+                key={v.key}
+                onClick={() => setVoice(v.key)}
+                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors whitespace-nowrap ${
+                  voice === v.key
+                    ? "bg-[#003366] text-white"
+                    : "text-[#003366] hover:bg-[#eff4ff]"
+                }`}
+                title={v.neural ? "Neural (higher quality)" : "Standard"}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Search — desktop only */}
+          <div className="hidden md:flex items-center bg-white rounded-full border border-[#e5eeff] px-3 py-2 gap-2 w-60 focus-within:ring-2 focus-within:ring-[#003366]/10 transition-all">
+            <span className="material-symbols-outlined text-[#737780] text-xl">search</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search words..."
+              className="bg-transparent outline-none text-sm text-[#0b1c30] placeholder:text-[#737780] flex-1"
+            />
+          </div>
         </div>
       </header>
 
