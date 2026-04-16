@@ -129,16 +129,20 @@ export class AudioSequencer {
         // Speak the word (first time)
         await this.playAudio(buffer);
         if (this.abortController.signal.aborted) break;
+        // If skip/previous/replay was pressed, skipController is null — skip remaining steps
+        if (!this.skipController) continue;
 
         // Pause between repeats — longer for longer text
         const textLen = word.text.length;
         const repeatPause = Math.min(2000 + textLen * 300, 6000);
         await this.wait(repeatPause);
         if (this.abortController.signal.aborted) break;
+        if (!this.skipController) continue;
 
         // Speak the word (second time)
         await this.playAudio(buffer);
         if (this.abortController.signal.aborted) break;
+        if (!this.skipController) continue;
 
         // Wait for configured delay (writing time) - skip after last word
         if (i < words.length - 1) {
