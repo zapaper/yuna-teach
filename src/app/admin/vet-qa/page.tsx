@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
+
+export default function VetQAWrapper() {
+  return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" /></div>}><VetQAPage /></Suspense>;
+}
 
 type FlaggedItem = {
   questionId: string;
@@ -21,7 +25,7 @@ type FlaggedItem = {
   reason: string;
 };
 
-export default function VetQAPage() {
+function VetQAPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
