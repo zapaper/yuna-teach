@@ -242,6 +242,36 @@ function AdminPapersContent() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 shrink-0">
+                  {/* Generate quiz from this paper */}
+                  {!paper.paperType && paper.extractionStatus === "ready" && (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const btn = e.currentTarget;
+                        btn.disabled = true;
+                        btn.textContent = "…";
+                        try {
+                          const res = await fetch("/api/daily-quiz", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ userId, sourcePaperId: paper.id }),
+                          });
+                          const data = await res.json();
+                          if (res.ok && data.id) {
+                            window.open(`/quiz/${data.id}?userId=${userId}`, "_blank");
+                          } else {
+                            alert(data.error || "Failed to generate");
+                          }
+                        } catch { alert("Something went wrong"); }
+                        finally { btn.disabled = false; btn.textContent = ""; }
+                      }}
+                      title="Generate test quiz from this paper"
+                      className="w-9 h-9 rounded-xl flex items-center justify-center bg-purple-50 text-purple-500 hover:bg-purple-100 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">play_arrow</span>
+                    </button>
+                  )}
+
                   {/* Edit */}
                   <button
                     onClick={() => router.push(`/exam/${paper.id}/edit?userId=${userId}`)}
