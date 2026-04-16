@@ -294,23 +294,19 @@ function TestPageContent({ id }: { id: string }) {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Voice toggle */}
-          <div className="flex items-center gap-1">
-            {VOICE_OPTIONS.map(v => (
-              <button
-                key={v.key}
-                onClick={() => setVoice(v.key)}
-                className={`px-2 py-1 rounded-full text-[10px] font-bold transition-colors whitespace-nowrap ${
-                  voice === v.key
-                    ? "bg-[#003366] text-white"
-                    : "text-[#003366] hover:bg-[#eff4ff]"
-                }`}
-                title={v.neural ? "Neural (higher quality)" : "Standard"}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
+          {/* Voice cycling toggle */}
+          <button
+            onClick={() => {
+              const curIdx = VOICE_OPTIONS.findIndex(v => v.key === voice);
+              const nextIdx = (curIdx + 1) % VOICE_OPTIONS.length;
+              setVoice(VOICE_OPTIONS[nextIdx].key);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#003366] text-white text-[11px] font-bold hover:bg-[#001e40] transition-colors"
+            title="Tap to cycle voice"
+          >
+            <span className="material-symbols-outlined text-sm">record_voice_over</span>
+            {VOICE_OPTIONS.find(v => v.key === voice)?.label ?? "Female 1"}
+          </button>
 
           {/* Search — desktop only */}
           <div className="hidden md:flex items-center bg-white rounded-full border border-[#e5eeff] px-3 py-2 gap-2 w-60 focus-within:ring-2 focus-within:ring-[#003366]/10 transition-all">
