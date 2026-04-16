@@ -14,7 +14,7 @@ export class AudioSequencer {
   currentIndex = 0;
 
   async prefetchAudio(
-    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE"; voice?: "male" | "female" }>
+    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE"; voice?: string }>
   ): Promise<Map<string, ArrayBuffer>> {
     const cache = new Map<string, ArrayBuffer>();
 
@@ -60,7 +60,7 @@ export class AudioSequencer {
   }
 
   async runTestSequence(
-    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE"; voice?: "male" | "female" }>,
+    words: Array<{ text: string; language: "CHINESE" | "ENGLISH" | "JAPANESE"; voice?: string }>,
     delayMs: number,
     audioCache: Map<string, ArrayBuffer>,
     options: SequencerOptions
