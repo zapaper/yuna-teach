@@ -278,10 +278,12 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     // so the userId dep doesn't re-trigger, and visibilitychange doesn't fire for
     // in-tab navigation).
     function onPopState() { fetchData.current?.(); }
+    function onFocus() { fetchData.current?.(); }
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("popstate", onPopState);
+    window.addEventListener("focus", onFocus);
     const poll = setInterval(() => fetchData.current?.(), 30000);
-    return () => { document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("popstate", onPopState); clearInterval(poll); };
+    return () => { document.removeEventListener("visibilitychange", onVisible); window.removeEventListener("popstate", onPopState); window.removeEventListener("focus", onFocus); clearInterval(poll); };
   }, [userId]);
 
   // First-time student popup — only if student has no completed papers

@@ -165,6 +165,10 @@ function ScanPageContent() {
         if (res.ok) {
           const data = await res.json();
           if (data.id) savedIds.push(data.id);
+        } else {
+          const errData = await res.json().catch(() => ({}));
+          console.error(`[scan] Save test ${testIdx} failed:`, res.status, errData);
+          setError(errData.error ?? `Save failed (HTTP ${res.status})`);
         }
       }
 
