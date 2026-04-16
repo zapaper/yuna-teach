@@ -286,7 +286,7 @@ function VetQAPage() {
                   onClick={handleSkip}
                   className="px-6 py-3 rounded-xl border-2 border-slate-200 text-slate-500 font-bold text-sm hover:bg-slate-50 transition-colors"
                 >
-                  Skip
+                  Skip, as is
                 </button>
               </div>
             </div>
