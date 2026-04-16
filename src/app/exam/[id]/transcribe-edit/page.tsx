@@ -291,6 +291,13 @@ function TranscribeEditContent({ id }: { id: string }) {
         setLoading(false);
       }
       if (shouldAutoGenerate) handleGenerate();
+      // Scroll to hash target (e.g. #q-{questionId}) after questions load
+      if (typeof window !== "undefined" && window.location.hash) {
+        setTimeout(() => {
+          const el = document.querySelector(window.location.hash);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+      }
     }
     load();
   }, [id, handleGenerate]);
@@ -562,6 +569,7 @@ function TranscribeEditContent({ id }: { id: string }) {
             {questions.map((q) => (
               <QuestionCard
                 key={q.id}
+                id={`q-${q.id}`}
                 question={q}
                 cropping={cropping}
                 onUpdateAnswer={answer => updateQuestion(q.id, { answer })}
@@ -685,6 +693,7 @@ function QuestionCard({
   onUpdate,
   onRecrop,
   isScience,
+  id,
 }: {
   question: EditQuestion;
   cropping: string | null;
@@ -700,6 +709,7 @@ function QuestionCard({
   onUpdate: (update: Partial<EditQuestion>) => void;
   onRecrop: () => void;
   isScience: boolean;
+  id?: string;
 }) {
   const isMcq = q.type === "mcq";
   const imageOptionsMode = !!(q.optionImages);
@@ -718,7 +728,7 @@ function QuestionCard({
   const cardBg = isMcq ? "bg-slate-50 border-slate-200" : "bg-amber-50 border-amber-200";
 
   return (
-    <div className={`rounded-2xl border p-4 ${cardBg}`}>
+    <div id={id} className={`rounded-2xl border p-4 ${cardBg}`}>
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <span className="text-sm font-bold text-slate-700">Q{q.questionNum}</span>
