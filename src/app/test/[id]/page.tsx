@@ -34,12 +34,12 @@ function TestPageContent({ id }: { id: string }) {
   const [test, setTest] = useState<SpellingTestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [delaySeconds, setDelaySeconds] = useState(3.5);
-  const VOICE_OPTIONS = [
+  const VOICE_OPTIONS: Array<{ key: string; label: string; neural?: boolean }> = [
     { key: "female", label: "Female 1" },
     { key: "male", label: "Male 1" },
     { key: "female2", label: "Female 2", neural: true },
     { key: "male2", label: "Male 2", neural: true },
-  ] as const;
+  ];
   const [voice, setVoice] = useState<string>("female");
   const [testMode, setTestMode] = useState(false);
   const [playingWord, setPlayingWord] = useState<string | null>(null);
