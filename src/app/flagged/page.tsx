@@ -29,6 +29,7 @@ interface FlaggedItem {
   parentName: string | null;
   flaggedBy: { id: string; name: string; role: string } | null;
   sourcePaperId: string | null;
+  sourceQuestionId: string | null;
   sourceQuestionNum: string | null;
   sourceLabel: string | null;
 }
@@ -259,18 +260,14 @@ function FlaggedContent() {
                 {item.sourcePaperId && (
                   <div className="pt-1">
                     <Link
-                      href={`/exam/${item.sourcePaperId}/edit?userId=${userId}`}
+                      href={`/exam/${item.sourcePaperId}/transcribe-edit?userId=${userId}${item.sourceQuestionId ? `#q-${item.sourceQuestionId}` : ""}`}
                       target="_blank"
                       rel="noopener"
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center gap-1 text-[10px] font-medium text-primary-600 bg-primary-50 px-2 py-1 rounded hover:bg-primary-100 transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                      Edit source Q{item.sourceQuestionNum} in original paper
+                      <span className="material-symbols-outlined text-[10px]">edit</span>
+                      Clean Edit Q{item.sourceQuestionNum} ↗
                     </Link>
                   </div>
                 )}

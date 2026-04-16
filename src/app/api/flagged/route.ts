@@ -119,6 +119,7 @@ export async function GET(_request: NextRequest) {
       flaggedBy: q.flaggedByUserId ? (flaggerMap.get(q.flaggedByUserId) ?? null) : null,
       // Source question link (for editing) — only available when sourceQuestionId is set
       sourcePaperId: src?.paperId ?? null,
+      sourceQuestionId: q.sourceQuestionId ?? null,
       sourceQuestionNum: src?.questionNum ?? null,
     };
   });
