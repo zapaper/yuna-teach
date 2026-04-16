@@ -196,9 +196,9 @@ function VetQAPage() {
                     title={current.paperTitle}>
                     Edit: {current.paperTitle.split(" · ").slice(-2).join(" ")} ↗
                   </a>
-                  <a href={`/exam/${current.paperId}/overview?userId=${userId}`} target="_blank" rel="noopener"
+                  <a href={`/exam/${current.paperId}/transcribe-edit?userId=${userId}`} target="_blank" rel="noopener"
                     className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">
-                    Overview ↗
+                    Clean Edit ↗
                   </a>
                 </div>
               </div>
