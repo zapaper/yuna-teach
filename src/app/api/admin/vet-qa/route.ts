@@ -43,7 +43,7 @@ export async function GET(_req: NextRequest) {
       where: { id: { in: flaggedIds } },
       select: {
         id: true, questionNum: true, syllabusTopic: true,
-        transcribedStem: true, transcribedOptions: true,
+        transcribedStem: true, transcribedOptions: true, transcribedSubparts: true,
         answer: true, imageData: true, diagramImageData: true,
         marksAvailable: true,
       },
@@ -59,6 +59,7 @@ export async function GET(_req: NextRequest) {
         syllabusTopic: q.syllabusTopic,
         transcribedStem: q.transcribedStem,
         transcribedOptions: q.transcribedOptions,
+        transcribedSubparts: q.transcribedSubparts as { label: string; text: string }[] | null,
         answer: q.answer,
         imageData: q.imageData,
         diagramImageData: q.diagramImageData,

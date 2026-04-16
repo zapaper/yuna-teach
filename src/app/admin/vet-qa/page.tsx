@@ -9,6 +9,7 @@ export default function VetQAWrapper() {
   return <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" /></div>}><VetQAPage /></Suspense>;
 }
 
+type SubpartEntry = { label: string; text: string; diagramBase64?: string | null };
 type FlaggedItem = {
   questionId: string;
   paperId: string;
@@ -18,6 +19,7 @@ type FlaggedItem = {
   syllabusTopic: string | null;
   transcribedStem: string | null;
   transcribedOptions: unknown;
+  transcribedSubparts: SubpartEntry[] | null;
   answer: string | null;
   imageData: string | null;
   diagramImageData: string | null;
@@ -232,6 +234,21 @@ function VetQAPage() {
                   placeholder="Question stem…"
                 />
               </div>
+
+              {/* Sub-parts (a), (b), (c)... */}
+              {current.transcribedSubparts && current.transcribedSubparts.filter(s => !s.label.startsWith("_")).length > 0 && (
+                <div className="px-5 py-3 border-b border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sub-parts</p>
+                  <div className="space-y-2">
+                    {current.transcribedSubparts.filter(s => !s.label.startsWith("_")).map(sp => (
+                      <div key={sp.label} className="flex items-start gap-2">
+                        <span className="text-xs font-bold text-amber-600 mt-1 shrink-0">({sp.label})</span>
+                        <p className="text-sm text-slate-700 leading-relaxed">{sp.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Editable options (MCQ) */}
               {(isMcq || current.answer?.match(/^\(?[1-4]\)?$/)) && (
