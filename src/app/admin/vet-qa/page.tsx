@@ -188,14 +188,15 @@ function VetQAPage() {
                   <p className="text-sm font-bold text-slate-800">Q{current.questionNum} · {current.syllabusTopic ?? ""}</p>
                   <p className="text-xs text-slate-400">{current.paperTitle}</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <a href={`/exam/${current.paperId}/edit?userId=${userId}`} target="_blank" rel="noopener"
-                    className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100">
-                    Edit paper &nearr;
+                    className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 truncate max-w-[200px]"
+                    title={current.paperTitle}>
+                    Edit: {current.paperTitle.split(" · ").slice(-2).join(" ")} ↗
                   </a>
                   <a href={`/exam/${current.paperId}/overview?userId=${userId}`} target="_blank" rel="noopener"
                     className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">
-                    Overview &nearr;
+                    Overview ↗
                   </a>
                 </div>
               </div>
