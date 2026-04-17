@@ -1585,16 +1585,17 @@ function OeqQuestionCard({
                     {stripQnPrefix(question.transcribedStem)}
                   </p>
                 )}
-                {/* Show diagram as static reference image — always visible even when
-                    a drawable canvas background also exists (separate purpose). */}
+                {/* Show diagram as static reference image — annotatable scratch
+                    overlay so students can draw working on diagrams (not submitted). */}
                 {question.diagramImageData && (
-                  <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
+                  <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30 relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`data:image/jpeg;base64,${question.diagramImageData}`}
                       alt="Diagram"
                       className="w-full rounded-lg"
                     />
+                    <ScratchOverlay tool={tool} />
                   </div>
                 )}
               </div>
@@ -1629,11 +1630,15 @@ function OeqQuestionCard({
                       <span className="font-bold text-[#001e40]">({sp.label})</span> {spText}
                     </p>
                     {sp.refImageBase64 && (
-                      <img
-                        src={`data:image/jpeg;base64,${sp.refImageBase64}`}
-                        alt={`(${sp.label}) diagram`}
-                        className="mt-2 max-w-full rounded border border-[#e5eeff]"
-                      />
+                      <div className="mt-2 relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`data:image/jpeg;base64,${sp.refImageBase64}`}
+                          alt={`(${sp.label}) diagram`}
+                          className="max-w-full rounded border border-[#e5eeff]"
+                        />
+                        <ScratchOverlay tool={tool} />
+                      </div>
                     )}
                   </div>
                   <ResizableCanvas
