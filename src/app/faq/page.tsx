@@ -38,6 +38,10 @@ const faqs = [
     a: "It is randomised, but prioritised for questions not seen by the student before. As we expand our question bank (now 3,000+), there should hopefully be no more repeats.",
   },
   {
+    q: "Some of the questions test concepts not yet taught by the school.",
+    a: "We adjust the questions to match the syllabus taught by month and by level (e.g. WA1 Primary 4). However, as each school teaches modules differently, it is not a perfect system. Please use \"skip\" for questions testing concepts not yet taught. The scores will be adjusted, and parents can see which questions are skipped.",
+  },
+  {
     q: "Can my child practise specific weak topics?",
     a: "Yes! The Focused Practice feature lets you create a 10-question test on any specific topic your child needs to work on. The system also auto-detects weak topics from quiz results.",
   },
