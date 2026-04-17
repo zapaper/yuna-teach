@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-function isMcq(answer: string | null): boolean {
-  if (!answer) return false;
-  const n = answer.trim().replace(/[().]/g, "").trim();
-  return n === "1" || n === "2" || n === "3" || n === "4";
+/** MCQ = question has transcribed options (4-element array) or image options. */
+function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
+  const opts = q.transcribedOptions;
+  const imgs = q.transcribedOptionImages;
+  if (Array.isArray(opts) && opts.length === 4) return true;
+  if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+  return false;
 }
 
 function baseNum(questionNum: string) {
@@ -84,7 +87,7 @@ export async function POST(request: NextRequest) {
   // ── MCQ pool: deduplicate by stem ─────────────────────────────────────────
   const mcqStemMap = new Map<string, Q>();
   for (const q of allQuestions) {
-    if (!isMcq(q.answer)) continue;
+    if (!hasOptions(q)) continue;
     const stem = (q.transcribedStem ?? "").trim();
     if (stem) mcqStemMap.set(stem, q);
   }
@@ -93,7 +96,7 @@ export async function POST(request: NextRequest) {
   // ── OEQ pool: group by (paperId, baseNum), deduplicate groups by lead stem ─
   const oeqGroupMap = new Map<string, Q[]>();
   for (const q of allQuestions) {
-    if (isMcq(q.answer)) continue;
+    if (hasOptions(q)) continue;
     const stem = (q.transcribedStem ?? "").trim();
     if (!stem) continue;
     const key = `${q.examPaperId}:${baseNum(q.questionNum)}`;
@@ -173,14 +176,14 @@ export async function POST(request: NextRequest) {
       instantFeedback: true,
       pageCount: 0,
       extractionStatus: "ready",
-      totalMarks: String(allSelected.reduce((sum, q) => sum + (isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1)), 0)),
+      totalMarks: String(allSelected.reduce((sum, q) => sum + (hasOptions(q) ? 2 : (q.marksAvailable ?? 1)), 0)),
       questions: {
         create: allSelected.map((q, i) => ({
           questionNum: String(i + 1),
           imageData: q.imageData,
           answer: q.answer,
           answerImageData: q.answerImageData,
-          marksAvailable: isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1),
+          marksAvailable: hasOptions(q) ? 2 : (q.marksAvailable ?? 1),
           syllabusTopic: q.syllabusTopic,
           pageIndex: 0,
           orderIndex: i,
