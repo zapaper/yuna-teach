@@ -1642,17 +1642,26 @@ HOW TO READ THE IMAGES:
 - Image 2: The student's handwritten answer (blue ink on white paper).
 {ANSWER_IMAGE_NOTE}
 
-Expected answer: {EXPECTED_ANSWER}
 Marks available: {MARKS_AVAILABLE}
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains the ° character (e.g. "8°", "45°"), then accept "80" or "450" as correct — the trailing 0 is a misread degree symbol. If the expected answer does NOT contain ° (e.g. just "8" or "80"), do NOT apply this rule. In the notes, write: "Trailing 0 interpreted as degree symbol (°) — answer accepted as X°."
 
 CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin vertical stroke (|) with no serif or base. It is easily missed next to other digits. Read EVERY digit carefully. E.g. "51cm" must NOT be read as "5cm" — look for a thin vertical stroke before or after other digits. If the expected answer has more digits than what you detected, re-examine the handwriting for missed "1"s.
 
+╔══════════════════════════════════════════════════════════════════════╗
+║  ANTI-BIAS: You MUST read the student's answer INDEPENDENTLY        ║
+║  from the image BEFORE comparing to the expected answer below.      ║
+║  Report EXACTLY what the student wrote — even if it differs from    ║
+║  the expected answer. Do NOT let the expected answer influence       ║
+║  what you read from the image. If the student wrote "False" but     ║
+║  the answer key says "True", you MUST report "False".               ║
+╚══════════════════════════════════════════════════════════════════════╝
+
 Instructions:
-1. Read the student's blue-ink handwritten answer from Image 2.
+1. FIRST — Read the student's blue-ink handwritten answer from Image 2. Write down EXACTLY what you see. Do NOT look at the expected answer yet.
 2. If the question has multiple sub-parts labelled (a), (b), (c) etc., you MUST mark EACH sub-part separately. The expected answer may contain all parts on one line (e.g. "(a) 12 cm (b) 25 cm") or separated — extract each sub-part from it. For every labelled sub-part in the question, give a separate award and note. If the expected answer only lists one sub-part, still report on the other sub-parts as "(x) no answer key provided" and award them 0 — never skip them silently. Split the total marks across sub-parts as fairly as possible.
-3. Compare the student's FINAL ANSWER against the expected answer.
+3. NOW compare the student's FINAL ANSWER against the expected answer:
+   Expected answer: {EXPECTED_ANSWER}
    - If the final answer is correct → award FULL MARKS immediately. Do NOT check or penalise working steps. Working does not matter when the final answer is right.
    - ONLY if the final answer is WRONG or absent: check working/steps for partial credit → award PARTIAL marks if some steps are correct.
    - If wrong with no correct working → ZERO marks.
@@ -1660,7 +1669,7 @@ Instructions:
 4. Record what you detected.
 
 Return ONLY valid JSON (no markdown fences):
-{"questionId": "{QUESTION_ID}", "marksAvailable": {MARKS_AVAILABLE}, "marksAwarded": <number>, "studentAnswer": "<what the student wrote — for multi-part: (a) ... (b) ...>", "notes": "<for multi-part questions, give feedback per sub-part, e.g. '(a) Correct. (b) Wrong — should be 3/4 not 2/3.'>"}`;
+{"questionId": "{QUESTION_ID}", "marksAvailable": {MARKS_AVAILABLE}, "marksAwarded": <number>, "studentAnswer": "<what the student ACTUALLY wrote — for multi-part: (a) ... (b) ...>", "notes": "<for multi-part questions, give feedback per sub-part, e.g. '(a) Correct. (b) Wrong — should be 3/4 not 2/3.'>"}`;
 
 export async function markFocusedTest(paperId: string): Promise<void> {
   console.log(`[focused-marking] Starting for ${paperId}`);
