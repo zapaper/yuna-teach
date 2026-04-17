@@ -1686,20 +1686,30 @@ function ExamReviewContent({ id }: { id: string }) {
                                               </div>
                                             );
                                           })()}
-                                          {hasPartAnswers && partStudent && (
-                                            <div className={`text-sm leading-relaxed rounded-xl p-3 ${
-                                              partIsCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
-                                            }`}>
-                                              <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Detected Answer</span>
-                                              {partStudent}
-                                            </div>
-                                          )}
-                                          {hasPartAnswers && partAnswer && (
-                                            <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
-                                              <span className="text-[9px] font-bold uppercase tracking-wider text-[#43474f] opacity-60 block mb-0.5">Correct Answer</span>
-                                              {partAnswer.replace(/\s*\|\s*/g, "\n")}
-                                            </div>
-                                          )}
+                                          {/* Detected answer: per-part if parsed, or raw fallback for single-subpart questions */}
+                                          {(() => {
+                                            const detected = partStudent || (!hasPartAnswers && realSubs.length === 1 && studentAnswerText) || null;
+                                            if (!detected) return null;
+                                            return (
+                                              <div className={`text-sm leading-relaxed rounded-xl p-3 ${
+                                                partIsCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                                              }`}>
+                                                <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Detected Answer</span>
+                                                {detected}
+                                              </div>
+                                            );
+                                          })()}
+                                          {/* Correct answer: per-part if parsed, or raw fallback for single-subpart questions */}
+                                          {(() => {
+                                            const correct = partAnswer || (!hasPartAnswers && realSubs.length === 1 && currentQ.answer) || null;
+                                            if (!correct) return null;
+                                            return (
+                                              <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
+                                                <span className="text-[9px] font-bold uppercase tracking-wider text-[#43474f] opacity-60 block mb-0.5">Correct Answer</span>
+                                                {correct.replace(/\s*\|\s*/g, "\n")}
+                                              </div>
+                                            );
+                                          })()}
                                         </div>
                                       );
                                     })}
