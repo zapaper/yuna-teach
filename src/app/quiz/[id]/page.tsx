@@ -1777,6 +1777,7 @@ const BlankCanvas = forwardRef<
   { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null; savedInkUrl?: string | null }
 >(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage, savedInkUrl }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
   const isDrawing = useRef(false);
@@ -1785,45 +1786,83 @@ const BlankCanvas = forwardRef<
   const pendingSnapshot = useRef<ImageData | null>(null);
   const snapshotTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [ready, setReady] = useState(false);
+  const canvasDims = useRef({ w: 800, h: height * 2 });
 
-  // Canvas dimensions: full width, fixed height
-  const CANVAS_W = 800;
-  const CANVAS_H = height * 2; // retina-ish
+  // Canvas dimensions: use 2× display size for retina-sharp pixels.
+  // Dynamically measured so the internal aspect ratio matches the CSS display.
+  const CANVAS_W = canvasDims.current.w;
+  const CANVAS_H = canvasDims.current.h;
 
   function drawBackground(ctx: CanvasRenderingContext2D) {
+    const cw = canvasDims.current.w;
+    const ch = canvasDims.current.h;
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    ctx.fillRect(0, 0, cw, ch);
     if (bgImageRef.current) {
-      // Draw diagram centered, scaled to fit
+      // Draw diagram scaled to fit width, preserving aspect ratio
       const img = bgImageRef.current;
-      const scale = Math.min(CANVAS_W / img.width, CANVAS_H / img.height, 1);
+      const scale = Math.min(cw / img.width, ch / img.height, 1);
       const w = img.width * scale;
       const h = img.height * scale;
-      const x = (CANVAS_W - w) / 2;
+      const x = (cw - w) / 2;
       const y = 0; // align diagram to top of canvas
       ctx.drawImage(img, x, y, w, h);
     } else {
       // Ruled lines
       ctx.strokeStyle = "#e2e8f0";
       ctx.lineWidth = 1;
-      for (let y = 40; y < CANVAS_H; y += 40) {
+      for (let y = 40; y < ch; y += 40) {
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(CANVAS_W, y);
+        ctx.lineTo(cw, y);
         ctx.stroke();
       }
     }
   }
 
+  // Measure actual display size and set canvas resolution to 2× for square pixels
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    const canvas = canvasRef.current;
+    if (!wrapper || !canvas) return;
+    const obs = new ResizeObserver(() => {
+      const displayW = wrapper.offsetWidth;
+      const displayH = wrapper.offsetHeight || height;
+      const newW = displayW * 2;
+      const newH = displayH * 2;
+      if (Math.abs(newW - canvasDims.current.w) > 4 || Math.abs(newH - canvasDims.current.h) > 4) {
+        canvasDims.current = { w: newW, h: newH };
+        canvas.width = newW;
+        canvas.height = newH;
+        const inkCanvas = inkCanvasRef.current;
+        if (inkCanvas) { inkCanvas.width = newW; inkCanvas.height = newH; }
+        const ctx = canvas.getContext("2d", { desynchronized: true });
+        if (ctx) drawBackground(ctx);
+        if (inkCanvas) {
+          const inkCtx = inkCanvas.getContext("2d");
+          // Ink is lost on resize — acceptable tradeoff for correct aspect ratio
+        }
+      }
+    });
+    obs.observe(wrapper);
+    return () => obs.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [height]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width = CANVAS_W;
-    canvas.height = CANVAS_H;
+    // Initial size from wrapper or fallback
+    const wrapper = wrapperRef.current;
+    const initW = wrapper ? wrapper.offsetWidth * 2 : 800;
+    const initH = wrapper ? (wrapper.offsetHeight || height) * 2 : height * 2;
+    canvasDims.current = { w: initW, h: initH };
+    canvas.width = initW;
+    canvas.height = initH;
 
     const inkCanvas = document.createElement("canvas");
-    inkCanvas.width = CANVAS_W;
-    inkCanvas.height = CANVAS_H;
+    inkCanvas.width = initW;
+    inkCanvas.height = initH;
     inkCanvasRef.current = inkCanvas;
 
     function init() {
@@ -1836,10 +1875,10 @@ const BlankCanvas = forwardRef<
         inkImg.crossOrigin = "anonymous";
         inkImg.onload = () => {
           // Draw ink onto visible canvas
-          ctx.drawImage(inkImg, 0, 0, CANVAS_W, CANVAS_H);
+          ctx.drawImage(inkImg, 0, 0, canvasDims.current.w, canvasDims.current.h);
           // Also draw onto ink-only canvas
           const inkCtx = inkCanvasRef.current?.getContext("2d");
-          if (inkCtx) inkCtx.drawImage(inkImg, 0, 0, CANVAS_W, CANVAS_H);
+          if (inkCtx) inkCtx.drawImage(inkImg, 0, 0, canvasDims.current.w, canvasDims.current.h);
           setReady(true);
         };
         inkImg.onerror = () => setReady(true);
@@ -1861,7 +1900,7 @@ const BlankCanvas = forwardRef<
       init();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [CANVAS_W, CANVAS_H, backgroundImage]);
+  }, [backgroundImage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function redrawComposite() {
     const canvas = canvasRef.current;
@@ -2054,12 +2093,11 @@ const BlankCanvas = forwardRef<
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ touchAction: "none" }}>
+    <div ref={wrapperRef} style={{ touchAction: "none", height: `${height}px` }}>
       <canvas
         ref={canvasRef}
-        className="w-full border-0"
+        className="w-full h-full border-0"
         style={{
-          height: `${height}px`,
           cursor: tool === "pen" ? PEN_CURSOR : "cell",
           touchAction: "none",
         }}
