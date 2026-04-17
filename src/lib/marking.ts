@@ -2247,23 +2247,27 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         const realSubs = subparts?.filter(sp => !sp.label.startsWith("_")) ?? [];
         const hasDrawable = subparts?.some(sp => sp.label === "_drawable") ?? false;
 
-        // For drawable diagram OEQ: check the INK-ONLY layer first (transparent bg
-        // with only student strokes). The composite image contains the diagram which
-        // may have marks the AI mistakes for handwriting.
+        // For drawable diagram OEQ: check the INK-ONLY layer (transparent bg with
+        // only student strokes). A blank transparent 800×1200 PNG compresses to ~1-3KB,
+        // so if the file is very small we know it's blank without needing an AI call.
+        // The composite image contains the printed diagram which the AI can mistake
+        // for student handwriting, so we never use it for the ink check.
         if (hasDrawable && realSubs.length === 0) {
-          let inkFound = true; // default to true if check fails
+          let inkFound = false;
           try {
             const inkPath = path.join(subDir, `page_${i}_ink.png`);
             const inkBuffer = await fs.readFile(inkPath);
-            inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/png");
-          } catch {
-            try {
-              const pagePath = path.join(subDir, `page_${i}.jpg`);
-              const pageBuffer = await fs.readFile(pagePath);
-              inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/jpeg");
-            } catch {
+            if (inkBuffer.length < 5000) {
+              // Tiny file = blank transparent canvas, no ink
+              console.log(`[quiz-marking] Drawable Q${q.questionNum}: ink PNG only ${inkBuffer.length} bytes — blank`);
               inkFound = false;
+            } else {
+              inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/png");
             }
+          } catch {
+            // No ink file at all = no ink
+            console.log(`[quiz-marking] Drawable Q${q.questionNum}: no ink PNG file found`);
+            inkFound = false;
           }
           if (!inkFound) {
             console.log(`[quiz-marking] Drawable Q${q.questionNum}: no ink detected — awarding 0`);
