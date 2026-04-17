@@ -925,7 +925,27 @@ export async function POST(request: NextRequest) {
       || group.find(q => q.diagramImageData)?.diagramImageData
       || null;
 
-    const combinedAnswer = [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
+    // Combine answers, prefixing with subpart labels when missing.
+    // E.g. Q7ab answer = "(a) 12 (b) 25" already has labels, but
+    // Q7c answer = "50" needs "(c) " prepended so the review page can parse it.
+    const answerParts: string[] = [];
+    for (const q of group) {
+      const ans = (q.answer ?? "").trim();
+      if (!ans) continue;
+      const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      const realSubs = subs.filter(s => !s.label.startsWith("_"));
+      // If this member has exactly one real subpart and the answer doesn't already
+      // contain its label prefix, add it
+      if (realSubs.length === 1) {
+        const lbl = realSubs[0].label.toLowerCase();
+        if (!ans.toLowerCase().includes(`(${lbl})`)) {
+          answerParts.push(`(${lbl}) ${ans}`);
+          continue;
+        }
+      }
+      answerParts.push(ans);
+    }
+    const combinedAnswer = [...new Set(answerParts)].join("\n");
 
     // Dedupe subparts by label — if multiple group members share the same label,
     // keep the first occurrence (which carries the diagram if any was attached).
