@@ -613,7 +613,15 @@ function ExamReviewContent({ id }: { id: string }) {
       }
     }
 
-    if (found.length === 0) return {};
+    if (found.length === 0) {
+      // No labelled parts found at all — if there's exactly one known label
+      // and the text is non-empty, assign the entire text to that label.
+      // This handles standalone answers like "50 cm" for a merged (c) part.
+      if (knownLabels && knownLabels.length === 1 && text.trim()) {
+        return { [knownLabels[0].toLowerCase()]: text.trim() };
+      }
+      return {};
+    }
     found.sort((a, b) => a.matchStart - b.matchStart);
 
     const parts: Record<string, string> = {};
@@ -621,6 +629,29 @@ function ExamReviewContent({ id }: { id: string }) {
       const end = i + 1 < found.length ? found[i + 1].matchStart : text.length;
       parts[found[i].label] = text.slice(found[i].start, end).trim();
     }
+
+    // If some known labels are missing, check the LAST parsed part for newline-
+    // separated trailing text that belongs to missing parts.
+    // E.g. answer = "(a) 12 (b) 25\n50 cm" with labels [a,b,c]:
+    //   parts = { a: "12", b: "25\n50 cm" }  ← "50 cm" is actually (c)'s answer
+    if (knownLabels) {
+      const missing = knownLabels.map(l => l.toLowerCase()).filter(l => !(l in parts));
+      if (missing.length > 0 && found.length > 0) {
+        const lastLabel = found[found.length - 1].label;
+        const lastVal = parts[lastLabel] ?? "";
+        // Split by newline — the last value might contain answers for missing labels
+        const lines = lastVal.split("\n").map(l => l.trim()).filter(Boolean);
+        if (lines.length > 1 && lines.length - 1 >= missing.length) {
+          // First line stays with the last found label
+          parts[lastLabel] = lines[0];
+          // Remaining lines go to missing labels in order
+          for (let m = 0; m < missing.length && m + 1 < lines.length; m++) {
+            parts[missing[m]] = lines[m + 1];
+          }
+        }
+      }
+    }
+
     return parts;
   }
 
