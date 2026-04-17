@@ -1585,10 +1585,9 @@ function OeqQuestionCard({
                     {stripQnPrefix(question.transcribedStem)}
                   </p>
                 )}
-                {/* Show static diagram reference image ONLY when there is no drawable
-                    canvas background (otherwise the user sees two diagrams and tries
-                    to draw on the static one). */}
-                {question.diagramImageData && !drawableDiagramBase64 && !hasSubparts && (
+                {/* Show diagram as static reference image — always visible even when
+                    a drawable canvas background also exists (separate purpose). */}
+                {question.diagramImageData && (
                   <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
