@@ -26,8 +26,8 @@ const faqs = [
     a: "Sign up as a parent, add your child as a student, and generate your first quiz — it takes less than 2 minutes. No credit card required.",
   },
   {
-    q: "Where do the questions come from?",
-    a: "Questions are sourced from top Singapore primary schools' past-year exam papers. We have over 3,000 questions across Math, Science, and English, and we add more regularly.",
+    q: "How are the questions set?",
+    a: "The questions are a mix of top school past-year papers and AI expert-generated questions. As our AI model gets better, we will be replacing all the questions over time with AI expert-generated questions.",
   },
   {
     q: "Can my child practise specific weak topics?",
