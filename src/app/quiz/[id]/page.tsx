@@ -1585,9 +1585,10 @@ function OeqQuestionCard({
                     {stripQnPrefix(question.transcribedStem)}
                   </p>
                 )}
-                {/* Show diagram as static reference image — always visible even when
-                    a drawable canvas background also exists (separate purpose). */}
-                {question.diagramImageData && (
+                {/* Show static diagram reference image ONLY when there is no drawable
+                    canvas background (otherwise the user sees two diagrams and tries
+                    to draw on the static one). */}
+                {question.diagramImageData && !drawableDiagramBase64 && !hasSubparts && (
                   <div className="mt-4 p-5 bg-[#eff4ff] rounded-2xl border-l-4 border-[#006c49]/30">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -1848,6 +1849,10 @@ const BlankCanvas = forwardRef<
     if (backgroundImage) {
       const img = new Image();
       img.onload = () => { bgImageRef.current = img; init(); };
+      // If the image fails to load, still init the canvas so the user can draw
+      // (otherwise `ready` never becomes true and pointer listeners never attach,
+      //  leaving the canvas silently unresponsive).
+      img.onerror = () => { bgImageRef.current = null; init(); };
       img.src = backgroundImage.startsWith("data:") ? backgroundImage : `data:image/jpeg;base64,${backgroundImage}`;
     } else {
       init();
