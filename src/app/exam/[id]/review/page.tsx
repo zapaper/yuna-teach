@@ -625,26 +625,38 @@ function ExamReviewContent({ id }: { id: string }) {
     found.sort((a, b) => a.matchStart - b.matchStart);
 
     const parts: Record<string, string> = {};
+
+    // Text BEFORE the first found label may belong to a missing earlier label.
+    // E.g. answer = "The frictional force... | (b) Cause: Plastic..."
+    //   with labels [a,b] — text before (b) is part (a)'s answer.
+    if (knownLabels && found.length > 0) {
+      const beforeFirst = text.slice(0, found[0].matchStart).trim();
+      if (beforeFirst) {
+        const earlierMissing = knownLabels
+          .map(l => l.toLowerCase())
+          .filter(l => !found.some(f => f.label === l) && l < found[0].label);
+        if (earlierMissing.length === 1) {
+          parts[earlierMissing[0]] = beforeFirst;
+        }
+      }
+    }
+
     for (let i = 0; i < found.length; i++) {
       const end = i + 1 < found.length ? found[i + 1].matchStart : text.length;
       parts[found[i].label] = text.slice(found[i].start, end).trim();
     }
 
-    // If some known labels are missing, check the LAST parsed part for newline-
-    // separated trailing text that belongs to missing parts.
+    // Text AFTER the last found label may contain answers for missing later labels.
     // E.g. answer = "(a) 12 (b) 25\n50 cm" with labels [a,b,c]:
-    //   parts = { a: "12", b: "25\n50 cm" }  ← "50 cm" is actually (c)'s answer
+    //   "50 cm" after newline is part (c)'s answer.
     if (knownLabels) {
       const missing = knownLabels.map(l => l.toLowerCase()).filter(l => !(l in parts));
       if (missing.length > 0 && found.length > 0) {
         const lastLabel = found[found.length - 1].label;
         const lastVal = parts[lastLabel] ?? "";
-        // Split by newline — the last value might contain answers for missing labels
         const lines = lastVal.split("\n").map(l => l.trim()).filter(Boolean);
         if (lines.length > 1 && lines.length - 1 >= missing.length) {
-          // First line stays with the last found label
           parts[lastLabel] = lines[0];
-          // Remaining lines go to missing labels in order
           for (let m = 0; m < missing.length && m + 1 < lines.length; m++) {
             parts[missing[m]] = lines[m + 1];
           }
