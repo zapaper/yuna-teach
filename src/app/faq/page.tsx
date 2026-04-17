@@ -34,6 +34,10 @@ const faqs = [
     a: "The difficulty is pegged to top schools standard. We make sure that the expert-generated questions are pegged at similar difficulty, and always adhering to MOE syllabus.",
   },
   {
+    q: "How are the questions in quizzes / practices drawn? Is it random?",
+    a: "It is randomised, but prioritised for questions not seen by the student before. As we expand our question bank (now 3,000+), there should hopefully be no more repeats.",
+  },
+  {
     q: "Can my child practise specific weak topics?",
     a: "Yes! The Focused Practice feature lets you create a 10-question test on any specific topic your child needs to work on. The system also auto-detects weak topics from quiz results.",
   },
