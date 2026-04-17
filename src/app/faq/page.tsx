@@ -30,6 +30,10 @@ const faqs = [
     a: "The questions are a mix of top school past-year papers and AI expert-generated questions. As our AI model gets better, we will be replacing all the questions over time with AI expert-generated questions.",
   },
   {
+    q: "How difficult are the questions?",
+    a: "The difficulty is pegged to top schools standard. We make sure that the expert-generated questions are pegged at similar difficulty, and always adhering to MOE syllabus.",
+  },
+  {
     q: "Can my child practise specific weak topics?",
     a: "Yes! The Focused Practice feature lets you create a 10-question test on any specific topic your child needs to work on. The system also auto-detects weak topics from quiz results.",
   },
