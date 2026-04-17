@@ -2,12 +2,12 @@ import Link from "next/link";
 
 const faqs = [
   {
-    q: "What is MarkForYou?",
-    a: "MarkForYou is an AI-powered marking assistant for primary school students in Singapore. Parents upload past-year exam papers, and our AI marks handwritten answers, generates quizzes, and tracks progress — so you can stop marking and start coaching.",
+    q: "What subject and level does this cover?",
+    a: "MarkForYou currently covers Primary 4\u20136 English, Math and Science, aligned to MOE syllabus.",
   },
   {
-    q: "Which subjects and levels are supported?",
-    a: "We support Mathematics, Science, and English for Primary 3 to Primary 6, aligned to the Singapore MOE syllabus.",
+    q: "What is MarkForYou?",
+    a: "MarkForYou is an AI-powered marking assistant for primary school students in Singapore. Parents upload past-year exam papers, and our AI marks handwritten answers, generates quizzes, and tracks progress — so you can stop marking and start coaching.",
   },
   {
     q: "How does AI marking work?",
