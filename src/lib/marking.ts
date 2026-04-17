@@ -293,9 +293,10 @@ function isMcqAnswer(answer: string | null): boolean {
   if (!answer) return false;
   const a = answer.trim();
   if (/^\(?[1-4A-Da-d]\)?$/.test(a)) return true;
-  // Handle "X or Y" / "X/Y" (e.g. "3 or 4", "1/3", "(1) or (3)")
+  // Handle "X or Y" (e.g. "3 or 4", "(1) or (3)")
+  // Do NOT split on "/" — it catches fractions like "1/4", "2/3"
   const normalized = a.replace(/[().]/g, "").trim();
-  const parts = normalized.split(/\s+or\s+|\//).map(p => p.trim());
+  const parts = normalized.split(/\s+or\s+/).map(p => p.trim());
   if (parts.length > 1 && parts.every(p => /^[1-4A-Da-d]$/.test(p))) return true;
   return false;
 }
@@ -1982,7 +1983,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     const isMcqAnswer = (ans: string | null) => {
       const n = (ans ?? "").trim().replace(/[().]/g, "").trim();
       if (n === "1" || n === "2" || n === "3" || n === "4") return true;
-      const parts = n.split(/\s+or\s+|\//).map(p => p.trim());
+      const parts = n.split(/\s+or\s+/).map(p => p.trim());
       if (parts.length > 1 && parts.every(p => p === "1" || p === "2" || p === "3" || p === "4")) return true;
       return false;
     };
@@ -2012,8 +2013,8 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     for (const q of paper.questions.filter(q2 => isMcqAnswer(q2.answer))) {
       const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
       const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
-      // Support "X or Y" / "X/Y" answers — student is correct if their answer matches any option
-      const acceptableAnswers = correctAns.split(/\s+or\s+|\//).map(p => p.trim());
+      // Support "X or Y" answers — student is correct if their answer matches any option
+      const acceptableAnswers = correctAns.split(/\s+or\s+/).map(p => p.trim());
       const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
       const marks = isCorrect ? (q.marksAvailable ?? 1) : 0;
       if (q.marksAwarded !== marks) {
