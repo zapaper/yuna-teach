@@ -126,6 +126,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [isQuiz, setIsQuiz] = useState(false);
   const [paperType, setPaperType] = useState<string | null>(null);
   const [canvasHeights, setCanvasHeights] = useState<Record<string, number>>({});
+  const [oeqPageMap, setOeqPageMap] = useState<Record<string, number> | null>(null);
   const [releasing, setReleasing] = useState(false);
   const [englishSections, setEnglishSections] = useState<Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | null>(null);
   const [expandedElabs, setExpandedElabs] = useState<Set<string>>(new Set());
@@ -173,6 +174,7 @@ function ExamReviewContent({ id }: { id: string }) {
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
           if (paper.metadata?.sticker) setSticker(paper.metadata.sticker);
           if (paper.metadata?.canvasHeights) setCanvasHeights(paper.metadata.canvasHeights as Record<string, number>);
+          if (paper.metadata?.oeqPageMap) setOeqPageMap(paper.metadata.oeqPageMap as Record<string, number>);
           setPageCount(paper.pageCount ?? 0);
           const ap = paper.metadata?.answerPages ?? [];
           const sp = paper.metadata?.skipPages ?? [];
@@ -527,13 +529,21 @@ function ExamReviewContent({ id }: { id: string }) {
   const isTypedSection = currentItem?.type === "section";
   const sectionQuestions = currentItem?.type === "section" ? currentItem.questions : [];
 
-  // For quiz OEQ: index of currentQ among all OEQ questions (no text or image MCQ options)
+  // For quiz OEQ: determine submission page index for the current question.
+  // Prefer stored oeqPageMap (set at submission time) to avoid mismatches when
+  // MCQ/OEQ classification logic changes between quiz-taking and review.
   const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.some(o => !!o)) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o));
   const allOeqQuestions = data.questions.filter(q => !hasOpts(q));
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
-  // Both daily quizzes and focused tests upload OEQ canvases via the quiz page at the
-  // OEQ-sequential index. Use the same index for the image URL.
-  const currentQSubmissionPage = currentQOeqIndex;
+  // Use stored page map if available (set at submission time, immune to code changes).
+  // For old quizzes without stored map, fall back to answer-based OEQ index (old logic)
+  // since those quizzes were submitted with the old isMcq(answer) classification.
+  const isMcqByAnswer = (ans: string | null) => { const n = (ans ?? "").trim().replace(/[().]/g, "").trim(); return n === "1" || n === "2" || n === "3" || n === "4"; };
+  const legacyOeqQuestions = data.questions.filter(q => !hasOpts(q) && !isMcqByAnswer(q.answer));
+  const legacyOeqIndex = currentQ ? legacyOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
+  const currentQSubmissionPage = currentQ && oeqPageMap && currentQ.id in oeqPageMap
+    ? oeqPageMap[currentQ.id]
+    : oeqPageMap ? currentQOeqIndex : (legacyOeqIndex >= 0 ? legacyOeqIndex : currentQOeqIndex);
 
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;

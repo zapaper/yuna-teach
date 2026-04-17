@@ -284,14 +284,18 @@ function QuizContent({ id }: { id: string }) {
         await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
       }
 
-      // Save elapsed time + canvas heights
+      // Save elapsed time, canvas heights, and OEQ page mapping
+      // The page mapping records which question ID maps to which submission page index
+      // so the review page doesn't need to recalculate (which can mismatch if code changes)
+      const oeqPageMap: Record<string, number> = {};
+      saveOeqQs.forEach((q, i) => { oeqPageMap[q.id] = i; });
       const existingMeta = paper?.metadata ?? {};
       await fetch(`/api/exam/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           timeSpentSeconds: elapsed,
-          metadata: { ...existingMeta, canvasHeights: canvasHeights.current },
+          metadata: { ...existingMeta, canvasHeights: canvasHeights.current, oeqPageMap },
         }),
       });
 
