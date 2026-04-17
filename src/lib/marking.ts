@@ -1648,6 +1648,8 @@ CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains the �
 
 CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin vertical stroke (|) with no serif or base. It is easily missed next to other digits. Read EVERY digit carefully. E.g. "51cm" must NOT be read as "5cm" — look for a thin vertical stroke before or after other digits. If the expected answer has more digits than what you detected, re-examine the handwriting for missed "1"s.
 
+CRITICAL — GRID / DIAGRAM DRAWINGS: When the answer involves drawing on a grid (e.g. plotting points, drawing shapes, completing figures), do NOT try to extract exact coordinates. Instead, compare the student's drawing VISUALLY against the expected answer image. If the drawn point or shape is in the correct position on the grid (matching the answer image), award full marks. A point drawn slightly off-center within the correct grid cell still counts as correct. Focus on whether the student understood the concept, not pixel-perfect placement.
+
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  ANTI-BIAS: You MUST read the student's answer INDEPENDENTLY        ║
 ║  from the image BEFORE comparing to the expected answer below.      ║
