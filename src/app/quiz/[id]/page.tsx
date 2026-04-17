@@ -331,7 +331,7 @@ function QuizContent({ id }: { id: string }) {
       const unskippedMcq = mcqQuestions.filter(q => !skippedIds.has(q.id));
       for (const q of unskippedMcq) {
         const selected = mcqAnswers[q.id];
-        const correctAns = normalizeMcqAnswer(q.answer);
+        const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
         const qMarks = q.marksAvailable ?? 1;
         marksTotal += qMarks;
         if (selected === correctAns) { correct++; marksEarned += qMarks; }
@@ -347,7 +347,7 @@ function QuizContent({ id }: { id: string }) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               studentAnswer: isSkipped ? "__SKIPPED__" : (mcqAnswers[q.id] || null),
-              marksAwarded: isSkipped ? null : (mcqAnswers[q.id] === normalizeMcqAnswer(q.answer) ? (q.marksAvailable ?? 1) : 0),
+              marksAwarded: isSkipped ? null : (mcqAnswers[q.id] === (q.answer ?? "").trim().replace(/[().]/g, "").trim() ? (q.marksAvailable ?? 1) : 0),
             }),
           });
         })
