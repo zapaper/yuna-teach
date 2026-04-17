@@ -66,6 +66,43 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
+/** Check if a PNG buffer has any non-transparent pixels (alpha > 0).
+ *  Parses raw IDAT chunks without a full image library. */
+function hasOpaquePixels(pngBuffer: Buffer): boolean {
+  try {
+    const zlib = require("zlib");
+    // Collect all IDAT chunk data
+    const idatChunks: Buffer[] = [];
+    let offset = 8; // skip PNG signature
+    while (offset < pngBuffer.length - 4) {
+      const len = pngBuffer.readUInt32BE(offset);
+      const type = pngBuffer.toString("ascii", offset + 4, offset + 8);
+      if (type === "IDAT") {
+        idatChunks.push(pngBuffer.subarray(offset + 8, offset + 8 + len));
+      }
+      offset += 12 + len; // length(4) + type(4) + data(len) + crc(4)
+    }
+    if (idatChunks.length === 0) return false;
+    const compressed = Buffer.concat(idatChunks);
+    const raw = zlib.inflateSync(compressed);
+    // Read IHDR for width
+    const width = pngBuffer.readUInt32BE(16);
+    // RGBA: each row = 1 filter byte + width * 4 bytes
+    const rowLen = 1 + width * 4;
+    for (let y = 0; y * rowLen < raw.length; y++) {
+      const rowStart = y * rowLen + 1; // skip filter byte
+      for (let x = 0; x < width; x++) {
+        const alpha = raw[rowStart + x * 4 + 3];
+        if (alpha > 10) return true; // any non-trivial opacity = ink exists
+      }
+    }
+    return false;
+  } catch {
+    // If PNG parsing fails, assume ink exists to avoid false negatives
+    return true;
+  }
+}
+
 // Timeout for each Gemini call (3 minutes — some pages with many diagram answers are slow)
 const GEMINI_TIMEOUT_MS = 180_000;
 
@@ -2248,24 +2285,17 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         const hasDrawable = subparts?.some(sp => sp.label === "_drawable") ?? false;
 
         // For drawable diagram OEQ: check the INK-ONLY layer (transparent bg with
-        // only student strokes). A blank transparent 800×1200 PNG compresses to ~1-3KB,
-        // so if the file is very small we know it's blank without needing an AI call.
-        // The composite image contains the printed diagram which the AI can mistake
-        // for student handwriting, so we never use it for the ink check.
+        // only student strokes). The composite image contains the printed diagram
+        // which the AI mistakes for handwriting, so we never use it for the ink check.
         if (hasDrawable && realSubs.length === 0) {
           let inkFound = false;
           try {
             const inkPath = path.join(subDir, `page_${i}_ink.png`);
             const inkBuffer = await fs.readFile(inkPath);
-            if (inkBuffer.length < 5000) {
-              // Tiny file = blank transparent canvas, no ink
-              console.log(`[quiz-marking] Drawable Q${q.questionNum}: ink PNG only ${inkBuffer.length} bytes — blank`);
-              inkFound = false;
-            } else {
-              inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/png");
-            }
+            // Check if ink PNG has any non-transparent pixels
+            inkFound = hasOpaquePixels(inkBuffer);
+            console.log(`[quiz-marking] Drawable Q${q.questionNum}: ink pixel check → ${inkFound ? "HAS INK" : "BLANK"}`);
           } catch {
-            // No ink file at all = no ink
             console.log(`[quiz-marking] Drawable Q${q.questionNum}: no ink PNG file found`);
             inkFound = false;
           }
