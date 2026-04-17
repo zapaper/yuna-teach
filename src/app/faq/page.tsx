@@ -46,6 +46,10 @@ const faqs = [
     a: "Both parent and student can \"flag\" a question for review. We will look into flagged questions and make adjustments.",
   },
   {
+    q: "Can we have adjustable difficulty for the questions?",
+    a: "Yes, this feature will be coming soon.",
+  },
+  {
     q: "Can my child practise specific weak topics?",
     a: "Yes! The Focused Practice feature lets you create a 10-question test on any specific topic your child needs to work on. The system also auto-detects weak topics from quiz results.",
   },
