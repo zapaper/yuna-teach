@@ -1617,8 +1617,10 @@ function OeqQuestionCard({
                 const marksMatch = sp.text.match(/\[(\d+)\s*(?:m(?:ark)?s?)?\]$/i);
                 const spMarks = marksMatch ? parseInt(marksMatch[1]) : null;
                 const rawText = marksMatch ? sp.text.slice(0, -marksMatch[0].length).trim() : sp.text;
-                // Drop a leading "7(a)" / "(a)" that duplicates the sub-part label we already render.
-                const labelRe = new RegExp(`^(\\s*\\d*\\s*\\(?${sp.label}\\)?\\s*[.)]*\\s*)`, "i");
+                // Drop a leading "7(a)" / "(a)" / "a)" / "a." that duplicates the sub-part label we already render.
+                // Require at least one delimiter (parens, period, closing bracket) so we don't strip
+                // the first letter of words like "Based" when the label is "b".
+                const labelRe = new RegExp(`^(\\s*\\d*\\s*(?:\\(${sp.label}\\)|${sp.label}[.)]+)\\s*)`, "i");
                 const spText = stripQnPrefix(rawText).replace(labelRe, "");
                 return (
                 <div key={sp.label} className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20">
