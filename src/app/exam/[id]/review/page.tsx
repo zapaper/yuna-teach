@@ -1605,8 +1605,10 @@ function ExamReviewContent({ id }: { id: string }) {
                                   {renderUnderline(currentQ.transcribedStem)}
                                 </h3>
                               )}
-                              {/* Show question image when stem is missing (image-only questions) */}
-                              {!currentQ.transcribedStem && currentQ.imageData && (
+                              {/* Show question image only when stem is missing AND there's no clean
+                                  extract data (subparts or diagram) — avoids showing raw scan alongside
+                                  cleanly extracted content */}
+                              {!currentQ.transcribedStem && currentQ.imageData && !currentQ.diagramImageData && !(realSubs && realSubs.length > 0) && (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={currentQ.imageData} alt={`Question ${currentQ.questionNum}`} className="w-full rounded-xl border border-[#e5eeff]" />
                               )}
