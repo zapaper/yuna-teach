@@ -1,0 +1,93 @@
+import Link from "next/link";
+
+const faqs = [
+  {
+    q: "What is MarkForYou?",
+    a: "MarkForYou is an AI-powered marking assistant for primary school students in Singapore. Parents upload past-year exam papers, and our AI marks handwritten answers, generates quizzes, and tracks progress — so you can stop marking and start coaching.",
+  },
+  {
+    q: "Which subjects and levels are supported?",
+    a: "We support Mathematics, Science, and English for Primary 3 to Primary 6, aligned to the Singapore MOE syllabus.",
+  },
+  {
+    q: "How does AI marking work?",
+    a: "Students complete quizzes on their device by writing answers on a digital canvas (for open-ended questions) or tapping options (for MCQ). Our AI reads their handwriting, detects their answers, and compares against the answer key — all within seconds.",
+  },
+  {
+    q: "Is the AI marking accurate?",
+    a: "Our AI achieves high accuracy for most question types. For open-ended questions, parents can review and adjust marks on the review page. We continuously improve the AI based on feedback.",
+  },
+  {
+    q: "How much does it cost?",
+    a: "MarkForYou is currently FREE during our beta period. We want to make sure it works well for families before introducing any pricing.",
+  },
+  {
+    q: "How do I get started?",
+    a: "Sign up as a parent, add your child as a student, and generate your first quiz — it takes less than 2 minutes. No credit card required.",
+  },
+  {
+    q: "Where do the questions come from?",
+    a: "Questions are sourced from top Singapore primary schools' past-year exam papers. We have over 3,000 questions across Math, Science, and English, and we add more regularly.",
+  },
+  {
+    q: "Can my child practise specific weak topics?",
+    a: "Yes! The Focused Practice feature lets you create a 10-question test on any specific topic your child needs to work on. The system also auto-detects weak topics from quiz results.",
+  },
+  {
+    q: "Does my child need their own device?",
+    a: "Your child can use any device with a browser — phone, tablet, or computer. A tablet with a stylus works best for handwriting questions, but a finger on a phone screen works too.",
+  },
+  {
+    q: "How is my child's data protected?",
+    a: "We take data privacy seriously. Student data is only accessible to the linked parent account. We do not share or sell any personal information.",
+  },
+];
+
+export default function FAQPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#eff6ff] to-white">
+      {/* Header */}
+      <header className="px-6 py-5 flex items-center justify-between max-w-4xl mx-auto">
+        <Link href="/" className="font-headline text-xl font-extrabold text-[#003366]">
+          MarkForYou
+        </Link>
+        <Link href="/signup" className="px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold hover:bg-[#001e40] transition-colors">
+          Sign Up Free
+        </Link>
+      </header>
+
+      {/* Content */}
+      <main className="max-w-3xl mx-auto px-6 py-10 lg:py-16">
+        <div className="text-center mb-10 lg:mb-14">
+          <h1 className="font-headline text-3xl lg:text-4xl font-extrabold text-[#001e40] mb-3">
+            Frequently Asked Questions
+          </h1>
+          <p className="text-lg text-[#43474f]">Everything you need to know about MarkForYou</p>
+        </div>
+
+        <div className="space-y-4">
+          {faqs.map((faq, i) => (
+            <details key={i} className="group bg-white rounded-2xl border border-[#e5eeff] shadow-sm">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none font-headline text-base lg:text-lg font-bold text-[#001e40] hover:text-[#003366] transition-colors">
+                {faq.q}
+                <span className="material-symbols-outlined text-[#43474f] group-open:rotate-180 transition-transform shrink-0">expand_more</span>
+              </summary>
+              <div className="px-6 pb-5 -mt-1">
+                <p className="text-[#43474f] leading-relaxed">{faq.a}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="mt-12 text-center">
+          <p className="text-[#43474f] mb-4">Still have questions?</p>
+          <a href="mailto:peter.lzy@gmail.com" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition-colors">
+            <span className="material-symbols-outlined text-lg">mail</span>
+            Contact Us
+          </a>
+        </div>
+      </main>
+    </div>
+  );
+}

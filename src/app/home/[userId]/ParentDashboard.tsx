@@ -1517,6 +1517,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <span className="block text-[10px] text-slate-400 font-semibold uppercase tracking-wide">Beta</span>
             </div>
           </button>
+          <a href="/faq" target="_blank" rel="noopener" className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
+            <span className="material-symbols-outlined text-xl">help</span>
+            <span>FAQ</span>
+          </a>
           {hasAvatar && (
             <div className="pt-4 mt-2 border-t border-[#c3c6d1]/40 space-y-1">
               <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Admin</p>

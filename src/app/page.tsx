@@ -235,6 +235,38 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── FAQ ── */}
+        <section className="py-10 lg:py-14 bg-white px-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-8 lg:mb-10">
+              <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">FAQ</span>
+              <h2 className="font-headline text-3xl lg:text-4xl font-extrabold text-primary">Common questions</h2>
+            </div>
+            <div className="space-y-3">
+              {[
+                { q: "How much does it cost?", a: "MarkForYou is currently FREE during our beta period." },
+                { q: "Which subjects are supported?", a: "Mathematics, Science, and English for Primary 3 to Primary 6, aligned to the Singapore MOE syllabus." },
+                { q: "How does AI marking work?", a: "Students write answers on a digital canvas or tap MCQ options. Our AI reads their handwriting and marks against the answer key within seconds." },
+              ].map((faq, i) => (
+                <details key={i} className="group bg-surface-container-lowest rounded-2xl border border-surface-container-high shadow-sm">
+                  <summary className="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer list-none font-headline text-base lg:text-lg font-bold text-primary hover:text-tertiary transition-colors">
+                    {faq.q}
+                    <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform shrink-0">expand_more</span>
+                  </summary>
+                  <div className="px-6 pb-4 -mt-1">
+                    <p className="text-on-surface-variant leading-relaxed">{faq.a}</p>
+                  </div>
+                </details>
+              ))}
+            </div>
+            <div className="text-center mt-6">
+              <Link href="/faq" className="text-sm font-bold text-tertiary hover:text-primary transition-colors">
+                View all FAQs &rarr;
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* ── Social Proof ── */}
         <section className="py-10 lg:py-14 bg-surface-container-lowest px-6">
           <div className="max-w-5xl mx-auto">
