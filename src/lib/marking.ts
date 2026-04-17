@@ -2247,19 +2247,20 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         const realSubs = subparts?.filter(sp => !sp.label.startsWith("_")) ?? [];
         const hasDrawable = subparts?.some(sp => sp.label === "_drawable") ?? false;
 
-        // For drawable diagram OEQ: pre-check for blue ink using composite first (blue-on-white),
-        // then fall back to ink-only PNG with correct mime type.
+        // For drawable diagram OEQ: check the INK-ONLY layer first (transparent bg
+        // with only student strokes). The composite image contains the diagram which
+        // may have marks the AI mistakes for handwriting.
         if (hasDrawable && realSubs.length === 0) {
           let inkFound = true; // default to true if check fails
           try {
-            const pagePath = path.join(subDir, `page_${i}.jpg`);
-            const pageBuffer = await fs.readFile(pagePath);
-            inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/jpeg");
+            const inkPath = path.join(subDir, `page_${i}_ink.png`);
+            const inkBuffer = await fs.readFile(inkPath);
+            inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/png");
           } catch {
             try {
-              const inkPath = path.join(subDir, `page_${i}_ink.png`);
-              const inkBuffer = await fs.readFile(inkPath);
-              inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/png");
+              const pagePath = path.join(subDir, `page_${i}.jpg`);
+              const pageBuffer = await fs.readFile(pagePath);
+              inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-drawable-Q${q.questionNum}`, "image/jpeg");
             } catch {
               inkFound = false;
             }

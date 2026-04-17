@@ -1551,7 +1551,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     </div>
 
                     {/* Quiz question text */}
-                    {isQuiz && currentQ.transcribedStem ? (
+                    {isQuiz && (currentQ.transcribedStem || (currentQ.transcribedSubparts as { label: string }[] | null)?.some(s => !s.label.startsWith("_"))) ? (
                       <div className="space-y-3 mb-5">
                         {(() => {
                           type SubpartEntry = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
