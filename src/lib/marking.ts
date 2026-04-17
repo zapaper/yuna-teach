@@ -1979,16 +1979,15 @@ export async function markQuizPaper(paperId: string): Promise<void> {
       }
     }
 
-    // Separate MCQ (already marked) and OEQ (need AI marking)
-    const isMcqAnswer = (ans: string | null) => {
-      const n = (ans ?? "").trim().replace(/[().]/g, "").trim();
-      if (n === "1" || n === "2" || n === "3" || n === "4") return true;
-      const parts = n.split(/\s+or\s+/).map(p => p.trim());
-      if (parts.length > 1 && parts.every(p => p === "1" || p === "2" || p === "3" || p === "4")) return true;
-      return false;
+    // Separate MCQ (has options) and OEQ (need AI marking).
+    // Use options-based classification (same as quiz page) — NOT answer format.
+    const hasOpts = (q: typeof paper.questions[0]) => {
+      const opts = q.transcribedOptions as unknown[] | null;
+      const imgs = q.transcribedOptionImages as unknown[] | null;
+      return (Array.isArray(opts) && opts.some(o => !!o)) || (Array.isArray(imgs) && imgs.some(o => !!o));
     };
-    const mcqQuestions = paper.questions.filter(q => isMcqAnswer(q.answer) || typedSectionQIds.has(q.id));
-    const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");
+    const mcqQuestions = paper.questions.filter(q => hasOpts(q) || typedSectionQIds.has(q.id));
+    const oeqQuestions = paper.questions.filter(q => !hasOpts(q) && !typedSectionQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");
 
     // English-only typed OEQ sections (synthesis, comprehension OEQ) — these store the
     // student's answer as typed text in studentAnswer. All other OEQ questions (math,
@@ -2010,7 +2009,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     }
 
     // Re-score MCQ questions (in case answer keys changed)
-    for (const q of paper.questions.filter(q2 => isMcqAnswer(q2.answer))) {
+    for (const q of paper.questions.filter(q2 => hasOpts(q2))) {
       const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
       const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
       // Support "X or Y" answers — student is correct if their answer matches any option
