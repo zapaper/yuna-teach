@@ -50,6 +50,10 @@ const faqs = [
     a: "Yes, this feature will be coming soon.",
   },
   {
+    q: "[Spelling] What is this function for?",
+    a: "Both student and parent can scan their latest spelling/\u542C\u5199. It will generate the spelling list, provide the meaning, example, and pinyin. Students can test themselves without bothering their parents.",
+  },
+  {
     q: "Can my child practise specific weak topics?",
     a: "Yes! The Focused Practice feature lets you create a 10-question test on any specific topic your child needs to work on. The system also auto-detects weak topics from quiz results.",
   },
