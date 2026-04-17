@@ -2340,9 +2340,26 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           }
         }
 
-        // Try individual subpart images first
+        // Try individual subpart images first — with per-subpart ink check
+        const blankSubparts = new Set<string>();
         if (realSubs.length > 0) {
           for (const sp of realSubs) {
+            // Check ink layer first — skip blank canvases
+            let spHasInk = true;
+            try {
+              const spInkPath = path.join(subDir, `page_${i}_${sp.label}_ink.png`);
+              const spInkBuffer = await fs.readFile(spInkPath);
+              spHasInk = hasOpaquePixels(spInkBuffer);
+            } catch {
+              // No ink file — check composite as fallback
+              spHasInk = true;
+            }
+            if (!spHasInk) {
+              console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): no ink — blank`);
+              blankSubparts.add(sp.label);
+              parts.push({ text: `Student's handwritten answer for part (${sp.label}): [BLANK — no answer written]` });
+              continue;
+            }
             try {
               const spPath = path.join(subDir, `page_${i}_${sp.label}.jpg`);
               const spBuffer = await fs.readFile(spPath);
@@ -2353,6 +2370,19 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               // Individual subpart file not found
             }
           }
+        }
+        // If ALL subparts are blank (no ink in any), skip AI marking entirely
+        if (realSubs.length > 0 && blankSubparts.size === realSubs.length) {
+          console.log(`[quiz-marking] Q${q.questionNum}: all ${realSubs.length} subparts blank — awarding 0`);
+          const blankNotes = realSubs.map(sp => `(${sp.label}) No answer provided.`).join(" ");
+          const blankStudent = realSubs.map(sp => `(${sp.label}) `).join("\n");
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { marksAwarded: 0, studentAnswer: blankStudent, markingNotes: blankNotes },
+            })
+          );
+          continue;
         }
         // Fallback: try combined image
         if (!hasSubmission) {
