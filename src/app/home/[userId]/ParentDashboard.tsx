@@ -213,6 +213,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [assignMode, setAssignMode] = useState<"quiz" | "focused">("quiz");
   const [focusedTopic, setFocusedTopic] = useState("");
+  const [customTopic, setCustomTopic] = useState("");
+  const [customActing, setCustomActing] = useState(false);
+  const [customError, setCustomError] = useState("");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -636,9 +639,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       .filter(t => t.subject.toLowerCase().includes(focusedSubject === "math" ? "math" : "science") && t.pct < 65)
       .slice(0, 3);
     const targetStudentId = selectedStudentId ?? user.linkedStudents[0]?.id;
-    const [customTopic, setCustomTopic] = React.useState("");
-    const [customActing, setCustomActing] = React.useState(false);
-    const [customError, setCustomError] = React.useState("");
+    // customTopic, customActing, customError hoisted to parent component
     async function handleCustom() {
       const topic = customTopic.trim();
       if (!topic) return;
