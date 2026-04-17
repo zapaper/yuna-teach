@@ -593,13 +593,26 @@ function ExamReviewContent({ id }: { id: string }) {
     const found: { label: string; start: number; matchStart: number }[] = [];
     for (const label of labels) {
       const lbl = label.toLowerCase();
-      // Try "(label)" first, then bare label
+      // Try patterns in order of specificity:
+      // 1. "(label)"  e.g. "(a)"
+      // 2. "Nlabel:"  e.g. "36a:" — question-number prefixed
+      // 3. bare complex labels like "a(i)"
       const bracketed = `(${lbl})`;
       let pos = lower.indexOf(bracketed);
       if (pos !== -1) {
         let end = pos + bracketed.length;
         while (end < text.length && text[end] === " ") end++;
         found.push({ label: lbl, start: end, matchStart: pos });
+        continue;
+      }
+      // Try "Nlabel:" pattern (e.g. "36a:", "14b:")
+      const numPrefixRe = new RegExp(`\\d+${lbl}\\s*:`, "i");
+      const numMatch = lower.match(numPrefixRe);
+      if (numMatch && numMatch.index !== undefined) {
+        const end = numMatch.index + numMatch[0].length;
+        let start = end;
+        while (start < text.length && text[start] === " ") start++;
+        found.push({ label: lbl, start, matchStart: numMatch.index });
         continue;
       }
       // For complex labels like "a(i)", find them directly
@@ -1725,6 +1738,13 @@ function ExamReviewContent({ id }: { id: string }) {
                                         </div>
                                       );
                                     })}
+                                    {/* Fallback: show full raw answer when per-part parsing found nothing */}
+                                    {!hasPartAnswers && currentQ.answer && (
+                                      <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-[#43474f] opacity-60 block mb-0.5">Correct Answer</span>
+                                        {currentQ.answer.replace(/\s*\|\s*/g, "\n")}
+                                      </div>
+                                    )}
                                     {/* Answer diagram (if any) — per-part text answers are already shown above */}
                                     {currentQ.answerImageData && (
                                       <div className="mt-3">
