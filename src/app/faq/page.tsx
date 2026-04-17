@@ -15,7 +15,7 @@ const faqs = [
   },
   {
     q: "Is the AI marking accurate?",
-    a: "Our AI achieves high accuracy for most question types. For open-ended questions, parents can review and adjust marks on the review page. We continuously improve the AI based on feedback.",
+    a: "Our AI achieves high accuracy for most question types, and even considers alternative solutions if the solution adheres to MOE scoring rubrics. Nonetheless, parents can review and adjust marks on the review page. We continuously improve the AI based on feedback.",
   },
   {
     q: "How much does it cost?",
