@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: "How does AI marking work?",
-    a: "Students complete quizzes on their device by writing answers on a digital canvas (for open-ended questions) or tapping options (for MCQ). Our AI reads their handwriting, detects their answers, and compares against the answer key — all within seconds.",
+    a: "Students write answers on a digital canvas or tap MCQ options. Our AI reads their handwriting and marks within seconds. It will give partial marks, as well as accept alternative solutions if the solution adheres to MOE scoring rubrics.",
   },
   {
     q: "Is the AI marking accurate?",

@@ -246,7 +246,7 @@ export default function HomePage() {
               {[
                 { q: "What subject and level does this cover?", a: "MarkForYou currently covers Primary 4\u20136 English, Math and Science, aligned to MOE syllabus." },
                 { q: "How much does it cost?", a: "MarkForYou is currently FREE during our beta period." },
-                { q: "How does AI marking work?", a: "Students write answers on a digital canvas or tap MCQ options. Our AI reads their handwriting and marks against the answer key within seconds." },
+                { q: "How does AI marking work?", a: "Students write answers on a digital canvas or tap MCQ options. Our AI reads their handwriting and marks within seconds. It will give partial marks, as well as accept alternative solutions if the solution adheres to MOE scoring rubrics." },
               ].map((faq, i) => (
                 <details key={i} className="group bg-surface-container-lowest rounded-2xl border border-surface-container-high shadow-sm">
                   <summary className="flex items-center justify-between gap-4 px-6 py-4 cursor-pointer list-none font-headline text-base lg:text-lg font-bold text-primary hover:text-tertiary transition-colors">
