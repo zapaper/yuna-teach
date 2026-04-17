@@ -218,6 +218,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [customError, setCustomError] = useState("");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
   const [showDiagnosticWelcome, setShowDiagnosticWelcome] = useState(() => {
     if (!diagnosticWelcome) return false;
@@ -1019,6 +1020,74 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     </div>
   );
 
+  const SettingsModal = () => {
+    if (!showSettings) return null;
+    const student = selectedStudent;
+    if (!student) return null;
+    const sSettings = (student.settings ?? {}) as Record<string, unknown>;
+    const skipReviewPerfect = sSettings.skipReviewPerfect === true;
+    const studentQuizMode = (sSettings.studentQuizMode as string) ?? "all";
+
+    async function updateStudentSetting(key: string, value: unknown) {
+      await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: student!.id, settings: { [key]: value } }),
+      });
+      // Update local state
+      student!.settings = { ...(student!.settings ?? {}), [key]: value } as typeof student.settings;
+      setSettingsTick(t => t + 1);
+    }
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-end lg:items-center justify-center z-[60] p-4" onClick={() => setShowSettings(false)}>
+        <div className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+          <h3 className="font-headline text-lg font-extrabold text-[#001e40] mb-1">Settings</h3>
+          <p className="text-sm text-[#43474f] mb-5">For {student.name}</p>
+
+          {/* Skip review for 100% */}
+          <div className="flex items-center justify-between py-3 border-b border-[#e5eeff]">
+            <div>
+              <p className="text-sm font-bold text-[#001e40]">Skip review for 100% score</p>
+              <p className="text-xs text-[#43474f]">Auto-release papers with perfect score</p>
+            </div>
+            <button
+              onClick={() => updateStudentSetting("skipReviewPerfect", !skipReviewPerfect)}
+              className={`w-12 h-7 rounded-full transition-colors relative ${skipReviewPerfect ? "bg-[#006c49]" : "bg-[#c3c6d1]"}`}
+            >
+              <div className={`w-5 h-5 rounded-full bg-white shadow absolute top-1 transition-transform ${skipReviewPerfect ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+          </div>
+
+          {/* Student self-learning */}
+          <div className="py-3">
+            <p className="text-sm font-bold text-[#001e40] mb-1">Student self-learning</p>
+            <p className="text-xs text-[#43474f] mb-3">Control whether the student can create their own quizzes</p>
+            <div className="space-y-2">
+              {([
+                { key: "none", label: "Student cannot create quizzes" },
+                { key: "oeq-only", label: "Student can create MCQ+OEQ quizzes only" },
+                { key: "all", label: "Student can create MCQ or MCQ+OEQ quizzes" },
+              ] as const).map(opt => (
+                <button
+                  key={opt.key}
+                  onClick={() => updateStudentSetting("studentQuizMode", opt.key)}
+                  className={`w-full text-left px-4 py-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                    studentQuizMode === opt.key ? "border-[#003366] bg-[#eff4ff] text-[#003366]" : "border-[#c3c6d1] text-[#43474f]"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button onClick={() => setShowSettings(false)} className="w-full mt-4 py-3 rounded-xl bg-[#003366] text-white font-bold">Done</button>
+        </div>
+      </div>
+    );
+  };
+
   const AdminNotifModal = () => !showAdminNotifs || adminNotifs.length === 0 ? null : (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] p-4">
       <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
@@ -1346,6 +1415,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {FocusedModal()}
       {QuizModal()}
       <FeedbackModal />
+      <SettingsModal />
       <AdminNotifModal />
 
       {/* Link Student Modal */}
@@ -1506,10 +1576,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
         {/* Bottom links */}
         <div className="pt-6 border-t border-[#c3c6d1]/40 space-y-1">
-          <Link href="/" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
+          <button onClick={() => setShowSettings(true)} className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
             <span className="material-symbols-outlined text-xl">settings</span>
             <span>Settings</span>
-          </Link>
+          </button>
           <button onClick={() => setShowFeedback(true)} className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
             <span className="material-symbols-outlined text-xl">feedback</span>
             <div className="text-left">

@@ -1542,6 +1542,17 @@ export async function markExamPaper(paperId: string): Promise<void> {
         console.error(`[marking] Auto-summary failed for ${paperId}:`, err);
       }
     }
+
+    // Auto-release if 100% score and student has skipReviewPerfect enabled
+    const examTotalAvailable = [...validResults.values()].reduce((s, r) => s + (r.marksAvailable ?? 0), 0);
+    if (examTotalAvailable > 0 && totalAwarded >= examTotalAvailable && paper.assignedToId) {
+      const student = await prisma.user.findUnique({ where: { id: paper.assignedToId }, select: { settings: true } });
+      const sSettings = (student?.settings ?? {}) as Record<string, unknown>;
+      if (sSettings.skipReviewPerfect === true) {
+        await prisma.examPaper.update({ where: { id: paperId }, data: { markingStatus: "released" } });
+        console.log(`[marking] Paper ${paperId} auto-released (100% score, skipReviewPerfect=true)`);
+      }
+    }
   } catch (err) {
     console.error(`[marking] markExamPaper failed for ${paperId}:`, err);
     await prisma.examPaper.update({
@@ -2580,6 +2591,17 @@ Return ONLY valid JSON:
 
     // Generate feedback
     await generateFeedbackSummary(paperId);
+
+    // Auto-release if 100% score and student has skipReviewPerfect enabled
+    const totalAvailable = paper.questions.reduce((sum, q) => sum + (q.marksAvailable ?? 0), 0);
+    if (totalAvailable > 0 && totalAwarded >= totalAvailable && paper.assignedToId) {
+      const student = await prisma.user.findUnique({ where: { id: paper.assignedToId }, select: { settings: true } });
+      const settings = (student?.settings ?? {}) as Record<string, unknown>;
+      if (settings.skipReviewPerfect === true) {
+        await prisma.examPaper.update({ where: { id: paperId }, data: { markingStatus: "released" } });
+        console.log(`[quiz-marking] Paper ${paperId} auto-released (100% score, skipReviewPerfect=true)`);
+      }
+    }
 
     console.log(`[quiz-marking] Paper ${paperId} done. Score: ${totalAwarded}`);
   } catch (err) {
