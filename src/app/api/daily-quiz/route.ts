@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-/** MCQ = question has transcribed options (text or images). Answer format is irrelevant. */
+/** MCQ = question has transcribed options (text or images).
+ *  An array of 4 entries (even empty) means MCQ — the extraction created option slots. */
 function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
   const opts = q.transcribedOptions;
   const imgs = q.transcribedOptionImages;
-  return (Array.isArray(opts) && opts.some(o => !!o)) || (Array.isArray(imgs) && imgs.some(o => !!o));
+  if (Array.isArray(opts) && opts.length === 4) return true;
+  if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+  return false;
 }
 
 /** Check if the answer VALUE is a single MCQ digit (1-4). Used only for English quiz

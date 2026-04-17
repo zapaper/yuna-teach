@@ -40,11 +40,14 @@ type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
 
 /* ────────────── helpers ────────────── */
 
-/** MCQ = question has transcribed options (text or images). Answer format is irrelevant. */
+/** MCQ = question has transcribed options (text or images).
+ *  An array of 4 entries (even empty) means MCQ — the extraction created option slots. */
 function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
   const opts = q.transcribedOptions;
   const imgs = q.transcribedOptionImages;
-  return (Array.isArray(opts) && opts.some((o: unknown) => !!o)) || (Array.isArray(imgs) && imgs.some((o: unknown) => !!o));
+  if (Array.isArray(opts) && opts.length === 4) return true;
+  if (Array.isArray(imgs) && imgs.some((o: unknown) => !!o)) return true;
+  return false;
 }
 
 /** Render __underline__ markup */

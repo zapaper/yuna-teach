@@ -1984,7 +1984,9 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     const hasOpts = (q: typeof paper.questions[0]) => {
       const opts = q.transcribedOptions as unknown[] | null;
       const imgs = q.transcribedOptionImages as unknown[] | null;
-      return (Array.isArray(opts) && opts.some(o => !!o)) || (Array.isArray(imgs) && imgs.some(o => !!o));
+      if (Array.isArray(opts) && opts.length === 4) return true;
+      if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+      return false;
     };
     const mcqQuestions = paper.questions.filter(q => hasOpts(q) || typedSectionQIds.has(q.id));
     const oeqQuestions = paper.questions.filter(q => !hasOpts(q) && !typedSectionQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");

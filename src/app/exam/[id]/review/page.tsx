@@ -532,7 +532,7 @@ function ExamReviewContent({ id }: { id: string }) {
   // For quiz OEQ: determine submission page index for the current question.
   // Prefer stored oeqPageMap (set at submission time) to avoid mismatches when
   // MCQ/OEQ classification logic changes between quiz-taking and review.
-  const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.some(o => !!o)) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o));
+  const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o));
   const allOeqQuestions = data.questions.filter(q => !hasOpts(q));
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
   // Use stored page map when available (set at submission time, immune to code changes).
