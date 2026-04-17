@@ -1590,9 +1590,16 @@ function ExamReviewContent({ id }: { id: string }) {
                           const toSrc = (b64: string) => b64.startsWith("data:") ? b64 : `data:image/jpeg;base64,${b64}`;
                           return (
                             <>
-                              <h3 className="font-headline text-lg lg:text-xl font-semibold text-[#001e40] leading-relaxed whitespace-pre-wrap">
-                                {renderUnderline(currentQ.transcribedStem!)}
-                              </h3>
+                              {currentQ.transcribedStem && (
+                                <h3 className="font-headline text-lg lg:text-xl font-semibold text-[#001e40] leading-relaxed whitespace-pre-wrap">
+                                  {renderUnderline(currentQ.transcribedStem)}
+                                </h3>
+                              )}
+                              {/* Show question image when stem is missing (image-only questions) */}
+                              {!currentQ.transcribedStem && currentQ.imageData && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={currentQ.imageData} alt={`Question ${currentQ.questionNum}`} className="w-full rounded-xl border border-[#e5eeff]" />
+                              )}
                               {currentQ.diagramImageData && !drawableDiagram && (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
