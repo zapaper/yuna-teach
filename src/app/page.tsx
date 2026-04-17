@@ -79,7 +79,7 @@ export default function HomePage() {
                 className="w-full h-full object-cover"
                 controls
                 preload="metadata"
-                preload="auto"
+                poster="/democover.png"
               >
                 <source src="/MFY V3.mp4" type="video/mp4" />
               </video>
