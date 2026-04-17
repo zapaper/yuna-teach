@@ -535,15 +535,11 @@ function ExamReviewContent({ id }: { id: string }) {
   const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.some(o => !!o)) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o));
   const allOeqQuestions = data.questions.filter(q => !hasOpts(q));
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
-  // Use stored page map if available (set at submission time, immune to code changes).
-  // For old quizzes without stored map, fall back to answer-based OEQ index (old logic)
-  // since those quizzes were submitted with the old isMcq(answer) classification.
-  const isMcqByAnswer = (ans: string | null) => { const n = (ans ?? "").trim().replace(/[().]/g, "").trim(); return n === "1" || n === "2" || n === "3" || n === "4"; };
-  const legacyOeqQuestions = data.questions.filter(q => !hasOpts(q) && !isMcqByAnswer(q.answer));
-  const legacyOeqIndex = currentQ ? legacyOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
+  // Use stored page map when available (set at submission time, immune to code changes).
+  // Otherwise fall back to calculated OEQ index using current options-based classification.
   const currentQSubmissionPage = currentQ && oeqPageMap && currentQ.id in oeqPageMap
     ? oeqPageMap[currentQ.id]
-    : oeqPageMap ? currentQOeqIndex : (legacyOeqIndex >= 0 ? legacyOeqIndex : currentQOeqIndex);
+    : currentQOeqIndex;
 
   const baseSubmissionPage = currentQ ? getSubmissionPage(currentQ.pageIndex) : 0;
   const effectiveSubmissionPage = submissionPageOverride ?? baseSubmissionPage;
