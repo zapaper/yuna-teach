@@ -8,7 +8,11 @@ function normalizeMcqAnswer(ans: string | null): string {
 
 function isMcq(answer: string | null): boolean {
   const n = normalizeMcqAnswer(answer);
-  return n === "1" || n === "2" || n === "3" || n === "4";
+  if (n === "1" || n === "2" || n === "3" || n === "4") return true;
+  // Handle "X or Y" / "X/Y" patterns where all parts are MCQ digits (e.g. "3 or 4", "1/3")
+  const parts = n.split(/\s+or\s+|\//).map(p => p.trim());
+  if (parts.length > 1 && parts.every(p => p === "1" || p === "2" || p === "3" || p === "4")) return true;
+  return false;
 }
 
 export async function POST(request: NextRequest) {

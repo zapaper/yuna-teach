@@ -291,7 +291,13 @@ Return ONLY valid JSON (no markdown fences):
 /** Check if a question is MCQ based on its expected answer */
 function isMcqAnswer(answer: string | null): boolean {
   if (!answer) return false;
-  return /^\(?[1-4A-Da-d]\)?$/.test(answer.trim());
+  const a = answer.trim();
+  if (/^\(?[1-4A-Da-d]\)?$/.test(a)) return true;
+  // Handle "X or Y" / "X/Y" (e.g. "3 or 4", "1/3", "(1) or (3)")
+  const normalized = a.replace(/[().]/g, "").trim();
+  const parts = normalized.split(/\s+or\s+|\//).map(p => p.trim());
+  if (parts.length > 1 && parts.every(p => /^[1-4A-Da-d]$/.test(p))) return true;
+  return false;
 }
 
 /** Grammar Cloze and Comprehension Cloze answers are words/letters, never MCQ choices.
@@ -1959,7 +1965,10 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     // Separate MCQ (already marked) and OEQ (need AI marking)
     const isMcqAnswer = (ans: string | null) => {
       const n = (ans ?? "").trim().replace(/[().]/g, "").trim();
-      return n === "1" || n === "2" || n === "3" || n === "4";
+      if (n === "1" || n === "2" || n === "3" || n === "4") return true;
+      const parts = n.split(/\s+or\s+|\//).map(p => p.trim());
+      if (parts.length > 1 && parts.every(p => p === "1" || p === "2" || p === "3" || p === "4")) return true;
+      return false;
     };
     const mcqQuestions = paper.questions.filter(q => isMcqAnswer(q.answer) || typedSectionQIds.has(q.id));
     const oeqQuestions = paper.questions.filter(q => !isMcqAnswer(q.answer) && !typedSectionQIds.has(q.id) && q.studentAnswer !== "__SKIPPED__");
@@ -1987,7 +1996,9 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     for (const q of paper.questions.filter(q2 => isMcqAnswer(q2.answer))) {
       const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
       const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
-      const isCorrect = studentAns !== "" && studentAns === correctAns;
+      // Support "X or Y" / "X/Y" answers — student is correct if their answer matches any option
+      const acceptableAnswers = correctAns.split(/\s+or\s+|\//).map(p => p.trim());
+      const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
       const marks = isCorrect ? (q.marksAvailable ?? 1) : 0;
       if (q.marksAwarded !== marks) {
         await prisma.examQuestion.update({
