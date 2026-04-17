@@ -837,12 +837,15 @@ export async function POST(request: NextRequest) {
   }
 
   // ── MATH / SCIENCE QUIZ PATH ───────────────────────────────────────────
-  // Separate fresh (not yet seen) from used questions
-  const freshQuestions = allQuestions.filter(q => !usedSourceIds.has(q.id));
-  const usedQuestions  = allQuestions.filter(q =>  usedSourceIds.has(q.id));
-
-  const { mcqPool: mcqFresh, oeqPool: oeqFresh } = buildPools(freshQuestions);
-  const { mcqPool: mcqUsed,  oeqPool: oeqUsed  } = buildPools(usedQuestions);
+  // Build pools from ALL questions first so multi-part OEQ groups (e.g. 6ab + 6c)
+  // stay together. Then split into fresh/used at the pool level.
+  const { mcqPool: allMcqPool, oeqPool: allOeqPool } = buildPools(allQuestions);
+  // MCQ: single question per pool entry
+  const mcqFresh = allMcqPool.filter(q => !usedSourceIds.has(q.id));
+  const mcqUsed  = allMcqPool.filter(q =>  usedSourceIds.has(q.id));
+  // OEQ: group is "fresh" only if NO question in the group has been used
+  const oeqFresh = allOeqPool.filter(g => !g.some(q => usedSourceIds.has(q.id)));
+  const oeqUsed  = allOeqPool.filter(g =>  g.some(q => usedSourceIds.has(q.id)));
   shuffle(mcqFresh); shuffle(oeqFresh);
   shuffle(mcqUsed);  shuffle(oeqUsed);
 
@@ -861,10 +864,11 @@ export async function POST(request: NextRequest) {
       where: questionWhere(prevLevelFilter, null),
       select: questionSelectLight,
     });
-    const prevFresh = prevLevelQuestions.filter(q => !usedSourceIds.has(q.id));
-    const prevUsed  = prevLevelQuestions.filter(q =>  usedSourceIds.has(q.id));
-    const { mcqPool: mcqPF, oeqPool: oeqPF } = buildPools(prevFresh);
-    const { mcqPool: mcqPU, oeqPool: oeqPU } = buildPools(prevUsed);
+    const { mcqPool: allPrevMcq, oeqPool: allPrevOeq } = buildPools(prevLevelQuestions);
+    const mcqPF = allPrevMcq.filter(q => !usedSourceIds.has(q.id));
+    const mcqPU = allPrevMcq.filter(q =>  usedSourceIds.has(q.id));
+    const oeqPF = allPrevOeq.filter(g => !g.some(q => usedSourceIds.has(q.id)));
+    const oeqPU = allPrevOeq.filter(g =>  g.some(q => usedSourceIds.has(q.id)));
     shuffle(mcqPF); shuffle(oeqPF);
     shuffle(mcqPU); shuffle(oeqPU);
     mcqFreshPool = [...mcqFreshPool, ...mcqPF];

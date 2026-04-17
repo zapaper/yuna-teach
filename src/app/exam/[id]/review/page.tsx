@@ -6,6 +6,35 @@ import { jsPDF } from "jspdf";
 import FormattedText from "@/components/FormattedText";
 import React from "react";
 
+/** Submission image with spinner while loading */
+function SubmissionImage({ src, alt, className, aspectRatio, onError }: {
+  src: string; alt: string; className?: string; aspectRatio?: string;
+  onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
+}) {
+  const [loading, setLoading] = useState(true);
+  // Reset loading when src changes
+  const prevSrc = React.useRef(src);
+  if (prevSrc.current !== src) { prevSrc.current = src; if (!loading) setLoading(true); }
+  return (
+    <div className="relative" style={aspectRatio ? { aspectRatio } : undefined}>
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-slate-50/80 z-10 rounded-2xl">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" />
+        </div>
+      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={src}
+        src={src}
+        alt={alt}
+        className={className}
+        onLoad={() => setLoading(false)}
+        onError={(e) => { setLoading(false); onError?.(e); }}
+      />
+    </div>
+  );
+}
+
 function renderUnderline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
   const regex = /__([^_]+)__/g;
@@ -1605,12 +1634,12 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const spDefault = sp.diagramBase64 ? 340 : 260;
                                             const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 600);
                                             return (
-                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white" style={{ aspectRatio: `800 / ${spVisible * 2}` }}>
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img
+                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white">
+                                                <SubmissionImage
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="w-full h-auto block"
+                                                  aspectRatio={`800 / ${spVisible * 2}`}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
                                                     if (sp === realSubs[0] && !img.dataset.fallback) {
@@ -1684,12 +1713,12 @@ function ExamReviewContent({ id }: { id: string }) {
                           return (
                             <div>
                               <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
-                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white" style={{ aspectRatio: `400 / ${visibleH}` }}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white">
+                                <SubmissionImage
                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
                                   alt={`Written answer for Q${currentQ.questionNum}`}
                                   className="w-full h-auto block"
+                                  aspectRatio={`400 / ${visibleH}`}
                                 />
                               </div>
                             </div>
