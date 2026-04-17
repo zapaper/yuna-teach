@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-function normalizeMcqAnswer(ans: string | null): string {
-  if (!ans) return "";
-  return ans.trim().replace(/[().]/g, "").trim();
+/** MCQ = question has transcribed options (text or images). Answer format is irrelevant. */
+function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
+  const opts = q.transcribedOptions;
+  const imgs = q.transcribedOptionImages;
+  return (Array.isArray(opts) && opts.some(o => !!o)) || (Array.isArray(imgs) && imgs.some(o => !!o));
 }
 
+/** Check if the answer VALUE is a single MCQ digit (1-4). Used only for English quiz
+ *  section classification where the same section may have both MCQ and written answers. */
 function isMcq(answer: string | null): boolean {
-  const n = normalizeMcqAnswer(answer);
-  if (n === "1" || n === "2" || n === "3" || n === "4") return true;
-  // Handle "X or Y" patterns where all parts are MCQ digits (e.g. "3 or 4")
-  // Do NOT split on "/" — it catches fractions like "1/4", "2/3"
-  const parts = n.split(/\s+or\s+/).map(p => p.trim());
-  if (parts.length > 1 && parts.every(p => p === "1" || p === "2" || p === "3" || p === "4")) return true;
-  return false;
+  const n = (answer ?? "").trim().replace(/[().]/g, "").trim();
+  return n === "1" || n === "2" || n === "3" || n === "4";
 }
 
 export async function POST(request: NextRequest) {
@@ -205,6 +204,8 @@ export async function POST(request: NextRequest) {
     pageIndex: true,
     transcribedStem: true,
     transcribedSubparts: true,
+    transcribedOptions: true,
+    transcribedOptionImages: true,
     // diagramImageData needed for mergeOeqGroup (Math/Science only)
     ...(subject !== "english" ? { diagramImageData: true } : {}),
     diagramBounds: true,
@@ -255,7 +256,7 @@ export async function POST(request: NextRequest) {
     // ── MCQ pool: deduplicate by stem ──────────────────────────────────────
     const mcqStemMap = new Map<string, Q>();
     for (const q of questions) {
-      if (!isMcq(q.answer)) continue;
+      if (!hasOptions(q)) continue;
       const stem = (q.transcribedStem ?? "").trim();
       if (!stem) continue;
       mcqStemMap.set(stem, q);
@@ -264,7 +265,7 @@ export async function POST(request: NextRequest) {
     // ── OEQ pool: group by (paperId, baseNum), deduplicate by lead stem ────
     const oeqGroupMap = new Map<string, Q[]>();
     for (const q of questions) {
-      if (isMcq(q.answer)) continue;
+      if (hasOptions(q)) continue;
       const stem = (q.transcribedStem ?? "").trim();
       if (!stem) continue;
       const key = `${q.examPaperId}:${baseNum(q.questionNum)}`;

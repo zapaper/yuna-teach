@@ -528,7 +528,8 @@ function ExamReviewContent({ id }: { id: string }) {
   const sectionQuestions = currentItem?.type === "section" ? currentItem.questions : [];
 
   // For quiz OEQ: index of currentQ among all OEQ questions (no text or image MCQ options)
-  const allOeqQuestions = data.questions.filter(q => !q.transcribedOptions && !q.transcribedOptionImages);
+  const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.some(o => !!o)) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o));
+  const allOeqQuestions = data.questions.filter(q => !hasOpts(q));
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
   // Both daily quizzes and focused tests upload OEQ canvases via the quiz page at the
   // OEQ-sequential index. Use the same index for the image URL.

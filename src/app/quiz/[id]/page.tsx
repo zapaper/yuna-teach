@@ -40,9 +40,11 @@ type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
 
 /* ────────────── helpers ────────────── */
 
-function normalizeMcqAnswer(ans: string | null): string {
-  if (!ans) return "";
-  return ans.trim().replace(/[().]/g, "").trim();
+/** MCQ = question has transcribed options (text or images). Answer format is irrelevant. */
+function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
+  const opts = q.transcribedOptions;
+  const imgs = q.transcribedOptionImages;
+  return (Array.isArray(opts) && opts.some((o: unknown) => !!o)) || (Array.isArray(imgs) && imgs.some((o: unknown) => !!o));
 }
 
 /** Render __underline__ markup */
@@ -59,16 +61,6 @@ function renderUnderline(text: string): React.ReactNode {
   if (lastIdx === 0) return text;
   if (lastIdx < text.length) parts.push(text.slice(lastIdx));
   return <>{parts}</>;
-}
-
-function isMcq(answer: string | null): boolean {
-  const n = normalizeMcqAnswer(answer);
-  if (n === "1" || n === "2" || n === "3" || n === "4") return true;
-  // Handle "X or Y" patterns (e.g. "3 or 4")
-  // Do NOT split on "/" — it catches fractions like "1/4", "2/3"
-  const parts = n.split(/\s+or\s+/).map(p => p.trim());
-  if (parts.length > 1 && parts.every(p => p === "1" || p === "2" || p === "3" || p === "4")) return true;
-  return false;
 }
 
 const formatTime = (s: number) => {
@@ -240,9 +232,9 @@ function QuizContent({ id }: { id: string }) {
     }
   }
 
-  const mcqQuestions = paper.questions.filter(q => isMcq(q.answer));
+  const mcqQuestions = paper.questions.filter(q => hasQuestionOptions(q));
   // English quizzes: all questions are typed (no canvas OEQ)
-  const oeqQuestions = isEnglishQuiz ? [] : paper.questions.filter(q => !isMcq(q.answer) && !typedSectionQIds.has(q.id));
+  const oeqQuestions = isEnglishQuiz ? [] : paper.questions.filter(q => !hasQuestionOptions(q) && !typedSectionQIds.has(q.id));
   const hasOeq = oeqQuestions.length > 0;
 
   function selectMcqAnswer(questionId: string, option: string) {
@@ -375,7 +367,7 @@ function QuizContent({ id }: { id: string }) {
           }
         }
       }
-      const simpleCompareQs = paper!.questions.filter(q => typedSectionQIds.has(q.id) && !aiMarkSectionLabels.has(q.id) && !isMcq(q.answer));
+      const simpleCompareQs = paper!.questions.filter(q => typedSectionQIds.has(q.id) && !aiMarkSectionLabels.has(q.id) && !hasQuestionOptions(q));
       const aiMarkQs = paper!.questions.filter(q => aiMarkSectionLabels.has(q.id));
 
       if (simpleCompareQs.length > 0) {
@@ -880,7 +872,7 @@ function QuizContent({ id }: { id: string }) {
                       )}
 
                       <div className="space-y-10">
-                        {secQuestions.filter(q => isMcq(q.answer)).map((q, idx) => (
+                        {secQuestions.filter(q => hasQuestionOptions(q)).map((q, idx) => (
                           <McqQuestionCard
                             key={q.id}
                             question={q}
