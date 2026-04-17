@@ -7,7 +7,7 @@ const faqs = [
   },
   {
     q: "What is MarkForYou?",
-    a: "MarkForYou is an AI-powered marking assistant for primary school students in Singapore. Parents upload past-year exam papers, and our AI marks handwritten answers, generates quizzes, and tracks progress — so you can stop marking and start coaching.",
+    a: "MarkForYou is an AI-powered assistant for parents with primary school students in Singapore. Parents can assign quiz/practices/exam papers and our AI instantly marks handwritten answers and provide next steps — so you can stop marking and start coaching.",
   },
   {
     q: "How does AI marking work?",
