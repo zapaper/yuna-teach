@@ -1648,7 +1648,12 @@ CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains the �
 
 CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin vertical stroke (|) with no serif or base. It is easily missed next to other digits. Read EVERY digit carefully. E.g. "51cm" must NOT be read as "5cm" — look for a thin vertical stroke before or after other digits. If the expected answer has more digits than what you detected, re-examine the handwriting for missed "1"s.
 
-CRITICAL — GRID / DIAGRAM DRAWINGS: When the answer involves drawing on a grid (e.g. plotting points, drawing shapes, completing figures), do NOT try to extract exact coordinates. Instead, compare the student's drawing VISUALLY against the expected answer image. If the drawn point or shape is in the correct position on the grid (matching the answer image), award full marks. A point drawn slightly off-center within the correct grid cell still counts as correct. Focus on whether the student understood the concept, not pixel-perfect placement.
+CRITICAL — GRID / DIAGRAM DRAWINGS:
+- When the answer involves drawing on a grid (e.g. plotting points, drawing shapes, completing figures), do NOT try to extract exact coordinates. Instead, compare the student's drawing VISUALLY against the expected answer image.
+- If the drawn point or shape is in the correct position on the grid (matching the answer image), award full marks. A point drawn slightly off-center within the correct grid cell still counts as correct.
+- Focus on whether the student understood the concept, not pixel-perfect placement.
+- SYMMETRY / MULTIPLE SOLUTIONS: For questions asking to shade squares, draw lines of symmetry, or complete patterns — there may be MULTIPLE valid solutions. The answer image shows ONE valid answer. If the student's answer is DIFFERENT but still satisfies the question requirement (e.g. produces a valid line of symmetry), award FULL MARKS. Check the student's answer against the QUESTION REQUIREMENT, not just the answer image.
+- "See answer image" answers: When the text answer says "see answer image" or similar, you MUST evaluate the student's drawing by checking if it satisfies the question's requirements. If the student's drawing is correct (even if it differs from the answer image), award full marks.
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  ANTI-BIAS: You MUST read the student's answer INDEPENDENTLY        ║
