@@ -2437,14 +2437,6 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           }
         }
 
-        const prompt = FOCUSED_MARKING_PROMPT
-          .replace("{EXPECTED_ANSWER}", `"${expectedAnswer}"`)
-          .replace(/\{MARKS_AVAILABLE\}/g, String(marksAvailable))
-          .replace("{QUESTION_ID}", q.id)
-          .replace("{ANSWER_IMAGE_NOTE}", answerImageNote);
-
-        parts.push({ text: prompt });
-
         if (!hasSubmission) {
           updates.push(
             prisma.examQuestion.update({
@@ -2455,13 +2447,69 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           continue;
         }
 
-        // Attempt marking with retries (delay + fallback model on 503)
+        // ── PHASE 1: Detect what the student wrote (WITHOUT showing the answer key) ──
+        // This eliminates confirmation bias — the AI reads the image blind.
+        const detectParts = [...parts];
+        detectParts.push({ text: `Read the student's handwritten answer from the image above. Report EXACTLY what the student wrote — every word, number, label, and symbol. If the question has sub-parts (a), (b), (c), report each separately. If the student left a part blank, say "blank" for that part. Return ONLY the detected text, nothing else.` });
+
+        let detectedAnswer = "";
+        try {
+          const detectResponse = await withTimeout(
+            ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: [{ role: "user", parts: detectParts }],
+              config: { temperature: 0.1 },
+            }),
+            GEMINI_TIMEOUT_MS,
+            `quiz-detect-q${q.questionNum}`
+          );
+          detectedAnswer = detectResponse.text?.trim() ?? "";
+          console.log(`[quiz-marking] Q${q.questionNum} detected: "${detectedAnswer.substring(0, 100)}"`);
+        } catch (err) {
+          console.error(`[quiz-marking] Q${q.questionNum} detection failed:`, err);
+        }
+
+        // ── PHASE 2: Compare detected answer against the answer key ──
+        const markPrompt = `You are marking a primary school student's answer. Be concise.
+
+Question: ${q.transcribedStem ?? "See image"}
+Student's answer (detected from their handwriting): "${detectedAnswer}"
+Expected answer: "${expectedAnswer}"
+${answerImageNote}
+Marks available: ${marksAvailable}
+
+CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
+CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
+
+Instructions:
+1. Compare the student's detected answer against the expected answer.
+   - If correct → FULL MARKS. Do NOT penalise working steps.
+   - ONLY if wrong: check for partial credit.
+   - If wrong with no correct working → ZERO.
+2. For multi-part questions, mark each part separately.
+
+Return ONLY valid JSON:
+{"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>"}`;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const markParts: any[] = [];
+        // Include answer image if available for visual comparison
+        if (q.answerImageData && q.answerImageData.startsWith("data:image")) {
+          const match = q.answerImageData.match(/^data:(image\/\w+);base64,(.+)$/);
+          if (match) {
+            markParts.push({ text: "Expected answer image:" });
+            markParts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          }
+        }
+        markParts.push({ text: markPrompt });
+
+        // Attempt marking with retries
         const QUIZ_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
         let lastErr: unknown = null;
         for (let attempt = 0; attempt < QUIZ_MODELS.length; attempt++) {
           try {
             if (attempt > 0) {
-              const delay = attempt * 5000; // 5s, 10s backoff
+              const delay = attempt * 5000;
               console.log(`[quiz-marking] OEQ Q${q.questionNum} waiting ${delay}ms before retry ${attempt + 1}...`);
               await new Promise(r => setTimeout(r, delay));
             }
@@ -2469,7 +2517,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             const response = await withTimeout(
               ai.models.generateContent({
                 model,
-                contents: [{ role: "user", parts }],
+                contents: [{ role: "user", parts: markParts }],
                 config: { temperature: 0.1 },
               }),
               GEMINI_TIMEOUT_MS,
@@ -2480,6 +2528,8 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]) as QuestionMarkResult;
+              // Override studentAnswer with the phase-1 detection (unbiased)
+              parsed.studentAnswer = detectedAnswer || parsed.studentAnswer;
               const awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
               totalAwarded += awarded;
               updates.push(
