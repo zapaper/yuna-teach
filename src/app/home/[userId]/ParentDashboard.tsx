@@ -552,7 +552,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
         {/* Link modal */}
         {showLinkModal && (
-          <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-6" onClick={() => setShowLinkModal(false)}>
+          <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-20 lg:pb-4" onClick={() => setShowLinkModal(false)}>
             <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Link with Student</h3>
@@ -1035,7 +1035,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         body: JSON.stringify({ userId: student!.id, settings: { [key]: value } }),
       });
       // Update local state
-      student!.settings = { ...(student!.settings ?? {}), [key]: value } as typeof student.settings;
+      if (student) student.settings = { ...(student.settings ?? {}), [key]: value } as typeof student.settings;
       setSettingsTick(t => t + 1);
     }
 
@@ -1276,7 +1276,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         )}
         <button
-          onClick={() => setShowFocused(true)}
+          onClick={() => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }}
           className="w-full bg-white text-[#001e40] font-bold py-3.5 rounded-xl active:scale-95 transition-transform shadow-lg"
         >
           Assign Focused Practice
@@ -1412,7 +1412,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       )}
 
       {/* Modals */}
-      {FocusedModal()}
+      {/* FocusedModal merged into QuizModal */}
       {QuizModal()}
       <FeedbackModal />
       <SettingsModal />
@@ -1420,7 +1420,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
       {/* Link Student Modal */}
       {showLinkModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-6" onClick={() => setShowLinkModal(false)}>
+        <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-20 lg:pb-4" onClick={() => setShowLinkModal(false)}>
           <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Link with Student</h3>
@@ -2235,7 +2235,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button
-                      onClick={() => setShowFocused(true)}
+                      onClick={() => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }}
                       className="bg-gradient-to-r from-[#006c49] to-[#4edea3] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:-translate-y-0.5 transition-all shadow-lg"
                     >
                       Focused Practice
@@ -2622,7 +2622,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl shadow-[0_-10px_40px_rgba(11,28,48,0.06)] rounded-t-[2rem] border-t border-[#e5eeff]/20">
         {[
           { icon: "edit_note", label: "听写", action: () => router.push(`/scan?userId=${userId}`), active: false },
-          { icon: "psychology", label: "Focus Quiz", action: () => setShowFocused(true), active: false },
+          { icon: "psychology", label: "Focus Quiz", action: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }, active: false },
           { icon: "description", label: "Set Papers", action: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
           { icon: "auto_fix_high", label: "Solver", action: () => router.push(`/solver?userId=${userId}`), active: false },
           { icon: "insights", label: "Progress", action: () => setActiveView("progress"), active: activeView === "progress" },
