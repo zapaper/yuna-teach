@@ -595,14 +595,24 @@ function ExamReviewContent({ id }: { id: string }) {
       const lbl = label.toLowerCase();
       // Try patterns in order of specificity:
       // 1. "(label)"  e.g. "(a)"
-      // 2. "Nlabel:"  e.g. "36a:" — question-number prefixed
-      // 3. bare complex labels like "a(i)"
+      // 2. "label)"   e.g. "a)" — no opening paren
+      // 3. "Nlabel:"  e.g. "36a:" — question-number prefixed
+      // 4. bare complex labels like "a(i)"
       const bracketed = `(${lbl})`;
       let pos = lower.indexOf(bracketed);
       if (pos !== -1) {
         let end = pos + bracketed.length;
         while (end < text.length && text[end] === " ") end++;
         found.push({ label: lbl, start: end, matchStart: pos });
+        continue;
+      }
+      // Try "label)" pattern at word boundary (e.g. "a) 3", "b) VW")
+      const closeParenRe = new RegExp(`(?:^|[\\s|])${lbl}\\)\\s*`, "i");
+      const closeMatch = lower.match(closeParenRe);
+      if (closeMatch && closeMatch.index !== undefined) {
+        const matchStart = closeMatch.index + (closeMatch[0].startsWith(lbl) ? 0 : 1);
+        const end = closeMatch.index + closeMatch[0].length;
+        found.push({ label: lbl, start: end, matchStart });
         continue;
       }
       // Try "Nlabel:" pattern (e.g. "36a:", "14b:")
