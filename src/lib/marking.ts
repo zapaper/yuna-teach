@@ -2384,14 +2384,23 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         const blankSubparts = new Set<string>();
         if (realSubs.length > 0) {
           for (const sp of realSubs) {
-            // Check ink layer first — skip blank canvases
+            // Check ink layer for blank canvases.
+            // For drawable diagrams: use pixel check on ink PNG (no printed marks to confuse).
+            // For regular subparts: use AI hasBlueInk on composite (pixel check unreliable due to PNG filtering).
             let spHasInk = true;
             try {
-              const spInkPath = path.join(subDir, `page_${i}_${sp.label}_ink.png`);
-              const spInkBuffer = await fs.readFile(spInkPath);
-              spHasInk = hasOpaquePixels(spInkBuffer);
+              if (hasDrawable) {
+                const spInkPath = path.join(subDir, `page_${i}_${sp.label}_ink.png`);
+                const spInkBuffer = await fs.readFile(spInkPath);
+                spHasInk = hasOpaquePixels(spInkBuffer);
+              } else {
+                // Use composite image for AI ink check (white bg + ruled lines + any ink)
+                const spPath = path.join(subDir, `page_${i}_${sp.label}.jpg`);
+                const spBuffer = await fs.readFile(spPath);
+                spHasInk = await hasBlueInk(spBuffer.toString("base64"), `quiz-sp-Q${q.questionNum}(${sp.label})`, "image/jpeg");
+              }
             } catch {
-              // No ink file — check composite as fallback
+              // No file — assume ink exists to avoid false negatives
               spHasInk = true;
             }
             if (!spHasInk) {
