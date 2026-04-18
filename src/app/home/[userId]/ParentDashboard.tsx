@@ -1389,12 +1389,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ── Desktop nav items ──────────────────────────────────────────────────────
 
   const sideNavItems = [
-    { icon: "edit_note", label: "听写", href: `/spelling?userId=${userId}` },
+    { icon: "insights", label: "Progress", onClick: () => setActiveView("progress"), active: activeView === "progress" },
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
+    { icon: "edit_note", label: "听写", href: `/spelling?userId=${userId}` },
     { icon: "auto_fix_high", label: "Solver", href: `/solver?userId=${userId}` },
-    { icon: "insights", label: "Progress", onClick: () => setActiveView("progress"), active: activeView === "progress" },
   ];
 
   // ══════════════════════════════════════════════════════════════════════════
@@ -2672,11 +2672,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl shadow-[0_-10px_40px_rgba(11,28,48,0.06)] rounded-t-[2rem] border-t border-[#e5eeff]/20">
         {[
-          { icon: "edit_note", label: "听写", action: () => router.push(`/spelling?userId=${userId}`), active: false },
+          { icon: "insights", label: "Progress", action: () => setActiveView("progress"), active: activeView === "progress" },
           { icon: "psychology", label: "Focus Quiz", action: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }, active: false },
           { icon: "description", label: "Set Papers", action: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
+          { icon: "edit_note", label: "听写", action: () => router.push(`/spelling?userId=${userId}`), active: false },
           { icon: "auto_fix_high", label: "Solver", action: () => router.push(`/solver?userId=${userId}`), active: false },
-          { icon: "insights", label: "Progress", action: () => setActiveView("progress"), active: activeView === "progress" },
         ].map(item => (
           <button key={item.label} onClick={item.action}
             className={`flex flex-col items-center justify-center px-3 py-1.5 rounded-2xl transition-transform active:scale-90 duration-200 ${item.active ? "bg-[#d3e4fe] text-[#001e40]" : "text-slate-400 hover:text-[#001e40]"}`}>

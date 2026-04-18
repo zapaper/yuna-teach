@@ -213,7 +213,7 @@ function TestPageContent({ id }: { id: string }) {
       <div className="min-h-screen bg-[#f8f9ff] flex flex-col items-center justify-center gap-4">
         <p className="text-[#43474f]">Test not found</p>
         <button
-          onClick={() => router.push(userId ? `/home/${userId}` : "/")}
+          onClick={() => router.push(userId ? `/spelling?userId=${userId}` : "/")}
           className="text-[#001e40] font-semibold underline"
         >
           Go Home
@@ -257,7 +257,7 @@ function TestPageContent({ id }: { id: string }) {
       <header className="sticky top-0 z-30 bg-[#f8f9ff]/90 backdrop-blur-xl border-b border-[#e5eeff] px-4 lg:px-10 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0">
           <button
-            onClick={() => router.push(userId ? `/home/${userId}` : "/")}
+            onClick={() => router.push(userId ? `/spelling?userId=${userId}` : "/")}
             className="shrink-0 p-2 rounded-full hover:bg-[#eff4ff] transition-colors text-[#43474f]"
           >
             <span className="material-symbols-outlined">arrow_back</span>

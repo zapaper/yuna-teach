@@ -180,7 +180,7 @@ function ScanPageContent() {
         }
         router.push(firstTestUrl);
       } else {
-        router.push(userId ? `/home/${userId}?t=${Date.now()}` : "/");
+        router.push(userId ? `/spelling?userId=${userId}` : "/");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
@@ -396,7 +396,7 @@ function ScanPageContent() {
 
             {/* Close / back */}
             <button
-              onClick={() => router.push(userId ? `/home/${userId}` : "/")}
+              onClick={() => router.push(userId ? `/spelling?userId=${userId}` : "/")}
               className="absolute top-6 right-6 p-2 rounded-full hover:bg-[#eff4ff] transition-colors text-[#43474f]">
               <span className="material-symbols-outlined">close</span>
             </button>
