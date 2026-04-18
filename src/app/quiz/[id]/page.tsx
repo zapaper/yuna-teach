@@ -1135,12 +1135,14 @@ function McqQuestionCard({
           )}
 
           {question.diagramImageData && (
-            <div className="mb-5 lg:mb-6">
+            <div className="mb-5 lg:mb-6 relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={`data:image/jpeg;base64,${question.diagramImageData}`}
                 alt="Diagram"
                 className="w-full rounded-xl border border-[#e5eeff]"
               />
+              <ScratchOverlay tool={tool} />
             </div>
           )}
 
