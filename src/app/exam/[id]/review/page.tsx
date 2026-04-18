@@ -622,14 +622,12 @@ function ExamReviewContent({ id }: { id: string }) {
         found.push({ label: lbl, start: end, matchStart });
         continue;
       }
-      // Try "Nlabel:" pattern (e.g. "36a:", "14b:")
-      const numPrefixRe = new RegExp(`\\d+${lbl}\\s*:`, "i");
+      // Try "Nlabel" pattern (e.g. "7a ", "36a:", "14b:")
+      const numPrefixRe = new RegExp(`\\d+${lbl}[\\s:)]+`, "i");
       const numMatch = lower.match(numPrefixRe);
       if (numMatch && numMatch.index !== undefined) {
         const end = numMatch.index + numMatch[0].length;
-        let start = end;
-        while (start < text.length && text[start] === " ") start++;
-        found.push({ label: lbl, start, matchStart: numMatch.index });
+        found.push({ label: lbl, start: end, matchStart: numMatch.index });
         continue;
       }
       // For complex labels like "a(i)", find them directly
