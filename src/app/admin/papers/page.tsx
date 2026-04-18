@@ -207,7 +207,7 @@ function AdminPapersContent() {
         ) : (
           <div className="space-y-2">
             {filtered.map(paper => (
-              <div key={paper.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 flex items-center gap-3">
+              <div key={paper.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
                 {/* Visibility indicator */}
                 <div className={`w-2 h-2 rounded-full shrink-0 ${paper.visible ? "bg-green-500" : "bg-slate-300"}`} />
 
@@ -241,7 +241,7 @@ function AdminPapersContent() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0 flex-wrap">
                   {/* Generate quiz from this paper */}
                   {!paper.paperType && paper.extractionStatus === "ready" && (
                     <button
