@@ -145,8 +145,9 @@ export class AudioSequencer {
         if (!this.skipController) continue;
 
         // Wait for configured delay (writing time) - skip after last word
+        // delayMs >= 11000 = manual mode: wait indefinitely until user presses next
         if (i < words.length - 1) {
-          await this.wait(delayMs);
+          await this.wait(delayMs >= 11000 ? 86400000 : delayMs);
         }
       }
 

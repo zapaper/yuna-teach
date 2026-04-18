@@ -440,13 +440,13 @@ function TestPageContent({ id }: { id: string }) {
                 Delay between words/phrases
               </label>
               <span className="text-xs font-black text-[#001e40] px-3 py-1 bg-[#e5eeff] rounded-lg tabular-nums">
-                {delaySeconds % 1 === 0 ? `${delaySeconds}s` : `${delaySeconds.toFixed(1)}s`}
+                {delaySeconds >= 11 ? "Manual" : delaySeconds % 1 === 0 ? `${delaySeconds}s` : `${delaySeconds.toFixed(1)}s`}
               </span>
             </div>
             <input
               type="range"
               min={1}
-              max={10}
+              max={11}
               step={0.5}
               value={delaySeconds}
               onChange={(e) => setDelaySeconds(Number(e.target.value))}
@@ -454,7 +454,7 @@ function TestPageContent({ id }: { id: string }) {
             />
             <div className="flex justify-between mt-2">
               <span className="text-[10px] font-bold text-[#737780]">FASTER</span>
-              <span className="text-[10px] font-bold text-[#737780]">SLOWER</span>
+              <span className="text-[10px] font-bold text-[#737780]">MANUAL</span>
             </div>
           </div>
 
