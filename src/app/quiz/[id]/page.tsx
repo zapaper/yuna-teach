@@ -1802,7 +1802,6 @@ const BlankCanvas = forwardRef<
   { tool: DrawTool; onStrokeStart: () => void; height: number; backgroundImage?: string | null; savedInkUrl?: string | null }
 >(function BlankCanvas({ tool, onStrokeStart, height, backgroundImage, savedInkUrl }, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const inkCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const bgImageRef = useRef<HTMLImageElement | null>(null);
   const isDrawing = useRef(false);
@@ -1813,10 +1812,7 @@ const BlankCanvas = forwardRef<
   const [ready, setReady] = useState(false);
   const canvasDims = useRef({ w: 800, h: height * 2 });
 
-  // Canvas dimensions: use 2× display size for retina-sharp pixels.
-  // Dynamically measured so the internal aspect ratio matches the CSS display.
-  const CANVAS_W = canvasDims.current.w;
-  const CANVAS_H = canvasDims.current.h;
+  // Fixed canvas resolution — no dynamic resize to avoid zoom breaking buttons
 
   function drawBackground(ctx: CanvasRenderingContext2D) {
     const cw = canvasDims.current.w;
@@ -1845,49 +1841,20 @@ const BlankCanvas = forwardRef<
     }
   }
 
-  // Measure actual display size and set canvas resolution to 2× for square pixels
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    const canvas = canvasRef.current;
-    if (!wrapper || !canvas) return;
-    const obs = new ResizeObserver(() => {
-      const displayW = wrapper.offsetWidth;
-      const displayH = wrapper.offsetHeight || height;
-      const newW = displayW * 2;
-      const newH = displayH * 2;
-      if (Math.abs(newW - canvasDims.current.w) > 4 || Math.abs(newH - canvasDims.current.h) > 4) {
-        canvasDims.current = { w: newW, h: newH };
-        canvas.width = newW;
-        canvas.height = newH;
-        const inkCanvas = inkCanvasRef.current;
-        if (inkCanvas) { inkCanvas.width = newW; inkCanvas.height = newH; }
-        const ctx = canvas.getContext("2d", { desynchronized: true });
-        if (ctx) drawBackground(ctx);
-        if (inkCanvas) {
-          const inkCtx = inkCanvas.getContext("2d");
-          // Ink is lost on resize — acceptable tradeoff for correct aspect ratio
-        }
-      }
-    });
-    obs.observe(wrapper);
-    return () => obs.disconnect();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [height]);
+  // Fixed canvas resolution — avoids ResizeObserver clearing ink after zoom
+  const CANVAS_W = 800;
+  const CANVAS_H = height * 2;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    // Initial size from wrapper or fallback
-    const wrapper = wrapperRef.current;
-    const initW = wrapper ? wrapper.offsetWidth * 2 : 800;
-    const initH = wrapper ? (wrapper.offsetHeight || height) * 2 : height * 2;
-    canvasDims.current = { w: initW, h: initH };
-    canvas.width = initW;
-    canvas.height = initH;
+    canvasDims.current = { w: CANVAS_W, h: CANVAS_H };
+    canvas.width = CANVAS_W;
+    canvas.height = CANVAS_H;
 
     const inkCanvas = document.createElement("canvas");
-    inkCanvas.width = initW;
-    inkCanvas.height = initH;
+    inkCanvas.width = CANVAS_W;
+    inkCanvas.height = CANVAS_H;
     inkCanvasRef.current = inkCanvas;
 
     function init() {
@@ -2118,11 +2085,12 @@ const BlankCanvas = forwardRef<
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div ref={wrapperRef} style={{ touchAction: "none", height: `${height}px` }}>
+    <div style={{ touchAction: "none" }}>
       <canvas
         ref={canvasRef}
-        className="w-full h-full border-0"
+        className="w-full border-0"
         style={{
+          height: `${height}px`,
           cursor: tool === "pen" ? PEN_CURSOR : "cell",
           touchAction: "none",
         }}
