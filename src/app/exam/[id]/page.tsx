@@ -99,6 +99,33 @@ function ExamPracticeContent({ id }: { id: string }) {
     return () => clearInterval(interval);
   }, [paper?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Manual save ──
+  const [manualSaving, setManualSaving] = useState(false);
+  async function handleSave() {
+    if (manualSaving || autoSaving.current) return;
+    setManualSaving(true);
+    try {
+      const form = new FormData();
+      form.append("action", "save");
+      for (let i = 0; i < pageHandles.current.length; i++) {
+        const handle = pageHandles.current[i];
+        if (handle) {
+          const [composite, ink] = await Promise.all([handle.exportComposite(), handle.exportInk()]);
+          form.append(`page_${i}`, composite, `page_${i}.jpg`);
+          form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+        }
+      }
+      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+      hasUnsavedInk.current = false;
+      setShowAutoSaved(true);
+      setTimeout(() => setShowAutoSaved(false), 3000);
+    } catch (err) {
+      console.warn("[manual-save] Failed:", err);
+    } finally {
+      setManualSaving(false);
+    }
+  }
+
   // ── Auto-save every 5 minutes (silently, only if ink changed) ──
   useEffect(() => {
     const AUTO_SAVE_MS = 5 * 60 * 1000;
@@ -195,6 +222,14 @@ function ExamPracticeContent({ id }: { id: string }) {
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Disable pinch-zoom on exam page to prevent canvas issues ──
+  useEffect(() => {
+    const meta = document.querySelector('meta[name="viewport"]');
+    const original = meta?.getAttribute("content") ?? "";
+    if (meta) meta.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+    return () => { if (meta) meta.setAttribute("content", original); };
+  }, []);
 
   function getCurrentTime() {
     if (!sessionStart.current) return baseSeconds.current;
@@ -544,13 +579,22 @@ function ExamPracticeContent({ id }: { id: string }) {
           ) : null}
 
           {submitStatus !== "submitted" ? (
-            <button
-              onClick={handleSubmit}
-              disabled={isBusy}
-              className="px-3 py-1.5 rounded-xl bg-green-500 text-white text-xs font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors shrink-0"
-            >
-              {submitStatus === "submitting" ? "Submitting…" : "Submit"}
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={handleSave}
+                disabled={manualSaving || isBusy}
+                className="px-3 py-1.5 rounded-xl bg-[#003366] text-white text-xs font-semibold hover:bg-[#001e40] disabled:opacity-50 transition-colors"
+              >
+                {manualSaving ? "Saving…" : "Save"}
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={isBusy}
+                className="px-3 py-1.5 rounded-xl bg-green-500 text-white text-xs font-semibold hover:bg-green-600 disabled:opacity-50 transition-colors"
+              >
+                {submitStatus === "submitting" ? "Submitting…" : "Submit"}
+              </button>
+            </div>
           ) : null}
         </div>
 
