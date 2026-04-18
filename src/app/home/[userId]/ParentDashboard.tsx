@@ -1415,7 +1415,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* FocusedModal merged into QuizModal */}
       {QuizModal()}
       <FeedbackModal />
-      <SettingsModal />
+      {/* Settings are in Student Settings section on the page */}
       <AdminNotifModal />
 
       {/* Link Student Modal */}
@@ -1576,10 +1576,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
         {/* Bottom links */}
         <div className="pt-6 border-t border-[#c3c6d1]/40 space-y-1">
-          <button onClick={() => setShowSettings(true)} className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
+          <Link href="/" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
             <span className="material-symbols-outlined text-xl">settings</span>
             <span>Settings</span>
-          </button>
+          </Link>
           <button onClick={() => setShowFeedback(true)} className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
             <span className="material-symbols-outlined text-xl">feedback</span>
             <div className="text-left">
@@ -2178,6 +2178,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     {[
                       { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
                       { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
+                      { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
                     ].map(item => {
                       const isOn = selectedStudent?.settings?.[item.key] === true;
                       return (
@@ -2194,7 +2195,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ userId: selectedStudentId, settings: { [item.key]: newVal } }),
                               });
-                              // Update local state
                               if (selectedStudent) {
                                 selectedStudent.settings = { ...(selectedStudent.settings ?? {}), [item.key]: newVal };
                                 setSettingsTick(t => t + 1);
@@ -2209,6 +2209,42 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </div>
                       );
                     })}
+
+                    {/* Student self-learning mode */}
+                    <div className="pt-2 border-t border-[#e5eeff]">
+                      <p className="text-sm font-semibold text-[#001e40]">Student self-learning</p>
+                      <p className="text-xs text-[#43474f] mb-2">Control whether the student can create their own quizzes</p>
+                      <div className="space-y-1.5">
+                        {([
+                          { key: "none", label: "Cannot create quizzes" },
+                          { key: "oeq-only", label: "MCQ+OEQ quizzes only" },
+                          { key: "all", label: "MCQ or MCQ+OEQ quizzes" },
+                        ] as const).map(opt => {
+                          const current = (selectedStudent?.settings as Record<string, unknown> | null)?.studentQuizMode as string ?? "all";
+                          return (
+                            <button
+                              key={opt.key}
+                              onClick={async () => {
+                                await fetch("/api/users", {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ userId: selectedStudentId, settings: { studentQuizMode: opt.key } }),
+                                });
+                                if (selectedStudent) {
+                                  selectedStudent.settings = { ...(selectedStudent.settings ?? {}), studentQuizMode: opt.key } as typeof selectedStudent.settings;
+                                  setSettingsTick(t => t + 1);
+                                }
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                                current === opt.key ? "bg-[#eff4ff] text-[#003366] border border-[#003366]" : "bg-slate-50 text-[#43474f] border border-transparent"
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
                 </section>
               )}
@@ -2576,6 +2612,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         {[
                           { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
                           { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
+                          { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
                         ].map(item => {
                           const isOn = selectedStudent?.settings?.[item.key] === true;
                           return (
@@ -2606,6 +2643,42 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </div>
                           );
                         })}
+
+                        {/* Student self-learning mode */}
+                        <div className="pt-3 border-t border-[#e5eeff]">
+                          <p className="font-semibold text-[#001e40]">Student self-learning</p>
+                          <p className="text-sm text-[#43474f] mb-3">Control whether the student can create their own quizzes</p>
+                          <div className="flex gap-2">
+                            {([
+                              { key: "none", label: "Cannot create quizzes" },
+                              { key: "oeq-only", label: "MCQ+OEQ only" },
+                              { key: "all", label: "MCQ or MCQ+OEQ" },
+                            ] as const).map(opt => {
+                              const current = (selectedStudent?.settings as Record<string, unknown> | null)?.studentQuizMode as string ?? "all";
+                              return (
+                                <button
+                                  key={opt.key}
+                                  onClick={async () => {
+                                    await fetch("/api/users", {
+                                      method: "PATCH",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ userId: selectedStudentId, settings: { studentQuizMode: opt.key } }),
+                                    });
+                                    if (selectedStudent) {
+                                      selectedStudent.settings = { ...(selectedStudent.settings ?? {}), studentQuizMode: opt.key } as typeof selectedStudent.settings;
+                                      setSettingsTick(t => t + 1);
+                                    }
+                                  }}
+                                  className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium transition-all ${
+                                    current === opt.key ? "border-[#003366] bg-[#eff4ff] text-[#003366]" : "border-[#c3c6d1] text-[#43474f]"
+                                  }`}
+                                >
+                                  {opt.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
