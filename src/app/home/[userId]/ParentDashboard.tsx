@@ -1282,7 +1282,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           Assign Focused Practice
         </button>
         <button
-          onClick={() => { setQuizStudentId(selectedStudentId); setShowQuiz(true); }}
+          onClick={() => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }}
           className="w-full bg-white/10 text-white font-bold py-3.5 rounded-xl active:scale-95 transition-transform mt-2 border border-white/20"
         >
           Assign Daily Quiz
@@ -2288,7 +2288,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <span className="material-symbols-outlined text-xl">arrow_forward</span>
                     </button>
                     <button
-                      onClick={() => { setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }}
+                      onClick={() => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }}
                       className="bg-white/10 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:-translate-y-0.5 transition-all border border-white/20"
                     >
                       Daily Quiz
