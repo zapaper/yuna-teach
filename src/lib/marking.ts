@@ -471,7 +471,7 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - CONCEPT ERRORS: If the student used the wrong formula, method, or operation, wrap the specific error in **double asterisks** in the notes (e.g. "Student used **multiplication** instead of division" or "Wrong formula: used **P = 2l + w** instead of area formula").`;
 }
 
-const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise.
+const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise. Use British English throughout (e.g. "colour", "centre", "recognised").
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains the ° character (e.g. "8°", "45°"), then accept "80" or "450" as correct — the trailing 0 is a misread degree symbol. If the expected answer does NOT contain ° (e.g. just "8" or "80"), do NOT apply this rule. In the notes, write: "Trailing 0 interpreted as degree symbol (°) — answer accepted as X°."
 
@@ -1639,7 +1639,7 @@ export async function generateFeedbackSummary(paperId: string): Promise<string> 
       return `Q${q.questionNum}: Lost ${lost} mark(s). Answer: ${q.answer ?? "N/A"}. ${q.markingNotes ?? ""}`;
     });
 
-  const feedbackPrompt = `You are writing a short feedback summary for a primary school student's exam, aimed at helping them know what to revise.
+  const feedbackPrompt = `You are writing a short feedback summary for a primary school student's exam, aimed at helping them know what to revise. Use British English throughout.
 ${studentName ? `\nStudent: ${studentName}` : ""}
 Paper: ${paper.title}
 Subject: ${paper.subject ?? "Unknown"}
@@ -1679,7 +1679,7 @@ Keep the tone warm, positive, and age-appropriate for a primary school child. To
 
 // ── Focused test marking (handwritten answers, one submission page per question) ─
 
-const FOCUSED_MARKING_PROMPT = `You are marking a primary school student's handwritten answer for a math/science question. Be concise.
+const FOCUSED_MARKING_PROMPT = `You are marking a primary school student's handwritten answer for a math/science question. Be concise. Use British English throughout (e.g. "colour", "centre", "recognised").
 
 HOW TO READ THE IMAGES:
 - Image 1: The printed question.
@@ -2513,7 +2513,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         }
 
         // ── PHASE 2: Compare detected answer against the answer key ──
-        const markPrompt = `You are marking a primary school student's answer. Be concise.
+        const markPrompt = `You are marking a primary school student's answer. Be concise. Use British English throughout.
 
 Question: ${q.transcribedStem ?? "See image"}
 Student's answer (detected from their handwriting): "${detectedAnswer}"
