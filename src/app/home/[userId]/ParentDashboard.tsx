@@ -212,6 +212,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [assignMode, setAssignMode] = useState<"quiz" | "focused">("quiz");
+  const [activityLimit, setActivityLimit] = useState(20);
   const [focusedTopic, setFocusedTopic] = useState("");
   const [customTopic, setCustomTopic] = useState("");
   const [customActing, setCustomActing] = useState(false);
@@ -1984,6 +1985,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   )}
                   {[...completedPapers]
                     .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+                    .slice(0, activityLimit)
                     .map(paper => {
                       const pct = scorePct(paper);
                       const isMarking = paper.markingStatus === "in_progress";
@@ -2033,6 +2035,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </div>
                       );
                     })}
+                  {completedPapers.length > activityLimit && (
+                    <button onClick={() => setActivityLimit(l => l + 20)} className="w-full py-3 text-sm font-bold text-[#003366] bg-[#eff4ff] rounded-2xl hover:bg-[#dce9ff] transition-colors">
+                      See more ({completedPapers.length - activityLimit} remaining)
+                    </button>
+                  )}
                 </div>
               );
             })()}
