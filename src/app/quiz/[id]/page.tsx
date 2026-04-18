@@ -1399,7 +1399,7 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     if (!ctx || !lastPos.current) return;
     const pos = getPos(e);
     const isEraser = tool === "eraser" || tool === "eraser-large";
-    ctx.strokeStyle = isEraser ? "rgba(0,0,0,0)" : "#0066cc";
+    ctx.strokeStyle = isEraser ? "rgba(0,0,0,1)" : "#0066cc";
     ctx.lineWidth = tool === "eraser-large" ? 60 : tool === "eraser" ? 20 : 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";

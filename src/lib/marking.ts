@@ -2493,7 +2493,12 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         // ── PHASE 1: Detect what the student wrote (WITHOUT showing the answer key) ──
         // This eliminates confirmation bias — the AI reads the image blind.
         const detectParts = [...parts];
-        detectParts.push({ text: `Read the student's handwritten answer from the image above. Report EXACTLY what the student wrote — every word, number, label, and symbol. If the question has sub-parts (a), (b), (c), report each separately. If the student left a part blank, say "blank" for that part. Return ONLY the detected text, nothing else.` });
+        detectParts.push({ text: `Read the student's handwritten answer from the image above.
+
+IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer. If the student wrote working steps above, you may mention them briefly but the FINAL ANSWER is what matters most.
+
+If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".
+Report EXACTLY what the student wrote. Return ONLY the detected text, nothing else.` });
 
         let detectedAnswer = "";
         try {
