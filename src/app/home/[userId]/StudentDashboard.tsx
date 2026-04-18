@@ -168,6 +168,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [showPastWork, setShowPastWork] = useState(false);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
+  const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
+  const canCreateQuiz = studentQuizMode !== "none";
   // Fixed battle sequence: attack, attack, defend, attack, kill
   const arenaPairs = [
     { avatar: "attack", slime: "hit" },
@@ -683,9 +685,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <button onClick={() => router.push(`/scan?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
               <span className="material-symbols-outlined">spellcheck</span>听写
             </button>
-            <button onClick={() => setShowQuizSetup(true)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
-              <span className="material-symbols-outlined">quiz</span>Quiz
-            </button>
+            {canCreateQuiz && (
+              <button onClick={() => setShowQuizSetup(true)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+                <span className="material-symbols-outlined">quiz</span>Quiz
+              </button>
+            )}
           </nav>
           <div className="mt-auto">
             <button onClick={() => openLinkModal("share")} className="w-full py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
@@ -803,6 +807,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 )}
               </div>
             </div>
+            {canCreateQuiz && (
             <section className="mb-12">
               <h2 className="text-xl font-bold text-[#001e40] mb-4 font-headline">Self-learning</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -819,6 +824,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 </button>
               </div>
             </section>
+            )}
             {/* Recent Spelling Tests */}
             {recentTests.length > 0 && (
               <section className="mb-12">
@@ -1032,7 +1038,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           {weekHomework.length > 0 && <section className="mb-8"><h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2><div className="space-y-3">{weekHomework.map(p => <button key={p.id} type="button" onClick={() => goToPaper(p)} className="w-full text-left flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p></div></button>)}</div></section>}
           <h2 className="text-lg font-bold text-[#001e40] mb-3 font-headline">Self-learning</h2>
           <section className="mb-8 grid grid-cols-2 gap-3">
-            <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
+            {canCreateQuiz && (
+              <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
+            )}
             <button onClick={() => router.push(`/scan?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">camera_enhance</span><h3 className="text-sm font-extrabold text-white font-headline">Scan 听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Mark spelling</p></button>
           </section>
           {recentTests.length > 0 && (
@@ -1180,7 +1188,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
 
       {/* ── Quiz Setup Modal ─────────────────────────────────────────────── */}
-      {showQuizSetup && (
+      {showQuizSetup && canCreateQuiz && (
         <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-20" onClick={() => setShowQuizSetup(false)}>
           <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="font-headline font-extrabold text-lg text-[#003366] mb-4">Daily Quiz</h3>
@@ -1197,7 +1205,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             {quizSubject !== "english" ? (
               <div className="space-y-2 mb-6">
                 {([["mcq", "MCQ Only", "20 multiple choice questions"], ["mcq-oeq", "MCQ + Written", "10 MCQ + 5 open-ended questions"]] as const).map(([val, label, desc]) => {
-                  const blocked = val === "mcq" && mcqOnlyBlocked;
+                  const blocked = (val === "mcq" && mcqOnlyBlocked) || (val === "mcq" && studentQuizMode === "oeq-only");
                   return (
                     <button key={val} onClick={() => { if (!blocked) setQuizType(val); }} disabled={blocked}
                       className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${blocked ? "border-slate-100 opacity-40 cursor-not-allowed" : quizType === val ? "border-[#006c49] bg-[#006c49]/5" : "border-slate-100"}`}>
@@ -1341,13 +1349,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "scan" ? "'FILL' 1" : "'FILL' 0" }}>document_scanner</span>
           <span className="text-[10px] font-medium">听写</span>
         </button>
-        <button
-          onClick={() => { setActiveNav("quiz"); setShowQuizSetup(true); }}
-          className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "quiz" ? "text-[#006c49]" : "text-slate-400"}`}
-        >
-          <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
-          <span className="text-[10px] font-medium">Quiz</span>
-        </button>
+        {canCreateQuiz && (
+          <button
+            onClick={() => { setActiveNav("quiz"); setShowQuizSetup(true); }}
+            className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "quiz" ? "text-[#006c49]" : "text-slate-400"}`}
+          >
+            <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
+            <span className="text-[10px] font-medium">Quiz</span>
+          </button>
+        )}
       </nav>
 
     </div>
