@@ -1451,6 +1451,30 @@ function ExamReviewContent({ id }: { id: string }) {
                                     <p className="text-xs text-[#43474f] mt-1">{q.markingNotes.split("|").pop()?.trim()}</p>
                                   )}
                                 </div>
+                              ) : isVocabCloze && q.transcribedOptions && q.transcribedOptions.length > 0 ? (
+                                /* Vocab Cloze — MCQ-style with stem + options */
+                                <div className="space-y-2">
+                                  {q.transcribedStem && (
+                                    <p className="text-sm text-[#0b1c30] leading-relaxed whitespace-pre-wrap">{q.transcribedStem.replace(/__([^_]+)__/g, "______")}</p>
+                                  )}
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    {q.transcribedOptions.map((opt: string, oi: number) => {
+                                      const optNum = String(oi + 1);
+                                      const isOptCorrect = correctAns.replace(/[().]/g, "").trim() === optNum;
+                                      const isSelected = studentAns === optNum;
+                                      return (
+                                        <div key={oi} className={`flex items-center gap-2 p-2 rounded-lg text-xs ${
+                                          isOptCorrect ? "bg-[#d1fae5] border border-[#006c49]/20" : isSelected ? "bg-[#ffdad6] border border-[#ba1a1a]/20" : "bg-[#f8f9ff] border border-transparent"
+                                        }`}>
+                                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                            isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-white border border-[#c3c6d1]/30 text-[#001e40]"
+                                          }`}>{oi + 1}</span>
+                                          <span className={`font-medium ${isOptCorrect || isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}>{opt}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
                               ) : (
                                 /* Grammar Cloze / Editing / Comp Cloze */
                                 <>
