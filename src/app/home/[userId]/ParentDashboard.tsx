@@ -1576,10 +1576,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
         {/* Bottom links */}
         <div className="pt-6 border-t border-[#c3c6d1]/40 space-y-1">
-          <Link href="/" className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
-            <span className="material-symbols-outlined text-xl">settings</span>
-            <span>Settings</span>
-          </Link>
           <button onClick={() => setShowFeedback(true)} className="w-full flex items-center gap-3 px-4 py-3 text-slate-500 hover:bg-slate-100 rounded-xl font-medium transition-all hover:translate-x-1">
             <span className="material-symbols-outlined text-xl">feedback</span>
             <div className="text-left">
