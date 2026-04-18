@@ -2495,7 +2495,18 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         const detectParts = [...parts];
         detectParts.push({ text: `Read the student's handwritten answer from the image above.
 
-IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer. If the student wrote working steps above, you may mention them briefly but the FINAL ANSWER is what matters most.
+IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer.
+
+FORMAT: Put each line of working on a SEPARATE line. Do NOT merge numbers from different lines into one.
+For example, if the student wrote:
+  6 × 7
+  = 42
+  Ans: 42
+Report it as:
+  Working: 6 × 7 = 42
+  Final answer: 42
+
+If the student drew a diagram (e.g. bar model, number line, shapes, arrows), describe it briefly (e.g. "Drew a bar model: 3 units = 42, 1 unit = 14").
 
 If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".
 Report EXACTLY what the student wrote. Return ONLY the detected text, nothing else.` });
