@@ -3,6 +3,7 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import DiagramEditor from "@/components/DiagramEditor";
 import AdminNav from "@/components/AdminNav";
 
 type Subject = "math" | "science" | "english";
@@ -358,7 +359,8 @@ function SyntheticContent() {
                     onResetDiagram={() => regenerateDiagram(q, "simple", true)}
                     onStem={s => updateVariant(q.id, "simple", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "simple", i, v)}
-                    onCorrect={n => updateVariant(q.id, "simple", { correctAnswer: n })} />
+                    onCorrect={n => updateVariant(q.id, "simple", { correctAnswer: n })}
+                    onDiagramEdit={base64 => updateVariant(q.id, "simple", { diagramImageData: base64 })} />
                   <DecisionButtons which="simple" decision={qDecisions.simple} savingState={savingState}
                     questionId={q.id}
                     onChoose={dec => setDecision(q, "simple", dec)} />
@@ -372,7 +374,8 @@ function SyntheticContent() {
                     onResetDiagram={() => regenerateDiagram(q, "similar", true)}
                     onStem={s => updateVariant(q.id, "similar", { stem: s })}
                     onOption={(i, v) => updateOption(q.id, "similar", i, v)}
-                    onCorrect={n => updateVariant(q.id, "similar", { correctAnswer: n })} />
+                    onCorrect={n => updateVariant(q.id, "similar", { correctAnswer: n })}
+                    onDiagramEdit={base64 => updateVariant(q.id, "similar", { diagramImageData: base64 })} />
                   <DecisionButtons which="similar" decision={qDecisions.similar} savingState={savingState}
                     questionId={q.id}
                     onChoose={dec => setDecision(q, "similar", dec)} />
@@ -430,7 +433,7 @@ function DecisionButtons({ which, decision, savingState, questionId, onChoose }:
   );
 }
 
-function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenPrompt, setRegenPrompt, regenerating, onRegenDiagram, onResetDiagram, onStem, onOption, onCorrect }: {
+function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenPrompt, setRegenPrompt, regenerating, onRegenDiagram, onResetDiagram, onStem, onOption, onCorrect, onDiagramEdit }: {
   title: string;
   variant: Variant;
   disabled?: boolean;
@@ -443,7 +446,9 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
   onStem: (s: string) => void;
   onOption: (i: number, v: string) => void;
   onCorrect: (n: number) => void;
+  onDiagramEdit?: (editedBase64: string) => void;
 }) {
+  const [editingDiagram, setEditingDiagram] = useState(false);
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-3">
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{title}</p>
@@ -452,10 +457,25 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
         className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none resize-none mb-3 disabled:bg-slate-50" />
       {variant.diagramImageData && (
         <div className="mb-3">
-          <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Generated diagram</p>
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-bold uppercase text-slate-400">Generated diagram</p>
+            {onDiagramEdit && (
+              <button onClick={() => setEditingDiagram(true)} className="text-xs text-violet-500 hover:text-violet-700 font-semibold">Edit</button>
+            )}
+          </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={variant.diagramImageData.startsWith("data:") ? variant.diagramImageData : `data:image/png;base64,${variant.diagramImageData}`}
-            alt="synthetic diagram" className="max-w-sm rounded-lg border border-slate-200" />
+            alt="synthetic diagram"
+            className={`max-w-sm rounded-lg border border-slate-200 ${onDiagramEdit ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+            onClick={() => { if (onDiagramEdit) setEditingDiagram(true); }}
+          />
+          {editingDiagram && onDiagramEdit && (
+            <DiagramEditor
+              imageBase64={variant.diagramImageData}
+              onSave={(edited) => { onDiagramEdit(edited); setEditingDiagram(false); }}
+              onClose={() => setEditingDiagram(false)}
+            />
+          )}
         </div>
       )}
       {variant.diagramDescription && !variant.diagramImageData && (
