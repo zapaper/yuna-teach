@@ -1110,6 +1110,23 @@ const DrawablePage = forwardRef<
       scheduleSnapshotCapture();
     }
 
+    // Safety: reset drawing state if touch leaves the canvas (e.g. multi-touch)
+    function handlePointerLeave() {
+      if (isDrawing.current) {
+        isDrawing.current = false;
+        lastPos.current = null;
+        scheduleSnapshotCapture();
+      }
+    }
+
+    // Safety: reset on visibility change (tab switch, notification overlay)
+    function handleVisibilityChange() {
+      if (document.hidden && isDrawing.current) {
+        isDrawing.current = false;
+        lastPos.current = null;
+      }
+    }
+
     function handleContextMenu(e: Event) {
       e.preventDefault();
     }
@@ -1118,13 +1135,17 @@ const DrawablePage = forwardRef<
     canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointercancel", handlePointerUp);
+    canvas.addEventListener("pointerleave", handlePointerLeave);
     canvas.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("pointerleave", handlePointerLeave);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       canvas.removeEventListener("contextmenu", handleContextMenu);
       cancelPendingCapture();
     };
