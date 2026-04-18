@@ -1417,7 +1417,40 @@ function ExamReviewContent({ id }: { id: string }) {
                                     </div>
                                   )}
                                   {q.marksAvailable && (
-                                    <p className="text-xs text-[#43474f]">{q.marksAwarded ?? 0} / {q.marksAvailable} marks</p>
+                                    <div className="flex items-center gap-2">
+                                      {editingMarks === q.id && !isStudent ? (
+                                        <div className="flex items-center gap-1.5 bg-slate-50 rounded-full px-2 py-1">
+                                          <button
+                                            onClick={() => { const v = Math.max(0, (q.marksAwarded ?? 0) - 0.5); updateMarks(q.id, v); }}
+                                            disabled={savingMarks || (q.marksAwarded ?? 0) <= 0}
+                                            className="w-6 h-6 rounded-full bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center font-bold text-sm disabled:opacity-30"
+                                          >−</button>
+                                          <span className="text-xs font-bold text-[#001e40] min-w-[3rem] text-center">
+                                            {q.marksAwarded ?? 0} / {q.marksAvailable}
+                                          </span>
+                                          <button
+                                            onClick={() => { const v = Math.min(q.marksAvailable!, (q.marksAwarded ?? 0) + 0.5); updateMarks(q.id, v); }}
+                                            disabled={savingMarks || (q.marksAwarded ?? 0) >= q.marksAvailable!}
+                                            className="w-6 h-6 rounded-full bg-[#d1fae5] text-[#006c49] flex items-center justify-center font-bold text-sm disabled:opacity-30"
+                                          >+</button>
+                                          <button onClick={() => setEditingMarks(null)} className="ml-1 text-[#43474f] hover:text-[#001e40]">
+                                            <span className="material-symbols-outlined text-sm">check</span>
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <span
+                                          onClick={() => { if (!isStudent) setEditingMarks(q.id); }}
+                                          className={`text-xs font-bold text-[#43474f] ${!isStudent ? "cursor-pointer hover:text-[#003366]" : ""}`}
+                                        >
+                                          {q.marksAwarded ?? 0} / {q.marksAvailable} marks
+                                          {!isStudent && <span className="material-symbols-outlined text-[10px] ml-1 align-middle opacity-40">edit</span>}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                  {/* Marking notes for synthesis/comp OEQ */}
+                                  {q.markingNotes && (
+                                    <p className="text-xs text-[#43474f] mt-1">{q.markingNotes.split("|").pop()?.trim()}</p>
                                   )}
                                 </div>
                               ) : (
