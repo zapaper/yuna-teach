@@ -234,9 +234,12 @@ export default function DiagramEditor({ imageBase64, onSave, onClose }: DiagramE
           {tool === "text" && (
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] text-slate-400 font-bold">SIZE</span>
-              <input type="range" min={10} max={40} value={fontSize} onChange={e => setFontSize(Number(e.target.value))}
-                className="w-16 h-1.5 accent-[#001e40]" />
-              <span className="text-[10px] text-slate-600 font-bold w-4">{fontSize}</span>
+              <input type="range" min={10} max={80} value={fontSize} onChange={e => setFontSize(Number(e.target.value))}
+                className="w-20 h-1.5 accent-[#001e40]" />
+              <span
+                className="text-[#001e40] font-bold leading-none select-none"
+                style={{ fontSize: `${Math.max(10, fontSize * (canvasRef.current ? canvasRef.current.clientWidth / canvasRef.current.width : 0.5))}px` }}
+              >A</span>
             </div>
           )}
 
