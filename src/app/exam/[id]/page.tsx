@@ -223,12 +223,23 @@ function ExamPracticeContent({ id }: { id: string }) {
     return () => window.removeEventListener("popstate", onPopState);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Disable pinch-zoom on exam page to prevent canvas issues ──
+  // ── Disable all zoom on exam page to prevent canvas/button issues ──
   useEffect(() => {
     const meta = document.querySelector('meta[name="viewport"]');
     const original = meta?.getAttribute("content") ?? "";
     if (meta) meta.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
-    return () => { if (meta) meta.setAttribute("content", original); };
+    // Block double-tap and pinch zoom at document level
+    document.body.style.touchAction = "manipulation";
+    // Block gesturestart (Safari pinch zoom)
+    function preventGesture(e: Event) { e.preventDefault(); }
+    document.addEventListener("gesturestart", preventGesture, { passive: false });
+    document.addEventListener("gesturechange", preventGesture, { passive: false });
+    return () => {
+      if (meta) meta.setAttribute("content", original);
+      document.body.style.touchAction = "";
+      document.removeEventListener("gesturestart", preventGesture);
+      document.removeEventListener("gesturechange", preventGesture);
+    };
   }, []);
 
   function getCurrentTime() {
