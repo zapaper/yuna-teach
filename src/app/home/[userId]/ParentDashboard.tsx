@@ -2195,6 +2195,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ userId: selectedStudentId, settings: { [item.key]: newVal } }),
                               });
+                              // When enabling skipReviewPerfect, release all existing 100% papers
+                              if (item.key === "skipReviewPerfect" && newVal && selectedStudentId) {
+                                fetch("/api/exam/release-perfect", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ studentId: selectedStudentId }),
+                                }).then(r => r.json()).then(d => {
+                                  if (d.released > 0) refreshPapers();
+                                });
+                              }
                               if (selectedStudent) {
                                 selectedStudent.settings = { ...(selectedStudent.settings ?? {}), [item.key]: newVal };
                                 setSettingsTick(t => t + 1);
@@ -2629,6 +2639,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                     headers: { "Content-Type": "application/json" },
                                     body: JSON.stringify({ userId: selectedStudentId, settings: { [item.key]: newVal } }),
                                   });
+                                  // When enabling skipReviewPerfect, release all existing 100% papers
+                                  if (item.key === "skipReviewPerfect" && newVal && selectedStudentId) {
+                                    fetch("/api/exam/release-perfect", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ studentId: selectedStudentId }),
+                                    }).then(r => r.json()).then(d => {
+                                      if (d.released > 0) refreshPapers();
+                                    });
+                                  }
                                   if (selectedStudent) {
                                     selectedStudent.settings = { ...(selectedStudent.settings ?? {}), [item.key]: newVal };
                                     setSettingsTick(t => t + 1);
