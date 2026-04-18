@@ -1389,7 +1389,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ── Desktop nav items ──────────────────────────────────────────────────────
 
   const sideNavItems = [
-    { icon: "edit_note", label: "听写", href: `/scan?userId=${userId}` },
+    { icon: "edit_note", label: "听写", href: `/spelling?userId=${userId}` },
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
@@ -2145,26 +2145,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 <ActivitiesList />
               </section>
 
-              {/* Recent Spelling */}
-              {spellingTests.length > 0 && (
-                <section className="mt-8">
-                  <h3 className="font-headline font-bold text-lg text-[#001e40] mb-4">Recent Spelling / 听写</h3>
-                  <div className="space-y-2">
-                    {spellingTests.slice(0, 5).map(test => (
-                      <div key={test.id} onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
-                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-100 shadow-sm cursor-pointer hover:border-[#003366]/20 transition-colors">
-                        <div className="w-9 h-9 rounded-lg bg-[#003366]/5 flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[#003366] text-base">spellcheck</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm text-[#001e40] truncate">{test.title || "Spelling Test"}</p>
-                          <p className="text-xs text-slate-400">{test.wordCount} words</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
+              {/* Spelling tests moved to /spelling page */}
 
               {/* Student Settings */}
               {selectedStudent && (
@@ -2589,26 +2570,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     </div>
                   </div>
 
-                  {/* Recent Spelling */}
-                  {spellingTests.length > 0 && (
-                    <div className="bg-white rounded-3xl p-8 shadow-sm mt-8">
-                      <h4 className="font-headline text-xl font-extrabold text-[#001e40] mb-5">Recent Spelling / 听写</h4>
-                      <div className="space-y-4">
-                        {spellingTests.slice(0, 5).map(test => (
-                          <div key={test.id} onClick={() => router.push(`/test/${test.id}?userId=${userId}`)}
-                            className="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
-                            <div className="w-10 h-10 rounded-xl bg-[#003366]/5 flex items-center justify-center shrink-0">
-                              <span className="material-symbols-outlined text-[#003366]">spellcheck</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-[#001e40] truncate">{test.title || "Spelling Test"}</p>
-                              <p className="text-sm text-[#43474f]">{test.wordCount} words</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* Spelling tests moved to /spelling page */}
 
                   {/* Student Settings — Desktop */}
                   {selectedStudent && (
@@ -2710,7 +2672,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 backdrop-blur-xl shadow-[0_-10px_40px_rgba(11,28,48,0.06)] rounded-t-[2rem] border-t border-[#e5eeff]/20">
         {[
-          { icon: "edit_note", label: "听写", action: () => router.push(`/scan?userId=${userId}`), active: false },
+          { icon: "edit_note", label: "听写", action: () => router.push(`/spelling?userId=${userId}`), active: false },
           { icon: "psychology", label: "Focus Quiz", action: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); }, active: false },
           { icon: "description", label: "Set Papers", action: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
           { icon: "auto_fix_high", label: "Solver", action: () => router.push(`/solver?userId=${userId}`), active: false },

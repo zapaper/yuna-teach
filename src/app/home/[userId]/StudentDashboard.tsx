@@ -682,7 +682,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-[#001e40] font-bold border-r-4 border-[#001e40] bg-blue-50/50">
               <span className="material-symbols-outlined">home</span>Home
             </button>
-            <button onClick={() => router.push(`/scan?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+            <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
               <span className="material-symbols-outlined">spellcheck</span>听写
             </button>
             {canCreateQuiz && (
@@ -817,35 +817,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Daily 20min Quiz</h3>
                   <p className="text-[#6cf8bb]/90 font-medium">Power up your memory today</p>
                 </button>
-                <button onClick={() => router.push(`/scan?userId=${userId}`)} className="relative group h-48 rounded-[2.5rem] bg-[#001e40] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#001e40]/20">
-                  <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">camera_enhance</span>
-                  <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Scan Spelling / 听写</h3>
-                  <p className="text-[#a7c8ff] font-medium">Scan and test your spelling</p>
+                <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative group h-48 rounded-[2.5rem] bg-[#001e40] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#001e40]/20">
+                  <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">spellcheck</span>
+                  <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Spelling / 听写</h3>
+                  <p className="text-[#a7c8ff] font-medium">View lists and test yourself</p>
                 </button>
               </div>
             </section>
             )}
-            {/* Recent Spelling Tests */}
-            {recentTests.length > 0 && (
-              <section className="mb-12">
-                <h2 className="text-xl font-bold text-[#001e40] mb-4 font-headline">Recent Spelling / 听写</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {recentTests.map(t => (
-                    <div key={t.id} onClick={() => router.push(`/test/${t.id}?userId=${userId}`)}
-                      className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0">
-                        <span className="material-symbols-outlined text-lg">spellcheck</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm text-[#001e40] truncate">{t.title}</p>
-                        <p className="text-xs text-[#43474f]">{relativeDate(t.createdAt)} &middot; {t.wordCount} words</p>
-                      </div>
-                      <span className="material-symbols-outlined text-[#c3c6d1] text-lg shrink-0">chevron_right</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+            {/* Spelling tests moved to /spelling page */}
 
             {completedPapers.length > 0 && (
               <section className="mb-12">
@@ -1041,22 +1021,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             {canCreateQuiz && (
               <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
             )}
-            <button onClick={() => router.push(`/scan?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">camera_enhance</span><h3 className="text-sm font-extrabold text-white font-headline">Scan 听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Mark spelling</p></button>
+            <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">spellcheck</span><h3 className="text-sm font-extrabold text-white font-headline">听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Spelling lists</p></button>
           </section>
-          {recentTests.length > 0 && (
-            <section className="mb-8">
-              <h2 className="text-base font-bold text-[#001e40] mb-3 font-headline">Recent Spelling / 听写</h2>
-              <div className="space-y-2">
-                {recentTests.map(t => (
-                  <div key={t.id} onClick={() => router.push(`/test/${t.id}?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer">
-                    <div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">spellcheck</span></div>
-                    <div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{t.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(t.createdAt)} &middot; {t.wordCount} words</p></div>
-                    <span className="material-symbols-outlined text-[#c3c6d1] text-base shrink-0">chevron_right</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* Spelling tests moved to /spelling page */}
           {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, 10).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}</div>}</section>}
 
           {/* Arena Battle — mobile */}
@@ -1343,7 +1310,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <span className="text-[10px] font-bold">Home</span>
         </button>
         <button
-          onClick={() => { setActiveNav("scan"); router.push(`/scan?userId=${userId}`); }}
+          onClick={() => { setActiveNav("scan"); router.push(`/spelling?userId=${userId}`); }}
           className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "scan" ? "text-[#006c49]" : "text-slate-400"}`}
         >
           <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "scan" ? "'FILL' 1" : "'FILL' 0" }}>document_scanner</span>
