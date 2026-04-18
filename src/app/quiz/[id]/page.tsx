@@ -1425,10 +1425,25 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     const obs = new ResizeObserver(() => {
       const w = parent.offsetWidth;
       const h = parent.offsetHeight;
+      const newW = w * 2;
+      const newH = h * 2;
+      // Save existing content before resize clears it
+      const ctx = canvas.getContext("2d");
+      let saved: ImageData | null = null;
+      if (ctx && canvas.width > 0 && canvas.height > 0) {
+        try { saved = ctx.getImageData(0, 0, canvas.width, canvas.height); } catch { /* empty canvas */ }
+      }
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
-      canvas.width = w * 2;
-      canvas.height = h * 2;
+      canvas.width = newW;
+      canvas.height = newH;
+      // Restore content scaled to new size
+      if (saved && ctx) {
+        const tmp = document.createElement("canvas");
+        tmp.width = saved.width; tmp.height = saved.height;
+        tmp.getContext("2d")!.putImageData(saved, 0, 0);
+        ctx.drawImage(tmp, 0, 0, newW, newH);
+      }
     });
     obs.observe(parent);
     return () => obs.disconnect();
