@@ -2,6 +2,7 @@
 
 import { Suspense, use, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import DiagramEditor from "@/components/DiagramEditor";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -170,6 +171,7 @@ function TranscribeEditContent({ id }: { id: string }) {
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [paperTitle, setPaperTitle] = useState("");
   const [paperSubject, setPaperSubject] = useState("");
+  const [editingDiagramQ, setEditingDiagramQ] = useState<string | null>(null); // question ID being diagram-edited
   const [cropping, setCropping] = useState<string | null>(null); // "questionId-target"
   const [recropQ, setRecropQ] = useState<string | null>(null); // question ID being recropped
   const [recropPageImg, setRecropPageImg] = useState<string | null>(null); // rendered page image
@@ -412,7 +414,8 @@ function TranscribeEditContent({ id }: { id: string }) {
     }
   }
 
-  function updateQuestion(questionId: string, update: Partial<EditQuestion>) {
+  function updateQuestion(questionId: string, update: Partial<EditQuestion> & { _editDiagram?: boolean }) {
+    if (update._editDiagram) { setEditingDiagramQ(questionId); return; }
     setQuestions(qs => qs.map(q => q.id === questionId ? { ...q, ...update } : q));
   }
 
@@ -672,6 +675,22 @@ function TranscribeEditContent({ id }: { id: string }) {
           </button>
         </div>
       )}
+
+      {/* Diagram Editor Modal */}
+      {editingDiagramQ && (() => {
+        const eq = questions.find(q => q.id === editingDiagramQ);
+        if (!eq?.diagramBase64) return null;
+        return (
+          <DiagramEditor
+            imageBase64={eq.diagramBase64}
+            onSave={(editedBase64) => {
+              updateQuestion(editingDiagramQ, { diagramBase64: editedBase64 });
+              setEditingDiagramQ(null);
+            }}
+            onClose={() => setEditingDiagramQ(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -850,12 +869,16 @@ function QuestionCard({
             <div className="mb-3 rounded-xl border border-slate-200 bg-white p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Diagram Preview</span>
-                <button onClick={onRemoveDiagram} className="text-xs text-red-400 hover:text-red-600">Remove</button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => onUpdate({ _editDiagram: true } as any)} className="text-xs text-violet-500 hover:text-violet-700 font-semibold">Edit</button>
+                  <button onClick={onRemoveDiagram} className="text-xs text-red-400 hover:text-red-600">Remove</button>
+                </div>
               </div>
               <img
                 src={`data:image/jpeg;base64,${q.diagramBase64}`}
                 alt="diagram"
-                className="w-full rounded-lg border border-slate-100"
+                className="w-full rounded-lg border border-slate-100 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => onUpdate({ _editDiagram: true } as any)}
               />
             </div>
           )}
