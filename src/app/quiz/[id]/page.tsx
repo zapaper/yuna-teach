@@ -1390,7 +1390,8 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     if (e.button !== 0) return;
     isDrawing.current = true;
     lastPos.current = getPos(e);
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    // Don't use setPointerCapture — it can get stuck after tab switch/zoom,
+    // blocking all button taps until page reload.
   }
 
   function onMove(e: React.PointerEvent) {
