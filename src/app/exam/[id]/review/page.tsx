@@ -1891,7 +1891,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         {studentAnswerText && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Detected Answer</p>
-                            <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
+                            <div className={`text-sm leading-relaxed rounded-2xl p-4 whitespace-pre-wrap ${
                               isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
                               {studentAnswerText}
@@ -1917,9 +1917,9 @@ function ExamReviewContent({ id }: { id: string }) {
                         {currentQ.markingNotes && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
-                            <p className="text-sm text-[#43474f] leading-relaxed">
+                            <div className="text-sm text-[#43474f] leading-relaxed whitespace-pre-wrap">
                               {renderMarkingNotes(currentQ.markingNotes)}
-                            </p>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1995,9 +1995,9 @@ function ExamReviewContent({ id }: { id: string }) {
                         {currentQ.markingNotes && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Marking Notes</p>
-                            <p className="text-sm text-[#43474f] leading-relaxed">
+                            <div className="text-sm text-[#43474f] leading-relaxed whitespace-pre-wrap">
                               {renderMarkingNotes(currentQ.markingNotes)}
-                            </p>
+                            </div>
                           </div>
                         )}
 
