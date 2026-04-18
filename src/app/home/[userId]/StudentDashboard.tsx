@@ -477,7 +477,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   function goToPaper(p: ExamPaperSummary) {
     if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${userId}`);
-    else router.push(`/exam/${p.sourceExamId ?? p.id}/overview?userId=${userId}&openClone=${p.id}`);
+    else router.push(`/exam/${p.id}?userId=${userId}`);
   }
   function paperIcon(p: ExamPaperSummary) {
     if (p.paperType === "quiz") return "quiz";
