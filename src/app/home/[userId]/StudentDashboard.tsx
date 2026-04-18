@@ -166,6 +166,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz">("home");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPastWork, setShowPastWork] = useState(false);
+  const [pastWorkLimit, setPastWorkLimit] = useState(10);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
   const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
@@ -834,13 +835,18 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 </button>
                 {showPastWork && (
                   <div className="space-y-3">
-                    {completedPapers.slice(0, 10).map(p => { const pct = scorePct(p); return (
+                    {completedPapers.slice(0, pastWorkLimit).map(p => { const pct = scorePct(p); return (
                       <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                         <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-lg">{paperIcon(p)}</span></div>
                         <div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>
                         {pct !== null && <span className={`font-extrabold text-sm ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}
                       </div>
                     ); })}
+                    {completedPapers.length > pastWorkLimit && (
+                      <button onClick={() => setPastWorkLimit(l => l + 20)} className="w-full py-3 text-sm font-bold text-[#003366] bg-[#eff4ff] rounded-2xl hover:bg-[#dce9ff] transition-colors">
+                        See more ({completedPapers.length - pastWorkLimit} remaining)
+                      </button>
+                    )}
                   </div>
                 )}
               </section>
@@ -1024,7 +1030,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">spellcheck</span><h3 className="text-sm font-extrabold text-white font-headline">听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Spelling lists</p></button>
           </section>
           {/* Spelling tests moved to /spelling page */}
-          {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, 10).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}</div>}</section>}
+          {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, pastWorkLimit).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}{completedPapers.length > pastWorkLimit && <button onClick={() => setPastWorkLimit(l => l + 20)} className="w-full py-2.5 text-xs font-bold text-[#003366] bg-[#eff4ff] rounded-xl hover:bg-[#dce9ff] transition-colors">See more ({completedPapers.length - pastWorkLimit} remaining)</button>}</div>}</section>}
 
           {/* Arena Battle — mobile */}
           {hasArena && arenaData && (
