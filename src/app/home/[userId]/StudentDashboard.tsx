@@ -704,7 +704,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 <span className="material-symbols-outlined hover:opacity-80">notifications</span>
                 {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
               </button>
-              {quizBadge && <span className="material-symbols-outlined hover:opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>}
+              {/* Quiz badge icon removed for now */}
               <button onClick={() => router.push("/login")} className="text-[#43474f] hover:text-[#ba1a1a] transition-colors" title="Log out">
                 <span className="material-symbols-outlined">logout</span>
               </button>

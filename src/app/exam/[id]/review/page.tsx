@@ -1721,9 +1721,18 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const notes = currentQ.markingNotes ?? "";
                                 const partCorrectMap: Record<string, boolean> = {};
                                 for (const sp of realSubs) {
-                                  const re = new RegExp(`\\(${sp.label}\\)\\s*(Correct|Incorrect|Wrong|Partial)`, "i");
-                                  const m = notes.match(re);
-                                  if (m) partCorrectMap[sp.label.toLowerCase()] = m[1].toLowerCase() === "correct";
+                                  // Try multiple patterns:
+                                  // "(a) Correct" / "(a) Incorrect" / "(a) Wrong" / "(a) Partial"
+                                  const re1 = new RegExp(`\\(${sp.label}\\)\\s*:?\\s*(Correct|Incorrect|Wrong|Partial)`, "i");
+                                  const m1 = notes.match(re1);
+                                  if (m1) { partCorrectMap[sp.label.toLowerCase()] = m1[1].toLowerCase() === "correct"; continue; }
+                                  // "Part (a): ... correct" or "(a) ... correct answer"
+                                  const re2 = new RegExp(`\\(${sp.label}\\)[^|]*?\\b(correct|incorrect|wrong)\\b`, "i");
+                                  const m2 = notes.match(re2);
+                                  if (m2) { partCorrectMap[sp.label.toLowerCase()] = m2[1].toLowerCase() === "correct"; continue; }
+                                  // "(a) No answer" / "(a) blank"
+                                  const re3 = new RegExp(`\\(${sp.label}\\)\\s*:?\\s*(No answer|blank|not provided|no written)`, "i");
+                                  if (re3.test(notes)) { partCorrectMap[sp.label.toLowerCase()] = false; }
                                 }
                                 return (
                                   <div className="space-y-4 mt-2">
