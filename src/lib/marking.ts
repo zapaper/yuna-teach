@@ -85,16 +85,48 @@ function hasOpaquePixels(pngBuffer: Buffer): boolean {
     if (idatChunks.length === 0) return false;
     const compressed = Buffer.concat(idatChunks);
     const raw = zlib.inflateSync(compressed);
-    // Read IHDR for width
+    // Read IHDR for width and color type
     const width = pngBuffer.readUInt32BE(16);
-    // RGBA: each row = 1 filter byte + width * 4 bytes
-    const rowLen = 1 + width * 4;
+    const colorType = pngBuffer[25]; // 6 = RGBA, 4 = GA, 2 = RGB, 0 = G
+    const bpp = colorType === 6 ? 4 : colorType === 4 ? 2 : colorType === 2 ? 3 : 1;
+    const alphaOffset = colorType === 6 ? 3 : colorType === 4 ? 1 : -1;
+    if (alphaOffset < 0) return true; // No alpha channel — can't determine, assume ink
+    const rowLen = 1 + width * bpp;
+    // Unfilter and check alpha — need previous row for Up/Average/Paeth
+    const prevRow = Buffer.alloc(width * bpp);
     for (let y = 0; y * rowLen < raw.length; y++) {
-      const rowStart = y * rowLen + 1; // skip filter byte
-      for (let x = 0; x < width; x++) {
-        const alpha = raw[rowStart + x * 4 + 3];
-        if (alpha > 10) return true; // any non-trivial opacity = ink exists
+      const filterType = raw[y * rowLen];
+      const rowStart = y * rowLen + 1;
+      // Unfilter row in-place
+      for (let x = 0; x < width * bpp; x++) {
+        const rawByte = raw[rowStart + x];
+        const a = x >= bpp ? raw[rowStart + x - bpp] : 0; // left pixel (already unfiltered)
+        const b = prevRow[x]; // above pixel
+        let unfiltered: number;
+        switch (filterType) {
+          case 0: unfiltered = rawByte; break; // None
+          case 1: unfiltered = (rawByte + a) & 0xff; break; // Sub
+          case 2: unfiltered = (rawByte + b) & 0xff; break; // Up
+          case 3: unfiltered = (rawByte + ((a + b) >>> 1)) & 0xff; break; // Average
+          case 4: { // Paeth
+            const c = x >= bpp ? prevRow[x - bpp] : 0;
+            const p = a + b - c;
+            const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+            const pr = pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+            unfiltered = (rawByte + pr) & 0xff;
+            break;
+          }
+          default: unfiltered = rawByte;
+        }
+        raw[rowStart + x] = unfiltered; // store unfiltered for next pixel's "left" reference
       }
+      // Check alpha values in this unfiltered row
+      for (let x = 0; x < width; x++) {
+        const alpha = raw[rowStart + x * bpp + alphaOffset];
+        if (alpha > 10) return true;
+      }
+      // Save this row as previous for next iteration
+      raw.copy(prevRow, 0, rowStart, rowStart + width * bpp);
     }
     return false;
   } catch {
@@ -2384,27 +2416,18 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         const blankSubparts = new Set<string>();
         if (realSubs.length > 0) {
           for (const sp of realSubs) {
-            // Check ink layer for blank canvases.
-            // For drawable diagrams: use pixel check on ink PNG (no printed marks to confuse).
-            // For regular subparts: use AI hasBlueInk on composite (pixel check unreliable due to PNG filtering).
+            // Check ink PNG for blank canvases using pixel check
             let spHasInk = true;
             try {
-              if (hasDrawable) {
-                const spInkPath = path.join(subDir, `page_${i}_${sp.label}_ink.png`);
-                const spInkBuffer = await fs.readFile(spInkPath);
-                spHasInk = hasOpaquePixels(spInkBuffer);
-              } else {
-                // Use composite image for AI ink check (white bg + ruled lines + any ink)
-                const spPath = path.join(subDir, `page_${i}_${sp.label}.jpg`);
-                const spBuffer = await fs.readFile(spPath);
-                spHasInk = await hasBlueInk(spBuffer.toString("base64"), `quiz-sp-Q${q.questionNum}(${sp.label})`, "image/jpeg");
-              }
+              const spInkPath = path.join(subDir, `page_${i}_${sp.label}_ink.png`);
+              const spInkBuffer = await fs.readFile(spInkPath);
+              spHasInk = hasOpaquePixels(spInkBuffer);
+              console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): ink pixel check → ${spHasInk ? "HAS INK" : "BLANK"} (${spInkBuffer.length} bytes)`);
             } catch {
-              // No file — assume ink exists to avoid false negatives
+              // No ink file — assume ink exists
               spHasInk = true;
             }
             if (!spHasInk) {
-              console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): no ink — blank`);
               blankSubparts.add(sp.label);
               parts.push({ text: `Student's handwritten answer for part (${sp.label}): [BLANK — no answer written]` });
               continue;
