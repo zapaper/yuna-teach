@@ -1414,7 +1414,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* Modals */}
       {/* FocusedModal merged into QuizModal */}
       {QuizModal()}
-      <FeedbackModal />
+      {FeedbackModal()}
       {/* Settings are in Student Settings section on the page */}
       <AdminNotifModal />
 
