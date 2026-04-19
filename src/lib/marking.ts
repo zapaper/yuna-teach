@@ -2078,28 +2078,35 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && !isMcqAnswer(qq.answer))) {
       const qTopicLower = (q.syllabusTopic ?? "").toLowerCase();
       const isGrammarClozeQ = qTopicLower.includes("grammar") && qTopicLower.includes("cloze");
-      const studentAnsRaw = (q.studentAnswer ?? "").trim();
-      const studentAns = stripQuotes(studentAnsRaw.toUpperCase());
+      const studentAnsRaw = stripQuotes((q.studentAnswer ?? "").trim());
       const rawCorrect = stripQuotes(q.answer ?? "");
-      const correctAns = rawCorrect.toUpperCase();
       let isCorrect = false;
       let acceptableAnswers: string[] = [];
       if (isGrammarClozeQ) {
-        // Grammar cloze answer keys look like "H (most)", "K or P", "L/P" — students
-        // type a single letter, so accept any standalone capital letter in the key.
-        const letters = new Set(correctAns.match(/\b[A-Z]\b/g) ?? []);
-        const studentLetter = (studentAns.match(/\b[A-Z]\b/) ?? [""])[0];
-        isCorrect = !!studentLetter && letters.has(studentLetter);
-        acceptableAnswers = [...letters];
+        // Grammar cloze answer keys can be:
+        // 1. Single letters from a word bank ("H", "K or P", "L/P") — match any case
+        // 2. Actual words ("helps", "repairs") — match raw text case-insensitively
+        const letterMatches = rawCorrect.match(/\b[A-Za-z]\b/g) ?? [];
+        const isLetterKey = letterMatches.length > 0 && letterMatches.every(l => l.length === 1)
+          && rawCorrect.replace(/[A-Za-z\s/,|.()or]+/gi, "").trim() === "";
+        if (isLetterKey) {
+          const letters = new Set(letterMatches.map(l => l.toUpperCase()));
+          const studentLetter = (studentAnsRaw.toUpperCase().match(/\b[A-Z]\b/) ?? [""])[0];
+          isCorrect = !!studentLetter && letters.has(studentLetter);
+          acceptableAnswers = [...letters];
+        } else {
+          // Word-based grammar cloze — compare raw text case-insensitively
+          acceptableAnswers = rawCorrect.split(/\s+or\s+|\//).map(a => stripQuotes(a.trim()));
+          isCorrect = studentAnsRaw !== "" && acceptableAnswers.some(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
+        }
       } else {
-        acceptableAnswers = correctAns.split("/").map(a => stripQuotes(a.trim()));
-        isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
+        // Editing section — compare raw text case-insensitively first
+        acceptableAnswers = rawCorrect.split("/").map(a => stripQuotes(a.trim()));
+        isCorrect = studentAnsRaw !== "" && acceptableAnswers.some(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
         // Capitalization check: if the matching answer-key alternative starts with a
-        // capital letter (i.e. the blank is at the start of a sentence), require the
-        // student to have capitalized their first letter.
+        // capital letter (blank is at start of sentence), require student to capitalize first letter.
         if (isCorrect) {
-          const rawAlts = rawCorrect.split("/").map(a => stripQuotes(a.trim()));
-          const matchingAlt = rawAlts.find(a => a.toUpperCase() === studentAns);
+          const matchingAlt = acceptableAnswers.find(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
           if (matchingAlt && /^[A-Z]/.test(matchingAlt)) {
             const studentFirst = studentAnsRaw.match(/[A-Za-z]/)?.[0] ?? "";
             if (studentFirst && studentFirst !== studentFirst.toUpperCase()) {
@@ -2117,7 +2124,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
       if (isCompClozeQ) {
         console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: student="${studentAnsRaw}" key="${rawCorrect}" simpleMatch=${isCorrect}`);
       }
-      if (!isCorrect && studentAns && isCompClozeQ) {
+      if (!isCorrect && studentAnsRaw && isCompClozeQ) {
         console.log(`[quiz-marking] Comp Cloze Q${q.questionNum}: calling AI fallback`);
         try {
           // Get passage context for the AI
@@ -2175,11 +2182,11 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence explaining w
         where: { id: q.id },
         data: {
           marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
-          markingNotes: studentAns ? (isCorrect ? "Correct" : `"${studentAns}" is incorrect. Correct answer: "${correctAns}"`) : "No answer",
+          markingNotes: studentAnsRaw ? (isCorrect ? "Correct" : `"${studentAnsRaw}" is incorrect. Correct answer: "${rawCorrect}"`) : "No answer",
         },
       });
       q.marksAwarded = isCorrect ? (q.marksAvailable ?? 1) : 0;
-      console.log(`[quiz-marking] Typed Q${q.questionNum}: "${studentAns}" vs "${correctAns}" → ${isCorrect ? "correct" : "wrong"}`);
+      console.log(`[quiz-marking] Typed Q${q.questionNum}: "${studentAnsRaw}" vs "${rawCorrect}" → ${isCorrect ? "correct" : "wrong"}`);
     }
 
     let totalAwarded = mcqQuestions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
