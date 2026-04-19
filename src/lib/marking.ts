@@ -2638,8 +2638,22 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           if (!("text" in p) || typeof p.text !== "string") return true;
           return !/^Student's handwritten answer for part \(/.test(p.text);
         });
-        detectParts.push({ text: `Read the student's handwritten answer from the image above.
+        const isDrawableOnly = hasDrawable && realSubs.length === 0;
+        const drawableClause = isDrawableOnly ? `
 
+DRAWABLE DIAGRAM — CRITICAL:
+This question has a printed diagram and the student answers by ADDING marks to it (shading a region, drawing arrows, circling objects, filling boxes). The pixel check has already confirmed blue ink is present, so your job is to describe what was DRAWN in blue ink on top of the printed diagram.
+- DO NOT return "blank" — ink is definitely present.
+- Describe the ink markings spatially and in terms of what they do to the diagram:
+  * Shading → which region/object was shaded (e.g. "shaded the square on the left")
+  * Arrows → where they start and where they point (e.g. "arrow from light bulb W pointing towards the object")
+  * Circles / ticks / crosses → which object they mark
+  * Lines drawn between objects → which objects are connected
+- If the student wrote any letters, numbers or words (e.g. "A", "yes", "4") in blue ink, include those too.
+- Be concrete: name the objects the student's marks touch/refer to, using labels from the printed diagram when possible.
+` : "";
+        detectParts.push({ text: `Read the student's handwritten answer from the image above.
+${drawableClause}
 IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer.
 
 FORMAT: Put each line of working on a SEPARATE line. Do NOT merge numbers from different lines into one.
@@ -2691,6 +2705,16 @@ Report EXACTLY what the student wrote. Return ONLY the detected text, nothing el
           ? `\nANSWER IMAGE SCOPE: The expected answer image ONLY applies to part(s): ${imagePartsList.length > 0 ? imagePartsList.map(l => `(${l})`).join(", ") : "NONE — ignore the image entirely"}. For part(s) ${textOnlyPartsList.map(l => `(${l})`).join(", ") || "(none)"}, mark ONLY against the text in the expected answer — do NOT refer to the answer image for those parts.`
           : "";
 
+        const drawableMarkRule = isDrawableOnly ? `
+
+DRAWABLE DIAGRAM — MARKING RULES:
+The student's answer is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text. The detected answer above describes what was drawn in words.
+- If an expected answer image is provided, compare the student's drawing to it visually — match shaded regions, arrow directions, and marked objects.
+- If only a text expected answer is given, check whether the detected drawing satisfies its conditions (e.g. expected "Shade the opaque material" → accept any shading on the opaque material object).
+- Award partial credit when the drawing is partly right (e.g. correct object shaded but arrow direction wrong).
+- NEVER award 0 with the reason "blank" — blue ink has already been confirmed present. If you cannot determine what was drawn, say so in notes and award based on the detected description.
+` : "";
+
         const isScience = (paper.subject ?? "").toLowerCase().includes("science");
         const sciencePartialRule = isScience ? `
 
@@ -2736,7 +2760,7 @@ Marks available: ${marksAvailable}
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
-${sciencePartialRule}
+${drawableMarkRule}${sciencePartialRule}
 Instructions:
 1. Compare the student's detected answer against the expected answer (including synonyms and equivalent phrasing). For Science, apply the SCIENCE PARTIAL-CREDIT RULE above — partial credit for partial concept coverage.
    - If correct → FULL MARKS.
