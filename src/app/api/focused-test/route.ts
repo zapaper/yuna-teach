@@ -135,12 +135,14 @@ export async function POST(request: NextRequest) {
       }
     }
     const sentinels = group.flatMap(q => ((q.transcribedSubparts as Subpart[] | null) ?? []).filter(s => s.label.startsWith("_")));
-    const stems = [...new Set(group.map(q => (q.transcribedStem ?? "").trim()).filter(Boolean))];
+    // Use ONLY the first group member's stem. Later parts' stems (e.g. Q12c's
+    // added scenario context) belong to that subpart, not the main stem.
+    const firstStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
     const combinedAnswer = [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
     return {
       ...first,
       answer: combinedAnswer || first.answer,
-      transcribedStem: stems.join("\n"),
+      transcribedStem: firstStem,
       transcribedSubparts: allSubparts.length > 0 ? [...allSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
       diagramImageData: first.diagramImageData || group.find(q => q.diagramImageData)?.diagramImageData || null,

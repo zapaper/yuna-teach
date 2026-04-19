@@ -927,9 +927,12 @@ export async function POST(request: NextRequest) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
       sentinels.push(...subs.filter(s => s.label.startsWith("_")));
     }
-    // Combine stems: use first stem; if later parts have a different stem (continuation context), append
-    const stems = group.map(q => (q.transcribedStem ?? "").trim()).filter(Boolean);
-    const combinedStem = [...new Set(stems)].join("\n");
+    // Use ONLY the first group member's stem as the main question stem.
+    // Later parts (e.g. Q12c added context "Reflective strips...") have their
+    // own scenario text that belongs to that subpart, not the main stem.
+    // That context is prepended to the subpart's text below.
+    const firstStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
+    const combinedStem = firstStem;
 
     // Use the first question's diagram, or fall back to any later question's diagram
     const diagramImageData = first.diagramImageData
