@@ -2492,9 +2492,24 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
 
         // Student's handwritten answer from submission files
         let hasSubmission = false;
-        const subparts = q.transcribedSubparts as { label: string; text: string }[] | null;
+        type SubpartRow = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
+        const subparts = q.transcribedSubparts as SubpartRow[] | null;
         const realSubs = subparts?.filter(sp => !sp.label.startsWith("_")) ?? [];
         const hasDrawable = subparts?.some(sp => sp.label === "_drawable") ?? false;
+        // Per-subpart reference image (from _subref-X sentinels) lets that subpart be drawable.
+        const subRefLabels = new Set(
+          (subparts ?? [])
+            .filter(sp => sp.label.startsWith("_subref-") && sp.diagramBase64)
+            .map(sp => sp.label.slice(8).toLowerCase())
+        );
+        // A subpart is drawable if it has a background diagram/ref image, or the whole
+        // question is _drawable, or its text describes a drawing task (shade/draw/arrow).
+        const drawTaskRe = /\b(shade|draw|arrow|circle|tick|mark|colour|color)\b/i;
+        const drawableSubLabels = new Set<string>(
+          realSubs
+            .filter(sp => !!sp.diagramBase64 || !!sp.refImageBase64 || subRefLabels.has(sp.label.toLowerCase()) || drawTaskRe.test(sp.text ?? ""))
+            .map(sp => sp.label.toLowerCase())
+        );
 
         // For drawable diagram OEQ: check the INK-ONLY layer (transparent bg with
         // only student strokes). The composite image contains the printed diagram
@@ -2575,7 +2590,11 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             try {
               const spPath = path.join(subDir, `page_${i}_${sp.label}.jpg`);
               const spBuffer = await fs.readFile(spPath);
-              parts.push({ text: `Student's handwritten answer for part (${sp.label}):` });
+              const isSpDrawable = drawableSubLabels.has(sp.label.toLowerCase());
+              const labelNote = isSpDrawable
+                ? `Student's handwritten answer for part (${sp.label}) — THIS IS A DRAWING TASK (shading/arrows/marks on a diagram). Ink is confirmed present:`
+                : `Student's handwritten answer for part (${sp.label}):`;
+              parts.push({ text: labelNote });
               parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: spBuffer.toString("base64") } });
               hasSubmission = true;
             } catch {
@@ -2639,11 +2658,14 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           return !/^Student's handwritten answer for part \(/.test(p.text);
         });
         const isDrawableOnly = hasDrawable && realSubs.length === 0;
-        const drawableClause = isDrawableOnly ? `
+        const hasDrawableSubpart = drawableSubLabels.size > 0;
+        const isDrawableAny = isDrawableOnly || hasDrawableSubpart;
+        const drawableSubLabelList = [...drawableSubLabels].map(l => `(${l})`).join(", ");
+        const drawableClause = isDrawableAny ? `
 
 DRAWABLE DIAGRAM — CRITICAL:
-This question has a printed diagram and the student answers by ADDING marks to it (shading a region, drawing arrows, circling objects, filling boxes). The pixel check has already confirmed blue ink is present, so your job is to describe what was DRAWN in blue ink on top of the printed diagram.
-- DO NOT return "blank" — ink is definitely present.
+${isDrawableOnly ? "This question" : `Part(s) ${drawableSubLabelList}`} has a printed diagram and the student answers by ADDING marks to it (shading a region, drawing arrows, circling objects, filling boxes). The pixel check has already confirmed blue ink is present${hasDrawableSubpart ? " on every drawing part listed above" : ""}, so your job is to describe what was DRAWN in blue ink on top of the printed diagram.
+- DO NOT return "blank" for any drawing part — ink is definitely present.
 - Describe the ink markings spatially and in terms of what they do to the diagram:
   * Shading → which region/object was shaded (e.g. "shaded the square on the left")
   * Arrows → where they start and where they point (e.g. "arrow from light bulb W pointing towards the object")
@@ -2705,14 +2727,14 @@ Report EXACTLY what the student wrote. Return ONLY the detected text, nothing el
           ? `\nANSWER IMAGE SCOPE: The expected answer image ONLY applies to part(s): ${imagePartsList.length > 0 ? imagePartsList.map(l => `(${l})`).join(", ") : "NONE — ignore the image entirely"}. For part(s) ${textOnlyPartsList.map(l => `(${l})`).join(", ") || "(none)"}, mark ONLY against the text in the expected answer — do NOT refer to the answer image for those parts.`
           : "";
 
-        const drawableMarkRule = isDrawableOnly ? `
+        const drawableMarkRule = isDrawableAny ? `
 
-DRAWABLE DIAGRAM — MARKING RULES:
-The student's answer is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text. The detected answer above describes what was drawn in words.
-- If an expected answer image is provided, compare the student's drawing to it visually — match shaded regions, arrow directions, and marked objects.
-- If only a text expected answer is given, check whether the detected drawing satisfies its conditions (e.g. expected "Shade the opaque material" → accept any shading on the opaque material object).
+DRAWABLE DIAGRAM — MARKING RULES (applies to ${isDrawableOnly ? "this question" : `part(s) ${drawableSubLabelList}`}):
+The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text. The detected answer above describes what was drawn in words.
+- If an expected answer image is provided for a drawing part, compare the student's drawing to it visually — match shaded regions, arrow directions, and marked objects.
+- If only a text expected answer is given (e.g. "shade the opaque material"), check whether the detected drawing satisfies its conditions.
 - Award partial credit when the drawing is partly right (e.g. correct object shaded but arrow direction wrong).
-- NEVER award 0 with the reason "blank" — blue ink has already been confirmed present. If you cannot determine what was drawn, say so in notes and award based on the detected description.
+- NEVER award 0 with the reason "blank" for a drawing part — blue ink has already been confirmed. If you cannot determine what was drawn, say so in notes and award based on the detected description.
 ` : "";
 
         const isScience = (paper.subject ?? "").toLowerCase().includes("science");
