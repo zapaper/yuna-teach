@@ -2,6 +2,7 @@ import path from "path";
 import { promises as fs } from "fs";
 import sharp from "sharp";
 import { GoogleGenAI } from "@google/genai";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
 /**
@@ -345,6 +346,25 @@ function isClozeQuestion(syllabusTopic: string | null | undefined): boolean {
 function normalizeMcq(val: string): string {
   const upper = val.trim().replace(/[()]/g, "").toUpperCase();
   return upper === "I" ? "1" : upper;
+}
+
+/** Parse a flat answer string like "a) X | b) Y" or "(b) foo (c) bar" into
+ *  a map of part-label -> answer text. Returns empty map if no part markers. */
+export function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
+  const result = new Map<string, string>();
+  if (!answer || !answer.trim()) return result;
+  const re = /(^|[|\n])\s*\(?([a-z])\)\s*/gi;
+  const matches = [...answer.matchAll(re)];
+  if (matches.length === 0) return result;
+  for (let i = 0; i < matches.length; i++) {
+    const m = matches[i];
+    const label = m[2].toLowerCase();
+    const start = m.index! + m[0].length;
+    const end = i + 1 < matches.length ? matches[i + 1].index! : answer.length;
+    const content = answer.slice(start, end).replace(/\s*\|\s*$/, "").trim();
+    if (content) result.set(label, content);
+  }
+  return result;
 }
 
 /**
@@ -1999,26 +2019,100 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     });
     if (!paper) throw new Error("Paper not found");
 
-    // Sync answers from source questions (in case answer keys were updated)
+    // Sync answers from source questions (in case answer keys were updated).
+    // For multi-part merged questions (e.g. focused Q6 whose source was Q12ab + Q12c),
+    // fetch ALL sibling source rows and rebuild per-part answers — otherwise we'd
+    // overwrite the merged answer with just one source row's partial answer.
     const sourceIds = paper.questions.map(q => q.sourceQuestionId).filter(Boolean) as string[];
     if (sourceIds.length > 0) {
       const sourceQuestions = await prisma.examQuestion.findMany({
         where: { id: { in: sourceIds } },
-        select: { id: true, answer: true, answerImageData: true },
+        select: { id: true, answer: true, answerImageData: true, questionNum: true, examPaperId: true },
       });
       const sourceMap = new Map(sourceQuestions.map(sq => [sq.id, sq]));
+
+      // For each unique (examPaperId, baseNum), fetch all siblings once
+      type Sib = { questionNum: string; answer: string | null; answerImageData: string | null; transcribedSubparts: Prisma.JsonValue };
+      const siblingCache = new Map<string, Array<Sib>>();
+      const baseNumOf = (n: string) => n.replace(/[a-zA-Z]+$/, "");
+      const uniqueKeys = new Set<string>();
+      for (const sq of sourceQuestions) uniqueKeys.add(`${sq.examPaperId}::${baseNumOf(sq.questionNum)}`);
+      for (const key of uniqueKeys) {
+        const [examPaperId, base] = key.split("::");
+        const sibs = await prisma.examQuestion.findMany({
+          where: { examPaperId, questionNum: { startsWith: base } },
+          select: { questionNum: true, answer: true, answerImageData: true, transcribedSubparts: true },
+        });
+        siblingCache.set(key, sibs);
+      }
+
       for (const q of paper.questions) {
-        if (q.sourceQuestionId) {
-          const src = sourceMap.get(q.sourceQuestionId);
-          if (src && (src.answer !== q.answer || src.answerImageData !== q.answerImageData)) {
-            console.log(`[quiz-marking] Syncing answer for Q${q.questionNum}: "${q.answer}" → "${src.answer}"`);
+        if (!q.sourceQuestionId) continue;
+        const src = sourceMap.get(q.sourceQuestionId);
+        if (!src) continue;
+
+        type Subpart = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
+        const subs = (q.transcribedSubparts as Subpart[] | null) ?? null;
+        const realSubs = (subs ?? []).filter(s => !s.label.startsWith("_"));
+
+        if (realSubs.length > 0) {
+          // Multi-part question — aggregate per-part answers across all source siblings
+          const siblings = siblingCache.get(`${src.examPaperId}::${baseNumOf(src.questionNum)}`) ?? [];
+          const partAnswers = new Map<string, string>();
+          for (const sib of siblings) {
+            const parsed = parsePartAnswers(sib.answer);
+            if (parsed.size > 0) {
+              for (const [label, text] of parsed) partAnswers.set(label, text);
+              continue;
+            }
+            // No explicit (a)/(b) markers. If this sibling has exactly one real
+            // subpart, attribute the whole answer to that subpart's label.
+            const sibSubs = (sib.transcribedSubparts as Subpart[] | null) ?? [];
+            const sibRealSubs = sibSubs.filter(s => !s.label.startsWith("_"));
+            if (sibRealSubs.length === 1 && sib.answer?.trim()) {
+              partAnswers.set(sibRealSubs[0].label.toLowerCase(), sib.answer.trim());
+            }
+          }
+          // Pick the first sibling with an answer image (in questionNum order)
+          const sortedSibs = [...siblings].sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+          const answerImg = sortedSibs.find(s => s.answerImageData)?.answerImageData ?? null;
+
+          // Build new subparts with sp.answer attached
+          const newSubs = (subs ?? []).map(sp => {
+            if (sp.label.startsWith("_")) return sp;
+            const ans = partAnswers.get(sp.label.toLowerCase());
+            return ans !== undefined ? { ...sp, answer: ans } : sp;
+          });
+          // Rebuild combined answer from part answers (preserves all parts)
+          const combined = [...partAnswers.entries()]
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([k, v]) => `(${k}) ${v}`)
+            .join(" | ");
+          const newAnswer = combined || q.answer;
+          const subsChanged = JSON.stringify(newSubs) !== JSON.stringify(subs);
+          if (newAnswer !== q.answer || answerImg !== q.answerImageData || subsChanged) {
+            console.log(`[quiz-marking] Rebuilding multi-part answer for Q${q.questionNum} from ${siblings.length} siblings`);
             await prisma.examQuestion.update({
               where: { id: q.id },
-              data: { answer: src.answer, answerImageData: src.answerImageData },
+              data: {
+                answer: newAnswer,
+                answerImageData: answerImg,
+                transcribedSubparts: newSubs as unknown as Prisma.InputJsonValue,
+              },
             });
-            q.answer = src.answer;
-            q.answerImageData = src.answerImageData;
+            q.answer = newAnswer;
+            q.answerImageData = answerImg;
+            q.transcribedSubparts = newSubs as unknown as typeof q.transcribedSubparts;
           }
+        } else if (src.answer !== q.answer || src.answerImageData !== q.answerImageData) {
+          // Single-part question — simple sync
+          console.log(`[quiz-marking] Syncing answer for Q${q.questionNum}: "${q.answer}" → "${src.answer}"`);
+          await prisma.examQuestion.update({
+            where: { id: q.id },
+            data: { answer: src.answer, answerImageData: src.answerImageData },
+          });
+          q.answer = src.answer;
+          q.answerImageData = src.answerImageData;
         }
       }
     }
@@ -2225,8 +2319,20 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence explaining w
 
       for (let i = 0; i < oeqQuestions.length; i++) {
         const q = oeqQuestions[i];
-        const expectedAnswer = q.answer || "?";
         const marksAvailable = q.marksAvailable ?? 1;
+
+        // Build the expected-answer text. If subparts carry per-part answers
+        // (from the merge/sync rebuild), format as a clear per-part breakdown
+        // so the AI marks each part against its own answer key.
+        type Subpart = { label: string; text: string; answer?: string | null };
+        const subsForAns = (q.transcribedSubparts as Subpart[] | null) ?? null;
+        const realSubsForAns = (subsForAns ?? []).filter(s => !s.label.startsWith("_"));
+        const hasPerPartAnswers = realSubsForAns.some(sp => sp.answer);
+        const expectedAnswer = hasPerPartAnswers
+          ? realSubsForAns
+              .map(sp => `Part (${sp.label}): ${sp.answer ?? "(no answer key — rely on the expected answer image if provided, else award 0)"}`)
+              .join("\n")
+          : (q.answer || "?");
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const parts: any[] = [];
@@ -2526,7 +2632,12 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
 
         // ── PHASE 1: Detect what the student wrote (WITHOUT showing the answer key) ──
         // This eliminates confirmation bias — the AI reads the image blind.
-        const detectParts = [...parts];
+        // Strip the "Student's handwritten answer for part (X):" labels — the AI can infer
+        // parts from the question stem and image order without being primed by the labels.
+        const detectParts = parts.filter(p => {
+          if (!("text" in p) || typeof p.text !== "string") return true;
+          return !/^Student's handwritten answer for part \(/.test(p.text);
+        });
         detectParts.push({ text: `Read the student's handwritten answer from the image above.
 
 IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer.

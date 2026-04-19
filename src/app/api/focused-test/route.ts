@@ -117,7 +117,24 @@ export async function POST(request: NextRequest) {
   }
   const oeqPool = [...oeqLeadStemMap.values()];
 
-  type Subpart = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
+  type Subpart = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
+
+  function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
+    const result = new Map<string, string>();
+    if (!answer || !answer.trim()) return result;
+    const re = /(^|[|\n])\s*\(?([a-z])\)\s*/gi;
+    const matches = [...answer.matchAll(re)];
+    if (matches.length === 0) return result;
+    for (let i = 0; i < matches.length; i++) {
+      const m = matches[i];
+      const label = m[2].toLowerCase();
+      const start = m.index! + m[0].length;
+      const end = i + 1 < matches.length ? matches[i + 1].index! : answer.length;
+      const content = answer.slice(start, end).replace(/\s*\|\s*$/, "").trim();
+      if (content) result.set(label, content);
+    }
+    return result;
+  }
 
   function mergeOeqGroup(group: Q[]) {
     const first = group[0];
@@ -135,15 +152,41 @@ export async function POST(request: NextRequest) {
       }
     }
     const sentinels = group.flatMap(q => ((q.transcribedSubparts as Subpart[] | null) ?? []).filter(s => s.label.startsWith("_")));
+    // Aggregate per-part answers across all siblings, then attach to subparts.
+    // Also rebuild the flat answer string from the per-part map so every part is present.
+    const partAnswers = new Map<string, string>();
+    for (const q of group) {
+      const parsed = parsePartAnswers(q.answer);
+      if (parsed.size > 0) {
+        for (const [label, text] of parsed) partAnswers.set(label, text);
+        continue;
+      }
+      // No (a)/(b) markers — if this sibling has exactly one real subpart, use its label
+      const sibSubs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      const sibRealSubs = sibSubs.filter(s => !s.label.startsWith("_"));
+      if (sibRealSubs.length === 1 && q.answer?.trim()) {
+        partAnswers.set(sibRealSubs[0].label.toLowerCase(), q.answer.trim());
+      }
+    }
+    const enrichedSubparts = allSubparts.map(sp => {
+      const ans = partAnswers.get(sp.label.toLowerCase());
+      return ans !== undefined ? { ...sp, answer: ans } : sp;
+    });
     // Use ONLY the first group member's stem. Later parts' stems (e.g. Q12c's
     // added scenario context) belong to that subpart, not the main stem.
     const firstStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
-    const combinedAnswer = [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
+    const rebuiltAnswer = partAnswers.size > 0
+      ? [...partAnswers.entries()].sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => `(${k}) ${v}`).join(" | ")
+      : [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
+    // Pick the first answer image among siblings (in questionNum order).
+    const sortedGroup = [...group].sort((a,b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
+    const answerImageData = sortedGroup.find(q => q.answerImageData)?.answerImageData ?? first.answerImageData ?? null;
     return {
       ...first,
-      answer: combinedAnswer || first.answer,
+      answer: rebuiltAnswer || first.answer,
+      answerImageData,
       transcribedStem: firstStem,
-      transcribedSubparts: allSubparts.length > 0 ? [...allSubparts, ...sentinels] : null,
+      transcribedSubparts: enrichedSubparts.length > 0 ? [...enrichedSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
       diagramImageData: first.diagramImageData || group.find(q => q.diagramImageData)?.diagramImageData || null,
     };

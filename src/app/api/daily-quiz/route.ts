@@ -896,11 +896,28 @@ export async function POST(request: NextRequest) {
     ? oeqFreshPool
     : [...oeqFreshPool, ...oeqUsedPool];
 
+  function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
+    const result = new Map<string, string>();
+    if (!answer || !answer.trim()) return result;
+    const re = /(^|[|\n])\s*\(?([a-z])\)\s*/gi;
+    const matches = [...answer.matchAll(re)];
+    if (matches.length === 0) return result;
+    for (let i = 0; i < matches.length; i++) {
+      const m = matches[i];
+      const label = m[2].toLowerCase();
+      const start = m.index! + m[0].length;
+      const end = i + 1 < matches.length ? matches[i + 1].index! : answer.length;
+      const content = answer.slice(start, end).replace(/\s*\|\s*$/, "").trim();
+      if (content) result.set(label, content);
+    }
+    return result;
+  }
+
   // Merge a group of OEQ question records into one combined question for the quiz
   function mergeOeqGroup(group: Q[]) {
     const first = group[0];
     // Combine all subparts across parts, stripping sentinel entries
-    type Subpart = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
+    type Subpart = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
     const allSubparts: Subpart[] = [];
     for (const q of group) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
@@ -972,14 +989,36 @@ export async function POST(request: NextRequest) {
       uniqueSubparts.push(sp);
     }
 
+    // Attach per-part answer text to each subpart (from any sibling that holds it).
+    // This lets the marking prompt show the AI exactly which answer belongs to each part.
+    const partAnswers = new Map<string, string>();
+    for (const q of group) {
+      const parsed = parsePartAnswers(q.answer);
+      if (parsed.size > 0) {
+        for (const [label, text] of parsed) partAnswers.set(label, text);
+        continue;
+      }
+      const sibSubs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      const sibRealSubs = sibSubs.filter(s => !s.label.startsWith("_"));
+      if (sibRealSubs.length === 1 && q.answer?.trim()) {
+        partAnswers.set(sibRealSubs[0].label.toLowerCase(), q.answer.trim());
+      }
+    }
+    const enrichedSubparts = uniqueSubparts.map(sp => {
+      const ans = partAnswers.get(sp.label.toLowerCase());
+      return ans !== undefined ? { ...sp, answer: ans } : sp;
+    });
+    // Note: answerImageData is added later via hydration by first.id. The marking-time
+    // sync in marking.ts re-fetches all siblings and picks the right answer image then.
+
     return {
       ...first,
       answer: combinedAnswer || first.answer,
       transcribedStem: combinedStem,
       // Preserve sentinels (like _drawable) even when there are no real sub-parts —
       // otherwise a single-part OEQ with a drawable diagram loses its canvas background.
-      transcribedSubparts: (uniqueSubparts.length > 0 || sentinels.length > 0)
-        ? [...uniqueSubparts, ...sentinels]
+      transcribedSubparts: (enrichedSubparts.length > 0 || sentinels.length > 0)
+        ? [...enrichedSubparts, ...sentinels]
         : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
       diagramImageData,
