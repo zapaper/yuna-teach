@@ -128,6 +128,8 @@ function QuizContent({ id }: { id: string }) {
   const [submitted, setSubmitted] = useState(false);
   const [emptyFieldIds, setEmptyFieldIds] = useState<Set<string>>(new Set());
   const [mcqScore, setMcqScore] = useState<{ correct: number; total: number; marksEarned: number; marksTotal: number } | null>(null);
+  const [displayedMarks, setDisplayedMarks] = useState(0);
+  const [scorePopups, setScorePopups] = useState<{ id: number; marks: number }[]>([]);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
@@ -190,6 +192,37 @@ function QuizContent({ id }: { id: string }) {
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [submitted, paper, loading]);
+
+  // MCQ score count-up + "+N" popup animation on submission.
+  useEffect(() => {
+    if (!mcqScore) return;
+    if (mcqScore.correct === 0) { setDisplayedMarks(mcqScore.marksEarned); return; }
+    // Spread marksEarned across the correct count (usually 1 or 2 per MCQ).
+    const per = mcqScore.correct > 0 ? Math.round(mcqScore.marksEarned / mcqScore.correct) : 0;
+    setDisplayedMarks(0);
+    let running = 0;
+    const spawnTimers: number[] = [];
+    const clearTimers: number[] = [];
+    for (let i = 0; i < mcqScore.correct; i++) {
+      spawnTimers.push(window.setTimeout(() => {
+        running += per;
+        const id = Date.now() + i;
+        setScorePopups(prev => [...prev, { id, marks: per }]);
+        setDisplayedMarks(Math.min(running, mcqScore.marksEarned));
+        // Popup animation is ~1.2s; clean up after.
+        clearTimers.push(window.setTimeout(() => {
+          setScorePopups(prev => prev.filter(p => p.id !== id));
+        }, 1300));
+      }, 400 + i * 180));
+    }
+    // Settle the final value in case rounding left a gap.
+    const finalTimer = window.setTimeout(() => setDisplayedMarks(mcqScore.marksEarned), 400 + mcqScore.correct * 180 + 300);
+    return () => {
+      spawnTimers.forEach(t => window.clearTimeout(t));
+      clearTimers.forEach(t => window.clearTimeout(t));
+      window.clearTimeout(finalTimer);
+    };
+  }, [mcqScore]);
 
   // Poll for OEQ marking
   useEffect(() => {
@@ -549,10 +582,22 @@ function QuizContent({ id }: { id: string }) {
           <p className="text-sm text-[#43474f] mb-6">Time: {formatTime(elapsed)}</p>
 
           {mcqScore && mcqScore.total > 0 && (
-            <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4">
+            <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4 relative overflow-visible">
               <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-2">MCQ Score</p>
-              <p className="font-headline text-5xl font-black text-[#001e40]">{mcqScore.marksEarned}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span></p>
+              <p className="font-headline text-5xl font-black text-[#001e40]">{displayedMarks}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span></p>
               <p className="text-sm font-bold text-[#006c49] mt-2">{mcqScore.marksTotal > 0 ? Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100) : 0}% &middot; {mcqScore.correct}/{mcqScore.total} questions</p>
+              {/* Floating "+N" popups — one per correct MCQ, staggered */}
+              <div className="absolute inset-0 pointer-events-none">
+                {scorePopups.map(p => (
+                  <span
+                    key={p.id}
+                    className="absolute left-1/2 top-1/2 text-3xl font-black text-[#006c49]"
+                    style={{ animation: "plusScorePop 1.2s ease-out forwards" }}
+                  >
+                    +{p.marks}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
