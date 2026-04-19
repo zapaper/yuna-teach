@@ -2523,6 +2523,8 @@ Report it as:
 
 If the student drew a diagram (e.g. bar model, number line, shapes, arrows), describe it briefly (e.g. "Drew a bar model: 3 units = 42, 1 unit = 14").
 
+SMALL / SHORT ANSWERS: Single digits (e.g. "4", "7") or single letters (e.g. "A") may be small and easy to miss. Scan the ENTIRE answer area carefully — especially near "Ans:" lines and in the top-right corner of sub-part regions. A thin blue stroke that resembles a digit IS the student's answer. Do NOT default to "blank" if there is any blue ink mark present.
+
 If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".
 Report EXACTLY what the student wrote. Return ONLY the detected text, nothing else.` });
 
