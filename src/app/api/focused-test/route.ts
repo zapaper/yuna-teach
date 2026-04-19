@@ -263,5 +263,24 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ id: paper.id });
+  // Build a human warning if the topic had fewer questions than the default target.
+  // Default target = 10 (mcqOnly) or 5 MCQ + 5 OEQ (mixed). Surface shortfall so the
+  // assigner knows the practice is shorter than usual.
+  const warnings: string[] = [];
+  const levelName = student?.level ? `P${student.level}` : "this level";
+  if (mcqOnly) {
+    if (mcqPool.length < 10) {
+      warnings.push(`Only ${mcqPool.length} MCQ question${mcqPool.length === 1 ? "" : "s"} available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
+    }
+  } else {
+    if (oeqPool.length === 0 && mcqPool.length > 0) {
+      warnings.push(`No written questions are tagged for "${topic}" at ${levelName} yet — this practice is MCQ-only.`);
+    } else if (mcqPool.length === 0 && oeqPool.length > 0) {
+      warnings.push(`No MCQ questions are tagged for "${topic}" at ${levelName} yet — this practice is written-only.`);
+    } else if (mcqPool.length + oeqPool.length < 10) {
+      warnings.push(`Only ${mcqPool.length} MCQ + ${oeqPool.length} written question(s) available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
+    }
+  }
+
+  return NextResponse.json({ id: paper.id, questionCount: allSelected.length, warnings });
 }

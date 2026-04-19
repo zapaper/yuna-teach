@@ -653,9 +653,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ parentId: userId, studentId: targetStudentId, subject: focusedSubject === "math" ? "Mathematics" : "Science", topic, type: focusedType }),
         });
-        if (!res.ok) { const d = await res.json(); setCustomError(d.error ?? "No questions found"); return; }
+        const data = await res.json();
+        if (!res.ok) { setCustomError(data.error ?? "No questions found"); return; }
         await refreshPapers();
         setShowFocused(false);
+        if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
       } finally { setCustomActing(false); }
     }
     return (
@@ -703,13 +705,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       onClick={async () => {
                         setRecActing(key);
                         try {
-                          await fetch("/api/focused-test", {
+                          const res = await fetch("/api/focused-test", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ parentId: userId, studentId: targetStudentId, subject: t.subject, topic: t.topic, type: focusedType }),
                           });
+                          const data = await res.json().catch(() => ({}));
                           await refreshPapers();
                           setShowFocused(false);
+                          if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                         } finally { setRecActing(null); }
                       }}
                       className="px-3 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold disabled:opacity-50 shrink-0"
@@ -950,6 +954,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   if (!res.ok) { alert(data.error || "Failed"); return; }
                   setShowQuiz(false); setQuizTargetDay(null); setFocusedTopic("");
                   await refreshPapers();
+                  if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                   return;
                 }
                 const res = await fetch("/api/daily-quiz", {

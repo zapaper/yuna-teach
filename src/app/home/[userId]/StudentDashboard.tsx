@@ -455,8 +455,6 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const todayStr = localDateStr(now);
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
   const tomorrowStr = localDateStr(tomorrow);
-  // Start of this week (Sunday)
-  const weekStart = new Date(now); weekStart.setDate(now.getDate() - now.getDay()); weekStart.setHours(0, 0, 0, 0);
   const paperDate = (p: ExamPaperSummary) => new Date(p.scheduledFor ?? p.createdAt ?? "");
   const paperDateStr = (p: ExamPaperSummary) => localDateStr(paperDate(p));
   const WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -466,14 +464,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const todayActivities = studentPapers.filter(p => paperDateStr(p) === todayStr);
   const todayTodo = todayActivities.filter(p => !p.completedAt);
   const todayDone = todayActivities.filter(p => p.completedAt);
-  // This week's homework: undone papers from Sunday..today (excluding today) + tomorrow's scheduled
+  // Homework to show: all undone papers that are past-due (before today) or scheduled
+  // for tomorrow. Older-than-a-week assignments must still be visible to the student —
+  // previously the filter required `d >= weekStart`, which hid anything older.
   const weekHomework = studentPapers.filter(p => {
     if (p.completedAt) return false;
     const ds = paperDateStr(p);
     if (ds === todayStr) return false;
     const d = paperDate(p);
-    const inWeekSoFar = d >= weekStart && d < new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return inWeekSoFar || ds === tomorrowStr;
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return d < todayStart || ds === tomorrowStr;
   });
 
   function goToPaper(p: ExamPaperSummary) {
