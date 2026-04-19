@@ -1855,8 +1855,25 @@ export async function markFocusedTest(paperId: string): Promise<void> {
           );
           continue;
         }
-        parts.push({ text: "Student's handwritten answer:" });
-        parts.push({ inlineData: { mimeType: submissionMime, data: submissionBase64 } });
+
+        // For multi-part questions, send per-subpart images so the AI sees each answer clearly
+        const realSubs = (q.transcribedSubparts as { label: string; text: string }[] | null)?.filter(sp => !sp.label.startsWith("_")) ?? [];
+        let usedSubpartImages = false;
+        if (realSubs.length > 0) {
+          for (const sp of realSubs) {
+            try {
+              const spPath = path.join(subDir, `page_${submissionIndex}_${sp.label}.jpg`);
+              const spBuffer = await fs.readFile(spPath);
+              parts.push({ text: `Student's handwritten answer for part (${sp.label}):` });
+              parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: spBuffer.toString("base64") } });
+              usedSubpartImages = true;
+            } catch { /* subpart file not found, will fall back */ }
+          }
+        }
+        if (!usedSubpartImages) {
+          parts.push({ text: "Student's handwritten answer:" });
+          parts.push({ inlineData: { mimeType: submissionMime, data: submissionBase64 } });
+        }
       }
 
       // Add expected answer image if available
