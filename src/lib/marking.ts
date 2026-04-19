@@ -2746,6 +2746,13 @@ Primary-school Science answers are concept-based, not word-for-word. Award parti
 - Synonymous or equivalent phrasings count as the correct concept (e.g. "stops light" ≈ "blocks light", "goes up" ≈ "increases").
 - Award 0 only when the answer is blank, fully off-topic, or misses every key concept.
 - In notes, list which concepts/phrases the student got right and which were missing.
+
+SCIENCE KEY-TERM EMPHASIS IN NOTES (IMPORTANT):
+In the notes field, wrap every key scientific term or phrase from the expected answer in **double asterisks** so the review UI renders them in bold. Emphasise especially the terms/phrases the student MISSED (the ones that cost them marks).
+- Examples of key terms: **photosynthesis**, **chlorophyll**, **evaporation**, **blocks light**, **heat energy is transferred**, **potential energy**.
+- If a required concept was missing, name it and bold it: "The student did not mention **chlorophyll** or **sunlight**, so 1 mark was not awarded."
+- If the student got a key term right, you may also bold it when calling it out positively.
+- Only bold actual key terms/phrases — do not bold ordinary connector words.
 ` : "";
 
         const markPrompt = `You are marking a primary school student's answer. Be concise. Use British English throughout.
