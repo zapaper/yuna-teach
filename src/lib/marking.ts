@@ -1723,19 +1723,21 @@ Return ONLY valid JSON (no markdown fences):
 {"questionId": "{QUESTION_ID}", "marksAvailable": {MARKS_AVAILABLE}, "marksAwarded": <number>, "studentAnswer": "<what the student ACTUALLY wrote — for multi-part: (a) ... (b) ...>", "notes": "<for multi-part questions, give feedback per sub-part, e.g. '(a) Correct. (b) Wrong — should be 3/4 not 2/3.'>"}`;
 
 export async function markFocusedTest(paperId: string): Promise<void> {
-  console.log(`[focused-marking] Starting for ${paperId}`);
+  console.log(`[focused-marking] Starting for ${paperId} — delegating to markQuizPaper`);
+  // Unified marking: focused tests and quizzes use the same code path (markQuizPaper).
+  // For English, typed-section logic applies; for Math/Science, it's no-op.
+  // This ensures any marking fix applies to both quiz and focused test automatically.
+  return markQuizPaper(paperId);
+}
 
-  // English focused practice reuses the English typed-section logic in
-  // markQuizPaper (which handles grammar cloze letter extraction, editing
-  // quote stripping, synthesis |||/keyword insertion, comp OEQ, etc.).
-  // Delegate to avoid duplicating that whole branch here.
+// Legacy focused-test marking code — kept only as fallback reference, no longer called.
+async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
   const paperKind = await prisma.examPaper.findUnique({
     where: { id: paperId },
     select: { metadata: true },
   });
   const hasEnglishSections = !!(paperKind?.metadata as { englishSections?: unknown } | null)?.englishSections;
   if (hasEnglishSections) {
-    console.log(`[focused-marking] Paper ${paperId} is English — delegating to markQuizPaper`);
     return markQuizPaper(paperId);
   }
 
