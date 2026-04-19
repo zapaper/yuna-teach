@@ -381,34 +381,34 @@ function QuizContent({ id }: { id: string }) {
         await Promise.all(
           simpleCompareQs.map(q => {
             const isGrammarClozeQ = (q.syllabusTopic ?? "").toLowerCase().includes("grammar") && (q.syllabusTopic ?? "").toLowerCase().includes("cloze");
-            const studentAns = (mcqAnswers[q.id] ?? "").trim();
-            const studentCmp = studentAns.toUpperCase();
-            // Strip surrounding quotes the extractor sometimes bakes into the answer key
-            // (e.g. "expressing" → expressing) before comparing.
             const stripQuotes = (s: string) => s.replace(/^["'`\s]+|["'`\s]+$/g, "");
+            const studentAnsRaw = stripQuotes((mcqAnswers[q.id] ?? "").trim());
+            const rawCorrect = stripQuotes(q.answer ?? "");
             let isCorrect = false;
             if (isGrammarClozeQ) {
-              // Grammar cloze answers can be "H (most)", "K or P", "L/P" etc. The student
-              // types just a single letter — accept if it matches ANY standalone capital
-              // letter in the answer key.
-              const rawAns = (q.answer ?? "").toUpperCase();
-              const letters = new Set((rawAns.match(/\b[A-Z]\b/g) ?? []));
-              const studentLetter = (studentCmp.match(/\b[A-Z]\b/) ?? [""])[0];
-              isCorrect = !!studentLetter && letters.has(studentLetter);
+              // Two formats:
+              // 1. Letter keys ("H", "A or B") — student picks letter from word bank
+              // 2. Word keys ("helps", "repairs") — student types the word
+              const letterMatches = rawCorrect.match(/\b[A-Za-z]\b/g) ?? [];
+              const isLetterKey = letterMatches.length > 0 && letterMatches.every(l => l.length === 1)
+                && rawCorrect.replace(/[A-Za-z\s/,|.()or]+/gi, "").trim() === "";
+              if (isLetterKey) {
+                const letters = new Set(letterMatches.map(l => l.toUpperCase()));
+                const studentLetter = (studentAnsRaw.toUpperCase().match(/\b[A-Z]\b/) ?? [""])[0];
+                isCorrect = !!studentLetter && letters.has(studentLetter);
+              } else {
+                const acceptableAnswers = rawCorrect.split(/\s+or\s+|\//).map(a => stripQuotes(a.trim()));
+                isCorrect = studentAnsRaw !== "" && acceptableAnswers.some(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
+              }
             } else {
-              const rawCorrect = stripQuotes(q.answer ?? "");
-              const correctCmp = rawCorrect.toUpperCase();
-              // Accept any slash-separated alternative (e.g., "tempted/enticed/inclined")
-              const acceptableAnswers = correctCmp.split("/").map(a => stripQuotes(a.trim()));
-              isCorrect = studentCmp !== "" && acceptableAnswers.includes(studentCmp);
-              // Capitalization check: if the answer key starts with a capital letter
-              // (i.e. the blank is at the start of a sentence), require the student
-              // to have capitalized their first letter too.
+              // Editing/Comp Cloze — compare raw text case-insensitively
+              const acceptableAnswers = rawCorrect.split("/").map(a => stripQuotes(a.trim()));
+              isCorrect = studentAnsRaw !== "" && acceptableAnswers.some(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
+              // Capitalization check: if matching alt starts with capital, require student to capitalize
               if (isCorrect) {
-                const rawAlts = rawCorrect.split("/").map(a => stripQuotes(a.trim()));
-                const matchingAlt = rawAlts.find(a => a.toUpperCase() === studentCmp);
+                const matchingAlt = acceptableAnswers.find(a => a.toLowerCase() === studentAnsRaw.toLowerCase());
                 if (matchingAlt && /^[A-Z]/.test(matchingAlt)) {
-                  const studentFirst = studentAns.match(/[A-Za-z]/)?.[0] ?? "";
+                  const studentFirst = studentAnsRaw.match(/[A-Za-z]/)?.[0] ?? "";
                   if (studentFirst && studentFirst !== studentFirst.toUpperCase()) {
                     isCorrect = false;
                   }
@@ -419,9 +419,9 @@ function QuizContent({ id }: { id: string }) {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                studentAnswer: (isGrammarClozeQ ? studentAns.toUpperCase() : studentAns) || null,
+                studentAnswer: studentAnsRaw || null,
                 marksAwarded: isCorrect ? (q.marksAvailable ?? 1) : 0,
-                markingNotes: studentAns ? (isCorrect ? "Correct" : `Wrong. Student: "${studentAns}", Correct: "${(q.answer ?? "").trim()}"`) : "No answer",
+                markingNotes: studentAnsRaw ? (isCorrect ? "Correct" : `"${studentAnsRaw}" is incorrect. Correct answer: "${rawCorrect}"`) : "No answer",
               }),
             });
           })
