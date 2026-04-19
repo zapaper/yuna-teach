@@ -2691,6 +2691,17 @@ Report EXACTLY what the student wrote. Return ONLY the detected text, nothing el
           ? `\nANSWER IMAGE SCOPE: The expected answer image ONLY applies to part(s): ${imagePartsList.length > 0 ? imagePartsList.map(l => `(${l})`).join(", ") : "NONE — ignore the image entirely"}. For part(s) ${textOnlyPartsList.map(l => `(${l})`).join(", ") || "(none)"}, mark ONLY against the text in the expected answer — do NOT refer to the answer image for those parts.`
           : "";
 
+        const isScience = (paper.subject ?? "").toLowerCase().includes("science");
+        const sciencePartialRule = isScience ? `
+
+SCIENCE PARTIAL-CREDIT RULE (IMPORTANT):
+Primary-school Science answers are concept-based, not word-for-word. Award partial marks whenever the student's answer contains some of the key scientific concepts or phrases from the expected answer, even if the wording differs or the answer is incomplete.
+- If the student captures ONE of multiple required concepts → award proportional partial marks (e.g. 1 of 2).
+- Synonymous or equivalent phrasings count as the correct concept (e.g. "stops light" ≈ "blocks light", "goes up" ≈ "increases").
+- Award 0 only when the answer is blank, fully off-topic, or misses every key concept.
+- In notes, list which concepts/phrases the student got right and which were missing.
+` : "";
+
         const markPrompt = `You are marking a primary school student's answer. Be concise. Use British English throughout.
 
 Question: ${q.transcribedStem ?? "See image"}
@@ -2725,14 +2736,14 @@ Marks available: ${marksAvailable}
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
-
+${sciencePartialRule}
 Instructions:
-1. Compare the student's detected answer against the expected answer character-by-character (including synonyms and equivalent phrasing).
+1. Compare the student's detected answer against the expected answer (including synonyms and equivalent phrasing). For Science, apply the SCIENCE PARTIAL-CREDIT RULE above — partial credit for partial concept coverage.
    - If correct → FULL MARKS.
    - Partially correct → PARTIAL marks for matching portions.
    - Wrong or blank → ZERO.
 2. For multi-part (a), (b), (c): compare each part against its part of the expected answer.
-3. In notes: describe whether the student's answer matches the expected answer. NEVER propose an alternative answer that contradicts the expected answer.
+3. In notes: describe whether the student's answer matches the expected answer, and for each part state "Awarded N mark(s)" explicitly so downstream code can parse per-part correctness. NEVER propose an alternative answer that contradicts the expected answer.
 
 Return ONLY valid JSON:
 {"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>"}`;

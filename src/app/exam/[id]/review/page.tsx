@@ -1739,22 +1739,40 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const studentParts = parsePartAnswers(studentAnswerText, spLabels);
                                 const answerParts = parsePartAnswers(currentQ.answer, spLabels);
                                 const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
-                                // Parse marking notes for per-part correctness
+                                // Parse marking notes for per-part correctness.
+                                // The AI's notes are typically structured like
+                                //   "Part (a): ... Awarded 2 marks. Part (b): ... 0 marks."
+                                // Split at "Part (X):" / "(X):" boundaries, then per section
+                                // check for "Awarded N mark" / "N marks" / explicit correct-wrong words.
                                 const notes = currentQ.markingNotes ?? "";
                                 const partCorrectMap: Record<string, boolean> = {};
-                                for (const sp of realSubs) {
-                                  // Try multiple patterns:
-                                  // "(a) Correct" / "(a) Incorrect" / "(a) Wrong" / "(a) Partial"
-                                  const re1 = new RegExp(`\\(${sp.label}\\)\\s*:?\\s*(Correct|Incorrect|Wrong|Partial)`, "i");
-                                  const m1 = notes.match(re1);
-                                  if (m1) { partCorrectMap[sp.label.toLowerCase()] = m1[1].toLowerCase() === "correct"; continue; }
-                                  // "Part (a): ... correct" or "(a) ... correct answer"
-                                  const re2 = new RegExp(`\\(${sp.label}\\)[^|]*?\\b(correct|incorrect|wrong)\\b`, "i");
-                                  const m2 = notes.match(re2);
-                                  if (m2) { partCorrectMap[sp.label.toLowerCase()] = m2[1].toLowerCase() === "correct"; continue; }
-                                  // "(a) No answer" / "(a) blank"
-                                  const re3 = new RegExp(`\\(${sp.label}\\)\\s*:?\\s*(No answer|blank|not provided|no written)`, "i");
-                                  if (re3.test(notes)) { partCorrectMap[sp.label.toLowerCase()] = false; }
+                                const sectionRe = /(?:^|\s|\|)\(?([a-z])\)\s*:?/gi;
+                                const sectionMatches = [...notes.matchAll(sectionRe)].filter(m => spLabels.includes(m[1].toLowerCase()));
+                                for (let i = 0; i < sectionMatches.length; i++) {
+                                  const m = sectionMatches[i];
+                                  const label = m[1].toLowerCase();
+                                  const start = m.index! + m[0].length;
+                                  const end = i + 1 < sectionMatches.length ? sectionMatches[i + 1].index! : notes.length;
+                                  const section = notes.slice(start, end);
+                                  // Explicit marks number — "Awarded 2 marks" / "2 marks awarded" / "0 marks"
+                                  const marksMatch = section.match(/(\d+(?:\.\d+)?)\s*marks?\b/i);
+                                  if (marksMatch) {
+                                    partCorrectMap[label] = parseFloat(marksMatch[1]) > 0;
+                                    continue;
+                                  }
+                                  // Fall back to keyword detection
+                                  if (/\b(no answer|blank|not provided|no written|did not|missing)\b/i.test(section)) {
+                                    partCorrectMap[label] = false;
+                                    continue;
+                                  }
+                                  if (/\b(incorrect|wrong)\b/i.test(section)) {
+                                    partCorrectMap[label] = false;
+                                    continue;
+                                  }
+                                  if (/\b(correct|matches|accepted|full marks)\b/i.test(section)) {
+                                    partCorrectMap[label] = true;
+                                    continue;
+                                  }
                                 }
                                 return (
                                   <div className="space-y-4 mt-2">
@@ -1805,12 +1823,16 @@ function ExamReviewContent({ id }: { id: string }) {
                                           {(() => {
                                             const detected = partStudent || (!hasPartAnswers && realSubs.length === 1 && studentAnswerText) || null;
                                             if (!detected) return null;
+                                            // Strip the "Working:" label the AI prepends per the detect prompt's
+                                            // "Working: ... Final answer: X" format. The label is scaffolding,
+                                            // not part of the student's answer.
+                                            const cleaned = detected.replace(/^\s*working\s*:?\s*/i, "").trim() || detected;
                                             return (
                                               <div className={`text-sm leading-relaxed rounded-xl p-3 ${
                                                 partIsCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                                               }`}>
                                                 <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Detected Answer</span>
-                                                {detected}
+                                                {cleaned}
                                               </div>
                                             );
                                           })()}
@@ -1894,7 +1916,7 @@ function ExamReviewContent({ id }: { id: string }) {
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 whitespace-pre-wrap ${
                               isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
-                              {studentAnswerText}
+                              {studentAnswerText.replace(/^\s*working\s*:?\s*/i, "").trim() || studentAnswerText}
                             </div>
                           </div>
                         )}
