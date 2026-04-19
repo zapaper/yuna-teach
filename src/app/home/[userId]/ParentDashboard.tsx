@@ -655,9 +655,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         });
         const data = await res.json();
         if (!res.ok) { setCustomError(data.error ?? "No questions found"); return; }
+        if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
         await refreshPapers();
         setShowFocused(false);
-        if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
       } finally { setCustomActing(false); }
     }
     return (
@@ -711,9 +711,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             body: JSON.stringify({ parentId: userId, studentId: targetStudentId, subject: t.subject, topic: t.topic, type: focusedType }),
                           });
                           const data = await res.json().catch(() => ({}));
+                          if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                           await refreshPapers();
                           setShowFocused(false);
-                          if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                         } finally { setRecActing(null); }
                       }}
                       className="px-3 py-1.5 rounded-lg bg-[#003366] text-white text-xs font-bold disabled:opacity-50 shrink-0"
@@ -952,9 +952,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   });
                   const data = await res.json();
                   if (!res.ok) { alert(data.error || "Failed"); return; }
+                  if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                   setShowQuiz(false); setQuizTargetDay(null); setFocusedTopic("");
                   await refreshPapers();
-                  if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                   return;
                 }
                 const res = await fetch("/api/daily-quiz", {

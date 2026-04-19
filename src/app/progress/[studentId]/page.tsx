@@ -107,11 +107,12 @@ function ProgressContent({ studentId }: { studentId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ parentId, studentId, subject, topic }),
       });
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const err = await res.json();
-        alert(err.error || "Failed to create test");
+        alert(data.error || "Failed to create test");
         return;
       }
+      if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
       router.push(`/home/${parentId}?student=${studentId}`);
     } finally {
       setCreating(null);

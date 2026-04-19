@@ -349,12 +349,14 @@ export default function HomePage({
       const key = `act-${action.topic}`;
       setRecActing(key);
       try {
-        await fetch("/api/focused-test", {
+        const res = await fetch("/api/focused-test", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ parentId: userId, studentId, subject: action.subject, topic: action.topic }),
         });
-        setChatMessages(prev => [...prev, { role: "ai", text: `Done! A focused practice test on ${action.topic} has been created for ${action.studentName}.` }]);
+        const data = await res.json().catch(() => ({}));
+        const warnSuffix = Array.isArray(data.warnings) && data.warnings.length > 0 ? `\n\nNote: ${data.warnings.join(" ")}` : "";
+        setChatMessages(prev => [...prev, { role: "ai", text: `Done! A focused practice test on ${action.topic} has been created for ${action.studentName}.${warnSuffix}` }]);
         fetchData.current?.();
       } catch {
         setChatMessages(prev => [...prev, { role: "ai", text: "Sorry, something went wrong creating that test. Please try again." }]);
@@ -817,11 +819,13 @@ export default function HomePage({
                           onClick={async () => {
                             setRecActing(key);
                             try {
-                              await fetch("/api/focused-test", {
+                              const res = await fetch("/api/focused-test", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
                                 body: JSON.stringify({ parentId: userId, studentId: focusedRec.studentId, subject: gap.subject, topic }),
                               });
+                              const data = await res.json().catch(() => ({}));
+                              if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                               setFocusedRec(prev => {
                                 if (!prev) return null;
                                 const newGaps = (prev.gaps ?? []).map((g: SubjectGap, gj: number) =>

@@ -144,6 +144,7 @@ function SolverContent() {
       });
       const data = await res.json();
       if (res.ok && data.id) {
+        if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
         router.push(`/home/${userId}`);
       } else {
         setError(data.error ?? "Could not create focused test");
