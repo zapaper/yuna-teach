@@ -2676,12 +2676,27 @@ Report EXACTLY what the student wrote. Return ONLY the detected text, nothing el
         }
 
         // ── PHASE 2: Compare detected answer against the answer key ──
+        // Per-part answer image usage: the answer image only applies to parts whose
+        // answer-key text says "see answer image" / "refer to answer image" / similar.
+        // Other parts must be marked from their text answer alone — the AI must NOT
+        // fall back to the image for them.
+        const imgRefRe = /see\s+answer\s+image|refer\s+to\s+(the\s+)?(answer\s+)?image|see\s+(the\s+)?image/i;
+        const imagePartsList = hasPerPartAnswers
+          ? realSubsForAns.filter(sp => sp.answer && imgRefRe.test(sp.answer)).map(sp => sp.label)
+          : [];
+        const textOnlyPartsList = hasPerPartAnswers
+          ? realSubsForAns.filter(sp => sp.answer && !imgRefRe.test(sp.answer)).map(sp => sp.label)
+          : [];
+        const answerImageUsageNote = hasPerPartAnswers && q.answerImageData
+          ? `\nANSWER IMAGE SCOPE: The expected answer image ONLY applies to part(s): ${imagePartsList.length > 0 ? imagePartsList.map(l => `(${l})`).join(", ") : "NONE — ignore the image entirely"}. For part(s) ${textOnlyPartsList.map(l => `(${l})`).join(", ") || "(none)"}, mark ONLY against the text in the expected answer — do NOT refer to the answer image for those parts.`
+          : "";
+
         const markPrompt = `You are marking a primary school student's answer. Be concise. Use British English throughout.
 
 Question: ${q.transcribedStem ?? "See image"}
 Student's answer (detected from their handwriting): "${detectedAnswer}"
 Expected answer: "${expectedAnswer}"
-${answerImageNote}
+${answerImageNote}${answerImageUsageNote}
 Marks available: ${marksAvailable}
 
 ╔══════════════════════════════════════════════════════════════════════╗

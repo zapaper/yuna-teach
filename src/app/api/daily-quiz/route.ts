@@ -219,7 +219,7 @@ export async function POST(request: NextRequest) {
   };
 
   // Run both queries in parallel for speed
-  const [previousQuizQuestions, allQuestions] = await Promise.all([
+  const [previousQuizQuestions, topicMatched] = await Promise.all([
     // Get source question IDs already used in this student's previous quizzes
     prisma.examQuestion.findMany({
       where: {
@@ -236,6 +236,27 @@ export async function POST(request: NextRequest) {
     }),
   ]);
   const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
+
+  // Pull in every DB sibling for each (examPaperId, baseNum) in the topic-matched set.
+  // Topic-tagged subparts often arrive without their parent row, which may carry the
+  // lead stem / diagram. Without this the group pool loses those hints.
+  const baseNumOf = (n: string) => n.replace(/[a-zA-Z]+$/, "");
+  const siblingKeys = new Set<string>();
+  for (const q of topicMatched) siblingKeys.add(`${q.examPaperId}::${baseNumOf(q.questionNum)}`);
+  const siblingWheres = [...siblingKeys].map(k => {
+    const [examPaperId, base] = k.split("::");
+    return { examPaperId, questionNum: { startsWith: base } };
+  });
+  const siblings = siblingWheres.length > 0
+    ? await prisma.examQuestion.findMany({
+        where: { OR: siblingWheres, answer: { not: null } as { not: null } },
+        select: questionSelectLight,
+      })
+    : [];
+  const qById = new Map<string, typeof topicMatched[number]>();
+  for (const q of topicMatched) qById.set(q.id, q);
+  for (const q of siblings) if (!qById.has(q.id)) qById.set(q.id, q);
+  const allQuestions = [...qById.values()];
 
   type Q = typeof allQuestions[number];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

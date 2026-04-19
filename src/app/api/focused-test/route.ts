@@ -43,46 +43,57 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  let allQuestions = await prisma.examQuestion.findMany({
-    where: questionWhere(true),
-    select: {
-      id: true,
-      questionNum: true,
-      examPaperId: true,
-      imageData: true,
-      answer: true,
-      answerImageData: true,
-      marksAvailable: true,
-      syllabusTopic: true,
-      transcribedStem: true,
-      transcribedOptions: true,
-      transcribedOptionImages: true,
-      transcribedSubparts: true,
-      diagramImageData: true,
-      diagramBounds: true,
-      examPaper: {
-        select: { year: true, examType: true, school: true },
-      },
+  const questionSelect = {
+    id: true,
+    questionNum: true,
+    examPaperId: true,
+    imageData: true,
+    answer: true,
+    answerImageData: true,
+    marksAvailable: true,
+    syllabusTopic: true,
+    transcribedStem: true,
+    transcribedOptions: true,
+    transcribedOptionImages: true,
+    transcribedSubparts: true,
+    diagramImageData: true,
+    diagramBounds: true,
+    examPaper: {
+      select: { year: true, examType: true, school: true },
     },
+  } as const;
+
+  const topicMatched = await prisma.examQuestion.findMany({
+    where: questionWhere(true),
+    select: questionSelect,
   });
 
-  // Fallback: retry without level filter if nothing found
-  if (allQuestions.length === 0 && levelFilter) {
-    allQuestions = await prisma.examQuestion.findMany({
-      where: questionWhere(false),
-      select: {
-        id: true, questionNum: true, examPaperId: true, imageData: true, answer: true,
-        answerImageData: true, marksAvailable: true, syllabusTopic: true, transcribedStem: true,
-        transcribedOptions: true, transcribedOptionImages: true, transcribedSubparts: true,
-        diagramImageData: true, diagramBounds: true,
-        examPaper: { select: { year: true, examType: true, school: true } },
-      },
-    });
-  }
-
-  if (allQuestions.length === 0) {
+  if (topicMatched.length === 0) {
     return NextResponse.json({ error: "No questions found for this topic" }, { status: 404 });
   }
+
+  // Pull in every DB sibling for each (examPaperId, baseNum) in the topic-matched set.
+  // The topic filter can miss the parent row when only the subpart carries the syllabus
+  // topic tag — and the parent is often the row with the diagram/lead stem. Without
+  // this, a subpart like "Express the number of lemon muffins..." gets pulled on its
+  // own and shows up in practice with no pie chart.
+  const siblingKeys = new Set<string>();
+  for (const q of topicMatched) siblingKeys.add(`${q.examPaperId}::${baseNum(q.questionNum)}`);
+  const siblingWheres = [...siblingKeys].map(k => {
+    const [examPaperId, base] = k.split("::");
+    return { examPaperId, questionNum: { startsWith: base } };
+  });
+  const siblings = siblingWheres.length > 0
+    ? await prisma.examQuestion.findMany({
+        where: { OR: siblingWheres, answer: { not: null } as { not: null } },
+        select: questionSelect,
+      })
+    : [];
+
+  const byId = new Map<string, typeof topicMatched[number]>();
+  for (const q of topicMatched) byId.set(q.id, q);
+  for (const q of siblings) if (!byId.has(q.id)) byId.set(q.id, q);
+  const allQuestions = [...byId.values()];
 
   type Q = typeof allQuestions[number];
 
