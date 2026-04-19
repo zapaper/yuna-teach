@@ -1231,6 +1231,18 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
   const dragStart = useRef<{ y: number; h: number } | null>(null);
   // Undo history — snapshot of the canvas before each new stroke
   const history = useRef<ImageData[]>([]);
+  // Watchdog: if a pointerdown sets pointer capture but the matching pointerup
+  // never fires (tab switch, zoom gesture interrupting, browser dialog), the
+  // canvas stays captured and swallows every subsequent tap — eraser/undo/
+  // save/submit all appear dead. Force-release after 10 seconds of silence.
+  const captureInfo = useRef<{ target: Element; pointerId: number; timer: number } | null>(null);
+  function releaseCapture() {
+    const info = captureInfo.current;
+    if (!info) return;
+    window.clearTimeout(info.timer);
+    try { info.target.releasePointerCapture(info.pointerId); } catch { /* already released */ }
+    captureInfo.current = null;
+  }
   function getPos(e: React.PointerEvent) {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
@@ -1254,7 +1266,19 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     snapshotForUndo();
     isDrawing.current = true;
     lastPos.current = getPos(e);
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    const target = e.target as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+    // Replace any previous watchdog
+    releaseCapture();
+    captureInfo.current = {
+      target,
+      pointerId: e.pointerId,
+      timer: window.setTimeout(() => {
+        isDrawing.current = false;
+        lastPos.current = null;
+        releaseCapture();
+      }, 10000),
+    };
   }
   function onCanvasMove(e: React.PointerEvent) {
     if (!isDrawing.current) return;
@@ -1288,6 +1312,7 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (ctx) ctx.globalCompositeOperation = "source-over";
+    releaseCapture();
   }
 
   function handleUndo() {
@@ -1336,6 +1361,23 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     history.current = [];
   }, [height]);
 
+  // Release any stuck pointer capture when the tab is hidden (tab switch, zoom
+  // gesture) or the component unmounts — in addition to the 10s watchdog above.
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.hidden) {
+        isDrawing.current = false;
+        lastPos.current = null;
+        releaseCapture();
+      }
+    };
+    document.addEventListener("visibilitychange", onHidden);
+    return () => {
+      document.removeEventListener("visibilitychange", onHidden);
+      releaseCapture();
+    };
+  }, []);
+
   return (
     <div className="mt-3">
       {height > 0 && (
@@ -1347,6 +1389,8 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
             onPointerMove={onCanvasMove}
             onPointerUp={onCanvasUp}
             onPointerCancel={onCanvasUp}
+            onPointerLeave={onCanvasUp}
+            onLostPointerCapture={onCanvasUp}
           />
           <button
             onClick={handleUndo}
