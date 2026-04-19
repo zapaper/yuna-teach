@@ -2555,34 +2555,53 @@ ${answerImageNote}
 Marks available: ${marksAvailable}
 
 ╔══════════════════════════════════════════════════════════════════════╗
-║  CRITICAL: The "Expected answer" above is the GROUND TRUTH.          ║
-║  Do NOT reinterpret the question or decide the answer yourself.      ║
-║  Your job is ONLY to compare the student's answer against the        ║
-║  expected answer given. If they match (or mean the same thing),      ║
-║  award full marks. If not, award partial/zero based on overlap.      ║
-║  NEVER contradict the expected answer in your notes.                 ║
+║  ABSOLUTE RULE — READ CAREFULLY                                       ║
+║                                                                        ║
+║  The "Expected answer" above is GROUND TRUTH, set by a human marker.  ║
+║  It is 100% correct. The "Expected answer image" (if any) is also     ║
+║  ground truth.                                                         ║
+║                                                                        ║
+║  You are FORBIDDEN from:                                              ║
+║  - Solving the question yourself                                       ║
+║  - Evaluating whether the expected answer is "right"                   ║
+║  - Proposing any alternative answer                                    ║
+║  - Saying "should be X" where X differs from the expected answer      ║
+║  - Using your own knowledge of the subject to decide what's correct   ║
+║                                                                        ║
+║  You MUST:                                                             ║
+║  - Treat the expected answer as the ONLY correct answer                ║
+║  - Compare the student's answer against it                             ║
+║  - Award marks based ONLY on how well the student's answer matches     ║
+║                                                                        ║
+║  Example: If expected answer says "W and X" and student writes         ║
+║  "W and X", award FULL MARKS. Do NOT second-guess it by thinking      ║
+║  the real answer might be "W and Z" — the human marker is correct.    ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
 
 Instructions:
-1. Compare the student's detected answer against the expected answer (above).
-   - If correct (matches or means the same thing) → FULL MARKS.
-   - If partially correct → PARTIAL marks for the portions that match.
-   - If wrong → ZERO.
-2. For multi-part questions, mark each part separately using the expected answer for that part.
-3. In notes, state whether student's answer matches the expected answer. NEVER provide an alternative answer that contradicts the expected answer given above.
+1. Compare the student's detected answer against the expected answer character-by-character (including synonyms and equivalent phrasing).
+   - If correct → FULL MARKS.
+   - Partially correct → PARTIAL marks for matching portions.
+   - Wrong or blank → ZERO.
+2. For multi-part (a), (b), (c): compare each part against its part of the expected answer.
+3. In notes: describe whether the student's answer matches the expected answer. NEVER propose an alternative answer that contradicts the expected answer.
 
 Return ONLY valid JSON:
 {"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>"}`;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const markParts: any[] = [];
-        // Phase 2 is pure text comparison: detected answer vs expected answer text.
-        // Do NOT send the answer image — the AI reasons from it and can override
-        // the text key. If the image shows a different solution than the text key,
-        // the AI will trust the image. Text-only comparison is more reliable.
+        // Include answer image if available for visual comparison
+        if (q.answerImageData && q.answerImageData.startsWith("data:image")) {
+          const match = q.answerImageData.match(/^data:(image\/\w+);base64,(.+)$/);
+          if (match) {
+            markParts.push({ text: "Expected answer image (ground truth):" });
+            markParts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          }
+        }
         markParts.push({ text: markPrompt });
 
         // Attempt marking with retries
