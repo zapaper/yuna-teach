@@ -183,6 +183,12 @@ export async function POST(request: NextRequest) {
 
   const subjectFilter = subject === "science" ? "science" : subject === "english" ? "english" : "math";
 
+  // Source papers store level as "P5" / "Primary 5" / "5" inconsistently — accept all.
+  const levelVariantsFor = (level: string | null | undefined): string[] | null => {
+    if (!level) return null;
+    const bare = level.replace(/^Primary\s+|^P/i, "").trim();
+    return [`P${bare}`, `Primary ${bare}`, bare];
+  };
   const questionWhere = (lf: string | null, examTypeFilter: string[] | null) => ({
     // Don't filter by transcribedStem — multi-part questions (e.g. Q38a stem-only
     // + Q38bc sub-parts) must be kept together for mergeOeqGroup. Stem-less
@@ -192,7 +198,10 @@ export async function POST(request: NextRequest) {
       sourceExamId: null,
       paperType: null,
       subject: { contains: subjectFilter, mode: "insensitive" as const },
-      ...(lf ? { level: lf } : {}),
+      ...((() => {
+        const v = levelVariantsFor(lf);
+        return v ? { level: { in: v } } : {};
+      })()),
       ...(examTypeFilter ? { examType: { in: examTypeFilter } } : {}),
     },
   });

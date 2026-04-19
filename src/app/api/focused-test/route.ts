@@ -27,9 +27,13 @@ export async function POST(request: NextRequest) {
     where: { id: studentId },
     select: { level: true },
   });
-  const levelFilter = student?.level ? `P${student.level}` : undefined;
+  // Source papers have inconsistent level formatting ("P5", "Primary 5", "5").
+  // Accept all equivalent variants so the filter actually works.
+  const levelVariants = student?.level
+    ? [`P${student.level}`, `Primary ${student.level}`, String(student.level)]
+    : undefined;
 
-  const questionWhere = (withLevel: boolean) => ({
+  const questionWhere = () => ({
     syllabusTopic: topic,
     answer: { not: null } as { not: null },
     // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
       sourceExamId: null,
       paperType: null,
       subject: { contains: subject, mode: "insensitive" as const },
-      ...(withLevel && levelFilter ? { level: levelFilter } : {}),
+      ...(levelVariants ? { level: { in: levelVariants } } : {}),
     },
   });
 
@@ -64,7 +68,7 @@ export async function POST(request: NextRequest) {
   } as const;
 
   const topicMatched = await prisma.examQuestion.findMany({
-    where: questionWhere(true),
+    where: questionWhere(),
     select: questionSelect,
   });
 
@@ -228,7 +232,7 @@ export async function POST(request: NextRequest) {
     data: {
       title: `${levelLabel}Focused: ${topic}`,
       subject,
-      level: levelFilter || null,
+      level: student?.level ? `P${student.level}` : null,
       userId: parentId,
       assignedToId: studentId || null,
       ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
