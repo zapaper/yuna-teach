@@ -2579,14 +2579,10 @@ Return ONLY valid JSON:
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const markParts: any[] = [];
-        // Include answer image if available for visual comparison
-        if (q.answerImageData && q.answerImageData.startsWith("data:image")) {
-          const match = q.answerImageData.match(/^data:(image\/\w+);base64,(.+)$/);
-          if (match) {
-            markParts.push({ text: "Expected answer image:" });
-            markParts.push({ inlineData: { mimeType: match[1], data: match[2] } });
-          }
-        }
+        // Phase 2 is pure text comparison: detected answer vs expected answer text.
+        // Do NOT send the answer image — the AI reasons from it and can override
+        // the text key. If the image shows a different solution than the text key,
+        // the AI will trust the image. Text-only comparison is more reliable.
         markParts.push({ text: markPrompt });
 
         // Attempt marking with retries
