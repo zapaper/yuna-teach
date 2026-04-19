@@ -110,14 +110,12 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* "+1" popup for MCQ scoring — big pop in, hold, float up, fade out */
+/* "+1" popup for MCQ scoring — pops in above the score, then shoots upward. */
 @keyframes plusScorePop {
-  0%   { transform: translate(-50%, 0) scale(0.3) rotate(-6deg); opacity: 0; }
-  18%  { transform: translate(-50%, -8px) scale(1.9) rotate(4deg); opacity: 1; }
-  30%  { transform: translate(-50%, -12px) scale(1.55) rotate(-3deg); opacity: 1; }
-  55%  { transform: translate(-50%, -20px) scale(1.6) rotate(0deg); opacity: 1; }
-  80%  { transform: translate(-50%, -60px) scale(1.4) rotate(0deg); opacity: 0.95; }
-  100% { transform: translate(-50%, -120px) scale(1.1) rotate(0deg); opacity: 0; }
+  0%   { transform: translate(-50%, 0) scale(0.4) rotate(-6deg); opacity: 0; }
+  15%  { transform: translate(-50%, -6px) scale(1.8) rotate(4deg); opacity: 1; }
+  30%  { transform: translate(-50%, -14px) scale(1.55) rotate(-2deg); opacity: 1; }
+  100% { transform: translate(-50%, -160px) scale(1.1) rotate(0deg); opacity: 0; }
 }
 
 /* Whole score card shakes on each "+1" — a tiny jolt that feels tactile. */

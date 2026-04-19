@@ -205,7 +205,7 @@ function QuizContent({ id }: { id: string }) {
     const timers: number[] = [];
     const STAGGER_MS = 700;
     const START_DELAY_MS = 600;
-    const POPUP_LIFETIME_MS = 1900;
+    const POPUP_LIFETIME_MS = 1000;
     for (let i = 0; i < mcqScore.correct; i++) {
       timers.push(window.setTimeout(() => {
         running += per;
@@ -597,12 +597,12 @@ function QuizContent({ id }: { id: string }) {
               <p className="font-headline text-5xl font-black text-[#001e40]">{displayedMarks}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span></p>
               <p className="text-sm font-bold text-[#006c49] mt-2">{mcqScore.marksTotal > 0 ? Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100) : 0}% &middot; {mcqScore.correct}/{mcqScore.total} questions</p>
               {/* Floating "+N" popups — one per correct MCQ, staggered */}
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-x-0 -top-8 pointer-events-none">
                 {scorePopups.map(p => (
                   <span
                     key={p.id}
-                    className="absolute left-1/2 top-1/2 text-5xl font-black text-[#006c49] drop-shadow-[0_2px_6px_rgba(0,108,73,0.45)]"
-                    style={{ animation: "plusScorePop 1.8s cubic-bezier(0.34,1.56,0.64,1) forwards" }}
+                    className="absolute left-1/2 top-0 text-5xl font-black text-[#6cf8bb] drop-shadow-[0_2px_8px_rgba(108,248,187,0.7)]"
+                    style={{ animation: "plusScorePop 900ms cubic-bezier(0.22,1.15,0.36,1) forwards" }}
                   >
                     +{p.marks}
                   </span>
