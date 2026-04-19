@@ -948,25 +948,30 @@ export async function POST(request: NextRequest) {
     const first = group[0];
     // Combine all subparts across parts, stripping sentinel entries
     type Subpart = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
+    // The first sibling's stem is the main stem. Later siblings (e.g. Q38cd
+    // "Xiao Ming noticed the inner surface… was wet") carry ADDITIONAL
+    // scenario context that applies to their own subparts only — it must be
+    // preserved or the student sees the later parts with no lead-in. Prepend
+    // any different later stem to that sibling's first real subpart text.
+    const leadStem = (first.transcribedStem ?? "").trim();
     const allSubparts: Subpart[] = [];
     for (const q of group) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
       const realSubs = subs.filter(s => !s.label.startsWith("_"));
-
-      // If this is NOT the first question in the group and it has its own diagram,
-      // attach that diagram to its subparts so they display it in the quiz
-      if (q !== first && q.diagramImageData && realSubs.length > 0) {
-        // Only attach to the first subpart of this group member (avoid repeating)
-        const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
-        const enriched = realSubs.map((sp, idx) =>
-          idx === 0 && !sp.refImageBase64
-            ? { ...sp, refImageBase64: diagramData }
-            : sp
-        );
-        allSubparts.push(...enriched);
-      } else {
-        allSubparts.push(...realSubs);
-      }
+      const qStem = (q.transcribedStem ?? "").trim();
+      const extraStem = q !== first && qStem && qStem !== leadStem ? qStem : "";
+      const processed = realSubs.map((sp, idx) => {
+        let next = sp;
+        if (idx === 0 && extraStem) {
+          next = { ...next, text: `${extraStem}\n\n${sp.text ?? ""}`.trim() };
+        }
+        if (q !== first && q.diagramImageData && idx === 0 && !next.refImageBase64) {
+          const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
+          next = { ...next, refImageBase64: diagramData };
+        }
+        return next;
+      });
+      allSubparts.push(...processed);
     }
     // Collect sentinels from all parts
     const sentinels: Subpart[] = [];

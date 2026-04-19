@@ -153,18 +153,31 @@ export async function POST(request: NextRequest) {
 
   function mergeOeqGroup(group: Q[]) {
     const first = group[0];
+    // The first sibling's stem is the question's main stem. Later siblings
+    // (e.g. Q38cd "Xiao Ming noticed the inner surface... was wet") carry
+    // ADDITIONAL scenario context that applies only to their own subparts —
+    // it must survive the merge or the student sees later parts with no
+    // lead-in. Capture the first stem once, then prepend any different later
+    // stem to that sibling's first real subpart text.
+    const leadStem = (first.transcribedStem ?? "").trim();
     const allSubparts: Subpart[] = [];
     for (const q of group) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
       const realSubs = subs.filter(s => !s.label.startsWith("_"));
-      if (q !== first && q.diagramImageData && realSubs.length > 0) {
-        const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
-        allSubparts.push(...realSubs.map((sp, idx) =>
-          idx === 0 && !sp.refImageBase64 ? { ...sp, refImageBase64: diagramData } : sp
-        ));
-      } else {
-        allSubparts.push(...realSubs);
-      }
+      const qStem = (q.transcribedStem ?? "").trim();
+      const extraStem = q !== first && qStem && qStem !== leadStem ? qStem : "";
+      const processed = realSubs.map((sp, idx) => {
+        let next = sp;
+        if (idx === 0 && extraStem) {
+          next = { ...next, text: `${extraStem}\n\n${sp.text ?? ""}`.trim() };
+        }
+        if (q !== first && q.diagramImageData && idx === 0 && !next.refImageBase64) {
+          const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
+          next = { ...next, refImageBase64: diagramData };
+        }
+        return next;
+      });
+      allSubparts.push(...processed);
     }
     const sentinels = group.flatMap(q => ((q.transcribedSubparts as Subpart[] | null) ?? []).filter(s => s.label.startsWith("_")));
     // Aggregate per-part answers across all siblings, then attach to subparts.
@@ -187,9 +200,7 @@ export async function POST(request: NextRequest) {
       const ans = partAnswers.get(sp.label.toLowerCase());
       return ans !== undefined ? { ...sp, answer: ans } : sp;
     });
-    // Use ONLY the first group member's stem. Later parts' stems (e.g. Q12c's
-    // added scenario context) belong to that subpart, not the main stem.
-    const firstStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
+    const firstStem = leadStem || (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
     const rebuiltAnswer = partAnswers.size > 0
       ? [...partAnswers.entries()].sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => `(${k}) ${v}`).join(" | ")
       : [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");

@@ -2032,7 +2032,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
       const sourceMap = new Map(sourceQuestions.map(sq => [sq.id, sq]));
 
       // For each unique (examPaperId, baseNum), fetch all siblings once
-      type Sib = { questionNum: string; answer: string | null; answerImageData: string | null; transcribedSubparts: Prisma.JsonValue };
+      type Sib = { questionNum: string; answer: string | null; answerImageData: string | null; transcribedSubparts: Prisma.JsonValue; transcribedStem: string | null };
       const siblingCache = new Map<string, Array<Sib>>();
       const baseNumOf = (n: string) => n.replace(/[a-zA-Z]+$/, "");
       const uniqueKeys = new Set<string>();
@@ -2041,7 +2041,7 @@ export async function markQuizPaper(paperId: string): Promise<void> {
         const [examPaperId, base] = key.split("::");
         const sibs = await prisma.examQuestion.findMany({
           where: { examPaperId, questionNum: { startsWith: base } },
-          select: { questionNum: true, answer: true, answerImageData: true, transcribedSubparts: true },
+          select: { questionNum: true, answer: true, answerImageData: true, transcribedSubparts: true, transcribedStem: true },
         });
         siblingCache.set(key, sibs);
       }
@@ -2077,11 +2077,33 @@ export async function markQuizPaper(paperId: string): Promise<void> {
           const sortedSibs = [...siblings].sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
           const answerImg = sortedSibs.find(s => s.answerImageData)?.answerImageData ?? null;
 
-          // Build new subparts with sp.answer attached
+          // Build a map of extra scenario context per subpart label. When a source
+          // sibling has its own stem (different from the first sibling's), that
+          // stem is added context for the subparts in that sibling — e.g. Q38cd
+          // "Xiao Ming noticed the inner surface… was wet" applies only to (c)/(d).
+          const firstSibStem = (sortedSibs[0]?.transcribedStem ?? "").trim();
+          const extraStemFor = new Map<string, string>();
+          for (const sib of sortedSibs) {
+            const sibStem = (sib.transcribedStem ?? "").trim();
+            if (!sibStem || sibStem === firstSibStem) continue;
+            const sibSubs = (sib.transcribedSubparts as Subpart[] | null) ?? [];
+            const sibRealSubs = sibSubs.filter(s => !s.label.startsWith("_"));
+            if (sibRealSubs.length === 0) continue;
+            const firstLabel = sibRealSubs[0].label.toLowerCase();
+            if (!extraStemFor.has(firstLabel)) extraStemFor.set(firstLabel, sibStem);
+          }
+
+          // Build new subparts with sp.answer attached and any extra stem prepended.
+          // We preserve whatever prepending already happened (idempotent check).
           const newSubs = (subs ?? []).map(sp => {
             if (sp.label.startsWith("_")) return sp;
             const ans = partAnswers.get(sp.label.toLowerCase());
-            return ans !== undefined ? { ...sp, answer: ans } : sp;
+            let next = ans !== undefined ? { ...sp, answer: ans } : { ...sp };
+            const extra = extraStemFor.get(sp.label.toLowerCase());
+            if (extra && !(sp.text ?? "").includes(extra)) {
+              next = { ...next, text: `${extra}\n\n${sp.text ?? ""}`.trim() };
+            }
+            return next;
           });
           // Rebuild combined answer from part answers (preserves all parts)
           const combined = [...partAnswers.entries()]
