@@ -2552,15 +2552,25 @@ Expected answer: "${expectedAnswer}"
 ${answerImageNote}
 Marks available: ${marksAvailable}
 
+╔══════════════════════════════════════════════════════════════════════╗
+║  CRITICAL: The "Expected answer" above is the GROUND TRUTH.          ║
+║  Do NOT reinterpret the question or decide the answer yourself.      ║
+║  Your job is ONLY to compare the student's answer against the        ║
+║  expected answer given. If they match (or mean the same thing),      ║
+║  award full marks. If not, award partial/zero based on overlap.      ║
+║  NEVER contradict the expected answer in your notes.                 ║
+╚══════════════════════════════════════════════════════════════════════╝
+
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
 
 Instructions:
-1. Compare the student's detected answer against the expected answer.
-   - If correct → FULL MARKS. Do NOT penalise working steps.
-   - ONLY if wrong: check for partial credit.
-   - If wrong with no correct working → ZERO.
-2. For multi-part questions, mark each part separately.
+1. Compare the student's detected answer against the expected answer (above).
+   - If correct (matches or means the same thing) → FULL MARKS.
+   - If partially correct → PARTIAL marks for the portions that match.
+   - If wrong → ZERO.
+2. For multi-part questions, mark each part separately using the expected answer for that part.
+3. In notes, state whether student's answer matches the expected answer. NEVER provide an alternative answer that contradicts the expected answer given above.
 
 Return ONLY valid JSON:
 {"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>"}`;
