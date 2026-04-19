@@ -31,8 +31,10 @@ export async function POST(request: NextRequest) {
 
   const questionWhere = (withLevel: boolean) => ({
     syllabusTopic: topic,
-    transcribedStem: { not: null } as { not: null },
     answer: { not: null } as { not: null },
+    // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
+    // may have the stem only on one part. Filtering by stem at query level drops the
+    // other parts and breaks grouping. We filter at the group level below.
     examPaper: {
       sourceExamId: null,
       paperType: null,
@@ -94,11 +96,11 @@ export async function POST(request: NextRequest) {
   const mcqPool = [...mcqStemMap.values()];
 
   // ── OEQ pool: group by (paperId, baseNum), deduplicate groups by lead stem ─
+  // Include ALL questions in the group (even stem-less), since multi-part questions
+  // like Q38a (stem-only) + Q38bc (sub-parts) must be kept together.
   const oeqGroupMap = new Map<string, Q[]>();
   for (const q of allQuestions) {
     if (hasOptions(q)) continue;
-    const stem = (q.transcribedStem ?? "").trim();
-    if (!stem) continue;
     const key = `${q.examPaperId}:${baseNum(q.questionNum)}`;
     if (!oeqGroupMap.has(key)) oeqGroupMap.set(key, []);
     oeqGroupMap.get(key)!.push(q);
@@ -106,9 +108,11 @@ export async function POST(request: NextRequest) {
   for (const group of oeqGroupMap.values()) {
     group.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
   }
+  // Filter: keep only groups where at least one question has a stem
+  const validGroups = [...oeqGroupMap.values()].filter(g => g.some(q => (q.transcribedStem ?? "").trim()));
   const oeqLeadStemMap = new Map<string, Q[]>();
-  for (const group of oeqGroupMap.values()) {
-    const leadStem = (group[0].transcribedStem ?? "").trim();
+  for (const group of validGroups) {
+    const leadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
     if (leadStem) oeqLeadStemMap.set(leadStem, group);
   }
   const oeqPool = [...oeqLeadStemMap.values()];

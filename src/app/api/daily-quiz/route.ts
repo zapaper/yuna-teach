@@ -184,8 +184,9 @@ export async function POST(request: NextRequest) {
   const subjectFilter = subject === "science" ? "science" : subject === "english" ? "english" : "math";
 
   const questionWhere = (lf: string | null, examTypeFilter: string[] | null) => ({
-    // English: don't require transcribedStem (passage-bound sections don't have stems)
-    ...(subject !== "english" ? { transcribedStem: { not: null as null } } : {}),
+    // Don't filter by transcribedStem — multi-part questions (e.g. Q38a stem-only
+    // + Q38bc sub-parts) must be kept together for mergeOeqGroup. Stem-less
+    // questions are filtered at the group level.
     answer: { not: null as null },
     examPaper: {
       sourceExamId: null,
@@ -266,11 +267,11 @@ export async function POST(request: NextRequest) {
     }
 
     // ── OEQ pool: group by (paperId, baseNum), deduplicate by lead stem ────
+    // Include ALL questions in the group (even stem-less), since multi-part
+    // questions like Q38a (stem-only) + Q38bc (sub-parts) must stay together.
     const oeqGroupMap = new Map<string, Q[]>();
     for (const q of questions) {
       if (hasOptions(q)) continue;
-      const stem = (q.transcribedStem ?? "").trim();
-      if (!stem) continue;
       const key = `${q.examPaperId}:${baseNum(q.questionNum)}`;
       if (!oeqGroupMap.has(key)) oeqGroupMap.set(key, []);
       oeqGroupMap.get(key)!.push(q);
@@ -280,8 +281,9 @@ export async function POST(request: NextRequest) {
     }
     const oeqLeadStemMap = new Map<string, Q[]>();
     for (const group of oeqGroupMap.values()) {
-      const leadStem = (group[0].transcribedStem ?? "").trim();
-      if (!leadStem) continue;
+      // Find lead stem from any member of the group (not just the first)
+      const leadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
+      if (!leadStem) continue; // Group has no stem at all — skip
       oeqLeadStemMap.set(leadStem, group);
     }
 
