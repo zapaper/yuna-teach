@@ -739,6 +739,22 @@ async function extractExamPaperCore(
     // Collect section OCR texts for English papers
     const sectionOcrTexts = result.sectionOcrTexts ?? null;
 
+    // Per-question extraction can return segments out of paper order (e.g.
+    // Q9 arriving after Q10). Sort by (pageIndex, numeric questionNum, suffix)
+    // before persisting so orderIndex matches the real paper order — otherwise
+    // a late-arriving Q9 ends up last in the UI.
+    questions.sort((a, b) => {
+      if (a.pageIndex !== b.pageIndex) return a.pageIndex - b.pageIndex;
+      const stripPrefix = (n: string) => n.replace(/^[A-Z]\d*-/, "");
+      const aNum = stripPrefix(a.questionNum);
+      const bNum = stripPrefix(b.questionNum);
+      const aBase = parseInt(aNum, 10) || 0;
+      const bBase = parseInt(bNum, 10) || 0;
+      if (aBase !== bBase) return aBase - bBase;
+      // Same base — preserve suffix order (e.g. 9a before 9b, 9 before 9a)
+      return aNum.localeCompare(bNum, undefined, { numeric: true });
+    });
+
     // 6. Save questions + update paper in a transaction
     await prisma.$transaction([
       // Delete any existing questions (in case of retry)
