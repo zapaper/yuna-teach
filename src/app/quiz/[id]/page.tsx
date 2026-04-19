@@ -130,6 +130,7 @@ function QuizContent({ id }: { id: string }) {
   const [mcqScore, setMcqScore] = useState<{ correct: number; total: number; marksEarned: number; marksTotal: number } | null>(null);
   const [displayedMarks, setDisplayedMarks] = useState(0);
   const [scorePopups, setScorePopups] = useState<{ id: number; marks: number }[]>([]);
+  const [scoreShakeKey, setScoreShakeKey] = useState(0);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
@@ -194,34 +195,39 @@ function QuizContent({ id }: { id: string }) {
   }, [submitted, paper, loading]);
 
   // MCQ score count-up + "+N" popup animation on submission.
+  // Exaggerated: ~700ms between pops, 1.8s each popup, haptic buzz + card shake per pop.
   useEffect(() => {
     if (!mcqScore) return;
     if (mcqScore.correct === 0) { setDisplayedMarks(mcqScore.marksEarned); return; }
-    // Spread marksEarned across the correct count (usually 1 or 2 per MCQ).
     const per = mcqScore.correct > 0 ? Math.round(mcqScore.marksEarned / mcqScore.correct) : 0;
     setDisplayedMarks(0);
     let running = 0;
-    const spawnTimers: number[] = [];
-    const clearTimers: number[] = [];
+    const timers: number[] = [];
+    const STAGGER_MS = 700;
+    const START_DELAY_MS = 600;
+    const POPUP_LIFETIME_MS = 1900;
     for (let i = 0; i < mcqScore.correct; i++) {
-      spawnTimers.push(window.setTimeout(() => {
+      timers.push(window.setTimeout(() => {
         running += per;
         const id = Date.now() + i;
         setScorePopups(prev => [...prev, { id, marks: per }]);
         setDisplayedMarks(Math.min(running, mcqScore.marksEarned));
-        // Popup animation is ~1.2s; clean up after.
-        clearTimers.push(window.setTimeout(() => {
+        setScoreShakeKey(k => k + 1);
+        // Short haptic buzz on mobile — ignored on desktop and by browsers that block it.
+        if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+          try { navigator.vibrate(35); } catch { /* ignore */ }
+        }
+        timers.push(window.setTimeout(() => {
           setScorePopups(prev => prev.filter(p => p.id !== id));
-        }, 1300));
-      }, 400 + i * 180));
+        }, POPUP_LIFETIME_MS));
+      }, START_DELAY_MS + i * STAGGER_MS));
     }
-    // Settle the final value in case rounding left a gap.
-    const finalTimer = window.setTimeout(() => setDisplayedMarks(mcqScore.marksEarned), 400 + mcqScore.correct * 180 + 300);
-    return () => {
-      spawnTimers.forEach(t => window.clearTimeout(t));
-      clearTimers.forEach(t => window.clearTimeout(t));
-      window.clearTimeout(finalTimer);
-    };
+    // Final settle in case rounding left a gap.
+    timers.push(window.setTimeout(
+      () => setDisplayedMarks(mcqScore.marksEarned),
+      START_DELAY_MS + mcqScore.correct * STAGGER_MS + 400
+    ));
+    return () => { timers.forEach(t => window.clearTimeout(t)); };
   }, [mcqScore]);
 
   // Poll for OEQ marking
@@ -582,7 +588,11 @@ function QuizContent({ id }: { id: string }) {
           <p className="text-sm text-[#43474f] mb-6">Time: {formatTime(elapsed)}</p>
 
           {mcqScore && mcqScore.total > 0 && (
-            <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4 relative overflow-visible">
+            <div
+              key={`score-card-${scoreShakeKey}`}
+              className="bg-[#eff4ff] rounded-2xl p-6 mb-4 relative overflow-visible"
+              style={{ animation: scoreShakeKey > 0 ? "plusScoreShake 320ms ease-out" : undefined }}
+            >
               <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-2">MCQ Score</p>
               <p className="font-headline text-5xl font-black text-[#001e40]">{displayedMarks}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span></p>
               <p className="text-sm font-bold text-[#006c49] mt-2">{mcqScore.marksTotal > 0 ? Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100) : 0}% &middot; {mcqScore.correct}/{mcqScore.total} questions</p>
@@ -591,8 +601,8 @@ function QuizContent({ id }: { id: string }) {
                 {scorePopups.map(p => (
                   <span
                     key={p.id}
-                    className="absolute left-1/2 top-1/2 text-3xl font-black text-[#006c49]"
-                    style={{ animation: "plusScorePop 1.2s ease-out forwards" }}
+                    className="absolute left-1/2 top-1/2 text-5xl font-black text-[#006c49] drop-shadow-[0_2px_6px_rgba(0,108,73,0.45)]"
+                    style={{ animation: "plusScorePop 1.8s cubic-bezier(0.34,1.56,0.64,1) forwards" }}
                   >
                     +{p.marks}
                   </span>

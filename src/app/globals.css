@@ -110,10 +110,22 @@ body {
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* "+1" popup for MCQ scoring — pop in, float up, fade out */
+/* "+1" popup for MCQ scoring — big pop in, hold, float up, fade out */
 @keyframes plusScorePop {
-  0% { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
-  25% { transform: translate(-50%, -10px) scale(1.3); opacity: 1; }
-  60% { transform: translate(-50%, -40px) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -80px) scale(0.9); opacity: 0; }
+  0%   { transform: translate(-50%, 0) scale(0.3) rotate(-6deg); opacity: 0; }
+  18%  { transform: translate(-50%, -8px) scale(1.9) rotate(4deg); opacity: 1; }
+  30%  { transform: translate(-50%, -12px) scale(1.55) rotate(-3deg); opacity: 1; }
+  55%  { transform: translate(-50%, -20px) scale(1.6) rotate(0deg); opacity: 1; }
+  80%  { transform: translate(-50%, -60px) scale(1.4) rotate(0deg); opacity: 0.95; }
+  100% { transform: translate(-50%, -120px) scale(1.1) rotate(0deg); opacity: 0; }
+}
+
+/* Whole score card shakes on each "+1" — a tiny jolt that feels tactile. */
+@keyframes plusScoreShake {
+  0%, 100% { transform: translate(0, 0); }
+  15%  { transform: translate(-3px, 1px); }
+  30%  { transform: translate(3px, -1px); }
+  45%  { transform: translate(-2px, 1px); }
+  60%  { transform: translate(2px, -1px); }
+  80%  { transform: translate(-1px, 0); }
 }
