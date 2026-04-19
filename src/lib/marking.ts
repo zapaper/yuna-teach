@@ -2075,7 +2075,15 @@ export async function markQuizPaper(paperId: string): Promise<void> {
     // Strip surrounding quotes the extractor sometimes bakes into the answer key
     // (e.g. "expressing" → expressing) before comparing.
     const stripQuotes = (s: string) => s.replace(/^["'`\s]+|["'`\s]+$/g, "");
-    for (const q of paper.questions.filter(qq => typedSectionQIds.has(qq.id) && !isMcqAnswer(qq.answer))) {
+    // Typed section marking: Grammar Cloze, Editing, Comp Cloze, Visual Text.
+    // Exclude Visual Text MCQ (numeric answers 1-4) — those are scored as MCQ.
+    // Don't use isMcqAnswer which also matches single letters ("a" is a valid editing word).
+    for (const q of paper.questions.filter(qq => {
+      if (!typedSectionQIds.has(qq.id)) return false;
+      const topic = (qq.syllabusTopic ?? "").toLowerCase();
+      if (topic.includes("visual") && topic.includes("text")) return false;
+      return true;
+    })) {
       const qTopicLower = (q.syllabusTopic ?? "").toLowerCase();
       const isGrammarClozeQ = qTopicLower.includes("grammar") && qTopicLower.includes("cloze");
       const studentAnsRaw = stripQuotes((q.studentAnswer ?? "").trim());
