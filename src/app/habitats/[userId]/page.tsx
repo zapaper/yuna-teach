@@ -135,23 +135,30 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef }: {
   useEffect(() => {
     let cancelled = false;
     let timer: number | null = null;
-    const TALK_RANGE_PCT = 18; // "one avatar width" on-landscape — ≈ widthPct + a little.
     function pick() {
       if (cancelled) return;
-      // Find the nearest other pet. Talk is only allowed when one is within
-      // TALK_RANGE_PCT horizontally; otherwise drop talk from the candidate list.
+      // Find the nearest other pet. Talk only fires when another pet is in
+      // the habitat at all (distance doesn't matter), and the pet turns to
+      // face whoever is nearest.
       const others = positionsRef.current ?? {};
       let nearestId: string | null = null;
       let nearestX = 0;
-      let nearestDist = Infinity;
       for (const [id, ox] of Object.entries(others)) {
         if (id === pet.id) continue;
         const d = Math.abs(ox - xRef.current);
-        if (d < nearestDist) { nearestDist = d; nearestX = ox; nearestId = id; }
+        if (nearestId === null || d < Math.abs(nearestX - xRef.current)) { nearestX = ox; nearestId = id; }
       }
-      const canTalk = nearestId !== null && nearestDist <= TALK_RANGE_PCT && !!anims.talk;
-      const candidates = clipKeys.filter(k => k !== "talk" || canTalk);
-      const next = candidates[Math.floor(Math.random() * candidates.length)] as keyof PetAnimations;
+      const canTalk = nearestId !== null && !!anims.talk;
+      // Weighted pick: walk runs at half the frequency of smile / stretch /
+      // talk so movement is a punctuation between idle poses.
+      const weight = (k: keyof PetAnimations) => (k === "walk" ? 1 : 2);
+      const weighted: Array<keyof PetAnimations> = [];
+      for (const k of clipKeys) {
+        if (k === "talk" && !canTalk) continue;
+        const w = weight(k);
+        for (let i = 0; i < w; i++) weighted.push(k);
+      }
+      const next = weighted[Math.floor(Math.random() * weighted.length)] as keyof PetAnimations;
       setClip(next);
       if (next === "walk" && anims.walk) {
         // Pick a new target x within the region bounds and move there.
