@@ -351,6 +351,78 @@ ${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagr
 }
 
 // ---------------------------------------------------------------------------
+// Synthetic English Synthesis & Transformation generation
+// ---------------------------------------------------------------------------
+
+export type SyntheticSynthesisVariant = {
+  stem: string;    // Original sentence(s), with the keyword wrapped in **double asterisks**
+  answer: string;  // Expected transformed sentence
+  keyword: string; // The transformation keyword on its own
+};
+
+export async function generateSyntheticSynthesis(
+  originalStem: string,
+  originalAnswer: string,
+): Promise<{ simple: SyntheticSynthesisVariant; similar: SyntheticSynthesisVariant }> {
+  const prompt = `You are generating Synthesis & Transformation practice items for Singapore Primary 6 English.
+
+You will be given ONE original synthesis item: the prompt (sentence(s) + a keyword the student must use) and the expected transformed answer. Infer the underlying grammar rule — e.g. relative clauses (who/whom/which/whose/that), conjunctions (although/because/despite/unless/since), conditionals (if/unless), reported speech, active↔passive voice, comparatives, gerund-to-finite, participial phrases, cleft sentences, etc.
+
+Produce TWO NEW practice items that test the SAME grammar rule with fresh sentences. Use primary-school-appropriate vocabulary. Singapore context is fine (hawker centre, MRT, void deck, CCA, Prata, etc.) but not required.
+
+Return JSON exactly in this shape:
+{
+  "simple":  { "stem": "<sentence(s)>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<transformed sentence>" },
+  "similar": { "stem": "<sentence(s)>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<transformed sentence>" }
+}
+
+Rules:
+- BOTH variants must test the SAME grammar rule as the original.
+- "simple": a gentler version (shorter sentence, clearer cue, common vocabulary).
+- "similar": same difficulty and complexity as the original.
+- The keyword MUST be wrapped in **double asterisks** in the "stem" field.
+- The keyword MAY appear at the START of the transformed sentence (e.g. "Because …") OR in the MIDDLE (e.g. "… which …"). Across the two variants, prefer varying the position so one is sentence-initial and the other is sentence-internal, unless the grammar rule dictates otherwise.
+- The "answer" must be a single well-formed sentence that uses the keyword naturally and preserves the original meaning.
+- Do NOT reuse the original sentences verbatim.
+- No trailing punctuation errors, no double spaces.
+
+Original prompt:
+${originalStem}
+
+Original expected answer:
+${originalAnswer}`;
+
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    config: { responseMimeType: "application/json", temperature: 0.7 },
+  });
+
+  const text = response.text ?? "";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+
+  function normalise(v: Record<string, unknown>): SyntheticSynthesisVariant {
+    const stem = String(v.stem ?? "").trim();
+    const keyword = String(v.keyword ?? "").trim();
+    // If the AI forgot to mark the keyword, inject ** markers so downstream
+    // rendering can still pick it out.
+    const finalStem = keyword && !/\*\*[^*]+\*\*/.test(stem)
+      ? `${stem}\n\n**${keyword}**`
+      : stem;
+    return {
+      stem: finalStem,
+      keyword,
+      answer: String(v.answer ?? "").trim(),
+    };
+  }
+
+  return {
+    simple: normalise(parsed.simple ?? {}),
+    similar: normalise(parsed.similar ?? {}),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Math open-ended transcription
 // ---------------------------------------------------------------------------
 

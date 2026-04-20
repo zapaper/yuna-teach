@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { generateSyntheticMathMcq, generateSyntheticDiagramImage } from "@/lib/gemini";
+import { generateSyntheticMathMcq, generateSyntheticDiagramImage, generateSyntheticSynthesis } from "@/lib/gemini";
 
 import { isSessionAdmin } from "@/lib/session";
 
@@ -21,10 +21,29 @@ export async function POST(request: NextRequest) {
       diagramImageData: true,
     },
   });
-  if (!q || !q.transcribedStem || !q.transcribedOptions) {
+  if (!q || !q.transcribedStem) {
     return NextResponse.json({ error: "Question not found or not cleanly transcribed" }, { status: 404 });
   }
 
+  // English subject = Synthesis & Transformation generation (written answers,
+  // no options, keyword-driven). Different pipeline entirely.
+  if (subj === "english") {
+    if (!q.answer) return NextResponse.json({ error: "Missing original answer" }, { status: 400 });
+    try {
+      const variants = await generateSyntheticSynthesis(q.transcribedStem, q.answer);
+      return NextResponse.json({
+        simple:  { stem: variants.simple.stem,  options: ["", "", "", ""], correctAnswer: 0, answer: variants.simple.answer,  keyword: variants.simple.keyword },
+        similar: { stem: variants.similar.stem, options: ["", "", "", ""], correctAnswer: 0, answer: variants.similar.answer, keyword: variants.similar.keyword },
+      });
+    } catch (err) {
+      console.error("[synthetic/generate] English synthesis failed", err);
+      return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+    }
+  }
+
+  if (!q.transcribedOptions) {
+    return NextResponse.json({ error: "Question not found or not cleanly transcribed" }, { status: 404 });
+  }
   const options = q.transcribedOptions as unknown as string[];
   if (!Array.isArray(options) || options.length !== 4) {
     return NextResponse.json({ error: "Question does not have 4 options" }, { status: 400 });
