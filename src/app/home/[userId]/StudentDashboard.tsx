@@ -265,9 +265,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; startX: number; startY: number; endX: number; endY: number; delay: number }>>([]);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
-  // Habitats feature — default ON for the student unless parent turns it off.
-  const habitatsSetting = (user.settings as Record<string, unknown> | null)?.habitats;
-  const habitatsEnabled = habitatsSetting !== false;
+  // Habitats feature — OFF by default while the feature is in development.
+  // Parent must explicitly toggle it on in Student Settings.
+  const habitatsEnabled = (user.settings as Record<string, unknown> | null)?.habitats === true;
   const [showHabitatUnlock, setShowHabitatUnlock] = useState(false);
   const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
   const canCreateQuiz = studentQuizMode !== "none";
