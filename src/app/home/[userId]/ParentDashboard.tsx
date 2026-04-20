@@ -770,7 +770,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         </p>
         <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
           {(["quiz", "focused"] as const).map(m => (
-            <button key={m} onClick={() => setAssignMode(m)}
+            <button key={m} onClick={() => { setAssignMode(m); if (m === "focused" && quizSubject === "english") setQuizSubject("math"); }}
               className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${assignMode === m ? "bg-white text-[#001e40] shadow-sm" : "text-slate-500"}`}>
               {m === "quiz" ? "Daily Quiz" : "Focused Practice"}
             </button>

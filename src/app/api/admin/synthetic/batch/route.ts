@@ -10,18 +10,35 @@ export async function GET(request: NextRequest) {
   const subjectParam = (request.nextUrl.searchParams.get("subject") ?? "math").toLowerCase();
   const subjectMatch = subjectParam === "science" ? "science" : subjectParam === "english" ? "english" : "math";
 
-  const questions = await prisma.examQuestion.findMany({
-    where: {
-      syntheticGenerated: false,
-      transcribedStem: { not: null },
-      transcribedOptions: { not: Prisma.JsonNull },
-      answer: { not: null },
-      examPaper: {
-        sourceExamId: null,
-        paperType: null,
-        subject: { contains: subjectMatch, mode: "insensitive" },
-      },
+  // English synthetic generation: focus on P6 Synthesis & Transformation —
+  // the transforms are written, not MCQ, so we don't require transcribedOptions
+  // and we narrow to P6 syllabus-topic synthesis.
+  const isEnglish = subjectMatch === "english";
+  const englishWhere = {
+    syntheticGenerated: false,
+    transcribedStem: { not: null },
+    answer: { not: null },
+    syllabusTopic: { contains: "synthesis", mode: "insensitive" as const },
+    examPaper: {
+      sourceExamId: null,
+      paperType: null,
+      subject: { contains: "english", mode: "insensitive" as const },
+      level: { in: ["P6", "Primary 6", "6"] },
     },
+  };
+  const mcqWhere = {
+    syntheticGenerated: false,
+    transcribedStem: { not: null },
+    transcribedOptions: { not: Prisma.JsonNull },
+    answer: { not: null },
+    examPaper: {
+      sourceExamId: null,
+      paperType: null,
+      subject: { contains: subjectMatch, mode: "insensitive" as const },
+    },
+  };
+  const questions = await prisma.examQuestion.findMany({
+    where: isEnglish ? englishWhere : mcqWhere,
     select: {
       id: true,
       questionNum: true,
@@ -46,7 +63,10 @@ export async function GET(request: NextRequest) {
     return n >= 1 && n <= 4 ? n : null;
   }
 
-  const filtered = questions.filter(q => parseMcqAnswer(q.answer) !== null).slice(0, 10);
+  // MCQ path requires a numeric answer; synthesis path just needs an answer present.
+  const filtered = isEnglish
+    ? questions.slice(0, 10)
+    : questions.filter(q => parseMcqAnswer(q.answer) !== null).slice(0, 10);
 
   return NextResponse.json({
     questions: filtered.map(q => ({
@@ -54,7 +74,7 @@ export async function GET(request: NextRequest) {
       questionNum: q.questionNum,
       stem: q.transcribedStem,
       options: q.transcribedOptions,
-      correctAnswer: parseMcqAnswer(q.answer),
+      correctAnswer: isEnglish ? q.answer : parseMcqAnswer(q.answer),
       diagramImageData: q.diagramImageData,
       syntheticGenerated: q.syntheticGenerated,
       syntheticQuestions: q.syntheticQuestions,
