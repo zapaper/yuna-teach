@@ -13,6 +13,13 @@ export async function GET(request: NextRequest) {
   // English synthetic generation: focus on P6 Synthesis & Transformation —
   // the transforms are written, not MCQ, so we don't require transcribedOptions
   // and we narrow to P6 syllabus-topic synthesis.
+  // Exclude the synthetic-bank papers themselves — we don't want to generate
+  // variants of variants. They're marked with examType: "Synthetic" on create,
+  // and their titles all start with "[Synthetic Bank]".
+  const notSyntheticBank = {
+    NOT: [{ examType: "Synthetic" }, { title: { startsWith: "[Synthetic Bank]" } }],
+  } as const;
+
   const isEnglish = subjectMatch === "english";
   const englishWhere = {
     syntheticGenerated: false,
@@ -24,6 +31,7 @@ export async function GET(request: NextRequest) {
       paperType: null,
       subject: { contains: "english", mode: "insensitive" as const },
       level: { in: ["P6", "Primary 6", "6"] },
+      ...notSyntheticBank,
     },
   };
   const mcqWhere = {
@@ -35,6 +43,7 @@ export async function GET(request: NextRequest) {
       sourceExamId: null,
       paperType: null,
       subject: { contains: subjectMatch, mode: "insensitive" as const },
+      ...notSyntheticBank,
     },
   };
   const questions = await prisma.examQuestion.findMany({
