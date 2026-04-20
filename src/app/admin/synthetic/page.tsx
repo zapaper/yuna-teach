@@ -34,7 +34,15 @@ type Variant = {
   diagramImageData?: string | null;
 };
 
-type Drafts = { simple: Variant; similar: Variant } | null;
+type DraftPair = { simple: Variant; similar: Variant };
+type Drafts = DraftPair | null;
+// Additional pairs produced by the "Generate more" button, keyed by source
+// question id. Each pair saves under variant names "simple2"/"similar2",
+// "simple3"/"similar3", … so the existing (simple, similar) DB rows stay put.
+function moreVariantName(kind: "simple" | "similar", pairIdx: number) {
+  // pairIdx starts at 1 for the first additional pair; concat as suffix.
+  return `${kind}${pairIdx + 1}`;
+}
 
 export default function SyntheticPage() {
   return (
@@ -53,7 +61,11 @@ function SyntheticContent() {
   const [loading, setLoading] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [drafts, setDrafts] = useState<Record<string, Drafts>>({});
+  // Additional variant pairs per question appended by the "Generate more" button.
+  const [morePairs, setMorePairs] = useState<Record<string, DraftPair[]>>({});
   const [decisions, setDecisions] = useState<Record<string, { simple: Decision; similar: Decision }>>({});
+  // Decisions for additional pairs: indexed by question then by pair index (0 = first extra pair).
+  const [moreDecisions, setMoreDecisions] = useState<Record<string, Array<{ simple: Decision; similar: Decision }>>>({});
   const [lockedIds, setLockedIds] = useState<Set<string>>(new Set());
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [savingState, setSavingState] = useState<string | null>(null);
@@ -76,27 +88,53 @@ function SyntheticContent() {
       const qs: Question[] = data.questions ?? [];
       setQuestions(qs);
       setCurrentIdx(0);
-      // Prefill drafts + decisions from any existing SyntheticQuestion rows
+      // Prefill primary-pair drafts + any additional pairs saved under
+      // simpleN/similarN from previous "Generate more" runs.
       const nextDrafts: Record<string, Drafts> = {};
       const nextDecisions: Record<string, { simple: Decision; similar: Decision }> = {};
+      const nextMorePairs: Record<string, DraftPair[]> = {};
+      const nextMoreDecisions: Record<string, Array<{ simple: Decision; similar: Decision }>> = {};
       for (const q of qs) {
-        if (q.syntheticQuestions && q.syntheticQuestions.length > 0) {
-          const simple = q.syntheticQuestions.find(x => x.variant === "simple");
-          const similar = q.syntheticQuestions.find(x => x.variant === "similar");
-          if (simple && similar) {
-            nextDrafts[q.id] = {
-              simple: { stem: simple.stem, options: simple.options, correctAnswer: simple.correctAnswer, diagramImageData: simple.diagramImageData },
-              similar: { stem: similar.stem, options: similar.options, correctAnswer: similar.correctAnswer, diagramImageData: similar.diagramImageData },
-            };
-          }
-          nextDecisions[q.id] = {
-            simple: simple ? "accepted" : null,
-            similar: similar ? "accepted" : null,
+        if (!q.syntheticQuestions || q.syntheticQuestions.length === 0) continue;
+        const simple = q.syntheticQuestions.find(x => x.variant === "simple");
+        const similar = q.syntheticQuestions.find(x => x.variant === "similar");
+        if (simple && similar) {
+          nextDrafts[q.id] = {
+            simple: { stem: simple.stem, options: simple.options, correctAnswer: simple.correctAnswer, diagramImageData: simple.diagramImageData },
+            similar: { stem: similar.stem, options: similar.options, correctAnswer: similar.correctAnswer, diagramImageData: similar.diagramImageData },
           };
         }
+        nextDecisions[q.id] = {
+          simple: simple ? "accepted" : null,
+          similar: similar ? "accepted" : null,
+        };
+        // Scan for simpleN / similarN (N >= 2) to rebuild morePairs.
+        const extras: Array<{ simple?: Variant; similar?: Variant; simpleOk: boolean; similarOk: boolean }> = [];
+        for (const row of q.syntheticQuestions) {
+          const m = row.variant.match(/^(simple|similar)(\d+)$/);
+          if (!m) continue;
+          const kind = m[1] as "simple" | "similar";
+          const pairIdx = parseInt(m[2], 10) - 2; // "simple2" → idx 0 in morePairs
+          if (pairIdx < 0) continue;
+          while (extras.length <= pairIdx) extras.push({ simpleOk: false, similarOk: false });
+          extras[pairIdx][kind] = { stem: row.stem, options: row.options, correctAnswer: row.correctAnswer, diagramImageData: row.diagramImageData };
+          if (kind === "simple") extras[pairIdx].simpleOk = true;
+          else extras[pairIdx].similarOk = true;
+        }
+        const pairs: DraftPair[] = [];
+        const dec: Array<{ simple: Decision; similar: Decision }> = [];
+        for (const e of extras) {
+          if (e.simple && e.similar) {
+            pairs.push({ simple: e.simple, similar: e.similar });
+            dec.push({ simple: e.simpleOk ? "accepted" : null, similar: e.similarOk ? "accepted" : null });
+          }
+        }
+        if (pairs.length > 0) { nextMorePairs[q.id] = pairs; nextMoreDecisions[q.id] = dec; }
       }
       setDrafts(nextDrafts);
       setDecisions(nextDecisions);
+      setMorePairs(nextMorePairs);
+      setMoreDecisions(nextMoreDecisions);
       setLockedIds(new Set());
     } finally {
       setLoading(false);
@@ -400,6 +438,89 @@ function SyntheticContent() {
                 </div>
               )}
 
+              {/* Additional pairs from "Generate more" — each renders below the primary pair. */}
+              {!locked && (morePairs[q.id] ?? []).map((pair, pairIdx) => {
+                const pairDec = (moreDecisions[q.id] ?? [])[pairIdx] ?? { simple: null, similar: null };
+                const updatePair = (which: "simple" | "similar", patch: Partial<Variant>) => {
+                  setMorePairs(prev => {
+                    const list = [...(prev[q.id] ?? [])];
+                    if (!list[pairIdx]) return prev;
+                    list[pairIdx] = { ...list[pairIdx], [which]: { ...list[pairIdx][which], ...patch } };
+                    return { ...prev, [q.id]: list };
+                  });
+                };
+                const updatePairOption = (which: "simple" | "similar", i: number, value: string) => {
+                  setMorePairs(prev => {
+                    const list = [...(prev[q.id] ?? [])];
+                    if (!list[pairIdx]) return prev;
+                    const opts = [...list[pairIdx][which].options];
+                    opts[i] = value;
+                    list[pairIdx] = { ...list[pairIdx], [which]: { ...list[pairIdx][which], options: opts } };
+                    return { ...prev, [q.id]: list };
+                  });
+                };
+                async function savePair(which: "simple" | "similar", decision: Exclude<Decision, null>) {
+                  const variant = moreVariantName(which, pairIdx + 1); // pairIdx 0 is the FIRST extra → simple2
+                  const key = `save-${q.id}-${variant}`;
+                  setSavingState(key);
+                  try {
+                    if (decision === "accepted") {
+                      const v = pair[which] as Variant & { answer?: string };
+                      const payload = (v.answer && v.answer.trim())
+                        ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
+                        : v;
+                      const res = await fetch("/api/admin/synthetic/save", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId, questionId: q.id, variant, data: payload }),
+                      });
+                      const data = await res.json();
+                      if (!res.ok) { showToast(data.error ?? "Save failed"); return; }
+                    } else {
+                      const res = await fetch("/api/admin/synthetic/save", {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId, questionId: q.id, variant }),
+                      });
+                      if (!res.ok) { showToast("Reject failed"); return; }
+                    }
+                    setMoreDecisions(prev => {
+                      const list = [...(prev[q.id] ?? [])];
+                      while (list.length <= pairIdx) list.push({ simple: null, similar: null });
+                      list[pairIdx] = { ...list[pairIdx], [which]: decision };
+                      return { ...prev, [q.id]: list };
+                    });
+                  } finally { setSavingState(null); }
+                }
+                return (
+                  <div key={`more-${pairIdx}`} className="mt-6 pt-6 border-t-2 border-dashed border-slate-300">
+                    <p className="text-xs font-bold text-slate-500 mb-3">Additional pair #{pairIdx + 2}</p>
+                    <VariantEditor title="Simple variant" variant={pair.simple} disabled={false}
+                      hasOriginalDiagram={!!q.diagramImageData}
+                      regenPrompt={""} setRegenPrompt={() => {}}
+                      regenerating={false}
+                      onRegenDiagram={() => {}} onResetDiagram={() => {}}
+                      onStem={s => updatePair("simple", { stem: s })}
+                      onOption={(i, v) => updatePairOption("simple", i, v)}
+                      onCorrect={n => updatePair("simple", { correctAnswer: n })}
+                      onDiagramEdit={base64 => updatePair("simple", { diagramImageData: base64 })} />
+                    <DecisionButtons which="simple" decision={pairDec.simple} savingState={savingState}
+                      questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("simple", dec)} />
+                    <VariantEditor title="Similar variant" variant={pair.similar} disabled={false}
+                      hasOriginalDiagram={!!q.diagramImageData}
+                      regenPrompt={""} setRegenPrompt={() => {}}
+                      regenerating={false}
+                      onRegenDiagram={() => {}} onResetDiagram={() => {}}
+                      onStem={s => updatePair("similar", { stem: s })}
+                      onOption={(i, v) => updatePairOption("similar", i, v)}
+                      onCorrect={n => updatePair("similar", { correctAnswer: n })}
+                      onDiagramEdit={base64 => updatePair("similar", { diagramImageData: base64 })} />
+                    <DecisionButtons which="similar" decision={pairDec.similar} savingState={savingState}
+                      questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("similar", dec)} />
+                  </div>
+                );
+              })}
+
               {d && !locked && (
                 <button
                   onClick={async () => {
@@ -407,10 +528,9 @@ function SyntheticContent() {
                     try {
                       const result = await generateOne(q);
                       if (result) {
-                        setDrafts(prev => ({ ...prev, [q.id]: result }));
-                        // Reset accept/reject state for both variants since they're fresh.
-                        setDecisions(prev => ({ ...prev, [q.id]: { simple: null, similar: null } }));
-                        showToast("Generated new variants");
+                        setMorePairs(prev => ({ ...prev, [q.id]: [...(prev[q.id] ?? []), result] }));
+                        setMoreDecisions(prev => ({ ...prev, [q.id]: [...(prev[q.id] ?? []), { simple: null, similar: null }] }));
+                        showToast("Added 2 new variants");
                       } else {
                         showToast("Generation failed");
                       }
@@ -419,7 +539,7 @@ function SyntheticContent() {
                   disabled={savingState === `regen-${q.id}`}
                   className="w-full py-3 rounded-xl border-2 border-blue-300 bg-blue-50 text-blue-700 font-bold disabled:opacity-50 mt-4"
                 >
-                  {savingState === `regen-${q.id}` ? "Generating…" : "Generate more (2 new variants)"}
+                  {savingState === `regen-${q.id}` ? "Generating…" : "Generate more (add 2 new variants)"}
                 </button>
               )}
               {d && !locked && (

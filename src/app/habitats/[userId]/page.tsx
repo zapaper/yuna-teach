@@ -192,9 +192,21 @@ const HABITATS: Habitat[] = [
         animations: {
           smile: "/avatars/bear_smile.webm",
           stretch: "/avatars/bear_stretch.webm",
+          walk: "/avatars/bear_walk.webm",
+          talk: "/avatars/bear_talk.webm",
         },
       },
-      { id: "fox",        name: "Fox",         video: "/avatars/fox1.mp4" },
+      {
+        id: "fox", name: "Fox",
+        video: "/avatars/fox_smile.webm",
+        bg: "alpha",
+        animations: {
+          smile: "/avatars/fox_smile.webm",
+          stretch: "/avatars/fox_stretch.webm",
+          walk: "/avatars/fox_walk.webm",
+          talk: "/avatars/fox_talk.webm",
+        },
+      },
     ],
   },
   {
