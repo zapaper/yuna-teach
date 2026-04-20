@@ -127,8 +127,7 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
   );
 }
 
-function ExperienceBar({ barRef, points, level, progressPct, justUpdated, wide }: {
-  barRef: React.RefObject<HTMLDivElement | null>;
+function ExperienceBar({ points, level, progressPct, justUpdated, wide }: {
   points: number;
   level: number;
   progressPct: number;
@@ -137,7 +136,7 @@ function ExperienceBar({ barRef, points, level, progressPct, justUpdated, wide }
 }) {
   return (
     <div
-      ref={barRef}
+      data-xp-bar
       className={`relative flex flex-col gap-1 bg-[#e5eeff] text-[#001e40] rounded-2xl px-4 py-2.5 ${wide ? "min-w-[260px] lg:min-w-[320px]" : "min-w-[180px]"}`}
       style={{ animation: justUpdated ? "xpBarPulse 1.2s ease-out infinite" : undefined }}
     >
@@ -156,6 +155,20 @@ function ExperienceBar({ barRef, points, level, progressPct, justUpdated, wide }
       </div>
     </div>
   );
+}
+
+// Pick whichever rendered XP bar is actually visible on screen. Both the
+// desktop and mobile variants mount simultaneously (responsive classes hide
+// one via display:none), so a single React ref would race; querySelector
+// finds every instance and we keep the one with a non-zero rect.
+function findVisibleXpBar(): DOMRect | null {
+  if (typeof document === "undefined") return null;
+  const els = document.querySelectorAll<HTMLElement>("[data-xp-bar]");
+  for (const el of els) {
+    const rect = el.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) return rect;
+  }
+  return null;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -232,8 +245,6 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   // the display counter at (total - newPoints) until the bubbles land, then
   // tick it up to total. localStorage stops a refresh/back-button from
   // replaying the animation.
-  const barRef = useRef<HTMLDivElement>(null);
-  const bubbleTargetRef = useRef<{ x: number; y: number } | null>(null);
   const animationTriggeredRef = useRef(false);
   const [displayPoints, setDisplayPoints] = useState<number | null>(null);
   const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; startX: number; startY: number; endX: number; endY: number; delay: number }>>([]);
@@ -538,8 +549,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     // Wait until examPapers has loaded with the paper we just completed.
     if (examPapers.length === 0) return;
     if (!examPapers.some(p => p.id === fromPaper && (p.completedAt || p.markingStatus === "released"))) return;
-    // Also need the bar in the DOM so we can target it with the bubbles.
-    const barRect = barRef.current?.getBoundingClientRect();
+    // Also need the visible XP bar in the DOM so we can target it with the
+    // bubbles. Both mobile and desktop bars mount (one is display:none), so
+    // pick whichever has a non-zero rect.
+    const barRect = findVisibleXpBar();
     if (!barRect) return;
 
     animationTriggeredRef.current = true;
@@ -645,17 +658,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           {bubbles.map(b => (
             <span
               key={b.id}
-              className="absolute top-0 left-0 flex items-center justify-center rounded-full bg-gradient-to-br from-[#6cf8bb] to-[#34d399] text-[#001e40] font-extrabold text-[11px] w-6 h-6 shadow-[0_2px_8px_rgba(108,248,187,0.55)]"
+              className="absolute top-0 left-0 rounded-full bg-gradient-to-br from-[#6cf8bb] to-[#34d399] w-3 h-3 shadow-[0_2px_6px_rgba(108,248,187,0.6)]"
               style={{
-                animation: `pointBubbleFly 1200ms cubic-bezier(0.4,0.9,0.5,1) ${b.delay}ms forwards`,
+                animation: `pointBubbleFly 1100ms cubic-bezier(0.4,0.9,0.5,1) ${b.delay}ms forwards`,
                 ["--bubble-start-x" as string]: `${b.startX}px`,
                 ["--bubble-start-y" as string]: `${b.startY}px`,
                 ["--bubble-end-x" as string]: `${b.endX}px`,
                 ["--bubble-end-y" as string]: `${b.endY}px`,
               }}
-            >
-              +{b.marks}
-            </span>
+            />
           ))}
         </div>
       )}
@@ -909,7 +920,6 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     </div>
                   )}
                   <ExperienceBar
-                    barRef={barRef}
                     points={effectivePoints}
                     level={displayedLevel}
                     progressPct={levelProgressPct}
@@ -1182,7 +1192,6 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1.5 bg-[#ffddb4] text-[#291800] px-3 py-1.5 rounded-full text-sm font-extrabold"><span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
               {quizBadge && quizBadge.image && <div className="flex items-center gap-1.5 bg-[#d3e4fe] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={quizBadge.image} alt={quizBadge.badge} className="w-6 h-6 object-contain" />{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"}</div>}
               <ExperienceBar
-                barRef={barRef}
                 points={effectivePoints}
                 level={displayedLevel}
                 progressPct={levelProgressPct}
