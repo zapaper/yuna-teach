@@ -269,8 +269,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; startX: number; startY: number; endX: number; endY: number; delay: number }>>([]);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
-  // Habitats feature — ON by default; parent can turn it off in Student Settings.
-  const habitatsEnabled = (user.settings as Record<string, unknown> | null)?.habitats !== false;
+  // Habitats feature — OFF by default (bunny-on-jungle shows the multiply-blend
+  // problem: a white character disappears over any background). Re-enable via
+  // the Student Settings toggle once we've got transparent/black-bg pet assets.
+  const habitatsEnabled = (user.settings as Record<string, unknown> | null)?.habitats === true;
   const [showHabitatUnlock, setShowHabitatUnlock] = useState(false);
   const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
   const canCreateQuiz = studentQuizMode !== "none";
