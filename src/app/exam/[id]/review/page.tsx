@@ -150,13 +150,19 @@ function ExamReviewContent({ id }: { id: string }) {
     setShowFirstQuizPopup(true);
   }, [isDiagnostic, data, isQuiz]);
 
-  // Fire a confetti + star volley once, when the review page finishes loading
-  // and the student's final percentage is ≥ 90%. Ref guard prevents re-firing
-  // on re-renders (e.g. after parent mark edits).
+  // Fire a confetti + star volley once, when the student opens the review for
+  // the first time with a final percentage ≥ 90%. Guarded in two places:
+  //   * celebrationFiredRef — blocks re-firing within the same mount (e.g.
+  //     parent mark edits re-triggering data).
+  //   * localStorage mfy-celebration-shown-<paperId> — blocks replay across
+  //     visits, so revisiting an old high-scoring quiz doesn't re-celebrate.
   const celebrationFiredRef = useRef(false);
   useEffect(() => {
     if (!data || celebrationFiredRef.current) return;
     if (data.markingStatus !== "complete" && data.markingStatus !== "released") return;
+    if (typeof window === "undefined") return;
+    const celebrationKey = `mfy-celebration-shown-${id}`;
+    if (localStorage.getItem(celebrationKey)) return;
     const rawTotal = totalMarks ? Number(totalMarks) : null;
     if (!rawTotal || rawTotal <= 0) return;
     const skippedMarks = data.questions
@@ -167,6 +173,7 @@ function ExamReviewContent({ id }: { id: string }) {
     const pctValue = Math.min(100, Math.round(((data.score ?? 0) / totalM) * 100));
     if (pctValue < 90) return;
     celebrationFiredRef.current = true;
+    localStorage.setItem(celebrationKey, "1");
     (async () => {
       // Slight celebratory haptic on mobile — a short pop for the main volley
       // and a two-tap burst when the stars fire. No-ops on iOS Safari / desktop.

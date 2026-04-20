@@ -233,8 +233,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   // tick it up to total. localStorage stops a refresh/back-button from
   // replaying the animation.
   const barRef = useRef<HTMLDivElement>(null);
+  const bubbleTargetRef = useRef<{ x: number; y: number } | null>(null);
+  const animationTriggeredRef = useRef(false);
   const [displayPoints, setDisplayPoints] = useState<number | null>(null);
-  const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; x: number; delay: number }>>([]);
+  const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; startX: number; startY: number; endX: number; endY: number; delay: number }>>([]);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
   const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
@@ -521,19 +523,30 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const levelProgressPct = ((effectivePoints % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
   const displayedLevel = Math.floor(effectivePoints / POINTS_PER_LEVEL);
 
-  // Trigger the points-flowing-in animation once per paper.
+  // Trigger the points-flowing-in animation once per paper — BUT only after
+  // examPapers loads and totalPoints includes the new quiz score. Initial
+  // render has examPapers=[], totalPoints=0, which is why the bar was
+  // settling at "0 pts Lvl 0" before the fix.
   useEffect(() => {
+    if (animationTriggeredRef.current) return;
     const newPoints = parseInt(searchParams?.get("newPoints") ?? "", 10);
     const fromPaper = searchParams?.get("fromPaper") ?? "";
     if (!Number.isFinite(newPoints) || newPoints <= 0 || !fromPaper) return;
-    const animKey = `mfy-points-animated-${fromPaper}`;
     if (typeof window === "undefined") return;
+    const animKey = `mfy-points-animated-${fromPaper}`;
     if (localStorage.getItem(animKey)) return;
+    // Wait until examPapers has loaded with the paper we just completed.
+    if (examPapers.length === 0) return;
+    if (!examPapers.some(p => p.id === fromPaper && (p.completedAt || p.markingStatus === "released"))) return;
+    // Also need the bar in the DOM so we can target it with the bubbles.
+    const barRect = barRef.current?.getBoundingClientRect();
+    if (!barRect) return;
+
+    animationTriggeredRef.current = true;
     localStorage.setItem(animKey, "1");
 
     // Strip the params from the URL so a refresh doesn't try to replay.
-    const nextUrl = `/home/${userId}`;
-    window.history.replaceState({}, "", nextUrl);
+    window.history.replaceState({}, "", `/home/${userId}`);
 
     // Hold the counter at (total − new) so bubbles can fill it in.
     const startPoints = Math.max(0, totalPoints - newPoints);
@@ -541,22 +554,28 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
     const bubbleCount = Math.min(Math.max(newPoints, 1), 15);
     const perBubble = Math.max(1, Math.round(newPoints / bubbleCount));
-    const spawned: Array<{ id: number; marks: number; x: number; delay: number }> = [];
+    // Start near the top-right of the viewport, land at the bar's centre.
+    const startX = window.innerWidth - 48;
+    const startY = 40;
+    const endX = barRect.left + barRect.width / 2;
+    const endY = barRect.top + barRect.height / 2;
+    const spawned = [] as Array<{ id: number; marks: number; startX: number; startY: number; endX: number; endY: number; delay: number }>;
     let runningTotal = 0;
     for (let i = 0; i < bubbleCount; i++) {
-      // Last bubble carries whatever remainder keeps the total exact.
       const marks = i === bubbleCount - 1 ? newPoints - runningTotal : perBubble;
       runningTotal += marks;
       spawned.push({
         id: Date.now() + i,
         marks,
-        x: 20 + Math.random() * 60, // % across the viewport
-        delay: i * 120,
+        startX: startX - Math.random() * 40, // slight horizontal spread so they don't stack exactly
+        startY: startY + Math.random() * 20,
+        endX,
+        endY,
+        delay: i * 160,
       });
     }
     setBubbles(spawned);
 
-    // Each bubble lands around 900ms after its delay; bump the counter as it lands.
     const timers: number[] = [];
     let running = startPoints;
     spawned.forEach((b) => {
@@ -567,17 +586,16 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           try { navigator.vibrate(20); } catch { /* ignore */ }
         }
         playPointChime();
-      }, b.delay + 900));
+      }, b.delay + 950));
     });
-    // Settle the counter + clear bubbles.
-    const settleDelay = spawned[spawned.length - 1]!.delay + 1300;
+    const settleDelay = spawned[spawned.length - 1]!.delay + 1400;
     timers.push(window.setTimeout(() => {
       setDisplayPoints(totalPoints);
       setBubbles([]);
     }, settleDelay));
     return () => { timers.forEach(t => window.clearTimeout(t)); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [examPapers, searchParams, totalPoints]);
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
 
   // ─── Derived data for new layout ───
@@ -621,28 +639,24 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   return (
     <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen overflow-x-hidden">
-      {/* Point bubbles flying from top of viewport into the experience bar */}
+      {/* Point bubbles swooping from top-right into the experience bar */}
       {bubbles.length > 0 && (
         <div className="fixed inset-0 z-[90] pointer-events-none">
-          {bubbles.map(b => {
-            // Compute how far the bubble needs to travel to reach the bar's
-            // vertical centre. Fallback to 40vh if the bar hasn't measured yet.
-            const barRect = barRef.current?.getBoundingClientRect();
-            const landY = barRect ? `${barRect.top + barRect.height / 2}px` : "40vh";
-            return (
-              <span
-                key={b.id}
-                className="absolute top-0 flex items-center justify-center rounded-full bg-gradient-to-br from-[#6cf8bb] to-[#34d399] text-[#001e40] font-black text-sm w-10 h-10 shadow-[0_4px_14px_rgba(108,248,187,0.6)]"
-                style={{
-                  left: `${b.x}%`,
-                  animation: `pointBubbleFly 1200ms cubic-bezier(0.34,1.05,0.64,1) ${b.delay}ms forwards`,
-                  ["--bubble-land" as string]: landY,
-                }}
-              >
-                +{b.marks}
-              </span>
-            );
-          })}
+          {bubbles.map(b => (
+            <span
+              key={b.id}
+              className="absolute top-0 left-0 flex items-center justify-center rounded-full bg-gradient-to-br from-[#6cf8bb] to-[#34d399] text-[#001e40] font-extrabold text-[11px] w-6 h-6 shadow-[0_2px_8px_rgba(108,248,187,0.55)]"
+              style={{
+                animation: `pointBubbleFly 1200ms cubic-bezier(0.4,0.9,0.5,1) ${b.delay}ms forwards`,
+                ["--bubble-start-x" as string]: `${b.startX}px`,
+                ["--bubble-start-y" as string]: `${b.startY}px`,
+                ["--bubble-end-x" as string]: `${b.endX}px`,
+                ["--bubble-end-y" as string]: `${b.endY}px`,
+              }}
+            >
+              +{b.marks}
+            </span>
+          ))}
         </div>
       )}
 
