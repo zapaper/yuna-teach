@@ -11,6 +11,54 @@ type Habitat = {
   pets: Array<{ id: string; name: string; video: string }>;
 };
 
+// Placement region for unlocked pets on the landscape (was the teal marker).
+// Top 55%, height 20% → bottom 75% of the image.
+const PET_REGION_TOP_PCT = 55;
+const PET_REGION_HEIGHT_PCT = 20;
+const PET_REGION_BOTTOM_PCT = PET_REGION_TOP_PCT + PET_REGION_HEIGHT_PCT;
+// Pets further up in the region are further away → scaled down. Per rule:
+// −5% scale per 1% of image-height above the region's base. Floor at 0.35
+// so pets at the very back don't vanish.
+function petScaleAtY(yPct: number): number {
+  const offsetFromBase = PET_REGION_BOTTOM_PCT - yPct; // 0 at base, 20 at top
+  return Math.max(0.35, 1 - 0.05 * offsetFromBase);
+}
+// Deterministic per-habitat random placement — seeded by the habitat id so
+// positions are stable between renders (they don't jitter every state change).
+function hashString(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+function seededRandom(seed: number): () => number {
+  let s = seed || 1;
+  return () => {
+    s = (s * 1664525 + 1013904223) | 0;
+    return ((s >>> 0) % 100000) / 100000;
+  };
+}
+// Pet unlock rules — expand as the rest of the feature comes online.
+// For now: Jungle habitat unlocks the Bunny as a starter pet at 200 pts.
+function isPetUnlocked(habitatId: string, petId: string, totalPoints: number): boolean {
+  if (habitatId === "jungle" && petId === "bunny") return totalPoints >= 200;
+  return false;
+}
+// Compute positions + scales for the unlocked pets of a habitat, sorted
+// background-first so the JSX draw order matches depth.
+function placePets(habitat: Habitat, totalPoints: number) {
+  const unlocked = habitat.pets.filter(p => isPetUnlocked(habitat.id, p.id, totalPoints));
+  if (unlocked.length === 0) return [];
+  const rand = seededRandom(hashString(habitat.id));
+  const placed = unlocked.map(pet => {
+    const yPct = PET_REGION_TOP_PCT + rand() * PET_REGION_HEIGHT_PCT;
+    const xPct = 12 + rand() * 76; // keep inside the horizontal range of the region
+    return { ...pet, xPct, yPct, scale: petScaleAtY(yPct) };
+  });
+  // Smaller yPct = higher on image = further back → draw first so closer pets overlap them.
+  placed.sort((a, b) => a.yPct - b.yPct);
+  return placed;
+}
+
 // All four habitats and their pet rosters. HDB has no pets yet — placeholder.
 const HABITATS: Habitat[] = [
   {
@@ -159,13 +207,23 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
           <div className="relative rounded-3xl overflow-hidden border border-[#e5eeff] bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={selected.image} alt={selected.name} className="w-full aspect-[16/9] object-cover" />
-            {/* Positioning marker — teal overlay 75% × 25%, lower third. */}
-            <div
-              className="absolute bg-teal-400/50 rounded-xl pointer-events-none"
-              style={{
-                left: "12.5%", top: "55%", width: "75%", height: "25%",
-              }}
-            />
+            {/* Unlocked pets placed on the landscape. Draw order matches depth:
+             * pets higher up in the region render first (background). */}
+            {placePets(selected, totalPoints).map(pet => (
+              <video
+                key={pet.id}
+                src={pet.video}
+                autoPlay loop muted playsInline
+                className="absolute pointer-events-none"
+                style={{
+                  left: `${pet.xPct}%`,
+                  top: `${pet.yPct}%`,
+                  width: `${16 * pet.scale}%`,
+                  transform: "translate(-50%, -50%)",
+                  mixBlendMode: "multiply",
+                }}
+              />
+            ))}
           </div>
 
           <div>
@@ -174,20 +232,27 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
               <p className="text-sm text-[#43474f] italic">No pets for this habitat yet.</p>
             ) : (
               <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pb-6">
-                {selected.pets.map(pet => (
-                  <div
-                    key={pet.id}
-                    className="rounded-2xl border border-[#e5eeff] bg-white p-2 flex flex-col items-center gap-1 grayscale opacity-60"
-                  >
-                    <video
-                      src={pet.video}
-                      autoPlay loop muted playsInline
-                      className="w-full aspect-square object-contain pointer-events-none"
-                      style={{ mixBlendMode: "multiply" }}
-                    />
-                    <p className="text-[11px] font-bold text-[#43474f]">{pet.name}</p>
-                  </div>
-                ))}
+                {selected.pets.map(pet => {
+                  const unlocked = isPetUnlocked(selected.id, pet.id, totalPoints);
+                  return (
+                    <div
+                      key={pet.id}
+                      className={`rounded-2xl border p-2 flex flex-col items-center gap-1 transition ${
+                        unlocked
+                          ? "border-[#006c49]/40 bg-[#6cf8bb]/10"
+                          : "border-[#e5eeff] bg-white grayscale opacity-60"
+                      }`}
+                    >
+                      <video
+                        src={pet.video}
+                        autoPlay loop muted playsInline
+                        className="w-full aspect-square object-contain pointer-events-none"
+                        style={{ mixBlendMode: "multiply" }}
+                      />
+                      <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
