@@ -669,7 +669,8 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
           </div>
         </div>
       )}
-      {Array.isArray(variant.options) && variant.options.length > 0 && variant.options.some(o => o) ? (
+      {Array.isArray(variant.options) && variant.options.length === 4 ? (
+        // MCQ: 4 options grid with correct-answer toggle.
         <>
           <div className="space-y-2">
             {variant.options.map((opt, i) => {
@@ -690,9 +691,18 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
           <p className="text-[10px] text-slate-400 mt-2">Tap the number to mark which option is correct.</p>
         </>
       ) : (
-        <div className="mt-2 px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-900 whitespace-pre-wrap">
-          <span className="text-[10px] font-bold uppercase mr-2">Transformed answer</span>
-          {(variant as { answer?: string }).answer ?? ""}
+        // Synthesis: single transformed-sentence answer. Either unpacked into
+        // variant.answer (fresh from generator) or living in options[0] when
+        // reloaded from the DB. Editing targets whichever field is populated.
+        <div className="mt-2">
+          <p className="text-[10px] font-bold uppercase text-slate-400 mb-1">Transformed answer</p>
+          <textarea
+            value={(variant as { answer?: string }).answer ?? variant.options?.[0] ?? ""}
+            onChange={e => onOption(0, e.target.value)}
+            rows={2}
+            disabled={disabled}
+            className="w-full border border-green-200 bg-green-50 text-green-900 rounded-lg px-3 py-2 text-sm resize-none outline-none focus:border-green-500 disabled:opacity-50"
+          />
         </div>
       )}
     </div>
