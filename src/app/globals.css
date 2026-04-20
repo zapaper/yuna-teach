@@ -140,9 +140,11 @@ body {
  * so the animation targets the bar regardless of layout. */
 @keyframes pointBubbleFly {
   0%   { transform: translate(var(--bubble-start-x), var(--bubble-start-y)) scale(0.4); opacity: 0; }
-  18%  { transform: translate(var(--bubble-start-x), var(--bubble-start-y)) scale(1); opacity: 1; }
-  88%  { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.8); opacity: 0.9; }
-  100% { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.15); opacity: 0; }
+  15%  { transform: translate(var(--bubble-start-x), var(--bubble-start-y)) scale(1); opacity: 1; }
+  /* Reach the bar around 70% so the remaining 30% of the animation has time
+   * to fade + shrink smoothly instead of snapping to 0 opacity. */
+  70%  { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.95); opacity: 0.9; }
+  100% { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.1); opacity: 0; }
 }
 
 /* Experience bar gets a brief glow pulse each time points land in it. */
