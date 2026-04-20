@@ -471,9 +471,27 @@ export async function POST(request: NextRequest) {
         for (let i = 0; i < take; i++) pushSectionGroup(section, vocabClozeSets[i], i + 1, take);
         continue;
       }
-      // Synthesis: flat 10 questions (or 5 for non-focused), not passage-bound
+      // Synthesis: flat 10 questions (or 5 for non-focused), not passage-bound.
+      // For synthesis-focused practice we deliberately pull from P6 only — that's
+      // where the worthwhile synthesis transforms live; P5/P4 pools are thin.
       if (section === "synthesis") {
-        const synthAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
+        let synthAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("synthesis"));
+        if (isSynthesisFocus) {
+          const p6Variants = ["P6", "Primary 6", "6"];
+          const p6Synth = await prisma.examQuestion.findMany({
+            where: {
+              syllabusTopic: { contains: "synthesis", mode: "insensitive" },
+              answer: { not: null as null },
+              examPaper: {
+                sourceExamId: null, paperType: null,
+                subject: { contains: "english", mode: "insensitive" },
+                level: { in: p6Variants },
+              },
+            },
+            select: questionSelectLight,
+          });
+          synthAll = p6Synth;
+        }
         const synthFresh = shuffle(synthAll.filter(q => !usedSourceIds.has(q.id)));
         const synthUsed = shuffle(synthAll.filter(q => usedSourceIds.has(q.id)));
         pushSectionGroup(section, [...synthFresh, ...synthUsed].slice(0, isFocusedEnglish ? 10 : 5), 1, 1);
