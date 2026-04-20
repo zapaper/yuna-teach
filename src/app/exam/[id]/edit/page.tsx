@@ -587,8 +587,10 @@ function ExamEditContent({ id }: { id: string }) {
         onFile={handlePdfLoad}
       />
 
-      {/* Question cards — English uses section-based view */}
-      {isEnglishPaper && paper.metadata?.sectionOcrTexts ? (
+      {/* Question cards — English uses section-based view. Also used for
+          Synthetic Bank English papers, which don't carry sectionOcrTexts
+          but still need the synthesis-aware question rendering. */}
+      {isEnglishPaper && (paper.metadata?.sectionOcrTexts || paper.title?.startsWith("[Synthetic Bank]")) ? (
         <div className="mt-5">
           <EnglishEditView
             paper={paper}
