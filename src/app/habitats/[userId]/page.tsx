@@ -14,7 +14,9 @@ type Pet = {
   id: string;
   name: string;
   video: string; // idle clip shown in the gallery and as fallback
-  bg?: "white" | "black";
+  // "alpha" = the asset is a transparent WebM (no blend mode needed).
+  // "white" / "black" = flat-background clip that relies on mix-blend-mode.
+  bg?: "white" | "black" | "alpha";
   animations?: PetAnimations; // present for pets with a dark-bg action set
 };
 
@@ -25,13 +27,15 @@ type Habitat = {
   thumb: string;
   pets: Pet[];
 };
-// Pet videos come with either a white studio background (most existing avatars)
-// or a black one (some of the new pet-only assets). Pick a blend mode per bg so
-// either overlays cleanly on the landscape.
-//   white bg  → multiply (white becomes transparent)
-//   black bg  → screen   (black becomes transparent)
-function petBlendMode(bg?: "white" | "black"): "multiply" | "screen" {
-  return bg === "black" ? "screen" : "multiply";
+// Pet videos come in three flavours:
+//   "alpha"  → transparent WebM; no blend mode needed.
+//   "black"  → flat black studio background; use lighten to drop bg.
+//   "white"  → flat white studio background; use multiply to drop bg.
+type PetBlend = "multiply" | "lighten" | "normal";
+function petBlendMode(bg?: "white" | "black" | "alpha"): PetBlend {
+  if (bg === "alpha") return "normal";
+  if (bg === "black") return "lighten";
+  return "multiply";
 }
 
 // Placement region for unlocked pets on the landscape (was the teal marker).
@@ -145,7 +149,7 @@ function PetActor({ pet, startX, y, scale, widthPct }: {
     transition: clip === "walk" ? `left ${walkMs}ms linear` : "none",
     transform,
   };
-  const blend = pet.bg === "black" ? "lighten" : "multiply";
+  const blend = petBlendMode(pet.bg);
   return (
     <>
       {clipKeys.map(k => (
@@ -170,18 +174,26 @@ const HABITATS: Habitat[] = [
     pets: [
       {
         id: "bunny", name: "Bunny",
-        video: "/avatars/bunny_smile.mp4",
-        bg: "black",
+        video: "/avatars/bunny_smile.webm",
+        bg: "alpha",
         animations: {
-          smile: "/avatars/bunny_smile.mp4",
-          stretch: "/avatars/bunny_stretch.mp4",
-          walk: "/avatars/bunny_walk.mp4",
-          talk: "/avatars/bunny_talk.mp4",
+          smile: "/avatars/bunny_smile.webm",
+          stretch: "/avatars/bunny_stretch.webm",
+          walk: "/avatars/bunny_walk.webm",
+          talk: "/avatars/bunny_talk.webm",
         },
       },
       { id: "tiger",      name: "Tiger",       video: "/avatars/tiger1.mp4" },
       { id: "whitetiger", name: "White Tiger", video: "/avatars/whitetiger1.mp4" },
-      { id: "bear",       name: "Bear",        video: "/avatars/bear1.mp4" },
+      {
+        id: "bear", name: "Bear",
+        video: "/avatars/bear_smile.webm",
+        bg: "alpha",
+        animations: {
+          smile: "/avatars/bear_smile.webm",
+          stretch: "/avatars/bear_stretch.webm",
+        },
+      },
       { id: "fox",        name: "Fox",         video: "/avatars/fox1.mp4" },
     ],
   },
