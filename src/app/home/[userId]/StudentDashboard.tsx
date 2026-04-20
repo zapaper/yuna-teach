@@ -10,7 +10,7 @@ const POINTS_PER_LEVEL = 100;
 
 // Habitats & pets — unlocks at 200 points. First habitat awarded: Jungle.
 const HABITAT_UNLOCK_POINTS = 200;
-const FIRST_HABITAT = { id: "jungle", name: "Jungle", image: "/avatars/landscape_jungle.png" };
+const FIRST_HABITAT = { id: "jungle", name: "Jungle", image: "/avatars/landscape_jungle_thumb.webp" };
 
 // Soft "power-up" for each point bubble landing in the XP bar.
 // Tries /sounds/point.mp3 first (if present) for a recognisable coin-pickup

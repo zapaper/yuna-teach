@@ -7,13 +7,16 @@ type Habitat = {
   id: string;
   name: string;
   image: string;
+  thumb: string;
   pets: Array<{ id: string; name: string; video: string }>;
 };
 
 // All four habitats and their pet rosters. HDB has no pets yet — placeholder.
 const HABITATS: Habitat[] = [
   {
-    id: "jungle", name: "Jungle", image: "/avatars/landscape_jungle.png",
+    id: "jungle", name: "Jungle",
+    image: "/avatars/landscape_jungle.png",
+    thumb: "/avatars/landscape_jungle_thumb.webp",
     pets: [
       { id: "bunny",      name: "Bunny",       video: "/avatars/bunny1.mp4" },
       { id: "tiger",      name: "Tiger",       video: "/avatars/tiger1.mp4" },
@@ -23,7 +26,9 @@ const HABITATS: Habitat[] = [
     ],
   },
   {
-    id: "fantasy", name: "Fantasy", image: "/avatars/landscape_fantasy.jpeg",
+    id: "fantasy", name: "Fantasy",
+    image: "/avatars/landscape_fantasy.jpeg",
+    thumb: "/avatars/landscape_fantasy_thumb.webp",
     pets: [
       { id: "uni",    name: "Unicorn", video: "/avatars/uni1.mp4" },
       { id: "dragon", name: "Dragon",  video: "/avatars/dragon1.mp4" },
@@ -31,14 +36,18 @@ const HABITATS: Habitat[] = [
     ],
   },
   {
-    id: "garden", name: "Garden", image: "/avatars/landscape_garden.png",
+    id: "garden", name: "Garden",
+    image: "/avatars/landscape_garden.png",
+    thumb: "/avatars/landscape_garden_thumb.webp",
     pets: [
       { id: "otter",   name: "Otter",   video: "/avatars/otter1.mp4" },
       { id: "merlion", name: "Merlion", video: "/avatars/merlion1.mp4" },
     ],
   },
   {
-    id: "hdb", name: "HDB", image: "/avatars/landscape_hdb.jpeg",
+    id: "hdb", name: "HDB",
+    image: "/avatars/landscape_hdb.jpeg",
+    thumb: "/avatars/landscape_hdb_thumb.webp",
     pets: [],
   },
 ];
@@ -48,6 +57,26 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string>("jungle");
   const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+  const [totalPoints, setTotalPoints] = useState(0);
+
+  // Compute total points so we can lock habitats the student hasn't earned yet.
+  useEffect(() => {
+    fetch(`/api/exam?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => {
+        const pts = (d.papers ?? [])
+          .filter((p: { completedAt?: string | null }) => p.completedAt)
+          .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0);
+        setTotalPoints(pts);
+      })
+      .catch(() => {});
+  }, [userId]);
+
+  // Unlock rules — easy to expand. For now only Jungle unlocks at 200 pts.
+  const isHabitatUnlocked = (id: string) => {
+    if (id === "jungle") return totalPoints >= 200;
+    return false;
+  };
 
   // Detect portrait-mobile so we can prompt to rotate — the layout needs
   // horizontal space (landscape + sidebar) to breathe.
@@ -93,23 +122,29 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
         <div className="w-10" />
       </header>
 
-      <div className="flex gap-4 p-4 md:p-6 h-[calc(100vh-64px)]">
-        {/* Left sidebar — collectible habitats */}
-        <aside className="w-[140px] md:w-[200px] shrink-0 overflow-y-auto space-y-3">
+      <div className="flex gap-4 p-4 md:p-6">
+        {/* Left sidebar — collectible habitats. Locked ones are greyed out. */}
+        <aside className="w-[140px] md:w-[200px] shrink-0 space-y-3">
           <p className="text-[10px] md:text-xs font-extrabold uppercase tracking-wider text-[#43474f] px-1">Habitats</p>
           {HABITATS.map(h => {
             const isActive = h.id === selectedId;
+            const unlocked = isHabitatUnlocked(h.id);
             return (
               <button
                 key={h.id}
                 onClick={() => setSelectedId(h.id)}
                 className={`w-full rounded-2xl overflow-hidden border-2 transition-all text-left ${
                   isActive ? "border-[#006c49] shadow-lg" : "border-transparent hover:border-[#c3c6d1]"
-                }`}
+                } ${unlocked ? "" : "grayscale opacity-60"}`}
               >
                 <div className="relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={h.image} alt={h.name} className="w-full aspect-[16/10] object-cover" />
+                  <img src={h.thumb} alt={h.name} className="w-full aspect-[16/10] object-cover" />
+                  {!unlocked && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                      <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                    </div>
+                  )}
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1">
                     <p className="text-xs md:text-sm font-bold text-white">{h.name}</p>
                   </div>
@@ -119,26 +154,26 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
           })}
         </aside>
 
-        {/* Right: selected habitat image + pets */}
-        <main className="flex-1 min-w-0 flex flex-col gap-3 overflow-hidden">
-          <div className="relative rounded-3xl overflow-hidden border border-[#e5eeff] bg-white shrink-0">
+        {/* Right: selected habitat image + pets. Normal page flow → scrolls. */}
+        <main className="flex-1 min-w-0 flex flex-col gap-3">
+          <div className="relative rounded-3xl overflow-hidden border border-[#e5eeff] bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={selected.image} alt={selected.name} className="w-full aspect-[16/9] object-cover" />
-            {/* Positioning marker — teal overlay roughly 75% × 30%, centred. */}
+            {/* Positioning marker — teal overlay 75% × 25%, lower third. */}
             <div
               className="absolute bg-teal-400/50 rounded-xl pointer-events-none"
               style={{
-                left: "12.5%", top: "35%", width: "75%", height: "30%",
+                left: "12.5%", top: "55%", width: "75%", height: "25%",
               }}
             />
           </div>
 
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div>
             <p className="text-xs font-extrabold uppercase tracking-wider text-[#43474f] mb-2">Pets that live in {selected.name}</p>
             {selected.pets.length === 0 ? (
               <p className="text-sm text-[#43474f] italic">No pets for this habitat yet.</p>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pb-6">
                 {selected.pets.map(pet => (
                   <div
                     key={pet.id}
