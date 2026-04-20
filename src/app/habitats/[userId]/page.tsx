@@ -467,7 +467,6 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
               ) : (
                 <video
                   key={pet.id}
-                  src={pet.video}
                   autoPlay loop muted playsInline
                   className="absolute pointer-events-none"
                   style={{
@@ -477,7 +476,10 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                     transform: "translate(-50%, -50%)",
                     mixBlendMode: petBlendMode(pet.bg),
                   }}
-                />
+                >
+                  {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
+                  <source src={pet.video} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+                </video>
               )
             ))}
           </div>
@@ -500,10 +502,12 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                       }`}
                     >
                       <video
-                        src={pet.video}
                         autoPlay loop muted playsInline
                         className="w-full aspect-square object-contain pointer-events-none"
-                      />
+                      >
+                        {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
+                        <source src={pet.video} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+                      </video>
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
                     </div>
                   );
