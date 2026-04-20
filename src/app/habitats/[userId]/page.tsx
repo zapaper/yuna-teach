@@ -230,7 +230,17 @@ const HABITATS: Habitat[] = [
           talk: "/avatars/bunny_talk.webm",
         },
       },
-      { id: "tiger",      name: "Tiger",       video: "/avatars/tiger1.mp4" },
+      {
+        id: "tiger", name: "Tiger",
+        video: "/avatars/tiger_smile.webm",
+        bg: "alpha",
+        animations: {
+          smile: "/avatars/tiger_smile.webm",
+          stretch: "/avatars/tiger_stretch.webm",
+          walk: "/avatars/tiger_walk.webm",
+          talk: "/avatars/tiger_talk.webm",
+        },
+      },
       { id: "whitetiger", name: "White Tiger", video: "/avatars/whitetiger1.mp4" },
       {
         id: "bear", name: "Bear",
