@@ -247,16 +247,30 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
     transform,
   };
   const blend = petBlendMode(pet.bg);
+  // Serve both sources. Safari/iOS pick HEVC .mov (hardware decode), Chrome/
+  // Firefox fall through to VP9 alpha .webm (also hardware on most GPUs).
+  // MOV listed first so Safari picks its native fast path.
+  const sourceSet = (webmPath: string | undefined) => {
+    if (!webmPath) return null;
+    const mov = webmPath.replace(/\.webm$/i, ".mov");
+    return (
+      <>
+        <source src={mov} type="video/quicktime" />
+        <source src={webmPath} type="video/webm" />
+      </>
+    );
+  };
   return (
     <>
       {clipKeys.map(k => (
         <video
           key={k}
-          src={anims[k]}
           autoPlay loop muted playsInline preload="auto"
           className="absolute pointer-events-none"
           style={{ ...baseStyle, mixBlendMode: blend, opacity: clip === k ? 1 : 0 }}
-        />
+        >
+          {sourceSet(anims[k])}
+        </video>
       ))}
     </>
   );
@@ -357,7 +371,6 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const { userId } = use(params);
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string>("jungle");
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
   const [whitetigerUnlocked, setWhitetigerUnlocked] = useState(false);
   // Live positions of every rendered pet. PetActors write their own x here
@@ -394,40 +407,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   };
 
   // Detect mobile (by screen width OR touch-only input). Habitats & Pets runs
-  // several simultaneous alpha videos plus a particle-heavy landscape; iOS
-  // Safari also has patchy alpha-WebM support. Gating the whole feature to
-  // desktop is simpler than shipping a compromised mobile experience.
-  useEffect(() => {
-    const check = () => {
-      if (typeof window === "undefined") return;
-      const narrow = window.innerWidth < 1024;
-      const touchOnly = typeof navigator !== "undefined"
-        && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      setIsMobileDevice(narrow || touchOnly);
-    };
-    check();
-    window.addEventListener("resize", check);
-    window.addEventListener("orientationchange", check);
-    return () => {
-      window.removeEventListener("resize", check);
-      window.removeEventListener("orientationchange", check);
-    };
-  }, []);
-
   const selected = HABITATS.find(h => h.id === selectedId) ?? HABITATS[0];
-
-  if (isMobileDevice) {
-    return (
-      <div className="fixed inset-0 bg-[#001e40] text-white flex flex-col items-center justify-center p-6 text-center">
-        <span className="material-symbols-outlined text-6xl mb-4">desktop_windows</span>
-        <h1 className="font-headline font-extrabold text-xl mb-2">Desktop only</h1>
-        <p className="text-sm opacity-80 max-w-sm">Habitats &amp; Pets isn&apos;t available on mobile yet. Visit from a desktop or laptop to meet your pets.</p>
-        <button onClick={() => router.push(`/home/${userId}`)} className="mt-6 px-4 py-2 rounded-xl bg-white/10 text-sm font-bold">
-          Go back
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30]">

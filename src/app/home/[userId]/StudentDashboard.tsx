@@ -1272,9 +1272,22 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           {/* Spelling tests moved to /spelling page */}
           {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, pastWorkLimit).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}{completedPapers.length > pastWorkLimit && <button onClick={() => setPastWorkLimit(l => l + 20)} className="w-full py-2.5 text-xs font-bold text-[#003366] bg-[#eff4ff] rounded-xl hover:bg-[#dce9ff] transition-colors">See more ({completedPapers.length - pastWorkLimit} remaining)</button>}</div>}</section>}
 
-          {/* Habitats & pets CTA is desktop-only — the landscape scene needs
-              more horizontal space than mobile can provide. Hide the button
-              on the mobile layout entirely. */}
+          {/* Habitats & pets CTA — mobile */}
+          {habitatsEnabled && totalPoints >= HABITAT_UNLOCK_POINTS && (
+            <section className="mb-8">
+              <button
+                onClick={() => { playClick(); router.push(`/habitats/${userId}`); }}
+                className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-[#6cf8bb]/20 to-[#a7c8ff]/20 border border-[#6cf8bb]/40"
+              >
+                <span className="material-symbols-outlined text-2xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-sm text-[#001e40]">Go to habitats and pets</p>
+                  <p className="text-[10px] text-[#43474f]">See your unlocked habitats.</p>
+                </div>
+                <span className="material-symbols-outlined text-lg text-[#001e40]">arrow_forward</span>
+              </button>
+            </section>
+          )}
 
           {/* Arena Battle — mobile */}
           {hasArena && arenaData && (
