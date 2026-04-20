@@ -129,6 +129,7 @@ function QuizContent({ id }: { id: string }) {
   const [emptyFieldIds, setEmptyFieldIds] = useState<Set<string>>(new Set());
   const [mcqScore, setMcqScore] = useState<{ correct: number; total: number; marksEarned: number; marksTotal: number } | null>(null);
   const [displayedMarks, setDisplayedMarks] = useState(0);
+  const [scoreJumpKey, setScoreJumpKey] = useState(0);
   const [scorePopups, setScorePopups] = useState<{ id: number; marks: number }[]>([]);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
@@ -213,6 +214,8 @@ function QuizContent({ id }: { id: string }) {
         const id = Date.now() + i;
         setScorePopups(prev => [...prev, { id, marks: per }]);
         setDisplayedMarks(Math.min(running, mcqScore.marksEarned));
+        // Trigger a small bounce on the score number each time it ticks up.
+        setScoreJumpKey(k => k + 1);
         // Slight haptic buzz on mobile — a short double-tap feels more tactile than a single
         // blip, and is still gentle. Silently no-ops on iOS Safari (no Vibration API) and on
         // Android devices with system vibration disabled.
@@ -592,7 +595,16 @@ function QuizContent({ id }: { id: string }) {
           {mcqScore && mcqScore.total > 0 && (
             <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4 relative overflow-visible">
               <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-2">MCQ Score</p>
-              <p className="font-headline text-5xl font-black text-[#001e40]">{displayedMarks}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span></p>
+              <p className="font-headline text-5xl font-black text-[#001e40]">
+                <span
+                  key={`jump-${scoreJumpKey}`}
+                  className="inline-block"
+                  style={{ animation: scoreJumpKey > 0 ? "scoreNumberJump 260ms ease-out" : undefined, transformOrigin: "center" }}
+                >
+                  {displayedMarks}
+                </span>
+                <span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span>
+              </p>
               <p className="text-sm font-bold text-[#006c49] mt-2">{mcqScore.marksTotal > 0 ? Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100) : 0}% &middot; {mcqScore.correct}/{mcqScore.total} questions</p>
               {/* Floating "+N" popups — one per correct MCQ, staggered */}
               <div className="absolute inset-x-0 -top-8 pointer-events-none">

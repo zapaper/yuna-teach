@@ -63,7 +63,7 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const PAGES_DIR = path.join(VOLUME_PATH, "pages");
 
-async function cropQuestionServer(
+export async function cropQuestionServer(
   imageBuffer: Buffer,
   yStartPct: number,
   yEndPct: number,

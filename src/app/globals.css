@@ -127,3 +127,10 @@ body {
   60%  { transform: translate(2px, -1px); }
   80%  { transform: translate(-1px, 0); }
 }
+
+/* Score number gives a slight bounce each time a "+N" adds to it. */
+@keyframes scoreNumberJump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}

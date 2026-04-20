@@ -8,8 +8,8 @@ const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data")
 const PAGES_DIR = path.join(VOLUME_PATH, "pages");
 
 // Re-applies the CamScanner watermark mask to every page image of an existing
-// paper. Useful after bumping the mask dimensions or for papers ingested
-// before masking existed. Destructive — overwrites the page files in place.
+// paper. Question crops are NOT touched — they're assumed to already exclude
+// the watermark region at extraction time.
 export async function POST(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> },
