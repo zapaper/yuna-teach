@@ -108,13 +108,14 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
   );
 }
 
-function ExperienceBar({ points, level, progressPct, justUpdated, wide, crystals }: {
+function ExperienceBar({ points, level, progressPct, justUpdated, wide, crystals, showCrystals }: {
   points: number;
   level: number;
   progressPct: number;
   justUpdated: boolean;
   wide?: boolean;
   crystals: number;
+  showCrystals: boolean;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -137,11 +138,13 @@ function ExperienceBar({ points, level, progressPct, justUpdated, wide, crystals
           />
         </div>
       </div>
-      <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-2xl px-3 self-stretch" title="Crystals — earned per parent-reviewed quiz">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/stickers/crystal.png" alt="crystal" className="w-7 h-7 object-contain" style={{ mixBlendMode: "screen" }} />
-        <span className="text-sm font-extrabold">{crystals}</span>
-      </div>
+      {showCrystals && (
+        <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-2xl px-3 self-stretch" title="Crystals — earned per parent-reviewed quiz">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/stickers/crystal_s.png" alt="crystal" className="w-7 h-7 object-contain" style={{ mixBlendMode: "screen" }} />
+          <span className="text-sm font-extrabold">{crystals}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -971,6 +974,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     progressPct={levelProgressPct}
                     justUpdated={barPulsing}
                     crystals={crystals}
+                    showCrystals={habitatsEnabled && totalPoints >= HABITAT_UNLOCK_POINTS}
                     wide
                   />
                 </div>
@@ -1261,6 +1265,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 progressPct={levelProgressPct}
                 justUpdated={barPulsing}
                 crystals={crystals}
+                showCrystals={habitatsEnabled && totalPoints >= HABITAT_UNLOCK_POINTS}
               />
             </div>
           </section>
