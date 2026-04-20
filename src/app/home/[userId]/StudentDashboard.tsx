@@ -108,31 +108,38 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
   );
 }
 
-function ExperienceBar({ points, level, progressPct, justUpdated, wide }: {
+function ExperienceBar({ points, level, progressPct, justUpdated, wide, crystals }: {
   points: number;
   level: number;
   progressPct: number;
   justUpdated: boolean;
   wide?: boolean;
+  crystals: number;
 }) {
   return (
-    <div
-      data-xp-bar
-      className={`relative flex flex-col gap-1 bg-[#e5eeff] text-[#001e40] rounded-2xl px-4 py-2.5 ${wide ? "min-w-[260px] lg:min-w-[320px]" : "min-w-[180px]"}`}
-      style={{ animation: justUpdated ? "xpBarPulse 1.2s ease-out 4" : undefined }}
-    >
-      <div className="flex items-center justify-between text-xs font-extrabold tracking-wider">
-        <span className="flex items-center gap-1.5">
-          <span className="material-symbols-outlined text-base text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-          {points} pts
-        </span>
-        <span className="text-[#003366]">Lvl {level}</span>
+    <div className="flex items-center gap-2">
+      <div
+        data-xp-bar
+        className={`relative flex flex-col gap-1 bg-[#e5eeff] text-[#001e40] rounded-2xl px-4 py-2.5 ${wide ? "min-w-[220px] lg:min-w-[280px]" : "min-w-[150px]"}`}
+        style={{ animation: justUpdated ? "xpBarPulse 1.2s ease-out 4" : undefined }}
+      >
+        <div className="flex items-center justify-between text-xs font-extrabold tracking-wider">
+          <span className="flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-base text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+            {points} pts
+          </span>
+          <span className="text-[#003366]">Lvl {level}</span>
+        </div>
+        <div className="relative h-2.5 rounded-full bg-white/80 overflow-hidden">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#6cf8bb] via-[#34d399] to-[#006c49] transition-[width] duration-500 ease-out"
+            style={{ width: `${Math.max(0, Math.min(100, progressPct))}%` }}
+          />
+        </div>
       </div>
-      <div className="relative h-2.5 rounded-full bg-white/80 overflow-hidden">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#6cf8bb] via-[#34d399] to-[#006c49] transition-[width] duration-500 ease-out"
-          style={{ width: `${Math.max(0, Math.min(100, progressPct))}%` }}
-        />
+      <div className="flex items-center gap-1 bg-[#e5eeff] text-[#001e40] rounded-2xl px-2.5 py-1.5" title="Crystals — earned per parent-reviewed quiz">
+        <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-6 h-6 object-contain" />
+        <span className="text-sm font-extrabold">{crystals}</span>
       </div>
     </div>
   );
@@ -518,6 +525,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const recentTests = tests.slice(0, 6);
 
   const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0);
+  // Crystals = number of parent-reviewed (released) quizzes / papers. Used as
+  // the currency for unlocking additional habitats + pets down the road.
+  const crystals = examPapers.filter(p => p.markingStatus === "released").length;
   const level = Math.floor(totalPoints / POINTS_PER_LEVEL);
   // Progress on the bar reflects the displayed (animating) points, not the
   // committed total, so the fill grows in step with the landing bubbles.
@@ -961,6 +971,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     level={displayedLevel}
                     progressPct={levelProgressPct}
                     justUpdated={barPulsing}
+                    crystals={crystals}
                     wide
                   />
                 </div>
@@ -1250,6 +1261,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 level={displayedLevel}
                 progressPct={levelProgressPct}
                 justUpdated={barPulsing}
+                crystals={crystals}
               />
             </div>
           </section>

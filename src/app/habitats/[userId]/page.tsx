@@ -372,6 +372,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string>("jungle");
   const [totalPoints, setTotalPoints] = useState(0);
+  const [crystals, setCrystals] = useState(0);
   const [whitetigerUnlocked, setWhitetigerUnlocked] = useState(false);
   // Live positions of every rendered pet. PetActors write their own x here
   // and read others' so "talk" only fires when a neighbour is in range.
@@ -384,10 +385,12 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
     fetch(`/api/exam?userId=${userId}`)
       .then(r => r.json())
       .then(d => {
-        const pts = (d.papers ?? [])
+        const papers = d.papers ?? [];
+        const pts = papers
           .filter((p: { completedAt?: string | null }) => p.completedAt)
           .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0);
         setTotalPoints(pts);
+        setCrystals(papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length);
       })
       .catch(() => {});
     // Fetch the user's settings for whitetiger unlock state.
@@ -400,9 +403,12 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
       .catch(() => {});
   }, [userId]);
 
-  // Unlock rules — easy to expand. For now only Jungle unlocks at 200 pts.
+  // Unlock rules. Jungle is the free starter at 200 pts. Fantasy and Garden
+  // each cost 30 crystals (1 crystal = 1 parent-reviewed quiz). HDB stays
+  // locked until we add more content.
   const isHabitatUnlocked = (id: string) => {
     if (id === "jungle") return totalPoints >= 200;
+    if (id === "fantasy" || id === "garden") return crystals >= 30;
     return false;
   };
 
@@ -417,7 +423,10 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
           <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
         </button>
         <h1 className="font-headline font-extrabold text-lg text-[#001e40]">Habitats &amp; Pets</h1>
-        <div className="w-10" />
+        <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-full pl-2 pr-3 py-1" title="Crystals — spend to unlock more habitats">
+          <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-6 h-6 object-contain" />
+          <span className="text-sm font-extrabold">{crystals}</span>
+        </div>
       </header>
 
       <div className="flex gap-4 p-4 md:p-6">
@@ -439,8 +448,14 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={h.thumb} alt={h.name} className="w-full aspect-[16/10] object-cover" />
                   {!unlocked && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/25">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/35 gap-0.5">
                       <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                      {(h.id === "fantasy" || h.id === "garden") && (
+                        <div className="flex items-center gap-1 bg-white/90 rounded-full px-2 py-0.5">
+                          <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-3.5 h-3.5 object-contain" />
+                          <span className="text-[10px] font-extrabold text-[#001e40]">30</span>
+                        </div>
+                      )}
                     </div>
                   )}
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1">
