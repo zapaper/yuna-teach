@@ -168,14 +168,23 @@ function ExamReviewContent({ id }: { id: string }) {
     if (pctValue < 90) return;
     celebrationFiredRef.current = true;
     (async () => {
+      // Slight celebratory haptic on mobile — a short pop for the main volley
+      // and a two-tap burst when the stars fire. No-ops on iOS Safari / desktop.
+      const buzz = (pattern: number | number[]) => {
+        if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+          try { navigator.vibrate(pattern); } catch { /* ignore */ }
+        }
+      };
       try {
         const confetti = (await import("canvas-confetti")).default;
+        buzz(60);
         confetti({
           particleCount: 120, spread: 80, startVelocity: 50,
           origin: { x: 0.5, y: 0.15 },
           colors: ["#6cf8bb", "#ffd700", "#ff6ec7", "#7fd1ff", "#a78bfa"],
         });
         setTimeout(() => {
+          buzz([30, 50, 30]);
           confetti({
             particleCount: 40, spread: 70, startVelocity: 45,
             origin: { x: 0.1, y: 0.2 },
