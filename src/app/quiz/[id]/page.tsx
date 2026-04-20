@@ -213,9 +213,11 @@ function QuizContent({ id }: { id: string }) {
         const id = Date.now() + i;
         setScorePopups(prev => [...prev, { id, marks: per }]);
         setDisplayedMarks(Math.min(running, mcqScore.marksEarned));
-        // Short haptic buzz on mobile — ignored on desktop and by browsers that block it.
+        // Slight haptic buzz on mobile — a short double-tap feels more tactile than a single
+        // blip, and is still gentle. Silently no-ops on iOS Safari (no Vibration API) and on
+        // Android devices with system vibration disabled.
         if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-          try { navigator.vibrate(35); } catch { /* ignore */ }
+          try { navigator.vibrate([20, 30, 20]); } catch { /* ignore */ }
         }
         timers.push(window.setTimeout(() => {
           setScorePopups(prev => prev.filter(p => p.id !== id));
