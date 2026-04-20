@@ -143,10 +143,18 @@ function SyntheticContent() {
     setSavingState(key);
     try {
       if (decision === "accepted") {
+        // Synthesis variants have an `answer` field and no meaningful options.
+        // Pack the answer into options[0] so the existing schema (options Json,
+        // correctAnswer Int) can carry it without a migration. Save endpoint
+        // treats options.length === 1 as the synthesis shape.
+        const v = d[which] as (typeof d)[typeof which] & { answer?: string };
+        const payload = (v.answer && v.answer.trim())
+          ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
+          : v;
         const res = await fetch("/api/admin/synthetic/save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, questionId: q.id, variant: which, data: d[which] }),
+          body: JSON.stringify({ userId, questionId: q.id, variant: which, data: payload }),
         });
         const data = await res.json();
         if (!res.ok) { showToast(data.error ?? "Save failed"); return; }
@@ -393,8 +401,30 @@ function SyntheticContent() {
               )}
 
               {d && !locked && (
+                <button
+                  onClick={async () => {
+                    setSavingState(`regen-${q.id}`);
+                    try {
+                      const result = await generateOne(q);
+                      if (result) {
+                        setDrafts(prev => ({ ...prev, [q.id]: result }));
+                        // Reset accept/reject state for both variants since they're fresh.
+                        setDecisions(prev => ({ ...prev, [q.id]: { simple: null, similar: null } }));
+                        showToast("Generated new variants");
+                      } else {
+                        showToast("Generation failed");
+                      }
+                    } finally { setSavingState(null); }
+                  }}
+                  disabled={savingState === `regen-${q.id}`}
+                  className="w-full py-3 rounded-xl border-2 border-blue-300 bg-blue-50 text-blue-700 font-bold disabled:opacity-50 mt-4"
+                >
+                  {savingState === `regen-${q.id}` ? "Generating…" : "Generate more (2 new variants)"}
+                </button>
+              )}
+              {d && !locked && (
                 <button onClick={() => markGenerated(q)} disabled={savingState === `mark-${q.id}`}
-                  className="w-full py-3 rounded-xl bg-slate-800 text-white font-bold disabled:opacity-50 mt-4">
+                  className="w-full py-3 rounded-xl bg-slate-800 text-white font-bold disabled:opacity-50 mt-2">
                   {savingState === `mark-${q.id}` ? "Marking…" : "Mark Generated (lock this question)"}
                 </button>
               )}
