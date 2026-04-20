@@ -127,28 +127,42 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef }: {
   const xRef = useRef(startX);
   xRef.current = x;
 
-  // Keep the shared positions bag in sync with our current x.
+  // Keep the shared positions bag in sync with our current x — and scrub the
+  // entry on unmount. Without scrubbing, switching habitats (or unlocking /
+  // hiding pets) leaves a ghost coordinate behind; other PetActors then "talk"
+  // toward a neighbour that no longer exists, which reads as talking into empty
+  // space.
   useEffect(() => {
     if (positionsRef.current) positionsRef.current[pet.id] = x;
   }, [x, pet.id, positionsRef]);
+  useEffect(() => {
+    const id = pet.id;
+    return () => {
+      if (positionsRef.current) delete positionsRef.current[id];
+    };
+  }, [pet.id, positionsRef]);
 
   useEffect(() => {
     let cancelled = false;
     let timer: number | null = null;
     function pick() {
       if (cancelled) return;
-      // Find the nearest other pet. Talk only fires when another pet is in
-      // the habitat at all (distance doesn't matter), and the pet turns to
-      // face whoever is nearest.
+      // Find the nearest other pet that's reasonably close. Talk only fires
+      // when a neighbour is within TALK_RANGE_PCT of the landscape width, so
+      // the pet isn't turning to face a sibling on the opposite side of the
+      // screen. Capping the range also prevents ghost-entries that sneak
+      // through cleanup from triggering "talk into empty space".
+      const TALK_RANGE_PCT = 35;
       const others = positionsRef.current ?? {};
       let nearestId: string | null = null;
       let nearestX = 0;
+      let nearestDist = Infinity;
       for (const [id, ox] of Object.entries(others)) {
         if (id === pet.id) continue;
         const d = Math.abs(ox - xRef.current);
-        if (nearestId === null || d < Math.abs(nearestX - xRef.current)) { nearestX = ox; nearestId = id; }
+        if (d < nearestDist) { nearestDist = d; nearestX = ox; nearestId = id; }
       }
-      const canTalk = nearestId !== null && !!anims.talk;
+      const canTalk = nearestId !== null && nearestDist <= TALK_RANGE_PCT && !!anims.talk;
       // Weighted pick: walk runs at half the frequency of smile / stretch /
       // talk so movement is a punctuation between idle poses.
       const weight = (k: keyof PetAnimations) => (k === "walk" ? 1 : 2);
