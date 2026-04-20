@@ -1489,7 +1489,16 @@ function ExamReviewContent({ id }: { id: string }) {
                                         );
                                       })()
                                     ) : (
-                                      <p className="text-sm text-[#001e40] whitespace-pre-wrap">{studentAns || <span className="italic text-[#737780]">No answer</span>}</p>
+                                      <p className="text-sm text-[#001e40] whitespace-pre-wrap">{(() => {
+                                        // Synthesis answers store "<before>|||<after>" — the two blanks the
+                                        // student filled on either side of the keyword. Splice the actual
+                                        // keyword in so the reader sees a full transformed sentence.
+                                        if (isSynthesis && studentAns.includes("|||")) {
+                                          const [before, after] = studentAns.split("|||");
+                                          return `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
+                                        }
+                                        return studentAns || <span className="italic text-[#737780]">No answer</span>;
+                                      })()}</p>
                                     )}
                                   </div>
                                   {correctAns && (
