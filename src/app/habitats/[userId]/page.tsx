@@ -110,13 +110,19 @@ function placePets(habitat: Habitat, totalPoints: number, whitetigerUnlocked: bo
 // actor writes its own position in and reads others' to gate the "talk"
 // action — talk only fires when another pet is within ~one avatar width,
 // and the sprite turns to face that neighbour.
-function PetActor({ pet, startX, y, scale, widthPct, positionsRef }: {
+// Shared shape for the per-pet "jump into talk" handles. When one pet picks
+// talk, it calls the partner's handle so both pets enter talk mode on the
+// same tick and face each other.
+type ForceTalkFn = (facingRight: boolean, durationMs: number) => void;
+
+function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }: {
   pet: Pet;
   startX: number;
   y: number;
   scale: number;
   widthPct: number;
   positionsRef: React.RefObject<Record<string, number>>;
+  actionsRef: React.RefObject<Record<string, ForceTalkFn>>;
 }) {
   const anims = pet.animations!;
   const clipKeys = Object.keys(anims) as Array<keyof PetAnimations>;
@@ -142,9 +148,10 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef }: {
     };
   }, [pet.id, positionsRef]);
 
+  const timerRef = useRef<number | null>(null);
+
   useEffect(() => {
     let cancelled = false;
-    let timer: number | null = null;
     function pick() {
       if (cancelled) return;
       // Find the nearest other pet that's reasonably close. Talk only fires
@@ -189,19 +196,41 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef }: {
         setFacingRight(goingRight);
         setWalkMs(ms);
         setX(target);
-        timer = window.setTimeout(pick, ms + 400);
-      } else if (next === "talk" && canTalk) {
-        // Face the neighbour we're talking to.
-        setFacingRight(nearestX > xRef.current);
+        timerRef.current = window.setTimeout(pick, ms + 400);
+      } else if (next === "talk" && canTalk && nearestId) {
+        // Face the neighbour we're talking to, and pull them into a matching
+        // talk clip facing back at us so the two sprites look engaged with
+        // each other for the duration.
+        const aFacingRight = nearestX > xRef.current;
+        setFacingRight(aFacingRight);
         const hold = 3000 + Math.random() * 1500;
-        timer = window.setTimeout(pick, hold);
+        const partnerForce = actionsRef.current?.[nearestId];
+        if (partnerForce) partnerForce(!aFacingRight, hold);
+        timerRef.current = window.setTimeout(pick, hold);
       } else {
         const hold = 2500 + Math.random() * 1500;
-        timer = window.setTimeout(pick, hold);
+        timerRef.current = window.setTimeout(pick, hold);
       }
     }
-    timer = window.setTimeout(pick, 600);
-    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+
+    // Expose a force-talk handle so a partner pet can flip us into talk mode
+    // on the same tick it picks talk itself.
+    if (actionsRef.current) {
+      actionsRef.current[pet.id] = (faceRight, ms) => {
+        if (cancelled) return;
+        if (timerRef.current) clearTimeout(timerRef.current);
+        setClip("talk");
+        setFacingRight(faceRight);
+        timerRef.current = window.setTimeout(pick, ms);
+      };
+    }
+
+    timerRef.current = window.setTimeout(pick, 600);
+    return () => {
+      cancelled = true;
+      if (timerRef.current) clearTimeout(timerRef.current);
+      if (actionsRef.current) delete actionsRef.current[pet.id];
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -334,6 +363,9 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   // Live positions of every rendered pet. PetActors write their own x here
   // and read others' so "talk" only fires when a neighbour is in range.
   const positionsRef = useRef<Record<string, number>>({});
+  // Per-pet "force into talk" handles so a PetActor can flip its partner
+  // into a mirrored talk clip on the same tick it picks talk.
+  const actionsRef = useRef<Record<string, ForceTalkFn>>({});
 
   useEffect(() => {
     fetch(`/api/exam?userId=${userId}`)
@@ -451,7 +483,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
              * which cycles through clips and walks around the landscape. */}
             {placePets(selected, totalPoints, whitetigerUnlocked).map(pet => (
               pet.animations ? (
-                <PetActor key={pet.id} pet={pet} startX={pet.xPct} y={pet.yPct} scale={pet.scale} widthPct={16} positionsRef={positionsRef} />
+                <PetActor key={pet.id} pet={pet} startX={pet.xPct} y={pet.yPct} scale={pet.scale} widthPct={16} positionsRef={positionsRef} actionsRef={actionsRef} />
               ) : (
                 <video
                   key={pet.id}
