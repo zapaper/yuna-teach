@@ -288,7 +288,17 @@ const HABITATS: Habitat[] = [
     image: "/avatars/landscape_garden.png",
     thumb: "/avatars/landscape_garden_thumb.webp",
     pets: [
-      { id: "otter",   name: "Otter",   video: "/avatars/otter1.mp4" },
+      {
+        id: "otter", name: "Otter",
+        video: "/avatars/otter_smile.webm",
+        bg: "alpha",
+        animations: {
+          smile: "/avatars/otter_smile.webm",
+          stretch: "/avatars/otter_stretch.webm",
+          walk: "/avatars/otter_walk.webm",
+          talk: "/avatars/otter_talk.webm",
+        },
+      },
       { id: "merlion", name: "Merlion", video: "/avatars/merlion1.mp4" },
     ],
   },

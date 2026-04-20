@@ -12,9 +12,11 @@ type VariantIn = { stem: string; options: string[]; correctAnswer: number; diagr
 //                        correctAnswer = 1 by convention
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { userId, questionId, variant, data } = body as { userId: string; questionId: string; variant: "simple" | "similar"; data: VariantIn };
+  const { userId, questionId, variant, data } = body as { userId: string; questionId: string; variant: string; data: VariantIn };
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  if (!questionId || !data || (variant !== "simple" && variant !== "similar")) {
+  // Accept "simple", "similar", plus "simpleN"/"similarN" from the Generate-more
+  // additional pairs.
+  if (!questionId || !data || !/^(simple|similar)\d*$/.test(variant)) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
   if (!data.stem?.trim()) return NextResponse.json({ error: "stem required" }, { status: 400 });
@@ -42,9 +44,9 @@ export async function POST(request: NextRequest) {
 
 // DELETE { userId, questionId, variant } → removes the variant row (reject).
 export async function DELETE(request: NextRequest) {
-  const { userId, questionId, variant } = await request.json();
+  const { userId, questionId, variant } = await request.json() as { userId: string; questionId: string; variant: string };
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  if (!questionId || (variant !== "simple" && variant !== "similar")) {
+  if (!questionId || !/^(simple|similar)\d*$/.test(variant)) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
   await prisma.syntheticQuestion.deleteMany({ where: { sourceQuestionId: questionId, variant } });
