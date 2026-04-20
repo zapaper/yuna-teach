@@ -546,7 +546,20 @@ function QuestionRow({
                   <OcrRichText text={answerArea} />
                 </div>
               )}
-              {options.length > 0 && !editingOptions && (
+              {/* Synthesis answers are stored as a 1-element options array —
+                 render them as the transformed-sentence answer, not as a
+                 one-option MCQ. */}
+              {options.length === 1 && q.syllabusTopic?.toLowerCase().includes("synthesis") && !editingOptions && (
+                <div className="mt-2 mb-1 ml-4">
+                  <p className="text-[10px] font-bold uppercase text-slate-400 mb-0.5">Transformed answer</p>
+                  <p className="text-xs text-slate-700 whitespace-pre-wrap">{options[0]}</p>
+                  <button
+                    onClick={() => { setOptionsDraft([options[0] ?? "", "", "", ""]); setEditingOptions(true); }}
+                    className="text-[10px] text-blue-600 hover:text-blue-800 font-medium mt-1"
+                  >Edit answer</button>
+                </div>
+              )}
+              {options.length >= 2 && !editingOptions && (
                 <div className="flex flex-col gap-0.5 mt-2 mb-1 ml-4">
                   {options.map((opt, i) => (
                     <span key={i} className="text-xs text-slate-600">
@@ -565,39 +578,46 @@ function QuestionRow({
                   >Edit options</button>
                 </div>
               )}
-              {editingOptions && (
-                <div className="mt-2 mb-2 ml-4 space-y-1">
-                  {[0, 1, 2, 3].map(i => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-400 w-5 shrink-0">({i + 1})</span>
-                      <input
-                        value={optionsDraft[i] ?? ""}
-                        onChange={e => {
-                          const next = [...optionsDraft];
-                          next[i] = e.target.value;
-                          setOptionsDraft(next);
+              {editingOptions && (() => {
+                const isSynthesisEdit = q.syllabusTopic?.toLowerCase().includes("synthesis") && ((q.transcribedOptions as string[] | null)?.length ?? 0) <= 1;
+                const slots = isSynthesisEdit ? [0] : [0, 1, 2, 3];
+                return (
+                  <div className="mt-2 mb-2 ml-4 space-y-1">
+                    {slots.map(i => (
+                      <div key={i} className="flex items-center gap-2">
+                        {!isSynthesisEdit && <span className="text-xs font-bold text-slate-400 w-5 shrink-0">({i + 1})</span>}
+                        <textarea
+                          value={optionsDraft[i] ?? ""}
+                          onChange={e => {
+                            const next = [...optionsDraft];
+                            next[i] = e.target.value;
+                            setOptionsDraft(next);
+                          }}
+                          rows={isSynthesisEdit ? 2 : 1}
+                          className="flex-1 text-xs px-2 py-1 rounded border border-blue-200 bg-white focus:outline-none focus:border-blue-400 resize-none"
+                          placeholder={isSynthesisEdit ? "Transformed sentence" : `Option ${i + 1}`}
+                        />
+                      </div>
+                    ))}
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={async () => {
+                          const cleaned = isSynthesisEdit
+                            ? [optionsDraft[0]?.trim() ?? ""]
+                            : optionsDraft.map(o => o.trim());
+                          await onSave(q.id, { transcribedOptions: cleaned });
+                          setEditingOptions(false);
                         }}
-                        className="flex-1 text-xs px-2 py-1 rounded border border-blue-200 bg-white focus:outline-none focus:border-blue-400"
-                        placeholder={`Option ${i + 1}`}
-                      />
+                        className="px-3 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700"
+                      >Save</button>
+                      <button
+                        onClick={() => setEditingOptions(false)}
+                        className="px-3 py-1 rounded-lg text-slate-400 text-[10px] font-bold hover:text-slate-600"
+                      >Cancel</button>
                     </div>
-                  ))}
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      onClick={async () => {
-                        const cleaned = optionsDraft.map(o => o.trim());
-                        await onSave(q.id, { transcribedOptions: cleaned });
-                        setEditingOptions(false);
-                      }}
-                      className="px-3 py-1 rounded-lg bg-blue-600 text-white text-[10px] font-bold hover:bg-blue-700"
-                    >Save</button>
-                    <button
-                      onClick={() => setEditingOptions(false)}
-                      className="px-3 py-1 rounded-lg text-slate-400 text-[10px] font-bold hover:text-slate-600"
-                    >Cancel</button>
                   </div>
-                </div>
-              )}
+                );
+              })()}
               {options.length === 0 && !editingOptions && (q.syllabusTopic?.toLowerCase().includes("mcq")) && (
                 <button
                   onClick={() => { setOptionsDraft(["", "", "", ""]); setEditingOptions(true); }}
