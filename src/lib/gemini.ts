@@ -375,22 +375,28 @@ You will be given ONE original synthesis item — the prompt (two sentences + ke
 
 Produce TWO NEW practice items testing the SAME grammar rule with fresh sentence pairs. Primary-school-appropriate vocabulary; Singapore context OK (hawker centre, MRT, void deck, CCA) but not required.
 
+Rendering detail: the quiz renders the stem verbatim, and every run of 20 underscores (____________________) becomes a text input field. So the stem must include the underscore blanks around the keyword so the student sees the right input slots.
+
 Return JSON exactly:
 {
-  "simple":  { "stem": "<sentence 1> <sentence 2>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<combined sentence>" },
-  "similar": { "stem": "<sentence 1> <sentence 2>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<combined sentence>" }
+  "simple":  { "stem": "<sentence 1> <sentence 2>\\n\\n<underscores>**<keyword>**<underscores>", "keyword": "<keyword>", "answer": "<combined sentence>" },
+  "similar": { "stem": "<sentence 1> <sentence 2>\\n\\n<underscores>**<keyword>**<underscores>", "keyword": "<keyword>", "answer": "<combined sentence>" }
 }
 
 Rules:
 - BOTH variants must test the SAME grammar rule as the original.
-- The "stem" MUST contain exactly two independent sentences, each ending with a full stop, separated by a single space. Then a blank line, then the keyword wrapped in **double asterisks**.
+- The "stem" MUST contain exactly two independent sentences (each ending with a full stop, separated by a single space), then a blank line, then the input slot line.
+- The input slot line contains the keyword wrapped in **double asterisks**, with 20 underscores (exactly "____________________") before and/or after it:
+    - Keyword at START of the answer → "**<keyword>** ____________________"
+    - Keyword in the MIDDLE of the answer → "____________________ **<keyword>** ____________________"
+  Leave one space between each segment.
+- Across the two variants, prefer varying the keyword position — one START, one MIDDLE — unless the grammar rule forces one.
 - "simple": gentler (shorter sentences, easier vocabulary).
 - "similar": same difficulty/complexity as the original.
-- Across the two variants, prefer varying the keyword position — one variant places the keyword at the start of the answer, the other in the middle — unless the grammar rule forces one position.
 - The "answer" must be a single well-formed sentence that uses the keyword naturally and preserves the combined meaning of both input sentences. No quotation marks around it.
 - The "keyword" field should be the bare word(s) without asterisks.
 - Do NOT reuse the original sentences verbatim.
-- No double spaces, no trailing punctuation errors.
+- No double spaces (except the single space between segments), no trailing punctuation errors.
 
 Original prompt:
 ${originalStem}
@@ -408,18 +414,22 @@ ${originalAnswer}`;
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
 
   function normalise(v: Record<string, unknown>): SyntheticSynthesisVariant {
-    const stem = String(v.stem ?? "").trim();
+    let stem = String(v.stem ?? "").trim();
     const keyword = String(v.keyword ?? "").trim();
-    // If the AI forgot to mark the keyword, inject ** markers so downstream
-    // rendering can still pick it out.
-    const finalStem = keyword && !/\*\*[^*]+\*\*/.test(stem)
-      ? `${stem}\n\n**${keyword}**`
-      : stem;
-    return {
-      stem: finalStem,
-      keyword,
-      answer: String(v.answer ?? "").trim(),
-    };
+    const UNDERSCORES = "_".repeat(20);
+    // If the AI forgot to mark the keyword at all, append a default
+    // "blank ▸ **keyword** ▸ blank" line so downstream rendering still
+    // produces input fields.
+    if (keyword && !/\*\*[^*]+\*\*/.test(stem)) {
+      stem = `${stem}\n\n${UNDERSCORES} **${keyword}** ${UNDERSCORES}`;
+    }
+    // If the AI wrapped the keyword but forgot the blanks entirely, inject
+    // them around the keyword (default: blanks on both sides).
+    if (keyword && !stem.includes(UNDERSCORES)) {
+      stem = stem.replace(new RegExp(`\\*\\*\\s*${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\*\\*`),
+        `${UNDERSCORES} **${keyword}** ${UNDERSCORES}`);
+    }
+    return { stem, keyword, answer: String(v.answer ?? "").trim() };
   }
 
   return {
