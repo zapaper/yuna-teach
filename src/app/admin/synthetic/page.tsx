@@ -57,6 +57,9 @@ function SyntheticContent() {
   const userId = searchParams.get("userId") ?? "";
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [subject, setSubject] = useState<Subject>("math");
+  // Narrow the source pool further by level + exam type. Empty = no filter.
+  const [level, setLevel] = useState<string>("");
+  const [examTypes, setExamTypes] = useState<Set<string>>(new Set());
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -83,7 +86,10 @@ function SyntheticContent() {
   const loadBatch = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/synthetic/batch?userId=${userId}&subject=${subject}`);
+      const params = new URLSearchParams({ userId, subject });
+      if (level) params.set("level", level);
+      if (examTypes.size > 0) params.set("examTypes", [...examTypes].join(","));
+      const res = await fetch(`/api/admin/synthetic/batch?${params.toString()}`);
       const data = await res.json();
       const qs: Question[] = data.questions ?? [];
       setQuestions(qs);
@@ -139,7 +145,7 @@ function SyntheticContent() {
     } finally {
       setLoading(false);
     }
-  }, [userId, subject]);
+  }, [userId, subject, level, examTypes]);
 
   useEffect(() => { if (allowed) loadBatch(); }, [allowed, loadBatch]);
 
@@ -322,13 +328,54 @@ function SyntheticContent() {
 
         <div className="max-w-3xl mx-auto px-4 py-5">
           {/* Subject picker */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 mb-3">
             {(["math", "science", "english"] as const).map(s => (
               <button key={s} onClick={() => setSubject(s)}
                 className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${subject === s ? "border-slate-800 bg-slate-800 text-white" : "border-slate-200 bg-white text-slate-600"}`}>
                 {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
               </button>
             ))}
+          </div>
+
+          {/* Level + exam-type filters — narrow the source pool. */}
+          <div className="flex flex-wrap gap-3 mb-4 items-center">
+            <div className="flex items-center gap-2">
+              <label className="text-xs font-bold text-slate-500">Level</label>
+              <select value={level} onChange={e => setLevel(e.target.value)}
+                className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:border-slate-500">
+                <option value="">Any</option>
+                <option value="P3">P3</option>
+                <option value="P4">P4</option>
+                <option value="P5">P5</option>
+                <option value="P6">P6</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="text-xs font-bold text-slate-500">Exam type</label>
+              {(["WA1", "WA2", "EOY", "Prelim"] as const).map(t => {
+                const on = examTypes.has(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setExamTypes(prev => {
+                      const next = new Set(prev);
+                      if (next.has(t)) next.delete(t); else next.add(t);
+                      return next;
+                    })}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold border-2 transition ${on ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
+                  >
+                    {t}
+                  </button>
+                );
+              })}
+              {examTypes.size > 0 && (
+                <button type="button" onClick={() => setExamTypes(new Set())}
+                  className="text-[11px] text-slate-400 hover:text-slate-600 underline">
+                  clear
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Generate-all button */}
