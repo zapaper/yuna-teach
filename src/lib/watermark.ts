@@ -3,7 +3,7 @@ import sharp from "sharp";
 // CamScanner-style watermarks sit in the bottom-right corner of every scanned
 // page. A plain white rectangle composited over that area removes them before
 // extraction/marking sees the image. Constants are percentages of the page.
-export const WATERMARK_MASK_BOTTOM_PCT = 0.08;
+export const WATERMARK_MASK_BOTTOM_PCT = 0.11;
 export const WATERMARK_MASK_RIGHT_PCT = 0.20;
 
 export async function maskBottomRightCorner(
