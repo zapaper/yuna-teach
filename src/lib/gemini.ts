@@ -366,25 +366,31 @@ export async function generateSyntheticSynthesis(
 ): Promise<{ simple: SyntheticSynthesisVariant; similar: SyntheticSynthesisVariant }> {
   const prompt = `You are generating Synthesis & Transformation practice items for Singapore Primary 6 English.
 
-You will be given ONE original synthesis item: the prompt (sentence(s) + a keyword the student must use) and the expected transformed answer. Infer the underlying grammar rule — e.g. relative clauses (who/whom/which/whose/that), conjunctions (although/because/despite/unless/since), conditionals (if/unless), reported speech, active↔passive voice, comparatives, gerund-to-finite, participial phrases, cleft sentences, etc.
+Student flow:
+- Student is shown TWO short sentences plus a keyword.
+- Student combines/transforms the two sentences into ONE new sentence using the keyword.
+- The keyword may appear at the START of the new sentence (e.g. "Because …") or in the MIDDLE (e.g. "… which …").
 
-Produce TWO NEW practice items that test the SAME grammar rule with fresh sentences. Use primary-school-appropriate vocabulary. Singapore context is fine (hawker centre, MRT, void deck, CCA, Prata, etc.) but not required.
+You will be given ONE original synthesis item — the prompt (two sentences + keyword) and the expected transformed answer. Infer the underlying grammar rule: relative clauses (who/whom/which/whose/that), conjunctions (although/because/despite/unless/since/so that/in order to), conditionals (if/unless), reported speech, active↔passive voice, comparatives, gerund↔finite, participial phrases, cleft sentences, etc.
 
-Return JSON exactly in this shape:
+Produce TWO NEW practice items testing the SAME grammar rule with fresh sentence pairs. Primary-school-appropriate vocabulary; Singapore context OK (hawker centre, MRT, void deck, CCA) but not required.
+
+Return JSON exactly:
 {
-  "simple":  { "stem": "<sentence(s)>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<transformed sentence>" },
-  "similar": { "stem": "<sentence(s)>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<transformed sentence>" }
+  "simple":  { "stem": "<sentence 1> <sentence 2>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<combined sentence>" },
+  "similar": { "stem": "<sentence 1> <sentence 2>\\n\\n**<keyword>**", "keyword": "<keyword>", "answer": "<combined sentence>" }
 }
 
 Rules:
 - BOTH variants must test the SAME grammar rule as the original.
-- "simple": a gentler version (shorter sentence, clearer cue, common vocabulary).
-- "similar": same difficulty and complexity as the original.
-- The keyword MUST be wrapped in **double asterisks** in the "stem" field.
-- The keyword MAY appear at the START of the transformed sentence (e.g. "Because …") OR in the MIDDLE (e.g. "… which …"). Across the two variants, prefer varying the position so one is sentence-initial and the other is sentence-internal, unless the grammar rule dictates otherwise.
-- The "answer" must be a single well-formed sentence that uses the keyword naturally and preserves the original meaning.
+- The "stem" MUST contain exactly two independent sentences, each ending with a full stop, separated by a single space. Then a blank line, then the keyword wrapped in **double asterisks**.
+- "simple": gentler (shorter sentences, easier vocabulary).
+- "similar": same difficulty/complexity as the original.
+- Across the two variants, prefer varying the keyword position — one variant places the keyword at the start of the answer, the other in the middle — unless the grammar rule forces one position.
+- The "answer" must be a single well-formed sentence that uses the keyword naturally and preserves the combined meaning of both input sentences. No quotation marks around it.
+- The "keyword" field should be the bare word(s) without asterisks.
 - Do NOT reuse the original sentences verbatim.
-- No trailing punctuation errors, no double spaces.
+- No double spaces, no trailing punctuation errors.
 
 Original prompt:
 ${originalStem}
