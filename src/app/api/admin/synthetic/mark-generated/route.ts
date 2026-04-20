@@ -60,11 +60,17 @@ export async function POST(request: NextRequest) {
     let nextOrder = existingCount;
     for (const v of accepted) {
       nextOrder += 1;
+      // MCQ variants: 4 options, correctAnswer is 1-4 → store "(N)".
+      // Synthesis variants: 1 option (the transformed sentence), stored as
+      // the canonical answer text so marking has real ground truth.
+      const opts = v.options as unknown as string[];
+      const isSynthesis = Array.isArray(opts) && opts.length === 1;
+      const answerText = isSynthesis ? (opts[0] ?? "") : `(${v.correctAnswer})`;
       await prisma.examQuestion.create({
         data: {
           questionNum: `S${nextOrder}`,
           imageData: "",
-          answer: `(${v.correctAnswer})`,
+          answer: answerText,
           pageIndex: 0,
           orderIndex: nextOrder,
           marksAvailable: 2,
