@@ -375,26 +375,30 @@ You will be given ONE original synthesis item — the prompt (two sentences + ke
 
 Produce TWO NEW practice items testing the SAME grammar rule with fresh sentence pairs. Primary-school-appropriate vocabulary; Singapore context OK (hawker centre, MRT, void deck, CCA) but not required.
 
-Rendering detail: the quiz renders the stem verbatim, and every run of 20 underscores (____________________) becomes a text input field. So the stem must include the underscore blanks around the keyword so the student sees the right input slots.
+Rendering detail: the quiz renders the stem verbatim, and every run of ≥3 underscores becomes a text input field. The canonical source format uses 32 underscores (________________________________) per blank. MATCH IT EXACTLY so the synthetic items render identically to human-authored ones.
 
 Return JSON exactly:
 {
-  "simple":  { "stem": "<sentence 1> <sentence 2>\\n\\n<underscores>**<keyword>**<underscores>", "keyword": "<keyword>", "answer": "<combined sentence>" },
-  "similar": { "stem": "<sentence 1> <sentence 2>\\n\\n<underscores>**<keyword>**<underscores>", "keyword": "<keyword>", "answer": "<combined sentence>" }
+  "simple":  { "stem": "<sentence 1> <sentence 2>\\n\\n<blank line with keyword + underscores>", "keyword": "<keyword>", "answer": "<combined sentence>" },
+  "similar": { "stem": "<sentence 1> <sentence 2>\\n\\n<blank line with keyword + underscores>", "keyword": "<keyword>", "answer": "<combined sentence>" }
 }
 
-Rules:
+Rules for the stem's answer area (canonical Singapore P6 format):
+- Keyword at START of the answer → TWO lines of 32 underscores AFTER the keyword:
+    **<Keyword>** ________________________________
+    ________________________________
+- Keyword in the MIDDLE of the answer → ONE line with 32 underscores before AND after the keyword:
+    ________________________________ **<keyword>** ________________________________
+
+General rules:
 - BOTH variants must test the SAME grammar rule as the original.
-- The "stem" MUST contain exactly two independent sentences (each ending with a full stop, separated by a single space), then a blank line, then the input slot line.
-- The input slot line contains the keyword wrapped in **double asterisks**, with 20 underscores (exactly "____________________") before and/or after it:
-    - Keyword at START of the answer → "**<keyword>** ____________________"
-    - Keyword in the MIDDLE of the answer → "____________________ **<keyword>** ____________________"
-  Leave one space between each segment.
+- The "stem" MUST contain two independent sentences (each ending with a full stop, separated by a single space), then a blank line, then the answer-area block above.
 - Across the two variants, prefer varying the keyword position — one START, one MIDDLE — unless the grammar rule forces one.
 - "simple": gentler (shorter sentences, easier vocabulary).
 - "similar": same difficulty/complexity as the original.
 - The "answer" must be a single well-formed sentence that uses the keyword naturally and preserves the combined meaning of both input sentences. No quotation marks around it.
 - The "keyword" field should be the bare word(s) without asterisks.
+- Exactly 32 underscores per blank. Do NOT use 20 or any other count.
 - Do NOT reuse the original sentences verbatim.
 - No double spaces (except the single space between segments), no trailing punctuation errors.
 
@@ -416,19 +420,21 @@ ${originalAnswer}`;
   function normalise(v: Record<string, unknown>): SyntheticSynthesisVariant {
     let stem = String(v.stem ?? "").trim();
     const keyword = String(v.keyword ?? "").trim();
-    const UNDERSCORES = "_".repeat(20);
-    // If the AI forgot to mark the keyword at all, append a default
-    // "blank ▸ **keyword** ▸ blank" line so downstream rendering still
-    // produces input fields.
+    const U = "_".repeat(32);
+    // If the AI forgot to mark the keyword at all, append a default middle-
+    // position answer line so downstream rendering still produces input fields.
     if (keyword && !/\*\*[^*]+\*\*/.test(stem)) {
-      stem = `${stem}\n\n${UNDERSCORES} **${keyword}** ${UNDERSCORES}`;
+      stem = `${stem}\n\n${U} **${keyword}** ${U}`;
     }
-    // If the AI wrapped the keyword but forgot the blanks entirely, inject
-    // them around the keyword (default: blanks on both sides).
-    if (keyword && !stem.includes(UNDERSCORES)) {
+    // If the AI wrapped the keyword but forgot the blanks entirely, inject a
+    // middle-position block.
+    if (keyword && !/_{3,}/.test(stem)) {
       stem = stem.replace(new RegExp(`\\*\\*\\s*${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\*\\*`),
-        `${UNDERSCORES} **${keyword}** ${UNDERSCORES}`);
+        `${U} **${keyword}** ${U}`);
     }
+    // Normalise any non-canonical underscore counts (e.g. 20) to the 32 the
+    // human-authored source questions use.
+    stem = stem.replace(/_{3,}/g, U);
     return { stem, keyword, answer: String(v.answer ?? "").trim() };
   }
 

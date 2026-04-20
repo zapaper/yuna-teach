@@ -39,16 +39,16 @@ function petBlendMode(bg?: "white" | "black" | "alpha"): PetBlend {
 }
 
 // Placement region for unlocked pets on the landscape (was the teal marker).
-// Top 55%, height 20% → bottom 75% of the image.
+// Top 55%, height 15% → bottom 70% of the image.
 const PET_REGION_TOP_PCT = 55;
-const PET_REGION_HEIGHT_PCT = 20;
+const PET_REGION_HEIGHT_PCT = 15;
 const PET_REGION_BOTTOM_PCT = PET_REGION_TOP_PCT + PET_REGION_HEIGHT_PCT;
-// Pets further up in the region are further away → scaled down. Per rule:
-// −5% scale per 1% of image-height above the region's base. Floor at 0.35
-// so pets at the very back don't vanish.
+// Pets further up in the region are further away → scaled down. Halved the
+// shrinkage per feedback: −2.5% scale per 1% above the region base (was 5%).
+// Floor at 0.5 so far-back pets stay visibly sized.
 function petScaleAtY(yPct: number): number {
-  const offsetFromBase = PET_REGION_BOTTOM_PCT - yPct; // 0 at base, 20 at top
-  return Math.max(0.35, 1 - 0.05 * offsetFromBase);
+  const offsetFromBase = PET_REGION_BOTTOM_PCT - yPct; // 0 at base, 15 at top
+  return Math.max(0.5, 1 - 0.025 * offsetFromBase);
 }
 // Deterministic per-habitat random placement — seeded by the habitat id so
 // positions are stable between renders (they don't jitter every state change).
@@ -160,8 +160,11 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef }: {
         const target = minX + Math.random() * (maxX - minX);
         const goingRight = target > xRef.current;
         const distance = Math.abs(target - xRef.current);
-        // Slower: ~5s per 30% of width (was 3s). Keeps movement calm.
-        const ms = Math.max(3500, Math.round((distance / 30) * 5000));
+        // Slower: ~5s per 30% of width. Pets further back walk even more
+        // slowly (+5% per 1% above the region base), matching the depth cue.
+        const offsetFromBase = PET_REGION_BOTTOM_PCT - y;
+        const speedFactor = 1 + 0.05 * Math.max(0, offsetFromBase);
+        const ms = Math.max(3500, Math.round((distance / 30) * 5000 * speedFactor));
         setFacingRight(goingRight);
         setWalkMs(ms);
         setX(target);
