@@ -395,16 +395,12 @@ export async function POST(request: NextRequest) {
     }
     const visualTextSets = sortByFreshness([...visualTextPapers.values()]);
 
-    // Focused synthesis practice should include the related grammar + vocab
-    // MCQ sections — synthesis tests both skill areas, so practising all three
-    // together is more useful than 2x of pure synthesis alone.
+    // Synthesis-focused practice stays pure: 10 P6 synthesis questions only,
+    // no grammar/vocab MCQ bundled in.
     const isSynthesisFocus =
       isFocusedEnglish && englishSections?.length === 1 && englishSections[0] === "synthesis";
-    const expandedSections = isSynthesisFocus
-      ? ["grammar-mcq", "vocab-mcq", "synthesis"]
-      : englishSections;
     // Select Grammar/Vocab MCQ based on user choices
-    const selectedSections = new Set(expandedSections ?? ["grammar-mcq", "vocab-mcq", "vocab-cloze"]);
+    const selectedSections = new Set(englishSections ?? ["grammar-mcq", "vocab-mcq", "vocab-cloze"]);
     // Debug: show why grammar/vocab pools might be empty
     if (grammarMcqPool.length === 0 || vocabMcqPool.length === 0) {
       const grammarAll = allPool.filter(q => (q.syllabusTopic ?? "").toLowerCase().includes("grammar") && !(q.syllabusTopic ?? "").toLowerCase().includes("cloze"));
@@ -413,8 +409,7 @@ export async function POST(request: NextRequest) {
       console.log(`[English Quiz] Vocab candidates: ${vocabAll.length} (MCQ: ${vocabAll.filter(q => isMcq(q.answer)).length}), sample answers: [${vocabAll.slice(0, 3).map(q => q.answer).join(", ")}]`);
     }
     console.log(`[English Quiz] Pools: grammar=${grammarMcqPool.length}, vocab=${vocabMcqPool.length}, vocabCloze=${vocabClozeSets.length} sets, visualText=${visualTextSets.length} sets`);
-    // Single-section focused takes 2x MCQ; multi-section synthesis bundle keeps standard 5 each.
-    const mcqTake = isFocusedEnglish && !isSynthesisFocus ? 10 : 5;
+    const mcqTake = isFocusedEnglish ? 10 : 5;
     const selectedGrammar = selectedSections.has("grammar-mcq") ? grammarMcqPool.slice(0, mcqTake) : [];
     const selectedVocab = selectedSections.has("vocab-mcq") ? vocabMcqPool.slice(0, mcqTake) : [];
     console.log(`[English Quiz] Selected: grammar=${selectedGrammar.length}, vocab=${selectedVocab.length}`);
