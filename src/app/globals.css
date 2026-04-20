@@ -141,13 +141,17 @@ body {
 @keyframes pointBubbleFly {
   0%   { transform: translate(var(--bubble-start-x), var(--bubble-start-y)) scale(0.4); opacity: 0; }
   15%  { transform: translate(var(--bubble-start-x), var(--bubble-start-y)) scale(1); opacity: 1; }
-  /* Reach the bar around 70% so the remaining 30% of the animation has time
-   * to fade + shrink smoothly instead of snapping to 0 opacity. */
-  70%  { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.95); opacity: 0.9; }
-  100% { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.1); opacity: 0; }
+  /* Arrive at the bar still fully visible, then quickly dissolve over the
+   * last ~13% (≈150ms) so the dot snaps out of existence on contact rather
+   * than lingering as a grey ghost. */
+  70%  { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.9); opacity: 1; }
+  83%  { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.25); opacity: 0; }
+  100% { transform: translate(var(--bubble-end-x), var(--bubble-end-y)) scale(0.25); opacity: 0; }
 }
 
-/* Experience bar gets a brief glow pulse each time points land in it. */
+/* Experience bar glow pulse while points are flowing in. Capped iterations
+ * so the glow can never run forever even if the JS that turns it off is
+ * interrupted. */
 @keyframes xpBarPulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(108, 248, 187, 0); }
   50%      { box-shadow: 0 0 20px 4px rgba(108, 248, 187, 0.55); }

@@ -152,7 +152,7 @@ function ExperienceBar({ points, level, progressPct, justUpdated, wide }: {
     <div
       data-xp-bar
       className={`relative flex flex-col gap-1 bg-[#e5eeff] text-[#001e40] rounded-2xl px-4 py-2.5 ${wide ? "min-w-[260px] lg:min-w-[320px]" : "min-w-[180px]"}`}
-      style={{ animation: justUpdated ? "xpBarPulse 1.2s ease-out infinite" : undefined }}
+      style={{ animation: justUpdated ? "xpBarPulse 1.2s ease-out 4" : undefined }}
     >
       <div className="flex items-center justify-between text-xs font-extrabold tracking-wider">
         <span className="flex items-center gap-1.5">
@@ -620,25 +620,28 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     }
     setBubbles(spawned);
 
-    const timers: number[] = [];
     let running = startPoints;
     spawned.forEach((b) => {
-      timers.push(window.setTimeout(() => {
+      window.setTimeout(() => {
         running += b.marks;
         setDisplayPoints(Math.min(running, totalPoints));
         if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
           try { navigator.vibrate(20); } catch { /* ignore */ }
         }
         playPointChime();
-      }, b.delay + 950));
+      }, b.delay + 950);
     });
     const settleDelay = spawned[spawned.length - 1]!.delay + 1400;
-    timers.push(window.setTimeout(() => {
+    window.setTimeout(() => {
       setDisplayPoints(totalPoints);
       setBubbles([]);
       setBarPulsing(false);
-    }, settleDelay));
-    return () => { timers.forEach(t => window.clearTimeout(t)); };
+    }, settleDelay);
+    // NOTE: no cleanup return. The effect's deps (examPapers, totalPoints)
+    // change mid-animation during normal polling; returning a cleanup that
+    // clears the settle timer left barPulsing stuck at true and the glow
+    // ran forever. The animation is short (~3s) and all it does is set
+    // state — safe to let it run to completion.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examPapers, searchParams, totalPoints]);
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
