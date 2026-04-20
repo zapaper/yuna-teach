@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState, useRef, useImperativeHandle, forwardRef, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnglishQuizSection from "@/components/EnglishQuizSection";
+import { playPointChime, playClick } from "@/lib/sfx";
 
 /* ────────────── types ────────────── */
 
@@ -222,6 +223,8 @@ function QuizContent({ id }: { id: string }) {
         if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
           try { navigator.vibrate([20, 30, 20]); } catch { /* ignore */ }
         }
+        // Soft coin chime so each correct MCQ feels rewarding.
+        playPointChime(0.25);
         timers.push(window.setTimeout(() => {
           setScorePopups(prev => prev.filter(p => p.id !== id));
         }, POPUP_LIFETIME_MS));
@@ -254,6 +257,7 @@ function QuizContent({ id }: { id: string }) {
   function goToReviewWithCelebration() {
     // Confetti for ≥90% now fires on the review page itself (after it loads),
     // so the celebration never lands on top of a marking-in-progress spinner.
+    playClick();
     router.push(`/exam/${id}/review?userId=${userId}${diagnosticSuffix}`);
   }
 

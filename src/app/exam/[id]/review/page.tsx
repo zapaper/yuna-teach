@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
 import FormattedText from "@/components/FormattedText";
 import { VisualTextImages } from "@/components/EnglishQuizSection";
+import { playClick } from "@/lib/sfx";
 import React from "react";
 
 /** Submission image with spinner while loading */
@@ -525,7 +526,7 @@ function ExamReviewContent({ id }: { id: string }) {
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6 text-center">
         <div>
           <p className="text-[#43474f] mb-4">Could not load results.</p>
-          <button onClick={() => router.replace(backPath)} className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold text-sm">
+          <button onClick={() => { playClick(); router.replace(backPath); }} className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold text-sm">
             Go Home
           </button>
         </div>
@@ -539,7 +540,7 @@ function ExamReviewContent({ id }: { id: string }) {
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6 text-center">
         <div>
           <p className="text-[#43474f] mb-4">Results are not available yet.</p>
-          <button onClick={() => router.replace(backPath)} className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold text-sm">
+          <button onClick={() => { playClick(); router.replace(backPath); }} className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold text-sm">
             Go Home
           </button>
         </div>
@@ -844,7 +845,7 @@ function ExamReviewContent({ id }: { id: string }) {
         {/* Mobile: centered title */}
         <div className="lg:hidden flex items-center justify-between px-4 h-16">
           <button
-            onClick={() => router.replace(backPath)}
+            onClick={() => { playClick(); router.replace(backPath); }}
             className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors"
           >
             <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
@@ -864,7 +865,7 @@ function ExamReviewContent({ id }: { id: string }) {
         <div className="hidden lg:flex items-center justify-between px-8 py-3 max-w-5xl mx-auto">
           <div className="flex items-center gap-3 min-w-0">
             <button
-              onClick={() => router.replace(backPath)}
+              onClick={() => { playClick(); router.replace(backPath); }}
               className="p-2 rounded-xl text-[#43474f] hover:bg-[#eff4ff] transition-colors shrink-0"
             >
               <span className="material-symbols-outlined">arrow_back</span>

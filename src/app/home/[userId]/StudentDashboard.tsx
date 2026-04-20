@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
+import { playClick } from "@/lib/sfx";
 
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
 const POINTS_PER_LEVEL = 100;
@@ -11,40 +12,6 @@ const POINTS_PER_LEVEL = 100;
 // Habitats & pets — unlocks at 200 points. First habitat awarded: Jungle.
 const HABITAT_UNLOCK_POINTS = 200;
 const FIRST_HABITAT = { id: "jungle", name: "Jungle", image: "/avatars/landscape_jungle_thumb.webp" };
-
-// Soft "power-up" for each point bubble landing in the XP bar.
-// Tries /sounds/point.mp3 first (if present) for a recognisable coin-pickup
-// feel; falls back to a synthesized Web Audio chime so something always plays
-// even without an asset. Either path silently no-ops on platform blocks.
-function playPointChime() {
-  try {
-    const audio = new Audio("/sounds/point.mp3");
-    audio.volume = 0.35;
-    audio.play().catch(() => playSynthChime());
-  } catch {
-    playSynthChime();
-  }
-}
-
-function playSynthChime() {
-  try {
-    const Ctx = (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext);
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.32);
-    setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 500);
-  } catch { /* ignore */ }
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -633,7 +600,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
           try { navigator.vibrate(20); } catch { /* ignore */ }
         }
-        playPointChime();
+        // Per feedback: no coin chime on bubble landing — keep it tactile only.
       }, b.delay + 950);
     });
     const settleDelay = spawned[spawned.length - 1]!.delay + 1400;
@@ -680,6 +647,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   });
 
   function goToPaper(p: ExamPaperSummary) {
+    playClick();
     if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${userId}`);
     else router.push(`/exam/${p.id}?userId=${userId}`);
   }
@@ -936,7 +904,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               <span className="material-symbols-outlined">spellcheck</span>听写
             </button>
             {canCreateQuiz && (
-              <button onClick={() => setShowQuizSetup(true)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+              <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
                 <span className="material-symbols-outlined">quiz</span>Quiz
               </button>
             )}
@@ -1064,7 +1032,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <section className="mb-12">
               <h2 className="text-xl font-bold text-[#001e40] mb-4 font-headline">Self-learning</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <button onClick={() => setShowQuizSetup(true)} className="relative group h-48 rounded-[2.5rem] bg-[#006c49] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#006c49]/20">
+                <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative group h-48 rounded-[2.5rem] bg-[#006c49] overflow-hidden text-left p-10 flex flex-col justify-end transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#006c49]/20">
                   <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_-20%,rgba(255,255,255,0.2),transparent)]" />
                   <span className="material-symbols-outlined text-6xl text-white/20 absolute top-8 right-8">rocket_launch</span>
                   <h3 className="text-3xl font-extrabold text-white mb-2 font-headline">Daily 20min Quiz</h3>
@@ -1296,7 +1264,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <h2 className="text-lg font-bold text-[#001e40] mb-3 font-headline">Self-learning</h2>
           <section className="mb-8 grid grid-cols-2 gap-3">
             {canCreateQuiz && (
-              <button onClick={() => setShowQuizSetup(true)} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
+              <button onClick={() => { playClick(); setShowQuizSetup(true); }} className="relative h-32 rounded-2xl bg-[#006c49] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">rocket_launch</span><h3 className="text-sm font-extrabold text-white font-headline">Daily Quiz</h3><p className="text-[10px] text-[#6cf8bb]/80">20 min practice</p></button>
             )}
             <button onClick={() => router.push(`/spelling?userId=${userId}`)} className="relative h-32 rounded-2xl bg-[#001e40] overflow-hidden text-left p-5 flex flex-col justify-end"><span className="material-symbols-outlined text-3xl text-white/20 absolute top-3 right-3">spellcheck</span><h3 className="text-sm font-extrabold text-white font-headline">听写</h3><p className="text-[10px] text-[#a7c8ff]/80">Spelling lists</p></button>
           </section>
