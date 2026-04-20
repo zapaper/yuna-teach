@@ -175,6 +175,14 @@ function ExamReviewContent({ id }: { id: string }) {
           try { navigator.vibrate(pattern); } catch { /* ignore */ }
         }
       };
+      // Soft crowd cheer from /public/sounds/cheer.mp3 (or .ogg). If the file
+      // is missing the load silently fails and we skip audio — so it's safe to
+      // ship without the asset and drop it in later.
+      try {
+        const audio = new Audio("/sounds/cheer.mp3");
+        audio.volume = 0.35;
+        audio.play().catch(() => { /* browser blocked or file missing */ });
+      } catch { /* ignore */ }
       try {
         const confetti = (await import("canvas-confetti")).default;
         buzz(60);

@@ -8,6 +8,30 @@ import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
 const POINTS_PER_LEVEL = 100;
 
+// Soft synthesized "chime" for each point bubble landing in the XP bar.
+// Works without any audio asset — the tone is a short rising sine with
+// quick attack / gentle decay. Silently skipped if the browser lacks
+// AudioContext or blocks it pre-gesture.
+function playPointChime() {
+  try {
+    const Ctx = (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext);
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.32);
+    setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 500);
+  } catch { /* ignore */ }
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function initials(name: string) {
@@ -542,6 +566,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
           try { navigator.vibrate(20); } catch { /* ignore */ }
         }
+        playPointChime();
       }, b.delay + 900));
     });
     // Settle the counter + clear bubbles.
