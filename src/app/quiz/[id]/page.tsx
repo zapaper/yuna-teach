@@ -131,6 +131,7 @@ function QuizContent({ id }: { id: string }) {
   const [displayedMarks, setDisplayedMarks] = useState(0);
   const [scoreJumpKey, setScoreJumpKey] = useState(0);
   const [scorePopups, setScorePopups] = useState<{ id: number; marks: number }[]>([]);
+  const [finalPct, setFinalPct] = useState<number | null>(null);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
@@ -243,6 +244,12 @@ function QuizContent({ id }: { id: string }) {
         if (!res.ok) return;
         const data = await res.json();
         if (data.markingStatus === "complete" || data.markingStatus === "released") {
+          // Capture the final percentage so the Review button can decide whether
+          // to fire the ≥90% confetti celebration.
+          const qs = (data.questions ?? []) as Array<{ marksAwarded: number | null; marksAvailable: number | null }>;
+          const total = qs.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+          const earned = qs.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+          if (total > 0) setFinalPct(Math.round((earned / total) * 100));
           setMarkingDone(true);
           if (pollRef.current) clearInterval(pollRef.current);
         }
@@ -250,6 +257,50 @@ function QuizContent({ id }: { id: string }) {
     }
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [markingOeq, markingDone, id]);
+
+  // MCQ-only quiz (no OEQ polling): seed finalPct from mcqScore directly.
+  useEffect(() => {
+    if (!markingOeq && mcqScore && mcqScore.marksTotal > 0) {
+      setFinalPct(Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100));
+    }
+  }, [mcqScore, markingOeq]);
+
+  // Fire a confetti + star volley when the student hits ≥ 90%, then navigate.
+  async function goToReviewWithCelebration() {
+    const reviewUrl = `/exam/${id}/review?userId=${userId}${diagnosticSuffix}`;
+    if (finalPct != null && finalPct >= 90) {
+      try {
+        const confetti = (await import("canvas-confetti")).default;
+        // Main volley from top-middle
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          startVelocity: 50,
+          origin: { x: 0.5, y: 0.15 },
+          colors: ["#6cf8bb", "#ffd700", "#ff6ec7", "#7fd1ff", "#a78bfa"],
+        });
+        // Star volley from the two top corners, slightly delayed
+        setTimeout(() => {
+          confetti({
+            particleCount: 40, spread: 70, startVelocity: 45,
+            origin: { x: 0.1, y: 0.2 },
+            shapes: ["star"],
+            colors: ["#ffd700", "#fff4a3", "#ffb800"],
+          });
+          confetti({
+            particleCount: 40, spread: 70, startVelocity: 45,
+            origin: { x: 0.9, y: 0.2 },
+            shapes: ["star"],
+            colors: ["#ffd700", "#fff4a3", "#ffb800"],
+          });
+        }, 250);
+      } catch { /* confetti optional — never block navigation */ }
+      // Let the volley play for a beat before navigating.
+      setTimeout(() => router.push(reviewUrl), 900);
+      return;
+    }
+    router.push(reviewUrl);
+  }
 
   if (loading) {
     return (
@@ -639,7 +690,7 @@ function QuizContent({ id }: { id: string }) {
             {markingOeq && markingDone ? (
               <button
                 key="done-button"
-                onClick={() => router.push(`/exam/${id}/review?userId=${userId}${diagnosticSuffix}`)}
+                onClick={() => goToReviewWithCelebration()}
                 className="flex-1 px-4 py-4 rounded-2xl bg-[#006c49] text-white font-extrabold text-base hover:bg-[#004d35] transition-colors shadow-lg animate-[popIn_0.5s_cubic-bezier(0.34,1.56,0.64,1)]"
               >
                 <span className="inline-flex items-center gap-2">
@@ -649,7 +700,7 @@ function QuizContent({ id }: { id: string }) {
               </button>
             ) : (
               <button
-                onClick={() => router.push(`/exam/${id}/review?userId=${userId}${diagnosticSuffix}`)}
+                onClick={() => goToReviewWithCelebration()}
                 disabled={markingOeq && !markingDone}
                 className="flex-1 px-4 py-3 rounded-2xl bg-[#001e40] text-white font-bold text-sm hover:bg-[#003366] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
