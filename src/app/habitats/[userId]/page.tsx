@@ -133,22 +133,36 @@ function PetActor({ pet, startX, y, scale, widthPct }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const src = anims[clip] ?? pet.video;
+  // Render every clip side-by-side (same layer), only the current one is
+  // opaque. This keeps the videos always decoded and playing, so switching
+  // clips is instant — no black "loading" frame. `lighten` blend mode hides
+  // the dark studio background without the additive glow that `screen`
+  // introduced.
+  const blend = pet.bg === "black" ? "lighten" : "multiply";
+  const transform = `translate(-50%, -50%)${facingRight ? " scaleX(-1)" : ""}`;
+  const baseStyle = {
+    left: `${x}%`,
+    top: `${y}%`,
+    width: `${widthPct * scale}%`,
+    transition: clip === "walk" ? `left ${walkMs}ms linear` : "none",
+    transform,
+    mixBlendMode: blend as "lighten" | "multiply",
+  };
   return (
-    <video
-      key={src}
-      src={src}
-      autoPlay loop muted playsInline
-      className="absolute pointer-events-none"
-      style={{
-        left: `${x}%`,
-        top: `${y}%`,
-        width: `${widthPct * scale}%`,
-        transform: `translate(-50%, -50%)${facingRight ? " scaleX(-1)" : ""}`,
-        transition: clip === "walk" ? `left ${walkMs}ms linear` : "none",
-        mixBlendMode: pet.bg === "black" ? "screen" : "multiply",
-      }}
-    />
+    <>
+      {clipKeys.map(k => (
+        <video
+          key={k}
+          src={anims[k]}
+          autoPlay loop muted playsInline preload="auto"
+          className="absolute pointer-events-none"
+          style={{
+            ...baseStyle,
+            opacity: clip === k ? 1 : 0,
+          }}
+        />
+      ))}
+    </>
   );
 }
 
