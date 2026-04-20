@@ -820,6 +820,22 @@ function ExamOverviewContent({ id }: { id: string }) {
             >
               {extracting ? "Extracting..." : "Extract all Questions & Answers"}
             </button>
+            <button
+              onClick={async () => {
+                if (!confirm("Paint a white rectangle over the bottom-right corner of every page to hide scanner watermarks? This overwrites the page images in place.")) return;
+                try {
+                  const res = await fetch(`/api/exam/${id}/remask-watermark`, { method: "POST" });
+                  const data = await res.json().catch(() => ({}));
+                  if (!res.ok) { alert(data.error || "Failed to mask pages"); return; }
+                  alert(`Masked ${data.masked} page(s)${data.skipped ? ` (${data.skipped} skipped)` : ""}. Refresh to see updated pages.`);
+                } catch (err) {
+                  alert("Failed: " + (err instanceof Error ? err.message : "unknown"));
+                }
+              }}
+              className="mt-2 w-full py-2.5 px-4 rounded-xl border-2 border-slate-200 text-slate-600 font-medium text-sm hover:bg-slate-50 transition-colors"
+            >
+              Mask CamScanner watermark on all pages
+            </button>
           </>
         ) : null}
         {/* Admin-only: Skip pages config — English only */}
