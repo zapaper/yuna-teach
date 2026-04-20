@@ -78,17 +78,24 @@ const PET_UNLOCK_POINTS: Record<string, number> = {
   qilin: 1750,
   // whitetiger: not point-gated, unlocked via settings.whitetiger flag.
 };
+// Crystal-gated pets — these are habitat-only creatures (no avatar version).
+const PET_UNLOCK_CRYSTALS: Record<string, number> = {
+  boar: 10,
+  pangolin: 10,
+};
 
-function isPetUnlocked(petId: string, totalPoints: number, whitetigerUnlocked: boolean): boolean {
+function isPetUnlocked(petId: string, totalPoints: number, crystals: number, whitetigerUnlocked: boolean, override: boolean): boolean {
+  if (override) return true;
   if (petId === "whitetiger") return whitetigerUnlocked;
+  if (petId in PET_UNLOCK_CRYSTALS) return crystals >= PET_UNLOCK_CRYSTALS[petId];
   const threshold = PET_UNLOCK_POINTS[petId];
   if (threshold === undefined) return false;
   return totalPoints >= threshold;
 }
 // Compute positions + scales for the unlocked pets of a habitat, sorted
 // background-first so the JSX draw order matches depth.
-function placePets(habitat: Habitat, totalPoints: number, whitetigerUnlocked: boolean) {
-  const unlocked = habitat.pets.filter(p => isPetUnlocked(p.id, totalPoints, whitetigerUnlocked));
+function placePets(habitat: Habitat, totalPoints: number, crystals: number, whitetigerUnlocked: boolean, override: boolean) {
+  const unlocked = habitat.pets.filter(p => isPetUnlocked(p.id, totalPoints, crystals, whitetigerUnlocked, override));
   if (unlocked.length === 0) return [];
   const rand = seededRandom(hashString(habitat.id));
   const placed = unlocked.map(pet => {
@@ -357,6 +364,28 @@ const HABITATS: Habitat[] = [
         },
       },
       { id: "merlion", name: "Merlion", video: "/avatars/merlion1.mp4" },
+      {
+        id: "boar", name: "Boar",
+        video: "/avatars/boar_smile.webm",
+        bg: "alpha",
+        animations: {
+          smile: "/avatars/boar_smile.webm",
+          stretch: "/avatars/boar_stretch.webm",
+          walk: "/avatars/boar_walk.webm",
+          talk: "/avatars/boar_talk.webm",
+        },
+      },
+      {
+        id: "pangolin", name: "Pangolin",
+        video: "/avatars/pangolin_smile.webm",
+        bg: "alpha",
+        animations: {
+          smile: "/avatars/pangolin_smile.webm",
+          stretch: "/avatars/pangolin_stretch.webm",
+          walk: "/avatars/pangolin_walk.webm",
+          talk: "/avatars/pangolin_talk.webm",
+        },
+      },
     ],
   },
   {
@@ -374,6 +403,9 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const [totalPoints, setTotalPoints] = useState(0);
   const [crystals, setCrystals] = useState(0);
   const [whitetigerUnlocked, setWhitetigerUnlocked] = useState(false);
+  // Test / admin flag — when settings.habitatOverride is true, every habitat
+  // and pet is treated as unlocked regardless of points / crystals.
+  const [habitatOverride, setHabitatOverride] = useState(false);
   // Live positions of every rendered pet. PetActors write their own x here
   // and read others' so "talk" only fires when a neighbour is in range.
   const positionsRef = useRef<Record<string, number>>({});
@@ -399,14 +431,17 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
       .then(d => {
         const settings = (d.user?.settings ?? {}) as Record<string, unknown>;
         if (settings.whitetiger === true) setWhitetigerUnlocked(true);
+        if (settings.habitatOverride === true) setHabitatOverride(true);
       })
       .catch(() => {});
   }, [userId]);
 
   // Unlock rules. Jungle is the free starter at 200 pts. Fantasy and Garden
   // each cost 30 crystals (1 crystal = 1 parent-reviewed quiz). HDB stays
-  // locked until we add more content.
+  // locked until we add more content. settings.habitatOverride bypasses
+  // everything — for admin / test accounts.
   const isHabitatUnlocked = (id: string) => {
+    if (habitatOverride) return true;
     if (id === "jungle") return totalPoints >= 200;
     if (id === "fantasy" || id === "garden") return crystals >= 30;
     return false;
@@ -476,7 +511,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
              * pets higher up in the region render first (background). Pets with
              * an animation set (walk/talk/stretch/smile) are handed to PetActor
              * which cycles through clips and walks around the landscape. */}
-            {placePets(selected, totalPoints, whitetigerUnlocked).map(pet => (
+            {placePets(selected, totalPoints, crystals, whitetigerUnlocked, habitatOverride).map(pet => (
               pet.animations ? (
                 <PetActor key={pet.id} pet={pet} startX={pet.xPct} y={pet.yPct} scale={pet.scale} widthPct={16} positionsRef={positionsRef} actionsRef={actionsRef} />
               ) : (
@@ -506,7 +541,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
             ) : (
               <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pb-6">
                 {selected.pets.map(pet => {
-                  const unlocked = isPetUnlocked(pet.id, totalPoints, whitetigerUnlocked);
+                  const unlocked = isPetUnlocked(pet.id, totalPoints, crystals, whitetigerUnlocked, habitatOverride);
+                  const crystalCost = PET_UNLOCK_CRYSTALS[pet.id];
                   return (
                     <div
                       key={pet.id}
@@ -524,6 +560,12 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                         <source src={pet.video} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
                       </video>
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
+                      {!unlocked && crystalCost && (
+                        <div className="flex items-center gap-0.5 bg-[#e5eeff] rounded-full px-1.5 py-0.5">
+                          <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-3 h-3 object-contain" style={{ mixBlendMode: "multiply" }} />
+                          <span className="text-[9px] font-extrabold text-[#001e40]">{crystalCost}</span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
