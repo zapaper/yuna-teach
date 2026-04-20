@@ -187,7 +187,7 @@ function ExamReviewContent({ id }: { id: string }) {
       // ship without the asset and drop it in later.
       try {
         const audio = new Audio("/sounds/cheer.mp3");
-        audio.volume = 0.35;
+        audio.volume = 0.18;
         audio.play().catch(() => { /* browser blocked or file missing */ });
       } catch { /* ignore */ }
       try {
