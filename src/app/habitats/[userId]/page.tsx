@@ -1,14 +1,29 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type PetAnimations = {
+  walk?: string;
+  talk?: string;
+  stretch?: string;
+  smile?: string;
+};
+
+type Pet = {
+  id: string;
+  name: string;
+  video: string; // idle clip shown in the gallery and as fallback
+  bg?: "white" | "black";
+  animations?: PetAnimations; // present for pets with a dark-bg action set
+};
 
 type Habitat = {
   id: string;
   name: string;
   image: string;
   thumb: string;
-  pets: Array<{ id: string; name: string; video: string; bg?: "white" | "black" }>;
+  pets: Pet[];
 };
 // Pet videos come with either a white studio background (most existing avatars)
 // or a black one (some of the new pet-only assets). Pick a blend mode per bg so
@@ -67,6 +82,76 @@ function placePets(habitat: Habitat, totalPoints: number) {
   return placed;
 }
 
+// A pet with multiple animation clips walks/idles around the landscape.
+// Picks a random clip every few seconds. When the walk clip is playing, the
+// x-position eases to a new target inside the horizontal pet region; the
+// sprite flips horizontally when the direction of travel is to the right.
+function PetActor({ pet, startX, y, scale, widthPct }: {
+  pet: Pet;
+  startX: number;
+  y: number;
+  scale: number;
+  widthPct: number;
+}) {
+  const anims = pet.animations!;
+  const clipKeys = Object.keys(anims) as Array<keyof PetAnimations>;
+  const [clip, setClip] = useState<keyof PetAnimations>("smile");
+  const [x, setX] = useState(startX);
+  const [facingRight, setFacingRight] = useState(false);
+  const [walkMs, setWalkMs] = useState(0);
+  const xRef = useRef(startX);
+  xRef.current = x;
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number | null = null;
+    function pick() {
+      if (cancelled) return;
+      const next = clipKeys[Math.floor(Math.random() * clipKeys.length)] as keyof PetAnimations;
+      setClip(next);
+      if (next === "walk" && anims.walk) {
+        // Pick a new target x within the region bounds and move there.
+        const minX = 12.5;
+        const maxX = 87.5;
+        const target = minX + Math.random() * (maxX - minX);
+        const goingRight = target > xRef.current;
+        const distance = Math.abs(target - xRef.current);
+        // ~3 seconds per 30% of width — steady, kid-friendly pace.
+        const ms = Math.max(2000, Math.round((distance / 30) * 3000));
+        setFacingRight(goingRight);
+        setWalkMs(ms);
+        setX(target);
+        timer = window.setTimeout(pick, ms + 400);
+      } else {
+        // Idle clips play for 2.5–4s before the next pick.
+        const hold = 2500 + Math.random() * 1500;
+        timer = window.setTimeout(pick, hold);
+      }
+    }
+    timer = window.setTimeout(pick, 600);
+    return () => { cancelled = true; if (timer) clearTimeout(timer); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const src = anims[clip] ?? pet.video;
+  return (
+    <video
+      key={src}
+      src={src}
+      autoPlay loop muted playsInline
+      className="absolute pointer-events-none"
+      style={{
+        left: `${x}%`,
+        top: `${y}%`,
+        width: `${widthPct * scale}%`,
+        transform: `translate(-50%, -50%)${facingRight ? " scaleX(-1)" : ""}`,
+        transition: clip === "walk" ? `left ${walkMs}ms linear` : "none",
+        mixBlendMode: pet.bg === "black" ? "screen" : "multiply",
+      }}
+    />
+  );
+}
+
 // All four habitats and their pet rosters. HDB has no pets yet — placeholder.
 const HABITATS: Habitat[] = [
   {
@@ -74,7 +159,17 @@ const HABITATS: Habitat[] = [
     image: "/avatars/landscape_jungle.png",
     thumb: "/avatars/landscape_jungle_thumb.webp",
     pets: [
-      { id: "bunny",      name: "Bunny",       video: "/avatars/bunny1.mp4" },
+      {
+        id: "bunny", name: "Bunny",
+        video: "/avatars/bunny_smile.mp4",
+        bg: "black",
+        animations: {
+          smile: "/avatars/bunny_smile.mp4",
+          stretch: "/avatars/bunny_stretch.mp4",
+          walk: "/avatars/bunny_walk.mp4",
+          talk: "/avatars/bunny_talk.mp4",
+        },
+      },
       { id: "tiger",      name: "Tiger",       video: "/avatars/tiger1.mp4" },
       { id: "whitetiger", name: "White Tiger", video: "/avatars/whitetiger1.mp4" },
       { id: "bear",       name: "Bear",        video: "/avatars/bear1.mp4" },
@@ -216,21 +311,27 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={selected.image} alt={selected.name} className="w-full aspect-[16/9] object-cover" />
             {/* Unlocked pets placed on the landscape. Draw order matches depth:
-             * pets higher up in the region render first (background). */}
+             * pets higher up in the region render first (background). Pets with
+             * an animation set (walk/talk/stretch/smile) are handed to PetActor
+             * which cycles through clips and walks around the landscape. */}
             {placePets(selected, totalPoints).map(pet => (
-              <video
-                key={pet.id}
-                src={pet.video}
-                autoPlay loop muted playsInline
-                className="absolute pointer-events-none"
-                style={{
-                  left: `${pet.xPct}%`,
-                  top: `${pet.yPct}%`,
-                  width: `${16 * pet.scale}%`,
-                  transform: "translate(-50%, -50%)",
-                  mixBlendMode: petBlendMode(pet.bg),
-                }}
-              />
+              pet.animations ? (
+                <PetActor key={pet.id} pet={pet} startX={pet.xPct} y={pet.yPct} scale={pet.scale} widthPct={16} />
+              ) : (
+                <video
+                  key={pet.id}
+                  src={pet.video}
+                  autoPlay loop muted playsInline
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: `${pet.xPct}%`,
+                    top: `${pet.yPct}%`,
+                    width: `${16 * pet.scale}%`,
+                    transform: "translate(-50%, -50%)",
+                    mixBlendMode: petBlendMode(pet.bg),
+                  }}
+                />
+              )
             ))}
           </div>
 

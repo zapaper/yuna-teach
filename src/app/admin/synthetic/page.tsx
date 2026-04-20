@@ -12,8 +12,10 @@ type Question = {
   id: string;
   questionNum: string;
   stem: string;
-  options: string[];
-  correctAnswer: number;
+  // English synthesis questions don't have MCQ options — keep the field optional.
+  options: string[] | null;
+  // Math/Science: numeric 1-4. English synthesis: the transformed-sentence text.
+  correctAnswer: number | string;
   diagramImageData: string | null;
   syntheticGenerated?: boolean;
   syntheticQuestions?: Array<{ variant: string; stem: string; options: string[]; correctAnswer: number; diagramImageData: string | null }>;
@@ -324,18 +326,26 @@ function SyntheticContent() {
                   <img src={q.diagramImageData.startsWith("data:") ? q.diagramImageData : `data:image/jpeg;base64,${q.diagramImageData}`}
                     alt="diagram" className="max-w-sm rounded-lg border border-slate-200 mb-3" />
                 )}
-                <div className="space-y-1.5">
-                  {q.options.map((opt, i) => {
-                    const isCorrect = i + 1 === q.correctAnswer;
-                    return (
-                      <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-lg text-sm ${isCorrect ? "bg-green-50 border border-green-200 text-green-800 font-bold" : "bg-slate-50 text-slate-700"}`}>
-                        <span className="shrink-0">({i + 1})</span>
-                        <span className="flex-1">{opt}</span>
-                        {isCorrect && <span className="text-[10px] font-bold uppercase shrink-0">Correct</span>}
-                      </div>
-                    );
-                  })}
-                </div>
+                {Array.isArray(q.options) && q.options.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {q.options.map((opt, i) => {
+                      const isCorrect = i + 1 === q.correctAnswer;
+                      return (
+                        <div key={i} className={`flex items-start gap-2 px-3 py-2 rounded-lg text-sm ${isCorrect ? "bg-green-50 border border-green-200 text-green-800 font-bold" : "bg-slate-50 text-slate-700"}`}>
+                          <span className="shrink-0">({i + 1})</span>
+                          <span className="flex-1">{opt}</span>
+                          {isCorrect && <span className="text-[10px] font-bold uppercase shrink-0">Correct</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  // Synthesis / OEQ: render the expected answer as a single block.
+                  <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800 whitespace-pre-wrap">
+                    <span className="text-[10px] font-bold uppercase mr-2">Expected answer</span>
+                    {typeof q.correctAnswer === "string" ? q.correctAnswer : ""}
+                  </div>
+                )}
               </div>
 
               {!d && bulkProgress === null && (
@@ -509,23 +519,32 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
           </div>
         </div>
       )}
-      <div className="space-y-2">
-        {variant.options.map((opt, i) => {
-          const isCorrect = i + 1 === variant.correctAnswer;
-          return (
-            <div key={i} className="flex items-start gap-2">
-              <button onClick={() => onCorrect(i + 1)}
-                className={`shrink-0 w-8 h-8 rounded-lg border-2 text-xs font-bold ${isCorrect ? "bg-green-500 border-green-500 text-white" : "border-slate-200 text-slate-500"}`}>
-                ({i + 1})
-              </button>
-              <textarea value={opt} onChange={e => onOption(i, e.target.value)}
-                rows={1}
-                className={`flex-1 border rounded-lg px-3 py-2 text-sm resize-none outline-none ${isCorrect ? "border-green-400 bg-green-50 text-green-900 font-semibold" : "border-slate-200 text-slate-800 focus:border-slate-500"}`} />
-            </div>
-          );
-        })}
-      </div>
-      <p className="text-[10px] text-slate-400 mt-2">Tap the number to mark which option is correct.</p>
+      {Array.isArray(variant.options) && variant.options.length > 0 && variant.options.some(o => o) ? (
+        <>
+          <div className="space-y-2">
+            {variant.options.map((opt, i) => {
+              const isCorrect = i + 1 === variant.correctAnswer;
+              return (
+                <div key={i} className="flex items-start gap-2">
+                  <button onClick={() => onCorrect(i + 1)}
+                    className={`shrink-0 w-8 h-8 rounded-lg border-2 text-xs font-bold ${isCorrect ? "bg-green-500 border-green-500 text-white" : "border-slate-200 text-slate-500"}`}>
+                    ({i + 1})
+                  </button>
+                  <textarea value={opt} onChange={e => onOption(i, e.target.value)}
+                    rows={1}
+                    className={`flex-1 border rounded-lg px-3 py-2 text-sm resize-none outline-none ${isCorrect ? "border-green-400 bg-green-50 text-green-900 font-semibold" : "border-slate-200 text-slate-800 focus:border-slate-500"}`} />
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2">Tap the number to mark which option is correct.</p>
+        </>
+      ) : (
+        <div className="mt-2 px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-900 whitespace-pre-wrap">
+          <span className="text-[10px] font-bold uppercase mr-2">Transformed answer</span>
+          {(variant as { answer?: string }).answer ?? ""}
+        </div>
+      )}
     </div>
   );
 }
