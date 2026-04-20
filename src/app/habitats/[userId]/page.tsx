@@ -82,6 +82,67 @@ function placePets(habitat: Habitat, totalPoints: number) {
   return placed;
 }
 
+// A real-time chroma-key for black-background videos: plays the clip on a
+// hidden <video>, blits each frame to a <canvas>, and zeros the alpha on
+// dark pixels. Gives the pet actual transparency — no "lighten" glow.
+function ChromaVideo({ src, style, className, playing }: {
+  src: string;
+  style?: React.CSSProperties;
+  className?: string;
+  playing: boolean;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return;
+    let raf = 0;
+    let running = true;
+    function draw() {
+      if (!running || !video || !canvas || !ctx) return;
+      if (playing && video.readyState >= 2 && video.videoWidth > 0) {
+        if (canvas.width !== video.videoWidth) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        try {
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = img.data;
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i + 1], b = data[i + 2];
+            const brightness = Math.max(r, g, b);
+            if (brightness < 28) {
+              data[i + 3] = 0;
+            } else if (brightness < 80) {
+              // Soft edge between "clearly background" and "clearly subject".
+              data[i + 3] = Math.round(((brightness - 28) / 52) * 255);
+            }
+          }
+          ctx.putImageData(img, 0, 0);
+        } catch { /* tainted canvas or other — skip this frame */ }
+      }
+      raf = requestAnimationFrame(draw);
+    }
+    raf = requestAnimationFrame(draw);
+    return () => { running = false; cancelAnimationFrame(raf); };
+  }, [playing]);
+
+  // The hidden video needs to autoplay to keep producing frames. Hiding via
+  // position rather than display so the video element stays active.
+  return (
+    <>
+      <video ref={videoRef} src={src} autoPlay loop muted playsInline preload="auto"
+        style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }} />
+      <canvas ref={canvasRef} className={className} style={style} />
+    </>
+  );
+}
+
 // A pet with multiple animation clips walks/idles around the landscape.
 // Picks a random clip every few seconds. When the walk clip is playing, the
 // x-position eases to a new target inside the horizontal pet region; the
@@ -133,21 +194,33 @@ function PetActor({ pet, startX, y, scale, widthPct }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Render every clip side-by-side (same layer), only the current one is
-  // opaque. This keeps the videos always decoded and playing, so switching
-  // clips is instant — no black "loading" frame. `lighten` blend mode hides
-  // the dark studio background without the additive glow that `screen`
-  // introduced.
-  const blend = pet.bg === "black" ? "lighten" : "multiply";
+  // All clips mount at the same position; only the active one has opacity 1.
+  // Black-background pets chroma-key via canvas for crisp transparent edges
+  // (no "lighten" glow). White-background pets just render the raw video and
+  // let multiply blend out the white (cheap path).
   const transform = `translate(-50%, -50%)${facingRight ? " scaleX(-1)" : ""}`;
-  const baseStyle = {
+  const baseStyle: React.CSSProperties = {
     left: `${x}%`,
     top: `${y}%`,
     width: `${widthPct * scale}%`,
     transition: clip === "walk" ? `left ${walkMs}ms linear` : "none",
     transform,
-    mixBlendMode: blend as "lighten" | "multiply",
   };
+  if (pet.bg === "black") {
+    return (
+      <>
+        {clipKeys.map(k => (
+          <ChromaVideo
+            key={k}
+            src={anims[k] as string}
+            playing={clip === k}
+            className="absolute pointer-events-none"
+            style={{ ...baseStyle, opacity: clip === k ? 1 : 0 }}
+          />
+        ))}
+      </>
+    );
+  }
   return (
     <>
       {clipKeys.map(k => (
@@ -156,10 +229,7 @@ function PetActor({ pet, startX, y, scale, widthPct }: {
           src={anims[k]}
           autoPlay loop muted playsInline preload="auto"
           className="absolute pointer-events-none"
-          style={{
-            ...baseStyle,
-            opacity: clip === k ? 1 : 0,
-          }}
+          style={{ ...baseStyle, mixBlendMode: "multiply", opacity: clip === k ? 1 : 0 }}
         />
       ))}
     </>
@@ -370,7 +440,6 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                         src={pet.video}
                         autoPlay loop muted playsInline
                         className="w-full aspect-square object-contain pointer-events-none"
-                        style={{ mixBlendMode: petBlendMode(pet.bg) }}
                       />
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
                     </div>
