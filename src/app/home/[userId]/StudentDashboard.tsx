@@ -2,8 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
+
+// Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
+const POINTS_PER_LEVEL = 100;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -100,10 +103,42 @@ function BarModel({ diagram }: { diagram: DiagramStep }) {
   );
 }
 
+function ExperienceBar({ barRef, points, level, progressPct, justUpdated, wide }: {
+  barRef: React.RefObject<HTMLDivElement | null>;
+  points: number;
+  level: number;
+  progressPct: number;
+  justUpdated: boolean;
+  wide?: boolean;
+}) {
+  return (
+    <div
+      ref={barRef}
+      className={`relative flex flex-col gap-1 bg-[#e5eeff] text-[#001e40] rounded-2xl px-4 py-2.5 ${wide ? "min-w-[260px] lg:min-w-[320px]" : "min-w-[180px]"}`}
+      style={{ animation: justUpdated ? "xpBarPulse 1.2s ease-out infinite" : undefined }}
+    >
+      <div className="flex items-center justify-between text-xs font-extrabold tracking-wider">
+        <span className="flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-base text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+          {points} pts
+        </span>
+        <span className="text-[#003366]">Lvl {level}</span>
+      </div>
+      <div className="relative h-2.5 rounded-full bg-white/80 overflow-hidden">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#6cf8bb] via-[#34d399] to-[#006c49] transition-[width] duration-500 ease-out"
+          style={{ width: `${Math.max(0, Math.min(100, progressPct))}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   // Avatar gating: requires BOTH (a) the parent has explicitly enabled it on the
   // student's settings (settings.avatar === true) AND (b) the student has earned
   // the 100-point unlock threshold. New students start with avatar off.
@@ -167,6 +202,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPastWork, setShowPastWork] = useState(false);
   const [pastWorkLimit, setPastWorkLimit] = useState(10);
+
+  // "Points flowing in" animation after completing/reviewing a quiz.
+  // The review page sends us back with ?newPoints=20&fromPaper=<id>. We hold
+  // the display counter at (total - newPoints) until the bubbles land, then
+  // tick it up to total. localStorage stops a refresh/back-button from
+  // replaying the animation.
+  const barRef = useRef<HTMLDivElement>(null);
+  const [displayPoints, setDisplayPoints] = useState<number | null>(null);
+  const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; x: number; delay: number }>>([]);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
   const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
@@ -446,6 +490,69 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const recentTests = tests.slice(0, 6);
 
   const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0);
+  const level = Math.floor(totalPoints / POINTS_PER_LEVEL);
+  // Progress on the bar reflects the displayed (animating) points, not the
+  // committed total, so the fill grows in step with the landing bubbles.
+  const effectivePoints = displayPoints ?? totalPoints;
+  const levelProgressPct = ((effectivePoints % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
+  const displayedLevel = Math.floor(effectivePoints / POINTS_PER_LEVEL);
+
+  // Trigger the points-flowing-in animation once per paper.
+  useEffect(() => {
+    const newPoints = parseInt(searchParams?.get("newPoints") ?? "", 10);
+    const fromPaper = searchParams?.get("fromPaper") ?? "";
+    if (!Number.isFinite(newPoints) || newPoints <= 0 || !fromPaper) return;
+    const animKey = `mfy-points-animated-${fromPaper}`;
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem(animKey)) return;
+    localStorage.setItem(animKey, "1");
+
+    // Strip the params from the URL so a refresh doesn't try to replay.
+    const nextUrl = `/home/${userId}`;
+    window.history.replaceState({}, "", nextUrl);
+
+    // Hold the counter at (total − new) so bubbles can fill it in.
+    const startPoints = Math.max(0, totalPoints - newPoints);
+    setDisplayPoints(startPoints);
+
+    const bubbleCount = Math.min(Math.max(newPoints, 1), 15);
+    const perBubble = Math.max(1, Math.round(newPoints / bubbleCount));
+    const spawned: Array<{ id: number; marks: number; x: number; delay: number }> = [];
+    let runningTotal = 0;
+    for (let i = 0; i < bubbleCount; i++) {
+      // Last bubble carries whatever remainder keeps the total exact.
+      const marks = i === bubbleCount - 1 ? newPoints - runningTotal : perBubble;
+      runningTotal += marks;
+      spawned.push({
+        id: Date.now() + i,
+        marks,
+        x: 20 + Math.random() * 60, // % across the viewport
+        delay: i * 120,
+      });
+    }
+    setBubbles(spawned);
+
+    // Each bubble lands around 900ms after its delay; bump the counter as it lands.
+    const timers: number[] = [];
+    let running = startPoints;
+    spawned.forEach((b) => {
+      timers.push(window.setTimeout(() => {
+        running += b.marks;
+        setDisplayPoints(Math.min(running, totalPoints));
+        if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+          try { navigator.vibrate(20); } catch { /* ignore */ }
+        }
+      }, b.delay + 900));
+    });
+    // Settle the counter + clear bubbles.
+    const settleDelay = spawned[spawned.length - 1]!.delay + 1300;
+    timers.push(window.setTimeout(() => {
+      setDisplayPoints(totalPoints);
+      setBubbles([]);
+    }, settleDelay));
+    return () => { timers.forEach(t => window.clearTimeout(t)); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const hasParent = (user.linkedParents?.length ?? 0) > 0;
 
   // ─── Derived data for new layout ───
@@ -489,6 +596,30 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   return (
     <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen overflow-x-hidden">
+      {/* Point bubbles flying from top of viewport into the experience bar */}
+      {bubbles.length > 0 && (
+        <div className="fixed inset-0 z-[90] pointer-events-none">
+          {bubbles.map(b => {
+            // Compute how far the bubble needs to travel to reach the bar's
+            // vertical centre. Fallback to 40vh if the bar hasn't measured yet.
+            const barRect = barRef.current?.getBoundingClientRect();
+            const landY = barRect ? `${barRect.top + barRect.height / 2}px` : "40vh";
+            return (
+              <span
+                key={b.id}
+                className="absolute top-0 flex items-center justify-center rounded-full bg-gradient-to-br from-[#6cf8bb] to-[#34d399] text-[#001e40] font-black text-sm w-10 h-10 shadow-[0_4px_14px_rgba(108,248,187,0.6)]"
+                style={{
+                  left: `${b.x}%`,
+                  animation: `pointBubbleFly 1200ms cubic-bezier(0.34,1.05,0.64,1) ${b.delay}ms forwards`,
+                  ["--bubble-land" as string]: landY,
+                }}
+              >
+                +{b.marks}
+              </span>
+            );
+          })}
+        </div>
+      )}
 
       {/* First-time student popup */}
       {showFirstQuizPopup && (
@@ -738,10 +869,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                       <span className="text-lg font-extrabold">{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"} completed</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 bg-[#e5eeff] text-[#001e40] px-4 py-2 rounded-full">
-                    <span className="material-symbols-outlined text-xl text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                    <span className="text-lg font-extrabold">{totalPoints} Points</span>
-                  </div>
+                  <ExperienceBar
+                    barRef={barRef}
+                    points={effectivePoints}
+                    level={displayedLevel}
+                    progressPct={levelProgressPct}
+                    justUpdated={displayPoints !== null && displayPoints !== totalPoints}
+                    wide
+                  />
                 </div>
               )}
             </section>
@@ -1007,10 +1142,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <div className="flex flex-wrap gap-2 mt-3">
               {quizBadge && quizBadge.streak > 0 && <div className="flex items-center gap-1.5 bg-[#ffddb4] text-[#291800] px-3 py-1.5 rounded-full text-sm font-extrabold"><span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>{quizBadge.streak}-day streak</div>}
               {quizBadge && quizBadge.image && <div className="flex items-center gap-1.5 bg-[#d3e4fe] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={quizBadge.image} alt={quizBadge.badge} className="w-6 h-6 object-contain" />{quizBadge.count} {quizBadge.count === 1 ? "quiz" : "quizzes"}</div>}
-              <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] px-3 py-1.5 rounded-full text-sm font-extrabold">
-                <span className="material-symbols-outlined text-base text-[#003366]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                {totalPoints} Points
-              </div>
+              <ExperienceBar
+                barRef={barRef}
+                points={effectivePoints}
+                level={displayedLevel}
+                progressPct={levelProgressPct}
+                justUpdated={displayPoints !== null && displayPoints !== totalPoints}
+              />
             </div>
           </section>
           <section className="mb-8">

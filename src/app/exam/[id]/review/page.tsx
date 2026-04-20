@@ -486,9 +486,16 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   const isStudent = userId === assignedToId;
+  // When a student goes back from a completed quiz, ferry the score into the
+  // home URL so the experience bar can animate the points flowing in. The
+  // student dashboard will replay the animation only once per paper (guarded
+  // by localStorage), then strip the params.
+  const canCelebrateBack = isStudent && isQuiz && (data?.markingStatus === "complete" || data?.markingStatus === "released") && (data?.score ?? 0) > 0;
   const backPath = assignedToId && !isStudent
     ? `/home/${userId}?view=progress&student=${assignedToId}`
-    : `/home/${userId}?view=progress`;
+    : canCelebrateBack
+      ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
+      : `/home/${userId}?view=progress`;
 
   if (loading) {
     return (

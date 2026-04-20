@@ -134,3 +134,17 @@ body {
   40%  { transform: scale(1.2); }
   100% { transform: scale(1); }
 }
+
+/* Point bubbles flowing from top of screen into the experience bar. */
+@keyframes pointBubbleFly {
+  0%   { transform: translate(-50%, -20vh) scale(0.6); opacity: 0; }
+  15%  { transform: translate(-50%, -10vh) scale(1.15); opacity: 1; }
+  80%  { transform: translate(-50%, calc(var(--bubble-land, 40vh))) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, calc(var(--bubble-land, 40vh))) scale(0.4); opacity: 0; }
+}
+
+/* Experience bar gets a brief glow pulse each time points land in it. */
+@keyframes xpBarPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(108, 248, 187, 0); }
+  50%      { box-shadow: 0 0 20px 4px rgba(108, 248, 187, 0.55); }
+}
