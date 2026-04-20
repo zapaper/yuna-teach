@@ -78,16 +78,20 @@ const PET_UNLOCK_POINTS: Record<string, number> = {
   qilin: 1750,
   // whitetiger: not point-gated, unlocked via settings.whitetiger flag.
 };
-// Crystal-gated pets — these are habitat-only creatures (no avatar version).
+// Crystal-gated pets — unlocked with parent-reviewed-quiz currency.
 const PET_UNLOCK_CRYSTALS: Record<string, number> = {
+  whitetiger: 10,
   boar: 10,
   pangolin: 10,
 };
 
 function isPetUnlocked(petId: string, totalPoints: number, crystals: number, whitetigerUnlocked: boolean, override: boolean): boolean {
   if (override) return true;
-  if (petId === "whitetiger") return whitetigerUnlocked;
-  if (petId in PET_UNLOCK_CRYSTALS) return crystals >= PET_UNLOCK_CRYSTALS[petId];
+  if (petId in PET_UNLOCK_CRYSTALS) {
+    // Whitetiger can also come from the legacy settings.whitetiger avatar flag.
+    if (petId === "whitetiger" && whitetigerUnlocked) return true;
+    return crystals >= PET_UNLOCK_CRYSTALS[petId];
+  }
   const threshold = PET_UNLOCK_POINTS[petId];
   if (threshold === undefined) return false;
   return totalPoints >= threshold;
@@ -312,7 +316,17 @@ const HABITATS: Habitat[] = [
           talk: "/avatars/tiger_talk.webm",
         },
       },
-      { id: "whitetiger", name: "White Tiger", video: "/avatars/whitetiger1.mp4" },
+      {
+        id: "whitetiger", name: "White Tiger",
+        video: "/avatars/whitetiger_smile.webm",
+        bg: "alpha",
+        animations: {
+          smile: "/avatars/whitetiger_smile.webm",
+          stretch: "/avatars/whitetiger_stretch.webm",
+          walk: "/avatars/whitetiger_walk.webm",
+          talk: "/avatars/whitetiger_talk.webm",
+        },
+      },
       {
         id: "bear", name: "Bear",
         video: "/avatars/bear_smile.webm",
