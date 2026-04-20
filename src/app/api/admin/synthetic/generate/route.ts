@@ -31,9 +31,13 @@ export async function POST(request: NextRequest) {
     if (!q.answer) return NextResponse.json({ error: "Missing original answer" }, { status: 400 });
     try {
       const variants = await generateSyntheticSynthesis(q.transcribedStem, q.answer);
+      // Empty options array (NOT 4-element) so the admin VariantEditor falls
+      // into the synthesis-answer branch instead of rendering a blank MCQ grid.
+      // The transformed sentence lives in `answer`; the save handler packs it
+      // into options[0] at write time.
       return NextResponse.json({
-        simple:  { stem: variants.simple.stem,  options: ["", "", "", ""], correctAnswer: 0, answer: variants.simple.answer,  keyword: variants.simple.keyword },
-        similar: { stem: variants.similar.stem, options: ["", "", "", ""], correctAnswer: 0, answer: variants.similar.answer, keyword: variants.similar.keyword },
+        simple:  { stem: variants.simple.stem,  options: [], correctAnswer: 0, answer: variants.simple.answer,  keyword: variants.simple.keyword },
+        similar: { stem: variants.similar.stem, options: [], correctAnswer: 0, answer: variants.similar.answer, keyword: variants.similar.keyword },
       });
     } catch (err) {
       console.error("[synthetic/generate] English synthesis failed", err);

@@ -373,13 +373,13 @@ Student flow:
 
 You will be given ONE original synthesis item — the prompt (two sentences + keyword) and the expected transformed answer. Infer the underlying grammar rule: relative clauses (who/whom/which/whose/that), conjunctions (although/because/despite/unless/since/so that/in order to), conditionals (if/unless), reported speech, active↔passive voice, comparatives, gerund↔finite, participial phrases, cleft sentences, etc.
 
-REPORTED SPEECH DETECTION: if the original item converts direct speech to reported speech (quotation marks in the input, a reporting verb like "said/asked/told"; or vice versa), apply the standard backshift rules in your variants. Include a past-perfect backshift at least once:
+REPORTED SPEECH DETECTION: if the original item converts direct speech to reported speech (quotation marks in the input, a reporting verb like "said/asked/told"; or vice versa), apply the standard backshift rules in your variants:
   Present simple  → past simple
   Present perfect → past perfect
   Past simple     → past perfect
   will            → would
   can/may/must    → could/might/had to
-Pronouns and time markers (today → that day, tomorrow → the next day, etc.) should also shift to match the reported frame. Make the "similar" variant specifically use a past-perfect backshift so the student practises that shape.
+Pronouns and time markers (today → that day, tomorrow → the next day, etc.) should also shift to match the reported frame. Across the TWO variants, RANDOMLY pick the backshift target for each: the tested tense should be EITHER past simple OR past perfect (varied, not always the same). Don't lock one variant to one shape — just let each variant land on whichever backshift the source sentence naturally produces.
 
 Produce TWO NEW practice items testing the SAME grammar rule with fresh sentence pairs. Primary-school-appropriate vocabulary; Singapore context OK (hawker centre, MRT, void deck, CCA) but not required.
 
