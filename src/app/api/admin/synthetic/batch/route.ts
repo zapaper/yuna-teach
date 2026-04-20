@@ -17,8 +17,11 @@ export async function GET(request: NextRequest) {
   // variants of variants. They're marked with examType: "Synthetic" on create,
   // and their titles all start with "[Synthetic Bank]".
   const notSyntheticBank = {
-    NOT: [{ examType: "Synthetic" }, { title: { startsWith: "[Synthetic Bank]" } }],
-  } as const;
+    NOT: [
+      { examType: "Synthetic" },
+      { title: { startsWith: "[Synthetic Bank]" } },
+    ],
+  };
 
   const isEnglish = subjectMatch === "english";
   const englishWhere = {
