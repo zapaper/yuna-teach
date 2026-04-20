@@ -497,7 +497,11 @@ function ExamReviewContent({ id }: { id: string }) {
       const isGrouped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
         label.includes("vocab cloze") || (label.includes("vocab") && label.includes("cloze")) ||
-        label.includes("synthesis") || label.includes("comprehension oeq") || label.includes("comprehension open");
+        label.includes("synthesis") || label.includes("comprehension oeq") || label.includes("comprehension open") ||
+        // Visual Text: the poster/article image is the passage, shared across all
+        // questions in the section. Grouping keeps the passage on top and lists
+        // all answers below instead of repeating the image per question.
+        (label.includes("visual") && label.includes("text"));
       if (isGrouped) {
         const secQs = data.questions.slice(sec.startIndex, sec.endIndex + 1);
         const hasRelevant = secQs.some(q => baseQuestions.some(bq => bq.id === q.id));
@@ -1178,6 +1182,7 @@ function ExamReviewContent({ id }: { id: string }) {
               const isSynthesis = currentSectionLabel.includes("synthesis");
               const isCompOeq = currentSectionLabel.includes("comprehension oeq") || currentSectionLabel.includes("comprehension open");
               const isVocabCloze = currentSectionLabel.includes("vocab") && currentSectionLabel.includes("cloze");
+              const isVisualText = currentSectionLabel.includes("visual") && currentSectionLabel.includes("text");
               const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
               const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
 
@@ -1457,8 +1462,8 @@ function ExamReviewContent({ id }: { id: string }) {
                                     <p className="text-xs text-[#43474f] mt-1">{q.markingNotes.split("|").pop()?.trim()}</p>
                                   )}
                                 </div>
-                              ) : isVocabCloze && q.transcribedOptions && q.transcribedOptions.length > 0 ? (
-                                /* Vocab Cloze — MCQ-style with stem + options */
+                              ) : (isVocabCloze || isVisualText) && q.transcribedOptions && q.transcribedOptions.length > 0 ? (
+                                /* Vocab Cloze / Visual Text — MCQ-style with stem + options */
                                 <div className="space-y-2">
                                   {q.transcribedStem && (
                                     <p className="text-sm text-[#0b1c30] leading-relaxed whitespace-pre-wrap">{q.transcribedStem.replace(/__([^_]+)__/g, "______")}</p>

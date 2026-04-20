@@ -130,7 +130,6 @@ function QuizContent({ id }: { id: string }) {
   const [mcqScore, setMcqScore] = useState<{ correct: number; total: number; marksEarned: number; marksTotal: number } | null>(null);
   const [displayedMarks, setDisplayedMarks] = useState(0);
   const [scorePopups, setScorePopups] = useState<{ id: number; marks: number }[]>([]);
-  const [scoreShakeKey, setScoreShakeKey] = useState(0);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
@@ -204,7 +203,9 @@ function QuizContent({ id }: { id: string }) {
     let running = 0;
     const timers: number[] = [];
     const STAGGER_MS = 700;
-    const START_DELAY_MS = 600;
+    // Give the submission screen time to paint before the first "+N" fires —
+    // otherwise the first couple pop before the user even sees the score card.
+    const START_DELAY_MS = 1500;
     const POPUP_LIFETIME_MS = 1000;
     for (let i = 0; i < mcqScore.correct; i++) {
       timers.push(window.setTimeout(() => {
@@ -212,7 +213,6 @@ function QuizContent({ id }: { id: string }) {
         const id = Date.now() + i;
         setScorePopups(prev => [...prev, { id, marks: per }]);
         setDisplayedMarks(Math.min(running, mcqScore.marksEarned));
-        setScoreShakeKey(k => k + 1);
         // Short haptic buzz on mobile — ignored on desktop and by browsers that block it.
         if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
           try { navigator.vibrate(35); } catch { /* ignore */ }
@@ -588,11 +588,7 @@ function QuizContent({ id }: { id: string }) {
           <p className="text-sm text-[#43474f] mb-6">Time: {formatTime(elapsed)}</p>
 
           {mcqScore && mcqScore.total > 0 && (
-            <div
-              key={`score-card-${scoreShakeKey}`}
-              className="bg-[#eff4ff] rounded-2xl p-6 mb-4 relative overflow-visible"
-              style={{ animation: scoreShakeKey > 0 ? "plusScoreShake 320ms ease-out" : undefined }}
-            >
+            <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4 relative overflow-visible">
               <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-2">MCQ Score</p>
               <p className="font-headline text-5xl font-black text-[#001e40]">{displayedMarks}<span className="text-2xl font-bold text-[#43474f]"> / {mcqScore.marksTotal} marks</span></p>
               <p className="text-sm font-bold text-[#006c49] mt-2">{mcqScore.marksTotal > 0 ? Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100) : 0}% &middot; {mcqScore.correct}/{mcqScore.total} questions</p>
@@ -601,7 +597,7 @@ function QuizContent({ id }: { id: string }) {
                 {scorePopups.map(p => (
                   <span
                     key={p.id}
-                    className="absolute left-1/2 top-0 text-5xl font-black text-[#6cf8bb] drop-shadow-[0_2px_8px_rgba(108,248,187,0.7)]"
+                    className="absolute left-1/2 top-0 text-5xl font-black text-[#6cf8bb]"
                     style={{ animation: "plusScorePop 900ms cubic-bezier(0.22,1.15,0.36,1) forwards" }}
                   >
                     +{p.marks}
