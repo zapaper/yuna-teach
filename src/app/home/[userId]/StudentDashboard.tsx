@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
-import { playClick } from "@/lib/sfx";
+import { playClick, playExp } from "@/lib/sfx";
 
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
 const POINTS_PER_LEVEL = 100;
@@ -600,7 +600,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
           try { navigator.vibrate(20); } catch { /* ignore */ }
         }
-        // Per feedback: no coin chime on bubble landing — keep it tactile only.
+        // Soft "whoosh" each time a bubble enters the XP bar.
+        playExp();
       }, b.delay + 950);
     });
     const settleDelay = spawned[spawned.length - 1]!.delay + 1400;

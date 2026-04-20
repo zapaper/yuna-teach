@@ -17,6 +17,19 @@ export function playPointChime(volume = 0.35): void {
 }
 
 /**
+ * XP bubble landing "whoosh" — plays when each green bubble enters the
+ * experience bar on the home page. Tries /sounds/exp.mp3, no synth fallback
+ * (bubbles should stay silent if the asset is missing).
+ */
+export function playExp(volume = 0.25): void {
+  try {
+    const audio = new Audio("/sounds/exp.mp3");
+    audio.volume = volume;
+    audio.play().catch(() => { /* no fallback — keep it silent if blocked */ });
+  } catch { /* ignore */ }
+}
+
+/**
  * Satisfying soft "click" — for buttons like Quiz tile, Back, Submit. Tries
  * /sounds/click.mp3 first, then falls back to a short filtered synth burst.
  */
