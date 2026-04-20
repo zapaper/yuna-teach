@@ -131,7 +131,6 @@ function QuizContent({ id }: { id: string }) {
   const [displayedMarks, setDisplayedMarks] = useState(0);
   const [scoreJumpKey, setScoreJumpKey] = useState(0);
   const [scorePopups, setScorePopups] = useState<{ id: number; marks: number }[]>([]);
-  const [finalPct, setFinalPct] = useState<number | null>(null);
   const [markingOeq, setMarkingOeq] = useState(false);
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
@@ -244,12 +243,6 @@ function QuizContent({ id }: { id: string }) {
         if (!res.ok) return;
         const data = await res.json();
         if (data.markingStatus === "complete" || data.markingStatus === "released") {
-          // Capture the final percentage so the Review button can decide whether
-          // to fire the ≥90% confetti celebration.
-          const qs = (data.questions ?? []) as Array<{ marksAwarded: number | null; marksAvailable: number | null }>;
-          const total = qs.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
-          const earned = qs.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
-          if (total > 0) setFinalPct(Math.round((earned / total) * 100));
           setMarkingDone(true);
           if (pollRef.current) clearInterval(pollRef.current);
         }
@@ -258,48 +251,10 @@ function QuizContent({ id }: { id: string }) {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [markingOeq, markingDone, id]);
 
-  // MCQ-only quiz (no OEQ polling): seed finalPct from mcqScore directly.
-  useEffect(() => {
-    if (!markingOeq && mcqScore && mcqScore.marksTotal > 0) {
-      setFinalPct(Math.round((mcqScore.marksEarned / mcqScore.marksTotal) * 100));
-    }
-  }, [mcqScore, markingOeq]);
-
-  // Fire a confetti + star volley when the student hits ≥ 90%, then navigate.
-  async function goToReviewWithCelebration() {
-    const reviewUrl = `/exam/${id}/review?userId=${userId}${diagnosticSuffix}`;
-    if (finalPct != null && finalPct >= 90) {
-      try {
-        const confetti = (await import("canvas-confetti")).default;
-        // Main volley from top-middle
-        confetti({
-          particleCount: 120,
-          spread: 80,
-          startVelocity: 50,
-          origin: { x: 0.5, y: 0.15 },
-          colors: ["#6cf8bb", "#ffd700", "#ff6ec7", "#7fd1ff", "#a78bfa"],
-        });
-        // Star volley from the two top corners, slightly delayed
-        setTimeout(() => {
-          confetti({
-            particleCount: 40, spread: 70, startVelocity: 45,
-            origin: { x: 0.1, y: 0.2 },
-            shapes: ["star"],
-            colors: ["#ffd700", "#fff4a3", "#ffb800"],
-          });
-          confetti({
-            particleCount: 40, spread: 70, startVelocity: 45,
-            origin: { x: 0.9, y: 0.2 },
-            shapes: ["star"],
-            colors: ["#ffd700", "#fff4a3", "#ffb800"],
-          });
-        }, 250);
-      } catch { /* confetti optional — never block navigation */ }
-      // Let the volley play for a beat before navigating.
-      setTimeout(() => router.push(reviewUrl), 900);
-      return;
-    }
-    router.push(reviewUrl);
+  function goToReviewWithCelebration() {
+    // Confetti for ≥90% now fires on the review page itself (after it loads),
+    // so the celebration never lands on top of a marking-in-progress spinner.
+    router.push(`/exam/${id}/review?userId=${userId}${diagnosticSuffix}`);
   }
 
   if (loading) {

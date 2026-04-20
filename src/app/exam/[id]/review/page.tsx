@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, use } from "react";
+import { Suspense, useEffect, useRef, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
 import FormattedText from "@/components/FormattedText";
@@ -149,6 +149,47 @@ function ExamReviewContent({ id }: { id: string }) {
     if (data.markingStatus !== "complete" && data.markingStatus !== "released") return;
     setShowFirstQuizPopup(true);
   }, [isDiagnostic, data, isQuiz]);
+
+  // Fire a confetti + star volley once, when the review page finishes loading
+  // and the student's final percentage is ≥ 90%. Ref guard prevents re-firing
+  // on re-renders (e.g. after parent mark edits).
+  const celebrationFiredRef = useRef(false);
+  useEffect(() => {
+    if (!data || celebrationFiredRef.current) return;
+    if (data.markingStatus !== "complete" && data.markingStatus !== "released") return;
+    const rawTotal = totalMarks ? Number(totalMarks) : null;
+    if (!rawTotal || rawTotal <= 0) return;
+    const skippedMarks = data.questions
+      .filter(q => q.studentAnswer === "__SKIPPED__")
+      .reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+    const totalM = Math.max(0, rawTotal - skippedMarks);
+    if (totalM <= 0) return;
+    const pctValue = Math.min(100, Math.round(((data.score ?? 0) / totalM) * 100));
+    if (pctValue < 90) return;
+    celebrationFiredRef.current = true;
+    (async () => {
+      try {
+        const confetti = (await import("canvas-confetti")).default;
+        confetti({
+          particleCount: 120, spread: 80, startVelocity: 50,
+          origin: { x: 0.5, y: 0.15 },
+          colors: ["#6cf8bb", "#ffd700", "#ff6ec7", "#7fd1ff", "#a78bfa"],
+        });
+        setTimeout(() => {
+          confetti({
+            particleCount: 40, spread: 70, startVelocity: 45,
+            origin: { x: 0.1, y: 0.2 },
+            shapes: ["star"], colors: ["#ffd700", "#fff4a3", "#ffb800"],
+          });
+          confetti({
+            particleCount: 40, spread: 70, startVelocity: 45,
+            origin: { x: 0.9, y: 0.2 },
+            shapes: ["star"], colors: ["#ffd700", "#fff4a3", "#ffb800"],
+          });
+        }, 250);
+      } catch { /* canvas-confetti optional */ }
+    })();
+  }, [data, totalMarks]);
 
   useEffect(() => {
     async function fetchData() {
