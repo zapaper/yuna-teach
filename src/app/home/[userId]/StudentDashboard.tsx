@@ -138,7 +138,8 @@ function ExperienceBar({ points, level, progressPct, justUpdated, wide, crystals
         </div>
       </div>
       <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-2xl px-3 self-stretch" title="Crystals — earned per parent-reviewed quiz">
-        <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-7 h-7 object-contain" style={{ mixBlendMode: "lighten" }} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/stickers/crystal.png" alt="crystal" className="w-7 h-7 object-contain" style={{ mixBlendMode: "screen" }} />
         <span className="text-sm font-extrabold">{crystals}</span>
       </div>
     </div>
@@ -243,10 +244,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; startX: number; startY: number; endX: number; endY: number; delay: number }>>([]);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
-  // Habitats feature — OFF by default (bunny-on-jungle shows the multiply-blend
-  // problem: a white character disappears over any background). Re-enable via
-  // the Student Settings toggle once we've got transparent/black-bg pet assets.
-  const habitatsEnabled = (user.settings as Record<string, unknown> | null)?.habitats === true;
+  // Habitats feature — ON by default. Parents can turn it off in Student Settings.
+  const habitatsEnabled = (user.settings as Record<string, unknown> | null)?.habitats !== false;
   const [showHabitatUnlock, setShowHabitatUnlock] = useState(false);
   const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
   const canCreateQuiz = studentQuizMode !== "none";

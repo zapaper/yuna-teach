@@ -473,7 +473,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
         </button>
         <h1 className="font-headline font-extrabold text-lg text-[#001e40]">Habitats &amp; Pets</h1>
         <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-full pl-2 pr-3 py-1" title="Crystals — spend to unlock more habitats">
-          <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-7 h-7 object-contain" style={{ mixBlendMode: "lighten" }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/stickers/crystal.png" alt="crystal" className="w-7 h-7 object-contain" style={{ mixBlendMode: "screen" }} />
           <span className="text-sm font-extrabold">{crystals}</span>
         </div>
       </header>
@@ -501,7 +502,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                       <span className="material-symbols-outlined text-white text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
                       {(h.id === "fantasy" || h.id === "garden") && (
                         <div className="flex items-center gap-1 bg-white/90 rounded-full px-2 py-0.5">
-                          <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-4 h-4 object-contain" style={{ mixBlendMode: "multiply" }} />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src="/stickers/crystal.png" alt="crystal" className="w-4 h-4 object-contain" style={{ mixBlendMode: "screen" }} />
                           <span className="text-[10px] font-extrabold text-[#001e40]">30</span>
                         </div>
                       )}
@@ -576,7 +578,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
                       {!unlocked && crystalCost && (
                         <div className="flex items-center gap-0.5 bg-[#e5eeff] rounded-full px-1.5 py-0.5">
-                          <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-3 h-3 object-contain" style={{ mixBlendMode: "multiply" }} />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src="/stickers/crystal.png" alt="crystal" className="w-3 h-3 object-contain" style={{ mixBlendMode: "screen" }} />
                           <span className="text-[9px] font-extrabold text-[#001e40]">{crystalCost}</span>
                         </div>
                       )}
