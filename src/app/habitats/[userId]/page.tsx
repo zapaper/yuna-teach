@@ -64,16 +64,31 @@ function seededRandom(seed: number): () => number {
     return ((s >>> 0) % 100000) / 100000;
   };
 }
-// Pet unlock rules — expand as the rest of the feature comes online.
-// For now: Jungle habitat unlocks the Bunny as a starter pet at 200 pts.
-function isPetUnlocked(habitatId: string, petId: string, totalPoints: number): boolean {
-  if (habitatId === "jungle" && petId === "bunny") return totalPoints >= 200;
-  return false;
+// Pet unlock thresholds — mirror the avatar picker so any avatar unlocked at
+// home is also unlocked in the habitat.
+const PET_UNLOCK_POINTS: Record<string, number> = {
+  bunny: 0,
+  bear: 0,
+  tiger: 250,
+  fox: 500,
+  otter: 750,
+  uni: 1000,
+  dragon: 1250,
+  merlion: 1500,
+  qilin: 1750,
+  // whitetiger: not point-gated, unlocked via settings.whitetiger flag.
+};
+
+function isPetUnlocked(petId: string, totalPoints: number, whitetigerUnlocked: boolean): boolean {
+  if (petId === "whitetiger") return whitetigerUnlocked;
+  const threshold = PET_UNLOCK_POINTS[petId];
+  if (threshold === undefined) return false;
+  return totalPoints >= threshold;
 }
 // Compute positions + scales for the unlocked pets of a habitat, sorted
 // background-first so the JSX draw order matches depth.
-function placePets(habitat: Habitat, totalPoints: number) {
-  const unlocked = habitat.pets.filter(p => isPetUnlocked(habitat.id, p.id, totalPoints));
+function placePets(habitat: Habitat, totalPoints: number, whitetigerUnlocked: boolean) {
+  const unlocked = habitat.pets.filter(p => isPetUnlocked(p.id, totalPoints, whitetigerUnlocked));
   if (unlocked.length === 0) return [];
   const rand = seededRandom(hashString(habitat.id));
   const placed = unlocked.map(pet => {
@@ -90,12 +105,18 @@ function placePets(habitat: Habitat, totalPoints: number) {
 // Picks a random clip every few seconds. When the walk clip is playing, the
 // x-position eases to a new target inside the horizontal pet region; the
 // sprite flips horizontally when the direction of travel is to the right.
-function PetActor({ pet, startX, y, scale, widthPct }: {
+//
+// `positionsRef` is a shared bag of current x positions keyed by pet id. Each
+// actor writes its own position in and reads others' to gate the "talk"
+// action — talk only fires when another pet is within ~one avatar width,
+// and the sprite turns to face that neighbour.
+function PetActor({ pet, startX, y, scale, widthPct, positionsRef }: {
   pet: Pet;
   startX: number;
   y: number;
   scale: number;
   widthPct: number;
+  positionsRef: React.RefObject<Record<string, number>>;
 }) {
   const anims = pet.animations!;
   const clipKeys = Object.keys(anims) as Array<keyof PetAnimations>;
@@ -106,12 +127,31 @@ function PetActor({ pet, startX, y, scale, widthPct }: {
   const xRef = useRef(startX);
   xRef.current = x;
 
+  // Keep the shared positions bag in sync with our current x.
+  useEffect(() => {
+    if (positionsRef.current) positionsRef.current[pet.id] = x;
+  }, [x, pet.id, positionsRef]);
+
   useEffect(() => {
     let cancelled = false;
     let timer: number | null = null;
+    const TALK_RANGE_PCT = 18; // "one avatar width" on-landscape — ≈ widthPct + a little.
     function pick() {
       if (cancelled) return;
-      const next = clipKeys[Math.floor(Math.random() * clipKeys.length)] as keyof PetAnimations;
+      // Find the nearest other pet. Talk is only allowed when one is within
+      // TALK_RANGE_PCT horizontally; otherwise drop talk from the candidate list.
+      const others = positionsRef.current ?? {};
+      let nearestId: string | null = null;
+      let nearestX = 0;
+      let nearestDist = Infinity;
+      for (const [id, ox] of Object.entries(others)) {
+        if (id === pet.id) continue;
+        const d = Math.abs(ox - xRef.current);
+        if (d < nearestDist) { nearestDist = d; nearestX = ox; nearestId = id; }
+      }
+      const canTalk = nearestId !== null && nearestDist <= TALK_RANGE_PCT && !!anims.talk;
+      const candidates = clipKeys.filter(k => k !== "talk" || canTalk);
+      const next = candidates[Math.floor(Math.random() * candidates.length)] as keyof PetAnimations;
       setClip(next);
       if (next === "walk" && anims.walk) {
         // Pick a new target x within the region bounds and move there.
@@ -120,14 +160,18 @@ function PetActor({ pet, startX, y, scale, widthPct }: {
         const target = minX + Math.random() * (maxX - minX);
         const goingRight = target > xRef.current;
         const distance = Math.abs(target - xRef.current);
-        // ~3 seconds per 30% of width — steady, kid-friendly pace.
-        const ms = Math.max(2000, Math.round((distance / 30) * 3000));
+        // Slower: ~5s per 30% of width (was 3s). Keeps movement calm.
+        const ms = Math.max(3500, Math.round((distance / 30) * 5000));
         setFacingRight(goingRight);
         setWalkMs(ms);
         setX(target);
         timer = window.setTimeout(pick, ms + 400);
+      } else if (next === "talk" && canTalk) {
+        // Face the neighbour we're talking to.
+        setFacingRight(nearestX > xRef.current);
+        const hold = 3000 + Math.random() * 1500;
+        timer = window.setTimeout(pick, hold);
       } else {
-        // Idle clips play for 2.5–4s before the next pick.
         const hold = 2500 + Math.random() * 1500;
         timer = window.setTimeout(pick, hold);
       }
@@ -242,8 +286,11 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const [selectedId, setSelectedId] = useState<string>("jungle");
   const [isPortraitMobile, setIsPortraitMobile] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [whitetigerUnlocked, setWhitetigerUnlocked] = useState(false);
+  // Live positions of every rendered pet. PetActors write their own x here
+  // and read others' so "talk" only fires when a neighbour is in range.
+  const positionsRef = useRef<Record<string, number>>({});
 
-  // Compute total points so we can lock habitats the student hasn't earned yet.
   useEffect(() => {
     fetch(`/api/exam?userId=${userId}`)
       .then(r => r.json())
@@ -252,6 +299,14 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
           .filter((p: { completedAt?: string | null }) => p.completedAt)
           .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0);
         setTotalPoints(pts);
+      })
+      .catch(() => {});
+    // Fetch the user's settings for whitetiger unlock state.
+    fetch(`/api/users?userId=${userId}`)
+      .then(r => r.json())
+      .then(d => {
+        const settings = (d.user?.settings ?? {}) as Record<string, unknown>;
+        if (settings.whitetiger === true) setWhitetigerUnlocked(true);
       })
       .catch(() => {});
   }, [userId]);
@@ -347,9 +402,9 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
              * pets higher up in the region render first (background). Pets with
              * an animation set (walk/talk/stretch/smile) are handed to PetActor
              * which cycles through clips and walks around the landscape. */}
-            {placePets(selected, totalPoints).map(pet => (
+            {placePets(selected, totalPoints, whitetigerUnlocked).map(pet => (
               pet.animations ? (
-                <PetActor key={pet.id} pet={pet} startX={pet.xPct} y={pet.yPct} scale={pet.scale} widthPct={16} />
+                <PetActor key={pet.id} pet={pet} startX={pet.xPct} y={pet.yPct} scale={pet.scale} widthPct={16} positionsRef={positionsRef} />
               ) : (
                 <video
                   key={pet.id}
@@ -375,7 +430,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
             ) : (
               <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pb-6">
                 {selected.pets.map(pet => {
-                  const unlocked = isPetUnlocked(selected.id, pet.id, totalPoints);
+                  const unlocked = isPetUnlocked(pet.id, totalPoints, whitetigerUnlocked);
                   return (
                     <div
                       key={pet.id}
