@@ -328,7 +328,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const { userId } = use(params);
   const router = useRouter();
   const [selectedId, setSelectedId] = useState<string>("jungle");
-  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
   const [whitetigerUnlocked, setWhitetigerUnlocked] = useState(false);
   // Live positions of every rendered pet. PetActors write their own x here
@@ -361,14 +361,17 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
     return false;
   };
 
-  // Detect portrait-mobile so we can prompt to rotate — the layout needs
-  // horizontal space (landscape + sidebar) to breathe.
+  // Detect mobile (by screen width OR touch-only input). Habitats & Pets runs
+  // several simultaneous alpha videos plus a particle-heavy landscape; iOS
+  // Safari also has patchy alpha-WebM support. Gating the whole feature to
+  // desktop is simpler than shipping a compromised mobile experience.
   useEffect(() => {
     const check = () => {
       if (typeof window === "undefined") return;
-      const mobile = window.innerWidth < 768;
-      const portrait = window.innerHeight > window.innerWidth;
-      setIsPortraitMobile(mobile && portrait);
+      const narrow = window.innerWidth < 1024;
+      const touchOnly = typeof navigator !== "undefined"
+        && /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      setIsMobileDevice(narrow || touchOnly);
     };
     check();
     window.addEventListener("resize", check);
@@ -381,12 +384,12 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
 
   const selected = HABITATS.find(h => h.id === selectedId) ?? HABITATS[0];
 
-  if (isPortraitMobile) {
+  if (isMobileDevice) {
     return (
       <div className="fixed inset-0 bg-[#001e40] text-white flex flex-col items-center justify-center p-6 text-center">
-        <span className="material-symbols-outlined text-6xl mb-4 animate-pulse">screen_rotation</span>
-        <h1 className="font-headline font-extrabold text-xl mb-2">Rotate your device</h1>
-        <p className="text-sm opacity-80">Habitats &amp; Pets looks best in landscape mode.</p>
+        <span className="material-symbols-outlined text-6xl mb-4">desktop_windows</span>
+        <h1 className="font-headline font-extrabold text-xl mb-2">Desktop only</h1>
+        <p className="text-sm opacity-80 max-w-sm">Habitats &amp; Pets isn&apos;t available on mobile yet. Visit from a desktop or laptop to meet your pets.</p>
         <button onClick={() => router.push(`/home/${userId}`)} className="mt-6 px-4 py-2 rounded-xl bg-white/10 text-sm font-bold">
           Go back
         </button>
