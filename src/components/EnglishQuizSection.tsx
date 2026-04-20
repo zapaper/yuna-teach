@@ -648,7 +648,7 @@ function PassageLine({
 }
 
 /** Loads and displays Visual Text scanned page images */
-function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbackImage?: string }) {
+export function VisualTextImages({ passage, fallbackImage }: { passage: string; fallbackImage?: string }) {
   const [pageImages, setPageImages] = useState<string[]>([]);
 
   useEffect(() => {

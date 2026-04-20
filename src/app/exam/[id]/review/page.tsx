@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
 import FormattedText from "@/components/FormattedText";
+import { VisualTextImages } from "@/components/EnglishQuizSection";
 import React from "react";
 
 /** Submission image with spinner while loading */
@@ -1190,6 +1191,11 @@ function ExamReviewContent({ id }: { id: string }) {
                     }`}>{earnedMarks} / {totalMarks}</span>
                   </div>
 
+                  {/* Visual Text passage images — passage is stored as a sentinel
+                      like "[VISUAL_PAGES:paperId:0,1]" and resolved to scanned pages. */}
+                  {currentSection?.passage && currentSection.passage.startsWith("[VISUAL_") && (
+                    <VisualTextImages passage={currentSection.passage} fallbackImage={sectionQuestions[0]?.imageData ?? undefined} />
+                  )}
                   {/* Passage text */}
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
                     <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full">
