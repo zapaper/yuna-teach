@@ -373,13 +373,22 @@ Student flow:
 
 You will be given ONE original synthesis item — the prompt (two sentences + keyword) and the expected transformed answer. Infer the underlying grammar rule: relative clauses (who/whom/which/whose/that), conjunctions (although/because/despite/unless/since/so that/in order to), conditionals (if/unless), reported speech, active↔passive voice, comparatives, gerund↔finite, participial phrases, cleft sentences, etc.
 
-REPORTED SPEECH DETECTION: if the original item converts direct speech to reported speech (quotation marks in the input, a reporting verb like "said/asked/told"; or vice versa), apply the standard backshift rules in your variants:
+REPORTED SPEECH DETECTION: if the original item converts direct speech to reported speech (quotation marks in the input, a reporting verb like "said/asked/told"; or vice versa), apply the standard backshift table:
   Present simple  → past simple
   Present perfect → past perfect
   Past simple     → past perfect
   will            → would
   can/may/must    → could/might/had to
-Pronouns and time markers (today → that day, tomorrow → the next day, etc.) should also shift to match the reported frame. Across the TWO variants, RANDOMLY pick the backshift target for each: the tested tense should be EITHER past simple OR past perfect (varied, not always the same). Don't lock one variant to one shape — just let each variant land on whichever backshift the source sentence naturally produces.
+Pronouns and time markers (today → that day, tomorrow → the next day, etc.) shift to match the reported frame.
+
+CRITICAL — YOU MUST CONSTRUCT ONE VARIANT THAT TRIGGERS A PAST-PERFECT BACKSHIFT.
+Past perfect only appears in reported speech when the direct-speech clause is in PAST SIMPLE or PRESENT PERFECT. So:
+- Variant "simple" uses direct speech in PRESENT SIMPLE (backshift → past simple).
+  Example: She said, "I like apples." → She said that she liked apples.
+- Variant "similar" uses direct speech in PAST SIMPLE or PRESENT PERFECT (backshift → past perfect).
+  Example direct-speech clauses to mimic: "I went to the park.", "I have finished my work.", "I saw a dragon."
+  Example output: He said, "I finished my homework." → He said that he had finished his homework.
+Do NOT write both variants with present-simple direct speech — that produces no past-perfect practice. The "similar" variant MUST be a sentence pair whose correct answer contains "had + past participle".
 
 Produce TWO NEW practice items testing the SAME grammar rule with fresh sentence pairs. Primary-school-appropriate vocabulary; Singapore context OK (hawker centre, MRT, void deck, CCA) but not required.
 
