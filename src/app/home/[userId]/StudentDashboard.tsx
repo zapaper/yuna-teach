@@ -198,6 +198,10 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const whitetigerUnlocked = (user.settings as Record<string, unknown> | null)?.whitetiger === true;
   const [avatarSrc, setAvatarSrc] = useState(() => `/avatars/${avatarType}${Math.floor(Math.random() * 4) + 1}.mp4`);
   const [nextAvatarSrc, setNextAvatarSrc] = useState<string | null>(null);
+  // Mobile avatar uses `loop` and picks a single clip on mount. Keeping it on
+  // its own state means the desktop layout's onEnded → swap cascade can't
+  // reload the mobile video and flash a blank frame between sources.
+  const [mobileAvatarSrc] = useState(() => `/avatars/${avatarType}${Math.floor(Math.random() * 4) + 1}.mp4`);
   const avatarRef = useRef<HTMLVideoElement>(null);
   const nextAvatar = () => {
     const cur = avatarSrc;
@@ -1262,7 +1266,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <div className="flex items-center gap-3">
               {hasAvatar && (
                 <button onClick={() => setShowAvatarPicker(true)} className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 hover:border-[#003366] transition-all">
-                  <video src={avatarSrc} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
+                  <video src={mobileAvatarSrc} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
                 </button>
               )}
               <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>

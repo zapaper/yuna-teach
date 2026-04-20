@@ -8,8 +8,16 @@ type Habitat = {
   name: string;
   image: string;
   thumb: string;
-  pets: Array<{ id: string; name: string; video: string }>;
+  pets: Array<{ id: string; name: string; video: string; bg?: "white" | "black" }>;
 };
+// Pet videos come with either a white studio background (most existing avatars)
+// or a black one (some of the new pet-only assets). Pick a blend mode per bg so
+// either overlays cleanly on the landscape.
+//   white bg  → multiply (white becomes transparent)
+//   black bg  → screen   (black becomes transparent)
+function petBlendMode(bg?: "white" | "black"): "multiply" | "screen" {
+  return bg === "black" ? "screen" : "multiply";
+}
 
 // Placement region for unlocked pets on the landscape (was the teal marker).
 // Top 55%, height 20% → bottom 75% of the image.
@@ -220,7 +228,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                   top: `${pet.yPct}%`,
                   width: `${16 * pet.scale}%`,
                   transform: "translate(-50%, -50%)",
-                  mixBlendMode: "multiply",
+                  mixBlendMode: petBlendMode(pet.bg),
                 }}
               />
             ))}
@@ -247,7 +255,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                         src={pet.video}
                         autoPlay loop muted playsInline
                         className="w-full aspect-square object-contain pointer-events-none"
-                        style={{ mixBlendMode: "multiply" }}
+                        style={{ mixBlendMode: petBlendMode(pet.bg) }}
                       />
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
                     </div>
