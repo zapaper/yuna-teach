@@ -137,8 +137,8 @@ function ExperienceBar({ points, level, progressPct, justUpdated, wide, crystals
           />
         </div>
       </div>
-      <div className="flex items-center gap-1 bg-[#e5eeff] text-[#001e40] rounded-2xl px-2.5 py-1.5" title="Crystals — earned per parent-reviewed quiz">
-        <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-6 h-6 object-contain" />
+      <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-2xl px-3 self-stretch" title="Crystals — earned per parent-reviewed quiz">
+        <video src="/stickers/crystal.mp4" autoPlay loop muted playsInline className="w-7 h-7 object-contain" style={{ mixBlendMode: "lighten" }} />
         <span className="text-sm font-extrabold">{crystals}</span>
       </div>
     </div>
