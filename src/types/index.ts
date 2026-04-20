@@ -7,11 +7,11 @@ export interface User {
   email: string | null;
   role: Role;
   level: number | null;
-  settings?: { avatar?: boolean; avatarType?: string; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; studentQuizMode?: string } | null;
+  settings?: { avatar?: boolean; avatarType?: string; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; studentQuizMode?: string; habitats?: boolean } | null;
   createdAt: string;
   emailVerified?: boolean;
   subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
-  linkedStudents: { id: string; name: string; level?: number | null; settings?: { avatar?: boolean; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; studentQuizMode?: string } | null }[];
+  linkedStudents: { id: string; name: string; level?: number | null; settings?: { avatar?: boolean; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; studentQuizMode?: string; habitats?: boolean } | null }[];
   linkedParents: { id: string; name: string }[];
 }
 

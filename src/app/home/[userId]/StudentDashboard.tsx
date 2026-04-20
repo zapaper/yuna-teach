@@ -8,11 +8,25 @@ import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
 const POINTS_PER_LEVEL = 100;
 
-// Soft synthesized "chime" for each point bubble landing in the XP bar.
-// Works without any audio asset — the tone is a short rising sine with
-// quick attack / gentle decay. Silently skipped if the browser lacks
-// AudioContext or blocks it pre-gesture.
+// Habitats & pets — unlocks at 200 points. First habitat awarded: Jungle.
+const HABITAT_UNLOCK_POINTS = 200;
+const FIRST_HABITAT = { id: "jungle", name: "Jungle", image: "/avatars/landscape_jungle.png" };
+
+// Soft "power-up" for each point bubble landing in the XP bar.
+// Tries /sounds/point.mp3 first (if present) for a recognisable coin-pickup
+// feel; falls back to a synthesized Web Audio chime so something always plays
+// even without an asset. Either path silently no-ops on platform blocks.
 function playPointChime() {
+  try {
+    const audio = new Audio("/sounds/point.mp3");
+    audio.volume = 0.35;
+    audio.play().catch(() => playSynthChime());
+  } catch {
+    playSynthChime();
+  }
+}
+
+function playSynthChime() {
   try {
     const Ctx = (window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext);
     if (!Ctx) return;
@@ -247,9 +261,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   // replaying the animation.
   const animationTriggeredRef = useRef(false);
   const [displayPoints, setDisplayPoints] = useState<number | null>(null);
+  const [barPulsing, setBarPulsing] = useState(false);
   const [bubbles, setBubbles] = useState<Array<{ id: number; marks: number; startX: number; startY: number; endX: number; endY: number; delay: number }>>([]);
   const [showArena, setShowArena] = useState(false);
   const hasArena = (user.settings as Record<string, unknown> | null)?.pvp === true;
+  // Habitats feature — default ON for the student unless parent turns it off.
+  const habitatsSetting = (user.settings as Record<string, unknown> | null)?.habitats;
+  const habitatsEnabled = habitatsSetting !== false;
+  const [showHabitatUnlock, setShowHabitatUnlock] = useState(false);
   const studentQuizMode = ((user.settings as Record<string, unknown> | null)?.studentQuizMode as string) ?? "all";
   const canCreateQuiz = studentQuizMode !== "none";
   // Fixed battle sequence: attack, attack, defend, attack, kill
@@ -534,6 +553,17 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const levelProgressPct = ((effectivePoints % POINTS_PER_LEVEL) / POINTS_PER_LEVEL) * 100;
   const displayedLevel = Math.floor(effectivePoints / POINTS_PER_LEVEL);
 
+  // Habitat-unlock popup at 200 points — once per student.
+  useEffect(() => {
+    if (!habitatsEnabled) return;
+    if (typeof window === "undefined") return;
+    const key = `mfy-habitat-unlocked-${userId}`;
+    if (localStorage.getItem(key)) return;
+    if (totalPoints < HABITAT_UNLOCK_POINTS) return;
+    localStorage.setItem(key, "1");
+    setShowHabitatUnlock(true);
+  }, [totalPoints, habitatsEnabled, userId]);
+
   // Trigger the points-flowing-in animation once per paper — BUT only after
   // examPapers loads and totalPoints includes the new quiz score. Initial
   // render has examPapers=[], totalPoints=0, which is why the bar was
@@ -564,6 +594,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     // Hold the counter at (total − new) so bubbles can fill it in.
     const startPoints = Math.max(0, totalPoints - newPoints);
     setDisplayPoints(startPoints);
+    setBarPulsing(true);
 
     const bubbleCount = Math.min(Math.max(newPoints, 1), 15);
     const perBubble = Math.max(1, Math.round(newPoints / bubbleCount));
@@ -605,6 +636,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     timers.push(window.setTimeout(() => {
       setDisplayPoints(totalPoints);
       setBubbles([]);
+      setBarPulsing(false);
     }, settleDelay));
     return () => { timers.forEach(t => window.clearTimeout(t)); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -652,6 +684,30 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   return (
     <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen overflow-x-hidden">
+      {/* Habitat unlock popup at 200 points */}
+      {showHabitatUnlock && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4" onClick={() => setShowHabitatUnlock(false)}>
+          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center" onClick={e => e.stopPropagation()}>
+            <div className="w-16 h-16 rounded-full bg-[#6cf8bb]/30 flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-outlined text-3xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+            </div>
+            <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Habitats &amp; Pets unlocked!</h2>
+            <p className="text-sm text-[#43474f] mb-4">Congratulations! You are given your first habitat: <span className="font-bold text-[#006c49]">{FIRST_HABITAT.name}</span>.</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={FIRST_HABITAT.image} alt={FIRST_HABITAT.name} className="w-full rounded-2xl border-2 border-[#6cf8bb]/40 mb-5" />
+            <div className="flex gap-3">
+              <button onClick={() => setShowHabitatUnlock(false)} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold text-sm">Later</button>
+              <button
+                onClick={() => { setShowHabitatUnlock(false); router.push(`/habitats/${userId}`); }}
+                className="flex-1 py-3 rounded-xl bg-[#006c49] text-white font-extrabold text-sm"
+              >
+                Visit my habitat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Point bubbles swooping from top-right into the experience bar */}
       {bubbles.length > 0 && (
         <div className="fixed inset-0 z-[90] pointer-events-none">
@@ -660,7 +716,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               key={b.id}
               className="absolute top-0 left-0 rounded-full bg-gradient-to-br from-[#6cf8bb] to-[#34d399] w-3 h-3 shadow-[0_2px_6px_rgba(108,248,187,0.6)]"
               style={{
-                animation: `pointBubbleFly 1100ms cubic-bezier(0.4,0.9,0.5,1) ${b.delay}ms forwards`,
+                // animation-fill-mode: both — hold the 0% keyframe (start position,
+                // opacity 0) during the stagger delay, otherwise the bubble renders
+                // at top:0/left:0 until its turn arrives and you see dots at the
+                // top-left corner. "both" covers that pre-animation gap.
+                animation: `pointBubbleFly 1100ms cubic-bezier(0.4,0.9,0.5,1) ${b.delay}ms both`,
                 ["--bubble-start-x" as string]: `${b.startX}px`,
                 ["--bubble-start-y" as string]: `${b.startY}px`,
                 ["--bubble-end-x" as string]: `${b.endX}px`,
@@ -923,7 +983,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     points={effectivePoints}
                     level={displayedLevel}
                     progressPct={levelProgressPct}
-                    justUpdated={displayPoints !== null && displayPoints !== totalPoints}
+                    justUpdated={barPulsing}
                     wide
                   />
                 </div>
@@ -1033,6 +1093,23 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     )}
                   </div>
                 )}
+              </section>
+            )}
+
+            {/* Habitats & pets CTA — unlocks at 200 pts */}
+            {habitatsEnabled && totalPoints >= HABITAT_UNLOCK_POINTS && (
+              <section className="mt-8">
+                <button
+                  onClick={() => router.push(`/habitats/${userId}`)}
+                  className="flex items-center gap-3 w-full p-5 rounded-3xl bg-gradient-to-r from-[#6cf8bb]/20 to-[#a7c8ff]/20 border border-[#6cf8bb]/40 hover:from-[#6cf8bb]/35 hover:to-[#a7c8ff]/35 transition-colors text-left"
+                >
+                  <span className="material-symbols-outlined text-3xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+                  <div className="flex-1">
+                    <p className="font-headline font-extrabold text-[#001e40]">Go to habitats and pets</p>
+                    <p className="text-xs text-[#43474f]">Visit your unlocked habitats and meet the pets that live there.</p>
+                  </div>
+                  <span className="material-symbols-outlined text-[#001e40]">arrow_forward</span>
+                </button>
               </section>
             )}
 
@@ -1195,7 +1272,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 points={effectivePoints}
                 level={displayedLevel}
                 progressPct={levelProgressPct}
-                justUpdated={displayPoints !== null && displayPoints !== totalPoints}
+                justUpdated={barPulsing}
               />
             </div>
           </section>
@@ -1217,6 +1294,23 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           </section>
           {/* Spelling tests moved to /spelling page */}
           {completedPapers.length > 0 && <section className="mb-8"><button onClick={() => setShowPastWork(!showPastWork)} className="flex items-center gap-1 text-xs font-bold text-[#43474f] mb-3"><span className="material-symbols-outlined text-sm">{showPastWork ? "expand_less" : "expand_more"}</span>Past Work ({completedPapers.length})</button>{showPastWork && <div className="space-y-2">{completedPapers.slice(0, pastWorkLimit).map(p => { const pct = scorePct(p); return <div key={p.id} onClick={() => router.push(`/exam/${p.id}/review?userId=${userId}`)} className="flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm cursor-pointer"><div className="w-9 h-9 rounded-lg bg-[#eff4ff] flex items-center justify-center text-[#001e40] shrink-0"><span className="material-symbols-outlined text-base">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-xs text-[#001e40] truncate">{p.title}</p><p className="text-[10px] text-[#43474f]">{relativeDate(p.completedAt!)}</p></div>{pct !== null && <span className={`font-extrabold text-xs ${pct >= 75 ? "text-[#006c49]" : pct >= 50 ? "text-[#d58d00]" : "text-[#ba1a1a]"}`}>{pct}%</span>}</div>; })}{completedPapers.length > pastWorkLimit && <button onClick={() => setPastWorkLimit(l => l + 20)} className="w-full py-2.5 text-xs font-bold text-[#003366] bg-[#eff4ff] rounded-xl hover:bg-[#dce9ff] transition-colors">See more ({completedPapers.length - pastWorkLimit} remaining)</button>}</div>}</section>}
+
+          {/* Habitats & pets CTA — mobile */}
+          {habitatsEnabled && totalPoints >= HABITAT_UNLOCK_POINTS && (
+            <section className="mb-8">
+              <button
+                onClick={() => router.push(`/habitats/${userId}`)}
+                className="flex items-center gap-3 w-full p-4 rounded-2xl bg-gradient-to-r from-[#6cf8bb]/20 to-[#a7c8ff]/20 border border-[#6cf8bb]/40"
+              >
+                <span className="material-symbols-outlined text-2xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>pets</span>
+                <div className="flex-1 text-left">
+                  <p className="font-bold text-sm text-[#001e40]">Go to habitats and pets</p>
+                  <p className="text-[10px] text-[#43474f]">See your unlocked habitats.</p>
+                </div>
+                <span className="material-symbols-outlined text-lg text-[#001e40]">arrow_forward</span>
+              </button>
+            </section>
+          )}
 
           {/* Arena Battle — mobile */}
           {hasArena && arenaData && (

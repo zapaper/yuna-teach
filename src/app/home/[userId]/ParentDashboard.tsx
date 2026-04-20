@@ -2166,10 +2166,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 space-y-4">
                     {[
                       { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
+                      { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points. Unlocks at 200 points.", defaultOn: true },
                       { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
                       { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
                     ].map(item => {
-                      const isOn = selectedStudent?.settings?.[item.key] === true;
+                      const stored = selectedStudent?.settings?.[item.key];
+                      const isOn = "defaultOn" in item && item.defaultOn ? stored !== false : stored === true;
                       return (
                         <div key={item.key} className="flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
@@ -2591,10 +2593,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       <div className="space-y-5">
                         {[
                           { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
+                          { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points. Unlocks at 200 points.", defaultOn: true },
                           { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
                           { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
                         ].map(item => {
-                          const isOn = selectedStudent?.settings?.[item.key] === true;
+                          const stored = selectedStudent?.settings?.[item.key];
+                          const isOn = "defaultOn" in item && item.defaultOn ? stored !== false : stored === true;
                           return (
                             <div key={item.key} className="flex items-center justify-between">
                               <div>
