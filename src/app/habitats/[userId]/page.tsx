@@ -258,16 +258,19 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
     transform,
   };
   const blend = petBlendMode(pet.bg);
-  // Serve both sources. Safari/iOS pick HEVC .mov (hardware decode), Chrome/
-  // Firefox fall through to VP9 alpha .webm (also hardware on most GPUs).
-  // MOV listed first so Safari picks its native fast path.
-  const sourceSet = (webmPath: string | undefined) => {
-    if (!webmPath) return null;
-    const mov = webmPath.replace(/\.webm$/i, ".mov");
+  // Serve the right sources per clip format:
+  //   .webm  → dual source with .mov fallback (Safari picks MOV, others WebM)
+  //   .mp4   → plain <source type="video/mp4"> (opaque clip, no transparency)
+  const sourceSet = (path: string | undefined) => {
+    if (!path) return null;
+    if (/\.mp4$/i.test(path)) {
+      return <source src={path} type="video/mp4" />;
+    }
+    const mov = path.replace(/\.webm$/i, ".mov");
     return (
       <>
         <source src={mov} type="video/quicktime" />
-        <source src={webmPath} type="video/webm" />
+        <source src={path} type="video/webm" />
       </>
     );
   };
@@ -356,9 +359,36 @@ const HABITATS: Habitat[] = [
     image: "/avatars/landscape_fantasy.jpeg",
     thumb: "/avatars/landscape_fantasy_thumb.webp",
     pets: [
-      { id: "uni",    name: "Unicorn", video: "/avatars/uni1.mp4" },
-      { id: "dragon", name: "Dragon",  video: "/avatars/dragon1.mp4" },
-      { id: "qilin",  name: "Qilin",   video: "/avatars/qilin1.mp4" },
+      {
+        id: "uni", name: "Unicorn",
+        video: "/avatars/unicorn_smile.mp4",
+        animations: {
+          smile: "/avatars/unicorn_smile.mp4",
+          stretch: "/avatars/unicorn_stretch.mp4",
+          walk: "/avatars/unicorn_walk.mp4",
+          talk: "/avatars/unicorn_talk.mp4",
+        },
+      },
+      {
+        id: "dragon", name: "Dragon",
+        video: "/avatars/dragon_smile.mp4",
+        animations: {
+          smile: "/avatars/dragon_smile.mp4",
+          stretch: "/avatars/dragon_stretch.mp4",
+          walk: "/avatars/dragon_walk.mp4",
+          talk: "/avatars/dragon_talk.mp4",
+        },
+      },
+      {
+        id: "qilin", name: "Qilin",
+        video: "/avatars/qilin_smile.mp4",
+        animations: {
+          smile: "/avatars/qilin_smile.mp4",
+          stretch: "/avatars/qilin_stretch.mp4",
+          walk: "/avatars/qilin_walk.mp4",
+          talk: "/avatars/qilin_talk.mp4",
+        },
+      },
     ],
   },
   {
@@ -377,7 +407,16 @@ const HABITATS: Habitat[] = [
           talk: "/avatars/otter_talk.webm",
         },
       },
-      { id: "merlion", name: "Merlion", video: "/avatars/merlion1.mp4" },
+      {
+        id: "merlion", name: "Merlion",
+        video: "/avatars/merlion_smile.mp4",
+        animations: {
+          smile: "/avatars/merlion_smile.mp4",
+          stretch: "/avatars/merlion_stretch.mp4",
+          walk: "/avatars/merlion_walk.mp4",
+          talk: "/avatars/merlion_talk.mp4",
+        },
+      },
       {
         id: "boar", name: "Boar",
         video: "/avatars/boar_smile.webm",
