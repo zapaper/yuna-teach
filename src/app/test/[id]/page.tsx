@@ -473,6 +473,9 @@ function TestPageContent({ id }: { id: string }) {
               play_arrow
             </span>
           </button>
+          <p className="text-xs text-[#43474f] font-medium text-center mt-3">
+            Please check your strokes/spelling carefully.
+          </p>
         </div>
 
         <footer className="mt-12 text-center">
