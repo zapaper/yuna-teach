@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
     transcribedSubparts: true,
     diagramImageData: true,
     diagramBounds: true,
+    sourceQuestionId: true,
     examPaper: {
       select: { year: true, examType: true, school: true, level: true },
     },
@@ -139,15 +140,26 @@ export async function POST(request: NextRequest) {
       .trim();
   }
 
-  // ── MCQ pool: deduplicate by normalised stem (fall back to question id for image-only Qs) ─
-  const mcqStemMap = new Map<string, Q>();
+  // ── MCQ pool: deduplicate by lineage + normalised stem ──
+  // Lineage: a synthetic-bank question carries sourceQuestionId pointing back
+  // to the original ExamQuestion. Both `simple` and `similar` variants share
+  // that lineage, AND the source's own id equals that lineage. So the source
+  // and its variants collapse to ONE entry. This matters because `simple` has
+  // a stem nearly identical to the source (only numbers change) which the
+  // stem-normaliser alone can't collapse for math.
+  const mcqPool: Q[] = [];
+  const seenMcqLineages = new Set<string>();
+  const seenMcqStems = new Set<string>();
   for (const q of allQuestions) {
     if (!hasOptions(q)) continue;
+    const lineage = q.sourceQuestionId || q.id;
+    if (seenMcqLineages.has(lineage)) continue;
     const norm = normaliseStem(q.transcribedStem ?? "");
-    const key = norm || `__img::${q.id}`;
-    if (!mcqStemMap.has(key)) mcqStemMap.set(key, q);
+    if (norm && seenMcqStems.has(norm)) continue;
+    seenMcqLineages.add(lineage);
+    if (norm) seenMcqStems.add(norm);
+    mcqPool.push(q);
   }
-  const mcqPool = [...mcqStemMap.values()];
 
   // ── OEQ pool: group by (paperId, baseNum), deduplicate groups by lead stem ─
   // Include ALL questions in the group (even stem-less), since multi-part questions
@@ -168,14 +180,22 @@ export async function POST(request: NextRequest) {
   const validGroups = [...oeqGroupMap.values()].filter(g =>
     g.some(q => (q.transcribedStem ?? "").trim() || (q.imageData && q.imageData.length > 100))
   );
-  const oeqLeadStemMap = new Map<string, Q[]>();
+  // Dedup OEQ groups by lineage + normalised lead stem (same rationale as MCQ).
+  const oeqPool: Q[][] = [];
+  const seenOeqLineages = new Set<string>();
+  const seenOeqStems = new Set<string>();
   for (const group of validGroups) {
     const rawLeadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
     const norm = normaliseStem(rawLeadStem);
-    const key = norm || `__img::${group[0].examPaperId}:${baseNum(group[0].questionNum)}`;
-    if (!oeqLeadStemMap.has(key)) oeqLeadStemMap.set(key, group);
+    // Group lineage = lineage of any sibling; pick the first since all siblings
+    // under the same (paperId, baseNum) share a source.
+    const lineage = group[0].sourceQuestionId || group[0].id;
+    if (seenOeqLineages.has(lineage)) continue;
+    if (norm && seenOeqStems.has(norm)) continue;
+    seenOeqLineages.add(lineage);
+    if (norm) seenOeqStems.add(norm);
+    oeqPool.push(group);
   }
-  const oeqPool = [...oeqLeadStemMap.values()];
 
   type Subpart = { label: string; text: string; answer?: string | null; diagramBase64?: string | null; refImageBase64?: string | null };
 
