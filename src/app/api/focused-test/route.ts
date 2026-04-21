@@ -218,24 +218,20 @@ export async function POST(request: NextRequest) {
 
   function mergeOeqGroup(group: Q[]) {
     const first = group[0];
-    // The "stem source" is whichever sibling supplies the main question stem:
-    // normally group[0] (e.g. 38a), but if 38a has no stem (the part carries only
-    // a subpart label) we fall back to the first sibling that HAS a stem. That
-    // same sibling must then be treated as "first" for extra-stem prepending and
-    // diagram attachment — otherwise we'd prepend its stem onto its own subpart
-    // text and the student sees the stem AND the diagram twice.
-    const stemSource = (first.transcribedStem ?? "").trim()
-      ? first
-      : (group.find(q => (q.transcribedStem ?? "").trim()) ?? first);
-    const leadStem = (stemSource.transcribedStem ?? "").trim();
+    // Main question stem = group[0]'s stem, period. If group[0] (e.g. Q38a)
+    // has no stem, the merged question has no main stem — do NOT promote a
+    // later sibling's stem (e.g. Q38bc's "Xiao Ming noticed...") into the
+    // main-stem slot, because that scenario context only applies to Q38b/c
+    // and confuses the student about Q38a. Later siblings with their own
+    // stems get those stems prepended to THEIR first subpart, where the
+    // scenario belongs.
+    const leadStem = (first.transcribedStem ?? "").trim();
     const diagramSource = first.diagramImageData
       ? first
       : (group.find(q => q.diagramImageData) ?? first);
     // imageData is the cropped question snapshot the quiz UI falls back to
-    // when transcribedStem is empty. If group[0] has none (e.g. only 9b was
-    // tagged with the topic and 9b's image is blank), pick from any sibling
-    // that actually has a substantial image. Without this, the student sees
-    // a blank card.
+    // when transcribedStem is empty. If group[0] has none, pick from any
+    // sibling that actually has a substantial image so the card isn't blank.
     const imageSource = (first.imageData && first.imageData.length > 100)
       ? first
       : (group.find(q => q.imageData && q.imageData.length > 100) ?? first);
@@ -244,7 +240,11 @@ export async function POST(request: NextRequest) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
       const realSubs = subs.filter(s => !s.label.startsWith("_"));
       const qStem = (q.transcribedStem ?? "").trim();
-      const extraStem = q !== stemSource && qStem && qStem !== leadStem ? qStem : "";
+      // Only prepend for LATER siblings — group[0]'s stem is the main stem,
+      // not a subpart preamble. (For q=first, qStem === leadStem, so the
+      // qStem !== leadStem guard handles it, but we also explicitly exclude
+      // q === first for clarity.)
+      const extraStem = q !== first && qStem && qStem !== leadStem ? qStem : "";
       const processed = realSubs.map((sp, idx) => {
         let next = sp;
         if (idx === 0 && extraStem) {
