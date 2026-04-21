@@ -63,8 +63,11 @@ export async function POST(request: NextRequest) {
       // MCQ variants: 4 options, correctAnswer is 1-4 → store "(N)".
       // Synthesis variants: 1 option (the transformed sentence), stored as
       // the canonical answer text so marking has real ground truth.
+      // Image-option MCQ: 4 options that are data URIs → store on the
+      // `transcribedOptionImages` field and blank `transcribedOptions`.
       const opts = v.options as unknown as string[];
       const isSynthesis = Array.isArray(opts) && opts.length === 1;
+      const hasImgOpts = Array.isArray(opts) && opts.length === 4 && opts.some(o => typeof o === "string" && o.startsWith("data:image/"));
       const answerText = isSynthesis ? (opts[0] ?? "") : `(${v.correctAnswer})`;
       await prisma.examQuestion.create({
         data: {
@@ -77,7 +80,8 @@ export async function POST(request: NextRequest) {
           examPaperId: bankPaperId,
           syllabusTopic: source.syllabusTopic ?? null,
           transcribedStem: v.stem,
-          transcribedOptions: v.options as unknown as string[],
+          transcribedOptions: hasImgOpts ? ["", "", "", ""] : (v.options as unknown as string[]),
+          transcribedOptionImages: hasImgOpts ? opts : undefined,
           diagramImageData: v.diagramImageData ?? null,
           sourceQuestionId: source.id,
         },

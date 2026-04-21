@@ -14,6 +14,8 @@ type Question = {
   stem: string;
   // English synthesis questions don't have MCQ options — keep the field optional.
   options: string[] | null;
+  // When the source question uses image options, this holds 4 base64 data URIs.
+  optionImages?: (string | null)[] | null;
   // Math/Science: numeric 1-4. English synthesis: the transformed-sentence text.
   correctAnswer: number | string;
   diagramImageData: string | null;
@@ -32,7 +34,20 @@ type Variant = {
   correctAnswer: number;
   diagramDescription?: string;
   diagramImageData?: string | null;
+  // Present when the variant uses image options (mirrors source question shape).
+  optionImages?: (string | null)[];
+  optionImageDescriptions?: string[];
 };
+
+// Image-option options are packed as data URIs into the options[] array so they
+// survive the existing SyntheticQuestion schema without a migration. A single
+// data: URI prefix is enough to detect.
+function isImageOptionString(s: string | null | undefined): boolean {
+  return typeof s === "string" && s.startsWith("data:image/");
+}
+function hasImageOptions(opts: (string | null)[] | null | undefined): boolean {
+  return Array.isArray(opts) && opts.some(o => isImageOptionString(o ?? ""));
+}
 
 type DraftPair = { simple: Variant; similar: Variant };
 type Drafts = DraftPair | null;
@@ -100,15 +115,28 @@ function SyntheticContent() {
       const nextDecisions: Record<string, { simple: Decision; similar: Decision }> = {};
       const nextMorePairs: Record<string, DraftPair[]> = {};
       const nextMoreDecisions: Record<string, Array<{ simple: Decision; similar: Decision }>> = {};
+      // Unpack any image-option variant rows from the DB. Image options live in
+      // the `options` JSON array as data URIs — lift them back onto
+      // `optionImages` for the editor, and blank out the textual `options`.
+      const unpack = (v: { stem: string; options: string[]; correctAnswer: number; diagramImageData: string | null }): Variant => {
+        const opts = Array.isArray(v.options) ? v.options : [];
+        if (opts.length === 4 && opts.some(o => isImageOptionString(o))) {
+          return {
+            stem: v.stem,
+            options: ["", "", "", ""],
+            correctAnswer: v.correctAnswer,
+            diagramImageData: v.diagramImageData,
+            optionImages: opts,
+          };
+        }
+        return { stem: v.stem, options: opts, correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData };
+      };
       for (const q of qs) {
         if (!q.syntheticQuestions || q.syntheticQuestions.length === 0) continue;
         const simple = q.syntheticQuestions.find(x => x.variant === "simple");
         const similar = q.syntheticQuestions.find(x => x.variant === "similar");
         if (simple && similar) {
-          nextDrafts[q.id] = {
-            simple: { stem: simple.stem, options: simple.options, correctAnswer: simple.correctAnswer, diagramImageData: simple.diagramImageData },
-            similar: { stem: similar.stem, options: similar.options, correctAnswer: similar.correctAnswer, diagramImageData: similar.diagramImageData },
-          };
+          nextDrafts[q.id] = { simple: unpack(simple), similar: unpack(similar) };
         }
         nextDecisions[q.id] = {
           simple: simple ? "accepted" : null,
@@ -131,7 +159,10 @@ function SyntheticContent() {
         const dec: Array<{ simple: Decision; similar: Decision }> = [];
         for (const e of extras) {
           if (e.simple && e.similar) {
-            pairs.push({ simple: e.simple, similar: e.similar });
+            pairs.push({
+              simple: unpack({ stem: e.simple.stem, options: e.simple.options, correctAnswer: e.simple.correctAnswer, diagramImageData: e.simple.diagramImageData ?? null }),
+              similar: unpack({ stem: e.similar.stem, options: e.similar.options, correctAnswer: e.similar.correctAnswer, diagramImageData: e.similar.diagramImageData ?? null }),
+            });
             dec.push({ simple: e.simpleOk ? "accepted" : null, similar: e.similarOk ? "accepted" : null });
           }
         }
@@ -192,8 +223,13 @@ function SyntheticContent() {
         // correctAnswer Int) can carry it without a migration. Save endpoint
         // treats options.length === 1 as the synthesis shape.
         const v = d[which] as (typeof d)[typeof which] & { answer?: string };
+        // Image-option variants: pack the 4 data URIs into options[] — the
+        // existing schema already stores options as JSON, so no migration.
+        const packImageOptions = Array.isArray(v.optionImages) && hasImageOptions(v.optionImages);
         const payload = (v.answer && v.answer.trim())
           ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
+          : packImageOptions
+          ? { stem: v.stem, options: v.optionImages!.map(o => o ?? ""), correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null }
           : v;
         const res = await fetch("/api/admin/synthetic/save", {
           method: "POST",
@@ -419,7 +455,31 @@ function SyntheticContent() {
                   <img src={q.diagramImageData.startsWith("data:") ? q.diagramImageData : `data:image/jpeg;base64,${q.diagramImageData}`}
                     alt="diagram" className="max-w-sm rounded-lg border border-slate-200 mb-3" />
                 )}
-                {Array.isArray(q.options) && q.options.length > 0 ? (
+                {Array.isArray(q.optionImages) && q.optionImages.some(Boolean) ? (
+                  // Image-option MCQ — show the 4 slot images in a grid.
+                  <div className="grid grid-cols-2 gap-2">
+                    {q.optionImages.map((img, i) => {
+                      const isCorrect = i + 1 === q.correctAnswer;
+                      if (!img) {
+                        return (
+                          <div key={i} className={`flex items-center justify-center h-24 rounded-lg text-xs ${isCorrect ? "bg-green-50 border border-green-200 text-green-800" : "bg-slate-50 text-slate-400"}`}>
+                            ({i + 1}) (no image)
+                          </div>
+                        );
+                      }
+                      const src = img.startsWith("data:") ? img : `data:image/jpeg;base64,${img}`;
+                      return (
+                        <div key={i} className={`relative rounded-lg overflow-hidden border ${isCorrect ? "border-green-400 ring-2 ring-green-200" : "border-slate-200"}`}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={src} alt={`option ${i + 1}`} className="w-full h-28 object-contain bg-white" />
+                          <span className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isCorrect ? "bg-green-600 text-white" : "bg-slate-700/80 text-white"}`}>
+                            ({i + 1}){isCorrect ? " ✓" : ""}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : Array.isArray(q.options) && q.options.length > 0 ? (
                   <div className="space-y-1.5">
                     {q.options.map((opt, i) => {
                       const isCorrect = i + 1 === q.correctAnswer;
@@ -513,8 +573,11 @@ function SyntheticContent() {
                   try {
                     if (decision === "accepted") {
                       const v = pair[which] as Variant & { answer?: string };
+                      const packImageOptions = Array.isArray(v.optionImages) && hasImageOptions(v.optionImages);
                       const payload = (v.answer && v.answer.trim())
                         ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
+                        : packImageOptions
+                        ? { stem: v.stem, options: v.optionImages!.map(o => o ?? ""), correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null }
                         : v;
                       const res = await fetch("/api/admin/synthetic/save", {
                         method: "POST",
@@ -716,7 +779,37 @@ function VariantEditor({ title, variant, disabled, hasOriginalDiagram, regenProm
           </div>
         </div>
       )}
-      {Array.isArray(variant.options) && variant.options.length === 4 ? (
+      {Array.isArray(variant.optionImages) && variant.optionImages.some(Boolean) ? (
+        // Image-option MCQ: 4 generated option images, click slot to mark correct.
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            {variant.optionImages.map((img, i) => {
+              const isCorrect = i + 1 === variant.correctAnswer;
+              const src = img ? (img.startsWith("data:") ? img : `data:image/png;base64,${img}`) : null;
+              return (
+                <button key={i} type="button" onClick={() => onCorrect(i + 1)}
+                  className={`relative rounded-lg overflow-hidden border-2 transition-all ${isCorrect ? "border-green-500 ring-2 ring-green-200" : "border-slate-200 hover:border-slate-400"}`}>
+                  {src ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={src} alt={`option ${i + 1}`} className="w-full h-28 object-contain bg-white" />
+                  ) : (
+                    <div className="w-full h-28 flex items-center justify-center text-xs text-slate-400 bg-slate-50">(no image)</div>
+                  )}
+                  <span className={`absolute top-1 left-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${isCorrect ? "bg-green-600 text-white" : "bg-slate-700/80 text-white"}`}>
+                    ({i + 1}){isCorrect ? " ✓" : ""}
+                  </span>
+                  {variant.optionImageDescriptions?.[i] && (
+                    <span className="block text-[10px] text-slate-500 px-1.5 py-1 text-left bg-white border-t border-slate-100 line-clamp-2">
+                      {variant.optionImageDescriptions[i]}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2">Tap the image to mark which option is correct.</p>
+        </>
+      ) : Array.isArray(variant.options) && variant.options.length === 4 ? (
         // MCQ: 4 options grid with correct-answer toggle.
         <>
           <div className="space-y-2">

@@ -206,9 +206,14 @@ export type SyntheticMcqVariant = {
   correctAnswer: number; // 1-4
   diagramDescription?: string; // text description of new diagram (if original had one)
   diagramImageData?: string | null; // base64 generated diagram (filled by generate route, optional)
+  // When the source question uses image options, the AI returns one short
+  // description per option; the generate route then produces a fresh image for
+  // each slot and fills `optionImages` with data URIs.
+  optionImageDescriptions?: [string, string, string, string];
+  optionImages?: (string | null)[]; // 4 data URIs / base64 (filled by generate route)
 };
 
-function syntheticMcqPrompt(subject: "math" | "science" | "english"): string {
+function syntheticMcqPrompt(subject: "math" | "science" | "english", imageOptions: boolean): string {
   const subjectLabel = subject === "math" ? "Mathematics" : subject === "science" ? "Science" : "English";
   const variantOneRule = subject === "math"
     ? `"simple" — SAME underlying question, but with changed numbers (and/or reordered answer options so the correct answer is in a different position). The mathematical structure and wording must stay almost identical; only numbers and option order should change.`
@@ -220,6 +225,45 @@ function syntheticMcqPrompt(subject: "math" | "science" | "english"): string {
     : subject === "science"
     ? `Double-check the science reasoning. The correct answer must be factually correct.`
     : `Double-check the grammar/vocabulary. The correct answer must be unambiguously correct.`;
+
+  if (imageOptions) {
+    return `You are generating synthetic practice MCQ questions for a Singapore primary school ${subjectLabel} exam.
+
+The ORIGINAL question has IMAGE options — four images are shown in order as options (1)(2)(3)(4). You are given the stem plus all four option images.
+
+Produce TWO variants that ALSO use image options:
+
+1. ${variantOneRule}
+
+2. "similar" — a DIFFERENT but related question testing the same underlying skill/concept. This should feel like a cousin of the original, not a clone.
+
+Instead of returning the option TEXT, you must return FOUR short, concrete image descriptions per variant — one per option. A downstream image generator will render these as new option images.
+
+For BOTH variants you MUST:
+- Provide exactly 4 option image descriptions (one per option, in order).
+- Each description is 1–2 short sentences, self-contained, naming the exact figure/shape/number/diagram that should appear. Use the same visual style family as the originals (same kind of diagram: bar model, shape, fraction strip, clock, coin, number line, etc.).
+- Compute and provide the correct answer (1–4).
+- ${correctnessRule}
+- Preserve units and notation style from the original.
+- If the stem references a diagram next to the stem (not the options), also provide "diagramDescription".
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "simple": {
+    "stem": "...",
+    "optionImageDescriptions": ["...", "...", "...", "..."],
+    "correctAnswer": 1,
+    "diagramDescription": "..."
+  },
+  "similar": {
+    "stem": "...",
+    "optionImageDescriptions": ["...", "...", "...", "..."],
+    "correctAnswer": 1,
+    "diagramDescription": "..."
+  }
+}`;
+  }
+
   return `You are generating synthetic practice MCQ questions for a Singapore primary school ${subjectLabel} exam.
 
 You will be given ONE original MCQ question (stem + 4 options + correct answer). Your task is to produce TWO variants:
@@ -307,8 +351,17 @@ export async function generateSyntheticMathMcq(
   correctAnswer: number,
   diagramBase64: string | null,
   subject: "math" | "science" | "english" = "math",
+  optionImagesBase64: (string | null)[] | null = null,
 ): Promise<{ simple: SyntheticMcqVariant; similar: SyntheticMcqVariant }> {
-  const contextText = `Original question:
+  const hasImageOptions = Array.isArray(optionImagesBase64) && optionImagesBase64.some(o => !!o);
+
+  const contextText = hasImageOptions
+    ? `Original question:
+Stem: ${stem}
+Options: FOUR images follow this text, in order (1)(2)(3)(4). Analyse each image to understand what is being shown.
+Correct answer: (${correctAnswer})
+${diagramBase64 ? "A diagram next to the stem is also provided (see first image)." : ""}`
+    : `Original question:
 Stem: ${stem}
 Options:
 (1) ${options[0]}
@@ -323,7 +376,14 @@ ${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagr
     const clean = diagramBase64.replace(/^data:image\/\w+;base64,/, "");
     parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
   }
-  parts.push({ text: `${syntheticMcqPrompt(subject)}\n\n${contextText}` });
+  if (hasImageOptions) {
+    for (const img of optionImagesBase64!) {
+      if (!img) continue;
+      const clean = img.replace(/^data:image\/\w+;base64,/, "");
+      parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+    }
+  }
+  parts.push({ text: `${syntheticMcqPrompt(subject, hasImageOptions)}\n\n${contextText}` });
 
   const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
@@ -336,11 +396,16 @@ ${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagr
 
   function normalize(v: Record<string, unknown>): SyntheticMcqVariant {
     const opts = Array.isArray(v.options) ? v.options : [];
+    const optDescs = Array.isArray(v.optionImageDescriptions) ? v.optionImageDescriptions : [];
+    const hasDescs = optDescs.length > 0;
     return {
       stem: String(v.stem ?? ""),
-      options: [String(opts[0] ?? ""), String(opts[1] ?? ""), String(opts[2] ?? ""), String(opts[3] ?? "")],
+      options: hasDescs
+        ? ["", "", "", ""]
+        : [String(opts[0] ?? ""), String(opts[1] ?? ""), String(opts[2] ?? ""), String(opts[3] ?? "")],
       correctAnswer: Math.max(1, Math.min(4, parseInt(String(v.correctAnswer ?? 1), 10) || 1)),
       ...(v.diagramDescription ? { diagramDescription: String(v.diagramDescription) } : {}),
+      ...(hasDescs ? { optionImageDescriptions: [String(optDescs[0] ?? ""), String(optDescs[1] ?? ""), String(optDescs[2] ?? ""), String(optDescs[3] ?? "")] as [string, string, string, string] } : {}),
     };
   }
 
@@ -348,6 +413,53 @@ ${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagr
     simple: normalize(parsed.simple ?? {}),
     similar: normalize(parsed.similar ?? {}),
   };
+}
+
+/**
+ * Generate a fresh option image (for MCQs that use image options).
+ * Uses the original option image at the same slot as a style reference.
+ * Returns base64 (no data: prefix) or null on failure.
+ */
+export async function generateSyntheticOptionImage(
+  referenceImageBase64: string | null,
+  description: string,
+  variantStem: string,
+): Promise<string | null> {
+  try {
+    const prompt = `Create a single educational option image for a Singapore primary school MCQ question.
+Style: match the reference image (line weight, labels, black on white, clean sans-serif).
+The new image shows: ${description}
+
+Context — the new question stem is: "${variantStem}" — the image must be consistent with the stem.
+
+Requirements:
+- White background, clean black lines, minimal labels.
+- Just the figure/shape/diagram described — no question text, no option letter, no option number.
+- Compact, square-ish framing. No watermarks, no extraneous elements.`;
+
+    const parts: Array<{ text: string } | { inlineData: { mimeType: "image/jpeg"; data: string } }> = [];
+    if (referenceImageBase64) {
+      const clean = referenceImageBase64.replace(/^data:image\/\w+;base64,/, "");
+      parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+    }
+    parts.push({ text: prompt });
+
+    const response = await generateContentWithRetry({
+      model: "gemini-2.5-flash-image",
+      contents: [{ role: "user", parts }],
+      config: { responseModalities: ["IMAGE", "TEXT"] },
+    });
+
+    const outParts = response.candidates?.[0]?.content?.parts ?? [];
+    for (const p of outParts) {
+      const inline = (p as { inlineData?: { data?: string; mimeType?: string } }).inlineData;
+      if (inline?.data) return inline.data;
+    }
+    return null;
+  } catch (err) {
+    console.error("[generateSyntheticOptionImage] failed", err);
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
