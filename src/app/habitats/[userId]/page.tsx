@@ -50,6 +50,19 @@ function petScaleAtY(yPct: number): number {
   const offsetFromBase = PET_REGION_BOTTOM_PCT - yPct; // 0 at base, 15 at top
   return Math.max(0.5, 1 - 0.025 * offsetFromBase);
 }
+// Walkable x-range narrows with depth: each limit moves inward by 1% per 1%
+// above the region base, so background pets have less horizontal space than
+// foreground ones (perspective cue).
+const PET_X_MIN_BASE = 12.5;
+const PET_X_MAX_BASE = 87.5;
+function petXBoundsAtY(yPct: number): { min: number; max: number } {
+  const offsetFromBase = Math.max(0, PET_REGION_BOTTOM_PCT - yPct);
+  const inset = offsetFromBase;
+  return {
+    min: PET_X_MIN_BASE + inset,
+    max: PET_X_MAX_BASE - inset,
+  };
+}
 // Deterministic per-habitat random placement — seeded by the habitat id so
 // positions are stable between renders (they don't jitter every state change).
 function hashString(s: string): number {
@@ -104,7 +117,8 @@ function placePets(habitat: Habitat, totalPoints: number, crystals: number, whit
   const rand = seededRandom(hashString(habitat.id));
   const placed = unlocked.map(pet => {
     const yPct = PET_REGION_TOP_PCT + rand() * PET_REGION_HEIGHT_PCT;
-    const xPct = 12 + rand() * 76; // keep inside the horizontal range of the region
+    const { min, max } = petXBoundsAtY(yPct);
+    const xPct = min + rand() * (max - min);
     return { ...pet, xPct, yPct, scale: petScaleAtY(yPct) };
   });
   // Smaller yPct = higher on image = further back → draw first so closer pets overlap them.
@@ -193,9 +207,8 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
       const next = weighted[Math.floor(Math.random() * weighted.length)] as keyof PetAnimations;
       setClip(next);
       if (next === "walk" && anims.walk) {
-        // Pick a new target x within the region bounds and move there.
-        const minX = 12.5;
-        const maxX = 87.5;
+        // Pick a new target x within the depth-narrowed region bounds.
+        const { min: minX, max: maxX } = petXBoundsAtY(y);
         const target = minX + Math.random() * (maxX - minX);
         const goingRight = target > xRef.current;
         const distance = Math.abs(target - xRef.current);
