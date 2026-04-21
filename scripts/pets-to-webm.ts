@@ -38,11 +38,11 @@ function build(): Job[] {
       else console.warn("missing mp4 source:", src);
     }
   }
-  for (const clip of CLIPS) {
-    const src = path.join(AVATARS, `otter_${clip}.mov`);
-    if (fs.existsSync(src)) jobs.push({ pet: "otter", clip, source: src, mode: "mov-alpha-passthrough" });
-    else console.warn("missing mov source:", path.join(AVATARS, `otter_${clip}.mov`));
-  }
+  // NOTE: otter is intentionally not re-encoded here. The .mov masters
+  // carry HEVC-with-alpha, which libvpx-vp9 via ffmpeg drops silently —
+  // output webm loses the alpha channel and pets render with a black box.
+  // Stick with the pre-existing otter webms (slight grey fringe beats no
+  // transparency at all) until we find a working HEVC-alpha → VP9-alpha path.
   return jobs;
 }
 
@@ -61,12 +61,13 @@ function argsFor(job: Job, output: string): string[] {
     "-an",
   ];
   if (job.mode === "chromakey-black") {
-    // similarity 0.12 keeps dark detail (eyes, shadows inside the sprite)
-    // while removing the flat black bg. blend 0.06 softens the cutout edge
-    // just enough to avoid staircase aliasing without making it hazy.
+    // similarity 0.03 is tight — only pure/near-pure black gets keyed out,
+    // preserving dark details inside the sprite (eyes, shadows). blend 0.08
+    // softens the cut edge so there's no staircase alias. Earlier attempt
+    // at 0.12 was way too aggressive and keyed out the pet pixels too.
     return [
       ...common.slice(0, 3),
-      "-vf", "chromakey=color=0x000000:similarity=0.12:blend=0.06,format=yuva420p",
+      "-vf", "chromakey=color=0x000000:similarity=0.03:blend=0.08,format=yuva420p",
       ...common.slice(3),
       output,
     ];

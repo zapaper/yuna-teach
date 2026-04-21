@@ -529,7 +529,8 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
   // Crystals = number of parent-reviewed (released) quizzes / papers. Used as
   // the currency for unlocking additional habitats + pets down the road.
-  const crystals = examPapers.filter(p => p.markingStatus === "released").length + bonusCrystals;
+  const spentCrystals = ((user.settings as Record<string, unknown> | null)?.spentCrystals as number | undefined) ?? 0;
+  const crystals = examPapers.filter(p => p.markingStatus === "released").length + bonusCrystals - spentCrystals;
   const level = Math.floor(totalPoints / POINTS_PER_LEVEL);
   // Progress on the bar reflects the displayed (animating) points, not the
   // committed total, so the fill grows in step with the landing bubbles.

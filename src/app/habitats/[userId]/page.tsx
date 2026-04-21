@@ -98,12 +98,20 @@ const PET_UNLOCK_CRYSTALS: Record<string, number> = {
   pangolin: 10,
 };
 
-function isPetUnlocked(petId: string, totalPoints: number, crystals: number, whitetigerUnlocked: boolean, override: boolean): boolean {
+function isPetUnlocked(
+  petId: string,
+  totalPoints: number,
+  purchasedPets: string[],
+  whitetigerUnlocked: boolean,
+  override: boolean,
+): boolean {
   if (override) return true;
   if (petId in PET_UNLOCK_CRYSTALS) {
-    // Whitetiger can also come from the legacy settings.whitetiger avatar flag.
+    // Crystal-gated pets: must be explicitly purchased. whitetiger has a
+    // legacy fast-path via settings.whitetiger for accounts unlocked before
+    // the purchase flow existed.
     if (petId === "whitetiger" && whitetigerUnlocked) return true;
-    return crystals >= PET_UNLOCK_CRYSTALS[petId];
+    return purchasedPets.includes(petId);
   }
   const threshold = PET_UNLOCK_POINTS[petId];
   if (threshold === undefined) return false;
@@ -111,8 +119,8 @@ function isPetUnlocked(petId: string, totalPoints: number, crystals: number, whi
 }
 // Compute positions + scales for the unlocked pets of a habitat, sorted
 // background-first so the JSX draw order matches depth.
-function placePets(habitat: Habitat, totalPoints: number, crystals: number, whitetigerUnlocked: boolean, override: boolean) {
-  const unlocked = habitat.pets.filter(p => isPetUnlocked(p.id, totalPoints, crystals, whitetigerUnlocked, override));
+function placePets(habitat: Habitat, totalPoints: number, purchasedPets: string[], whitetigerUnlocked: boolean, override: boolean) {
+  const unlocked = habitat.pets.filter(p => isPetUnlocked(p.id, totalPoints, purchasedPets, whitetigerUnlocked, override));
   if (unlocked.length === 0) return [];
   const rand = seededRandom(hashString(habitat.id));
   const placed = unlocked.map(pet => {
@@ -473,9 +481,20 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const [totalPoints, setTotalPoints] = useState(0);
   const [crystals, setCrystals] = useState(0);
   const [whitetigerUnlocked, setWhitetigerUnlocked] = useState(false);
+  const [purchasedPets, setPurchasedPets] = useState<string[]>([]);
+  const [purchasedHabitats, setPurchasedHabitats] = useState<string[]>([]);
   // Test / admin flag — when settings.habitatOverride is true, every habitat
   // and pet is treated as unlocked regardless of points / crystals.
   const [habitatOverride, setHabitatOverride] = useState(false);
+  // Purchase-confirmation modal state.
+  const [purchase, setPurchase] = useState<{
+    kind: "pet" | "habitat";
+    id: string;
+    name: string;
+    cost: number;
+  } | null>(null);
+  const [purchasing, setPurchasing] = useState(false);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
   // Live positions of every rendered pet. PetActors write their own x here
   // and read others' so "talk" only fires when a neighbour is in range.
   const positionsRef = useRef<Record<string, number>>({});
@@ -495,32 +514,33 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
       if (settings.habitatOverride === true) setHabitatOverride(true);
       bonusPts = (settings.bonusPoints as number | undefined) ?? 0;
       const bonusCrystals = (settings.bonusCrystals as number | undefined) ?? 0;
+      const spentCrystals = (settings.spentCrystals as number | undefined) ?? 0;
+      setPurchasedPets(Array.isArray(settings.purchasedPets) ? (settings.purchasedPets as string[]) : []);
+      setPurchasedHabitats(Array.isArray(settings.purchasedHabitats) ? (settings.purchasedHabitats as string[]) : []);
 
       const papers = examRes?.papers ?? [];
       const pts = papers
         .filter((p: { completedAt?: string | null }) => p.completedAt)
         .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0) + bonusPts;
       setTotalPoints(pts);
-      setCrystals(
-        papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length + bonusCrystals
-      );
+      const earnedCrystals = papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length;
+      setCrystals(earnedCrystals + bonusCrystals - spentCrystals);
     });
   }, [userId]);
 
   // Unlock rules. Jungle is the free starter at 200 pts. Fantasy and Garden
-  // each cost 30 crystals (1 crystal = 1 parent-reviewed quiz), OR unlock
-  // automatically once any of their pets is earned — otherwise a student who
-  // crosses a pet-points threshold has nowhere to see their new pet. HDB
-  // stays locked until we add more content. settings.habitatOverride
-  // bypasses everything — for admin / test accounts.
+  // must be explicitly purchased (30 crystals each) — OR auto-unlock once the
+  // student owns any pet that lives there, so a bought pet always has a
+  // place to walk. HDB stays locked until we add more content.
+  // settings.habitatOverride bypasses everything — for admin / test accounts.
   const isHabitatUnlocked = (id: string) => {
     if (habitatOverride) return true;
     if (id === "jungle") return totalPoints >= 200;
     if (id === "fantasy" || id === "garden") {
-      if (crystals >= 30) return true;
+      if (purchasedHabitats.includes(id)) return true;
       const habitat = HABITATS.find(h => h.id === id);
       return !!habitat?.pets.some(p =>
-        isPetUnlocked(p.id, totalPoints, crystals, whitetigerUnlocked, false)
+        isPetUnlocked(p.id, totalPoints, purchasedPets, whitetigerUnlocked, false)
       );
     }
     return false;
@@ -528,6 +548,38 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
 
   // Detect mobile (by screen width OR touch-only input). Habitats & Pets runs
   const selected = HABITATS.find(h => h.id === selectedId) ?? HABITATS[0];
+
+  async function confirmPurchase() {
+    if (!purchase) return;
+    setPurchasing(true);
+    setPurchaseError(null);
+    try {
+      const res = await fetch("/api/purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, type: purchase.kind, id: purchase.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPurchaseError(data.error === "insufficient crystals" ? "Not enough crystals" : (data.error ?? "Purchase failed"));
+        setPurchasing(false);
+        return;
+      }
+      // Reflect the purchase in local state so UI updates without a refetch.
+      if (purchase.kind === "pet") {
+        setPurchasedPets((prev) => (prev.includes(purchase.id) ? prev : [...prev, purchase.id]));
+      } else {
+        setPurchasedHabitats((prev) => (prev.includes(purchase.id) ? prev : [...prev, purchase.id]));
+      }
+      if (!data.alreadyOwned) setCrystals((c) => c - purchase.cost);
+      if (purchase.kind === "habitat") setSelectedId(purchase.id);
+      setPurchase(null);
+    } catch {
+      setPurchaseError("Purchase failed");
+    } finally {
+      setPurchasing(false);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30]">
@@ -551,12 +603,21 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
           {HABITATS.map(h => {
             const isActive = h.id === selectedId;
             const unlocked = isHabitatUnlocked(h.id);
+            const habitatCost = h.id === "fantasy" || h.id === "garden" ? 30 : 0;
             return (
               <button
                 key={h.id}
-                onClick={() => setSelectedId(h.id)}
-                className={`w-full rounded-2xl overflow-hidden border-2 transition-all text-left ${
-                  isActive ? "border-[#006c49] shadow-lg" : "border-transparent hover:border-[#c3c6d1]"
+                onClick={() => {
+                  if (unlocked) { setSelectedId(h.id); return; }
+                  if (habitatCost > 0) {
+                    setPurchaseError(null);
+                    setPurchase({ kind: "habitat", id: h.id, name: h.name, cost: habitatCost });
+                  }
+                }}
+                className={`w-full rounded-2xl overflow-hidden border-[3px] transition-all text-left ${
+                  isActive
+                    ? "border-[#006c49] shadow-[0_0_0_3px_rgba(0,108,73,0.25),0_8px_24px_-8px_rgba(0,108,73,0.6)] scale-[1.02]"
+                    : "border-transparent hover:border-[#c3c6d1]"
                 } ${unlocked ? "" : "grayscale opacity-60"}`}
               >
                 <div className="relative">
@@ -592,7 +653,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
              * pets higher up in the region render first (background). Pets with
              * an animation set (walk/talk/stretch/smile) are handed to PetActor
              * which cycles through clips and walks around the landscape. */}
-            {placePets(selected, totalPoints, crystals, whitetigerUnlocked, habitatOverride).map(pet => (
+            {placePets(selected, totalPoints, purchasedPets, whitetigerUnlocked, habitatOverride).map(pet => (
               pet.animations ? (
                 <PetActor key={pet.id} pet={pet} startX={pet.xPct} y={pet.yPct} scale={pet.scale} widthPct={16} positionsRef={positionsRef} actionsRef={actionsRef} />
               ) : (
@@ -622,15 +683,25 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
             ) : (
               <div className="grid grid-cols-3 md:grid-cols-5 gap-3 pb-6">
                 {selected.pets.map(pet => {
-                  const unlocked = isPetUnlocked(pet.id, totalPoints, crystals, whitetigerUnlocked, habitatOverride);
+                  const unlocked = isPetUnlocked(pet.id, totalPoints, purchasedPets, whitetigerUnlocked, habitatOverride);
                   const crystalCost = PET_UNLOCK_CRYSTALS[pet.id];
+                  const clickable = !unlocked && !!crystalCost;
                   return (
-                    <div
+                    <button
                       key={pet.id}
-                      className={`rounded-2xl border p-2 flex flex-col items-center gap-1 transition ${
+                      type="button"
+                      disabled={!clickable}
+                      onClick={() => {
+                        if (!clickable) return;
+                        setPurchaseError(null);
+                        setPurchase({ kind: "pet", id: pet.id, name: pet.name, cost: crystalCost });
+                      }}
+                      className={`rounded-2xl border p-2 flex flex-col items-center gap-1 transition text-left ${
                         unlocked
-                          ? "border-[#006c49]/40 bg-[#6cf8bb]/10"
-                          : "border-[#e5eeff] bg-white grayscale opacity-60"
+                          ? "border-[#006c49]/40 bg-[#6cf8bb]/10 cursor-default"
+                          : clickable
+                            ? "border-[#e5eeff] bg-white grayscale opacity-70 hover:opacity-100 hover:border-[#006c49] hover:grayscale-0 cursor-pointer"
+                            : "border-[#e5eeff] bg-white grayscale opacity-60 cursor-default"
                       }`}
                     >
                       <video
@@ -648,7 +719,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                           <span className="text-[9px] font-extrabold text-[#001e40]">{crystalCost}</span>
                         </div>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -656,6 +727,52 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
           </div>
         </main>
       </div>
+
+      {/* Purchase confirmation modal */}
+      {purchase && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => { if (!purchasing) setPurchase(null); }}
+        >
+          <div
+            className="bg-white rounded-3xl p-6 max-w-xs w-full shadow-2xl text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-16 h-16 rounded-full bg-[#e5eeff] flex items-center justify-center mx-auto mb-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-10 h-10 object-contain" />
+            </div>
+            <h2 className="font-headline text-lg font-extrabold text-[#001e40]">
+              Unlock {purchase.name}?
+            </h2>
+            <p className="text-sm text-[#43474f] mt-1">
+              Spend <span className="font-extrabold text-[#001e40]">{purchase.cost}</span> crystals
+            </p>
+            <p className="text-xs text-[#737780] mt-1">
+              Balance: {crystals} · After: {crystals - purchase.cost}
+            </p>
+            {purchaseError && (
+              <p className="text-sm text-red-600 font-bold mt-3">{purchaseError}</p>
+            )}
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={() => setPurchase(null)}
+                disabled={purchasing}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#eff4ff] text-[#001e40] font-bold hover:bg-[#dde7ff] transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmPurchase}
+                disabled={purchasing || crystals < purchase.cost}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-[#003366] text-white font-bold hover:bg-[#001e40] transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {purchasing ? "…" : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
