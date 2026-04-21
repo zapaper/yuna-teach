@@ -181,20 +181,38 @@ export async function POST(request: NextRequest) {
   const validGroups = [...oeqGroupMap.values()].filter(g =>
     g.some(q => (q.transcribedStem ?? "").trim() || (q.imageData && q.imageData.length > 100))
   );
-  // Dedup OEQ groups by lineage + normalised lead stem (same rationale as MCQ).
+  // Build a content fingerprint from the normalised stems of ALL siblings in
+  // the group PLUS the normalised text of every real subpart. OEQ questions
+  // often carry the actual content on subparts, with only a short scenario
+  // on the stem — identical questions across two papers can have wildly
+  // different stem phrasing but identical subpart text. The fingerprint
+  // joins all these pieces and dedups on the combined signature.
+  function groupFingerprint(group: Q[]): string {
+    const parts: string[] = [];
+    for (const q of group) {
+      const stemN = normaliseStem(q.transcribedStem ?? "");
+      if (stemN) parts.push(stemN);
+      const subs = (q.transcribedSubparts as Array<{ label: string; text: string }> | null) ?? [];
+      for (const sp of subs) {
+        if (sp.label.startsWith("_")) continue;
+        const t = normaliseStem(sp.text ?? "");
+        if (t) parts.push(`${sp.label}:${t}`);
+      }
+    }
+    return parts.sort().join("|");
+  }
+
+  // Dedup OEQ groups by lineage + content fingerprint.
   const oeqPool: Q[][] = [];
   const seenOeqLineages = new Set<string>();
-  const seenOeqStems = new Set<string>();
+  const seenOeqFingerprints = new Set<string>();
   for (const group of validGroups) {
-    const rawLeadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
-    const norm = normaliseStem(rawLeadStem);
-    // Group lineage = lineage of any sibling; pick the first since all siblings
-    // under the same (paperId, baseNum) share a source.
     const lineage = group[0].sourceQuestionId || group[0].id;
     if (seenOeqLineages.has(lineage)) continue;
-    if (norm && seenOeqStems.has(norm)) continue;
+    const fp = groupFingerprint(group);
+    if (fp && seenOeqFingerprints.has(fp)) continue;
     seenOeqLineages.add(lineage);
-    if (norm) seenOeqStems.add(norm);
+    if (fp) seenOeqFingerprints.add(fp);
     oeqPool.push(group);
   }
 
