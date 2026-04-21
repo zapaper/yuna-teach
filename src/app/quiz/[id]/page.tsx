@@ -1726,6 +1726,15 @@ function OeqQuestionCard({
                     {stripQnPrefix(question.transcribedStem)}
                   </p>
                 )}
+                {/* Fallback: show cropped question image when there's no transcribed stem.
+                    Happens for questions whose stem is image-only (e.g. English Grammar
+                    Cloze, or science OEQs where extraction couldn't transcribe the stem). */}
+                {!question.transcribedStem && question.imageData && question.imageData.length > 100 && (
+                  <div className="mb-3 rounded-xl overflow-hidden border border-[#e5eeff]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={question.imageData} alt={`Question ${index + 1}`} className="w-full h-auto" />
+                  </div>
+                )}
                 {/* Show diagram as static reference image — annotatable scratch
                     overlay so students can draw working on diagrams (not submitted). */}
                 {question.diagramImageData && (
