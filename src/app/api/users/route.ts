@@ -1,7 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const userId = request.nextUrl.searchParams.get("userId");
+
+  // ?userId=<id> returns a single user under `user`. Callers that fetched
+  // this endpoint without the param (and expected the full users list under
+  // `users`) keep working since we only take this branch when the param is
+  // present.
+  if (userId) {
+    const u = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        parentLinks: { include: { student: { select: { id: true, name: true, level: true, settings: true } } } },
+        studentLinks: { include: { parent: { select: { id: true, name: true } } } },
+      },
+    });
+    if (!u) return NextResponse.json({ user: null }, { status: 404 });
+    return NextResponse.json({
+      user: {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        level: u.level,
+        settings: u.settings,
+        createdAt: u.createdAt.toISOString(),
+        linkedStudents: u.parentLinks.map((l) => ({ ...l.student, settings: l.student.settings as Record<string, boolean> | null })),
+        linkedParents: u.studentLinks.map((l) => l.parent),
+      },
+    });
+  }
+
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
     include: {
