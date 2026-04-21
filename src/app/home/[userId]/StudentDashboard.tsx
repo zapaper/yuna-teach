@@ -214,10 +214,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [aiTip, setAiTip] = useState<string | null>(null);
   const [showQuizSetup, setShowQuizSetup] = useState(false);
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
-  // Students who are blocked from MCQ-only math/science quizzes (must do MCQ + Written)
-  const MCQ_ONLY_BLOCKED_IDS = new Set(["cmmbbyvs30004qa9yinn3drl6", "cmm5wf91d000ryrxwaddlo6xh"]);
-  const mcqOnlyBlocked = MCQ_ONLY_BLOCKED_IDS.has(userId);
-  const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">(mcqOnlyBlocked ? "mcq-oeq" : "mcq");
+  const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [badgeToast, setBadgeToast] = useState(false);
@@ -1461,7 +1458,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             {quizSubject !== "english" ? (
               <div className="space-y-2 mb-6">
                 {([["mcq", "MCQ Only", "20 multiple choice questions"], ["mcq-oeq", "MCQ + Written", "10 MCQ + 5 open-ended questions"]] as const).map(([val, label, desc]) => {
-                  const blocked = (val === "mcq" && mcqOnlyBlocked) || (val === "mcq" && studentQuizMode === "oeq-only");
+                  const blocked = val === "mcq" && studentQuizMode === "oeq-only";
                   return (
                     <button key={val} onClick={() => { if (!blocked) setQuizType(val); }} disabled={blocked}
                       className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${blocked ? "border-slate-100 opacity-40 cursor-not-allowed" : quizType === val ? "border-[#006c49] bg-[#006c49]/5" : "border-slate-100"}`}>
