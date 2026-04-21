@@ -219,20 +219,17 @@ export async function POST(request: NextRequest) {
 
   function mergeOeqGroup(group: Q[]) {
     const first = group[0];
-    // Main question stem = group[0]'s stem, period. If group[0] (e.g. Q38a)
-    // has no stem, the merged question has no main stem — do NOT promote a
-    // later sibling's stem (e.g. Q38bc's "Xiao Ming noticed...") into the
-    // main-stem slot, because that scenario context only applies to Q38b/c
-    // and confuses the student about Q38a. Later siblings with their own
-    // stems get those stems prepended to THEIR first subpart, where the
-    // scenario belongs.
+    // Main question stem, main diagram = group[0]'s own values, period. Do NOT
+    // promote a later sibling's stem or diagram into the main slots — that
+    // content belongs only to the later sibling's subparts. For Q38 where
+    // 38a is empty and 38bc has the stem + diagram: the main question stays
+    // empty, and 38bc's stem+diagram attach to its own (b) subpart via the
+    // prepend/refImageBase64 loop below.
     const leadStem = (first.transcribedStem ?? "").trim();
-    const diagramSource = first.diagramImageData
-      ? first
-      : (group.find(q => q.diagramImageData) ?? first);
-    // imageData is the cropped question snapshot the quiz UI falls back to
-    // when transcribedStem is empty. If group[0] has none, pick from any
-    // sibling that actually has a substantial image so the card isn't blank.
+    const mainDiagram = first.diagramImageData ?? null;
+    // imageData is just the cropped snapshot used by the MCQ renderer; OEQ
+    // renderer no longer falls back to it. Keep it for storage completeness
+    // — pick from any sibling with a real image so the row isn't empty bytes.
     const imageSource = (first.imageData && first.imageData.length > 100)
       ? first
       : (group.find(q => q.imageData && q.imageData.length > 100) ?? first);
@@ -251,7 +248,9 @@ export async function POST(request: NextRequest) {
         if (idx === 0 && extraStem) {
           next = { ...next, text: `${extraStem}\n\n${sp.text ?? ""}`.trim() };
         }
-        if (q !== diagramSource && q.diagramImageData && idx === 0 && !next.refImageBase64) {
+        // Later siblings' diagrams belong to their OWN first subpart, not the
+        // main question. For q=first, the diagram is already on mainDiagram.
+        if (q !== first && q.diagramImageData && idx === 0 && !next.refImageBase64) {
           const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
           next = { ...next, refImageBase64: diagramData };
         }
@@ -294,7 +293,7 @@ export async function POST(request: NextRequest) {
       transcribedStem: leadStem,
       transcribedSubparts: enrichedSubparts.length > 0 ? [...enrichedSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
-      diagramImageData: diagramSource.diagramImageData ?? null,
+      diagramImageData: mainDiagram,
     };
   }
 
