@@ -198,25 +198,31 @@ export async function POST(request: NextRequest) {
 
   function mergeOeqGroup(group: Q[]) {
     const first = group[0];
-    // The first sibling's stem is the question's main stem. Later siblings
-    // (e.g. Q38cd "Xiao Ming noticed the inner surface... was wet") carry
-    // ADDITIONAL scenario context that applies only to their own subparts —
-    // it must survive the merge or the student sees later parts with no
-    // lead-in. Capture the first stem once, then prepend any different later
-    // stem to that sibling's first real subpart text.
-    const leadStem = (first.transcribedStem ?? "").trim();
+    // The "stem source" is whichever sibling supplies the main question stem:
+    // normally group[0] (e.g. 38a), but if 38a has no stem (the part carries only
+    // a subpart label) we fall back to the first sibling that HAS a stem. That
+    // same sibling must then be treated as "first" for extra-stem prepending and
+    // diagram attachment — otherwise we'd prepend its stem onto its own subpart
+    // text and the student sees the stem AND the diagram twice.
+    const stemSource = (first.transcribedStem ?? "").trim()
+      ? first
+      : (group.find(q => (q.transcribedStem ?? "").trim()) ?? first);
+    const leadStem = (stemSource.transcribedStem ?? "").trim();
+    const diagramSource = first.diagramImageData
+      ? first
+      : (group.find(q => q.diagramImageData) ?? first);
     const allSubparts: Subpart[] = [];
     for (const q of group) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
       const realSubs = subs.filter(s => !s.label.startsWith("_"));
       const qStem = (q.transcribedStem ?? "").trim();
-      const extraStem = q !== first && qStem && qStem !== leadStem ? qStem : "";
+      const extraStem = q !== stemSource && qStem && qStem !== leadStem ? qStem : "";
       const processed = realSubs.map((sp, idx) => {
         let next = sp;
         if (idx === 0 && extraStem) {
           next = { ...next, text: `${extraStem}\n\n${sp.text ?? ""}`.trim() };
         }
-        if (q !== first && q.diagramImageData && idx === 0 && !next.refImageBase64) {
+        if (q !== diagramSource && q.diagramImageData && idx === 0 && !next.refImageBase64) {
           const diagramData = q.diagramImageData.replace(/^data:image\/\w+;base64,/, "");
           next = { ...next, refImageBase64: diagramData };
         }
@@ -245,7 +251,6 @@ export async function POST(request: NextRequest) {
       const ans = partAnswers.get(sp.label.toLowerCase());
       return ans !== undefined ? { ...sp, answer: ans } : sp;
     });
-    const firstStem = leadStem || (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
     const rebuiltAnswer = partAnswers.size > 0
       ? [...partAnswers.entries()].sort(([a],[b]) => a.localeCompare(b)).map(([k,v]) => `(${k}) ${v}`).join(" | ")
       : [...new Set(group.map(q => q.answer).filter(Boolean))].join("\n");
@@ -256,10 +261,10 @@ export async function POST(request: NextRequest) {
       ...first,
       answer: rebuiltAnswer || first.answer,
       answerImageData,
-      transcribedStem: firstStem,
+      transcribedStem: leadStem,
       transcribedSubparts: enrichedSubparts.length > 0 ? [...enrichedSubparts, ...sentinels] : null,
       marksAvailable: group.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0),
-      diagramImageData: first.diagramImageData || group.find(q => q.diagramImageData)?.diagramImageData || null,
+      diagramImageData: diagramSource.diagramImageData ?? null,
     };
   }
 
