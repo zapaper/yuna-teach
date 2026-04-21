@@ -375,6 +375,7 @@ const HABITATS: Habitat[] = [
       {
         id: "uni", name: "Unicorn",
         video: "/avatars/unicorn_smile.mp4",
+        bg: "black",
         animations: {
           smile: "/avatars/unicorn_smile.mp4",
           stretch: "/avatars/unicorn_stretch.mp4",
@@ -385,6 +386,7 @@ const HABITATS: Habitat[] = [
       {
         id: "dragon", name: "Dragon",
         video: "/avatars/dragon_smile.mp4",
+        bg: "black",
         animations: {
           smile: "/avatars/dragon_smile.mp4",
           stretch: "/avatars/dragon_stretch.mp4",
@@ -395,6 +397,7 @@ const HABITATS: Habitat[] = [
       {
         id: "qilin", name: "Qilin",
         video: "/avatars/qilin_smile.mp4",
+        bg: "black",
         animations: {
           smile: "/avatars/qilin_smile.mp4",
           stretch: "/avatars/qilin_stretch.mp4",
@@ -423,6 +426,7 @@ const HABITATS: Habitat[] = [
       {
         id: "merlion", name: "Merlion",
         video: "/avatars/merlion_smile.mp4",
+        bg: "black",
         animations: {
           smile: "/avatars/merlion_smile.mp4",
           stretch: "/avatars/merlion_stretch.mp4",
