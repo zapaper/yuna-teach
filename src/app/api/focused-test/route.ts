@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     ? [`P${student.level}`, `Primary ${student.level}`, String(student.level)]
     : undefined;
 
-  const questionWhere = () => ({
+  const questionWhere = (useLevel: boolean) => ({
     syllabusTopic: topic,
     answer: { not: null } as { not: null },
     // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       sourceExamId: null,
       paperType: null,
       subject: { contains: subject, mode: "insensitive" as const },
-      ...(levelVariants ? { level: { in: levelVariants } } : {}),
+      ...(useLevel && levelVariants ? { level: { in: levelVariants } } : {}),
     },
   });
 
@@ -63,17 +63,41 @@ export async function POST(request: NextRequest) {
     diagramImageData: true,
     diagramBounds: true,
     examPaper: {
-      select: { year: true, examType: true, school: true },
+      select: { year: true, examType: true, school: true, level: true },
     },
   } as const;
 
-  const topicMatched = await prisma.examQuestion.findMany({
-    where: questionWhere(),
+  let topicMatched = await prisma.examQuestion.findMany({
+    where: questionWhere(true),
     select: questionSelect,
   });
+  // If the student-level filter zeroed out but the topic exists in the bank at
+  // other levels, fall back to "any level" so English master papers tagged with
+  // e.g. level="Primary 5" don't hide from a student whose level is stored as 5.
+  let levelFallback = false;
+  if (topicMatched.length === 0 && levelVariants) {
+    topicMatched = await prisma.examQuestion.findMany({
+      where: questionWhere(false),
+      select: questionSelect,
+    });
+    levelFallback = topicMatched.length > 0;
+  }
 
   if (topicMatched.length === 0) {
-    return NextResponse.json({ error: "No questions found for this topic" }, { status: 404 });
+    // Diagnostic: tell the caller how many matched each relaxation so they can
+    // tell "topic truly missing" from "subject mismatch" from "level mismatch".
+    const anySubjectCount = await prisma.examQuestion.count({
+      where: {
+        syllabusTopic: topic,
+        answer: { not: null },
+        examPaper: { sourceExamId: null, paperType: null },
+      },
+    });
+    return NextResponse.json({
+      error: anySubjectCount > 0
+        ? `No clean questions found for "${topic}" in ${subject} master papers. (${anySubjectCount} exist under other subjects.)`
+        : `No clean questions found for "${topic}" in any master paper yet.`,
+    }, { status: 404 });
   }
 
   // Pull in every DB sibling for each (examPaperId, baseNum) in the topic-matched set.
@@ -285,6 +309,10 @@ export async function POST(request: NextRequest) {
   // assigner knows the practice is shorter than usual.
   const warnings: string[] = [];
   const levelName = student?.level ? `P${student.level}` : "this level";
+  if (levelFallback) {
+    const levelsUsed = [...new Set(topicMatched.map(q => q.examPaper.level).filter(Boolean))].join(", ");
+    warnings.push(`No ${levelName} papers for "${topic}" yet — pulled from ${levelsUsed || "other levels"} instead.`);
+  }
   if (mcqOnly) {
     if (mcqPool.length < 10) {
       warnings.push(`Only ${mcqPool.length} MCQ question${mcqPool.length === 1 ? "" : "s"} available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
