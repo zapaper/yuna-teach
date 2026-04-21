@@ -125,13 +125,27 @@ export async function POST(request: NextRequest) {
 
   type Q = typeof allQuestions[number];
 
-  // ── MCQ pool: deduplicate by stem (fall back to question id for image-only Qs) ─
+  // Normalise a stem for dedup: the same question phrased with different
+  // whitespace, punctuation, or a leading question number (e.g. "1. What...",
+  // "Q1 What...", "(1) What...") should collapse to one entry. Without this
+  // the pool leaks near-duplicates — e.g. the same Science "Light" question
+  // copied across several WA2 papers — and the student sees the same question
+  // twice in a 10-item practice.
+  function normaliseStem(s: string): string {
+    return s
+      .toLowerCase()
+      .replace(/^\s*(?:q\.?\s*)?\(?\s*\d{1,3}\s*[).:]\s*/, "") // leading "1.", "Q1)", "(1):", etc.
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  // ── MCQ pool: deduplicate by normalised stem (fall back to question id for image-only Qs) ─
   const mcqStemMap = new Map<string, Q>();
   for (const q of allQuestions) {
     if (!hasOptions(q)) continue;
-    const stem = (q.transcribedStem ?? "").trim();
-    const key = stem || `__img::${q.id}`;
-    mcqStemMap.set(key, q);
+    const norm = normaliseStem(q.transcribedStem ?? "");
+    const key = norm || `__img::${q.id}`;
+    if (!mcqStemMap.has(key)) mcqStemMap.set(key, q);
   }
   const mcqPool = [...mcqStemMap.values()];
 
@@ -156,9 +170,10 @@ export async function POST(request: NextRequest) {
   );
   const oeqLeadStemMap = new Map<string, Q[]>();
   for (const group of validGroups) {
-    const leadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
-    const key = leadStem || `__img::${group[0].examPaperId}:${baseNum(group[0].questionNum)}`;
-    oeqLeadStemMap.set(key, group);
+    const rawLeadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
+    const norm = normaliseStem(rawLeadStem);
+    const key = norm || `__img::${group[0].examPaperId}:${baseNum(group[0].questionNum)}`;
+    if (!oeqLeadStemMap.has(key)) oeqLeadStemMap.set(key, group);
   }
   const oeqPool = [...oeqLeadStemMap.values()];
 
