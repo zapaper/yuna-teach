@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     select: {
       id: true,
       syllabusTopic: true,
-      examPaper: { select: { subject: true, level: true } },
+      examPaper: { select: { subject: true, level: true, examType: true } },
     },
   });
   if (!source) return NextResponse.json({ error: "Source not found" }, { status: 404 });
@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
           transcribedOptionImages: hasImgOpts ? opts : undefined,
           diagramImageData: v.diagramImageData ?? null,
           sourceQuestionId: source.id,
+          syntheticSourceExamType: source.examPaper.examType ?? null,
         },
       });
     }

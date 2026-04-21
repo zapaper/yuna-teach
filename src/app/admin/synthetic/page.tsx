@@ -90,6 +90,9 @@ function SyntheticContent() {
   const [regenPrompts, setRegenPrompts] = useState<Record<string, string>>({});
   const [regenerating, setRegenerating] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [counts, setCounts] = useState<{ total: number; groups: Array<{ subject: string; level: string; examType: string; count: number }> } | null>(null);
+  const [countsOpen, setCountsOpen] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -179,6 +182,25 @@ function SyntheticContent() {
   }, [userId, subject, level, examTypes]);
 
   useEffect(() => { if (allowed) loadBatch(); }, [allowed, loadBatch]);
+
+  const loadCounts = useCallback(async () => {
+    const res = await fetch("/api/admin/synthetic/counts");
+    if (!res.ok) return;
+    setCounts(await res.json());
+  }, []);
+
+  useEffect(() => { if (allowed) loadCounts(); }, [allowed, loadCounts]);
+
+  async function runBackfill() {
+    setBackfilling(true);
+    try {
+      const res = await fetch("/api/admin/synthetic/backfill-exam-type", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) { showToast(data.error ?? "Backfill failed"); return; }
+      showToast(`Backfilled: ${data.updated} updated, ${data.skipped} skipped`);
+      await loadCounts();
+    } finally { setBackfilling(false); }
+  }
 
   function showToast(msg: string) {
     setToast(msg);
@@ -412,6 +434,49 @@ function SyntheticContent() {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Bank inventory — collapsible, shows per subject/level/examType counts */}
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white overflow-hidden">
+            <button onClick={() => setCountsOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50">
+              <span>Synthetic bank inventory {counts ? `· ${counts.total} questions` : ""}</span>
+              <span className="flex items-center gap-2">
+                <span onClick={(e) => { e.stopPropagation(); runBackfill(); }}
+                  className={`px-2 py-0.5 rounded border text-[10px] font-bold ${backfilling ? "bg-slate-100 text-slate-400 border-slate-200" : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"}`}>
+                  {backfilling ? "Backfilling…" : "Backfill examType"}
+                </span>
+                <span>{countsOpen ? "▲" : "▼"}</span>
+              </span>
+            </button>
+            {countsOpen && counts && (
+              <div className="border-t border-slate-100 max-h-80 overflow-y-auto">
+                {counts.groups.length === 0 ? (
+                  <p className="px-4 py-3 text-xs text-slate-400">No synthetic questions generated yet.</p>
+                ) : (
+                  <table className="w-full text-xs">
+                    <thead className="bg-slate-50 text-slate-500">
+                      <tr>
+                        <th className="px-3 py-1.5 text-left font-bold">Subject</th>
+                        <th className="px-3 py-1.5 text-left font-bold">Level</th>
+                        <th className="px-3 py-1.5 text-left font-bold">Exam type</th>
+                        <th className="px-3 py-1.5 text-right font-bold">Count</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {counts.groups.map(g => (
+                        <tr key={`${g.subject}-${g.level}-${g.examType}`} className="border-t border-slate-100">
+                          <td className="px-3 py-1.5 text-slate-700">{g.subject}</td>
+                          <td className="px-3 py-1.5 text-slate-700">{g.level}</td>
+                          <td className="px-3 py-1.5 text-slate-700">{g.examType}</td>
+                          <td className="px-3 py-1.5 text-right font-bold tabular-nums text-slate-800">{g.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Generate-all button */}

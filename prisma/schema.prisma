@@ -143,6 +143,9 @@ model ExamQuestion {
   // Synthetic question generation (admin)
   syntheticGenerated      Boolean  @default(false)
   syntheticSkipped        Boolean  @default(false) // admin deferred — push to end of queue
+  // For rows on a Synthetic Bank paper: the examType of the ORIGINAL source
+  // paper (WA1/WA2/EOY/Prelim). Null on non-synthetic rows.
+  syntheticSourceExamType String?
   syntheticQuestions      SyntheticQuestion[]
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)
