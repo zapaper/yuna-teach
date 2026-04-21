@@ -657,11 +657,21 @@ function SyntheticContent() {
 
               {d && questionType === "oeq" && (
                 <div className={locked ? "opacity-40 pointer-events-none" : ""}>
-                  <OeqVariantCard title="Simple variant (same concept, swapped scenario)" variant={d.simple} />
+                  <OeqVariantCard title="Simple variant (same concept, swapped scenario)" variant={d.simple}
+                    regenPrompt={regenPrompts[`${q.id}-simple`] ?? ""}
+                    setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-simple`]: v }))}
+                    regenerating={regenerating === `${q.id}-simple`}
+                    onRegenDiagram={() => regenerateDiagram(q, "simple")}
+                    onDiagramEdit={base64 => updateVariant(q.id, "simple", { diagramImageData: base64 })} />
                   <DecisionButtons which="simple" decision={qDecisions.simple} savingState={savingState}
                     questionId={q.id}
                     onChoose={dec => setDecision(q, "simple", dec)} />
-                  <OeqVariantCard title="Similar variant (different angle on the same topic)" variant={d.similar} />
+                  <OeqVariantCard title="Similar variant (different angle on the same topic)" variant={d.similar}
+                    regenPrompt={regenPrompts[`${q.id}-similar`] ?? ""}
+                    setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-similar`]: v }))}
+                    regenerating={regenerating === `${q.id}-similar`}
+                    onRegenDiagram={() => regenerateDiagram(q, "similar")}
+                    onDiagramEdit={base64 => updateVariant(q.id, "similar", { diagramImageData: base64 })} />
                   <DecisionButtons which="similar" decision={qDecisions.similar} savingState={savingState}
                     questionId={q.id}
                     onChoose={dec => setDecision(q, "similar", dec)} />
@@ -837,21 +847,69 @@ function SyntheticContent() {
   );
 }
 
-// Read-only preview card for an OEQ variant. No inline editing yet — accept
-// / don't-accept remains the full lifecycle for v1, and we can add
-// subpart / answer editing if generations need touch-ups.
-function OeqVariantCard({ title, variant }: { title: string; variant: Variant }) {
+// Preview card for an OEQ variant — stem, generated diagram (editable),
+// subparts, and marking scheme. Mirrors the MCQ VariantEditor's diagram-
+// editing affordances: click to hand-edit, or write a prompt + regen.
+function OeqVariantCard({
+  title, variant, regenPrompt, setRegenPrompt, regenerating, onRegenDiagram, onDiagramEdit,
+}: {
+  title: string;
+  variant: Variant;
+  regenPrompt?: string;
+  setRegenPrompt?: (v: string) => void;
+  regenerating?: boolean;
+  onRegenDiagram?: () => void;
+  onDiagramEdit?: (base64: string) => void;
+}) {
+  const [editingDiagram, setEditingDiagram] = useState(false);
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-2">
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{title}</p>
       <FormattedText text={variant.stem} className="text-sm text-slate-800 whitespace-pre-line mb-3" />
       {variant.diagramImageData && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={variant.diagramImageData.startsWith("data:") ? variant.diagramImageData : `data:image/jpeg;base64,${variant.diagramImageData}`}
-          alt="variant diagram"
-          className="max-w-sm rounded-lg border border-slate-200 mb-3"
-        />
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-[10px] font-bold uppercase text-slate-400">Generated diagram / table</p>
+            {onDiagramEdit && (
+              <button onClick={() => setEditingDiagram(true)} className="text-xs text-violet-500 hover:text-violet-700 font-semibold">Edit</button>
+            )}
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={variant.diagramImageData.startsWith("data:") ? variant.diagramImageData : `data:image/png;base64,${variant.diagramImageData}`}
+            alt="variant diagram"
+            className={`max-w-sm rounded-lg border border-slate-200 ${onDiagramEdit ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+            onClick={() => { if (onDiagramEdit) setEditingDiagram(true); }}
+          />
+          {editingDiagram && onDiagramEdit && (
+            <DiagramEditor
+              imageBase64={variant.diagramImageData}
+              onSave={(edited) => { onDiagramEdit(edited); setEditingDiagram(false); }}
+              onClose={() => setEditingDiagram(false)}
+            />
+          )}
+        </div>
+      )}
+      {variant.diagramDescription && !variant.diagramImageData && (
+        <div className="mb-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-[10px] font-bold uppercase text-amber-600 mb-0.5">Diagram / table suggestion (image generation failed)</p>
+          <p className="text-xs text-amber-800">{variant.diagramDescription}</p>
+        </div>
+      )}
+      {onRegenDiagram && (
+        <div className="mb-3 p-2 border border-dashed border-slate-200 rounded-lg space-y-1.5">
+          <textarea
+            value={regenPrompt ?? ""}
+            onChange={e => setRegenPrompt?.(e.target.value)}
+            placeholder="Optional: describe how to redraw the diagram/table (e.g. 'add headers Day/Volume', 'redraw with clearer axis labels')"
+            rows={2}
+            className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 focus:border-slate-500 outline-none resize-none"
+          />
+          <button onClick={onRegenDiagram} disabled={regenerating}
+            className="w-full py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold disabled:opacity-50">
+            {regenerating ? "Regenerating…" : variant.diagramImageData ? "Regenerate diagram / table" : "Generate diagram / table"}
+          </button>
+        </div>
       )}
       {Array.isArray(variant.subparts) && variant.subparts.length > 0 && (
         <div className="space-y-1 mb-3">

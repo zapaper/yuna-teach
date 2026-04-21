@@ -16,7 +16,11 @@ export async function POST(request: NextRequest) {
     where: { id: sourceQuestionId },
     select: { diagramImageData: true },
   });
-  if (!source?.diagramImageData) return NextResponse.json({ error: "Source has no diagram" }, { status: 404 });
+  // Source diagram is optional — OEQ tables describe what to render purely
+  // in the description, with no reference image.
+  if (mode === "reset" && !source?.diagramImageData) {
+    return NextResponse.json({ error: "Source has no diagram to reset from" }, { status: 404 });
+  }
 
   let description: string;
   if (mode === "reset") {
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
       .join("\n\n") || "Generate a diagram appropriate for this question.";
   }
 
-  const img = await generateSyntheticDiagramImage(source.diagramImageData, variantStem, description);
+  const img = await generateSyntheticDiagramImage(source?.diagramImageData ?? null, variantStem, description);
   if (!img) return NextResponse.json({ error: "Generation failed" }, { status: 500 });
   return NextResponse.json({ diagramImageData: img });
 }
