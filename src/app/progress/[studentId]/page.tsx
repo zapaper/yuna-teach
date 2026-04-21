@@ -100,14 +100,57 @@ function ProgressContent({ studentId }: { studentId: string }) {
     })();
   }, [parentId, studentId]);
 
+  // English syllabus topic → daily-quiz section key (matches the parent-
+  // dashboard Assign English Focus flow). Anything not in this map falls
+  // through to /api/focused-test.
+  const ENGLISH_TOPIC_TO_SECTION: Record<string, string> = {
+    "Grammar MCQ": "grammar-mcq",
+    "Vocabulary MCQ": "vocab-mcq",
+    "Vocabulary Cloze MCQ": "vocab-cloze",
+    "Visual Text Comprehension MCQ": "visual-text",
+    "Grammar Cloze": "grammar-cloze",
+    "Editing (Spelling & Grammar)": "editing",
+    "Comprehension Cloze": "comprehension-cloze",
+    "Synthesis & Transformation": "synthesis",
+    "Synthesis / Transformation": "synthesis",
+    "Comprehension (Open-ended)": "comprehension-oeq",
+    "Comprehension Open Ended": "comprehension-oeq",
+  };
+
   async function createFocusedTest(subject: string, topic: string) {
     setCreating(topic);
     try {
-      const res = await fetch("/api/focused-test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ parentId, studentId, subject, topic }),
-      });
+      const isEnglish = subject.toLowerCase().includes("english");
+      const englishSection = isEnglish ? ENGLISH_TOPIC_TO_SECTION[topic] : undefined;
+
+      // Mirror the parent-dashboard flow: English focus practice goes through
+      // /api/daily-quiz (focused single-section). Math/Science uses focused-test.
+      const res = englishSection
+        ? await fetch("/api/daily-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: studentId,
+              quizType: "mcq",
+              subject: "english",
+              englishSections: [englishSection],
+              focused: true,
+            }),
+          })
+        : await fetch("/api/focused-test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              parentId,
+              studentId,
+              subject: subject.toLowerCase().includes("math")
+                ? "Mathematics"
+                : subject.toLowerCase().includes("science")
+                ? "Science"
+                : subject,
+              topic,
+            }),
+          });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         alert(data.error || "Failed to create test");
