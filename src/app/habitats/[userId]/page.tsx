@@ -495,6 +495,17 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   } | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const [purchaseError, setPurchaseError] = useState<string | null>(null);
+  // Portrait-mobile guard: the habitat scene is laid out for a wide aspect
+  // (sidebar + 16:9 stage). On a phone in portrait it gets squashed, so
+  // show a "rotate" prompt instead.
+  const [needsLandscape, setNeedsLandscape] = useState(false);
+  useEffect(() => {
+    const q = window.matchMedia("(max-width: 900px) and (orientation: portrait)");
+    const update = () => setNeedsLandscape(q.matches);
+    update();
+    q.addEventListener("change", update);
+    return () => q.removeEventListener("change", update);
+  }, []);
   // Live positions of every rendered pet. PetActors write their own x here
   // and read others' so "talk" only fires when a neighbour is in range.
   const positionsRef = useRef<Record<string, number>>({});
@@ -579,6 +590,32 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
     } finally {
       setPurchasing(false);
     }
+  }
+
+  if (needsLandscape) {
+    return (
+      <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col">
+        <header className="flex items-center justify-between px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-[#e5eeff]">
+          <button onClick={() => router.push(`/home/${userId}`)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors">
+            <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
+          </button>
+          <h1 className="font-headline font-extrabold text-lg text-[#001e40]">Habitats &amp; Pets</h1>
+          <div className="w-10 h-10" />
+        </header>
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
+          <span
+            className="material-symbols-outlined text-[#006c49] text-6xl animate-pulse"
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            screen_rotation
+          </span>
+          <p className="font-headline text-xl font-extrabold text-[#001e40]">Rotate your phone</p>
+          <p className="text-sm text-[#43474f] max-w-xs">
+            Habitats &amp; Pets needs landscape mode. Turn your phone sideways to see your pets.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
