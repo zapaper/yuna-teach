@@ -254,126 +254,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* ── Sign Up Section ── */}
+          {/* ── Try-for-free CTA ── */}
           <div className="mt-10 pt-8 border-t border-surface-container">
-            <p className="text-center font-headline font-bold text-primary mb-4">Create a new account</p>
-
-            {/* Student / Parent toggle */}
-            <div className="flex gap-2 p-1 bg-surface-container-low rounded-xl mb-6">
-              <button
-                type="button"
-                onClick={() => { setTab("student"); setSignupError(""); setNameAvailable(null); setSignupName(""); }}
-                className={`flex-1 py-2 rounded-lg font-bold text-sm transition-colors ${tab === "student" ? "bg-surface-container-lowest text-primary shadow-sm" : "text-on-surface-variant hover:bg-white/50"}`}
-              >
-                Student
-              </button>
-              <button
-                type="button"
-                onClick={() => { setTab("parent"); setSignupError(""); setNameAvailable(null); setSignupName(""); }}
-                className={`flex-1 py-2 rounded-lg font-bold text-sm transition-colors ${tab === "parent" ? "bg-surface-container-lowest text-primary shadow-sm" : "text-on-surface-variant hover:bg-white/50"}`}
-              >
-                Parent
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {/* Username */}
-              <div className="space-y-1">
-                <label className="block font-headline font-bold text-sm text-primary ml-1">Username</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">person_outline</span>
-                  <input
-                    type="text"
-                    value={signupName}
-                    onChange={e => { setSignupName(e.target.value); checkName(e.target.value); }}
-                    placeholder="Choose a username"
-                    className="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary-container text-on-surface outline-none"
-                  />
-                </div>
-                {signupName.trim() && (
-                  <p className={`text-xs ml-1 ${checkingName ? "text-outline-variant" : nameAvailable === true ? "text-secondary" : nameAvailable === false ? "text-error" : "text-outline-variant"}`}>
-                    {checkingName ? "Checking…" : nameAvailable === true ? "Username available ✓" : nameAvailable === false ? "Username is taken" : ""}
-                  </p>
-                )}
-              </div>
-
-              {/* Email — parent only */}
-              {tab === "parent" && (
-                <div className="space-y-1">
-                  <label className="block font-headline font-bold text-sm text-primary ml-1">Email</label>
-                  <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">mail</span>
-                    <input
-                      type="email"
-                      value={signupEmail}
-                      onChange={e => setSignupEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      className="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary-container text-on-surface outline-none"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Level — student only */}
-              {tab === "student" && (
-                <div className="space-y-1">
-                  <label className="block font-headline font-bold text-sm text-primary ml-1">Primary Level</label>
-                  <div className="grid grid-cols-6 gap-1.5">
-                    {[1, 2, 3, 4, 5, 6].map(l => (
-                      <button
-                        key={l}
-                        type="button"
-                        onClick={() => setSignupLevel(l)}
-                        className={`rounded-lg py-2.5 text-center text-sm font-bold transition-colors ${
-                          signupLevel === l
-                            ? "bg-primary text-on-primary"
-                            : "bg-surface-container-low text-on-surface-variant hover:bg-surface-container"
-                        }`}
-                      >
-                        P{l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Password */}
-              <div className="space-y-1">
-                <label className="block font-headline font-bold text-sm text-primary ml-1">Password</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant">lock_open</span>
-                  <input
-                    type="password"
-                    value={signupPassword}
-                    onChange={e => setSignupPassword(e.target.value)}
-                    placeholder="Create a password"
-                    className="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl focus:ring-2 focus:ring-primary-container text-on-surface outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {signupError && (
-              <p className="text-sm text-error font-medium mt-3">{signupError}</p>
-            )}
-
-            <button
-              type="button"
-              onClick={handleSignup}
-              disabled={signupLoading || nameAvailable === false}
-              className="w-full mt-6 py-4 bg-secondary text-on-secondary font-headline font-bold text-lg rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+            <Link
+              href="/signup"
+              className="w-full flex items-center justify-center gap-2 py-4 bg-secondary text-on-secondary font-headline font-bold text-lg rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
               style={{ boxShadow: "0 20px 40px rgba(11,28,48,0.06)" }}
             >
-              {signupLoading ? "Creating account…" : "Free Sign Up"}
-              {!signupLoading && <span className="material-symbols-outlined">person_add</span>}
-            </button>
-
-            <p className="text-center text-on-surface-variant text-xs mt-4">
-              New here?{" "}
-              <Link href="/signup" className="text-primary font-bold hover:underline">
-                Sign up for free
-              </Link>
-            </p>
+              Try for FREE
+              <span className="material-symbols-outlined">arrow_forward</span>
+            </Link>
           </div>
         </div>
 
