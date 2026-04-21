@@ -101,12 +101,13 @@ export async function POST(request: NextRequest) {
 
   type Q = typeof allQuestions[number];
 
-  // ── MCQ pool: deduplicate by stem ─────────────────────────────────────────
+  // ── MCQ pool: deduplicate by stem (fall back to question id for image-only Qs) ─
   const mcqStemMap = new Map<string, Q>();
   for (const q of allQuestions) {
     if (!hasOptions(q)) continue;
     const stem = (q.transcribedStem ?? "").trim();
-    if (stem) mcqStemMap.set(stem, q);
+    const key = stem || `__img::${q.id}`;
+    mcqStemMap.set(key, q);
   }
   const mcqPool = [...mcqStemMap.values()];
 
@@ -123,12 +124,17 @@ export async function POST(request: NextRequest) {
   for (const group of oeqGroupMap.values()) {
     group.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
   }
-  // Filter: keep only groups where at least one question has a stem
-  const validGroups = [...oeqGroupMap.values()].filter(g => g.some(q => (q.transcribedStem ?? "").trim()));
+  // Keep groups that either have a stem OR an image. Image-only English OEQs
+  // (Grammar Cloze, Editing, Comp Cloze) should still be selectable — the quiz
+  // UI falls back to rendering imageData when transcribedStem is null.
+  const validGroups = [...oeqGroupMap.values()].filter(g =>
+    g.some(q => (q.transcribedStem ?? "").trim() || (q.imageData && q.imageData.length > 100))
+  );
   const oeqLeadStemMap = new Map<string, Q[]>();
   for (const group of validGroups) {
     const leadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
-    if (leadStem) oeqLeadStemMap.set(leadStem, group);
+    const key = leadStem || `__img::${group[0].examPaperId}:${baseNum(group[0].questionNum)}`;
+    oeqLeadStemMap.set(key, group);
   }
   const oeqPool = [...oeqLeadStemMap.values()];
 

@@ -141,7 +141,7 @@ function ExperienceBar({ points, level, progressPct, justUpdated, wide, crystals
       {showCrystals && (
         <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-2xl px-3 self-stretch" title="Crystals — earned per parent-reviewed quiz">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/stickers/crystal_s.png" alt="crystal" className="w-7 h-7 object-contain" style={{ mixBlendMode: "screen" }} />
+          <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-7 h-7 object-contain" />
           <span className="text-sm font-extrabold">{crystals}</span>
         </div>
       )}
@@ -641,7 +641,17 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const paperDate = (p: ExamPaperSummary) => new Date(p.scheduledFor ?? p.createdAt ?? "");
   const paperDateStr = (p: ExamPaperSummary) => localDateStr(paperDate(p));
   const WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const weekdayLabel = (p: ExamPaperSummary) => WEEKDAY_LABELS[paperDate(p).getDay()];
+  // Start of the current week (Monday 00:00 local). Anything before this is a prior week.
+  const thisWeekStart = (() => {
+    const dow = now.getDay();
+    const diff = dow === 0 ? 6 : dow - 1;
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() - diff);
+  })();
+  const weekdayLabel = (p: ExamPaperSummary) => {
+    const d = paperDate(p);
+    const label = WEEKDAY_LABELS[d.getDay()];
+    return d < thisWeekStart ? `Last ${label}` : label;
+  };
 
   // Today = papers scheduled for today only
   const todayActivities = studentPapers.filter(p => paperDateStr(p) === todayStr);

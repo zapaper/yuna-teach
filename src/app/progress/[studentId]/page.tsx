@@ -78,6 +78,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
   const [loading, setLoading] = useState(true);
   const [activeSubject, setActiveSubject] = useState<string | null>(null);
   const [creating, setCreating] = useState<string | null>(null);
+  const [assignedToast, setAssignedToast] = useState<string | null>(null);
   const [view, setView] = useState<"topic" | "time">("topic");
   const [sharing, setSharing] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -113,7 +114,8 @@ function ProgressContent({ studentId }: { studentId: string }) {
         return;
       }
       if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
-      router.push(`/home/${parentId}?student=${studentId}`);
+      setAssignedToast(topic);
+      setTimeout(() => setAssignedToast(null), 2500);
     } finally {
       setCreating(null);
     }
@@ -163,6 +165,14 @@ function ProgressContent({ studentId }: { studentId: string }) {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] pb-28 lg:pb-12">
+
+      {/* ── Focus practice assigned toast ── */}
+      {assignedToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-[#006c49] text-white px-5 py-3 rounded-2xl shadow-lg flex items-center gap-2 animate-[fadeIn_0.2s_ease-out]">
+          <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <span className="font-bold text-sm">Focus practice assigned: {assignedToast}</span>
+        </div>
+      )}
 
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-50 bg-[#f8f9ff]/90 backdrop-blur-lg border-b border-[#e5eeff]">
@@ -329,7 +339,7 @@ function ProgressContent({ studentId }: { studentId: string }) {
                           disabled={creating === topic}
                           className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm border border-[#c3c6d1] text-[#001e40] bg-white hover:bg-[#d5e3ff] transition-colors disabled:opacity-50 shrink-0"
                         >
-                          {creating === topic ? "Creating..." : "Focused Test"}
+                          {creating === topic ? "Creating..." : "Focus Practice"}
                         </button>
                       </div>
                     );

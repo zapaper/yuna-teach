@@ -474,7 +474,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
         <h1 className="font-headline font-extrabold text-lg text-[#001e40]">Habitats &amp; Pets</h1>
         <div className="flex items-center gap-1.5 bg-[#e5eeff] text-[#001e40] rounded-full pl-2 pr-3 py-1" title="Crystals — spend to unlock more habitats">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/stickers/crystal_s.png" alt="crystal" className="w-7 h-7 object-contain" style={{ mixBlendMode: "screen" }} />
+          <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-7 h-7 object-contain" />
           <span className="text-sm font-extrabold">{crystals}</span>
         </div>
       </header>
@@ -503,7 +503,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                       {(h.id === "fantasy" || h.id === "garden") && (
                         <div className="flex items-center gap-1 bg-white/90 rounded-full px-2 py-0.5">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src="/stickers/crystal_s.png" alt="crystal" className="w-4 h-4 object-contain" style={{ mixBlendMode: "screen" }} />
+                          <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-4 h-4 object-contain" />
                           <span className="text-[10px] font-extrabold text-[#001e40]">30</span>
                         </div>
                       )}
@@ -579,7 +579,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                       {!unlocked && crystalCost && (
                         <div className="flex items-center gap-0.5 bg-[#e5eeff] rounded-full px-1.5 py-0.5">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src="/stickers/crystal_s.png" alt="crystal" className="w-3 h-3 object-contain" style={{ mixBlendMode: "screen" }} />
+                          <img src="/stickers/crystal_t.PNG" alt="crystal" className="w-3 h-3 object-contain" />
                           <span className="text-[9px] font-extrabold text-[#001e40]">{crystalCost}</span>
                         </div>
                       )}

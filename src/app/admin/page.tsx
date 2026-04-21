@@ -84,6 +84,13 @@ function AdminContent() {
       href: `/admin/synthetic?userId=${userId}`,
       color: "bg-purple-50 text-purple-600",
     },
+    {
+      icon: "label",
+      label: "Reclassify P4/P5 Algebra",
+      description: "One-off: AI retags P4/P5 math questions currently tagged Algebra.",
+      href: `/admin/reclassify-algebra?userId=${userId}`,
+      color: "bg-indigo-50 text-indigo-600",
+    },
   ];
 
   return (
