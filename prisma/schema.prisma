@@ -222,3 +222,20 @@ enum Language {
   ENGLISH
   JAPANESE
 }
+
+// Transient store for AI-solver results. Client generates a UUID per solve
+// and POSTs it with the image; server saves the result here keyed by the
+// UUID. If the client tab backgrounds mid-call and the fetch dies, the
+// client polls GET /api/solver?jobId=... on resume to pick up the saved
+// result. Rows are auto-deleted after ~15 min (cleanup on new inserts).
+model SolverJob {
+  id          String    @id
+  status      String    // "pending" | "done" | "error"
+  result      Json?
+  error       String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([createdAt])
+  @@map("solver_jobs")
+}

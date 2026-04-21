@@ -69,68 +69,122 @@ function SolverContent() {
     });
   }
 
+  // Job-based flow so tab backgrounding doesn't lose the result: client
+  // generates a UUID per solve and saves it in sessionStorage. POST runs
+  // Gemini server-side and writes the result to DB keyed by that UUID. If
+  // the POST's connection dies (common when the tab hides on iOS Safari),
+  // the server still completes and saves; client reconnects via
+  // GET /api/solver?jobId=... on tab resume and picks up the result.
+  const JOB_KEY = "solver-jobId";
   const abortRef = useRef<AbortController | null>(null);
+  const pollingRef = useRef<boolean>(false);
 
-  async function handleFile(file: File) {
+  function applyResult(data: { subject?: string; topic?: string | null; solution?: string; diagrams?: DiagramStep[] }) {
+    setSubject(data.subject ?? "Math");
+    setTopic(data.topic ?? "");
+    setSolution(data.solution ?? "");
+    setDiagrams(data.diagrams ?? []);
+    setStep("result");
+    sessionStorage.removeItem(JOB_KEY);
+  }
+
+  async function pollJob(jobId: string) {
+    if (pollingRef.current) return;
+    pollingRef.current = true;
+    try {
+      // Poll at 2s intervals for up to 3 min, then give up.
+      const deadline = Date.now() + 3 * 60 * 1000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 2000));
+        // Stop polling if the user navigated away from solving state.
+        if (!sessionStorage.getItem(JOB_KEY)) return;
+        try {
+          const res = await fetch(`/api/solver?jobId=${encodeURIComponent(jobId)}`);
+          if (res.status === 404) continue; // not yet persisted
+          const data = await res.json();
+          if (data.status === "done") { applyResult(data); return; }
+          if (data.status === "error") {
+            setError(data.error ?? "Failed to solve");
+            setStep("capture");
+            sessionStorage.removeItem(JOB_KEY);
+            return;
+          }
+        } catch {
+          // network blip during poll — keep trying
+        }
+      }
+      setError("Solver took too long. Tap 'Retry' to try again.");
+      setStep("capture");
+      sessionStorage.removeItem(JOB_KEY);
+    } finally {
+      pollingRef.current = false;
+    }
+  }
+
+  // Resume polling on mount OR when the tab comes back to the foreground.
+  useEffect(() => {
+    function resumeIfPending() {
+      const jobId = sessionStorage.getItem(JOB_KEY);
+      if (jobId && step !== "result") {
+        setStep("solving");
+        pollJob(jobId);
+      }
+    }
+    resumeIfPending();
+    function onVis() { if (document.visibilityState === "visible") resumeIfPending(); }
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function runSolve(dataUrl: string, jobId: string) {
     setError(null);
+    setStep("solving");
+    sessionStorage.setItem(JOB_KEY, jobId);
     if (abortRef.current) abortRef.current.abort();
     const abort = new AbortController();
     abortRef.current = abort;
     try {
-      const dataUrl = await compressImage(file);
-      setImageDataUrl(dataUrl);
-      setStep("solving");
-
       const res = await fetch("/api/solver", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64: dataUrl, hint: hint.trim() || undefined }),
+        body: JSON.stringify({ jobId, imageBase64: dataUrl, hint: hint.trim() || undefined }),
         signal: abort.signal,
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Failed to solve");
         setStep("capture");
+        sessionStorage.removeItem(JOB_KEY);
         return;
       }
-      setSubject(data.subject);
-      setTopic(data.topic ?? "");
-      setSolution(data.solution);
-      setDiagrams(data.diagrams ?? []);
-      setStep("result");
+      applyResult(data);
     } catch (err) {
       if ((err as Error)?.name === "AbortError") return;
-      // Connection may have been interrupted (e.g. tab switch on mobile)
-      // Keep the image so user can retry
-      setError("Connection interrupted. Tap 'Retry' to try again.");
+      // Connection died mid-call (typical when tab backgrounds). The server
+      // may still be working or may already have saved the result — fall
+      // back to polling GET until the row appears.
+      pollJob(jobId);
+    }
+  }
+
+  async function handleFile(file: File) {
+    setError(null);
+    try {
+      const dataUrl = await compressImage(file);
+      setImageDataUrl(dataUrl);
+      const jobId = crypto.randomUUID();
+      await runSolve(dataUrl, jobId);
+    } catch {
+      setError("Failed to prepare image");
       setStep("capture");
     }
   }
 
   function retryWithImage() {
     if (!imageDataUrl) return;
-    setError(null);
-    setStep("solving");
-    if (abortRef.current) abortRef.current.abort();
-    const abort = new AbortController();
-    abortRef.current = abort;
-    fetch("/api/solver", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ imageBase64: imageDataUrl, hint: hint.trim() || undefined }),
-      signal: abort.signal,
-    }).then(r => r.json()).then(data => {
-      if (data.error) { setError(data.error); setStep("capture"); return; }
-      setSubject(data.subject);
-      setTopic(data.topic ?? "");
-      setSolution(data.solution);
-      setDiagrams(data.diagrams ?? []);
-      setStep("result");
-    }).catch(err => {
-      if ((err as Error)?.name === "AbortError") return;
-      setError("Connection interrupted. Tap 'Retry' to try again.");
-      setStep("capture");
-    });
+    const jobId = crypto.randomUUID();
+    runSolve(imageDataUrl, jobId);
   }
 
   async function createFocusedTest() {

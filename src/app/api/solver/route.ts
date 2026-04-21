@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { readFileSync } from "fs";
 import path from "path";
+import { prisma } from "@/lib/db";
 
 export const maxDuration = 180;
+
+// Result rows stick around for 15 min so a client that backgrounded its tab
+// mid-solve can reconnect and pick up its result. Cleanup runs
+// opportunistically on each new POST.
+const JOB_TTL_MS = 15 * 60 * 1000;
 
 function getAI() {
   return new GoogleGenAI({
@@ -28,12 +34,54 @@ const MATH_TOPICS = loadTopics("math-topics.txt");
 const SCIENCE_TOPICS = loadTopics("science-topics.txt");
 const ENGLISH_TOPICS = loadTopics("english-topics.txt");
 
+// GET /api/solver?jobId=<uuid> — client reconnect path. Returns the saved
+// result (or pending status) for a job the client previously POSTed.
+export async function GET(request: NextRequest) {
+  const jobId = request.nextUrl.searchParams.get("jobId");
+  if (!jobId) return NextResponse.json({ error: "jobId required" }, { status: 400 });
+  const job = await prisma.solverJob.findUnique({ where: { id: jobId } });
+  if (!job) return NextResponse.json({ status: "not_found" }, { status: 404 });
+  if (job.status === "done") {
+    return NextResponse.json({ status: "done", ...(job.result as Record<string, unknown>) });
+  }
+  if (job.status === "error") {
+    return NextResponse.json({ status: "error", error: job.error ?? "Failed to solve" }, { status: 500 });
+  }
+  return NextResponse.json({ status: "pending" });
+}
+
 export async function POST(request: NextRequest) {
   console.log("[solver] route hit");
-  const { imageBase64, hint } = await request.json();
+  const { imageBase64, hint, jobId } = await request.json();
   if (!imageBase64) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
+  if (!jobId || typeof jobId !== "string") {
+    return NextResponse.json({ error: "jobId required" }, { status: 400 });
+  }
+
+  // Clean up stale jobs on the side.
+  prisma.solverJob
+    .deleteMany({ where: { createdAt: { lt: new Date(Date.now() - JOB_TTL_MS) } } })
+    .catch((e) => console.error("[solver] cleanup failed:", e));
+
+  // If this jobId already has a saved result, return it (idempotent retry).
+  const existing = await prisma.solverJob.findUnique({ where: { id: jobId } });
+  if (existing?.status === "done" && existing.result) {
+    console.log("[solver] returning cached result for", jobId);
+    return NextResponse.json(existing.result);
+  }
+  if (existing?.status === "error") {
+    return NextResponse.json({ error: existing.error ?? "Failed to solve" }, { status: 500 });
+  }
+
+  // Mark the job as pending. upsert so concurrent POSTs with the same jobId
+  // (which shouldn't happen but might under retry races) don't crash.
+  await prisma.solverJob.upsert({
+    where: { id: jobId },
+    create: { id: jobId, status: "pending" },
+    update: { status: "pending", error: null, result: undefined },
+  });
 
   const base64Data = imageBase64.replace(/^data:image\/[a-z]+;base64,/, "");
 
@@ -132,15 +180,27 @@ Respond with ONLY valid JSON (no markdown fences):
       })
       .filter(Boolean);
 
-    console.log("[solver] done");
-    return NextResponse.json({
+    const result = {
       subject: parsed.subject ?? "Math",
       topic: validTopic,
       solution: parsed.solution ?? "",
       diagrams,
+    };
+
+    // Save before returning so a reconnecting client can pick it up.
+    await prisma.solverJob.update({
+      where: { id: jobId },
+      data: { status: "done", result, completedAt: new Date() },
     });
+
+    console.log("[solver] done", jobId);
+    return NextResponse.json(result);
   } catch (err) {
     console.error("[solver] Gemini error:", err);
+    const msg = err instanceof Error ? err.message : "Failed to solve question";
+    await prisma.solverJob
+      .update({ where: { id: jobId }, data: { status: "error", error: msg, completedAt: new Date() } })
+      .catch(() => {});
     return NextResponse.json({ error: "Failed to solve question" }, { status: 500 });
   }
 }
