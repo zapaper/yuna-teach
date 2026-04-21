@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import DiagramEditor from "@/components/DiagramEditor";
 import AdminNav from "@/components/AdminNav";
+import FormattedText from "@/components/FormattedText";
 
 type Subject = "math" | "science" | "english";
 type QuestionType = "mcq" | "oeq";
@@ -574,7 +575,7 @@ function SyntheticContent() {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original · {q.paperYear ?? ""} {q.paperSchool ?? ""}</p>
                   <p className="text-[10px] text-slate-400">{q.paperTitle} · Q{q.questionNum}</p>
                 </div>
-                <p className="text-sm text-slate-800 font-medium whitespace-pre-wrap mb-3">{q.stem}</p>
+                <FormattedText text={q.stem} className="text-sm text-slate-800 font-medium whitespace-pre-line mb-3" />
                 {q.diagramImageData && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={q.diagramImageData.startsWith("data:") ? q.diagramImageData : `data:image/jpeg;base64,${q.diagramImageData}`}
@@ -588,14 +589,14 @@ function SyntheticContent() {
                         {q.subparts.map((sp, i) => (
                           <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
                             <span className="shrink-0 font-bold">({sp.label})</span>
-                            <span className="flex-1">{sp.text}</span>
+                            <FormattedText text={sp.text} className="flex-1" />
                           </div>
                         ))}
                       </div>
                     )}
-                    <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800 whitespace-pre-wrap">
-                      <span className="text-[10px] font-bold uppercase mr-2">Marking scheme · {q.marksAvailable ?? "?"}m</span>
-                      {q.answerText ?? ""}
+                    <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800">
+                      <div className="text-[10px] font-bold uppercase mb-1">Marking scheme · {q.marksAvailable ?? "?"}m</div>
+                      <FormattedText text={q.answerText ?? ""} />
                     </div>
                   </div>
                 ) : Array.isArray(q.optionImages) && q.optionImages.some(Boolean) ? (
@@ -843,7 +844,7 @@ function OeqVariantCard({ title, variant }: { title: string; variant: Variant })
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-2">
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{title}</p>
-      <p className="text-sm text-slate-800 whitespace-pre-wrap mb-3">{variant.stem}</p>
+      <FormattedText text={variant.stem} className="text-sm text-slate-800 whitespace-pre-line mb-3" />
       {variant.diagramImageData && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -857,14 +858,14 @@ function OeqVariantCard({ title, variant }: { title: string; variant: Variant })
           {variant.subparts.map((sp, i) => (
             <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
               <span className="shrink-0 font-bold">({sp.label})</span>
-              <span className="flex-1">{sp.text}</span>
+              <FormattedText text={sp.text} className="flex-1" />
             </div>
           ))}
         </div>
       )}
-      <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800 whitespace-pre-wrap">
-        <span className="text-[10px] font-bold uppercase mr-2">Answer · {variant.marksAvailable ?? "?"}m</span>
-        {variant.answerText ?? ""}
+      <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800">
+        <div className="text-[10px] font-bold uppercase mb-1">Answer · {variant.marksAvailable ?? "?"}m</div>
+        <FormattedText text={variant.answerText ?? ""} />
       </div>
     </div>
   );

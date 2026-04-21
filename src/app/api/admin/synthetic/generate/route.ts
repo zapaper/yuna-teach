@@ -65,13 +65,15 @@ export async function POST(request: NextRequest) {
         q.diagramImageData ?? null,
       );
 
-      // If the source had a diagram, generate a fresh one for each variant.
+      // Generate a fresh diagram/table for each variant if the AI returned a
+      // description — source diagram is optional (tables, for instance,
+      // describe a pure-text→image render with no reference needed).
       const [simpleDiag, similarDiag] = await Promise.all([
-        variants.simple.diagramDescription && q.diagramImageData
-          ? generateSyntheticDiagramImage(q.diagramImageData, variants.simple.stem, variants.simple.diagramDescription)
+        variants.simple.diagramDescription
+          ? generateSyntheticDiagramImage(q.diagramImageData ?? null, variants.simple.stem, variants.simple.diagramDescription)
           : Promise.resolve(null),
-        variants.similar.diagramDescription && q.diagramImageData
-          ? generateSyntheticDiagramImage(q.diagramImageData, variants.similar.stem, variants.similar.diagramDescription)
+        variants.similar.diagramDescription
+          ? generateSyntheticDiagramImage(q.diagramImageData ?? null, variants.similar.stem, variants.similar.diagramDescription)
           : Promise.resolve(null),
       ]);
       variants.simple.diagramImageData = simpleDiag;

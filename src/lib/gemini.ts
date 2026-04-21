@@ -302,13 +302,14 @@ Return ONLY valid JSON, no markdown fences:
  * Returns base64 (no data: prefix) or null on failure.
  */
 export async function generateSyntheticDiagramImage(
-  originalDiagramBase64: string,
+  originalDiagramBase64: string | null,
   variantStem: string,
   diagramDescription: string,
 ): Promise<string | null> {
   try {
-    const clean = originalDiagramBase64.replace(/^data:image\/\w+;base64,/, "");
-    const prompt = `Create a clean, simple black-on-white educational diagram for a Singapore primary school maths question. Use the reference image only for style guidance (line weights, labels, general layout). Do NOT copy the numbers or labels from the reference.
+    const hasReference = !!originalDiagramBase64;
+    const prompt = hasReference
+      ? `Create a clean, simple black-on-white educational diagram for a Singapore primary school question. Use the reference image only for style guidance (line weights, labels, general layout). Do NOT copy the numbers or labels from the reference.
 
 New question: ${variantStem}
 
@@ -319,22 +320,35 @@ Requirements:
 - Include only the figures/labels needed by the new question.
 - No shading, no colour fills, no decorative elements.
 - Make sure any numbers/labels shown are consistent with the new question.
-- No question text, no answer options, no watermarks — diagram only.`;
+- No question text, no answer options, no watermarks — diagram only.`
+      : `Create a clean, simple black-on-white educational diagram or table for a Singapore primary school question.
+
+New question: ${variantStem}
+
+What to render: ${diagramDescription}
+
+Requirements:
+- White background, thin clean black lines.
+- If the description is a table, render an actual table: clear column headers, aligned rows, visible cell borders, simple sans-serif numbers and text.
+- If it's a diagram, include only the figures / labels needed by the question.
+- No shading, no colour fills, no decorative elements, no watermarks.
+- No question text, no answer options — diagram or table only.`;
+
+    const parts: Array<{ text: string } | { inlineData: { mimeType: "image/jpeg"; data: string } }> = [];
+    if (hasReference) {
+      const clean = (originalDiagramBase64 as string).replace(/^data:image\/\w+;base64,/, "");
+      parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+    }
+    parts.push({ text: prompt });
 
     const response = await generateContentWithRetry({
       model: "gemini-2.5-flash-image",
-      contents: [{
-        role: "user",
-        parts: [
-          { inlineData: { mimeType: "image/jpeg", data: clean } },
-          { text: prompt },
-        ],
-      }],
+      contents: [{ role: "user", parts }],
       config: { responseModalities: ["IMAGE", "TEXT"] },
     });
 
-    const parts = response.candidates?.[0]?.content?.parts ?? [];
-    for (const p of parts) {
+    const responseParts = response.candidates?.[0]?.content?.parts ?? [];
+    for (const p of responseParts) {
       const inline = (p as { inlineData?: { data?: string; mimeType?: string } }).inlineData;
       if (inline?.data) return inline.data;
     }
@@ -452,7 +466,13 @@ Variant definitions:
 - "simple": SAME scientific concept and structure, but swap key entities for equivalent ones in the same concept family (different plant/animal/material/setup) and/or reword the scenario lightly. Identical command words, subpart count, and marks.
 - "similar": SAME topic but a noticeably different scenario that tests the same concept from another angle. Still identical command words, subpart count, and marks.
 
-If the source includes a diagram, add a short "diagramDescription" to each variant describing the new diagram that would accompany it (one sentence, concrete). Otherwise omit the field.`;
+Diagrams and tables:
+- If the source includes a diagram, add a short "diagramDescription" to each variant (one or two sentences, concrete: shapes, labels, data points).
+- If the scenario involves TABULAR DATA — a table of observations, measurements, experimental results, or survey responses — NEVER render the table as ASCII / markdown inside "stem" or "subparts". Instead, describe the new table in "diagramDescription" using this shape:
+    "A table with columns [Column A, Column B, …] and rows: [row1 values], [row2 values], …"
+    e.g. "A table with columns [Day, Number of seeds germinated] and rows: [Day 1, 2], [Day 2, 5], [Day 3, 12]."
+  Keep the stem text referring to the table abstractly (e.g. "His observations are shown in the table below.") — the image pipeline will render the actual table from the description.
+- If the source has no diagram and the scenario doesn't involve a table, omit "diagramDescription".`;
 }
 
 export async function generateSyntheticScienceOeq(

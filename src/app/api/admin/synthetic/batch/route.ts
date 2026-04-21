@@ -80,11 +80,43 @@ export async function GET(request: NextRequest) {
 
     // Keep only rows with a non-empty subparts array AND no options (real OEQ,
     // not mis-extracted MCQ). Answer text must also exist so we have a
-    // marking scheme to seed the generator with.
+    // marking scheme to seed the generator with. Strip "_subref-*" / "_drawable"
+    // sentinel subparts — those are internal bookkeeping rows for the
+    // drawable-canvas pipeline, not real subparts for the student.
+    function cleanSubparts(raw: unknown): Array<{ label: string; text: string }> {
+      if (!Array.isArray(raw)) return [];
+      return raw
+        .map((r) => (r && typeof r === "object" ? (r as Record<string, unknown>) : {}))
+        .map((r) => ({ label: String(r.label ?? ""), text: String(r.text ?? "") }))
+        .filter((s) => s.label && !s.label.startsWith("_") && s.text);
+    }
+    // Drop OEQs that were split across multiple records in the same paper
+    // (e.g. "38a" in one row + "38bc" in another). Only complete standalone
+    // questions — questionNum unique by base within its paper — make the cut.
+    const baseNum = (qn: string | null | undefined) =>
+      String(qn ?? "").replace(/[a-z)(.,\s]+$/i, "").trim();
+    const splitKeys = new Set<string>();
+    const basesSeen = new Map<string, Set<string>>(); // paperId → set of base numbers seen twice
+    const firstSeen = new Map<string, string>(); // paperId+base → first questionNum
+    for (const q of questions) {
+      const base = baseNum(q.questionNum);
+      if (!base) continue;
+      const key = `${q.examPaper.id}::${base}`;
+      if (firstSeen.has(key) && firstSeen.get(key) !== q.questionNum) {
+        splitKeys.add(key);
+        const set = basesSeen.get(q.examPaper.id) ?? new Set();
+        set.add(base);
+        basesSeen.set(q.examPaper.id, set);
+      } else {
+        firstSeen.set(key, q.questionNum);
+      }
+    }
+    const isSplit = (q: (typeof questions)[number]) => splitKeys.has(`${q.examPaper.id}::${baseNum(q.questionNum)}`);
+
     const filtered = questions
       .filter((q) => {
-        const subs = Array.isArray(q.transcribedSubparts) ? (q.transcribedSubparts as unknown[]) : [];
-        if (subs.length === 0) return false;
+        if (isSplit(q)) return false;
+        if (cleanSubparts(q.transcribedSubparts).length === 0) return false;
         const opts = Array.isArray(q.transcribedOptions) ? (q.transcribedOptions as unknown[]) : [];
         if (opts.some((o) => typeof o === "string" && o.trim().length > 0)) return false;
         return !!(q.answer && q.answer.trim());
@@ -97,7 +129,7 @@ export async function GET(request: NextRequest) {
         id: q.id,
         questionNum: q.questionNum,
         stem: q.transcribedStem,
-        subparts: q.transcribedSubparts,
+        subparts: cleanSubparts(q.transcribedSubparts),
         answerText: q.answer,
         marksAvailable: q.marksAvailable ?? 0,
         diagramImageData: q.diagramImageData,
