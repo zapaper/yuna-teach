@@ -490,13 +490,16 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
       if (settings.whitetiger === true) setWhitetigerUnlocked(true);
       if (settings.habitatOverride === true) setHabitatOverride(true);
       bonusPts = (settings.bonusPoints as number | undefined) ?? 0;
+      const bonusCrystals = (settings.bonusCrystals as number | undefined) ?? 0;
 
       const papers = examRes?.papers ?? [];
       const pts = papers
         .filter((p: { completedAt?: string | null }) => p.completedAt)
         .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0) + bonusPts;
       setTotalPoints(pts);
-      setCrystals(papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length);
+      setCrystals(
+        papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length + bonusCrystals
+      );
     });
   }, [userId]);
 

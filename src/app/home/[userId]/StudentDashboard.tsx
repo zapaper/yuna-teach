@@ -200,8 +200,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
-  // Admin/test override: extra points added on top of earned scores.
+  // Admin/test overrides: extra points/crystals added on top of earned ones.
   const bonusPoints = ((user.settings as Record<string, unknown> | null)?.bonusPoints as number | undefined) ?? 0;
+  const bonusCrystals = ((user.settings as Record<string, unknown> | null)?.bonusCrystals as number | undefined) ?? 0;
   // Avatar gate: parent permission AND >= 100 earned points. Computed here so
   // it's available to the milestone useEffect below.
   const earnedPoints = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
@@ -528,7 +529,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
   // Crystals = number of parent-reviewed (released) quizzes / papers. Used as
   // the currency for unlocking additional habitats + pets down the road.
-  const crystals = examPapers.filter(p => p.markingStatus === "released").length;
+  const crystals = examPapers.filter(p => p.markingStatus === "released").length + bonusCrystals;
   const level = Math.floor(totalPoints / POINTS_PER_LEVEL);
   // Progress on the bar reflects the displayed (animating) points, not the
   // committed total, so the fill grows in step with the landing bubbles.
