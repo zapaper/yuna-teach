@@ -197,6 +197,7 @@ export async function POST(request: NextRequest) {
     examPaper: {
       sourceExamId: null,
       paperType: null,
+      visible: true,
       subject: { contains: subjectFilter, mode: "insensitive" as const },
       ...((() => {
         const v = levelVariantsFor(lf);
@@ -478,7 +479,7 @@ export async function POST(request: NextRequest) {
               syllabusTopic: { contains: "synthesis", mode: "insensitive" },
               answer: { not: null as null },
               examPaper: {
-                sourceExamId: null, paperType: null,
+                sourceExamId: null, paperType: null, visible: true,
                 subject: { contains: "english", mode: "insensitive" },
                 level: { in: p6Variants },
               },

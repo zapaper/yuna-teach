@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     examPaper: {
       sourceExamId: null,
       paperType: null,
+      visible: true,
       subject: { contains: subject, mode: "insensitive" as const },
       ...(useLevel && levelVariants ? { level: { in: levelVariants } } : {}),
     },
