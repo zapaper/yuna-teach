@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 import { isSessionAdmin } from "@/lib/session";
 
-// Get or create a synthetic bank paper scoped to a given subject + level.
-// These papers look like normal master papers (sourceExamId: null, paperType: null)
-// so the existing daily-quiz filter picks their questions up automatically.
-async function getOrCreateSyntheticBankPaper(adminUserId: string, subject: string, level: string | null) {
-  const title = `[Synthetic Bank] ${subject}${level ? " " + level : ""}`;
+// Get or create a synthetic bank paper scoped to a given subject + level +
+// question-type. OEQ and MCQ get SEPARATE papers so the daily-quiz / focused-
+// test filters can target one or the other. These papers look like normal
+// master papers (sourceExamId: null, paperType: null) so question selection
+// picks them up naturally.
+async function getOrCreateSyntheticBankPaper(
+  adminUserId: string,
+  subject: string,
+  level: string | null,
+  questionType: "mcq" | "oeq",
+) {
+  const suffix = questionType === "oeq" ? " OEQ" : "";
+  const title = `[Synthetic Bank]${suffix} ${subject}${level ? " " + level : ""}`;
   const existing = await prisma.examPaper.findFirst({
     where: { title, paperType: null, sourceExamId: null },
     select: { id: true },
@@ -51,14 +60,34 @@ export async function POST(request: NextRequest) {
 
   const accepted = await prisma.syntheticQuestion.findMany({
     where: { sourceQuestionId: questionId },
-    select: { variant: true, stem: true, options: true, correctAnswer: true, diagramImageData: true },
+    select: {
+      variant: true,
+      stem: true,
+      options: true,
+      correctAnswer: true,
+      diagramImageData: true,
+      questionType: true,
+      subparts: true,
+      answerText: true,
+      marksAvailable: true,
+    },
   });
 
-  if (accepted.length > 0) {
-    const bankPaperId = await getOrCreateSyntheticBankPaper(userId, source.examPaper.subject ?? "Unknown", source.examPaper.level ?? null);
+  // Promote MCQ variants and OEQ variants separately — they land in
+  // different bank papers.
+  const mcqAccepted = accepted.filter((a) => a.questionType !== "oeq");
+  const oeqAccepted = accepted.filter((a) => a.questionType === "oeq");
+
+  if (mcqAccepted.length > 0) {
+    const bankPaperId = await getOrCreateSyntheticBankPaper(
+      userId,
+      source.examPaper.subject ?? "Unknown",
+      source.examPaper.level ?? null,
+      "mcq",
+    );
     const existingCount = await prisma.examQuestion.count({ where: { examPaperId: bankPaperId } });
     let nextOrder = existingCount;
-    for (const v of accepted) {
+    for (const v of mcqAccepted) {
       nextOrder += 1;
       // MCQ variants: 4 options, correctAnswer is 1-4 → store "(N)".
       // Synthesis variants: 1 option (the transformed sentence), stored as
@@ -82,6 +111,37 @@ export async function POST(request: NextRequest) {
           transcribedStem: v.stem,
           transcribedOptions: hasImgOpts ? ["", "", "", ""] : (v.options as unknown as string[]),
           transcribedOptionImages: hasImgOpts ? opts : undefined,
+          diagramImageData: v.diagramImageData ?? null,
+          sourceQuestionId: source.id,
+          syntheticSourceExamType: source.examPaper.examType ?? null,
+        },
+      });
+    }
+  }
+
+  if (oeqAccepted.length > 0) {
+    const bankPaperId = await getOrCreateSyntheticBankPaper(
+      userId,
+      source.examPaper.subject ?? "Unknown",
+      source.examPaper.level ?? null,
+      "oeq",
+    );
+    const existingCount = await prisma.examQuestion.count({ where: { examPaperId: bankPaperId } });
+    let nextOrder = existingCount;
+    for (const v of oeqAccepted) {
+      nextOrder += 1;
+      await prisma.examQuestion.create({
+        data: {
+          questionNum: `S${nextOrder}`,
+          imageData: "",
+          answer: v.answerText ?? "",
+          pageIndex: 0,
+          orderIndex: nextOrder,
+          marksAvailable: v.marksAvailable ?? null,
+          examPaperId: bankPaperId,
+          syllabusTopic: source.syllabusTopic ?? null,
+          transcribedStem: v.stem,
+          transcribedSubparts: (v.subparts as unknown) as Prisma.InputJsonValue,
           diagramImageData: v.diagramImageData ?? null,
           sourceQuestionId: source.id,
           syntheticSourceExamType: source.examPaper.examType ?? null,

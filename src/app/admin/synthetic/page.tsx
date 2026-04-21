@@ -7,6 +7,9 @@ import DiagramEditor from "@/components/DiagramEditor";
 import AdminNav from "@/components/AdminNav";
 
 type Subject = "math" | "science" | "english";
+type QuestionType = "mcq" | "oeq";
+
+type OeqSubpart = { label: string; text: string };
 
 type Question = {
   id: string;
@@ -16,14 +19,28 @@ type Question = {
   options: string[] | null;
   // When the source question uses image options, this holds 4 base64 data URIs.
   optionImages?: (string | null)[] | null;
-  // Math/Science: numeric 1-4. English synthesis: the transformed-sentence text.
+  // Math/Science MCQ: numeric 1-4. English synthesis: the transformed-sentence text.
   correctAnswer: number | string;
   diagramImageData: string | null;
   syntheticGenerated?: boolean;
-  syntheticQuestions?: Array<{ variant: string; stem: string; options: string[]; correctAnswer: number; diagramImageData: string | null }>;
+  syntheticQuestions?: Array<{
+    variant: string;
+    stem: string;
+    options: string[];
+    correctAnswer: number;
+    diagramImageData: string | null;
+    // OEQ-only (when the row came from the OEQ branch of batch).
+    subparts?: OeqSubpart[];
+    answerText?: string;
+    marksAvailable?: number;
+  }>;
   paperTitle: string;
   paperYear: string | null;
   paperSchool: string | null;
+  // OEQ-only (populated when ?type=oeq).
+  subparts?: OeqSubpart[] | null;
+  answerText?: string | null;
+  marksAvailable?: number | null;
 };
 
 type Decision = "accepted" | "rejected" | null;
@@ -37,6 +54,10 @@ type Variant = {
   // Present when the variant uses image options (mirrors source question shape).
   optionImages?: (string | null)[];
   optionImageDescriptions?: string[];
+  // OEQ-only fields.
+  subparts?: OeqSubpart[];
+  answerText?: string;
+  marksAvailable?: number;
 };
 
 // Image-option options are packed as data URIs into the options[] array so they
@@ -72,6 +93,8 @@ function SyntheticContent() {
   const userId = searchParams.get("userId") ?? "";
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [subject, setSubject] = useState<Subject>("math");
+  // MCQ vs OEQ. English stays on its synthesis path (shown as MCQ toggle hidden).
+  const [questionType, setQuestionType] = useState<QuestionType>("mcq");
   // Narrow the source pool further by level + exam type. Empty = no filter.
   const [level, setLevel] = useState<string>("");
   const [examTypes, setExamTypes] = useState<Set<string>>(new Set());
@@ -104,7 +127,7 @@ function SyntheticContent() {
   const loadBatch = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ userId, subject });
+      const params = new URLSearchParams({ userId, subject, type: questionType });
       if (level) params.set("level", level);
       if (examTypes.size > 0) params.set("examTypes", [...examTypes].join(","));
       const res = await fetch(`/api/admin/synthetic/batch?${params.toString()}`);
@@ -179,7 +202,7 @@ function SyntheticContent() {
     } finally {
       setLoading(false);
     }
-  }, [userId, subject, level, examTypes]);
+  }, [userId, subject, questionType, level, examTypes]);
 
   useEffect(() => { if (allowed) loadBatch(); }, [allowed, loadBatch]);
 
@@ -211,10 +234,25 @@ function SyntheticContent() {
     const res = await fetch("/api/admin/synthetic/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, questionId: q.id, subject }),
+      body: JSON.stringify({ userId, questionId: q.id, subject, type: questionType }),
     });
     if (!res.ok) return null;
-    return (await res.json()) as { simple: Variant; similar: Variant };
+    const raw = await res.json();
+    if (questionType === "oeq") {
+      // OEQ variants have no options/correctAnswer — fill dummies so they
+      // fit the Variant type, and keep subparts/answerText/marksAvailable.
+      const toVariant = (v: { stem?: string; subparts?: OeqSubpart[]; answerText?: string; marksAvailable?: number; diagramImageData?: string | null }): Variant => ({
+        stem: v.stem ?? "",
+        options: [],
+        correctAnswer: 0,
+        subparts: v.subparts ?? [],
+        answerText: v.answerText ?? "",
+        marksAvailable: v.marksAvailable ?? 0,
+        diagramImageData: v.diagramImageData ?? null,
+      });
+      return { simple: toVariant(raw.simple ?? {}), similar: toVariant(raw.similar ?? {}) };
+    }
+    return raw as { simple: Variant; similar: Variant };
   }
 
   async function generateAll() {
@@ -240,23 +278,32 @@ function SyntheticContent() {
     setSavingState(key);
     try {
       if (decision === "accepted") {
-        // Synthesis variants have an `answer` field and no meaningful options.
-        // Pack the answer into options[0] so the existing schema (options Json,
-        // correctAnswer Int) can carry it without a migration. Save endpoint
-        // treats options.length === 1 as the synthesis shape.
         const v = d[which] as (typeof d)[typeof which] & { answer?: string };
-        // Image-option variants: pack the 4 data URIs into options[] — the
-        // existing schema already stores options as JSON, so no migration.
-        const packImageOptions = Array.isArray(v.optionImages) && hasImageOptions(v.optionImages);
-        const payload = (v.answer && v.answer.trim())
-          ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
-          : packImageOptions
-          ? { stem: v.stem, options: v.optionImages!.map(o => o ?? ""), correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null }
-          : v;
+
+        let payload: Record<string, unknown>;
+        let saveType: QuestionType = "mcq";
+        if (questionType === "oeq") {
+          saveType = "oeq";
+          payload = {
+            stem: v.stem,
+            subparts: v.subparts ?? [],
+            answerText: v.answerText ?? "",
+            marksAvailable: v.marksAvailable ?? 0,
+            diagramImageData: v.diagramImageData ?? null,
+          };
+        } else {
+          // Synthesis / MCQ / image-option MCQ — original packing logic.
+          const packImageOptions = Array.isArray(v.optionImages) && hasImageOptions(v.optionImages);
+          payload = (v.answer && v.answer.trim())
+            ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
+            : packImageOptions
+            ? { stem: v.stem, options: v.optionImages!.map(o => o ?? ""), correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null }
+            : { stem: v.stem, options: v.options, correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null };
+        }
         const res = await fetch("/api/admin/synthetic/save", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, questionId: q.id, variant: which, data: payload }),
+          body: JSON.stringify({ userId, questionId: q.id, variant: which, type: saveType, data: payload }),
         });
         const data = await res.json();
         if (!res.ok) { showToast(data.error ?? "Save failed"); return; }
@@ -376,7 +423,7 @@ function SyntheticContent() {
           <div>
             <Link href={`/admin?userId=${userId}`} className="text-xs text-slate-400 hover:text-slate-600">← Admin</Link>
             <h1 className="text-lg font-bold text-slate-800">Generate Synthetic Questions</h1>
-            <p className="text-xs text-slate-400">MCQ · batch of 10</p>
+            <p className="text-xs text-slate-400">{questionType === "oeq" ? "OEQ" : "MCQ"} · batch of 10</p>
           </div>
           <button onClick={loadBatch} disabled={loading}
             className="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold disabled:opacity-50">
@@ -388,12 +435,25 @@ function SyntheticContent() {
           {/* Subject picker */}
           <div className="flex gap-2 mb-3">
             {(["math", "science", "english"] as const).map(s => (
-              <button key={s} onClick={() => setSubject(s)}
+              <button key={s} onClick={() => { setSubject(s); if (s === "english") setQuestionType("mcq"); }}
                 className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${subject === s ? "border-slate-800 bg-slate-800 text-white" : "border-slate-200 bg-white text-slate-600"}`}>
                 {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
               </button>
             ))}
           </div>
+
+          {/* Question-type toggle — only meaningful for math + science.
+              English always uses its synthesis path. */}
+          {subject !== "english" && (
+            <div className="flex gap-2 mb-3">
+              {(["mcq", "oeq"] as const).map(t => (
+                <button key={t} onClick={() => setQuestionType(t)}
+                  className={`flex-1 py-2 rounded-xl border-2 text-xs font-bold transition-all ${questionType === t ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-200 bg-white text-slate-600"}`}>
+                  {t.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Level + exam-type filters — narrow the source pool. */}
           <div className="flex flex-wrap gap-3 mb-4 items-center">
@@ -520,7 +580,25 @@ function SyntheticContent() {
                   <img src={q.diagramImageData.startsWith("data:") ? q.diagramImageData : `data:image/jpeg;base64,${q.diagramImageData}`}
                     alt="diagram" className="max-w-sm rounded-lg border border-slate-200 mb-3" />
                 )}
-                {Array.isArray(q.optionImages) && q.optionImages.some(Boolean) ? (
+                {questionType === "oeq" ? (
+                  // OEQ: render the scenario stem, each subpart, and the marking scheme.
+                  <div className="space-y-2">
+                    {Array.isArray(q.subparts) && q.subparts.length > 0 && (
+                      <div className="space-y-1">
+                        {q.subparts.map((sp, i) => (
+                          <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
+                            <span className="shrink-0 font-bold">({sp.label})</span>
+                            <span className="flex-1">{sp.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800 whitespace-pre-wrap">
+                      <span className="text-[10px] font-bold uppercase mr-2">Marking scheme · {q.marksAvailable ?? "?"}m</span>
+                      {q.answerText ?? ""}
+                    </div>
+                  </div>
+                ) : Array.isArray(q.optionImages) && q.optionImages.some(Boolean) ? (
                   // Image-option MCQ — show the 4 slot images in a grid.
                   <div className="grid grid-cols-2 gap-2">
                     {q.optionImages.map((img, i) => {
@@ -576,7 +654,19 @@ function SyntheticContent() {
                 </div>
               )}
 
-              {d && (
+              {d && questionType === "oeq" && (
+                <div className={locked ? "opacity-40 pointer-events-none" : ""}>
+                  <OeqVariantCard title="Simple variant (same concept, swapped scenario)" variant={d.simple} />
+                  <DecisionButtons which="simple" decision={qDecisions.simple} savingState={savingState}
+                    questionId={q.id}
+                    onChoose={dec => setDecision(q, "simple", dec)} />
+                  <OeqVariantCard title="Similar variant (different angle on the same topic)" variant={d.similar} />
+                  <DecisionButtons which="similar" decision={qDecisions.similar} savingState={savingState}
+                    questionId={q.id}
+                    onChoose={dec => setDecision(q, "similar", dec)} />
+                </div>
+              )}
+              {d && questionType !== "oeq" && (
                 <div className={locked ? "opacity-40 pointer-events-none" : ""}>
                   <VariantEditor title="Simple variant (changed numbers / reordered)" variant={d.simple} disabled={locked}
                     hasOriginalDiagram={!!q.diagramImageData}
@@ -741,6 +831,40 @@ function SyntheticContent() {
             {toast}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// Read-only preview card for an OEQ variant. No inline editing yet — accept
+// / don't-accept remains the full lifecycle for v1, and we can add
+// subpart / answer editing if generations need touch-ups.
+function OeqVariantCard({ title, variant }: { title: string; variant: Variant }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-2">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{title}</p>
+      <p className="text-sm text-slate-800 whitespace-pre-wrap mb-3">{variant.stem}</p>
+      {variant.diagramImageData && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={variant.diagramImageData.startsWith("data:") ? variant.diagramImageData : `data:image/jpeg;base64,${variant.diagramImageData}`}
+          alt="variant diagram"
+          className="max-w-sm rounded-lg border border-slate-200 mb-3"
+        />
+      )}
+      {Array.isArray(variant.subparts) && variant.subparts.length > 0 && (
+        <div className="space-y-1 mb-3">
+          {variant.subparts.map((sp, i) => (
+            <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
+              <span className="shrink-0 font-bold">({sp.label})</span>
+              <span className="flex-1">{sp.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800 whitespace-pre-wrap">
+        <span className="text-[10px] font-bold uppercase mr-2">Answer · {variant.marksAvailable ?? "?"}m</span>
+        {variant.answerText ?? ""}
       </div>
     </div>
   );

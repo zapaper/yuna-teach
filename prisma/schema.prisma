@@ -158,10 +158,15 @@ model SyntheticQuestion {
   sourceQuestionId String
   variant          String   // "simple" | "similar"
   stem             String
-  options          Json     // string[4]
-  correctAnswer    Int      // 1-4
+  options          Json     // MCQ: string[4]. OEQ: [] (use subparts/answerText instead).
+  correctAnswer    Int      // MCQ: 1-4. OEQ: 0 (ignored).
   diagramImageData String?  // base64 new diagram (optional)
   createdAt        DateTime @default(now())
+  // OEQ fields — null for MCQ rows.
+  questionType     String   @default("mcq")  // "mcq" | "oeq"
+  subparts         Json?    // OEQ: [{ label: "a", text: "..." }]
+  answerText       String?  // OEQ: full answer ("(a) ... | (b) ...")
+  marksAvailable   Int?     // OEQ: mark allocation carried from source
 
   sourceQuestion   ExamQuestion @relation(fields: [sourceQuestionId], references: [id], onDelete: Cascade)
 

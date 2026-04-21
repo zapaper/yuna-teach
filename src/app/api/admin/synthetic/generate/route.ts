@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { generateSyntheticMathMcq, generateSyntheticDiagramImage, generateSyntheticOptionImage } from "@/lib/gemini";
+import {
+  generateSyntheticMathMcq,
+  generateSyntheticDiagramImage,
+  generateSyntheticOptionImage,
+  generateSyntheticScienceOeq,
+} from "@/lib/gemini";
 
 import { isSessionAdmin } from "@/lib/session";
 
-// POST { userId, questionId } → runs AI and returns { simple, similar } draft variants (not saved)
+// POST { userId, questionId, subject, type } → runs AI and returns
+// { simple, similar } draft variants. Not saved to SyntheticQuestion here —
+// the admin UI calls /save to persist accepted variants.
 export async function POST(request: NextRequest) {
-  const { userId, questionId, subject } = await request.json() as { userId: string; questionId: string; subject?: "math" | "science" | "english" };
+  const { userId, questionId, subject, type } = await request.json() as {
+    userId: string;
+    questionId: string;
+    subject?: "math" | "science" | "english";
+    type?: "mcq" | "oeq";
+  };
   const subj: "math" | "science" | "english" = subject === "science" || subject === "english" ? subject : "math";
+  const qtype: "mcq" | "oeq" = type === "oeq" ? "oeq" : "mcq";
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   if (!questionId) return NextResponse.json({ error: "Missing questionId" }, { status: 400 });
 
@@ -18,12 +31,56 @@ export async function POST(request: NextRequest) {
       transcribedStem: true,
       transcribedOptions: true,
       transcribedOptionImages: true,
+      transcribedSubparts: true,
+      marksAvailable: true,
+      syllabusTopic: true,
       answer: true,
       diagramImageData: true,
     },
   });
   if (!q || !q.transcribedStem) {
     return NextResponse.json({ error: "Question not found or not cleanly transcribed" }, { status: 404 });
+  }
+
+  // OEQ branch: multi-subpart, command-word-aware. Much simpler than MCQ —
+  // no image options and no MCQ answer-index validation.
+  if (qtype === "oeq") {
+    const subs = Array.isArray(q.transcribedSubparts) ? (q.transcribedSubparts as unknown as Array<{ label?: string; text?: string }>) : [];
+    const cleanSubs = subs
+      .map((s) => ({ label: String(s?.label ?? ""), text: String(s?.text ?? "") }))
+      .filter((s) => s.label && s.text);
+    if (cleanSubs.length === 0) {
+      return NextResponse.json({ error: "OEQ source has no usable subparts" }, { status: 400 });
+    }
+    if (!q.answer || !q.answer.trim()) {
+      return NextResponse.json({ error: "OEQ source has no marking scheme" }, { status: 400 });
+    }
+    try {
+      const variants = await generateSyntheticScienceOeq(
+        q.transcribedStem,
+        cleanSubs,
+        q.answer,
+        q.marksAvailable ?? 0,
+        q.syllabusTopic ?? null,
+        q.diagramImageData ?? null,
+      );
+
+      // If the source had a diagram, generate a fresh one for each variant.
+      const [simpleDiag, similarDiag] = await Promise.all([
+        variants.simple.diagramDescription && q.diagramImageData
+          ? generateSyntheticDiagramImage(q.diagramImageData, variants.simple.stem, variants.simple.diagramDescription)
+          : Promise.resolve(null),
+        variants.similar.diagramDescription && q.diagramImageData
+          ? generateSyntheticDiagramImage(q.diagramImageData, variants.similar.stem, variants.similar.diagramDescription)
+          : Promise.resolve(null),
+      ]);
+      variants.simple.diagramImageData = simpleDiag;
+      variants.similar.diagramImageData = similarDiag;
+      return NextResponse.json({ type: "oeq", ...variants });
+    } catch (err) {
+      console.error("[synthetic/generate oeq] failed", err);
+      return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+    }
   }
 
   const textOptions = Array.isArray(q.transcribedOptions) ? (q.transcribedOptions as unknown as string[]) : null;

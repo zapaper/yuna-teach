@@ -415,6 +415,103 @@ ${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagr
   };
 }
 
+// ---------------------------------------------------------------------------
+// Synthetic Science OEQ generation — multi-subpart, command-word aware
+// ---------------------------------------------------------------------------
+
+export type SyntheticOeqSubpart = { label: string; text: string };
+
+export type SyntheticOeqVariant = {
+  stem: string;
+  subparts: SyntheticOeqSubpart[];
+  answerText: string; // "(a) ... | (b) ..." — pipe-separated per subpart
+  marksAvailable: number;
+  diagramDescription?: string;
+  diagramImageData?: string | null;
+};
+
+function syntheticScienceOeqPrompt(): string {
+  return `You are an expert Singapore primary school Science teacher. Create TWO variant open-ended questions based on the source question below.
+
+Return ONLY valid JSON (no markdown fences):
+{
+  "simple": { "stem": "...", "subparts": [{"label": "a", "text": "..."}], "answerText": "(a) ... | (b) ...", "marksAvailable": N, "diagramDescription": "... or omit" },
+  "similar": { ... same shape ... }
+}
+
+Rules for both variants:
+- Keep the SAME number of subparts and the SAME command word for each (State / Describe / Explain / Name / Give / Identify / Compare / Suggest). If the source subpart starts with "State", your subpart must also start with "State".
+- Keep the SAME total marks (marksAvailable) as the source.
+- The STEM must set up a scenario (experiment, observation, diagram, situation). Keep it primary-school level, concrete, and self-contained.
+- Answers must be age-appropriate and technically correct. Each subpart's answer goes in the answerText as "(label) ...", separated by " | ". Where multiple accepted answers exist, join them with " OR ". When specific key terms must appear in the answer, wrap each in **double asterisks** (e.g. **photosynthesis**, **evaporation**, **potential energy**).
+- For "Describe" / "Explain" subparts, the expected answer must contain multiple pieces of detail (what happens + why / mechanism). For "State" / "Name" / "Identify", a short concise answer is enough.
+- British English spelling (colour, centre, recognise).
+- Plain text only — no LaTeX, no markdown beyond the **bold** term markers.
+
+Variant definitions:
+- "simple": SAME scientific concept and structure, but swap key entities for equivalent ones in the same concept family (different plant/animal/material/setup) and/or reword the scenario lightly. Identical command words, subpart count, and marks.
+- "similar": SAME topic but a noticeably different scenario that tests the same concept from another angle. Still identical command words, subpart count, and marks.
+
+If the source includes a diagram, add a short "diagramDescription" to each variant describing the new diagram that would accompany it (one sentence, concrete). Otherwise omit the field.`;
+}
+
+export async function generateSyntheticScienceOeq(
+  stem: string,
+  subparts: SyntheticOeqSubpart[],
+  answerText: string,
+  marksAvailable: number,
+  syllabusTopic: string | null,
+  diagramBase64: string | null,
+): Promise<{ simple: SyntheticOeqVariant; similar: SyntheticOeqVariant }> {
+  const sourceDesc = `Original question:
+Topic: ${syllabusTopic ?? "(not specified)"}
+Total marks: ${marksAvailable}
+Stem / scenario: ${stem}
+Subparts:
+${subparts.map((s) => `  (${s.label}) ${s.text}`).join("\n")}
+Marking scheme: ${answerText}
+${diagramBase64 ? "A diagram accompanies the stem (see image)." : "No diagram."}`;
+
+  const parts: Array<{ text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } }> = [];
+  if (diagramBase64) {
+    const clean = diagramBase64.replace(/^data:image\/\w+;base64,/, "");
+    parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+  }
+  parts.push({ text: `${syntheticScienceOeqPrompt()}\n\n${sourceDesc}` });
+
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts }],
+    config: { responseMimeType: "application/json", temperature: 0.7 },
+  });
+
+  const text = response.text ?? "";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+
+  function normalize(v: Record<string, unknown>): SyntheticOeqVariant {
+    const rawSubs = Array.isArray(v.subparts) ? (v.subparts as unknown[]) : [];
+    const normSubs: SyntheticOeqSubpart[] = rawSubs
+      .map((s) => (s && typeof s === "object" ? (s as Record<string, unknown>) : {}))
+      .map((s) => ({ label: String(s.label ?? ""), text: String(s.text ?? "") }))
+      .filter((s) => s.label && s.text);
+    return {
+      stem: String(v.stem ?? ""),
+      subparts: normSubs,
+      answerText: String(v.answerText ?? ""),
+      marksAvailable:
+        typeof v.marksAvailable === "number" && v.marksAvailable > 0
+          ? Math.round(v.marksAvailable)
+          : marksAvailable,
+      ...(v.diagramDescription ? { diagramDescription: String(v.diagramDescription) } : {}),
+    };
+  }
+
+  return {
+    simple: normalize(parsed.simple ?? {}),
+    similar: normalize(parsed.similar ?? {}),
+  };
+}
+
 /**
  * Generate a fresh option image (for MCQs that use image options).
  * Uses the original option image at the same slot as a style reference.
