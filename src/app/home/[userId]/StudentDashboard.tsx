@@ -200,9 +200,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   const [tests, setTests] = useState<SpellingTestSummary[]>([]);
   const [examPapers, setExamPapers] = useState<ExamPaperSummary[]>([]);
+  // Admin/test override: extra points added on top of earned scores.
+  const bonusPoints = ((user.settings as Record<string, unknown> | null)?.bonusPoints as number | undefined) ?? 0;
   // Avatar gate: parent permission AND >= 100 earned points. Computed here so
   // it's available to the milestone useEffect below.
-  const earnedPoints = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0);
+  const earnedPoints = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
   const hasAvatar = parentAllowedAvatar && earnedPoints >= 100;
   const [showFirstQuizPopup, setShowFirstQuizPopup] = useState(false);
   const [showPointsMilestone, setShowPointsMilestone] = useState(false);
@@ -385,7 +387,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   // Check point milestones (only if avatar toggle is on)
   useEffect(() => {
     if (!hasAvatar || examPapers.length === 0) return;
-    const pts = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0);
+    const pts = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
     const milestones = [
       { points: 100, key: `points-milestone-100-${userId}`, msg: "You have scored more than 100 points. You can now select your profile avatar!" },
       { points: 500, key: `points-milestone-500-${userId}`, msg: "You have scored more than 500 points! A new Fox avatar has been unlocked!" },
@@ -523,7 +525,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     });
   const recentTests = tests.slice(0, 6);
 
-  const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0);
+  const totalPoints = completedPapers.reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
   // Crystals = number of parent-reviewed (released) quizzes / papers. Used as
   // the currency for unlocking additional habitats + pets down the road.
   const crystals = examPapers.filter(p => p.markingStatus === "released").length;

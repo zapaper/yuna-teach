@@ -467,26 +467,24 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   const actionsRef = useRef<Record<string, ForceTalkFn>>({});
 
   useEffect(() => {
-    fetch(`/api/exam?userId=${userId}`)
-      .then(r => r.json())
-      .then(d => {
-        const papers = d.papers ?? [];
-        const pts = papers
-          .filter((p: { completedAt?: string | null }) => p.completedAt)
-          .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0);
-        setTotalPoints(pts);
-        setCrystals(papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length);
-      })
-      .catch(() => {});
-    // Fetch the user's settings for whitetiger unlock state.
-    fetch(`/api/users?userId=${userId}`)
-      .then(r => r.json())
-      .then(d => {
-        const settings = (d.user?.settings ?? {}) as Record<string, unknown>;
-        if (settings.whitetiger === true) setWhitetigerUnlocked(true);
-        if (settings.habitatOverride === true) setHabitatOverride(true);
-      })
-      .catch(() => {});
+    // Load settings first so bonusPoints is available when we sum scores.
+    let bonusPts = 0;
+    Promise.all([
+      fetch(`/api/users?userId=${userId}`).then(r => r.json()).catch(() => null),
+      fetch(`/api/exam?userId=${userId}`).then(r => r.json()).catch(() => null),
+    ]).then(([userRes, examRes]) => {
+      const settings = (userRes?.user?.settings ?? {}) as Record<string, unknown>;
+      if (settings.whitetiger === true) setWhitetigerUnlocked(true);
+      if (settings.habitatOverride === true) setHabitatOverride(true);
+      bonusPts = (settings.bonusPoints as number | undefined) ?? 0;
+
+      const papers = examRes?.papers ?? [];
+      const pts = papers
+        .filter((p: { completedAt?: string | null }) => p.completedAt)
+        .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0) + bonusPts;
+      setTotalPoints(pts);
+      setCrystals(papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length);
+    });
   }, [userId]);
 
   // Unlock rules. Jungle is the free starter at 200 pts. Fantasy and Garden

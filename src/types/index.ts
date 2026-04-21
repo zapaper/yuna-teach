@@ -7,7 +7,7 @@ export interface User {
   email: string | null;
   role: Role;
   level: number | null;
-  settings?: { avatar?: boolean; avatarType?: string; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean } | null;
+  settings?: { avatar?: boolean; avatarType?: string; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; bonusPoints?: number } | null;
   createdAt: string;
   emailVerified?: boolean;
   subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
