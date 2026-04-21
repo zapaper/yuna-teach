@@ -1726,10 +1726,13 @@ function OeqQuestionCard({
                     {stripQnPrefix(question.transcribedStem)}
                   </p>
                 )}
-                {/* Fallback: show cropped question image when there's no transcribed stem.
-                    Happens for questions whose stem is image-only (e.g. English Grammar
-                    Cloze, or science OEQs where extraction couldn't transcribe the stem). */}
-                {!question.transcribedStem && question.imageData && question.imageData.length > 100 && (
+                {/* Fallback: show cropped question image when there's no stem AND no
+                    subparts. Image-only sections (English Grammar Cloze, Editing, etc.)
+                    rely on this. Skip when there ARE subparts — an empty parent stem
+                    usually means the real content lives on (a), (b), (c), and the
+                    cropped imageData here is the whole multi-part region which would
+                    duplicate what the subparts renderer already shows. */}
+                {!question.transcribedStem && !hasSubparts && question.imageData && question.imageData.length > 100 && (
                   <div className="mb-3 rounded-xl overflow-hidden border border-[#e5eeff]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={question.imageData} alt={`Question ${index + 1}`} className="w-full h-auto" />
