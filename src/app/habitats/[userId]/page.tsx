@@ -501,13 +501,21 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
   }, [userId]);
 
   // Unlock rules. Jungle is the free starter at 200 pts. Fantasy and Garden
-  // each cost 30 crystals (1 crystal = 1 parent-reviewed quiz). HDB stays
-  // locked until we add more content. settings.habitatOverride bypasses
-  // everything — for admin / test accounts.
+  // each cost 30 crystals (1 crystal = 1 parent-reviewed quiz), OR unlock
+  // automatically once any of their pets is earned — otherwise a student who
+  // crosses a pet-points threshold has nowhere to see their new pet. HDB
+  // stays locked until we add more content. settings.habitatOverride
+  // bypasses everything — for admin / test accounts.
   const isHabitatUnlocked = (id: string) => {
     if (habitatOverride) return true;
     if (id === "jungle") return totalPoints >= 200;
-    if (id === "fantasy" || id === "garden") return crystals >= 30;
+    if (id === "fantasy" || id === "garden") {
+      if (crystals >= 30) return true;
+      const habitat = HABITATS.find(h => h.id === id);
+      return !!habitat?.pets.some(p =>
+        isPetUnlocked(p.id, totalPoints, crystals, whitetigerUnlocked, false)
+      );
+    }
     return false;
   };
 
