@@ -211,6 +211,14 @@ export async function POST(request: NextRequest) {
     const diagramSource = first.diagramImageData
       ? first
       : (group.find(q => q.diagramImageData) ?? first);
+    // imageData is the cropped question snapshot the quiz UI falls back to
+    // when transcribedStem is empty. If group[0] has none (e.g. only 9b was
+    // tagged with the topic and 9b's image is blank), pick from any sibling
+    // that actually has a substantial image. Without this, the student sees
+    // a blank card.
+    const imageSource = (first.imageData && first.imageData.length > 100)
+      ? first
+      : (group.find(q => q.imageData && q.imageData.length > 100) ?? first);
     const allSubparts: Subpart[] = [];
     for (const q of group) {
       const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
@@ -259,6 +267,7 @@ export async function POST(request: NextRequest) {
     const answerImageData = sortedGroup.find(q => q.answerImageData)?.answerImageData ?? first.answerImageData ?? null;
     return {
       ...first,
+      imageData: imageSource.imageData,
       answer: rebuiltAnswer || first.answer,
       answerImageData,
       transcribedStem: leadStem,
