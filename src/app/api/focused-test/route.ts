@@ -297,20 +297,35 @@ export async function POST(request: NextRequest) {
     };
   }
 
+  // Pre-merge filter: an OEQ group is only renderable if the merged question
+  // will have AT LEAST ONE of: a non-empty stem on group[0], OR at least one
+  // subpart with text content. Without either, the student sees a blank card
+  // + a random crop of the paper (imageData). Drop these broken groups rather
+  // than selecting them.
+  const renderableOeq = oeqPool.filter(group => {
+    const firstStem = (group[0].transcribedStem ?? "").trim();
+    if (firstStem) return true;
+    for (const q of group) {
+      const subs = (q.transcribedSubparts as Subpart[] | null) ?? [];
+      if (subs.some(sp => !sp.label.startsWith("_") && (sp.text ?? "").trim())) return true;
+    }
+    return false;
+  });
+
   const shuffle = <T,>(arr: T[]) => arr.sort(() => Math.random() - 0.5);
   shuffle(mcqPool);
-  shuffle(oeqPool);
+  shuffle(renderableOeq);
 
   // Take up to 5 MCQ + up to 5 OEQ; fill remaining slots from whichever has more
   // When mcqOnly, use only MCQ pool for all 10 slots
   const targetMcq = mcqOnly ? Math.min(10, mcqPool.length) : Math.min(5, mcqPool.length);
-  const targetOeq = mcqOnly ? 0 : Math.min(5, oeqPool.length);
+  const targetOeq = mcqOnly ? 0 : Math.min(5, renderableOeq.length);
   const remaining = 10 - targetMcq - targetOeq;
   const extraMcq = Math.min(remaining, mcqPool.length - targetMcq);
-  const extraOeq = !mcqOnly && remaining - extraMcq > 0 ? Math.min(remaining - extraMcq, oeqPool.length - targetOeq) : 0;
+  const extraOeq = !mcqOnly && remaining - extraMcq > 0 ? Math.min(remaining - extraMcq, renderableOeq.length - targetOeq) : 0;
 
   const selectedMcq = mcqPool.slice(0, targetMcq + extraMcq);
-  const selectedOeq = oeqPool.slice(0, targetOeq + extraOeq).map(mergeOeqGroup);
+  const selectedOeq = renderableOeq.slice(0, targetOeq + extraOeq).map(mergeOeqGroup);
   const allSelected = [...selectedMcq, ...selectedOeq];
 
   if (allSelected.length === 0) {
@@ -367,12 +382,12 @@ export async function POST(request: NextRequest) {
       warnings.push(`Only ${mcqPool.length} MCQ question${mcqPool.length === 1 ? "" : "s"} available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
     }
   } else {
-    if (oeqPool.length === 0 && mcqPool.length > 0) {
+    if (renderableOeq.length === 0 && mcqPool.length > 0) {
       warnings.push(`No written questions are tagged for "${topic}" at ${levelName} yet — this practice is MCQ-only.`);
-    } else if (mcqPool.length === 0 && oeqPool.length > 0) {
+    } else if (mcqPool.length === 0 && renderableOeq.length > 0) {
       warnings.push(`No MCQ questions are tagged for "${topic}" at ${levelName} yet — this practice is written-only.`);
-    } else if (mcqPool.length + oeqPool.length < 10) {
-      warnings.push(`Only ${mcqPool.length} MCQ + ${oeqPool.length} written question(s) available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
+    } else if (mcqPool.length + renderableOeq.length < 10) {
+      warnings.push(`Only ${mcqPool.length} MCQ + ${renderableOeq.length} written question(s) available for "${topic}" at ${levelName}. Practice is shorter than the usual 10.`);
     }
   }
 

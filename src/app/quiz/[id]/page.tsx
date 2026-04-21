@@ -1726,18 +1726,13 @@ function OeqQuestionCard({
                     {stripQnPrefix(question.transcribedStem)}
                   </p>
                 )}
-                {/* Fallback: show cropped question image when there's no stem AND no
-                    subparts. Image-only sections (English Grammar Cloze, Editing, etc.)
-                    rely on this. Skip when there ARE subparts — an empty parent stem
-                    usually means the real content lives on (a), (b), (c), and the
-                    cropped imageData here is the whole multi-part region which would
-                    duplicate what the subparts renderer already shows. */}
-                {!question.transcribedStem && !hasSubparts && question.imageData && question.imageData.length > 100 && (
-                  <div className="mb-3 rounded-xl overflow-hidden border border-[#e5eeff]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={question.imageData} alt={`Question ${index + 1}`} className="w-full h-auto" />
-                  </div>
-                )}
+                {/* When the main stem is empty we deliberately leave it empty. The
+                    real content comes from the subparts renderer below (e.g. (a) is
+                    the actual question). An empty parent stem on a multi-part row
+                    often means the cropped imageData is the whole multi-part region,
+                    which would duplicate what subparts show. Don't fall back to it.
+                    (Image-only English sections — if ever re-introduced — should be
+                    routed through a different renderer, not this OEQ card.) */}
                 {/* Show diagram as static reference image — annotatable scratch
                     overlay so students can draw working on diagrams (not submitted). */}
                 {question.diagramImageData && (
