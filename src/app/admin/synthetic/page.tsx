@@ -438,17 +438,17 @@ function SyntheticContent() {
 
           {/* Bank inventory — collapsible, shows per subject/level/examType counts */}
           <div className="mb-4 rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <button onClick={() => setCountsOpen(o => !o)}
-              className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50">
-              <span>Synthetic bank inventory {counts ? `· ${counts.total} questions` : ""}</span>
-              <span className="flex items-center gap-2">
-                <span onClick={(e) => { e.stopPropagation(); runBackfill(); }}
-                  className={`px-2 py-0.5 rounded border text-[10px] font-bold ${backfilling ? "bg-slate-100 text-slate-400 border-slate-200" : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"}`}>
-                  {backfilling ? "Backfilling…" : "Backfill examType"}
-                </span>
+            <div className="flex items-stretch">
+              <button onClick={() => setCountsOpen(o => !o)}
+                className="flex-1 flex items-center justify-between px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50">
+                <span>Synthetic bank inventory {counts ? `· ${counts.total} questions` : "(loading…)"}</span>
                 <span>{countsOpen ? "▲" : "▼"}</span>
-              </span>
-            </button>
+              </button>
+              <button onClick={runBackfill} disabled={backfilling}
+                className={`px-3 border-l border-slate-200 text-[11px] font-bold whitespace-nowrap ${backfilling ? "bg-slate-100 text-slate-400" : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"}`}>
+                {backfilling ? "Backfilling…" : "Backfill examType"}
+              </button>
+            </div>
             {countsOpen && counts && (
               <div className="border-t border-slate-100 max-h-80 overflow-y-auto">
                 {counts.groups.length === 0 ? (
