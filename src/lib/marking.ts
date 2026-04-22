@@ -2287,15 +2287,26 @@ export async function markQuizPaper(paperId: string): Promise<void> {
 A student filled in blank (${q.questionNum}) with "${studentRaw}".
 The answer key (accepted alternatives, slash-separated) is: "${correctRaw}".
 ${passageCtx ? `\nPassage:\n${passageCtx}\n` : ""}
-Decide whether the student's word fits the blank grammatically AND in meaning. Be fair:
-- Read the sentence CONTAINING the blank, the sentence BEFORE it, and the sentence AFTER it. The chosen word must keep the story flowing logically across all three — it has to be consistent with what just happened and with what is about to happen, not just make local sense in the blank's own sentence.
-- If the word's meaning contradicts the preceding cause/effect or the following consequence, reject — even if it fits grammatically and sounds plausible on its own line.
-- Accept any synonym or variation that preserves the sentence meaning AND the cross-sentence flow.
+Decide whether the student's word fits the blank grammatically AND in meaning. Be STRICT about meaning — this is the default failure mode.
+
+Procedure (follow in order):
+1. Identify what the passage AS A WHOLE is about by reading the sentence before, the sentence containing the blank, and the sentence after the blank.
+2. Identify what CONCEPT or OUTCOME the author is describing at this point (e.g. "the species surviving", "the weather getting worse", "the character becoming nervous").
+3. Ask: does the student's word express that same concept/outcome? If it expresses a DIFFERENT concept — even a plausible or grammatically fine one — REJECT.
+4. Ask: does the next sentence make sense as a continuation of what the student's word says? If the next sentence elaborates on an outcome that doesn't follow from the student's word, REJECT.
+
+Concrete example of what to REJECT:
+- Passage: "Whether a species ___ depends on the type of species. Some species are able to adapt quickly to changes in their environment, while others cannot."
+- Answer key: "survives"
+- Student word: "falls" — REJECT. "Falls" is grammatically fine and idiomatically possible, but the follow-up sentence is about adaptation leading to survival/extinction, not about falling. The student's word changes the topic away from survival.
+
+Other rules:
+- Accept any synonym that preserves BOTH the sentence meaning AND the cross-sentence flow (e.g. "survives" vs "lives on" in the example above is fine).
 - Check grammatical fit: tense, number, word class.
-- Check CAPITALIZATION: if the blank is at the start of a sentence (i.e. after a full stop, or it's the first word of a paragraph), the student's word must begin with a capital letter. Otherwise reject.
+- Check CAPITALIZATION: if the blank is at the start of a sentence (after a full stop, or first word of a paragraph), the student's word must begin with a capital letter. Otherwise reject.
 - Spelling matters — misspelled words are NOT accepted.
 
-Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence explaining why, citing grammar/meaning/flow/capitalization>"}` }] }],
+Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing grammar/meaning/flow/capitalization>"}` }] }],
               config: { responseMimeType: "application/json", temperature: 0.1 },
             }),
             15000,
