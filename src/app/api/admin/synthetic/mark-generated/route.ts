@@ -53,10 +53,26 @@ export async function POST(request: NextRequest) {
     select: {
       id: true,
       syllabusTopic: true,
+      transcribedSubparts: true,
       examPaper: { select: { subject: true, level: true, examType: true } },
     },
   });
   if (!source) return NextResponse.json({ error: "Source not found" }, { status: 404 });
+
+  // Detect drawable-shape on the source: either a whole-question `_drawable`
+  // sentinel, or any `_subref-<label>` sentinel on a per-subpart canvas. If
+  // present, the quiz UI expects a `_drawable` sentinel on the synthetic too
+  // so it renders the canvas with the generated diagram as the backdrop.
+  function sourceIsDrawable(): boolean {
+    const subs = Array.isArray(source?.transcribedSubparts)
+      ? (source.transcribedSubparts as Array<{ label?: string }>)
+      : [];
+    return subs.some((s) => {
+      const l = String(s?.label ?? "");
+      return l === "_drawable" || l.startsWith("_subref-");
+    });
+  }
+  const drawableSource = sourceIsDrawable();
 
   const accepted = await prisma.syntheticQuestion.findMany({
     where: { sourceQuestionId: questionId },
@@ -130,6 +146,19 @@ export async function POST(request: NextRequest) {
     let nextOrder = existingCount;
     for (const v of oeqAccepted) {
       nextOrder += 1;
+      // If the source was drawable (canvas with a diagram backdrop), the
+      // student view expects a `_drawable` sentinel to trigger the drawable
+      // canvas — inject one carrying the newly-generated diagram.
+      const cleanSubs = (v.subparts as unknown) as Array<{ label: string; text: string }> | null;
+      const subpartsWithSentinel: Array<{ label: string; text: string; diagramBase64?: string | null }> =
+        Array.isArray(cleanSubs) ? [...cleanSubs] : [];
+      if (drawableSource && v.diagramImageData) {
+        subpartsWithSentinel.push({
+          label: "_drawable",
+          text: "",
+          diagramBase64: v.diagramImageData,
+        });
+      }
       await prisma.examQuestion.create({
         data: {
           questionNum: `S${nextOrder}`,
@@ -141,7 +170,7 @@ export async function POST(request: NextRequest) {
           examPaperId: bankPaperId,
           syllabusTopic: source.syllabusTopic ?? null,
           transcribedStem: v.stem,
-          transcribedSubparts: (v.subparts as unknown) as Prisma.InputJsonValue,
+          transcribedSubparts: (subpartsWithSentinel as unknown) as Prisma.InputJsonValue,
           diagramImageData: v.diagramImageData ?? null,
           sourceQuestionId: source.id,
           syntheticSourceExamType: source.examPaper.examType ?? null,
