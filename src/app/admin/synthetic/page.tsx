@@ -576,7 +576,16 @@ function SyntheticContent() {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original · {q.paperYear ?? ""} {q.paperSchool ?? ""}</p>
                   <p className="text-[10px] text-slate-400">{q.paperTitle} · Q{q.questionNum}</p>
                 </div>
-                <FormattedText text={q.stem} className="text-sm text-slate-800 font-medium whitespace-pre-line mb-3" />
+                {questionType === "oeq" ? (
+                  <div className="mb-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Scenario / stem</p>
+                    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                      <FormattedText text={q.stem} className="text-sm text-slate-800 whitespace-pre-line" />
+                    </div>
+                  </div>
+                ) : (
+                  <FormattedText text={q.stem} className="text-sm text-slate-800 font-medium whitespace-pre-line mb-3" />
+                )}
                 {q.diagramImageData && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={q.diagramImageData.startsWith("data:") ? q.diagramImageData : `data:image/jpeg;base64,${q.diagramImageData}`}
@@ -585,36 +594,44 @@ function SyntheticContent() {
                 {questionType === "oeq" ? (
                   // OEQ: render the scenario stem, each subpart (with its
                   // per-subpart reference image if present), and the marking
-                  // scheme.
-                  <div className="space-y-2">
+                  // scheme — each section clearly labelled.
+                  <div className="space-y-3">
                     {q.hasDrawable && (
                       <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">
                         🖊 Drawable canvas
                       </div>
                     )}
+
                     {Array.isArray(q.subparts) && q.subparts.length > 0 && (
-                      <div className="space-y-2">
-                        {q.subparts.map((sp, i) => (
-                          <div key={i} className="px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
-                            <div className="flex items-start gap-2">
-                              <span className="shrink-0 font-bold">({sp.label})</span>
-                              <FormattedText text={sp.text} className="flex-1" />
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Sub-questions</p>
+                        <div className="space-y-2">
+                          {q.subparts.map((sp, i) => (
+                            <div key={i} className="px-3 py-2 rounded-lg text-sm bg-white border border-slate-200 text-slate-700">
+                              <div className="flex items-start gap-2">
+                                <span className="shrink-0 font-bold">({sp.label})</span>
+                                <FormattedText text={sp.text} className="flex-1" />
+                              </div>
+                              {sp.refImageBase64 && (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={sp.refImageBase64.startsWith("data:") ? sp.refImageBase64 : `data:image/jpeg;base64,${sp.refImageBase64}`}
+                                  alt={`subpart ${sp.label} diagram`}
+                                  className="mt-2 max-w-xs rounded-md border border-slate-200 bg-white"
+                                />
+                              )}
                             </div>
-                            {sp.refImageBase64 && (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={sp.refImageBase64.startsWith("data:") ? sp.refImageBase64 : `data:image/jpeg;base64,${sp.refImageBase64}`}
-                                alt={`subpart ${sp.label} diagram`}
-                                className="mt-2 max-w-xs rounded-md border border-slate-200 bg-white"
-                              />
-                            )}
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
                     )}
-                    <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800">
-                      <div className="text-[10px] font-bold uppercase mb-1">Marking scheme · {q.marksAvailable ?? "?"}m</div>
-                      <FormattedText text={q.answerText ?? ""} />
+
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Marking scheme</p>
+                      <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800">
+                        <div className="text-[10px] font-bold uppercase opacity-70 mb-1">Answer · {q.marksAvailable ?? "?"}m</div>
+                        <FormattedText text={q.answerText ?? ""} />
+                      </div>
                     </div>
                   </div>
                 ) : Array.isArray(q.optionImages) && q.optionImages.some(Boolean) ? (
@@ -757,16 +774,29 @@ function SyntheticContent() {
                   try {
                     if (decision === "accepted") {
                       const v = pair[which] as Variant & { answer?: string };
-                      const packImageOptions = Array.isArray(v.optionImages) && hasImageOptions(v.optionImages);
-                      const payload = (v.answer && v.answer.trim())
-                        ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
-                        : packImageOptions
-                        ? { stem: v.stem, options: v.optionImages!.map(o => o ?? ""), correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null }
-                        : v;
+                      let payload: Record<string, unknown>;
+                      let saveType: QuestionType = "mcq";
+                      if (questionType === "oeq") {
+                        saveType = "oeq";
+                        payload = {
+                          stem: v.stem,
+                          subparts: v.subparts ?? [],
+                          answerText: v.answerText ?? "",
+                          marksAvailable: v.marksAvailable ?? 0,
+                          diagramImageData: v.diagramImageData ?? null,
+                        };
+                      } else {
+                        const packImageOptions = Array.isArray(v.optionImages) && hasImageOptions(v.optionImages);
+                        payload = (v.answer && v.answer.trim())
+                          ? { stem: v.stem, options: [v.answer.trim()], correctAnswer: 1, diagramImageData: v.diagramImageData ?? null }
+                          : packImageOptions
+                          ? { stem: v.stem, options: v.optionImages!.map(o => o ?? ""), correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null }
+                          : { stem: v.stem, options: v.options, correctAnswer: v.correctAnswer, diagramImageData: v.diagramImageData ?? null };
+                      }
                       const res = await fetch("/api/admin/synthetic/save", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ userId, questionId: q.id, variant, data: payload }),
+                        body: JSON.stringify({ userId, questionId: q.id, variant, type: saveType, data: payload }),
                       });
                       const data = await res.json();
                       if (!res.ok) { showToast(data.error ?? "Save failed"); return; }
@@ -789,28 +819,43 @@ function SyntheticContent() {
                 return (
                   <div key={`more-${pairIdx}`} className="mt-6 pt-6 border-t-2 border-dashed border-slate-300">
                     <p className="text-xs font-bold text-slate-500 mb-3">Additional pair #{pairIdx + 2}</p>
-                    <VariantEditor title="Simple variant" variant={pair.simple} disabled={false}
-                      hasOriginalDiagram={!!q.diagramImageData}
-                      regenPrompt={""} setRegenPrompt={() => {}}
-                      regenerating={false}
-                      onRegenDiagram={() => {}} onResetDiagram={() => {}}
-                      onStem={s => updatePair("simple", { stem: s })}
-                      onOption={(i, v) => updatePairOption("simple", i, v)}
-                      onCorrect={n => updatePair("simple", { correctAnswer: n })}
-                      onDiagramEdit={base64 => updatePair("simple", { diagramImageData: base64 })} />
-                    <DecisionButtons which="simple" decision={pairDec.simple} savingState={savingState}
-                      questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("simple", dec)} />
-                    <VariantEditor title="Similar variant" variant={pair.similar} disabled={false}
-                      hasOriginalDiagram={!!q.diagramImageData}
-                      regenPrompt={""} setRegenPrompt={() => {}}
-                      regenerating={false}
-                      onRegenDiagram={() => {}} onResetDiagram={() => {}}
-                      onStem={s => updatePair("similar", { stem: s })}
-                      onOption={(i, v) => updatePairOption("similar", i, v)}
-                      onCorrect={n => updatePair("similar", { correctAnswer: n })}
-                      onDiagramEdit={base64 => updatePair("similar", { diagramImageData: base64 })} />
-                    <DecisionButtons which="similar" decision={pairDec.similar} savingState={savingState}
-                      questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("similar", dec)} />
+                    {questionType === "oeq" ? (
+                      <>
+                        <OeqVariantCard title="Simple variant (same concept, swapped scenario)" variant={pair.simple}
+                          onDiagramEdit={base64 => updatePair("simple", { diagramImageData: base64 })} />
+                        <DecisionButtons which="simple" decision={pairDec.simple} savingState={savingState}
+                          questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("simple", dec)} />
+                        <OeqVariantCard title="Similar variant (different angle on the same topic)" variant={pair.similar}
+                          onDiagramEdit={base64 => updatePair("similar", { diagramImageData: base64 })} />
+                        <DecisionButtons which="similar" decision={pairDec.similar} savingState={savingState}
+                          questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("similar", dec)} />
+                      </>
+                    ) : (
+                      <>
+                        <VariantEditor title="Simple variant" variant={pair.simple} disabled={false}
+                          hasOriginalDiagram={!!q.diagramImageData}
+                          regenPrompt={""} setRegenPrompt={() => {}}
+                          regenerating={false}
+                          onRegenDiagram={() => {}} onResetDiagram={() => {}}
+                          onStem={s => updatePair("simple", { stem: s })}
+                          onOption={(i, v) => updatePairOption("simple", i, v)}
+                          onCorrect={n => updatePair("simple", { correctAnswer: n })}
+                          onDiagramEdit={base64 => updatePair("simple", { diagramImageData: base64 })} />
+                        <DecisionButtons which="simple" decision={pairDec.simple} savingState={savingState}
+                          questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("simple", dec)} />
+                        <VariantEditor title="Similar variant" variant={pair.similar} disabled={false}
+                          hasOriginalDiagram={!!q.diagramImageData}
+                          regenPrompt={""} setRegenPrompt={() => {}}
+                          regenerating={false}
+                          onRegenDiagram={() => {}} onResetDiagram={() => {}}
+                          onStem={s => updatePair("similar", { stem: s })}
+                          onOption={(i, v) => updatePairOption("similar", i, v)}
+                          onCorrect={n => updatePair("similar", { correctAnswer: n })}
+                          onDiagramEdit={base64 => updatePair("similar", { diagramImageData: base64 })} />
+                        <DecisionButtons which="similar" decision={pairDec.similar} savingState={savingState}
+                          questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("similar", dec)} />
+                      </>
+                    )}
                   </div>
                 );
               })}
@@ -882,8 +927,15 @@ function OeqVariantCard({
   const [editingDiagram, setEditingDiagram] = useState(false);
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-2">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">{title}</p>
-      <FormattedText text={variant.stem} className="text-sm text-slate-800 whitespace-pre-line mb-3" />
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{title}</p>
+
+      <div className="mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Scenario / stem</p>
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+          <FormattedText text={variant.stem} className="text-sm text-slate-800 whitespace-pre-line" />
+        </div>
+      </div>
+
       {variant.diagramImageData && (
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
@@ -930,17 +982,22 @@ function OeqVariantCard({
         </div>
       )}
       {Array.isArray(variant.subparts) && variant.subparts.length > 0 && (
-        <div className="space-y-1 mb-3">
-          {variant.subparts.map((sp, i) => (
-            <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
-              <span className="shrink-0 font-bold">({sp.label})</span>
-              <FormattedText text={sp.text} className="flex-1" />
-            </div>
-          ))}
+        <div className="mb-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Sub-questions</p>
+          <div className="space-y-1">
+            {variant.subparts.map((sp, i) => (
+              <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-white border border-slate-200 text-slate-700">
+                <span className="shrink-0 font-bold">({sp.label})</span>
+                <FormattedText text={sp.text} className="flex-1" />
+              </div>
+            ))}
+          </div>
         </div>
       )}
+
+      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Marking scheme</p>
       <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800">
-        <div className="text-[10px] font-bold uppercase mb-1">Answer · {variant.marksAvailable ?? "?"}m</div>
+        <div className="text-[10px] font-bold uppercase opacity-70 mb-1">Answer · {variant.marksAvailable ?? "?"}m</div>
         <FormattedText text={variant.answerText ?? ""} />
       </div>
     </div>
