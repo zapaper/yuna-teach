@@ -541,11 +541,22 @@ function QuizContent({ id }: { id: string }) {
         await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
       }
 
-      // Save time and mark as completed
+      // Rewrite oeqPageMap to match what we just uploaded. The autosave
+      // version didn't know which OEQs the student would end up skipping,
+      // so its indices drift once skips are applied — leaving the review
+      // page pointing at stale page numbers (e.g. Q10's image under Q9).
+      const submittedPageMap: Record<string, number> = {};
+      allOeqWithHandles.forEach((q, i) => { submittedPageMap[q.id] = i; });
+
+      // Save time, final pageMap, and mark as completed.
       await fetch(`/api/exam/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ timeSpentSeconds: elapsed, completedAt: new Date().toISOString() }),
+        body: JSON.stringify({
+          timeSpentSeconds: elapsed,
+          completedAt: new Date().toISOString(),
+          metadata: { ...(paper?.metadata ?? {}), canvasHeights: canvasHeights.current, oeqPageMap: submittedPageMap },
+        }),
       });
 
       // Trigger marking (handles both MCQ-only and MCQ+OEQ)
