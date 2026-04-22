@@ -2,7 +2,8 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 
-type Tool = "pen" | "eraser" | "text";
+type Tool = "pen" | "eraser" | "text" | "line";
+const LINE_WIDTH = 3;
 
 interface DiagramEditorProps {
   imageBase64: string; // base64 without data: prefix
@@ -26,6 +27,12 @@ export default function DiagramEditor({ imageBase64, onSave, onClose }: DiagramE
   const [textPos, setTextPos] = useState<{ x: number; y: number } | null>(null);
   const [fontSize, setFontSize] = useState(16);
   const textInputRef = useRef<HTMLInputElement>(null);
+
+  // Line tool state — two-click straight line. While the first click is set,
+  // we hold a snapshot of the canvas so the preview can redraw from scratch
+  // on every mouse-move without accumulating partial previews.
+  const [lineStart, setLineStart] = useState<{ x: number; y: number } | null>(null);
+  const lineBaseSnap = useRef<ImageData | null>(null);
 
   const canvasDims = useRef({ w: 0, h: 0 });
 
@@ -89,6 +96,32 @@ export default function DiagramEditor({ imageBase64, onSave, onClose }: DiagramE
       setTimeout(() => textInputRef.current?.focus(), 50);
       return;
     }
+    if (tool === "line") {
+      const pos = getPos(e);
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d")!;
+      if (!lineStart) {
+        // First click → remember start, snapshot canvas so preview can redraw.
+        lineBaseSnap.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        setLineStart(pos);
+        return;
+      }
+      // Second click → commit the line.
+      saveSnapshot();
+      if (lineBaseSnap.current) ctx.putImageData(lineBaseSnap.current, 0, 0);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = LINE_WIDTH;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(lineStart.x, lineStart.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      setLineStart(null);
+      lineBaseSnap.current = null;
+      return;
+    }
     e.preventDefault();
     isDrawing.current = true;
     lastPos.current = getPos(e);
@@ -117,6 +150,24 @@ export default function DiagramEditor({ imageBase64, onSave, onClose }: DiagramE
   }
 
   function onPointerMove(e: React.PointerEvent) {
+    // Line preview: redraw from snapshot each frame so the preview doesn't
+    // stack with previous mouse positions.
+    if (tool === "line" && lineStart) {
+      const canvas = canvasRef.current;
+      if (!canvas || !lineBaseSnap.current) return;
+      const ctx = canvas.getContext("2d")!;
+      const pos = getPos(e);
+      ctx.putImageData(lineBaseSnap.current, 0, 0);
+      ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = LINE_WIDTH;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(lineStart.x, lineStart.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      return;
+    }
     if (!isDrawing.current || !lastPos.current) return;
     e.preventDefault();
     const canvas = canvasRef.current;
@@ -172,14 +223,35 @@ export default function DiagramEditor({ imageBase64, onSave, onClose }: DiagramE
     onSave(base64);
   }
 
-  // Close on Escape
+  // Close on Escape — unless an in-progress line preview is up, in which
+  // case Escape cancels just the line (restoring the snapshot).
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key !== "Escape") return;
+      if (lineStart && lineBaseSnap.current) {
+        const canvas = canvasRef.current;
+        if (canvas) canvas.getContext("2d")!.putImageData(lineBaseSnap.current, 0, 0);
+        setLineStart(null);
+        lineBaseSnap.current = null;
+        return;
+      }
+      onClose();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, lineStart]);
+
+  // Switching away from the line tool mid-line should cancel the preview.
+  useEffect(() => {
+    if (tool === "line") return;
+    if (lineStart && lineBaseSnap.current) {
+      const canvas = canvasRef.current;
+      if (canvas) canvas.getContext("2d")!.putImageData(lineBaseSnap.current, 0, 0);
+      setLineStart(null);
+      lineBaseSnap.current = null;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tool]);
 
   return (
     <div className="fixed inset-0 bg-black/70 z-[70] flex items-center justify-center p-4" onClick={onClose}>
@@ -207,6 +279,14 @@ export default function DiagramEditor({ imageBase64, onSave, onClose }: DiagramE
             >
               <span className="material-symbols-outlined text-sm align-middle mr-1">text_fields</span>
               Text
+            </button>
+            <button
+              onClick={() => setTool("line")}
+              title="Click start, click end — draws a 3px straight line"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${tool === "line" ? "bg-[#001e40] text-white" : "text-slate-600 hover:bg-slate-200"}`}
+            >
+              <span className="material-symbols-outlined text-sm align-middle mr-1">horizontal_rule</span>
+              Line
             </button>
           </div>
 
@@ -268,7 +348,7 @@ export default function DiagramEditor({ imageBase64, onSave, onClose }: DiagramE
             ref={canvasRef}
             className="border border-slate-300 rounded-lg shadow-sm"
             style={{
-              cursor: tool === "pen" ? "crosshair" : tool === "eraser" ? "cell" : "text",
+              cursor: tool === "pen" || tool === "line" ? "crosshair" : tool === "eraser" ? "cell" : "text",
               touchAction: "none",
             }}
             onPointerDown={onPointerDown}
