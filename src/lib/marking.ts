@@ -2738,7 +2738,12 @@ Report EXACTLY what the student wrote. Return ONLY the detected text, nothing el
         // answer-key text says "see answer image" / "refer to answer image" / similar.
         // Other parts must be marked from their text answer alone — the AI must NOT
         // fall back to the image for them.
-        const imgRefRe = /see\s+answer\s+image|refer\s+to\s+(the\s+)?(answer\s+)?image|see\s+(the\s+)?image/i;
+        // Sentinel phrases in the answer key that mean "this part is graded
+        // against the ANSWER IMAGE, not against literal text". Accept common
+        // shortenings — "img" / "image" / "diagram" / "drawing" — in the
+        // sub-part answer so a typo like "see answer img" isn't treated as
+        // literal expected text.
+        const imgRefRe = /\b(see|refer\s+to)\b[^.|]*\b(answer\s+)?(image|img|diagram|drawing)\b/i;
         const imagePartsList = hasPerPartAnswers
           ? realSubsForAns.filter(sp => sp.answer && imgRefRe.test(sp.answer)).map(sp => sp.label)
           : [];
