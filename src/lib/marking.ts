@@ -2700,21 +2700,23 @@ ${isDrawableOnly ? "This question" : `Part(s) ${drawableSubLabelList}`} has a pr
 ${drawableClause}
 IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer.
 
+CRITICAL — PRESERVE UNITS AND SYMBOLS: Copy the final answer EXACTLY as written, including every unit and symbol the student put next to the number. Do NOT strip ° / cm / m / kg / g / ml / $ / % / ² / ³ / fractions — if the student wrote "21°" report "21°", if they wrote "5 cm" report "5 cm". If the unit was printed next to the Ans: line by the paper (not written by the student), still include it in the reported final answer so marking can compare against the expected answer with units.
+
 FORMAT: Put each line of working on a SEPARATE line. Do NOT merge numbers from different lines into one.
 For example, if the student wrote:
-  6 × 7
-  = 42
-  Ans: 42
+  Angle x = 180° − 2 × 35°
+  = 110°
+  Ans: 110°
 Report it as:
-  Working: 6 × 7 = 42
-  Final answer: 42
+  Working: Angle x = 180° − 2 × 35° = 110°
+  Final answer: 110°
 
 If the student drew a diagram (e.g. bar model, number line, shapes, arrows), describe it briefly (e.g. "Drew a bar model: 3 units = 42, 1 unit = 14").
 
 SMALL / SHORT ANSWERS: Single digits (e.g. "4", "7") or single letters (e.g. "A") may be small and easy to miss. Scan the ENTIRE answer area carefully — especially near "Ans:" lines and in the top-right corner of sub-part regions. A thin blue stroke that resembles a digit IS the student's answer. Do NOT default to "blank" if there is any blue ink mark present.
 
 If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".
-Report EXACTLY what the student wrote. Return ONLY the detected text, nothing else.` });
+Report EXACTLY what the student wrote, including any unit symbols. Return ONLY the detected text, nothing else.` });
 
         let detectedAnswer = "";
         try {
