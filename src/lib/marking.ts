@@ -2857,9 +2857,14 @@ Return ONLY valid JSON:
         }
         markParts.push({ text: markPrompt });
 
-        // Attempt marking with retries
+        // Attempt marking with retries. Parse failures now feed back into the
+        // loop instead of silently dead-ending at "Failed to parse AI
+        // response" — the retry prepends a stricter JSON-only reminder so
+        // the next attempt is much more likely to return parseable output.
         const QUIZ_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+        const JSON_ONLY_REMINDER = "IMPORTANT: Your previous response could not be parsed. Return ONLY the JSON object requested. No prose, no explanation, no markdown fences — just the raw JSON starting with { and ending with }.";
         let lastErr: unknown = null;
+        let lastParseFailText: string | null = null;
         for (let attempt = 0; attempt < QUIZ_MODELS.length; attempt++) {
           try {
             if (attempt > 0) {
@@ -2868,10 +2873,15 @@ Return ONLY valid JSON:
               await new Promise(r => setTimeout(r, delay));
             }
             const model = QUIZ_MODELS[attempt];
+            // On a retry triggered by a parse failure, add a stricter reminder.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const attemptParts: any[] = lastParseFailText
+              ? [...markParts, { text: JSON_ONLY_REMINDER }]
+              : markParts;
             const response = await withTimeout(
               ai.models.generateContent({
                 model,
-                contents: [{ role: "user", parts: markParts }],
+                contents: [{ role: "user", parts: attemptParts }],
                 config: { temperature: 0.1 },
               }),
               GEMINI_TIMEOUT_MS,
@@ -2896,16 +2906,14 @@ Return ONLY valid JSON:
                   },
                 })
               );
-            } else {
-              updates.push(
-                prisma.examQuestion.update({
-                  where: { id: q.id },
-                  data: { marksAwarded: 0, markingNotes: "Failed to parse AI response" },
-                })
-              );
+              lastErr = null;
+              lastParseFailText = null;
+              break;
             }
-            lastErr = null;
-            break;
+            // No JSON found — record and retry the loop rather than dead-ending.
+            lastParseFailText = text;
+            console.warn(`[quiz-marking] OEQ Q${q.questionNum} attempt ${attempt + 1} returned no JSON (${text.length} chars); will retry`);
+            continue;
           } catch (err) {
             lastErr = err;
             console.warn(`[quiz-marking] OEQ Q${q.questionNum} attempt ${attempt + 1} (${QUIZ_MODELS[attempt]}) failed:`, err);
@@ -2917,6 +2925,14 @@ Return ONLY valid JSON:
             prisma.examQuestion.update({
               where: { id: q.id },
               data: { marksAwarded: 0, markingNotes: "Marking error — AI unavailable, please re-mark" },
+            })
+          );
+        } else if (lastParseFailText !== null) {
+          console.error(`[quiz-marking] OEQ Q${q.questionNum} all ${QUIZ_MODELS.length} attempts returned non-JSON; last response (truncated): ${lastParseFailText.slice(0, 200)}`);
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: { marksAwarded: 0, markingNotes: "Failed to parse AI response after retries — please re-mark" },
             })
           );
         }
