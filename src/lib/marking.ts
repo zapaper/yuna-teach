@@ -2766,6 +2766,18 @@ The student's answer for the drawing part(s) is a DRAWING on top of a printed di
 - NEVER penalise the student because the text description says fewer marks than the image shows. Always defer to the image.
 ` : "";
 
+        const isMath = (paper.subject ?? "").toLowerCase().includes("math");
+        const mathAnswerFirstRule = isMath ? `
+
+MATH MARKING — ANSWER-FIRST RULE (IMPORTANT):
+For math questions, working is secondary to the final answer:
+- If the student's final answer (the value on or near the "Ans:" / "Answer:" line, or the clearly-stated final value) matches the expected answer → award FULL MARKS immediately. Do NOT deduct for missing, incomplete, or unclear working. Working is not required when the answer is right.
+- ONLY when the final answer is WRONG or absent: scan the working steps for partial credit. Award partial marks proportional to marksAvailable if some steps or methods are correct.
+- If wrong with no correct working → ZERO.
+- Equivalent-form answers are equivalent answers: 1/2 = 0.5 = 50%; 3 1/2 = 7/2 = 3.5; 25 cm = 0.25 m if units accepted. Accept all standard equivalences unless the question asks for a specific form.
+- If the student wrote the correct number but forgot the unit (and the expected answer specifies a unit), award FULL MARKS minus at most a 0.5-mark unit deduction; do not award 0.
+` : "";
+
         const isScience = (paper.subject ?? "").toLowerCase().includes("science");
         const sciencePartialRule = isScience ? `
 
@@ -2818,7 +2830,7 @@ Marks available: ${marksAvailable}
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
-${drawableMarkRule}${sciencePartialRule}
+${drawableMarkRule}${mathAnswerFirstRule}${sciencePartialRule}
 Instructions:
 1. Compare the student's detected answer against the expected answer (including synonyms and equivalent phrasing). For Science, apply the SCIENCE PARTIAL-CREDIT RULE above — partial credit for partial concept coverage.
    - If correct → FULL MARKS.
