@@ -1934,9 +1934,9 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const correct = partAnswer || (!hasPartAnswers && realSubs.length === 1 && currentQ.answer) || null;
                                             if (!correct) return null;
                                             return (
-                                              <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
+                                              <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff]">
                                                 <span className="text-[9px] font-bold uppercase tracking-wider text-[#43474f] opacity-60 block mb-0.5">Correct Answer</span>
-                                                {correct.replace(/\s*\|\s*/g, "\n")}
+                                                <FormattedText text={correct.replace(/\s*\|\s*/g, "\n")} className="whitespace-pre-line" />
                                               </div>
                                             );
                                           })()}
@@ -1945,9 +1945,9 @@ function ExamReviewContent({ id }: { id: string }) {
                                     })}
                                     {/* Fallback: show full raw answer when per-part parsing found nothing */}
                                     {!hasPartAnswers && currentQ.answer && (
-                                      <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff] whitespace-pre-wrap">
+                                      <div className="text-sm text-[#0b1c30] leading-relaxed rounded-xl bg-white p-3 border border-[#e5eeff]">
                                         <span className="text-[9px] font-bold uppercase tracking-wider text-[#43474f] opacity-60 block mb-0.5">Correct Answer</span>
-                                        {currentQ.answer.replace(/\s*\|\s*/g, "\n")}
+                                        <FormattedText text={currentQ.answer.replace(/\s*\|\s*/g, "\n")} className="whitespace-pre-line" />
                                       </div>
                                     )}
                                     {/* Answer diagram (if any) — per-part text answers are already shown above */}
