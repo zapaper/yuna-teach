@@ -2778,6 +2778,15 @@ For math questions, working is secondary to the final answer:
 - If wrong with no correct working → ZERO.
 - Equivalent-form answers are equivalent answers: 1/2 = 0.5 = 50%; 3 1/2 = 7/2 = 3.5; 25 cm = 0.25 m if units accepted. Accept all standard equivalences unless the question asks for a specific form.
 - If the student wrote the correct number but forgot the unit (and the expected answer specifies a unit), award FULL MARKS minus at most a 0.5-mark unit deduction; do not award 0.
+
+MATH MARKING — CONTEXT IMPLIED BY THE QUESTION (IMPORTANT):
+The student answers WHAT THE QUESTION ASKS. Do NOT demand extra phrasing that just restates context the question has already established:
+- "Name a pair of perpendicular lines" → "VW and XW" is a complete answer. Do not deduct for missing "are perpendicular" / "⊥" / "perpendicular to each other" — the question already specified the relationship.
+- "Name a pair of parallel lines" → "AB and CD" is complete. Do not require "parallel" to be restated.
+- "Which figure has rotational symmetry?" → "Figure P" is complete; do not require the student to also write "has rotational symmetry".
+- "How many …?" → a bare number is complete; do not require a sentence.
+- "What is …?" → the value or object is complete; do not require "The answer is …".
+Only insist on the relationship word / qualifier when the question EXPLICITLY asks the student to "describe", "explain", "state why", or "justify".
 ` : "";
 
         const isScience = (paper.subject ?? "").toLowerCase().includes("science");
