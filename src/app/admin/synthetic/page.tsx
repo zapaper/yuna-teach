@@ -10,7 +10,7 @@ import FormattedText from "@/components/FormattedText";
 type Subject = "math" | "science" | "english";
 type QuestionType = "mcq" | "oeq";
 
-type OeqSubpart = { label: string; text: string };
+type OeqSubpart = { label: string; text: string; refImageBase64?: string | null };
 
 type Question = {
   id: string;
@@ -42,6 +42,7 @@ type Question = {
   subparts?: OeqSubpart[] | null;
   answerText?: string | null;
   marksAvailable?: number | null;
+  hasDrawable?: boolean;
 };
 
 type Decision = "accepted" | "rejected" | null;
@@ -582,14 +583,31 @@ function SyntheticContent() {
                     alt="diagram" className="max-w-sm rounded-lg border border-slate-200 mb-3" />
                 )}
                 {questionType === "oeq" ? (
-                  // OEQ: render the scenario stem, each subpart, and the marking scheme.
+                  // OEQ: render the scenario stem, each subpart (with its
+                  // per-subpart reference image if present), and the marking
+                  // scheme.
                   <div className="space-y-2">
+                    {q.hasDrawable && (
+                      <div className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-violet-600 bg-violet-50 border border-violet-200 rounded-full px-2 py-0.5">
+                        🖊 Drawable canvas
+                      </div>
+                    )}
                     {Array.isArray(q.subparts) && q.subparts.length > 0 && (
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         {q.subparts.map((sp, i) => (
-                          <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
-                            <span className="shrink-0 font-bold">({sp.label})</span>
-                            <FormattedText text={sp.text} className="flex-1" />
+                          <div key={i} className="px-3 py-2 rounded-lg text-sm bg-slate-50 text-slate-700">
+                            <div className="flex items-start gap-2">
+                              <span className="shrink-0 font-bold">({sp.label})</span>
+                              <FormattedText text={sp.text} className="flex-1" />
+                            </div>
+                            {sp.refImageBase64 && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={sp.refImageBase64.startsWith("data:") ? sp.refImageBase64 : `data:image/jpeg;base64,${sp.refImageBase64}`}
+                                alt={`subpart ${sp.label} diagram`}
+                                className="mt-2 max-w-xs rounded-md border border-slate-200 bg-white"
+                              />
+                            )}
                           </div>
                         ))}
                       </div>

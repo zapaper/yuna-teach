@@ -78,17 +78,45 @@ export async function GET(request: NextRequest) {
       take: 30,
     });
 
-    // Keep only rows with a non-empty subparts array AND no options (real OEQ,
-    // not mis-extracted MCQ). Answer text must also exist so we have a
-    // marking scheme to seed the generator with. Strip "_subref-*" / "_drawable"
-    // sentinel subparts — those are internal bookkeeping rows for the
-    // drawable-canvas pipeline, not real subparts for the student.
-    function cleanSubparts(raw: unknown): Array<{ label: string; text: string }> {
-      if (!Array.isArray(raw)) return [];
-      return raw
+    // Separate real subparts from the internal sentinel rows:
+    //   _subref-<label>   → reference image for that subpart (the student's
+    //                       drawable canvas uses this as the background).
+    //   _drawable         → the whole question has a drawable canvas that
+    //                       accepts freehand drawing (no per-subpart ref).
+    // Attach the matching ref image back onto each real subpart so the admin
+    // preview and the promoted bank question can show them.
+    type CleanSubpart = { label: string; text: string; refImageBase64?: string | null };
+    function splitSubparts(raw: unknown): { subparts: CleanSubpart[]; hasDrawable: boolean } {
+      if (!Array.isArray(raw)) return { subparts: [], hasDrawable: false };
+      const rows = raw
         .map((r) => (r && typeof r === "object" ? (r as Record<string, unknown>) : {}))
-        .map((r) => ({ label: String(r.label ?? ""), text: String(r.text ?? "") }))
-        .filter((s) => s.label && !s.label.startsWith("_") && s.text);
+        .map((r) => ({
+          label: String(r.label ?? ""),
+          text: String(r.text ?? ""),
+          diagramBase64: typeof r.diagramBase64 === "string" ? (r.diagramBase64 as string) : null,
+          refImageBase64: typeof r.refImageBase64 === "string" ? (r.refImageBase64 as string) : null,
+        }));
+      const refs = new Map<string, string>();
+      let hasDrawable = false;
+      for (const r of rows) {
+        if (!r.label.startsWith("_")) continue;
+        if (r.label === "_drawable") { hasDrawable = true; continue; }
+        if (r.label.startsWith("_subref-")) {
+          const target = r.label.slice("_subref-".length).toLowerCase();
+          // Sentinel stores the actual image in diagramBase64 (see
+          // transcribe-edit/page.tsx), fall back to refImageBase64 if present.
+          const img = r.diagramBase64 ?? r.refImageBase64 ?? null;
+          if (target && img) refs.set(target, img);
+        }
+      }
+      const subparts: CleanSubpart[] = rows
+        .filter((r) => r.label && !r.label.startsWith("_") && r.text)
+        .map((r) => ({
+          label: r.label,
+          text: r.text,
+          refImageBase64: r.refImageBase64 ?? refs.get(r.label.toLowerCase()) ?? null,
+        }));
+      return { subparts, hasDrawable };
     }
     // Drop OEQs that were split across multiple records in the same paper
     // (e.g. "38a" in one row + "38bc" in another). Only complete standalone
@@ -116,7 +144,7 @@ export async function GET(request: NextRequest) {
     const filtered = questions
       .filter((q) => {
         if (isSplit(q)) return false;
-        if (cleanSubparts(q.transcribedSubparts).length === 0) return false;
+        if (splitSubparts(q.transcribedSubparts).subparts.length === 0) return false;
         const opts = Array.isArray(q.transcribedOptions) ? (q.transcribedOptions as unknown[]) : [];
         if (opts.some((o) => typeof o === "string" && o.trim().length > 0)) return false;
         return !!(q.answer && q.answer.trim());
@@ -125,11 +153,14 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       type: "oeq",
-      questions: filtered.map((q) => ({
+      questions: filtered.map((q) => {
+        const { subparts: cleanSubs, hasDrawable } = splitSubparts(q.transcribedSubparts);
+        return {
         id: q.id,
         questionNum: q.questionNum,
         stem: q.transcribedStem,
-        subparts: cleanSubparts(q.transcribedSubparts),
+        subparts: cleanSubs,
+        hasDrawable,
         answerText: q.answer,
         marksAvailable: q.marksAvailable ?? 0,
         diagramImageData: q.diagramImageData,
@@ -141,7 +172,8 @@ export async function GET(request: NextRequest) {
         paperSchool: q.examPaper.school,
         paperLevel: q.examPaper.level,
         paperExamType: q.examPaper.examType,
-      })),
+      };
+      }),
     });
   }
 
