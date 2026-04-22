@@ -2288,12 +2288,14 @@ A student filled in blank (${q.questionNum}) with "${studentRaw}".
 The answer key (accepted alternatives, slash-separated) is: "${correctRaw}".
 ${passageCtx ? `\nPassage:\n${passageCtx}\n` : ""}
 Decide whether the student's word fits the blank grammatically AND in meaning. Be fair:
-- Accept any synonym or variation that preserves the sentence meaning.
+- Read the sentence CONTAINING the blank, the sentence BEFORE it, and the sentence AFTER it. The chosen word must keep the story flowing logically across all three — it has to be consistent with what just happened and with what is about to happen, not just make local sense in the blank's own sentence.
+- If the word's meaning contradicts the preceding cause/effect or the following consequence, reject — even if it fits grammatically and sounds plausible on its own line.
+- Accept any synonym or variation that preserves the sentence meaning AND the cross-sentence flow.
 - Check grammatical fit: tense, number, word class.
 - Check CAPITALIZATION: if the blank is at the start of a sentence (i.e. after a full stop, or it's the first word of a paragraph), the student's word must begin with a capital letter. Otherwise reject.
 - Spelling matters — misspelled words are NOT accepted.
 
-Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence explaining why, citing grammar/meaning/capitalization>"}` }] }],
+Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence explaining why, citing grammar/meaning/flow/capitalization>"}` }] }],
               config: { responseMimeType: "application/json", temperature: 0.1 },
             }),
             15000,
