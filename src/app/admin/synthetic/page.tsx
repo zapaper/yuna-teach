@@ -404,6 +404,18 @@ function SyntheticContent() {
     });
   }
 
+  // OEQ-specific helper: rewrite a specific subpart's text inside a draft variant.
+  function updateOeqSubpart(qId: string, which: "simple" | "similar", idx: number, text: string) {
+    setDrafts(prev => {
+      const curr = prev[qId];
+      if (!curr) return prev;
+      const subs = [...(curr[which].subparts ?? [])];
+      if (!subs[idx]) return prev;
+      subs[idx] = { ...subs[idx], text };
+      return { ...prev, [qId]: { ...curr, [which]: { ...curr[which], subparts: subs } } };
+    });
+  }
+
   if (allowed === null) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" /></div>;
   }
@@ -697,7 +709,11 @@ function SyntheticContent() {
                     setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-simple`]: v }))}
                     regenerating={regenerating === `${q.id}-simple`}
                     onRegenDiagram={() => regenerateDiagram(q, "simple")}
-                    onDiagramEdit={base64 => updateVariant(q.id, "simple", { diagramImageData: base64 })} />
+                    onDiagramEdit={base64 => updateVariant(q.id, "simple", { diagramImageData: base64 })}
+                    onStem={s => updateVariant(q.id, "simple", { stem: s })}
+                    onSubpartText={(i, t) => updateOeqSubpart(q.id, "simple", i, t)}
+                    onAnswerText={s => updateVariant(q.id, "simple", { answerText: s })}
+                  />
                   <DecisionButtons which="simple" decision={qDecisions.simple} savingState={savingState}
                     questionId={q.id}
                     onChoose={dec => setDecision(q, "simple", dec)} />
@@ -706,7 +722,11 @@ function SyntheticContent() {
                     setRegenPrompt={v => setRegenPrompts(prev => ({ ...prev, [`${q.id}-similar`]: v }))}
                     regenerating={regenerating === `${q.id}-similar`}
                     onRegenDiagram={() => regenerateDiagram(q, "similar")}
-                    onDiagramEdit={base64 => updateVariant(q.id, "similar", { diagramImageData: base64 })} />
+                    onDiagramEdit={base64 => updateVariant(q.id, "similar", { diagramImageData: base64 })}
+                    onStem={s => updateVariant(q.id, "similar", { stem: s })}
+                    onSubpartText={(i, t) => updateOeqSubpart(q.id, "similar", i, t)}
+                    onAnswerText={s => updateVariant(q.id, "similar", { answerText: s })}
+                  />
                   <DecisionButtons which="similar" decision={qDecisions.similar} savingState={savingState}
                     questionId={q.id}
                     onChoose={dec => setDecision(q, "similar", dec)} />
@@ -767,6 +787,17 @@ function SyntheticContent() {
                     return { ...prev, [q.id]: list };
                   });
                 };
+                const updatePairSubpart = (which: "simple" | "similar", i: number, text: string) => {
+                  setMorePairs(prev => {
+                    const list = [...(prev[q.id] ?? [])];
+                    if (!list[pairIdx]) return prev;
+                    const subs = [...(list[pairIdx][which].subparts ?? [])];
+                    if (!subs[i]) return prev;
+                    subs[i] = { ...subs[i], text };
+                    list[pairIdx] = { ...list[pairIdx], [which]: { ...list[pairIdx][which], subparts: subs } };
+                    return { ...prev, [q.id]: list };
+                  });
+                };
                 async function savePair(which: "simple" | "similar", decision: Exclude<Decision, null>) {
                   const variant = moreVariantName(which, pairIdx + 1); // pairIdx 0 is the FIRST extra → simple2
                   const key = `save-${q.id}-${variant}`;
@@ -822,11 +853,17 @@ function SyntheticContent() {
                     {questionType === "oeq" ? (
                       <>
                         <OeqVariantCard title="Simple variant (same concept, swapped scenario)" variant={pair.simple}
-                          onDiagramEdit={base64 => updatePair("simple", { diagramImageData: base64 })} />
+                          onDiagramEdit={base64 => updatePair("simple", { diagramImageData: base64 })}
+                          onStem={s => updatePair("simple", { stem: s })}
+                          onSubpartText={(i, t) => updatePairSubpart("simple", i, t)}
+                          onAnswerText={s => updatePair("simple", { answerText: s })} />
                         <DecisionButtons which="simple" decision={pairDec.simple} savingState={savingState}
                           questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("simple", dec)} />
                         <OeqVariantCard title="Similar variant (different angle on the same topic)" variant={pair.similar}
-                          onDiagramEdit={base64 => updatePair("similar", { diagramImageData: base64 })} />
+                          onDiagramEdit={base64 => updatePair("similar", { diagramImageData: base64 })}
+                          onStem={s => updatePair("similar", { stem: s })}
+                          onSubpartText={(i, t) => updatePairSubpart("similar", i, t)}
+                          onAnswerText={s => updatePair("similar", { answerText: s })} />
                         <DecisionButtons which="similar" decision={pairDec.similar} savingState={savingState}
                           questionId={`${q.id}-more${pairIdx}`} onChoose={dec => savePair("similar", dec)} />
                       </>
@@ -910,11 +947,13 @@ function SyntheticContent() {
   );
 }
 
-// Preview card for an OEQ variant — stem, generated diagram (editable),
-// subparts, and marking scheme. Mirrors the MCQ VariantEditor's diagram-
-// editing affordances: click to hand-edit, or write a prompt + regen.
+// Edit-and-preview card for an OEQ variant — stem, generated diagram,
+// subparts, and marking scheme, all inline-editable (textareas). Mirrors
+// the MCQ VariantEditor's diagram-editing affordances: click to hand-edit,
+// or write a prompt + regen.
 function OeqVariantCard({
   title, variant, regenPrompt, setRegenPrompt, regenerating, onRegenDiagram, onDiagramEdit,
+  onStem, onSubpartText, onAnswerText,
 }: {
   title: string;
   variant: Variant;
@@ -923,17 +962,30 @@ function OeqVariantCard({
   regenerating?: boolean;
   onRegenDiagram?: () => void;
   onDiagramEdit?: (base64: string) => void;
+  onStem?: (s: string) => void;
+  onSubpartText?: (idx: number, text: string) => void;
+  onAnswerText?: (s: string) => void;
 }) {
   const [editingDiagram, setEditingDiagram] = useState(false);
+  const readOnly = !onStem && !onSubpartText && !onAnswerText;
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 mb-2">
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3">{title}</p>
 
       <div className="mb-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Scenario / stem</p>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-          <FormattedText text={variant.stem} className="text-sm text-slate-800 whitespace-pre-line" />
-        </div>
+        {onStem ? (
+          <textarea
+            value={variant.stem}
+            onChange={(e) => onStem(e.target.value)}
+            rows={Math.min(8, Math.max(2, Math.ceil(variant.stem.length / 70)))}
+            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none resize-y"
+          />
+        ) : (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+            <FormattedText text={variant.stem} className="text-sm text-slate-800 whitespace-pre-line" />
+          </div>
+        )}
       </div>
 
       {variant.diagramImageData && (
@@ -987,8 +1039,17 @@ function OeqVariantCard({
           <div className="space-y-1">
             {variant.subparts.map((sp, i) => (
               <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm bg-white border border-slate-200 text-slate-700">
-                <span className="shrink-0 font-bold">({sp.label})</span>
-                <FormattedText text={sp.text} className="flex-1" />
+                <span className="shrink-0 font-bold pt-1.5">({sp.label})</span>
+                {onSubpartText ? (
+                  <textarea
+                    value={sp.text}
+                    onChange={(e) => onSubpartText(i, e.target.value)}
+                    rows={Math.min(6, Math.max(1, Math.ceil(sp.text.length / 60)))}
+                    className="flex-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-slate-500 outline-none resize-y"
+                  />
+                ) : (
+                  <FormattedText text={sp.text} className="flex-1" />
+                )}
               </div>
             ))}
           </div>
@@ -998,8 +1059,19 @@ function OeqVariantCard({
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Marking scheme</p>
       <div className="px-3 py-2 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800">
         <div className="text-[10px] font-bold uppercase opacity-70 mb-1">Answer · {variant.marksAvailable ?? "?"}m</div>
-        <FormattedText text={variant.answerText ?? ""} />
+        {onAnswerText ? (
+          <textarea
+            value={variant.answerText ?? ""}
+            onChange={(e) => onAnswerText(e.target.value)}
+            rows={Math.min(8, Math.max(2, Math.ceil((variant.answerText ?? "").length / 60)))}
+            className="w-full rounded-md border border-green-300 bg-white px-2 py-1 text-sm text-green-900 focus:border-green-500 outline-none resize-y"
+            placeholder="Use | to separate subparts, **term** for key-term bolding."
+          />
+        ) : (
+          <FormattedText text={variant.answerText ?? ""} />
+        )}
       </div>
+      {readOnly && null}
     </div>
   );
 }
