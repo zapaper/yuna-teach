@@ -2757,11 +2757,13 @@ Report EXACTLY what the student wrote. Return ONLY the detected text, nothing el
         const drawableMarkRule = isDrawableAny ? `
 
 DRAWABLE DIAGRAM — MARKING RULES (applies to ${isDrawableOnly ? "this question" : `part(s) ${drawableSubLabelList}`}):
-The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text. The detected answer above describes what was drawn in words.
-- If an expected answer image is provided for a drawing part, compare the student's drawing to it visually — match shaded regions, arrow directions, and marked objects.
-- If only a text expected answer is given (e.g. "shade the opaque material"), check whether the detected drawing satisfies its conditions.
+The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text.
+- The student's ACTUAL drawing image is included above ("Student's actual drawing(s)"). Compare it PIXEL-BY-PIXEL against the "Expected answer image" — DO NOT rely on the short text description of their drawing under "Student's answer (detected ...)". The detection step summarises a drawing into a sentence and routinely misses lines, shaded regions, or small marks; the image is ground truth for what they actually drew.
+- Match shaded regions, arrow directions, line placements, and marked objects by looking at the student image and the answer image side by side.
+- If only a text expected answer is given (e.g. "shade the opaque material"), check whether the student's drawing in the image satisfies those conditions.
 - Award partial credit when the drawing is partly right (e.g. correct object shaded but arrow direction wrong).
-- NEVER award 0 with the reason "blank" for a drawing part — blue ink has already been confirmed. If you cannot determine what was drawn, say so in notes and award based on the detected description.
+- NEVER award 0 with the reason "blank" for a drawing part — blue ink has already been confirmed. If you genuinely cannot see the relevant marks, say so in notes and award based on what is visible in the image.
+- NEVER penalise the student because the text description says fewer marks than the image shows. Always defer to the image.
 ` : "";
 
         const isScience = (paper.subject ?? "").toLowerCase().includes("science");
@@ -2830,6 +2832,21 @@ Return ONLY valid JSON:
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const markParts: any[] = [];
+
+        // For drawable parts the Phase-1 detection turns a drawing into a text
+        // description, which tends to drop lines/marks (it once called a full
+        // quadrilateral "two lines"). Pass the actual student drawing image(s)
+        // through to Phase 2 so the AI can compare pixels to the expected
+        // answer image directly, not via a lossy textual hand-off.
+        if (isDrawableAny) {
+          for (const p of parts) {
+            if ("inlineData" in p && p.inlineData?.data) markParts.push(p);
+          }
+          if (markParts.length > 0) {
+            markParts.unshift({ text: "Student's actual drawing(s) (compare visually for drawing parts):" });
+          }
+        }
+
         // Include answer image if available for visual comparison
         if (q.answerImageData && q.answerImageData.startsWith("data:image")) {
           const match = q.answerImageData.match(/^data:(image\/\w+);base64,(.+)$/);
