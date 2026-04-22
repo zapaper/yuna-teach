@@ -576,18 +576,10 @@ function ExamPracticeContent({ id }: { id: string }) {
             <span className="text-[10px] font-medium text-green-500 shrink-0 animate-pulse">Auto-saved</span>
           ) : null}
 
-          {hasPdf ? (
-            <div className="flex rounded-xl border border-slate-200 overflow-hidden shrink-0 text-xs font-medium">
-              <button onClick={() => setView("paper")}
-                className={`px-3 py-1.5 ${view === "paper" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
-                Paper
-              </button>
-              <button onClick={() => setView("questions")}
-                className={`px-3 py-1.5 ${view === "questions" ? "bg-primary-500 text-white" : "text-slate-500 hover:bg-slate-50"}`}>
-                Q&A
-              </button>
-            </div>
-          ) : null}
+          {/* Paper/Q&A toggle removed: students should only ever see the
+              paper. The Q&A view exposed the answer key, which was not the
+              intended behaviour. The `view` state is still used internally
+              as a fallback when a paper has no PDF attached. */}
 
           {submitStatus !== "submitted" ? (
             <div className="flex items-center gap-2 shrink-0">
