@@ -1509,6 +1509,12 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  // Mirror tool into a ref so pointer handlers always see the current tool
+  // (not a stale closure) — pen ↔ eraser switches mid-drawing now take effect.
+  const toolRef = useRef(tool);
+  toolRef.current = tool;
+  // Undo history: snapshot before each stroke so we can roll back.
+  const history = useRef<ImageData[]>([]);
 
   function getPos(e: React.PointerEvent) {
     const canvas = canvasRef.current!;
@@ -1516,8 +1522,19 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
   }
 
+  function snapshotForUndo() {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || canvas.width === 0) return;
+    try {
+      history.current.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      if (history.current.length > 30) history.current.shift();
+    } catch { /* ignore */ }
+  }
+
   function onDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
+    snapshotForUndo();
     isDrawing.current = true;
     lastPos.current = getPos(e);
     // Don't use setPointerCapture — it can get stuck after tab switch/zoom,
@@ -1529,16 +1546,20 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx || !lastPos.current) return;
     const pos = getPos(e);
-    const isEraser = tool === "eraser" || tool === "eraser-large";
-    ctx.strokeStyle = isEraser ? "rgba(0,0,0,1)" : "#0066cc";
-    ctx.lineWidth = tool === "eraser-large" ? 60 : tool === "eraser" ? 20 : 2;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    const currentTool = toolRef.current;
+    const isEraser = currentTool === "eraser" || currentTool === "eraser-large";
     if (isEraser) {
+      // destination-out makes every pixel the stroke covers transparent.
       ctx.globalCompositeOperation = "destination-out";
+      ctx.strokeStyle = "rgba(0,0,0,1)";
+      ctx.lineWidth = currentTool === "eraser-large" ? 60 : 20;
     } else {
       ctx.globalCompositeOperation = "source-over";
+      ctx.strokeStyle = "#0066cc";
+      ctx.lineWidth = 2;
     }
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
     ctx.lineTo(pos.x, pos.y);
@@ -1546,7 +1567,23 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     lastPos.current = pos;
   }
 
-  function onUp() { isDrawing.current = false; lastPos.current = null; }
+  function onUp() {
+    isDrawing.current = false;
+    lastPos.current = null;
+    const ctx = canvasRef.current?.getContext("2d");
+    // Reset composite so any subsequent operation (e.g. a resize that
+    // re-draws cached content) doesn't unexpectedly erase.
+    if (ctx) ctx.globalCompositeOperation = "source-over";
+  }
+
+  function handleUndo() {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || history.current.length === 0) return;
+    const snap = history.current.pop()!;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.putImageData(snap, 0, 0);
+  }
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1582,15 +1619,28 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
 
   const isActive = tool === "pen" || tool === "eraser" || tool === "eraser-large";
   return (
-    <canvas
-      ref={canvasRef}
-      className={`absolute inset-0 z-10 ${isActive ? "cursor-crosshair" : "pointer-events-none"}`}
-      style={{ touchAction: "none" }}
-      onPointerDown={onDown}
-      onPointerMove={onMove}
-      onPointerUp={onUp}
-      onPointerCancel={onUp}
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        className={`absolute inset-0 z-10 ${isActive ? "cursor-crosshair" : "pointer-events-none"}`}
+        style={{ touchAction: "none" }}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        onPointerLeave={onUp}
+      />
+      {isActive && (
+        <button
+          onClick={handleUndo}
+          type="button"
+          title="Undo last stroke"
+          className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/90 border border-[#d3e4fe] shadow-sm flex items-center justify-center text-[#43474f] hover:text-[#001e40]"
+        >
+          <span className="material-symbols-outlined text-base">undo</span>
+        </button>
+      )}
+    </>
   );
 }
 
