@@ -315,7 +315,7 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
 const HABITATS: Habitat[] = [
   {
     id: "jungle", name: "Jungle",
-    image: "/avatars/landscape_jungle.png",
+    image: "/avatars/landscape_jungle.webp",
     thumb: "/avatars/landscape_jungle_thumb.webp",
     pets: [
       {
@@ -377,7 +377,7 @@ const HABITATS: Habitat[] = [
   },
   {
     id: "fantasy", name: "Fantasy",
-    image: "/avatars/landscape_fantasy.jpeg",
+    image: "/avatars/landscape_fantasy.webp",
     thumb: "/avatars/landscape_fantasy_thumb.webp",
     pets: [
       {
@@ -417,7 +417,7 @@ const HABITATS: Habitat[] = [
   },
   {
     id: "garden", name: "Garden",
-    image: "/avatars/landscape_garden.png",
+    image: "/avatars/landscape_garden.webp",
     thumb: "/avatars/landscape_garden_thumb.webp",
     pets: [
       {
@@ -468,7 +468,7 @@ const HABITATS: Habitat[] = [
   },
   {
     id: "hdb", name: "HDB",
-    image: "/avatars/landscape_hdb.jpeg",
+    image: "/avatars/landscape_hdb.webp",
     thumb: "/avatars/landscape_hdb_thumb.webp",
     pets: [],
   },
