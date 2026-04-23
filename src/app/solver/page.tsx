@@ -35,8 +35,8 @@ function SolverContent() {
 
   useEffect(() => {
     if (!userId) return;
-    fetch("/api/users").then(r => r.json()).then(data => {
-      const me = (data.users ?? []).find((u: { id: string; linkedStudents: { id: string; name: string }[] }) => u.id === userId);
+    fetch(`/api/users?userId=${userId}`).then(r => r.json()).then(data => {
+      const me = data.user as { linkedStudents?: { id: string; name: string }[] } | null;
       const first = me?.linkedStudents?.[0] ?? null;
       setLinkedStudent(first);
       setNoStudentLinked(!first);

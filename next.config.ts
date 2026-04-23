@@ -11,6 +11,25 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  // Long-lived immutable caching for static assets (pet clips, landscape
+  // images, stickers, sound effects). These files are named per pet/action so
+  // a change means a new filename anyway — safe to set a 1-year max-age.
+  async headers() {
+    return [
+      {
+        source: "/avatars/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/stickers/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/sounds/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

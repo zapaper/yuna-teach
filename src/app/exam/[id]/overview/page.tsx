@@ -171,19 +171,19 @@ function ExamOverviewContent({ id }: { id: string }) {
   useEffect(() => {
     async function fetchAll() {
       try {
-        const [paperRes, linkRes, usersRes, transcribeRes] = await Promise.all([
+        const [paperRes, linkRes, userRes, transcribeRes] = await Promise.all([
           fetch(`/api/exam/${id}?summary=true`),
           fetch(`/api/link?userId=${userId}`),
-          fetch("/api/users"),
+          fetch(`/api/users?userId=${userId}`),
           fetch(`/api/exam/${id}/transcribe-mcq`),
         ]);
         if (!paperRes.ok) throw new Error("Not found");
-        const [paperData, linkData, usersData] = await Promise.all([
+        const [paperData, linkData, userData] = await Promise.all([
           paperRes.json(),
           linkRes.json(),
-          usersRes.json(),
+          userRes.json(),
         ]);
-        const currentUser = usersData.users?.find((u: User) => u.id === userId);
+        const currentUser = userData.user;
         const adminCheck = currentUser?.name?.toLowerCase() === "admin";
         setIsAdmin(adminCheck);
         if (!adminCheck) {

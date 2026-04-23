@@ -39,27 +39,28 @@ export default function HomePage({
   const fetchData = useRef<() => Promise<void>>(undefined);
   fetchData.current = async () => {
     try {
-      const [usersRes, testsRes, examsRes] = await Promise.all([
-        fetch("/api/users"),
+      // Fetch only the current user — the old /api/users (no param) pulled
+      // every user in the DB with parent/student links expanded, which grew
+      // linearly with signups and dominated page load.
+      const [userRes, testsRes, examsRes] = await Promise.all([
+        fetch(`/api/users?userId=${userId}`),
         fetch(`/api/tests?userId=${userId}`),
         fetch(`/api/exam?userId=${userId}`),
       ]);
-      const [usersData, testsData, examsData] = await Promise.all([
-        usersRes.json(),
+      const [userData, testsData, examsData] = await Promise.all([
+        userRes.json(),
         testsRes.json(),
         examsRes.json(),
       ]);
 
-      const foundUser = usersData.users.find(
-        (u: User) => u.id === userId
-      );
-      setUser(foundUser || null);
+      const foundUser: User | null = userData.user ?? null;
+      setUser(foundUser);
       setTests(testsData.tests);
       setExamPapers(examsData.papers);
-      // Save all students for admin quiz assignment
-      const students = (usersData.users as User[]).filter((u: User) => u.role === "STUDENT");
-      setAllStudents(students.map((s: User) => ({ id: s.id, name: s.name, level: s.level })));
-      if (students.length > 0 && !quizStudentId) setQuizStudentId(students[0].id);
+      // Default quiz target = first linked student for parents.
+      if (foundUser?.linkedStudents && foundUser.linkedStudents.length > 0 && !quizStudentId) {
+        setQuizStudentId(foundUser.linkedStudents[0].id);
+      }
     } catch (err) {
       console.error("Failed to fetch data:", err);
     } finally {
@@ -147,7 +148,6 @@ export default function HomePage({
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
   const [quizStudentId, setQuizStudentId] = useState("");
-  const [allStudents, setAllStudents] = useState<{ id: string; name: string; level: number | null }[]>([]);
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
@@ -293,11 +293,10 @@ export default function HomePage({
       }
       setConnectSuccess(`Connected to ${data.linkedUser.name}!`);
       setConnectCode("");
-      // Refresh user data to show new link
-      const usersRes = await fetch("/api/users");
-      const usersData = await usersRes.json();
-      const foundUser = usersData.users.find((u: User) => u.id === userId);
-      setUser(foundUser || null);
+      // Refresh user data to show new link (single-user fetch, not full table)
+      const userRes = await fetch(`/api/users?userId=${userId}`);
+      const userData = await userRes.json();
+      setUser(userData.user ?? null);
     } catch {
       setConnectError("Something went wrong");
     } finally {

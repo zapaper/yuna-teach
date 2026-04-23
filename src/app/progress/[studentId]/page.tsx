@@ -637,9 +637,9 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
             if (points.length === 0) return null;
             const pathD = points.map((p, j) => `${j === 0 ? "M" : "L"} ${x(p.idx)} ${y(p.pct)}`).join(" ");
             return (
-              <g key={topic} opacity={isGrey ? 0.45 : 1}>
-                {points.length > 1 && <path d={pathD} fill="none" stroke={color} strokeWidth={isGrey ? 1.5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />}
-                {points.map(p => <circle key={p.idx} cx={x(p.idx)} cy={y(p.pct)} r={isGrey ? 2.5 : 5.5} fill={color} stroke="white" strokeWidth={isGrey ? 1 : 2.5} />)}
+              <g key={topic} opacity={isGrey ? 0.5 : 1}>
+                {points.length > 1 && <path d={pathD} fill="none" stroke={color} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />}
+                {points.map(p => <circle key={p.idx} cx={x(p.idx)} cy={y(p.pct)} r={5.5} fill={color} stroke="white" strokeWidth={2.5} />)}
               </g>
             );
           })}
