@@ -565,8 +565,25 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
   }
 
   const allTopics = Array.from(new Set(aggregated.flatMap(e => Object.keys(e.topics)))).sort();
+  // Rank topics by average pct across the aggregated points — weakest first.
+  // The 5 weakest get the palette colours; in "Weak Only" mode everything
+  // else is a faint grey line so the weak ones pop.
+  const topicAvg: Record<string, number> = {};
+  for (const t of allTopics) {
+    const vals = aggregated.map(e => e.topics[t]).filter((v): v is number => typeof v === "number");
+    topicAvg[t] = vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : 100;
+  }
+  const weakestFirst = [...allTopics].sort((a, b) => topicAvg[a] - topicAvg[b]);
+  const highlightedTopics = new Set(weakestFirst.slice(0, 5));
   const topicColorMap: Record<string, string> = {};
+  const GREY = "#c3c6d1";
   allTopics.forEach((t, i) => { topicColorMap[t] = TOPIC_COLORS[i % TOPIC_COLORS.length]; });
+
+  const [filterMode, setFilterMode] = useState<"weak" | "all">("weak");
+  const colorFor = (topic: string) => {
+    if (filterMode === "all") return topicColorMap[topic];
+    return highlightedTopics.has(topic) ? topicColorMap[topic] : GREY;
+  };
 
   const W = 600, H = 260, padL = 40, padR = 20, padT = 16, padB = 20;
   const chartW = W - padL - padR;
@@ -576,12 +593,31 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
 
   function x(i: number) { return padL + (n > 1 ? i * xStep : chartW / 2); }
   function y(pct: number) { return padT + chartH - (pct / 100) * chartH; }
+  // Draw highlighted lines on top of grey ones so they aren't overdrawn.
+  const topicsInDrawOrder = filterMode === "weak"
+    ? [...allTopics].sort((a, b) => Number(highlightedTopics.has(a)) - Number(highlightedTopics.has(b)))
+    : allTopics;
   return (
     <div>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-1.5 bg-[#eff4ff] p-1 rounded-full">
+          <button
+            onClick={() => setFilterMode("weak")}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filterMode === "weak" ? "bg-[#001e40] text-white" : "text-[#43474f] hover:text-[#001e40]"}`}
+          >Weak Only</button>
+          <button
+            onClick={() => setFilterMode("all")}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${filterMode === "all" ? "bg-[#001e40] text-white" : "text-[#43474f] hover:text-[#001e40]"}`}
+          >All</button>
+        </div>
+        {filterMode === "weak" && (
+          <p className="text-[10px] text-[#737780]">Showing top 5 weakest in colour</p>
+        )}
+      </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 mb-4">
-        {allTopics.map(topic => (
+        {(filterMode === "weak" ? weakestFirst.slice(0, 5) : allTopics).map(topic => (
           <div key={topic} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: topicColorMap[topic] }} />
+            <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: colorFor(topic) }} />
             <span className="text-[11px] text-[#43474f]">{topic}</span>
           </div>
         ))}
@@ -594,15 +630,16 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
               <text x={padL - 6} y={y(pct) + 4} textAnchor="end" fill="#737780" fontSize={10}>{pct}%</text>
             </g>
           ))}
-          {allTopics.map(topic => {
-            const color = topicColorMap[topic];
+          {topicsInDrawOrder.map(topic => {
+            const color = colorFor(topic);
+            const isGrey = filterMode === "weak" && !highlightedTopics.has(topic);
             const points = aggregated.map((e, i) => e.topics[topic] !== undefined ? { idx: i, pct: e.topics[topic] } : null).filter(Boolean) as { idx: number; pct: number }[];
             if (points.length === 0) return null;
             const pathD = points.map((p, j) => `${j === 0 ? "M" : "L"} ${x(p.idx)} ${y(p.pct)}`).join(" ");
             return (
-              <g key={topic}>
-                {points.length > 1 && <path d={pathD} fill="none" stroke={color} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />}
-                {points.map(p => <circle key={p.idx} cx={x(p.idx)} cy={y(p.pct)} r={5.5} fill={color} stroke="white" strokeWidth={2.5} />)}
+              <g key={topic} opacity={isGrey ? 0.45 : 1}>
+                {points.length > 1 && <path d={pathD} fill="none" stroke={color} strokeWidth={isGrey ? 1.5 : 3.5} strokeLinecap="round" strokeLinejoin="round" />}
+                {points.map(p => <circle key={p.idx} cx={x(p.idx)} cy={y(p.pct)} r={isGrey ? 2.5 : 5.5} fill={color} stroke="white" strokeWidth={isGrey ? 1 : 2.5} />)}
               </g>
             );
           })}
