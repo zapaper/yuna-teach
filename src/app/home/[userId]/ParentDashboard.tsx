@@ -447,9 +447,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       }
     }
   }
+  // Aligned threshold: anything ≤ 75% is weak, > 75% is strong. Sort weak
+  // ascending (weakest first) and strong descending (strongest first).
   allTopics.sort((a, b) => b.pct - a.pct);
-  const strongTopics = allTopics.filter(t => t.pct >= 75).slice(0, 2);
-  const weakTopics = allTopics.filter(t => t.pct < 65).slice(0, 2);
+  const strongTopics = allTopics.filter(t => t.pct > 75).slice(0, 2);
+  const weakTopics = [...allTopics].filter(t => t.pct <= 75).sort((a, b) => a.pct - b.pct).slice(0, 2);
 
   const threeDaysAgo = new Date(); threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
   const recentQuizCount = completedPapers.filter(p =>
@@ -638,7 +640,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const FocusedModal = () => {
     if (!showFocused) return null;
     const subjectTopics = allTopics
-      .filter(t => t.subject.toLowerCase().includes(focusedSubject === "math" ? "math" : "science") && t.pct < 65)
+      .filter(t => t.subject.toLowerCase().includes(focusedSubject === "math" ? "math" : "science") && t.pct <= 75)
+      .sort((a, b) => a.pct - b.pct)
       .slice(0, 3);
     const targetStudentId = selectedStudentId ?? user.linkedStudents[0]?.id;
     // customTopic, customActing, customError hoisted to parent component
@@ -805,7 +808,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         )}
         {assignMode === "focused" && quizSubject !== "english" && (() => {
           const weakDetected = allTopics
-            .filter(t => t.subject.toLowerCase().includes(quizSubject === "math" ? "math" : "science") && t.pct < 65)
+            .filter(t => t.subject.toLowerCase().includes(quizSubject === "math" ? "math" : "science") && t.pct <= 75)
+            .sort((a, b) => a.pct - b.pct)
             .slice(0, 3);
           return (
             <>

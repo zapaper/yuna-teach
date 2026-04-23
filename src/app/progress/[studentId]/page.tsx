@@ -33,12 +33,14 @@ function generateSubjectSummary(studentName: string, subject: string, sd: Subjec
   const totalEarned = topicEntries.reduce((s, [, t]) => s + t.earned, 0);
   const totalAvailable = topicEntries.reduce((s, [, t]) => s + t.available, 0);
   const overallPct = totalAvailable > 0 ? Math.round((totalEarned / totalAvailable) * 100) : 0;
+  // Aligned threshold: weak = ≤ 75% (inclusive), strong = > 75%. Sort weakest
+  // first so gaps lead with the most-needed topic.
   const weak = topicEntries
-    .filter(([, t]) => t.available > 0 && (t.earned / t.available) < 0.6)
+    .filter(([, t]) => t.available > 0 && (t.earned / t.available) <= 0.75)
     .sort(([, a], [, b]) => (a.earned / a.available) - (b.earned / b.available))
     .map(([name]) => name);
   const strong = topicEntries
-    .filter(([, t]) => t.available > 0 && (t.earned / t.available) >= 0.8)
+    .filter(([, t]) => t.available > 0 && (t.earned / t.available) > 0.75)
     .map(([name]) => name);
   return {
     headline: `${studentName}'s ${subject}: Overall ${overallPct}th %tile across ${sd.examCount} exam${sd.examCount !== 1 ? "s" : ""}.`,

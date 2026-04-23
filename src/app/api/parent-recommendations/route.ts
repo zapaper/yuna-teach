@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
       }),
       prisma.examPaper.findMany({
         where: { assignedToId: student.id, paperType: "focused", completedAt: { not: null }, createdAt: { gte: new Date(Date.now() - 14 * 86400000) } },
-        select: { title: true, score: true, totalMarks: true, markingStatus: true },
+        select: { title: true, subject: true, score: true, totalMarks: true, markingStatus: true },
         orderBy: { completedAt: "desc" },
       }),
       prisma.examPaper.count({
@@ -98,8 +98,9 @@ export async function GET(req: NextRequest) {
     const strongTopics: string[] = [];
     const allWeakBySubject: SubjectGap[] = [];
     for (const [subject, topics] of Object.entries(topicPerf)) {
+      // Aligned with front-end: weak = ≤ 75%, strong = > 75%. Weakest first.
       const allWeak = Object.entries(topics)
-        .filter(([, v]) => v.available > 0 && (v.earned / v.available) < 0.75)
+        .filter(([, v]) => v.available > 0 && (v.earned / v.available) <= 0.75)
         .sort(([, a], [, b]) => (a.earned / a.available) - (b.earned / b.available))
         .map(([name]) => name)
         .slice(0, 3);
@@ -110,7 +111,8 @@ export async function GET(req: NextRequest) {
       if (actionWeak.length > 0) gaps.push({ subject, topics: actionWeak });
 
       const strong = Object.entries(topics)
-        .filter(([, v]) => v.available > 0 && (v.earned / v.available) >= 0.8)
+        .filter(([, v]) => v.available > 0 && (v.earned / v.available) > 0.75)
+        .sort(([, a], [, b]) => (b.earned / b.available) - (a.earned / a.available))
         .map(([name]) => name);
       strongTopics.push(...strong.slice(0, 2));
     }
@@ -127,7 +129,27 @@ export async function GET(req: NextRequest) {
         if (f.score !== null && f.totalMarks) {
           const total = parseFloat(f.totalMarks);
           const pct = total > 0 ? Math.round((f.score / total) * 100) : null;
-          const verdict = pct === null ? "" : pct >= 80 ? " (did well)" : pct >= 60 ? " (improving)" : " (needs more practice)";
+          // Baseline = the topic's average across all OTHER marked papers
+          // (excluding this focused test). If the focused score is higher than
+          // that baseline, the student genuinely pulled the topic average up
+          // — that's what "improving" means here. If below, no improvement
+          // claim is made. "did well" still fires on 80%+ regardless.
+          const tp = f.subject ? topicPerf[f.subject]?.[topic] : null;
+          let baselinePct: number | null = null;
+          if (tp && f.score !== null && total > 0) {
+            const baseEarned = tp.earned - f.score;
+            const baseAvailable = tp.available - total;
+            baselinePct = baseAvailable > 0
+              ? Math.round((baseEarned / baseAvailable) * 100)
+              : null;
+          }
+          const verdict = pct === null
+            ? ""
+            : pct >= 80
+              ? " (did well)"
+              : (baselinePct !== null && pct > baselinePct)
+                ? ` (improving — pulled the topic average up from ${baselinePct}% to ${pct}%)`
+                : " (needs more practice)";
           return `${topic}${pct !== null ? ` — ${pct}%${verdict}` : ""}`;
         }
         return topic;
@@ -169,10 +191,11 @@ ${examContext ? `Note: ${examContext}` : ""}
 
 Rules:
 - 2-3 sentences only — no greetings, no sign-offs
-- If the student recently completed focused practice, call it out personally and specifically — e.g. "Emily recently did a focused test on Fractions and did well! Encourage her on her improvement." Use the actual topic name and result (did well / improving / needs more practice).
-- If focused practice score was 80%+, celebrate the achievement and tell the parent to praise the child
-- If focused practice score was 60–79%, say they're improving and encourage continued practice
-- If focused practice score was below 60%, say they need more practice and suggest another focused test
+- If the student recently completed focused practice, call it out personally and specifically using the verdict in parentheses in the diagnostic — the verdict is one of: (did well), (improving — pulled the topic average up from X% to Y%), or (needs more practice).
+- Verdict "did well": celebrate and tell the parent to praise the child
+- Verdict "improving — pulled the topic average up …": say the practice lifted the topic average and encourage more of the same; do NOT describe this as "needs more practice"
+- Verdict "needs more practice": say they need more practice on this topic and suggest another focused test
+- Do NOT claim "improving" unless the diagnostic verdict explicitly says "improving"
 - If there are weak topics not yet practised, name them and suggest focused practice
 - If performing well overall, acknowledge it and suggest a daily quiz to maintain momentum
 - Use **double asterisks** to bold: the child's name, topic names, percentages (e.g. **80%**), and key summary phrases (e.g. **performing well**, **needs more practice**, **no significant gaps**)
@@ -189,8 +212,9 @@ Start by greeting ${parentName} with "Good ${timeOfDay}". If any student recentl
 
 Rules:
 - No bullet points, no numbered lists
-- If recent focused practice results are available, ALWAYS call out performance personally (student name + topic + result) and tell the parent to praise/encourage the child
-- If score was 80%+, celebrate and tell parent to praise the child; if 60–79%, say improving; if below 60%, suggest more practice
+- If recent focused practice results are available, ALWAYS call out performance personally (student name + topic + verdict from the diagnostic) and tell the parent to praise/encourage the child
+- Verdicts come from the diagnostic in parentheses: (did well) → celebrate; (improving — pulled the topic average up …) → say they lifted the topic average and encourage more; (needs more practice) → suggest another focused test
+- Do NOT claim "improving" unless the diagnostic verdict explicitly says "improving"
 - Mention specific topic names from the diagnostic — do not be vague
 - Use **double asterisks** to bold: student names, topic names, percentages (e.g. **80%**), and key summary phrases (e.g. **performing well**, **needs more practice**, **no significant gaps**)
 - No other markdown or formatting`;
