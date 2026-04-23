@@ -27,21 +27,22 @@ function SpellingPageContent() {
 
     async function fetchData() {
       try {
-        // Fetch user info and tests in parallel
-        const [usersRes, testsRes] = await Promise.all([
-          fetch("/api/users"),
+        // Fetch the current user + their own tests in parallel. The older
+        // /api/users (no param) fetched the ENTIRE users table with every
+        // user's parent/student links expanded — an O(N) query that grew
+        // with every new signup. /api/users?userId= returns just one user.
+        const [userRes, testsRes] = await Promise.all([
+          fetch(`/api/users?userId=${userId}`),
           fetch(`/api/tests?userId=${userId}`),
         ]);
 
-        const [usersData, testsData] = await Promise.all([
-          usersRes.json(),
+        const [userData, testsData] = await Promise.all([
+          userRes.json(),
           testsRes.json(),
         ]);
 
-        const foundUser = usersData.users.find(
-          (u: User) => u.id === userId
-        );
-        setUser(foundUser || null);
+        const foundUser: User | null = userData.user ?? null;
+        setUser(foundUser);
 
         let allTests: SpellingTestSummary[] = testsData.tests || [];
 
