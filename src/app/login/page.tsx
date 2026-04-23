@@ -289,9 +289,6 @@ export default function LoginPage() {
             className="w-full h-auto object-cover block"
           />
         </div>
-        <p className="mt-6 text-center font-headline font-bold text-lg text-primary/80 max-w-md">
-          AI-powered marking so you can spend more time learning together.
-        </p>
       </aside>
 
     </div>
