@@ -140,13 +140,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col lg:flex-row items-center justify-center p-6 lg:p-12 relative overflow-hidden gap-8 lg:gap-16">
 
       {/* Decorative blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-surface-container-high rounded-full blur-[120px] opacity-60 pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary-container rounded-full blur-[120px] opacity-30 pointer-events-none" />
 
-      <main className="w-full max-w-[480px] z-10">
+      <main className="w-full max-w-[480px] z-10 lg:shrink-0">
 
         {/* Header */}
         <div className="flex flex-col items-center mb-10">
@@ -277,28 +277,22 @@ export default function LoginPage() {
 
       </main>
 
-      {/* Desktop decorative sidebar */}
-      <div className="hidden lg:block absolute right-0 top-0 h-full w-[30%] pointer-events-none">
-        <div className="h-full w-full opacity-40 bg-gradient-to-l from-surface-container-high to-transparent" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative w-full h-[60%] flex flex-col items-center justify-center gap-8 translate-x-1/2">
-            <div className="w-64 h-48 bg-surface-container-lowest rounded-[2rem] p-6 -rotate-12 translate-y-12" style={{ boxShadow: "0 20px 40px rgba(11,28,48,0.06)" }}>
-              <div className="w-10 h-10 rounded-full bg-on-tertiary-container/20 mb-4 flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-tertiary-container">psychology</span>
-              </div>
-              <div className="h-2 w-full bg-surface-container rounded-full mb-3" />
-              <div className="h-2 w-2/3 bg-surface-container rounded-full" />
-            </div>
-            <div className="w-64 h-48 bg-surface-container-lowest rounded-[2rem] p-6 rotate-6 translate-x-12" style={{ boxShadow: "0 20px 40px rgba(11,28,48,0.06)" }}>
-              <div className="w-10 h-10 rounded-full bg-secondary-container mb-4 flex items-center justify-center">
-                <span className="material-symbols-outlined text-secondary">trending_up</span>
-              </div>
-              <div className="h-2 w-full bg-surface-container rounded-full mb-3" />
-              <div className="h-2 w-1/2 bg-surface-container rounded-full" />
-            </div>
-          </div>
+      {/* Right side: hero image — matches step 1 of the signup flow so the
+          login page visually ties into the onboarding journey. Hidden on
+          mobile so the form gets the full viewport. */}
+      <aside className="hidden lg:flex z-10 max-w-[520px] flex-col items-center">
+        <div className="w-full rounded-[2rem] overflow-hidden border-4 border-white/70" style={{ boxShadow: "0 30px 60px rgba(11,28,48,0.15)" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/step1.png"
+            alt="Mother and child learning together"
+            className="w-full h-auto object-cover block"
+          />
         </div>
-      </div>
+        <p className="mt-6 text-center font-headline font-bold text-lg text-primary/80 max-w-md">
+          AI-powered marking so you can spend more time learning together.
+        </p>
+      </aside>
 
     </div>
   );
