@@ -267,14 +267,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="mt-12 text-center">
-          <div className="flex justify-center gap-6">
-            <a className="text-outline-variant hover:text-primary transition-colors text-xs font-medium" href="#">Terms of Service</a>
-            <a className="text-outline-variant hover:text-primary transition-colors text-xs font-medium" href="#">Privacy Policy</a>
-          </div>
-        </footer>
-
       </main>
 
       {/* Right side: hero image — matches step 1 of the signup flow so the
