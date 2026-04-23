@@ -491,6 +491,37 @@ export default function HomePage({
     </>;
   }
 
+  // User fetch returned nothing — stale URL, deleted account, transient
+  // network failure, or session mismatch. Surface a clear message rather
+  // than falling through to the legacy admin-style view.
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f8f9ff] p-6">
+        <div className="max-w-sm w-full bg-white rounded-3xl shadow-xl p-8 text-center">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-[#eff4ff] flex items-center justify-center">
+            <span className="material-symbols-outlined text-[#003366] text-2xl">lock</span>
+          </div>
+          <h1 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Session expired</h1>
+          <p className="text-sm text-[#43474f] mb-6">Please login again or refresh the page.</p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold text-sm"
+            >
+              Refresh
+            </button>
+            <button
+              onClick={() => router.push("/login")}
+              className="w-full py-3 rounded-xl border border-[#c3c6d1] text-[#001e40] font-bold text-sm"
+            >
+              Log in
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 pb-28 animate-fade-in-up">
       {/* Header */}
