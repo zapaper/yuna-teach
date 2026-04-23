@@ -628,7 +628,11 @@ function ExamReviewContent({ id }: { id: string }) {
   const effectiveScore = (data.score ?? 0);
   const rawTotal = totalMarks ? Number(totalMarks) : null;
   const totalM = rawTotal !== null ? Math.max(0, rawTotal - skippedMarks) : null;
-  const pct = totalM && totalM > 0 ? Math.min(100, Math.round((effectiveScore / totalM) * 100)) : null;
+  // Only show a percentage once the paper has actually been marked. Otherwise
+  // effectiveScore is 0, the ring renders 0% and the "Perfect score!" branch
+  // (incorrectQuestions.length === 0) fires incorrectly for an unmarked paper.
+  const isMarked = data.markingStatus === "complete" || data.markingStatus === "released";
+  const pct = isMarked && totalM && totalM > 0 ? Math.min(100, Math.round((effectiveScore / totalM) * 100)) : null;
   const denominatorLabel = rawTotal !== null
     ? (skippedMarks > 0 ? `${rawTotal} − ${skippedMarks} skipped` : String(rawTotal))
     : "";
@@ -652,7 +656,8 @@ function ExamReviewContent({ id }: { id: string }) {
       .map(([t]) => t);
   })();
   // Friendly one-liner encouragement based on percentage
-  const encouragement = pct === null ? "Keep going!"
+  const encouragement = !isMarked ? "Not marked yet"
+    : pct === null ? "Keep going!"
     : pct >= 90 ? "Outstanding work!"
     : pct >= 80 ? "Excellent work!"
     : pct >= 70 ? "Great job!"
@@ -903,7 +908,7 @@ function ExamReviewContent({ id }: { id: string }) {
                 }}
               >
                 <span className="font-headline font-extrabold text-xl" style={{ color: scoreTextColor }}>
-                  {pct !== null ? `${pct}%` : `${data.score ?? 0}`}
+                  {pct !== null ? `${pct}%` : isMarked ? `${data.score ?? 0}` : "—"}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
@@ -971,10 +976,10 @@ function ExamReviewContent({ id }: { id: string }) {
               style={{ background: `radial-gradient(closest-side, white 82%, transparent 82%), conic-gradient(${scoreBorderColor} ${pct ?? 0}%, #dce9ff 0)` }}
             >
               <span className="font-headline text-5xl font-extrabold" style={{ color: scoreTextColor }}>
-                {pct !== null ? `${pct}%` : `${data.score ?? 0}`}
+                {pct !== null ? `${pct}%` : isMarked ? `${data.score ?? 0}` : "—"}
               </span>
               <span className="text-xs font-medium text-[#43474f] mt-1">
-                {pct !== null ? `${data.score ?? 0} / ${denominatorLabel}` : "Score"}
+                {pct !== null ? `${data.score ?? 0} / ${denominatorLabel}` : isMarked ? "Score" : "Not marked"}
               </span>
             </div>
             <div className="flex-1">
@@ -1155,7 +1160,13 @@ function ExamReviewContent({ id }: { id: string }) {
         {/* ── Question Review ── */}
         {displayItems.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-3xl shadow-sm">
-            {incorrectQuestions.length === 0 ? (
+            {!isMarked ? (
+              <>
+                <div className="text-5xl mb-4">⏳</div>
+                <p className="font-headline text-xl font-extrabold text-[#001e40] mb-1">Not marked yet</p>
+                <p className="text-sm text-[#43474f]">This paper hasn&apos;t been AI-marked. Come back once marking is complete.</p>
+              </>
+            ) : incorrectQuestions.length === 0 ? (
               <>
                 <div className="text-5xl mb-4">🎉</div>
                 <p className="font-headline text-xl font-extrabold text-[#001e40] mb-1">Perfect score!</p>
