@@ -14,6 +14,8 @@ interface FlaggedItem {
   markingNotes: string | null;
   studentAnswer: string | null;
   flaggedAt: string | null;
+  paperCreatedAt: string | null;
+  paperCompletedAt: string | null;
   paperId: string;
   cloneId: string | null;
   paperType: string | null;
@@ -249,10 +251,15 @@ function FlaggedContent() {
                   </div>
                 )}
 
-                {/* Flagged date */}
-                {item.flaggedAt && (
-                  <p className="text-[10px] text-slate-300">
-                    Flagged {new Date(item.flaggedAt).toLocaleDateString()}
+                {/* Dates: flagged + when the quiz/paper was created */}
+                {(item.flaggedAt || item.paperCreatedAt) && (
+                  <p className="text-[10px] text-slate-300 flex flex-wrap gap-x-2">
+                    {item.flaggedAt && (
+                      <span>Flagged {new Date(item.flaggedAt).toLocaleDateString()}</span>
+                    )}
+                    {item.paperCreatedAt && (
+                      <span>· Quiz created {new Date(item.paperCreatedAt).toLocaleDateString()}</span>
+                    )}
                   </p>
                 )}
 
