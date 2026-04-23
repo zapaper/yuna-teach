@@ -267,7 +267,7 @@ function FlaggedContent() {
                 {item.sourcePaperId && (
                   <div className="pt-1">
                     <Link
-                      href={`/exam/${item.sourcePaperId}/transcribe-edit?userId=${userId}${item.sourceQuestionId ? `#q-${item.sourceQuestionId}` : ""}`}
+                      href={`/exam/${item.sourcePaperId}/edit?userId=${userId}${item.sourceQuestionId ? `#q-${item.sourceQuestionId}` : ""}`}
                       target="_blank"
                       rel="noopener"
                       onClick={(e) => e.stopPropagation()}

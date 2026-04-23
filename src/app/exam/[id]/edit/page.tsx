@@ -78,6 +78,25 @@ function ExamEditContent({ id }: { id: string }) {
     });
   }, [fetchPaper]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Scroll to the question targeted by the URL hash (e.g. #q-abc123 when
+  // arriving from the Flagged Q&A page). Runs once paper.questions renders.
+  useEffect(() => {
+    if (!paper?.questions?.length) return;
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    if (!hash.startsWith("#q-")) return;
+    // Allow one paint so the target node exists.
+    const t = setTimeout(() => {
+      const el = document.getElementById(hash.slice(1));
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        el.style.transition = "box-shadow 0.6s ease-out";
+        el.style.boxShadow = "0 0 0 4px rgba(0, 108, 73, 0.35)";
+        setTimeout(() => { el.style.boxShadow = ""; }, 2000);
+      }
+    }, 150);
+    return () => clearTimeout(t);
+  }, [paper?.questions]);
+
   // Poll while extraction is in progress
   useEffect(() => {
     if (extracting) {
@@ -681,6 +700,7 @@ function ExamEditContent({ id }: { id: string }) {
       ) : (
       <div className="space-y-4 mt-5">
         {paper.questions.map((q) => (
+          <div key={q.id} id={`q-${q.id}`}>
           <QuestionEditCard
             key={q.id}
             question={q}
@@ -699,6 +719,7 @@ function ExamEditContent({ id }: { id: string }) {
               })
             }
           />
+          </div>
         ))}
       </div>
       )}
