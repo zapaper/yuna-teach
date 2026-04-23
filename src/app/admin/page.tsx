@@ -91,6 +91,13 @@ function AdminContent() {
       href: `/admin/reclassify-algebra?userId=${userId}`,
       color: "bg-indigo-50 text-indigo-600",
     },
+    {
+      icon: "mail",
+      label: "Beta Mailing List",
+      description: "Registered users with email. Copy comma-separated or download CSV.",
+      href: `/admin/emails?userId=${userId}`,
+      color: "bg-sky-50 text-sky-600",
+    },
   ];
 
   return (
