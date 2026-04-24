@@ -473,23 +473,38 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
           const cells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
           const ri = tableRowIdx++;
           return (
-            <div key={li} className="flex gap-1 my-1">
+            <div key={li} className="flex gap-1 my-1 items-stretch">
               {cells.map((cell, ci) => {
                 const isBlank = !cell || cell.match(/^_{2,}$/);
                 const isFirstCol = ci === 0;
                 const cellKey = `r${ri}c${ci}`;
                 if (isBlank) {
+                  // textarea so long answers wrap onto multiple lines
+                  // instead of being clipped by a single-line input. The
+                  // cell grows vertically as the student types (scrollHeight
+                  // driven) and the whole row grows with it.
                   return (
-                    <input
+                    <textarea
                       key={ci}
-                      type="text"
+                      rows={1}
                       spellCheck={false}
                       autoComplete="one-time-code"
                       autoCorrect="off"
                       autoCapitalize="none"
                       value={tableCells[cellKey] ?? ""}
-                      onChange={e => updateTableCell(cellKey, e.target.value)}
-                      className={`text-center text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
+                      onChange={e => {
+                        updateTableCell(cellKey, e.target.value);
+                        const el = e.currentTarget;
+                        el.style.height = "auto";
+                        el.style.height = `${el.scrollHeight}px`;
+                      }}
+                      ref={(el) => {
+                        if (el) {
+                          el.style.height = "auto";
+                          el.style.height = `${el.scrollHeight}px`;
+                        }
+                      }}
+                      className={`text-left text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none resize-none leading-snug overflow-hidden ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
                       placeholder="..."
                     />
                   );
