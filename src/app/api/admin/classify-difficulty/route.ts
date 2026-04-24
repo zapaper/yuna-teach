@@ -1,28 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import sharp from "sharp";
 import { isSessionAdmin } from "@/lib/session";
 import { classifyDifficultyBatch, type DifficultyInput } from "@/lib/gemini";
-
-// Downscale an image to max 384px on the long side and re-encode as JPEG
-// quality 65. Keeps the diagram readable enough for difficulty judgment
-// while shrinking the Gemini payload dramatically — the raw base64 images
-// were blowing past Gemini's timeout (504 DEADLINE_EXCEEDED) when batched.
-async function shrinkForClassification(base64: string | null | undefined): Promise<string | null> {
-  if (!base64) return null;
-  try {
-    const clean = base64.replace(/^data:image\/\w+;base64,/, "");
-    const buf = Buffer.from(clean, "base64");
-    const out = await sharp(buf)
-      .resize({ width: 384, height: 384, fit: "inside", withoutEnlargement: true })
-      .jpeg({ quality: 65 })
-      .toBuffer();
-    return out.toString("base64");
-  } catch {
-    return null;
-  }
-}
 
 // POST — classify the next batch of un-rated master-paper questions.
 // Scope: clean-extracted master questions only (transcribedStem NOT NULL,
@@ -70,15 +50,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ totalRemaining: 0, processed: 0, updated: 0, results: [] });
   }
 
-  // Shrink diagrams before sending to Gemini (parallel). Option images are
-  // intentionally skipped for difficulty classification — the stem + answer
-  // + diagram are sufficient signal and dropping option images cuts payload
-  // size by 4-5x, which is what was timing out.
-  const shrunkDiagrams = await Promise.all(
-    questions.map(q => shrinkForClassification(q.diagramImageData))
-  );
-
-  const batch: DifficultyInput[] = questions.map((q, i) => {
+  // Text-only classification. Images were causing repeated Gemini 504s
+  // (DEADLINE_EXCEEDED + Stream cancelled). The stem/answer/level/topic
+  // carry enough signal for a rough rating; admins can override manually
+  // on visually-heavy questions if the rating looks off.
+  const batch: DifficultyInput[] = questions.map((q) => {
     const opts = Array.isArray(q.transcribedOptions)
       ? (q.transcribedOptions as Prisma.JsonArray).filter((v): v is string => typeof v === "string")
       : null;
@@ -90,7 +66,7 @@ export async function POST(request: NextRequest) {
       subject: q.examPaper.subject,
       level: q.examPaper.level,
       syllabusTopic: q.syllabusTopic,
-      diagramBase64: shrunkDiagrams[i],
+      diagramBase64: null,
       optionImagesBase64: null,
     };
   });

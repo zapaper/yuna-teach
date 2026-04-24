@@ -238,12 +238,15 @@ Rules:
 - reason is 3-8 words, no sentences — just a phrase like "two-step fractions" or "tricky distractor".
 - If you genuinely cannot tell from the text, still pick a best guess rather than omitting.`;
 
-function buildDifficultyParts(batch: DifficultyInput[]): Array<{ text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } }> {
-  const parts: Array<{ text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } }> = [
-    { text: DIFFICULTY_PROMPT + "\n\n--- Batch ---" },
-  ];
-  for (const q of batch) {
-    const metaLines = [
+function buildDifficultyPrompt(batch: DifficultyInput[]): string {
+  // Text-only prompt. Images are intentionally NOT inlined — the vision
+  // path on gemini-2.5-flash was flaking repeatedly with DEADLINE_EXCEEDED
+  // and 'Stream cancelled' errors when several diagrams were batched. The
+  // stem + options + answer + level + topic carry enough signal for a
+  // rough 1-5 difficulty judgment; image-heavy questions will still be
+  // classified from their text, and admins can manually override later.
+  const sections = batch.map(q => {
+    const lines = [
       `ID: ${q.id}`,
       `Level: ${q.level ?? "unknown"}`,
       `Subject: ${q.subject ?? "unknown"}`,
@@ -251,23 +254,12 @@ function buildDifficultyParts(batch: DifficultyInput[]): Array<{ text: string } 
       `Stem: ${q.stem}`,
     ];
     if (q.options && q.options.length > 0 && q.options.some(o => (o ?? "").trim())) {
-      q.options.forEach((o, i) => metaLines.push(`Option (${i + 1}): ${o}`));
+      q.options.forEach((o, i) => lines.push(`Option (${i + 1}): ${o}`));
     }
-    if (q.answer) metaLines.push(`Answer: ${q.answer}`);
-    parts.push({ text: "\n" + metaLines.join("\n") });
-    if (q.diagramBase64) {
-      const clean = q.diagramBase64.replace(/^data:image\/\w+;base64,/, "");
-      parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
-    }
-    if (q.optionImagesBase64) {
-      for (const img of q.optionImagesBase64) {
-        if (!img) continue;
-        const clean = img.replace(/^data:image\/\w+;base64,/, "");
-        parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
-      }
-    }
-  }
-  return parts;
+    if (q.answer) lines.push(`Answer: ${q.answer}`);
+    return lines.join("\n");
+  });
+  return DIFFICULTY_PROMPT + "\n\n--- Batch ---\n\n" + sections.join("\n\n");
 }
 
 export async function classifyDifficultyBatch(
@@ -276,9 +268,9 @@ export async function classifyDifficultyBatch(
   if (batch.length === 0) return {};
   const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
-    contents: [{ role: "user", parts: buildDifficultyParts(batch) }],
+    contents: [{ role: "user", parts: [{ text: buildDifficultyPrompt(batch) }] }],
     config: { responseMimeType: "application/json", temperature: 0.1 },
-  }, 2, 3000, "difficulty");
+  }, 1, 2000, "difficulty");
   const text = response.text ?? "{}";
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()) as { ratings?: Array<{ id?: string; difficulty?: number | string; reason?: string }> };
   const out: Record<string, { difficulty: number; reason: string }> = {};
