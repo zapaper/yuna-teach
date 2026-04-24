@@ -2832,17 +2832,19 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
 DRAWABLE DIAGRAM — MARKING RULES (applies to ${isDrawableOnly ? "this question" : `part(s) ${drawableSubLabelList}`}):
 The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text. Compare the student's drawing image (labelled "Student's actual drawing(s)" above) against the "Expected answer image" directly.
 
-MANDATORY PROCEDURE — do each step in order and include the result in the notes field:
+MANDATORY PROCEDURE — do each step in order. The notes field MUST begin with a one-line machine-parseable header in this exact format:
+    Expected: <N>. Student: <M>. Extras: <X>. Missing: <Y>.
+Where N = count in the expected answer image, M = count in the student's drawing, X = marks the student added that the expected image doesn't have, Y = marks the expected image has that the student didn't draw. All four numbers are required, even if zero. After the header, describe the positions in plain English.
+
 1. **Expected-image audit.** Count every discrete mark in the expected answer image: shaded cells, arrows, ticks, circles, lines, whatever the task asks for. State the count and describe each mark's position (e.g. "5 shaded cells at rows 2, 4, 5, 7, 9 of the leftmost column").
-2. **Student-image audit.** Do the same for the student's drawing image. State the count and positions.
-3. **Diff.** List every mismatch:
-   - Extra marks in the student's image (present in student, absent in expected).
-   - Missing marks (present in expected, absent in student).
-   - Misplaced marks (position or direction differs).
-4. **Verdict.** Award marks based on the diff:
-   - Count matches AND every position/direction matches → FULL MARKS.
-   - Any extra or missing mark OR wrong position on a 1-mark question → 0 marks.
+2. **Student-image audit.** Do the same for the student's drawing image.
+3. **Diff.** Any mark present in the student's image but NOT in the expected image is an EXTRA. Any mark present in the expected image but NOT in the student's drawing is MISSING.
+4. **Verdict.** Award marks based strictly on the diff:
+   - Extras = 0 AND Missing = 0 AND every position matches → FULL MARKS.
+   - Any extras OR any missing on a 1-mark question → 0 marks.
    - For a 2-mark question: award roughly proportional partial credit (e.g. 4 of 5 correct positions → 1 mark).
+
+Never award full marks with extras or missing > 0. The header line is the source of truth — a downstream check will clamp marks to 0 if the header shows extras or missing.
 
 CRITICAL rules:
 - An EXTRA mark the student drew but the expected image doesn't have IS an error. Drawing MORE than asked is wrong. Do not hand-wave past this.
@@ -3019,7 +3021,37 @@ Return ONLY valid JSON:
               const parsed = JSON.parse(jsonMatch[0]) as QuestionMarkResult;
               // Override studentAnswer with the phase-1 detection (unbiased)
               parsed.studentAnswer = detectedAnswer || parsed.studentAnswer;
-              const awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
+              let awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
+
+              // Drawable-with-image tightening: the prompt requires the
+              // notes field to surface the count diff. If the notes
+              // explicitly say extras > 0 or missing > 0, the student's
+              // drawing does NOT match the expected image — clamp the
+              // awarded mark down. This catches the "waved-through"
+              // case where Gemini described the difference correctly
+              // but still awarded full marks anyway.
+              if (needsPro && parsed.notes && awarded > 0) {
+                const notes = String(parsed.notes);
+                const extrasMatch = notes.match(/\bextras?\s*[:=]\s*(\d+)/i);
+                const missingMatch = notes.match(/\bmissing\s*[:=]\s*(\d+)/i);
+                const extras = extrasMatch ? parseInt(extrasMatch[1], 10) : 0;
+                const missing = missingMatch ? parseInt(missingMatch[1], 10) : 0;
+                if (extras > 0 || missing > 0) {
+                  // For a 1-mark question any mismatch is a zero.
+                  // For multi-mark: reduce proportional to total count.
+                  const expectedMatch = notes.match(/\bexpected\s*(?:count)?\s*[:=]\s*(\d+)/i);
+                  const expectedCount = expectedMatch ? Math.max(1, parseInt(expectedMatch[1], 10)) : 1;
+                  const wrong = extras + missing;
+                  if (marksAvailable <= 1 || wrong >= expectedCount) {
+                    awarded = 0;
+                  } else {
+                    const ratio = Math.max(0, 1 - wrong / expectedCount);
+                    awarded = Math.round(marksAvailable * ratio * 2) / 2; // round to 0.5
+                  }
+                  console.log(`[quiz-marking] Q${q.questionNum} drawable clamp: extras=${extras} missing=${missing} expected=${expectedCount} → ${awarded}/${marksAvailable}`);
+                }
+              }
+
               totalAwarded += awarded;
               updates.push(
                 prisma.examQuestion.update({
