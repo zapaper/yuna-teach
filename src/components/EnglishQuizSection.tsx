@@ -821,21 +821,28 @@ function ReadingPassage({ text }: { text: string }) {
   const isTable = lines.some(l => l.trim().startsWith("|") && l.trim().endsWith("|") && !l.match(/^\s*\|[\s-:|]+\|\s*$/));
 
   if (isTable) {
-    // Parse table rows, skip header separator
+    // Parse table rows, skip header separator. Preserve raw cell text in
+    // a parallel array — needed to detect leading indentation (start of
+    // a new paragraph) which trim() would otherwise erase.
     const rows: string[][] = [];
+    const rawRows: string[][] = [];
     let pastHeader = false;
     for (const line of lines) {
       if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) { pastHeader = true; continue; }
       if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
         pastHeader = true;
-        rows.push(line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim()));
+        const raw = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1);
+        rawRows.push(raw);
+        rows.push(raw.map(c => c.trim()));
       } else if (pastHeader && !line.trim()) {
         // Empty line between table rows = paragraph break
         rows.push(["", "", ""]);
+        rawRows.push(["", "", ""]);
       }
     }
     // First row is header — skip it
     const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+    const dataRawRows = rawRows.length > 1 ? rawRows.slice(1) : rawRows;
     // Use original 3rd column for line numbers if available, else compute
     const hasThirdCol = dataRows.some(cells => cells.length >= 3 && cells[2]?.trim());
     let nonBlankCount = 0;
@@ -854,13 +861,19 @@ function ReadingPassage({ text }: { text: string }) {
         <div>
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
+            const rawText = dataRawRows[ri]?.[1] ?? "";
             const isEmpty = !textContent && !cells[0]?.trim();
-            const isIndented = textContent.startsWith("    ") || textContent.startsWith("\t");
+            // Detect indentation from the RAW cell — trim() would have
+            // erased leading whitespace already. Lines starting with 2+
+            // spaces or a tab are paragraph starts and get a hanging indent
+            // BUT no extra top margin (lines stay flush with the rest of
+            // the passage, only the first-line position changes).
+            const isIndented = /^(\s{2,}|\t+)/.test(rawText);
             const marginNum = marginNums[ri];
             if (isEmpty) return <div key={ri} className="h-6" />;
             return (
               <div key={ri} className="flex gap-2 min-h-[1.3rem]">
-                <p className={`flex-1 text-[11px] lg:text-[13px] text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8 mt-1" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>
+                <p className={`flex-1 text-[11px] lg:text-[13px] text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
                 {marginNum ? <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span> : <span className="w-5 shrink-0" />}
