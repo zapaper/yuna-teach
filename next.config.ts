@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
         source: "/sounds/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
+      // Signup / login hero images and logo — rarely change, large-ish PNGs.
+      {
+        source: "/:file(step1|step2|step3|logo_t).png",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
     ];
   },
 };

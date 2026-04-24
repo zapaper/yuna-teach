@@ -269,16 +269,22 @@ export default function LoginPage() {
 
       </main>
 
-      {/* Right side: hero image — matches step 1 of the signup flow so the
-          login page visually ties into the onboarding journey. Hidden on
-          mobile so the form gets the full viewport. */}
-      <aside className="hidden lg:flex z-10 max-w-[520px] flex-col items-center">
-        <div className="w-full rounded-[2rem] overflow-hidden border-4 border-white/70" style={{ boxShadow: "0 30px 60px rgba(11,28,48,0.15)" }}>
+      {/* Right side: hero image — matches step 1 of the signup flow. The
+          aside has a fixed width AND the inner frame is aspect-square so
+          layout doesn't shift when step1.png finishes loading — the login
+          form is already in its final left position on first paint. */}
+      <aside className="hidden lg:flex z-10 w-[520px] shrink-0 flex-col items-center">
+        <div
+          className="w-full aspect-square rounded-[2rem] overflow-hidden border-4 border-white/70 bg-surface-container-low"
+          style={{ boxShadow: "0 30px 60px rgba(11,28,48,0.15)" }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/step1.png"
             alt="Mother and child learning together"
-            className="w-full h-auto object-cover block"
+            width={512}
+            height={512}
+            className="w-full h-full object-cover block"
           />
         </div>
       </aside>
