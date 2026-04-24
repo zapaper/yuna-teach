@@ -35,11 +35,17 @@ const IMAGE_BATCH = 3;
 
 export async function POST(request: NextRequest) {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  await request.json().catch(() => ({} as Record<string, unknown>));
+  const body = await request.json().catch(() => ({} as Record<string, unknown>));
+  // IDs the admin UI has already tried in this session and got errors on —
+  // skip them so the loop doesn't get stuck retrying the same stubborn
+  // questions over and over. They stay unrated in DB; admin can trigger
+  // them later manually from the clean editor.
+  const excludeIds = Array.isArray(body.excludeIds) ? body.excludeIds.filter((x): x is string => typeof x === "string") : [];
 
   const scope: Prisma.ExamQuestionWhereInput = {
     difficulty: null,
     transcribedStem: { not: null },
+    ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
     examPaper: {
       sourceExamId: null,
       paperType: null,
@@ -72,7 +78,8 @@ export async function POST(request: NextRequest) {
     questions = await prisma.examQuestion.findMany({
       where: { ...scope, diagramImageData: { not: null } },
       select: {
-        id: true, transcribedStem: true, transcribedOptions: true,
+        id: true, questionNum: true, examPaperId: true,
+        transcribedStem: true, transcribedOptions: true,
         answer: true, syllabusTopic: true, diagramImageData: true,
         examPaper: { select: { subject: true, level: true, title: true } },
       },

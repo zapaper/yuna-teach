@@ -24,6 +24,9 @@ function Content() {
   const continuousRef = useRef(false);
   const [results, setResults] = useState<Result[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // Track rows that returned 'no rating' or an error so the next batch
+  // fetches different rows instead of re-trying the stubborn ones.
+  const failedIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -43,16 +46,26 @@ function Content() {
       const res = await fetch("/api/admin/classify-difficulty", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ limit: 5 }),
+        body: JSON.stringify({ limit: 5, excludeIds: [...failedIdsRef.current] }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? "Batch failed");
         return;
       }
+      // Shove failed rows into the exclude set so subsequent batches jump
+      // past them — keeps the loop moving instead of retrying each batch.
+      for (const r of (data.results ?? []) as Result[]) {
+        if (r.error) failedIdsRef.current.add(r.id);
+      }
       setResults(prev => [...data.results, ...prev].slice(0, 300));
       setTotals(t => t ? { ...t, rated: t.rated + (data.updated ?? 0), unrated: Math.max(0, t.unrated - (data.updated ?? 0)) } : t);
-      if (continuousRef.current && data.totalRemaining - data.processed > 0 && data.processed > 0) {
+      // Keep looping as long as there are rows we haven't excluded yet AND
+      // the server still has totalRemaining > 0. If every result in this
+      // batch errored (updated=0) but we haven't drained the queue, the
+      // exclude set grows so the next fetch picks different rows.
+      const queueDrained = data.totalRemaining <= failedIdsRef.current.size;
+      if (continuousRef.current && !queueDrained) {
         setTimeout(runBatch, 800);
       } else {
         // Refresh true counts from DB once the loop stops or ends.
