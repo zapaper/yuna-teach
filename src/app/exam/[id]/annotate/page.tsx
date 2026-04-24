@@ -251,19 +251,33 @@ function AnnotateContent({ id }: { id: string }) {
         setToast(data.error ?? "Save failed");
       } else {
         const data = await res.json().catch(() => ({}));
-        setToast(data.pagesBaked > 0 ? `Baked into PDF (${data.pagesBaked} pages)` : "Saved");
+        const pagesBaked: number = data.pagesBaked ?? 0;
         setDirty(false);
         // Strokes are now inside the PDF, so clear the draft and force-
-        // reload the page images (bust the browser cache with a ?v=...
-        // query so the new PDF is fetched rather than the old one).
+        // reload the page images from the freshly-baked PDF.
         annotationsRef.current = {};
         const pdfRes = await fetch(`/api/exam/${id}/pdf?v=${Date.now()}`);
+        let freshImages: string[] = [];
         if (pdfRes.ok) {
           const blob = await pdfRes.blob();
           const file = new File([blob], "exam.pdf", { type: "application/pdf" });
-          const images = await renderPdfToImages(file);
-          setPageImages(images);
+          freshImages = await renderPdfToImages(file);
+          setPageImages(freshImages);
         }
+        // Auto-recrop each question's imageData from the freshly-baked
+        // pages so quiz/review screens immediately show the annotated
+        // version. Admin doesn't have to manually re-extract.
+        let recropped = 0;
+        if (pagesBaked > 0 && freshImages.length > 0) {
+          try {
+            recropped = await recropQuestionsFromPages(id, freshImages);
+          } catch (err) {
+            console.warn("[annotate] recrop failed:", err);
+          }
+        }
+        const parts = [pagesBaked > 0 ? `Baked into PDF (${pagesBaked} page${pagesBaked === 1 ? "" : "s"})` : "Saved"];
+        if (recropped > 0) parts.push(`re-cropped ${recropped} question${recropped === 1 ? "" : "s"}`);
+        setToast(parts.join(" · "));
       }
     } finally {
       setSaving(false);
@@ -378,4 +392,79 @@ function AnnotateContent({ id }: { id: string }) {
       )}
     </div>
   );
+}
+
+// After baking annotations into the PDF, re-crop every question's stored
+// imageData (full-width yStart/yEnd slice) and diagramImageData
+// (diagramBounds rect) from the freshly-rendered pages. Writes the new
+// crops via /api/exam/:id/recrop-questions in one POST.
+async function recropQuestionsFromPages(paperId: string, pageImageUrls: string[]): Promise<number> {
+  const detailRes = await fetch(`/api/exam/${paperId}`);
+  if (!detailRes.ok) return 0;
+  const paper = await detailRes.json() as {
+    questions: Array<{
+      id: string;
+      pageIndex: number;
+      yStartPct: number | null;
+      yEndPct: number | null;
+      diagramBounds: { top: number; left: number; bottom: number; right: number } | null;
+    }>;
+  };
+  // Load each page into an Image once so we reuse the pixel data for every
+  // question sourced from it.
+  const imgs: HTMLImageElement[] = [];
+  for (const url of pageImageUrls) {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("page load failed"));
+      img.src = url;
+    });
+    imgs.push(img);
+  }
+
+  function crop(img: HTMLImageElement, topPct: number, leftPct: number, bottomPct: number, rightPct: number): string | null {
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+    const sx = Math.max(0, Math.round((leftPct / 100) * w));
+    const sy = Math.max(0, Math.round((topPct / 100) * h));
+    const sw = Math.max(1, Math.round(((rightPct - leftPct) / 100) * w));
+    const sh = Math.max(1, Math.round(((bottomPct - topPct) / 100) * h));
+    if (sw <= 0 || sh <= 0) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = sw;
+    canvas.height = sh;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    return canvas.toDataURL("image/jpeg", 0.9);
+  }
+
+  const payload: Array<{ id: string; imageData?: string; diagramImageData?: string | null }> = [];
+  for (const q of paper.questions) {
+    const img = imgs[q.pageIndex];
+    if (!img) continue;
+    const update: { id: string; imageData?: string; diagramImageData?: string | null } = { id: q.id };
+    if (typeof q.yStartPct === "number" && typeof q.yEndPct === "number") {
+      const cropped = crop(img, q.yStartPct, 0, q.yEndPct, 100);
+      if (cropped) update.imageData = cropped;
+    }
+    if (q.diagramBounds) {
+      const d = q.diagramBounds;
+      const cropped = crop(img, d.top, d.left, d.bottom, d.right);
+      if (cropped) update.diagramImageData = cropped;
+    }
+    if (update.imageData || update.diagramImageData !== undefined) payload.push(update);
+  }
+  if (payload.length === 0) return 0;
+
+  const saveRes = await fetch(`/api/exam/${paperId}/recrop-questions`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ questions: payload }),
+  });
+  if (!saveRes.ok) return 0;
+  const data = await saveRes.json().catch(() => ({}));
+  return Number(data.updated) || 0;
 }
