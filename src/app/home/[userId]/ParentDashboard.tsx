@@ -2161,6 +2161,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 <section className="mt-8">
                   <h3 className="font-headline font-bold text-lg text-[#001e40] mb-4">Student Settings</h3>
                   <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-4 space-y-4">
+                    <QuestionDifficultySetting
+                      student={selectedStudent}
+                      studentId={selectedStudentId}
+                      onChange={() => setSettingsTick(t => t + 1)}
+                    />
                     {[
                       { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
                       { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points and crystals. Crystals are only earned when parent reviews their work.", defaultOn: true },
@@ -2588,6 +2593,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     <div className="bg-white rounded-3xl p-8 shadow-sm mt-8">
                       <h4 className="font-headline text-xl font-extrabold text-[#001e40] mb-5">Student Settings</h4>
                       <div className="space-y-5">
+                        <QuestionDifficultySetting
+                          student={selectedStudent}
+                          studentId={selectedStudentId}
+                          onChange={() => setSettingsTick(t => t + 1)}
+                        />
                         {[
                           { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
                           { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points and crystals. Crystals are only earned when parent reviews their work.", defaultOn: true },
@@ -2826,6 +2836,62 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Questions Difficulty setting — first item in Student Settings ──────────
+// Slider of four stops: Easier / Adaptive / Standard / Hard. Default is
+// Standard (= "Top schools" — current app behaviour with no difficulty
+// filter). Backend reads user.settings.questionDifficulty and applies the
+// filter in /api/focused-test and /api/daily-quiz.
+type DifficultyMode = "easier" | "adaptive" | "standard" | "hard";
+const DIFFICULTY_OPTIONS: { key: DifficultyMode; label: string; desc: string }[] = [
+  { key: "easier",   label: "Easier questions", desc: "Prioritises Lv 1–3 questions (Lv 4 if fewer are available)." },
+  { key: "adaptive", label: "Start easy, raise with progress", desc: "Easier questions at first. Once the student averages >80% across 3 recent tests in a subject, that subject opens up to the full range." },
+  { key: "standard", label: "Top schools standard", desc: "Draws from every difficulty level — matches top-school exam papers." },
+  { key: "hard",     label: "Only hard questions", desc: "Prioritises Lv 3–5 (Lv 1–2 if insufficient)." },
+];
+
+function QuestionDifficultySetting({ student, studentId, onChange }: { student: { settings?: unknown } | null; studentId: string | null; onChange: () => void }) {
+  const current = (((student?.settings as Record<string, unknown> | null) ?? {}).questionDifficulty as DifficultyMode | undefined) ?? "standard";
+  const currentIdx = Math.max(0, DIFFICULTY_OPTIONS.findIndex(o => o.key === current));
+  const currentOpt = DIFFICULTY_OPTIONS[currentIdx];
+
+  async function select(mode: DifficultyMode) {
+    if (!studentId || mode === current) return;
+    await fetch("/api/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: studentId, settings: { questionDifficulty: mode } }),
+    });
+    if (student) {
+      student.settings = { ...((student.settings as Record<string, unknown> | null) ?? {}), questionDifficulty: mode };
+    }
+    onChange();
+  }
+
+  return (
+    <div className="pb-3 border-b border-[#e5eeff]">
+      <p className="text-sm font-semibold text-[#001e40]">Questions difficulty</p>
+      <p className="text-xs text-[#43474f] mb-3">{currentOpt.desc}</p>
+      <div className="grid grid-cols-4 gap-1.5">
+        {DIFFICULTY_OPTIONS.map((opt, i) => {
+          const active = current === opt.key;
+          return (
+            <button
+              key={opt.key}
+              onClick={() => select(opt.key)}
+              className={`text-[10px] font-semibold leading-tight py-2 px-1 rounded-lg border-2 transition-all text-center ${active ? "border-[#003366] bg-[#eff4ff] text-[#003366]" : "border-[#c3c6d1] text-[#43474f] hover:border-[#a7c8ff]"}`}
+              title={opt.desc}
+            >
+              {opt.label}
+              {i === 0 && <span className="block text-[9px] text-[#006c49] mt-0.5">easiest</span>}
+              {i === DIFFICULTY_OPTIONS.length - 1 && <span className="block text-[9px] text-[#ba1a1a] mt-0.5">hardest</span>}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

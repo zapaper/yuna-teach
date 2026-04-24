@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 
 /** MCQ = question has transcribed options (text or images).
  *  An array of 4 entries (even empty) means MCQ — the extraction created option slots. */
@@ -189,11 +190,22 @@ export async function POST(request: NextRequest) {
     const bare = level.replace(/^Primary\s+|^P/i, "").trim();
     return [`P${bare}`, `Primary ${bare}`, bare];
   };
-  const questionWhere = (lf: string | null, examTypeFilter: string[] | null) => ({
+  // Resolve the student's difficulty mode once per request and thread it
+  // through questionWhere. Null primary = no difficulty filter (standard or
+  // adaptive-unlocked).
+  const rawDifficultyMode = await getStudentDifficultyMode(targetStudentId);
+  const difficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, targetStudentId, subjectFilter);
+
+  const questionWhere = (lf: string | null, examTypeFilter: string[] | null, difficultyLevels: number[] | null) => ({
     // Don't filter by transcribedStem — multi-part questions (e.g. Q38a stem-only
     // + Q38bc sub-parts) must be kept together for mergeOeqGroup. Stem-less
     // questions are filtered at the group level.
     answer: { not: null as null },
+    ...(difficultyLevels && difficultyLevels.length > 0
+      // Accept unrated (null) difficulty as well so an un-classified bank
+      // doesn't zero out the pool.
+      ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
+      : {}),
     examPaper: {
       sourceExamId: null,
       paperType: null,
@@ -229,7 +241,8 @@ export async function POST(request: NextRequest) {
   };
 
   // Run both queries in parallel for speed
-  const [previousQuizQuestions, topicMatched] = await Promise.all([
+  // topicMatched is let because difficulty fallback may reassign it
+  const [previousQuizQuestions, initialTopicMatched] = await Promise.all([
     // Get source question IDs already used in this student's previous quizzes
     prisma.examQuestion.findMany({
       where: {
@@ -241,10 +254,44 @@ export async function POST(request: NextRequest) {
     // Find all clean-extracted questions from master papers (matching level + semester)
     // Light query first (no blobs) — full data loaded later for selected questions only
     prisma.examQuestion.findMany({
-      where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes),
+      where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, difficultyFilter.primary),
       select: questionSelectLight,
     }),
   ]);
+  let topicMatched = initialTopicMatched;
+  // Difficulty fallback — if the primary bucket (e.g. Lv 1-3 for "easier")
+  // returned too few rows, broaden to primary + fallback, then drop the
+  // filter entirely.
+  const TARGET_POOL = 30;
+  const difficultyWarnings: string[] = [];
+  if (difficultyFilter.primary && topicMatched.length < TARGET_POOL) {
+    const broadened = difficultyFilter.fallback
+      ? [...difficultyFilter.primary, ...difficultyFilter.fallback]
+      : null;
+    if (broadened) {
+      const withFallback = await prisma.examQuestion.findMany({
+        where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, broadened),
+        select: questionSelectLight,
+      });
+      if (withFallback.length > topicMatched.length) {
+        topicMatched = withFallback;
+        difficultyWarnings.push(`Fell back from Lv ${difficultyFilter.primary.join(",")} to Lv ${broadened.join(",")} for this quiz.`);
+      }
+    }
+    if (topicMatched.length < TARGET_POOL) {
+      const noFilter = await prisma.examQuestion.findMany({
+        where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, null),
+        select: questionSelectLight,
+      });
+      if (noFilter.length > topicMatched.length) {
+        topicMatched = noFilter;
+        difficultyWarnings.push(`Not enough questions at the student's ${modeWarningLabel(difficultyFilter.effectiveMode)} — pulled from the full difficulty range instead.`);
+      }
+    }
+  }
+  if (difficultyWarnings.length > 0) {
+    console.log(`[daily-quiz] student=${targetStudentId} subject=${subject}:`, difficultyWarnings.join(" · "));
+  }
   const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
 
   // Pull in every DB sibling for each (examPaperId, baseNum) in the topic-matched set.
@@ -925,7 +972,9 @@ export async function POST(request: NextRequest) {
   if (student?.level && student.level > 1 && (mcqFreshPool.length < mcqTarget || oeqFreshPool.length < oeqTarget)) {
     const prevLevelFilter = `Primary ${student.level - 1}`;
     const prevLevelQuestions = await prisma.examQuestion.findMany({
-      where: questionWhere(prevLevelFilter, null),
+      // Prior-level top-up ignores the difficulty filter — we're already
+      // stretching for questions at this point, don't double-constrain.
+      where: questionWhere(prevLevelFilter, null, null),
       select: questionSelectLight,
     });
     const { mcqPool: allPrevMcq, oeqPool: allPrevOeq } = buildPools(prevLevelQuestions);

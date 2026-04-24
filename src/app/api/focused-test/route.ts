@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 
 /** MCQ = question has transcribed options (4-element array) or image options. */
 function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
@@ -33,12 +34,23 @@ export async function POST(request: NextRequest) {
     ? [`P${student.level}`, `Primary ${student.level}`, String(student.level)]
     : undefined;
 
-  const questionWhere = (useLevel: boolean) => ({
+  // Resolve the student's chosen difficulty mode. Applied ABOVE the
+  // level/examType filters below — students who picked "easier" only see
+  // Lv 1-3 questions first, falling back to Lv 4 if too few, and so on.
+  const rawDifficultyMode = await getStudentDifficultyMode(studentId);
+  const difficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, studentId, subject);
+
+  const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null) => ({
     syllabusTopic: topic,
     answer: { not: null } as { not: null },
     // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
     // may have the stem only on one part. Filtering by stem at query level drops the
     // other parts and breaks grouping. We filter at the group level below.
+    ...(difficultyLevels && difficultyLevels.length > 0
+      // null difficulty = unrated — still accept so an unrated bank doesn't
+      // suddenly return zero questions when the student picks a mode.
+      ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
+      : {}),
     examPaper: {
       sourceExamId: null,
       paperType: null,
@@ -70,7 +82,7 @@ export async function POST(request: NextRequest) {
   } as const;
 
   let topicMatched = await prisma.examQuestion.findMany({
-    where: questionWhere(true),
+    where: questionWhere(true, difficultyFilter.primary),
     select: questionSelect,
   });
   // If the student-level filter zeroed out but the topic exists in the bank at
@@ -79,10 +91,41 @@ export async function POST(request: NextRequest) {
   let levelFallback = false;
   if (topicMatched.length === 0 && levelVariants) {
     topicMatched = await prisma.examQuestion.findMany({
-      where: questionWhere(false),
+      where: questionWhere(false, difficultyFilter.primary),
       select: questionSelect,
     });
     levelFallback = topicMatched.length > 0;
+  }
+  // Difficulty fallback: if the primary bucket (e.g. Lv 1-3 for "easier")
+  // didn't produce enough questions, broaden to primary + fallback (e.g.
+  // Lv 1-4). If that still falls short, drop the difficulty filter entirely.
+  let difficultyFellBack = false;
+  let difficultyDropped = false;
+  const TARGET_POOL = 10;
+  if (difficultyFilter.primary && topicMatched.length < TARGET_POOL) {
+    const broadened = difficultyFilter.fallback
+      ? [...difficultyFilter.primary, ...difficultyFilter.fallback]
+      : null;
+    if (broadened) {
+      const withFallback = await prisma.examQuestion.findMany({
+        where: questionWhere(true, broadened),
+        select: questionSelect,
+      });
+      if (withFallback.length > topicMatched.length) {
+        topicMatched = withFallback;
+        difficultyFellBack = true;
+      }
+    }
+    if (topicMatched.length < TARGET_POOL) {
+      const noFilter = await prisma.examQuestion.findMany({
+        where: questionWhere(true, null),
+        select: questionSelect,
+      });
+      if (noFilter.length > topicMatched.length) {
+        topicMatched = noFilter;
+        difficultyDropped = true;
+      }
+    }
   }
 
   if (topicMatched.length === 0) {
@@ -393,6 +436,13 @@ export async function POST(request: NextRequest) {
   // assigner knows the practice is shorter than usual.
   const warnings: string[] = [];
   const levelName = student?.level ? `P${student.level}` : "this level";
+  if (difficultyDropped) {
+    warnings.push(`Not enough questions at the student's chosen difficulty (${modeWarningLabel(difficultyFilter.effectiveMode)}) — pulled from the full difficulty range instead.`);
+  } else if (difficultyFellBack) {
+    const primary = difficultyFilter.primary?.join(", ") ?? "";
+    const fallback = difficultyFilter.fallback?.join(", ") ?? "";
+    warnings.push(`Too few Lv ${primary} questions for "${topic}" at ${levelName ?? "this level"} — broadened to include Lv ${fallback}.`);
+  }
   if (levelFallback) {
     const levelsUsed = [...new Set(topicMatched.map(q => q.examPaper.level).filter(Boolean))].join(", ");
     warnings.push(`No ${levelName} papers for "${topic}" yet — pulled from ${levelsUsed || "other levels"} instead.`);
