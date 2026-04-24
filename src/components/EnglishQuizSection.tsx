@@ -409,13 +409,43 @@ function PassageWithInputs({
 
 function TableLine({ line }: { line: string }) {
   const cells = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
-  // Detect if this is a letter row (A-Q single uppercase letters)
+  // Detect if this is a letter row (A-Q single uppercase letters). For a
+  // grammar-cloze letter bank, we let students click letters they've used
+  // to strike them through — the standard pencil-eliminate-as-you-go
+  // technique. The pen-tool scratch overlay above still works for
+  // freehand annotation of the whole row.
   const isLetterRow = cells.every(c => /^[A-Q]$/.test(c));
+  const [struck, setStruck] = useState<Set<number>>(new Set());
+  function toggle(i: number) {
+    setStruck(prev => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i); else next.add(i);
+      return next;
+    });
+  }
   return (
     <div className="flex gap-2 my-1">
-      {cells.map((cell, ci) => (
-        <span key={ci} className={`flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366] underline" : "font-medium"}`}>{cell}</span>
-      ))}
+      {cells.map((cell, ci) => {
+        const isStruck = isLetterRow && struck.has(ci);
+        const base = `flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366] underline" : "font-medium"}`;
+        const styleProps = isStruck ? { textDecoration: "line-through", opacity: 0.4 } : undefined;
+        if (isLetterRow) {
+          return (
+            <button
+              key={ci}
+              type="button"
+              onClick={(e) => { e.stopPropagation(); toggle(ci); }}
+              onPointerDown={(e) => { e.stopPropagation(); }}
+              className={`${base} cursor-pointer select-none transition-opacity relative z-20`}
+              style={styleProps}
+              title={isStruck ? "Click to un-strike" : "Click to strike out"}
+            >
+              {cell}
+            </button>
+          );
+        }
+        return <span key={ci} className={base}>{cell}</span>;
+      })}
     </div>
   );
 }
