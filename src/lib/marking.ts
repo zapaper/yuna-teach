@@ -2975,11 +2975,16 @@ Return ONLY valid JSON:
         // the next attempt is much more likely to return parseable output.
         // Drawable questions with an answer image need stronger visual
         // reasoning than flash can reliably provide (flash was marking
-        // "7 shaded blocks vs 5 expected" as correct). Use 2.5-pro for
-        // the first attempt on those; everything else stays on flash.
+        // "7 shaded blocks vs 5 expected" as correct). Math-drawable-
+        // with-image questions run on 3.1-pro-preview — already in use
+        // by the elaborate/solver routes, has the best visual reasoning
+        // of the preview pro tier. Fall back to 2.5-pro then flash if
+        // 3.1 is rate-limited. Non-math drawable stays on 2.5-pro.
         const needsPro = isDrawableAny && !!q.answerImageData;
         const QUIZ_MODELS = needsPro
-          ? ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash"]
+          ? (isMath
+            ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
+            : ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash"])
           : ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
         const JSON_ONLY_REMINDER = "IMPORTANT: Your previous response could not be parsed. Return ONLY the JSON object requested. No prose, no explanation, no markdown fences — just the raw JSON starting with { and ending with }.";
         let lastErr: unknown = null;
