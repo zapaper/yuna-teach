@@ -2434,6 +2434,38 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           }
         }
 
+        // For typed-OEQ sections (synthesis, comprehension OEQ in English),
+        // an empty studentAnswer means the student left the question blank.
+        // Award 0 immediately and skip the AI call — otherwise the marker
+        // gets a near-empty prompt with the expected answer and sometimes
+        // hallucinates a matching student response.
+        if (aiTypedOeqQIds.has(q.id)) {
+          const raw = (q.studentAnswer ?? "").trim();
+          let isBlankTyped = !raw;
+          if (raw && !raw.startsWith("data:")) {
+            // JSON-shaped answer (table cells / textarea + ticks). Considered
+            // blank when no _text and no non-empty cell or tick value.
+            if (raw.startsWith("{")) {
+              try {
+                const parsed = JSON.parse(raw) as Record<string, string>;
+                const txt = (parsed._text ?? "").trim();
+                const hasCell = Object.entries(parsed).some(([k, v]) => k !== "_text" && typeof v === "string" && v.trim().length > 0 && v.trim() !== "false");
+                if (!txt && !hasCell) isBlankTyped = true;
+              } catch { /* keep as non-blank fallback */ }
+            }
+          }
+          if (isBlankTyped) {
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: 0, studentAnswer: null, markingNotes: "No answer provided." },
+              })
+            );
+            console.log(`[quiz-marking] Typed Q${q.questionNum}: blank submission → 0/${marksAvailable}`);
+            continue;
+          }
+        }
+
         // Check if this is a typed answer (synthesis, comp OEQ in English quiz).
         // Only trust studentAnswer as typed text when the question is actually in a
         // synthesis/comprehension-OEQ section. For all other OEQs, studentAnswer may
