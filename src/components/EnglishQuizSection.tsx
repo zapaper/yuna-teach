@@ -459,6 +459,37 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
   }
 
   const lines = text.split("\n");
+  // Per-block column weights, derived from the separator row's dash count.
+  //   | --- | --------- | --- |   ⇒  weights [3, 9, 3]  ⇒  middle col is 3x as wide.
+  // Default `flex-1` on every cell when no separator (or all-equal dashes)
+  // matches the existing behaviour. Block = contiguous run of table lines.
+  const lineWeights: (number[] | null)[] = new Array(lines.length).fill(null);
+  {
+    let blockStart = -1;
+    let blockWeights: number[] | null = null;
+    const flush = (endExclusive: number) => {
+      if (blockStart === -1 || !blockWeights) { blockStart = -1; blockWeights = null; return; }
+      for (let i = blockStart; i < endExclusive; i++) lineWeights[i] = blockWeights;
+      blockStart = -1; blockWeights = null;
+    };
+    for (let i = 0; i < lines.length; i++) {
+      const t = lines[i].trim();
+      const isSep = !!t.match(/^\|[\s-:|]+\|$/);
+      const isRow = t.startsWith("|") && t.endsWith("|");
+      if (isSep) {
+        const cells = t.replace(/\|\s*$/, "|").split("|").slice(1, -1);
+        const w = cells.map(c => Math.max(1, (c.match(/-/g) || []).length));
+        if (blockStart === -1) blockStart = i;
+        // Only set weights if at least one column differs from the rest.
+        if (w.some(x => x !== w[0])) blockWeights = w;
+      } else if (isRow) {
+        if (blockStart === -1) blockStart = i;
+      } else {
+        flush(i);
+      }
+    }
+    flush(lines.length);
+  }
   let tableRowIdx = 0;
   let tickIdx = 0;
   return (
@@ -472,12 +503,21 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
         if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
           const cells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
           const ri = tableRowIdx++;
+          const weights = lineWeights[li];
           return (
             <div key={li} className="flex gap-1 my-1 items-stretch">
               {cells.map((cell, ci) => {
                 const isBlank = !cell || cell.match(/^_{2,}$/);
                 const isFirstCol = ci === 0;
                 const cellKey = `r${ri}c${ci}`;
+                // Column weight from the separator row, falls back to the
+                // legacy "first col 80px, rest equal" behaviour when no
+                // separator widths were specified.
+                const weight = weights ? weights[ci] ?? 1 : null;
+                const widthCls = weight !== null
+                  ? "" // flex weight applied via inline style below
+                  : isFirstCol ? "w-20 shrink-0" : "flex-1";
+                const widthStyle = weight !== null ? { flex: `${weight} 1 0` } : undefined;
                 if (isBlank) {
                   // textarea so long answers wrap onto multiple lines
                   // instead of being clipped by a single-line input. The
@@ -504,15 +544,14 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
                           el.style.height = `${el.scrollHeight}px`;
                         }
                       }}
-                      // text-justify: full-justify the wrapped lines so
-                      // the cell looks neat instead of ragged-right.
-                      className={`text-justify text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none resize-none leading-snug overflow-hidden ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
+                      style={widthStyle}
+                      className={`text-left text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none resize-none leading-snug overflow-hidden ${widthCls}`}
                       placeholder="..."
                     />
                   );
                 }
                 return (
-                  <span key={ci} className={`text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1.5 border border-[#d3e4fe] ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}>
+                  <span key={ci} style={widthStyle} className={`text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1.5 border border-[#d3e4fe] ${widthCls}`}>
                     {cell}
                   </span>
                 );
