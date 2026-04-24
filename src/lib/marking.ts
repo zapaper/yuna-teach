@@ -349,11 +349,18 @@ function normalizeMcq(val: string): string {
 }
 
 /** Parse a flat answer string like "a) X | b) Y" or "(b) foo (c) bar" into
- *  a map of part-label -> answer text. Returns empty map if no part markers. */
+ *  a map of part-label -> answer text. Returns empty map if no part markers.
+ *
+ *  Labels accepted: single letter (a, b, c, …) AND roman-nested labels
+ *  common in Singapore primary papers — (ai), (aii), (aiii), (bi), (bii),
+ *  (ci), (civ), (dv). The label captures a letter followed by an optional
+ *  short roman tail (i/ii/iii/iv/v/vi/vii/viii). The older single-letter
+ *  regex missed "(ai)"-style labels entirely, so the marker reported
+ *  "no answer key provided" for those parts. */
 export function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
   const result = new Map<string, string>();
   if (!answer || !answer.trim()) return result;
-  const re = /(^|[|\n])\s*\(?([a-z])\)\s*/gi;
+  const re = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
   const matches = [...answer.matchAll(re)];
   if (matches.length === 0) return result;
   for (let i = 0; i < matches.length; i++) {

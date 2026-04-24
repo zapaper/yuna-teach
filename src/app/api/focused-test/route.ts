@@ -221,7 +221,9 @@ export async function POST(request: NextRequest) {
   function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
     const result = new Map<string, string>();
     if (!answer || !answer.trim()) return result;
-    const re = /(^|[|\n])\s*\(?([a-z])\)\s*/gi;
+    // Accept single-letter labels (a, b, c) AND roman-nested labels like
+    // (ai), (aii), (bii), (civ). Matches the widened pattern in lib/marking.ts.
+    const re = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
     const matches = [...answer.matchAll(re)];
     if (matches.length === 0) return result;
     for (let i = 0; i < matches.length; i++) {
