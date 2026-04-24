@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
+import sharp from "sharp";
 import { isSessionAdmin } from "@/lib/session";
 import { classifyDifficultyBatch, type DifficultyInput } from "@/lib/gemini";
+
+// Shrink a diagram for Gemini vision. Long side 384px, JPEG q65 — small
+// enough that a batch of 3 diagrams doesn't time out while still being
+// readable to the model.
+async function shrinkForClassification(base64: string | null | undefined): Promise<string | null> {
+  if (!base64) return null;
+  try {
+    const clean = base64.replace(/^data:image\/\w+;base64,/, "");
+    const buf = Buffer.from(clean, "base64");
+    const out = await sharp(buf)
+      .resize({ width: 384, height: 384, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 65 })
+      .toBuffer();
+    return out.toString("base64");
+  } catch {
+    return null;
+  }
+}
 
 // POST — classify the next batch of un-rated master-paper questions.
 // Scope: clean-extracted master questions only (transcribedStem NOT NULL,
@@ -11,12 +30,14 @@ import { classifyDifficultyBatch, type DifficultyInput } from "@/lib/gemini";
 //
 // Batch of 5 per call so a single Gemini round-trip stays under our timeout
 // budget and the admin UI can poll incrementally without blocking.
+const TEXT_BATCH = 5;
+const IMAGE_BATCH = 3;
+
 export async function POST(request: NextRequest) {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  const body = await request.json().catch(() => ({} as Record<string, unknown>));
-  const limit = Math.max(1, Math.min(10, Number(body.limit) || 5));
+  await request.json().catch(() => ({} as Record<string, unknown>));
 
-  const where: Prisma.ExamQuestionWhereInput = {
+  const scope: Prisma.ExamQuestionWhereInput = {
     difficulty: null,
     transcribedStem: { not: null },
     examPaper: {
@@ -29,32 +50,48 @@ export async function POST(request: NextRequest) {
     },
   };
 
-  const total = await prisma.examQuestion.count({ where });
-  const questions = await prisma.examQuestion.findMany({
-    where,
+  const total = await prisma.examQuestion.count({ where: scope });
+
+  // Prefer text-only rows first (batch of 5) — they're fast and drain the
+  // bulk of the queue. Only when none remain do we fetch image-bearing
+  // rows in batches of 3, which send downscaled diagrams to Gemini's
+  // vision path (larger batches reliably time out on real exam papers).
+  let questions = await prisma.examQuestion.findMany({
+    where: { ...scope, OR: [{ diagramImageData: null }, { diagramImageData: "" }] },
     select: {
-      id: true,
-      transcribedStem: true,
-      transcribedOptions: true,
-      transcribedOptionImages: true,
-      answer: true,
-      syllabusTopic: true,
-      diagramImageData: true,
+      id: true, transcribedStem: true, transcribedOptions: true,
+      answer: true, syllabusTopic: true, diagramImageData: true,
       examPaper: { select: { subject: true, level: true, title: true } },
     },
     orderBy: { id: "asc" },
-    take: limit,
+    take: TEXT_BATCH,
   });
+  let withImages = false;
+  if (questions.length === 0) {
+    questions = await prisma.examQuestion.findMany({
+      where: { ...scope, diagramImageData: { not: null } },
+      select: {
+        id: true, transcribedStem: true, transcribedOptions: true,
+        answer: true, syllabusTopic: true, diagramImageData: true,
+        examPaper: { select: { subject: true, level: true, title: true } },
+      },
+      orderBy: { id: "asc" },
+      take: IMAGE_BATCH,
+    });
+    withImages = questions.length > 0;
+  }
 
   if (questions.length === 0) {
     return NextResponse.json({ totalRemaining: 0, processed: 0, updated: 0, results: [] });
   }
 
-  // Text-only classification. Images were causing repeated Gemini 504s
-  // (DEADLINE_EXCEEDED + Stream cancelled). The stem/answer/level/topic
-  // carry enough signal for a rough rating; admins can override manually
-  // on visually-heavy questions if the rating looks off.
-  const batch: DifficultyInput[] = questions.map((q) => {
+  // For image batches, shrink each diagram in parallel before building the
+  // Gemini call. Text batches skip this step entirely.
+  const shrunk = withImages
+    ? await Promise.all(questions.map(q => shrinkForClassification(q.diagramImageData)))
+    : questions.map(() => null);
+
+  const batch: DifficultyInput[] = questions.map((q, i) => {
     const opts = Array.isArray(q.transcribedOptions)
       ? (q.transcribedOptions as Prisma.JsonArray).filter((v): v is string => typeof v === "string")
       : null;
@@ -66,7 +103,7 @@ export async function POST(request: NextRequest) {
       subject: q.examPaper.subject,
       level: q.examPaper.level,
       syllabusTopic: q.syllabusTopic,
-      diagramBase64: null,
+      diagramBase64: shrunk[i],
       optionImagesBase64: null,
     };
   });

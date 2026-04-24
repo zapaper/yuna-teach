@@ -238,14 +238,11 @@ Rules:
 - reason is 3-8 words, no sentences — just a phrase like "two-step fractions" or "tricky distractor".
 - If you genuinely cannot tell from the text, still pick a best guess rather than omitting.`;
 
-function buildDifficultyPrompt(batch: DifficultyInput[]): string {
-  // Text-only prompt. Images are intentionally NOT inlined — the vision
-  // path on gemini-2.5-flash was flaking repeatedly with DEADLINE_EXCEEDED
-  // and 'Stream cancelled' errors when several diagrams were batched. The
-  // stem + options + answer + level + topic carry enough signal for a
-  // rough 1-5 difficulty judgment; image-heavy questions will still be
-  // classified from their text, and admins can manually override later.
-  const sections = batch.map(q => {
+type DifficultyPart = { text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } };
+
+function buildDifficultyParts(batch: DifficultyInput[]): DifficultyPart[] {
+  const parts: DifficultyPart[] = [{ text: DIFFICULTY_PROMPT + "\n\n--- Batch ---" }];
+  for (const q of batch) {
     const lines = [
       `ID: ${q.id}`,
       `Level: ${q.level ?? "unknown"}`,
@@ -257,9 +254,13 @@ function buildDifficultyPrompt(batch: DifficultyInput[]): string {
       q.options.forEach((o, i) => lines.push(`Option (${i + 1}): ${o}`));
     }
     if (q.answer) lines.push(`Answer: ${q.answer}`);
-    return lines.join("\n");
-  });
-  return DIFFICULTY_PROMPT + "\n\n--- Batch ---\n\n" + sections.join("\n\n");
+    parts.push({ text: "\n\n" + lines.join("\n") });
+    if (q.diagramBase64) {
+      const clean = q.diagramBase64.replace(/^data:image\/\w+;base64,/, "");
+      parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+    }
+  }
+  return parts;
 }
 
 export async function classifyDifficultyBatch(
@@ -268,7 +269,7 @@ export async function classifyDifficultyBatch(
   if (batch.length === 0) return {};
   const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",
-    contents: [{ role: "user", parts: [{ text: buildDifficultyPrompt(batch) }] }],
+    contents: [{ role: "user", parts: buildDifficultyParts(batch) }],
     config: { responseMimeType: "application/json", temperature: 0.1 },
   }, 1, 2000, "difficulty");
   const text = response.text ?? "{}";
