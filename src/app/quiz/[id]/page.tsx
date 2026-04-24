@@ -1536,7 +1536,29 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     if (e.button !== 0) return;
     snapshotForUndo();
     isDrawing.current = true;
-    lastPos.current = getPos(e);
+    const pos = getPos(e);
+    lastPos.current = pos;
+    // Draw a dot at the contact point. Without this, a quick tap-to-erase
+    // (no drag) produces no onMove events and therefore nothing erases —
+    // the bug the user hit on the MCQ diagram scratch layer.
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    const currentTool = toolRef.current;
+    const isEraser = currentTool === "eraser" || currentTool === "eraser-large";
+    if (isEraser) {
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = "rgba(0,0,0,1)";
+      const r = currentTool === "eraser-large" ? 30 : 10;
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.fillStyle = "#0066cc";
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
     // Don't use setPointerCapture — it can get stuck after tab switch/zoom,
     // blocking all button taps until page reload.
   }

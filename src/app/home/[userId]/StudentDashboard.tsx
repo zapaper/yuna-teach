@@ -461,13 +461,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   }
 
   async function handleEnterCode() {
-    if (enterCode.length < 6) return;
+    const normalised = enterCode.trim().toUpperCase();
+    if (normalised.length < 6) return;
     setEnterLoading(true); setEnterError("");
     try {
       const res = await fetch("/api/link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: enterCode.toUpperCase(), userId }),
+        body: JSON.stringify({ code: normalised, userId }),
       });
       const data = await res.json();
       if (!res.ok) { setEnterError(data.error || "Invalid code"); return; }
@@ -1524,7 +1525,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
       {/* ── Link Parent Modal ────────────────────────────────────────────── */}
       {showLinkModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-end justify-center z-50 p-4 pb-6" onClick={() => setShowLinkModal(false)}>
+        <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-24 lg:pb-4" onClick={() => setShowLinkModal(false)}>
           <div className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-headline font-extrabold text-lg text-[#003366]">Link with Parent</h3>

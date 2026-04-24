@@ -379,13 +379,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   }
 
   async function handleEnterCode() {
-    if (enterCode.length < 6) return;
+    const normalised = enterCode.trim().toUpperCase();
+    if (normalised.length < 6) return;
     setEnterLoading(true); setEnterError("");
     try {
       const res = await fetch("/api/link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: enterCode.toUpperCase(), userId }),
+        body: JSON.stringify({ code: normalised, userId }),
       });
       const data = await res.json();
       if (!res.ok) { setEnterError(data.error || "Invalid code"); return; }

@@ -8,9 +8,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "code and userId required" }, { status: 400 });
   }
 
+  // Normalise: trim whitespace (paste from chat apps often brings a leading
+  // space or trailing newline), strip non-alphanumerics (some clients inject
+  // zero-width or invisible chars), uppercase.
+  const normalisedCode = String(code).trim().replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+
   // Find the invite code
   const invite = await prisma.inviteCode.findUnique({
-    where: { code: code.toUpperCase() },
+    where: { code: normalisedCode },
     include: { user: true },
   });
 
@@ -18,13 +23,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid invite code" }, { status: 404 });
   }
   if (invite.expiresAt < new Date()) {
-    return NextResponse.json({ error: "Invite code has expired" }, { status: 410 });
+    return NextResponse.json({ error: "This code has expired. Ask for a fresh one." }, { status: 410 });
   }
 
   // Get the redeemer
   const redeemer = await prisma.user.findUnique({ where: { id: userId } });
   if (!redeemer) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    return NextResponse.json({ error: "Your session is out of date. Please log in again." }, { status: 404 });
+  }
+
+  // Don't let a user redeem their own code.
+  if (invite.userId === userId) {
+    return NextResponse.json({ error: "You can't use your own code — share it with the other person." }, { status: 400 });
   }
 
   // Determine parent and student
@@ -38,8 +48,11 @@ export async function POST(request: NextRequest) {
     parentId = userId;
     studentId = invite.userId;
   } else {
+    // Both parents or both students — spell it out so the user knows why.
+    const roleA = invite.user.role === "PARENT" ? "parent" : "student";
+    const roleB = redeemer.role === "PARENT" ? "parent" : "student";
     return NextResponse.json(
-      { error: "Link requires one parent and one student" },
+      { error: `Can't link two ${roleA}s. One account must be parent, the other must be student.${roleA === roleB ? "" : ""}` },
       { status: 400 }
     );
   }
