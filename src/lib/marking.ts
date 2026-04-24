@@ -2832,16 +2832,27 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
 DRAWABLE DIAGRAM — MARKING RULES (applies to ${isDrawableOnly ? "this question" : `part(s) ${drawableSubLabelList}`}):
 The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text.
 - The student's ACTUAL drawing image is included above ("Student's actual drawing(s)"). Compare it PIXEL-BY-PIXEL against the "Expected answer image" — DO NOT rely on the short text description of their drawing under "Student's answer (detected ...)". The detection step summarises a drawing into a sentence and routinely misses lines, shaded regions, or small marks; the image is ground truth for what they actually drew.
-- Match shaded regions, arrow directions, line placements, and marked objects by looking at the student image and the answer image side by side.
-- If only a text expected answer is given (e.g. "shade the opaque material"), check whether the student's drawing in the image satisfies those conditions.
-- Award partial credit when the drawing is partly right (e.g. correct object shaded but arrow direction wrong).
-- NEVER award 0 with the reason "blank" for a drawing part — blue ink has already been confirmed. If you genuinely cannot see the relevant marks, say so in notes and award based on what is visible in the image.
-- NEVER penalise the student because the text description says fewer marks than the image shows. Always defer to the image.
+- Do a strict side-by-side comparison:
+   1. **Count** every discrete mark in the expected image (squares shaded, arrows, ticks, lines). Count every discrete mark in the student's image. If the counts differ, the student is WRONG on count.
+   2. Check each mark's **position** (which cell / which object / which row) against the expected image.
+   3. Check each mark's **direction/orientation** (arrow pointing up vs down, line horizontal vs vertical).
+- An EXTRA mark that isn't in the expected image is an ERROR. Drawing MORE than asked is wrong — penalise it.
+- A MISSING mark that is in the expected image is an ERROR. Drawing LESS than asked is wrong — penalise it.
+- Award FULL marks only if the student's drawing matches the expected image in count AND position AND direction. Any mismatch → award LESS than full:
+   * For a 1-mark question with a clear count/position mismatch → 0.
+   * For a 2-mark question where count is right but some positions are wrong → roughly proportional partial (e.g. 3 of 5 squares correct → 1 mark out of 2).
+- If only a text expected answer is given (e.g. "shade the opaque material"), check whether the student's drawing satisfies those conditions — still apply the count-and-position check.
+- NEVER award 0 with the reason "blank" for a drawing part — blue ink has already been confirmed. If you genuinely cannot see the relevant marks, say so in notes and award based on what is visible.
+- NEVER award full marks by default on a drawing part. Every drawing is wrong in at least one of {count, position, direction} unless you have visually verified all three match.
+- In the notes, say explicitly what was right vs wrong, e.g. "Drew 7 shaded squares but the answer shades 5. Extra squares at row 2 column 4 and row 3 column 1."
 ` : "";
 
         // isMath was already computed above when deciding whether to skip
-        // Phase-1 text detection on drawable math questions.
-        const mathAnswerFirstRule = isMath ? `
+        // Phase-1 text detection on drawable math questions. Answer-first
+        // rule suppressed for drawable math — those questions have no
+        // 'Ans:' line, and letting it in makes the marker award full marks
+        // whenever any ink is present.
+        const mathAnswerFirstRule = isMath && !isDrawableAny ? `
 
 MATH MARKING — ANSWER-FIRST RULE (IMPORTANT):
 For math questions, working is secondary to the final answer:
