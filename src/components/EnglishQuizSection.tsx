@@ -504,7 +504,9 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
                           el.style.height = `${el.scrollHeight}px`;
                         }
                       }}
-                      className={`text-left text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none resize-none leading-snug overflow-hidden ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
+                      // text-justify: full-justify the wrapped lines so
+                      // the cell looks neat instead of ragged-right.
+                      className={`text-justify text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none resize-none leading-snug overflow-hidden ${isFirstCol ? "w-20 shrink-0" : "flex-1"}`}
                       placeholder="..."
                     />
                   );
