@@ -57,9 +57,24 @@ function ExamEditContent({ id }: { id: string }) {
 
   const fetchPaper = useCallback(async () => {
     try {
-      const res = await fetch(`/api/exam/${id}`);
-      if (!res.ok) throw new Error("Not found");
-      const data: ExamPaperDetail = await res.json();
+      const [paperRes, difficultyRes] = await Promise.all([
+        fetch(`/api/exam/${id}`),
+        // Admin-only endpoint — non-admins get 403, which we treat as "no
+        // empirical data" and proceed. The visible UI badge also hides for
+        // non-admins via the requesterIsAdmin flag on the paper.
+        fetch(`/api/admin/question-difficulty?paperId=${id}`).catch(() => null),
+      ]);
+      if (!paperRes.ok) throw new Error("Not found");
+      const data: ExamPaperDetail = await paperRes.json();
+      // Merge empirical difficulty into the question rows when available.
+      if (difficultyRes && difficultyRes.ok) {
+        const dd = await difficultyRes.json() as { questions: Record<string, { empiricalDifficulty: number | null; attempts: number }> };
+        data.questions = data.questions.map(q => {
+          const m = dd.questions[q.questionNum];
+          if (!m) return q;
+          return { ...q, empiricalDifficulty: m.empiricalDifficulty, empiricalAttempts: m.attempts };
+        });
+      }
       setPaper(data);
       setExtracting(data.extractionStatus === "processing");
       return data;
@@ -1154,6 +1169,11 @@ function QuestionEditCard({
               </button>
             ) : null}
             <div className="flex items-center gap-1 ml-auto text-xs text-slate-500">
+              <DifficultyBadge
+                aiDifficulty={question.difficulty ?? null}
+                empiricalDifficulty={question.empiricalDifficulty ?? null}
+                empiricalAttempts={question.empiricalAttempts ?? 0}
+              />
               <input
                 type="number"
                 min={0}
@@ -1603,5 +1623,40 @@ function PageSelectionModal({
         </p>
       </div>
     </div>
+  );
+}
+
+// Small admin-only chip next to the marks input showing the question's
+// difficulty. Empirical (from student attempts) overrides the AI rating
+// once there are ≥5 attempts; otherwise the AI seed label is shown.
+function DifficultyBadge({
+  aiDifficulty,
+  empiricalDifficulty,
+  empiricalAttempts,
+}: {
+  aiDifficulty: number | null;
+  empiricalDifficulty: number | null;
+  empiricalAttempts: number;
+}) {
+  const source = empiricalDifficulty !== null && empiricalAttempts >= 5 ? "empirical" : aiDifficulty !== null ? "ai" : null;
+  if (!source) return null;
+  const d = source === "empirical" ? empiricalDifficulty! : aiDifficulty!;
+  const palette = d <= 2
+    ? { bg: "bg-emerald-100", text: "text-emerald-700", ring: "ring-emerald-200" }
+    : d === 3
+    ? { bg: "bg-amber-100", text: "text-amber-700", ring: "ring-amber-200" }
+    : { bg: "bg-rose-100", text: "text-rose-700", ring: "ring-rose-200" };
+  const label = d === 1 ? "Very Easy" : d === 2 ? "Easy" : d === 3 ? "Medium" : d === 4 ? "Hard" : "Very Hard";
+  const title = source === "empirical"
+    ? `Empirical (from ${empiricalAttempts} attempts)`
+    : "AI-rated (no student attempts yet)";
+  return (
+    <span
+      title={title}
+      className={`px-1.5 py-0.5 rounded text-[10px] font-bold tabular-nums ${palette.bg} ${palette.text} ring-1 ${palette.ring} mr-1`}
+    >
+      Lv {d} · {label}
+      {source === "empirical" && <span className="ml-1 opacity-60">◉</span>}
+    </span>
   );
 }

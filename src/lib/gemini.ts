@@ -197,6 +197,102 @@ export async function transcribeMathMcqQuestion(
 }
 
 // ---------------------------------------------------------------------------
+// Difficulty classification (1-5) — used as the seed label for each clean-
+// extracted master question. Empirical performance later overrides once the
+// question has enough student attempts.
+// ---------------------------------------------------------------------------
+
+export type DifficultyInput = {
+  id: string;
+  stem: string;
+  options: string[] | null;           // null for OEQ / synthesis
+  answer: string | null;
+  subject: string | null;
+  level: string | null;
+  syllabusTopic: string | null;
+  diagramBase64: string | null;       // adjacent diagram (stem-level)
+  optionImagesBase64: (string | null)[] | null; // image-option MCQ options
+};
+
+const DIFFICULTY_PROMPT = `You are classifying the difficulty of Singapore primary-school exam questions on a 1-5 scale relative to the stated level of the student.
+
+Scale:
+1 = Very easy — rote recall, one step, trivial for a student at this level.
+2 = Easy — straightforward application of a single concept, minimal reading.
+3 = Medium — one- or two-step application; typical exam question.
+4 = Hard — multi-step, requires careful reading or combining concepts.
+5 = Very hard — abstract reasoning, unusual phrasing, or multi-step with a trap.
+
+For each input question, analyse:
+- Number of reasoning steps required.
+- Whether a diagram/image is involved (if present, factor its complexity in).
+- Trickiness of distractors (for MCQ).
+- Vocabulary load and reading complexity.
+
+You will receive a batch of questions. Each question is marked with its ID. Return ONLY valid JSON:
+{ "ratings": [ { "id": "<string>", "difficulty": <1-5 integer>, "reason": "<very short phrase>" }, ... ] }
+
+Rules:
+- One entry per input question. Preserve IDs exactly.
+- difficulty MUST be an integer 1-5.
+- reason is 3-8 words, no sentences — just a phrase like "two-step fractions" or "tricky distractor".
+- If you genuinely cannot tell from the text, still pick a best guess rather than omitting.`;
+
+function buildDifficultyParts(batch: DifficultyInput[]): Array<{ text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } }> {
+  const parts: Array<{ text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } }> = [
+    { text: DIFFICULTY_PROMPT + "\n\n--- Batch ---" },
+  ];
+  for (const q of batch) {
+    const metaLines = [
+      `ID: ${q.id}`,
+      `Level: ${q.level ?? "unknown"}`,
+      `Subject: ${q.subject ?? "unknown"}`,
+      ...(q.syllabusTopic ? [`Topic: ${q.syllabusTopic}`] : []),
+      `Stem: ${q.stem}`,
+    ];
+    if (q.options && q.options.length > 0 && q.options.some(o => (o ?? "").trim())) {
+      q.options.forEach((o, i) => metaLines.push(`Option (${i + 1}): ${o}`));
+    }
+    if (q.answer) metaLines.push(`Answer: ${q.answer}`);
+    parts.push({ text: "\n" + metaLines.join("\n") });
+    if (q.diagramBase64) {
+      const clean = q.diagramBase64.replace(/^data:image\/\w+;base64,/, "");
+      parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+    }
+    if (q.optionImagesBase64) {
+      for (const img of q.optionImagesBase64) {
+        if (!img) continue;
+        const clean = img.replace(/^data:image\/\w+;base64,/, "");
+        parts.push({ inlineData: { mimeType: "image/jpeg", data: clean } });
+      }
+    }
+  }
+  return parts;
+}
+
+export async function classifyDifficultyBatch(
+  batch: DifficultyInput[],
+): Promise<Record<string, { difficulty: number; reason: string }>> {
+  if (batch.length === 0) return {};
+  const response = await generateContentWithRetry({
+    model: "gemini-2.5-flash",
+    contents: [{ role: "user", parts: buildDifficultyParts(batch) }],
+    config: { responseMimeType: "application/json", temperature: 0.1 },
+  }, 2, 3000, "difficulty");
+  const text = response.text ?? "{}";
+  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()) as { ratings?: Array<{ id?: string; difficulty?: number | string; reason?: string }> };
+  const out: Record<string, { difficulty: number; reason: string }> = {};
+  for (const r of parsed.ratings ?? []) {
+    const id = String(r.id ?? "");
+    if (!id) continue;
+    const d = Math.max(1, Math.min(5, parseInt(String(r.difficulty ?? ""), 10) || 0));
+    if (!d) continue;
+    out[id] = { difficulty: d, reason: String(r.reason ?? "").slice(0, 60) };
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // Synthetic Math MCQ generation — admin synthetic question generator
 // ---------------------------------------------------------------------------
 

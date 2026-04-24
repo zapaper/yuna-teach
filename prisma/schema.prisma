@@ -146,6 +146,11 @@ model ExamQuestion {
   // For rows on a Synthetic Bank paper: the examType of the ORIGINAL source
   // paper (WA1/WA2/EOY/Prelim). Null on non-synthetic rows.
   syntheticSourceExamType String?
+  // 1-5 difficulty rating (1=very easy, 5=very hard). AI-classified for
+  // clean-extracted master questions; null for un-classified. When a
+  // question has enough student attempts (>= 5 clones with marks), the
+  // UI overrides this with an empirical average.
+  difficulty              Int?
   syntheticQuestions      SyntheticQuestion[]
 
   examPaper ExamPaper @relation(fields: [examPaperId], references: [id], onDelete: Cascade)

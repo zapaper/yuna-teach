@@ -98,6 +98,13 @@ function AdminContent() {
       href: `/admin/emails?userId=${userId}`,
       color: "bg-sky-50 text-sky-600",
     },
+    {
+      icon: "insights",
+      label: "Classify Difficulty",
+      description: "AI rates clean-extracted questions 1–5. Runs in the background in batches of 5.",
+      href: `/admin/classify-difficulty?userId=${userId}`,
+      color: "bg-emerald-50 text-emerald-600",
+    },
   ];
 
   return (

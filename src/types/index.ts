@@ -158,4 +158,10 @@ export interface ExamQuestionItem {
   studentAnswer: string | null;
   transcribedStem: string | null;
   transcribedOptions: string[] | null;
+  // AI-classified difficulty 1-5 on clean-extracted master questions.
+  difficulty?: number | null;
+  // Overrides `difficulty` in the admin UI once a question has ≥5 student
+  // attempts (derived by the /api/exam/:id endpoint).
+  empiricalDifficulty?: number | null;
+  empiricalAttempts?: number;
 }
