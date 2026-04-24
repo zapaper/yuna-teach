@@ -2686,11 +2686,18 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
 
         // ── PHASE 1: Detect what the student wrote (WITHOUT showing the answer key) ──
         // This eliminates confirmation bias — the AI reads the image blind.
-        // Strip the "Student's handwritten answer for part (X):" labels — the AI can infer
-        // parts from the question stem and image order without being primed by the labels.
+        // Strip the "Student's handwritten answer for part (X):" IMAGE labels
+        // so the AI isn't primed by a pre-attached part letter for each
+        // image. But KEEP the "[BLANK — no answer written]" markers for
+        // blank subparts — otherwise the AI only sees the answered parts'
+        // images and hallucinates content for the blank ones (e.g. when
+        // a, b, c were blank and only d was answered, Phase 1 was inventing
+        // fake answers for a, b, c because it had no signal they were empty).
         const detectParts = parts.filter(p => {
           if (!("text" in p) || typeof p.text !== "string") return true;
-          return !/^Student's handwritten answer for part \(/.test(p.text);
+          if (!/^Student's handwritten answer for part \(/.test(p.text)) return true;
+          // keep the blank-part markers so the detector knows those are empty
+          return p.text.includes("[BLANK");
         });
         const isDrawableOnly = hasDrawable && realSubs.length === 0;
         const hasDrawableSubpart = drawableSubLabels.size > 0;
