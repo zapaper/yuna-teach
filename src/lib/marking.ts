@@ -2778,20 +2778,32 @@ If the question has sub-parts (a), (b), (c), report each separately. If a part i
 Report EXACTLY what the student wrote, including any unit symbols. Return ONLY the detected text, nothing else.` });
 
         let detectedAnswer = "";
-        try {
-          const detectResponse = await withTimeout(
-            ai.models.generateContent({
-              model: "gemini-2.5-flash",
-              contents: [{ role: "user", parts: detectParts }],
-              config: { temperature: 0.1 },
-            }),
-            GEMINI_TIMEOUT_MS,
-            `quiz-detect-q${q.questionNum}`
-          );
-          detectedAnswer = detectResponse.text?.trim() ?? "";
-          console.log(`[quiz-marking] Q${q.questionNum} detected: "${detectedAnswer.substring(0, 100)}"`);
-        } catch (err) {
-          console.error(`[quiz-marking] Q${q.questionNum} detection failed:`, err);
+        const isMath = (paper.subject ?? "").toLowerCase().includes("math");
+        const skipTextDetection = isMath && isDrawableAny && !!q.answerImageData;
+        if (skipTextDetection) {
+          // Math drawing questions (e.g. draw a line of symmetry, shade n
+          // squares) with an answer image are graded by direct pixel
+          // comparison in Phase 2. A textual pre-description just adds noise
+          // and was sometimes confidently wrong ("shaded 4 squares" when the
+          // student actually shaded 3). Phase 2 already has both images.
+          detectedAnswer = "(drawing — see images)";
+          console.log(`[quiz-marking] Q${q.questionNum}: math drawable — skipping Phase-1 text detection.`);
+        } else {
+          try {
+            const detectResponse = await withTimeout(
+              ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts: detectParts }],
+                config: { temperature: 0.1 },
+              }),
+              GEMINI_TIMEOUT_MS,
+              `quiz-detect-q${q.questionNum}`
+            );
+            detectedAnswer = detectResponse.text?.trim() ?? "";
+            console.log(`[quiz-marking] Q${q.questionNum} detected: "${detectedAnswer.substring(0, 100)}"`);
+          } catch (err) {
+            console.error(`[quiz-marking] Q${q.questionNum} detection failed:`, err);
+          }
         }
 
         // ── PHASE 2: Compare detected answer against the answer key ──
@@ -2827,7 +2839,8 @@ The student's answer for the drawing part(s) is a DRAWING on top of a printed di
 - NEVER penalise the student because the text description says fewer marks than the image shows. Always defer to the image.
 ` : "";
 
-        const isMath = (paper.subject ?? "").toLowerCase().includes("math");
+        // isMath was already computed above when deciding whether to skip
+        // Phase-1 text detection on drawable math questions.
         const mathAnswerFirstRule = isMath ? `
 
 MATH MARKING — ANSWER-FIRST RULE (IMPORTANT):
