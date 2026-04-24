@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
   // skip them so the loop doesn't get stuck retrying the same stubborn
   // questions over and over. They stay unrated in DB; admin can trigger
   // them later manually from the clean editor.
-  const excludeIds = Array.isArray(body.excludeIds) ? body.excludeIds.filter((x): x is string => typeof x === "string") : [];
+  const rawExclude = body.excludeIds;
+  const excludeIds: string[] = Array.isArray(rawExclude)
+    ? rawExclude.filter((x: unknown): x is string => typeof x === "string")
+    : [];
 
   const scope: Prisma.ExamQuestionWhereInput = {
     difficulty: null,
