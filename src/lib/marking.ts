@@ -376,13 +376,45 @@ export function parsePartAnswers(answer: string | null | undefined): Map<string,
 
 /**
  * Build the answer description string for the marking prompt.
- * When an answer image is present, makes it explicit which sub-segment
- * the image covers vs which segments have text answers.
+ * When an answer image is present, explicitly spells out per sub-part
+ * whether to mark against TEXT or against the IMAGE. A sub-part is
+ * "image-only" when its text value is empty or is a placeholder like
+ * "see image" / "see diagram" / "refer to figure". All other sub-parts
+ * have a text answer and MUST be marked against that text only — the
+ * answer image is not relevant to those parts.
  */
 function buildAnswerDesc(answer: string | null, hasImage: boolean): string {
   if (!hasImage) return answer ? `"${answer}"` : "not provided";
-  // With image: the answer text typically contains all sub-parts.
-  // Tell AI: image covers the diagram/drawing part; text covers remaining parts.
+
+  const partMap = parsePartAnswers(answer);
+  const seeImageRe = /^\s*(?:see|refer to)\s+(?:answer\s+)?(?:image|diagram|figure|drawing|picture)\b.*$/i;
+
+  // If the answer is genuinely multi-part, build an explicit per-part
+  // routing table so the AI can't mistakenly apply the image to a text
+  // sub-part (which is what was happening: "(a) see answer image (b) 42"
+  // was being marked with the AI comparing the student's (b) against
+  // the answer image).
+  if (partMap.size > 0) {
+    const rows: string[] = [];
+    for (const [label, text] of [...partMap.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+      const isImagePart = !text.trim() || seeImageRe.test(text);
+      if (isImagePart) {
+        rows.push(`    - (${label}) → compare student's drawing against the ANSWER IMAGE provided below.`);
+      } else {
+        rows.push(`    - (${label}) → compare student's blue ink against the TEXT answer: "${text}". DO NOT use the answer image for this part.`);
+      }
+    }
+    return `Multi-part answer — routing per sub-part:
+${rows.join("\n")}
+
+RULES:
+    - The ADDITIONAL IMAGE is ONLY ground truth for sub-parts listed above as "ANSWER IMAGE". For every other sub-part, the TEXT answer is the only ground truth — the answer image is NOT relevant to those parts and must NOT be used to contradict the text key.
+    - NEVER use the image to mark a sub-part that already has a text answer in the key.
+    - NEVER use the text key to mark a sub-part that is routed to the image.`;
+  }
+
+  // Single-part fallback (no (a)/(b) labels detected): keep the older
+  // phrasing so drawing-only questions still work.
   return `Multi-part answer:
     - The ADDITIONAL IMAGE provided shows the expected diagram/drawing answer for the sub-segment that requires a drawing.
     - The TEXT answer key is: "${answer ?? "see image only"}"
