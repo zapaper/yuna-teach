@@ -250,12 +250,24 @@ function AnnotateContent({ id }: { id: string }) {
         const data = await res.json().catch(() => ({}));
         setToast(data.error ?? "Save failed");
       } else {
-        setToast("Saved");
+        const data = await res.json().catch(() => ({}));
+        setToast(data.pagesBaked > 0 ? `Baked into PDF (${data.pagesBaked} pages)` : "Saved");
         setDirty(false);
+        // Strokes are now inside the PDF, so clear the draft and force-
+        // reload the page images (bust the browser cache with a ?v=...
+        // query so the new PDF is fetched rather than the old one).
+        annotationsRef.current = {};
+        const pdfRes = await fetch(`/api/exam/${id}/pdf?v=${Date.now()}`);
+        if (pdfRes.ok) {
+          const blob = await pdfRes.blob();
+          const file = new File([blob], "exam.pdf", { type: "application/pdf" });
+          const images = await renderPdfToImages(file);
+          setPageImages(images);
+        }
       }
     } finally {
       setSaving(false);
-      setTimeout(() => setToast(null), 1800);
+      setTimeout(() => setToast(null), 2200);
     }
   }, [id]);
 
