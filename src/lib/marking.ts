@@ -2830,21 +2830,27 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
         const drawableMarkRule = isDrawableAny ? `
 
 DRAWABLE DIAGRAM — MARKING RULES (applies to ${isDrawableOnly ? "this question" : `part(s) ${drawableSubLabelList}`}):
-The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text.
-- The student's ACTUAL drawing image is included above ("Student's actual drawing(s)"). Compare it PIXEL-BY-PIXEL against the "Expected answer image" — DO NOT rely on the short text description of their drawing under "Student's answer (detected ...)". The detection step summarises a drawing into a sentence and routinely misses lines, shaded regions, or small marks; the image is ground truth for what they actually drew.
-- Do a strict side-by-side comparison:
-   1. **Count** every discrete mark in the expected image (squares shaded, arrows, ticks, lines). Count every discrete mark in the student's image. If the counts differ, the student is WRONG on count.
-   2. Check each mark's **position** (which cell / which object / which row) against the expected image.
-   3. Check each mark's **direction/orientation** (arrow pointing up vs down, line horizontal vs vertical).
-- An EXTRA mark that isn't in the expected image is an ERROR. Drawing MORE than asked is wrong — penalise it.
-- A MISSING mark that is in the expected image is an ERROR. Drawing LESS than asked is wrong — penalise it.
-- Award FULL marks only if the student's drawing matches the expected image in count AND position AND direction. Any mismatch → award LESS than full:
-   * For a 1-mark question with a clear count/position mismatch → 0.
-   * For a 2-mark question where count is right but some positions are wrong → roughly proportional partial (e.g. 3 of 5 squares correct → 1 mark out of 2).
-- If only a text expected answer is given (e.g. "shade the opaque material"), check whether the student's drawing satisfies those conditions — still apply the count-and-position check.
-- NEVER award 0 with the reason "blank" for a drawing part — blue ink has already been confirmed. If you genuinely cannot see the relevant marks, say so in notes and award based on what is visible.
-- NEVER award full marks by default on a drawing part. Every drawing is wrong in at least one of {count, position, direction} unless you have visually verified all three match.
-- In the notes, say explicitly what was right vs wrong, e.g. "Drew 7 shaded squares but the answer shades 5. Extra squares at row 2 column 4 and row 3 column 1."
+The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text. Compare the student's drawing image (labelled "Student's actual drawing(s)" above) against the "Expected answer image" directly.
+
+MANDATORY PROCEDURE — do each step in order and include the result in the notes field:
+1. **Expected-image audit.** Count every discrete mark in the expected answer image: shaded cells, arrows, ticks, circles, lines, whatever the task asks for. State the count and describe each mark's position (e.g. "5 shaded cells at rows 2, 4, 5, 7, 9 of the leftmost column").
+2. **Student-image audit.** Do the same for the student's drawing image. State the count and positions.
+3. **Diff.** List every mismatch:
+   - Extra marks in the student's image (present in student, absent in expected).
+   - Missing marks (present in expected, absent in student).
+   - Misplaced marks (position or direction differs).
+4. **Verdict.** Award marks based on the diff:
+   - Count matches AND every position/direction matches → FULL MARKS.
+   - Any extra or missing mark OR wrong position on a 1-mark question → 0 marks.
+   - For a 2-mark question: award roughly proportional partial credit (e.g. 4 of 5 correct positions → 1 mark).
+
+CRITICAL rules:
+- An EXTRA mark the student drew but the expected image doesn't have IS an error. Drawing MORE than asked is wrong. Do not hand-wave past this.
+- A MISSING mark the expected image has but the student didn't draw IS an error.
+- The pixel ink check has already confirmed blue ink is present — NEVER award 0 with the reason "blank" for a drawing part.
+- If a text expected answer accompanies the image (e.g. "shade the opaque material"), still apply the count-and-position check; the image is authoritative.
+- NEVER award full marks by default. If you cannot see the relevant marks clearly, say so in notes and award based on what is visible.
+- The notes field MUST contain the four steps above (audit, audit, diff, verdict). Example: "Expected: 5 shaded squares at (1,2),(1,4),(2,1),(2,3),(3,2). Student: 7 shaded squares — same 5 positions PLUS (1,5) and (3,4). Two extras → wrong count → 0 of 1 marks."
 ` : "";
 
         // isMath was already computed above when deciding whether to skip
@@ -2967,7 +2973,14 @@ Return ONLY valid JSON:
         // loop instead of silently dead-ending at "Failed to parse AI
         // response" — the retry prepends a stricter JSON-only reminder so
         // the next attempt is much more likely to return parseable output.
-        const QUIZ_MODELS = ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+        // Drawable questions with an answer image need stronger visual
+        // reasoning than flash can reliably provide (flash was marking
+        // "7 shaded blocks vs 5 expected" as correct). Use 2.5-pro for
+        // the first attempt on those; everything else stays on flash.
+        const needsPro = isDrawableAny && !!q.answerImageData;
+        const QUIZ_MODELS = needsPro
+          ? ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash"]
+          : ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
         const JSON_ONLY_REMINDER = "IMPORTANT: Your previous response could not be parsed. Return ONLY the JSON object requested. No prose, no explanation, no markdown fences — just the raw JSON starting with { and ending with }.";
         let lastErr: unknown = null;
         let lastParseFailText: string | null = null;
@@ -2988,7 +3001,8 @@ Return ONLY valid JSON:
               ai.models.generateContent({
                 model,
                 contents: [{ role: "user", parts: attemptParts }],
-                config: { temperature: 0.1 },
+                // Drawable comparison benefits from deterministic output.
+                config: { temperature: needsPro ? 0 : 0.1 },
               }),
               GEMINI_TIMEOUT_MS,
               `quiz-oeq-q${q.questionNum}`
