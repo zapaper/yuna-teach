@@ -95,6 +95,10 @@ model ExamPaper {
   paperType        String?   // null = regular, "focused" = focused test
   examType         String?   // "Preliminary" | "WA1" | "WA2" | "WA3" | "End of Year"
   visible          Boolean   @default(false)
+  // Per-page admin annotations. Object keyed by zero-based page index,
+  // each value a PNG data URL produced by the /exam/[id]/annotate page.
+  // Null means no annotations yet.
+  annotationsByPage Json?
 
   user       User           @relation("UploadedPapers", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo User?          @relation("AssignedPapers", fields: [assignedToId], references: [id], onDelete: SetNull)

@@ -779,6 +779,13 @@ function ExamEditContent({ id }: { id: string }) {
             {taggingSyllabus ? "Tagging..." : "Tag Syllabus"}
           </button>
         ) : null}
+        <button
+          onClick={() => router.push(`/exam/${id}/annotate?userId=${userId}`)}
+          className="py-3 px-5 rounded-2xl border-2 border-dashed border-red-300 text-red-500 font-medium hover:border-red-400 hover:text-red-700 hover:bg-red-50 transition-colors flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-sm">edit_note</span>
+          Annotate Paper
+        </button>
       </div>
 
       {/* Save & Exit */}
