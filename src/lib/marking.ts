@@ -2830,29 +2830,37 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
         const drawableMarkRule = isDrawableAny ? `
 
 DRAWABLE DIAGRAM — MARKING RULES (applies to ${isDrawableOnly ? "this question" : `part(s) ${drawableSubLabelList}`}):
-The student's answer for the drawing part(s) is a DRAWING on top of a printed diagram (shading, arrows, circles, etc.), not typed or written text. Compare the student's drawing image (labelled "Student's actual drawing(s)" above) against the "Expected answer image" directly.
+The student's drawing image is labelled "Student's actual drawing(s)" above. The expected answer image is labelled "Expected answer image (ground truth)". They are TWO DIFFERENT images — do not conflate them.
 
-MANDATORY PROCEDURE — do each step in order. The notes field MUST begin with a one-line machine-parseable header in this exact format:
+CRITICAL — ANTI-HALLUCINATION (read first):
+You must analyse the student's image by LOOKING AT IT DIRECTLY. Do NOT assume the student drew what the expected image shows. Blue ink confirmed by a pixel check may be stray marks, wrong-position strokes, or an unrelated scribble — not the expected mark. Common failure mode: the expected image shows "an X between the 2nd and 3rd notch" and the marker describes the student's image as also having "an X between the 2nd and 3rd notch" even though the student drew no such X there. This is wrong. If the student drew something different — wrong position, wrong shape, or only random strokes — report what they ACTUALLY drew; Student count for the requested mark may be 0 even when ink is present elsewhere.
+
+MANDATORY PROCEDURE — the notes field MUST begin with this header (exact format):
     Expected: <N>. Student: <M>. Extras: <X>. Missing: <Y>.
-Where N = count in the expected answer image, M = count in the student's drawing, X = marks the student added that the expected image doesn't have, Y = marks the expected image has that the student didn't draw. All four numbers are required, even if zero. After the header, describe the positions in plain English.
+Where N = count of required marks in the expected image, M = count of those same required marks the student drew correctly, X = unwanted marks the student added anywhere, Y = required marks the student didn't draw at all. All four numbers required, even if zero.
 
-1. **Expected-image audit.** Count every discrete mark in the expected answer image: shaded cells, arrows, ticks, circles, lines, whatever the task asks for. State the count and describe each mark's position (e.g. "5 shaded cells at rows 2, 4, 5, 7, 9 of the leftmost column").
-2. **Student-image audit.** Do the same for the student's drawing image.
-3. **Diff.** Any mark present in the student's image but NOT in the expected image is an EXTRA. Any mark present in the expected image but NOT in the student's drawing is MISSING.
-4. **Verdict.** Award marks based strictly on the diff:
-   - Extras = 0 AND Missing = 0 AND every position matches → FULL MARKS.
-   - Any extras OR any missing on a 1-mark question → 0 marks.
-   - For a 2-mark question: award roughly proportional partial credit (e.g. 4 of 5 correct positions → 1 mark).
+After the header, on a new line, include:
+    Evidence: <describe ONLY what you see in the student's image — pretend the expected image doesn't exist for this sentence>.
+If the student drew nothing relevant, say so verbatim, e.g. "Evidence: student drew two short scribbles in the middle of the canvas; no X between notches." In that case Student=0 and Missing=1.
 
-Never award full marks with extras or missing > 0. The header line is the source of truth — a downstream check will clamp marks to 0 if the header shows extras or missing.
+Steps to follow:
+1. **Expected-image audit.** Count discrete marks in the expected image and note positions.
+2. **Student-image audit.** LOOK AT THE STUDENT'S IMAGE ONLY. Describe each visible ink mark by position/shape. Do not reference the expected image while writing this step.
+3. **Diff.** Any mark in the student's image not in the expected image (wrong position/shape/irrelevant) is an EXTRA. Any mark in the expected image not drawn by the student is MISSING.
+4. **Verdict.**
+   - Extras = 0 AND Missing = 0 AND positions match → FULL MARKS.
+   - Any extras OR missing on a 1-mark question → 0 marks.
+   - 2-mark question with partial match → proportional partial credit.
+
+The header line is the source of truth. A downstream check clamps marks to 0 if extras or missing > 0.
 
 CRITICAL rules:
-- An EXTRA mark the student drew but the expected image doesn't have IS an error. Drawing MORE than asked is wrong. Do not hand-wave past this.
-- A MISSING mark the expected image has but the student didn't draw IS an error.
-- The pixel ink check has already confirmed blue ink is present — NEVER award 0 with the reason "blank" for a drawing part.
-- If a text expected answer accompanies the image (e.g. "shade the opaque material"), still apply the count-and-position check; the image is authoritative.
-- NEVER award full marks by default. If you cannot see the relevant marks clearly, say so in notes and award based on what is visible.
-- The notes field MUST contain the four steps above (audit, audit, diff, verdict). Example: "Expected: 5 shaded squares at (1,2),(1,4),(2,1),(2,3),(3,2). Student: 7 shaded squares — same 5 positions PLUS (1,5) and (3,4). Two extras → wrong count → 0 of 1 marks."
+- Drawing MORE than the expected image shows (extras) = error. Don't hand-wave past extras.
+- Drawing LESS than the expected image shows (missing) = error.
+- Ink present does NOT mean the student drew the right thing. Verify visually.
+- If the text expected answer says e.g. "shade the opaque material", still do the image audit; the image is authoritative.
+- NEVER award full marks unless every mark's position/shape in the student image matches the expected image directly.
+- Example: "Expected: 1. Student: 0. Extras: 1. Missing: 1. Evidence: student drew a curved stroke near the base of the number line; no X between notch 2 and notch 3. → 0 of 1 mark."
 ` : "";
 
         // isMath was already computed above when deciding whether to skip

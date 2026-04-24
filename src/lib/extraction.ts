@@ -434,6 +434,8 @@ async function extractExamPaperCore(
       console.log(`[extraction] English text-based: ${questions.length} questions saved.`);
       // Fire-and-forget AI audit of the freshly extracted Q&A
       import("@/lib/audit-qa").then(m => m.auditPaper(paperId).catch(e => console.error(`[extraction] auditPaper failed:`, e)));
+      // Fire-and-forget difficulty classification (see main-path hook below).
+      import("@/lib/difficulty-classify").then(m => m.classifyPaperDifficulty(paperId).catch(e => console.error(`[extraction] classifyPaperDifficulty failed:`, e)));
       return;
     }
 
@@ -809,6 +811,10 @@ async function extractExamPaperCore(
     // Fire-and-forget AI audit (English/Science) — flags suspicious Q&A so the
     // edit view can highlight them in red. Skipped for other subjects.
     import("@/lib/audit-qa").then(m => m.auditPaper(paperId).catch(e => console.error(`[extraction] auditPaper failed:`, e)));
+    // Fire-and-forget difficulty classification — tags each question 1-5 in
+    // batches of 5 so newly uploaded papers come pre-labelled. Non-blocking,
+    // runs after extractionStatus is already "ready".
+    import("@/lib/difficulty-classify").then(m => m.classifyPaperDifficulty(paperId).catch(e => console.error(`[extraction] classifyPaperDifficulty failed:`, e)));
   } catch (err) {
     console.error(`[extraction] Failed for ${paperId}:`, err);
     await prisma.examPaper
