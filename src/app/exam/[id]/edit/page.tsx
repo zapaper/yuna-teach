@@ -1638,9 +1638,12 @@ function DifficultyBadge({
   empiricalDifficulty: number | null;
   empiricalAttempts: number;
 }) {
-  const source = empiricalDifficulty !== null && empiricalAttempts >= 5 ? "empirical" : aiDifficulty !== null ? "ai" : null;
+  // 0 is a sentinel for 'classification was attempted but no rating came
+  // back' — treat it as unrated in the UI.
+  const validAi = aiDifficulty !== null && aiDifficulty >= 1 && aiDifficulty <= 5 ? aiDifficulty : null;
+  const source = empiricalDifficulty !== null && empiricalAttempts >= 5 ? "empirical" : validAi !== null ? "ai" : null;
   if (!source) return null;
-  const d = source === "empirical" ? empiricalDifficulty! : aiDifficulty!;
+  const d = source === "empirical" ? empiricalDifficulty! : validAi!;
   const palette = d <= 2
     ? { bg: "bg-emerald-100", text: "text-emerald-700", ring: "ring-emerald-200" }
     : d === 3

@@ -120,11 +120,18 @@ export async function POST(request: NextRequest) {
   });
 
   const results: Array<{ id: string; questionNum: string; paperId: string; paperTitle: string; difficulty: number | null; reason: string | null; error?: string }> = [];
+  // "0" is our sentinel for 'tried but no rating came back'. The scope
+  // filter below uses difficulty:null, which excludes 0 automatically —
+  // so failed rows drop out of the queue across batches AND across page
+  // reloads. An admin can reset a row's sentinel by deleting it in SQL
+  // or via a retry endpoint (not built yet). The DifficultyBadge treats
+  // 0 as "no rating" and renders nothing.
   try {
     const ratings = await classifyDifficultyBatch(batch);
     for (const q of questions) {
       const r = ratings[q.id];
       if (!r) {
+        await prisma.examQuestion.update({ where: { id: q.id }, data: { difficulty: 0 } });
         results.push({ id: q.id, questionNum: q.questionNum, paperId: q.examPaperId, paperTitle: q.examPaper.title, difficulty: null, reason: null, error: "no rating" });
         continue;
       }
@@ -135,12 +142,13 @@ export async function POST(request: NextRequest) {
       results.push({ id: q.id, questionNum: q.questionNum, paperId: q.examPaperId, paperTitle: q.examPaper.title, difficulty: r.difficulty, reason: r.reason });
     }
   } catch (err) {
-    // Gemini timeout / 504 / malformed response — surface as per-row errors
-    // so the admin UI can show what failed but keep the HTTP status 200.
-    // The frontend's continuous loop stops when processed (rows we wrote)
-    // is 0, so we won't spin forever on a persistent failure.
+    // Gemini timeout / 504 / malformed response — mark every row in this
+    // batch with the 0 sentinel so they get excluded next time. The row
+    // counter will reflect them as 'rated' (rough truth: we gave up),
+    // but admins can re-run a manual retry later.
     const msg = err instanceof Error ? err.message : String(err);
     for (const q of questions) {
+      try { await prisma.examQuestion.update({ where: { id: q.id }, data: { difficulty: 0 } }); } catch { /* ignore */ }
       results.push({ id: q.id, questionNum: q.questionNum, paperId: q.examPaperId, paperTitle: q.examPaper.title, difficulty: null, reason: null, error: msg.slice(0, 120) });
     }
   }
