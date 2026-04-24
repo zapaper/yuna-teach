@@ -2197,9 +2197,19 @@ const BlankCanvas = forwardRef<
       }
     }
 
+    // Track previous midpoint for quadratic-curve smoothing. Between three
+    // consecutive samples a, b, c we draw quadraticCurveTo(b, mid(b,c))
+    // starting from mid(a,b). That turns the per-segment 60 Hz straight
+    // facets into smooth curves, which is what finger input needs —
+    // browsers sample finger input sparsely so raw lineTo looks jagged.
+    const lastMid = { x: 0, y: 0 };
+
     function handlePointerDown(e: PointerEvent) {
       if (toolRef.current === "type") return;
       e.preventDefault();
+      // Route subsequent move/up events here even if the finger slides off
+      // the canvas, so strokes don't end prematurely at the edge.
+      canvas!.setPointerCapture(e.pointerId);
       cancelPendingCapture();
       onStrokeStartRef.current();
       isDrawing.current = true;
@@ -2212,6 +2222,7 @@ const BlankCanvas = forwardRef<
       }
       const pos = getPos(e.clientX, e.clientY);
       lastPos.current = pos;
+      lastMid.x = pos.x; lastMid.y = pos.y;
       applyStyleVisible();
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, toolRef.current === "eraser-large" ? 36 : (toolRef.current === "eraser" ? 12 : 1.5), 0, Math.PI * 2);
@@ -2226,24 +2237,50 @@ const BlankCanvas = forwardRef<
       if (toolRef.current === "eraser" || toolRef.current === "eraser-large") redrawComposite();
     }
 
-    function handlePointerMove(e: PointerEvent) {
-      if (!isDrawing.current || !lastPos.current) return;
-      e.preventDefault();
-      const pos = getPos(e.clientX, e.clientY);
+    function drawSegment(prev: { x: number; y: number }, cur: { x: number; y: number }, inkCtx: CanvasRenderingContext2D | null | undefined, useEraser: boolean) {
+      const mid = { x: (prev.x + cur.x) / 2, y: (prev.y + cur.y) / 2 };
       applyStyleVisible();
       ctx.beginPath();
-      ctx.moveTo(lastPos.current.x, lastPos.current.y);
-      ctx.lineTo(pos.x, pos.y);
+      if (useEraser) {
+        ctx.moveTo(prev.x, prev.y);
+        ctx.lineTo(cur.x, cur.y);
+      } else {
+        ctx.moveTo(lastMid.x, lastMid.y);
+        ctx.quadraticCurveTo(prev.x, prev.y, mid.x, mid.y);
+      }
       ctx.stroke();
-      const inkCtx = inkCanvasRef.current?.getContext("2d");
       if (inkCtx) {
         applyStyleInk(inkCtx);
         inkCtx.beginPath();
-        inkCtx.moveTo(lastPos.current.x, lastPos.current.y);
-        inkCtx.lineTo(pos.x, pos.y);
+        if (useEraser) {
+          inkCtx.moveTo(prev.x, prev.y);
+          inkCtx.lineTo(cur.x, cur.y);
+        } else {
+          inkCtx.moveTo(lastMid.x, lastMid.y);
+          inkCtx.quadraticCurveTo(prev.x, prev.y, mid.x, mid.y);
+        }
         inkCtx.stroke();
       }
-      lastPos.current = pos;
+      lastMid.x = mid.x; lastMid.y = mid.y;
+    }
+
+    function handlePointerMove(e: PointerEvent) {
+      if (!isDrawing.current || !lastPos.current) return;
+      e.preventDefault();
+      // getCoalescedEvents returns every pointer sample the OS buffered
+      // since the previous pointermove — on a 120 Hz Apple Pencil or a
+      // high-poll-rate trackpad we're otherwise throwing away intermediate
+      // samples, which produces visible kinks in fast strokes.
+      const samples = typeof e.getCoalescedEvents === "function"
+        ? e.getCoalescedEvents()
+        : [e];
+      const useEraser = toolRef.current === "eraser" || toolRef.current === "eraser-large";
+      const inkCtx = inkCanvasRef.current?.getContext("2d");
+      for (const s of samples) {
+        const pos = getPos(s.clientX, s.clientY);
+        drawSegment(lastPos.current, pos, inkCtx, useEraser);
+        lastPos.current = pos;
+      }
     }
 
     function handlePointerUp() {
