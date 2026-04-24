@@ -1778,7 +1778,12 @@ function ExamReviewContent({ id }: { id: string }) {
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={currentQ.imageData} alt={`Question ${currentQ.questionNum}`} className="w-full rounded-xl border border-[#e5eeff]" />
                               )}
-                              {currentQ.diagramImageData && !drawableDiagram && (
+                              {/* Static reference diagram — show even when the
+                                  question also has a drawable canvas background.
+                                  Quiz page renders both too; review was hiding
+                                  the static diagram whenever drawable was present
+                                  which lost the diagram for Q7/Q8 in tests. */}
+                              {currentQ.diagramImageData && (
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
                               )}

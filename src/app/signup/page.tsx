@@ -110,6 +110,9 @@ function SignupFlow() {
   const [quizLoading, setQuizLoading] = useState<string | null>(null); // "math" | "science" | "english"
   const [diagnosticType, setDiagnosticType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [diagnosticSubject, setDiagnosticSubject] = useState<"math" | "science" | "english" | null>(null);
+  // Progressive = adaptive (starts easier, unlocks full range at >80% avg).
+  // Standard = top-schools difficulty (full range, current default).
+  const [diagnosticDifficulty, setDiagnosticDifficulty] = useState<"adaptive" | "standard">("standard");
 
   // ── Step 1 handler ──
   async function handleParentSignup(e: React.FormEvent) {
@@ -193,6 +196,15 @@ function SignupFlow() {
     if (!parentId || !studentId) return;
     setQuizLoading(subject);
     try {
+      // Persist the difficulty choice on the student so the filter applies
+      // to this diagnostic AND every subsequent quiz/focused practice.
+      // Parent can change it later in Student Settings.
+      await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: studentId, settings: { questionDifficulty: diagnosticDifficulty } }),
+      }).catch(() => { /* non-fatal — quiz still launches on standard default */ });
+
       const body: Record<string, unknown> = {
         userId: parentId,
         studentId,
@@ -641,8 +653,35 @@ function SignupFlow() {
                           );
                         })}
                       </div>
+                      {/* Difficulty toggle — persists on the student as
+                          settings.questionDifficulty. Progressive = adaptive,
+                          Top schools = standard (full range, current default). */}
+                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">2. Difficulty</p>
+                      <div className="flex gap-2 mb-1">
+                        <button
+                          onClick={() => setDiagnosticDifficulty("adaptive")}
+                          className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                          style={{
+                            background: diagnosticDifficulty === "adaptive" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
+                            border: diagnosticDifficulty === "adaptive" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                          }}
+                        >
+                          Progressive (start easier)
+                        </button>
+                        <button
+                          onClick={() => setDiagnosticDifficulty("standard")}
+                          className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                          style={{
+                            background: diagnosticDifficulty === "standard" ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.05)",
+                            border: diagnosticDifficulty === "standard" ? "1px solid rgba(255,255,255,0.4)" : "1px solid rgba(255,255,255,0.1)",
+                          }}
+                        >
+                          Top schools difficulty
+                        </button>
+                      </div>
+                      <p className="text-white/40 text-[10px] mb-5">This setting can be changed later.</p>
                       {/* Quiz type toggle */}
-                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">2. Pick question type</p>
+                      <p className="text-white/50 text-[10px] font-semibold uppercase tracking-wider mb-2">3. Pick question type</p>
                       <div className="flex gap-2 mb-5">
                         <button
                           onClick={() => setDiagnosticType("mcq")}
