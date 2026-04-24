@@ -105,13 +105,6 @@ function AdminContent() {
       href: `/admin/classify-difficulty?userId=${userId}`,
       color: "bg-emerald-50 text-emerald-600",
     },
-    {
-      icon: "cleaning_services",
-      label: "Cleanup Ghost Papers",
-      description: "Remove 'Math practice' + template-cloned papers left on parents by the old signup hook.",
-      href: `/admin/cleanup-ghost-papers?userId=${userId}`,
-      color: "bg-rose-50 text-rose-600",
-    },
   ];
 
   return (
