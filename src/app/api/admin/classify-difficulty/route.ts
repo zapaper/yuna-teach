@@ -161,8 +161,10 @@ export async function POST(request: NextRequest) {
   });
 }
 
-// GET — inventory (how many rated/unrated per subject+level) so the admin
-// UI can show progress without running through the whole queue.
+// GET — inventory summary: totals, and a breakdown of difficulty 1-5
+// counts split by subject. Sentinel 0 ("tried but Gemini returned no
+// rating") is excluded from the breakdown. Used by the admin page to
+// render progress + per-subject per-level tables.
 export async function GET() {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const scope: Prisma.ExamQuestionWhereInput = {
@@ -176,9 +178,45 @@ export async function GET() {
       ],
     },
   };
-  const [total, rated] = await Promise.all([
+  // Pull all rated rows with their paper subject — cheap single query, the
+  // total count is usually in the low thousands for a beta bank.
+  const rows = await prisma.examQuestion.findMany({
+    where: { ...scope, difficulty: { not: null, gt: 0, lte: 5 } },
+    select: { difficulty: true, examPaper: { select: { subject: true } } },
+  });
+  const [total, ratedAny] = await Promise.all([
     prisma.examQuestion.count({ where: scope }),
     prisma.examQuestion.count({ where: { ...scope, difficulty: { not: null } } }),
   ]);
-  return NextResponse.json({ total, rated, unrated: total - rated });
+
+  // subject -> { 1..5 → count }
+  const bySubject = new Map<string, Record<1 | 2 | 3 | 4 | 5, number>>();
+  function bucketFor(subj: string) {
+    let b = bySubject.get(subj);
+    if (!b) { b = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }; bySubject.set(subj, b); }
+    return b;
+  }
+  const overall: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  for (const r of rows) {
+    const d = r.difficulty as 1 | 2 | 3 | 4 | 5;
+    overall[d] += 1;
+    const subj = (r.examPaper.subject ?? "Unknown").trim() || "Unknown";
+    bucketFor(subj)[d] += 1;
+  }
+
+  const subjectsOut = [...bySubject.entries()]
+    .map(([subject, counts]) => {
+      const sum = counts[1] + counts[2] + counts[3] + counts[4] + counts[5];
+      return { subject, counts, total: sum };
+    })
+    .sort((a, b) => b.total - a.total);
+
+  const overallSum = overall[1] + overall[2] + overall[3] + overall[4] + overall[5];
+  return NextResponse.json({
+    total,
+    rated: ratedAny,
+    unrated: total - ratedAny,
+    difficulty: { counts: overall, total: overallSum },
+    subjects: subjectsOut,
+  });
 }

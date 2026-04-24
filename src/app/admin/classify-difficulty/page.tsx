@@ -5,6 +5,14 @@ import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
 type Result = { id: string; questionNum: string; paperId: string; paperTitle: string; difficulty: number | null; reason: string | null; error?: string };
+type Counts = { 1: number; 2: number; 3: number; 4: number; 5: number };
+type Totals = {
+  total: number;
+  rated: number;
+  unrated: number;
+  difficulty?: { counts: Counts; total: number };
+  subjects?: { subject: string; counts: Counts; total: number }[];
+};
 
 export default function ClassifyDifficultyPage() {
   return (
@@ -18,7 +26,7 @@ function Content() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
   const [allowed, setAllowed] = useState<boolean | null>(null);
-  const [totals, setTotals] = useState<{ total: number; rated: number; unrated: number } | null>(null);
+  const [totals, setTotals] = useState<Totals | null>(null);
   const [running, setRunning] = useState(false);
   const [continuous, setContinuous] = useState(false);
   const continuousRef = useRef(false);
@@ -120,6 +128,21 @@ function Content() {
             </div>
           )}
 
+          {totals?.difficulty && totals.difficulty.total > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-100 p-5 space-y-4">
+              <h2 className="text-sm font-bold text-slate-700">Difficulty distribution</h2>
+              <DifficultyTable label="Overall" counts={totals.difficulty.counts} total={totals.difficulty.total} />
+              {totals.subjects && totals.subjects.length > 0 && (
+                <div className="space-y-3 pt-3 border-t border-slate-100">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">By subject</p>
+                  {totals.subjects.map(s => (
+                    <DifficultyTable key={s.subject} label={s.subject} counts={s.counts} total={s.total} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
             {!continuous ? (
               <div className="flex gap-2">
@@ -175,6 +198,45 @@ function Content() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Compact horizontal bar showing how many questions are rated 1-5 with a
+// proportion label. Palette mirrors the DifficultyBadge in the clean editor:
+// 1-2 green, 3 amber, 4-5 rose.
+function DifficultyTable({ label, counts, total }: { label: string; counts: Counts; total: number }) {
+  const colours: Record<1 | 2 | 3 | 4 | 5, string> = {
+    1: "bg-emerald-400",
+    2: "bg-emerald-500",
+    3: "bg-amber-400",
+    4: "bg-rose-400",
+    5: "bg-rose-600",
+  };
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs font-bold text-slate-700 truncate">{label}</span>
+        <span className="text-[10px] text-slate-500 tabular-nums">{total.toLocaleString()} rated</span>
+      </div>
+      <div className="flex w-full h-4 rounded-md overflow-hidden bg-slate-100">
+        {([1, 2, 3, 4, 5] as const).map(d => {
+          const w = total > 0 ? (counts[d] / total) * 100 : 0;
+          if (w === 0) return null;
+          return <div key={d} className={colours[d]} style={{ width: `${w}%` }} title={`Lv ${d}: ${counts[d]}`} />;
+        })}
+      </div>
+      <div className="flex gap-3 mt-1.5 text-[10px] text-slate-500 tabular-nums">
+        {([1, 2, 3, 4, 5] as const).map(d => {
+          const pct = total > 0 ? Math.round((counts[d] / total) * 100) : 0;
+          return (
+            <span key={d} className="flex items-center gap-1">
+              <span className={`inline-block w-2 h-2 rounded-sm ${colours[d]}`} />
+              Lv {d}: <span className="font-bold text-slate-700">{counts[d]}</span> ({pct}%)
+            </span>
+          );
+        })}
       </div>
     </div>
   );
