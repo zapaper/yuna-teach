@@ -119,55 +119,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Clone template exam papers to new parents
-  if (role === "PARENT") {
-    try {
-      // Find the template parent (first PARENT user — "Papa")
-      const templateParent = await prisma.user.findFirst({
-        where: { role: "PARENT" },
-        orderBy: { createdAt: "asc" },
-      });
-      if (templateParent && templateParent.id !== user.id) {
-        // Get master papers (not clones) from template parent
-        const templatePapers = await prisma.examPaper.findMany({
-          where: { userId: templateParent.id, sourceExamId: null },
-          include: { questions: true },
-        });
-        for (const tp of templatePapers) {
-          await prisma.examPaper.create({
-            data: {
-              title: tp.title,
-              school: tp.school,
-              level: tp.level,
-              subject: tp.subject,
-              year: tp.year,
-              semester: tp.semester,
-              totalMarks: tp.totalMarks,
-              metadata: tp.metadata ?? undefined,
-              pdfPath: tp.pdfPath,
-              pageCount: tp.pageCount,
-              userId: user.id,
-              questions: {
-                create: tp.questions.map((q) => ({
-                  questionNum: q.questionNum,
-                  imageData: q.imageData,
-                  answer: q.answer,
-                  answerImageData: q.answerImageData,
-                  pageIndex: q.pageIndex,
-                  orderIndex: q.orderIndex,
-                  yStartPct: q.yStartPct,
-                  yEndPct: q.yEndPct,
-                  marksAvailable: q.marksAvailable,
-                })),
-              },
-            },
-          });
-        }
-      }
-    } catch (err) {
-      console.error("Failed to clone template papers:", err);
-    }
-  }
+  // Previously: we cloned every paper owned by the first-created parent
+  // (the admin "Papa") to each new parent account on signup. That was
+  // redundant — /api/exam already lets non-admin parents see admin's
+  // visible master papers directly, no copy needed. The clone also made
+  // each new parent appear as the creator of papers they didn't upload,
+  // dragged along focused tests and random 'Math practice' uploads the
+  // admin had, and ignored the student's level entirely. Removed.
 
   return NextResponse.json(
     {
