@@ -4,7 +4,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
-type Result = { id: string; paperTitle: string; difficulty: number | null; reason: string | null; error?: string };
+type Result = { id: string; questionNum: string; paperId: string; paperTitle: string; difficulty: number | null; reason: string | null; error?: string };
 
 export default function ClassifyDifficultyPage() {
   return (
@@ -143,7 +143,15 @@ function Content() {
                           "bg-rose-100 text-rose-700"
                         }`}>Lv {r.difficulty}</span>
                       )}
-                      <span className="text-slate-500 truncate flex-1">{r.paperTitle}</span>
+                      <a
+                        href={`/exam/${r.paperId}/edit?userId=${userId}#q-${r.id}`}
+                        target="_blank"
+                        rel="noopener"
+                        className="text-slate-500 truncate flex-1 hover:text-slate-800 underline decoration-dotted underline-offset-2"
+                        title="Open the clean editor for this question"
+                      >
+                        Q{r.questionNum} · {r.paperTitle}
+                      </a>
                       {r.error
                         ? <span className="text-red-600 font-bold">✗ {r.error}</span>
                         : <span className="text-slate-600 italic">{r.reason}</span>}

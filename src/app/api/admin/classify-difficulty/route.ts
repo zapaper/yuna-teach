@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
   let questions = await prisma.examQuestion.findMany({
     where: { ...scope, OR: [{ diagramImageData: null }, { diagramImageData: "" }] },
     select: {
-      id: true, transcribedStem: true, transcribedOptions: true,
+      id: true, questionNum: true, examPaperId: true,
+      transcribedStem: true, transcribedOptions: true,
       answer: true, syllabusTopic: true, diagramImageData: true,
       examPaper: { select: { subject: true, level: true, title: true } },
     },
@@ -108,20 +109,20 @@ export async function POST(request: NextRequest) {
     };
   });
 
-  const results: Array<{ id: string; paperTitle: string; difficulty: number | null; reason: string | null; error?: string }> = [];
+  const results: Array<{ id: string; questionNum: string; paperId: string; paperTitle: string; difficulty: number | null; reason: string | null; error?: string }> = [];
   try {
     const ratings = await classifyDifficultyBatch(batch);
     for (const q of questions) {
       const r = ratings[q.id];
       if (!r) {
-        results.push({ id: q.id, paperTitle: q.examPaper.title, difficulty: null, reason: null, error: "no rating" });
+        results.push({ id: q.id, questionNum: q.questionNum, paperId: q.examPaperId, paperTitle: q.examPaper.title, difficulty: null, reason: null, error: "no rating" });
         continue;
       }
       await prisma.examQuestion.update({
         where: { id: q.id },
         data: { difficulty: r.difficulty },
       });
-      results.push({ id: q.id, paperTitle: q.examPaper.title, difficulty: r.difficulty, reason: r.reason });
+      results.push({ id: q.id, questionNum: q.questionNum, paperId: q.examPaperId, paperTitle: q.examPaper.title, difficulty: r.difficulty, reason: r.reason });
     }
   } catch (err) {
     // Gemini timeout / 504 / malformed response — surface as per-row errors
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
     // is 0, so we won't spin forever on a persistent failure.
     const msg = err instanceof Error ? err.message : String(err);
     for (const q of questions) {
-      results.push({ id: q.id, paperTitle: q.examPaper.title, difficulty: null, reason: null, error: msg.slice(0, 120) });
+      results.push({ id: q.id, questionNum: q.questionNum, paperId: q.examPaperId, paperTitle: q.examPaper.title, difficulty: null, reason: null, error: msg.slice(0, 120) });
     }
   }
 
