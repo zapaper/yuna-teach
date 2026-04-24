@@ -2500,7 +2500,11 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
             } catch { /* use raw */ }
           }
           const lastChar = displayAnswer.trim().slice(-1);
-          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---\nLast character of answer: "${lastChar}"${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}` });
+          // For synthesis & transformation, omit the "Last character" priming
+          // — punctuation is irrelevant for that section and surfacing the
+          // last char makes the AI fixate on the missing period.
+          const lastCharLine = isSynthesisQ ? "" : `\nLast character of answer: "${lastChar}"`;
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — completely ignore punctuation, including missing or extra full stops.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
