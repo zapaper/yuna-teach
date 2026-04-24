@@ -7,6 +7,11 @@ import { renderPdfToImages } from "@/lib/pdf";
 
 type Tool = "pen" | "eraser";
 
+// Tap the Pen button cycles through these widths. Values are in canvas-
+// internal pixels, which get scaled down to the display-size stroke the
+// user actually sees (canvas internal is usually larger than display).
+const PEN_WIDTHS = [3, 5, 7] as const;
+
 export default function AnnotatePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   return (
@@ -26,6 +31,7 @@ function AnnotateContent({ id }: { id: string }) {
   const [loadingPdf, setLoadingPdf] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const [tool, setTool] = useState<Tool>("pen");
+  const [penWidth, setPenWidth] = useState<number>(PEN_WIDTHS[0]);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -176,7 +182,7 @@ function AnnotateContent({ id }: { id: string }) {
       ctx.globalCompositeOperation = "source-over";
       ctx.fillStyle = "rgba(0, 0, 0, 0.95)";
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y, penWidth / 2, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -195,7 +201,7 @@ function AnnotateContent({ id }: { id: string }) {
     } else {
       ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = "rgba(0, 0, 0, 0.95)";
-      ctx.lineWidth = 3;
+      ctx.lineWidth = penWidth;
     }
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
@@ -278,9 +284,19 @@ function AnnotateContent({ id }: { id: string }) {
             ← Back to editor
           </button>
           <div className="flex items-center gap-1 ml-4">
-            <button onClick={() => setTool("pen")}
+            <button
+              onClick={() => {
+                // Tap once to select the pen, tap again to cycle width.
+                if (tool !== "pen") setTool("pen");
+                else {
+                  const i = PEN_WIDTHS.indexOf(penWidth as (typeof PEN_WIDTHS)[number]);
+                  setPenWidth(PEN_WIDTHS[(i + 1) % PEN_WIDTHS.length]);
+                }
+              }}
+              title={tool === "pen" ? "Tap to change width" : "Pen"}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${tool === "pen" ? "bg-red-500 text-white" : "bg-slate-700 text-slate-300"}`}>
-              <span className="material-symbols-outlined text-sm">edit</span>Pen
+              <span className="material-symbols-outlined text-sm">edit</span>
+              Pen {tool === "pen" && <span className="text-[10px] opacity-80 tabular-nums">{penWidth}px</span>}
             </button>
             <button onClick={() => setTool("eraser")}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 ${tool === "eraser" ? "bg-red-500 text-white" : "bg-slate-700 text-slate-300"}`}>
