@@ -18,6 +18,9 @@ interface Paper {
   questionCount: number;
   assignmentCount: number;
   createdAt: string;
+  creatorId: string;
+  creatorName: string | null;
+  creatorEmail: string | null;
 }
 
 export default function AdminPapersPage() {
@@ -223,6 +226,11 @@ function AdminPapersContent() {
                       <span className="text-slate-500"> · {new Date(paper.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</span>
                     )}
                   </p>
+                  {paper.creatorName && (
+                    <p className="text-[10px] text-slate-400 mt-0.5" title={paper.creatorEmail ?? paper.creatorId}>
+                      by {paper.creatorName}{paper.creatorEmail ? ` (${paper.creatorEmail})` : ""}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md ${
                       paper.extractionStatus === "ready" ? "bg-green-50 text-green-700" :

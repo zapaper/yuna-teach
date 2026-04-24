@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
       visible: true,
       extractionStatus: true,
       createdAt: true,
+      userId: true,
+      user: { select: { id: true, name: true, email: true } },
       _count: { select: { questions: true, clones: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -44,6 +46,9 @@ export async function GET(request: NextRequest) {
       createdAt: p.createdAt.toISOString(),
       questionCount: p._count.questions,
       assignmentCount: p._count.clones,
+      creatorId: p.userId,
+      creatorName: p.user?.name ?? null,
+      creatorEmail: p.user?.email ?? null,
     })),
   });
 }
