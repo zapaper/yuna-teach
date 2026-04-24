@@ -476,6 +476,11 @@ function TestPageContent({ id }: { id: string }) {
           <p className="text-xs text-[#43474f] font-medium text-center mt-3">
             Please check your strokes/spelling carefully.
           </p>
+          {test.language === "CHINESE" && (
+            <p className="text-xs text-[#006c49] font-semibold text-center mt-1.5">
+              Parents, please check student&apos;s writing strokes.
+            </p>
+          )}
         </div>
 
         <footer className="mt-12 text-center">
