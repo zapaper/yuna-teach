@@ -174,9 +174,9 @@ function AnnotateContent({ id }: { id: string }) {
       ctx.fill();
     } else {
       ctx.globalCompositeOperation = "source-over";
-      ctx.fillStyle = "rgba(220, 38, 38, 0.9)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.95)";
       ctx.beginPath();
-      ctx.arc(pos.x, pos.y, 2.5, 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y, 1.5, 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -194,8 +194,8 @@ function AnnotateContent({ id }: { id: string }) {
       ctx.lineWidth = 32;
     } else {
       ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = "rgba(220, 38, 38, 0.9)";
-      ctx.lineWidth = 5;
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.95)";
+      ctx.lineWidth = 3;
     }
     ctx.beginPath();
     ctx.moveTo(lastPos.current.x, lastPos.current.y);
