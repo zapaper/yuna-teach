@@ -376,6 +376,18 @@ function PassageWithInputs({
   // Parse passage and replace question markers with inputs
   const lines = passage.split("\n");
 
+  // Collect the set of letters (A-Q) the student has already typed into any
+  // cloze blank in this section. The letter bank in TableLine uses this to
+  // auto-strikethrough used letters — saves the student from marking them
+  // manually. Case-insensitive, reacts live as the student types/deletes.
+  const usedLetters = new Set<string>();
+  if (sectionType === "grammar-cloze") {
+    for (const q of sortedQs) {
+      const a = (answers[q.id] ?? "").trim().toUpperCase();
+      if (/^[A-Q]$/.test(a)) usedLetters.add(a);
+    }
+  }
+
   return (
     <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 relative">
       {tool === "pen" && <PassageScratchOverlay />}
@@ -384,7 +396,7 @@ function PassageWithInputs({
         if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
         // Table rows
         if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-          return <TableLine key={li} line={line} />;
+          return <TableLine key={li} line={line} usedLetters={usedLetters} />;
         }
         // Empty line = paragraph break
         if (!line.trim()) return <br key={li} />;
@@ -407,44 +419,22 @@ function PassageWithInputs({
   );
 }
 
-function TableLine({ line }: { line: string }) {
+function TableLine({ line, usedLetters }: { line: string; usedLetters?: Set<string> }) {
   const cells = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
   // Detect if this is a letter row (A-Q single uppercase letters). For a
-  // grammar-cloze letter bank, we let students click letters they've used
-  // to strike them through — the standard pencil-eliminate-as-you-go
-  // technique. The pen-tool scratch overlay above still works for
-  // freehand annotation of the whole row.
+  // grammar-cloze letter bank, auto-strikethrough any letter the student
+  // has typed into a cloze input — saves them from manually eliminating,
+  // and the strike clears if they delete the answer.
   const isLetterRow = cells.every(c => /^[A-Q]$/.test(c));
-  const [struck, setStruck] = useState<Set<number>>(new Set());
-  function toggle(i: number) {
-    setStruck(prev => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i); else next.add(i);
-      return next;
-    });
-  }
   return (
     <div className="flex gap-2 my-1">
       {cells.map((cell, ci) => {
-        const isStruck = isLetterRow && struck.has(ci);
-        const base = `flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366] underline" : "font-medium"}`;
-        const styleProps = isStruck ? { textDecoration: "line-through", opacity: 0.4 } : undefined;
-        if (isLetterRow) {
-          return (
-            <button
-              key={ci}
-              type="button"
-              onClick={(e) => { e.stopPropagation(); toggle(ci); }}
-              onPointerDown={(e) => { e.stopPropagation(); }}
-              className={`${base} cursor-pointer select-none transition-opacity relative z-20`}
-              style={styleProps}
-              title={isStruck ? "Click to un-strike" : "Click to strike out"}
-            >
-              {cell}
-            </button>
-          );
-        }
-        return <span key={ci} className={base}>{cell}</span>;
+        const isUsed = isLetterRow && usedLetters?.has(cell) === true;
+        const base = `flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366] underline" : "font-medium"} transition-opacity`;
+        const styleProps = isUsed ? { textDecoration: "line-through", opacity: 0.4 } : undefined;
+        return (
+          <span key={ci} className={base} style={styleProps}>{cell}</span>
+        );
       })}
     </div>
   );
