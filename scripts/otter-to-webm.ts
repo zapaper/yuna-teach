@@ -4,11 +4,13 @@
 // noise around its studio black bg, so 4% RGB Euclidean distance misses
 // the noisier bg pixels and they survive as opaque black squares.
 //
-// This script keys with chromakey at similarity=0.10, blend=0. chromakey
-// works in YUV chroma space which is more forgiving on the slightly noisy
-// near-black bg, and blend=0 keeps the body fully opaque (no translucent
-// interior pixels). Run after dropping fresh otter mp4/mov sources into
-// public/avatars/.
+// This script keys with chromakey at similarity=0.04, blend=0. chromakey
+// works in YUV chroma space which catches noisy near-black bg pixels that
+// straight RGB colorkey misses, while 0.04 stays tight enough that the
+// otter's brown body fill (which has YUV chroma close-ish to dark grey)
+// stays opaque. blend=0 keeps the cut hard. Earlier 0.10 was too loose
+// — keyed out the body too. Run after dropping fresh otter mp4/mov
+// sources into public/avatars/.
 //
 // Run from yuna-teach/:
 //   npx tsx scripts/otter-to-webm.ts
@@ -48,7 +50,7 @@ function argsFor(job: Job, output: string): string[] {
   return [
     "-y",
     "-i", job.source,
-    "-vf", "chromakey=color=0x000000:similarity=0.10:blend=0.0,format=yuva420p",
+    "-vf", "chromakey=color=0x000000:similarity=0.04:blend=0.0,format=yuva420p",
     "-c:v", "libvpx-vp9",
     "-pix_fmt", "yuva420p",
     "-b:v", "1.2M",
