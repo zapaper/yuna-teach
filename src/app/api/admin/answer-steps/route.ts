@@ -281,5 +281,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ updated, flagged, skipped });
   }
 
+  if (action === "revert-mcq") {
+    // Recovery: find rows where the answer was overwritten with "Steps:..."
+    // BUT the row is actually an MCQ (transcribedOptions has ≥2 strings).
+    // Parse the AI's "Final answer: X" out of the Steps body; if it matches
+    // a single 1-4 / A-D pattern, restore answer to just that. Otherwise
+    // skip (admin will fix manually).
+    const rows = await prisma.examQuestion.findMany({
+      where: {
+        answer: { startsWith: PROCESSED_PREFIX },
+        examPaper: { subject: "Mathematics" },
+      },
+      select: { id: true, answer: true, questionNum: true, transcribedOptions: true },
+    });
+    let reverted = 0;
+    let skipped = 0;
+    const skippedDetails: { id: string; questionNum: string; reason: string }[] = [];
+    for (const r of rows) {
+      const opts = Array.isArray(r.transcribedOptions)
+        ? (r.transcribedOptions as unknown[]).filter((o): o is string => typeof o === "string" && o.trim().length > 0)
+        : [];
+      if (opts.length < 2) continue; // not MCQ — leave alone
+      const body = r.answer ?? "";
+      const m = body.match(/Final answer:\s*(.+?)\s*$/im);
+      const candidate = m ? m[1].trim() : "";
+      // Accept single 1-4 / A-D, with or without parens. Strip parens.
+      const cleaned = candidate.replace(/[().]/g, "").trim();
+      if (/^[1-4A-Da-d]$/.test(cleaned)) {
+        await prisma.examQuestion.update({
+          where: { id: r.id },
+          data: { answer: cleaned },
+        });
+        reverted++;
+      } else {
+        skipped++;
+        skippedDetails.push({ id: r.id, questionNum: r.questionNum, reason: candidate ? `couldn't normalise '${candidate}'` : "no Final answer line" });
+      }
+    }
+    return NextResponse.json({ reverted, skipped, skippedDetails });
+  }
+
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }

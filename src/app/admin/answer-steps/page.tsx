@@ -187,6 +187,25 @@ function Content() {
               {applying ? "Applying…" : `Apply this batch (${items.filter(it => !it.error).length})`}
             </button>
           )}
+          <button
+            onClick={async () => {
+              if (!confirm("Scan all 'Steps:' answers and revert any that were actually MCQ back to their option index? Uses the AI's 'Final answer:' line.")) return;
+              const res = await fetch("/api/admin/answer-steps", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ action: "revert-mcq" }),
+              });
+              const data = await res.json();
+              const skippedNote = data.skipped > 0 ? ` (${data.skipped} couldn't be auto-recovered — see console)` : "";
+              if (data.skippedDetails?.length) console.log("Manual revert needed:", data.skippedDetails);
+              alert(`Reverted ${data.reverted} MCQ rows back to option index${skippedNote}.`);
+              await loadCounts();
+            }}
+            disabled={running || applying}
+            className="px-4 py-2 rounded-lg bg-white border border-rose-300 text-rose-700 text-sm font-bold hover:bg-rose-50 disabled:opacity-50"
+          >
+            Revert MCQ rows
+          </button>
         </div>
 
         {error && <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-sm text-rose-700">{error}</div>}
