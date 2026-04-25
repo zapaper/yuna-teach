@@ -16,13 +16,27 @@ const PROCESSED_PREFIX = "Steps:";
 const SKIPPED_PREFIX = "[answer-steps skipped]";
 
 function buildScope(extra?: Prisma.ExamQuestionWhereInput): Prisma.ExamQuestionWhereInput {
+  // PostgreSQL gotcha: NOT (col LIKE 'X%') is NULL when col IS NULL, which
+  // PG treats as 'not matched' and excludes the row. Most rows in this
+  // table have markingNotes = NULL, so a flat NOT-startsWith filter wiped
+  // out the entire pending count (240 → 0). Use explicit OR with IS NULL.
   return {
     transcribedStem: { not: null },
     difficulty: { in: [4, 5] },
     flagged: false,
-    NOT: [
-      { answer: { startsWith: PROCESSED_PREFIX } },
-      { markingNotes: { startsWith: SKIPPED_PREFIX } },
+    AND: [
+      {
+        OR: [
+          { answer: null },
+          { NOT: { answer: { startsWith: PROCESSED_PREFIX } } },
+        ],
+      },
+      {
+        OR: [
+          { markingNotes: null },
+          { NOT: { markingNotes: { startsWith: SKIPPED_PREFIX } } },
+        ],
+      },
     ],
     examPaper: {
       subject: "Mathematics",
@@ -279,63 +293,6 @@ export async function POST(request: NextRequest) {
       skipped++;
     }
     return NextResponse.json({ updated, flagged, skipped });
-  }
-
-  if (action === "revert-mcq") {
-    // Recovery: find rows where the answer was overwritten with "Steps:..."
-    // BUT the row is actually an MCQ (transcribedOptions has ≥2 strings).
-    // Parse the AI's "Final answer: X" out of the Steps body; if it matches
-    // a single 1-4 / A-D pattern, restore answer to just that. Otherwise
-    // skip (admin will fix manually).
-    const rows = await prisma.examQuestion.findMany({
-      where: {
-        answer: { startsWith: PROCESSED_PREFIX },
-        examPaper: { subject: "Mathematics" },
-      },
-      select: {
-        id: true, answer: true, questionNum: true, transcribedOptions: true,
-        examPaperId: true,
-        examPaper: { select: { title: true } },
-      },
-    });
-    let reverted = 0;
-    let skipped = 0;
-    const skippedDetails: { id: string; questionNum: string; paperTitle: string; cleanEditorUrl: string; aiFinalAnswer: string; reason: string }[] = [];
-    for (const r of rows) {
-      const opts = Array.isArray(r.transcribedOptions)
-        ? (r.transcribedOptions as unknown[]).filter((o): o is string => typeof o === "string" && o.trim().length > 0)
-        : [];
-      if (opts.length < 2) continue; // not MCQ — leave alone
-      const body = r.answer ?? "";
-      const m = body.match(/Final answer:\s*(.+?)\s*$/im);
-      const candidate = m ? m[1].trim() : "";
-      // Accept single 1-4 / A-D, with or without parens. Strip parens.
-      const cleaned = candidate.replace(/[().]/g, "").trim();
-      if (/^[1-4A-Da-d]$/.test(cleaned)) {
-        // Restore the option index AND mark the row 'skipped' so the same
-        // MCQ doesn't drift back into pending now that its answer no
-        // longer starts with 'Steps:'.
-        await prisma.examQuestion.update({
-          where: { id: r.id },
-          data: {
-            answer: cleaned,
-            markingNotes: `${SKIPPED_PREFIX} (auto-reverted MCQ from answer-steps)`,
-          },
-        });
-        reverted++;
-      } else {
-        skipped++;
-        skippedDetails.push({
-          id: r.id,
-          questionNum: r.questionNum,
-          paperTitle: r.examPaper.title,
-          cleanEditorUrl: `/exam/${r.examPaperId}/edit#q-${r.id}`,
-          aiFinalAnswer: candidate,
-          reason: candidate ? `couldn't normalise '${candidate}'` : "no Final answer line",
-        });
-      }
-    }
-    return NextResponse.json({ reverted, skipped, skippedDetails });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });

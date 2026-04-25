@@ -48,11 +48,6 @@ function Content() {
   // candidates. Kept in component state — wipes on page refresh, which is
   // fine for this admin tool.
   const [skipIds, setSkipIds] = useState<string[]>([]);
-  // Rows the Revert-MCQ scan couldn't auto-recover — admin needs to fix
-  // these manually in the clean editor. Each one carries the AI's final
-  // answer so admin can compare without opening the question.
-  type RevertSkip = { id: string; questionNum: string; paperTitle: string; cleanEditorUrl: string; aiFinalAnswer: string; reason: string };
-  const [revertSkipped, setRevertSkipped] = useState<RevertSkip[]>([]);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -192,45 +187,7 @@ function Content() {
               {applying ? "Applying…" : `Apply this batch (${items.filter(it => !it.error).length})`}
             </button>
           )}
-          <button
-            onClick={async () => {
-              if (!confirm("Scan all 'Steps:' answers and revert any that were actually MCQ back to their option index? Uses the AI's 'Final answer:' line.")) return;
-              const res = await fetch("/api/admin/answer-steps", {
-                method: "POST",
-                headers: { "content-type": "application/json" },
-                body: JSON.stringify({ action: "revert-mcq" }),
-              });
-              const data = await res.json();
-              setRevertSkipped(data.skippedDetails ?? []);
-              await loadCounts();
-              alert(`Reverted ${data.reverted} MCQ rows. ${data.skipped > 0 ? `${data.skipped} couldn't be auto-recovered — see list below.` : ""}`);
-            }}
-            disabled={running || applying}
-            className="px-4 py-2 rounded-lg bg-white border border-rose-300 text-rose-700 text-sm font-bold hover:bg-rose-50 disabled:opacity-50"
-          >
-            Revert MCQ rows
-          </button>
         </div>
-
-        {revertSkipped.length > 0 && (
-          <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-            <p className="text-sm font-bold text-amber-900 mb-2">
-              {revertSkipped.length} MCQ row{revertSkipped.length > 1 ? "s" : ""} couldn&apos;t be auto-recovered — fix manually:
-            </p>
-            <ul className="space-y-1">
-              {revertSkipped.map(s => (
-                <li key={s.id} className="text-xs text-amber-900">
-                  <a href={s.cleanEditorUrl} target="_blank" rel="noreferrer" className="font-bold underline hover:text-amber-700">
-                    Q{s.questionNum} — {s.paperTitle}
-                  </a>
-                  <span className="ml-2 text-amber-700">
-                    AI said: <code className="bg-amber-100 px-1 rounded">{s.aiFinalAnswer || "(no Final answer line)"}</code> — {s.reason}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         {error && <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-sm text-rose-700">{error}</div>}
 
