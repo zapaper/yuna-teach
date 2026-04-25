@@ -1002,6 +1002,7 @@ function QuizContent({ id }: { id: string }) {
                       onToggleFlag={() => toggleFlag(q.id)}
                       skipped={skippedIds.has(q.id)}
                       onSkip={() => setSkippedIds(prev => { const n = new Set(prev); n.has(q.id) ? n.delete(q.id) : n.add(q.id); return n; })}
+                      tool={tool}
                     />
               ))}
             </div>
