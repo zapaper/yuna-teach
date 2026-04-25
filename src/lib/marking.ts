@@ -383,31 +383,7 @@ export function parsePartAnswers(answer: string | null | undefined): Map<string,
  * have a text answer and MUST be marked against that text only — the
  * answer image is not relevant to those parts.
  */
-/**
- * Strip the multi-step working from an answer key for marking purposes.
- * The 'Generate Answer Steps' admin tool stores math answers in a
- *   "Steps:\nStep 1: ...\nStep 2: ...\nFinal answer: 42"
- * format so students see the working in review. But the AI marker only
- * needs the final value to compare against the student's response —
- * passing the whole multi-line text causes the AI to dock marks for
- * "missing working" or fixate on intermediate calculations.
- *
- * Behaviour:
- *   • "Steps:..." prefix present AND a "Final answer:" line is found →
- *     return just the value after "Final answer:".
- *   • "Steps:..." prefix but no "Final answer:" line → fall back to the
- *     full text (better than nothing).
- *   • No "Steps:" prefix → return unchanged.
- */
-export function answerForMarking(answer: string | null): string | null {
-  if (!answer) return answer;
-  if (!answer.trimStart().startsWith("Steps:")) return answer;
-  const m = answer.match(/Final answer:\s*(.+?)\s*$/im);
-  return m ? m[1].trim() : answer;
-}
-
-function buildAnswerDesc(answerRaw: string | null, hasImage: boolean): string {
-  const answer = answerForMarking(answerRaw);
+function buildAnswerDesc(answer: string | null, hasImage: boolean): string {
   if (!hasImage) return answer ? `"${answer}"` : "not provided";
 
   const partMap = parsePartAnswers(answer);
@@ -1080,9 +1056,8 @@ export async function markExamPaper(paperId: string): Promise<void> {
           const yEnd = isCropped ? "100%" : (q.yEndPct != null ? `${q.yEndPct.toFixed(1)}%` : "unknown");
           const answerDesc = buildAnswerDesc(q.answer, !!q.answerImageData);
           const marksInfo = q.marksAvailable != null ? `marksAvailable: ${q.marksAvailable}` : `marksAvailable: detect`;
-          const shortAnswer = answerForMarking(q.answer);
-          const printWarning = shortAnswer
-            ? ` [PRINTED TEXT "${shortAnswer}" may appear on page — IGNORE unless handwritten in BLUE ink]`
+          const printWarning = q.answer
+            ? ` [PRINTED TEXT "${q.answer}" may appear on page — IGNORE unless handwritten in BLUE ink]`
             : "";
           const cropNote = isCropped ? " [IMAGE IS CROPPED TO ANSWER REGION ONLY]" : "";
           return `- Question ${q.questionNum} (ID: ${q.id}): vertical region ${yStart}–${yEnd}. ${marksInfo}. Expected answer: ${answerDesc}${printWarning}${cropNote}`;
@@ -1867,7 +1842,7 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
 
     for (let i = 0; i < oeqQuestions.length; i++) {
       const q = oeqQuestions[i];
-      const expectedAnswer = answerForMarking(q.answer) || "?";
+      const expectedAnswer = q.answer || "?";
       const marksAvailable = q.marksAvailable ?? 1;
 
       // Students open focused tests via /quiz/[id] (the quiz page). The quiz page
@@ -2431,7 +2406,7 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           ? realSubsForAns
               .map(sp => `Part (${sp.label}): ${sp.answer ?? "(no answer key — rely on the expected answer image if provided, else award 0)"}`)
               .join("\n")
-          : (answerForMarking(q.answer) || "?");
+          : (q.answer || "?");
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const parts: any[] = [];
