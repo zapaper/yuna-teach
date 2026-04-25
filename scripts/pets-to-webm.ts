@@ -29,7 +29,10 @@ const FFMPEG = ffmpegStatic as unknown as string;
 const AVATARS = path.join(process.cwd(), "public/avatars");
 
 const CLIPS = ["smile", "stretch", "walk", "talk"] as const;
-const PETS = ["unicorn", "dragon", "qilin", "merlion", "otter"] as const;
+// otter is handled by scripts/otter-to-webm.ts — its source has noisier
+// near-black bg and needs chromakey similarity=0.10 instead of the 0.04
+// colorkey used here.
+const PETS = ["unicorn", "dragon", "qilin", "merlion"] as const;
 
 type Job = {
   pet: string;
