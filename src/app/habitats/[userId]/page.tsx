@@ -130,8 +130,17 @@ function placePets(habitat: Habitat, totalPoints: number, purchasedPets: string[
   const unlocked = habitat.pets.filter(p => isPetUnlocked(p.id, totalPoints, purchasedPets, whitetigerUnlocked, override));
   if (unlocked.length === 0) return [];
   const rand = seededRandom(hashString(habitat.id));
-  const placed = unlocked.map(pet => {
-    const yPct = PET_REGION_TOP_PCT + rand() * PET_REGION_HEIGHT_PCT;
+  // Stratify the depth band: pet i takes the i-th stripe of the region
+  // (with small jitter), so habitats with unlucky RNG seeds don't bunch
+  // every pet at the back. Fantasy especially used to put all pets in
+  // the top half of the band because rand() happened to land low for
+  // the first few calls — flat random produced an ungenerous distribution
+  // across pets when there were only 2-4 of them.
+  const placed = unlocked.map((pet, i) => {
+    const stratum = unlocked.length > 1 ? i / (unlocked.length - 1) : 0.5;
+    const jitter = (rand() - 0.5) * (1 / Math.max(1, unlocked.length)); // ±half-stripe
+    const yFraction = Math.max(0, Math.min(1, stratum + jitter));
+    const yPct = PET_REGION_TOP_PCT + yFraction * PET_REGION_HEIGHT_PCT;
     const { min, max } = petXBoundsAtY(yPct);
     const xPct = min + rand() * (max - min);
     return { ...pet, xPct, yPct, scale: petScaleAtY(yPct) };
