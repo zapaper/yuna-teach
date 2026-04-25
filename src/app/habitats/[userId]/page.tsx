@@ -45,6 +45,20 @@ function withVersion(path: string): string {
   return path.includes("?") ? path : `${path}?v=${ASSET_VERSION}`;
 }
 
+// iOS Safari decodes VP9 webm without alpha — pets render with their
+// studio black bg as a visible box. The HEVC alpha .mov files DO render
+// correctly on iOS via VideoToolbox, so we put .mov first for iOS and
+// .webm first for everyone else (Edge with HEVC ext was picking .mov,
+// which is yuv420p without alpha and breaks the same way for them).
+function isIOS(): boolean {
+  if (typeof navigator === "undefined") return false;
+  // Modern iPad UA reports as Mac; the touch-points check catches that.
+  return (
+    /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && (navigator.maxTouchPoints ?? 0) > 1)
+  );
+}
+
 // Placement region for unlocked pets on the landscape (was the teal marker).
 // Top 55%, height 15% → bottom 70% of the image.
 const PET_REGION_TOP_PCT = 55;
@@ -314,7 +328,14 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
       return <source src={v} type="video/mp4" />;
     }
     const mov = withVersion(path.replace(/\.webm$/i, ".mov"));
-    return (
+    // iOS Safari → .mov first (HEVC alpha via VideoToolbox).
+    // Everything else → .webm first (VP9 alpha).
+    return isIOS() ? (
+      <>
+        <source src={mov} type="video/quicktime" />
+        <source src={v} type="video/webm" />
+      </>
+    ) : (
       <>
         <source src={v} type="video/webm" />
         <source src={mov} type="video/quicktime" />
@@ -734,8 +755,13 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                     mixBlendMode: petBlendMode(pet.bg),
                   }}
                 >
+                  {pet.video.endsWith(".webm") && isIOS() && (
+                    <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />
+                  )}
                   <source src={withVersion(pet.video)} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
-                  {pet.video.endsWith(".webm") && <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />}
+                  {pet.video.endsWith(".webm") && !isIOS() && (
+                    <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />
+                  )}
                 </video>
               )
             ))}
@@ -773,8 +799,13 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                         autoPlay loop muted playsInline
                         className="w-full aspect-square object-contain pointer-events-none"
                       >
+                        {pet.video.endsWith(".webm") && isIOS() && (
+                          <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />
+                        )}
                         <source src={withVersion(pet.video)} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
-                        {pet.video.endsWith(".webm") && <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />}
+                        {pet.video.endsWith(".webm") && !isIOS() && (
+                          <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />
+                        )}
                       </video>
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
                       {!unlocked && crystalCost && (
