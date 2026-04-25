@@ -119,14 +119,18 @@ function Content() {
   if (!allowed) return <div className="p-8 text-sm text-[#ba1a1a]">Admin access required.</div>;
 
   return (
-    <div className="min-h-screen bg-[#f7f8fb]">
+    <div className="min-h-screen bg-slate-50">
       <AdminNav userId={userId} />
-      <main className="max-w-6xl mx-auto p-4 lg:p-6">
-        <h1 className="text-xl font-extrabold text-[#001e40] mb-1">Generate Answer Steps</h1>
-        <p className="text-sm text-[#43474f] mb-4">
-          P4–P6 Math questions at difficulty 4 or 5. AI rewrites the answer key as concise step-by-step working.
-          If the AI&apos;s final answer disagrees with the existing key, the question is flagged for your review and the original key is kept.
-        </p>
+      <div className="lg:ml-56 pb-24 lg:pb-0">
+        <div className="bg-white border-b border-slate-200 px-4 py-3">
+          <h1 className="text-lg font-bold text-slate-800">Generate Answer Steps</h1>
+          <p className="text-xs text-slate-400">
+            P4–P6 Math questions at difficulty 4 or 5. AI rewrites the answer key as concise step-by-step working.
+            If the AI&apos;s final answer disagrees with the existing key, the question is flagged for your review and the original key is kept.
+          </p>
+        </div>
+
+        <main className="max-w-4xl mx-auto px-4 py-6">
 
         {counts && (
           <div className="flex gap-3 mb-4 flex-wrap">
@@ -212,7 +216,8 @@ function Content() {
             </div>
           ))}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
