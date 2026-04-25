@@ -85,13 +85,6 @@ function AdminContent() {
       color: "bg-purple-50 text-purple-600",
     },
     {
-      icon: "label",
-      label: "Reclassify P4/P5 Algebra",
-      description: "One-off: AI retags P4/P5 math questions currently tagged Algebra.",
-      href: `/admin/reclassify-algebra?userId=${userId}`,
-      color: "bg-indigo-50 text-indigo-600",
-    },
-    {
       icon: "mail",
       label: "Beta Mailing List",
       description: "Registered users with email. Copy comma-separated or download CSV.",
