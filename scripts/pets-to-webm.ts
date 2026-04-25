@@ -41,12 +41,19 @@ function build(): Job[] {
   const jobs: Job[] = [];
   for (const pet of PETS) {
     for (const clip of CLIPS) {
-      // Prefer .mov if present (slightly higher bitrate masters), else .mp4.
-      const mov = path.join(AVATARS, `${pet}_${clip}.mov`);
-      const mp4 = path.join(AVATARS, `${pet}_${clip}.mp4`);
-      const src = fs.existsSync(mov) ? mov : (fs.existsSync(mp4) ? mp4 : null);
-      if (src) jobs.push({ pet, clip, source: src });
-      else console.warn("missing source:", pet, clip);
+      // Pick the most recently modified candidate. Lets the workflow be:
+      // upload a fresh .mp4 / .mov over an old one and re-run — the newer
+      // file wins automatically, no need to delete the stale source.
+      const candidates = [
+        path.join(AVATARS, `${pet}_${clip}.mp4`),
+        path.join(AVATARS, `${pet}_${clip}.mov`),
+      ].filter(p => fs.existsSync(p));
+      if (candidates.length === 0) {
+        console.warn("missing source:", pet, clip);
+        continue;
+      }
+      candidates.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs);
+      jobs.push({ pet, clip, source: candidates[0] });
     }
   }
   return jobs;
