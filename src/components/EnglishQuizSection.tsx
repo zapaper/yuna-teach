@@ -105,7 +105,16 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
             // Parse lines count from stem: [Lines: N] or [N lines]
             const linesMatch = stem.match(/\[(?:Lines?:\s*)?(\d+)\s*(?:lines?)?\]/i);
             const lineCount = linesMatch ? parseInt(linesMatch[1]) : 2;
+            // For comp-OEQ we keep the [LINES: N] / ___ markers in the stem so
+            // RichStemText can render them as actual textareas (one per subpart).
+            // For synthesis we strip them — synthesis has its own marker logic.
+            const stemForRender = sectionType === "comprehension-oeq" ? stem.trim() : stem.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
             const cleanStem = stem.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
+            // The outer fallback textarea fires when there are no inline answer
+            // markers (no table, no [LINES: N], no standalone ___). With any
+            // marker present, RichStemText renders per-position inputs and the
+            // outer textarea would be a duplicate.
+            const hasInlineLineMarkers = !!linesMatch || /^_{3,}\s*$/m.test(stem);
 
             // For synthesis: split into question text and answer segments
             // Answer line can be: "**Instead of** ___" or "___ **although** ___"
@@ -176,7 +185,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                         alt={`Question ${q.questionNum}`} className="max-w-full rounded-lg border border-slate-100 mb-2" />
                     )}
                     {sectionType === "comprehension-oeq" && (
-                      <RichStemText text={cleanStem} answers={answers} questionId={q.id} onAnswer={onAnswer} />
+                      <RichStemText text={stemForRender} answers={answers} questionId={q.id} onAnswer={onAnswer} />
                     )}
                     {q.marksAvailable && (
                       <span className="mt-2 inline-block text-[10px] font-bold text-[#003366] bg-[#d3e4fe] px-2 py-0.5 rounded uppercase tracking-wider">
@@ -245,8 +254,12 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                   );
                 })()}
 
-                {/* Comprehension OEQ: typed answer lines (skip if question has a table for answers) */}
-                {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && (() => {
+                {/* Comprehension OEQ: fallback whole-question textarea — only
+                    when the stem has no inline answer markers. Tables, ticks
+                    and [LINES: N] markers all render their own per-position
+                    inputs in RichStemText, so showing the outer textarea on
+                    top would create a duplicate input. */}
+                {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && !hasInlineLineMarkers && (() => {
                   const stored = answers[q.id] ?? "";
                   const isJson = stored.startsWith("{");
                   let textVal = stored;
@@ -492,6 +505,7 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
   }
   let tableRowIdx = 0;
   let tickIdx = 0;
+  let lineIdx = 0;
   return (
     <div className="space-y-1">
       {lines.map((line, li) => {
@@ -584,21 +598,48 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
             </label>
           );
         }
-        // Answer lines: [LINES: N]
-        const linesMatch = trimmed.match(/^\[LINES:\s*(\d+)\]\s*$/i);
+        // Answer lines: [LINES: N], [N lines], or [N] — render as a textarea
+        // with `rows={N}` so each subpart gets its own typing space. Stored
+        // under JSON key line0/line1/... so the marking layer sees per-subpart
+        // input separately from table cells and ticks.
+        const linesMatch = trimmed.match(/^\[(?:LINES?:\s*)?(\d+)\s*(?:lines?)?\]\s*$/i);
         if (linesMatch) {
           const count = parseInt(linesMatch[1]);
+          const lineKey = `line${lineIdx++}`;
           return (
-            <div key={li} className="my-1">
-              {Array.from({ length: count }, (_, i) => (
-                <div key={i} className="border-b-2 border-slate-300 my-3 h-5" />
-              ))}
+            <div key={li} className="my-2">
+              <textarea
+                rows={count}
+                spellCheck={false}
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                autoCapitalize="none"
+                value={tableCells[lineKey] ?? ""}
+                onChange={e => updateTableCell(lineKey, e.target.value)}
+                className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed"
+                placeholder="Type your answer here..."
+              />
             </div>
           );
         }
-        // Answer line: ___ (3+ underscores)
+        // Answer line: ___ (3+ underscores) — render as a single-row textarea.
         if (trimmed.match(/^_{3,}$/)) {
-          return <div key={li} className="border-b-2 border-slate-300 my-2 h-6" />;
+          const lineKey = `line${lineIdx++}`;
+          return (
+            <div key={li} className="my-2">
+              <textarea
+                rows={1}
+                spellCheck={false}
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                autoCapitalize="none"
+                value={tableCells[lineKey] ?? ""}
+                onChange={e => updateTableCell(lineKey, e.target.value)}
+                className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-lg px-3 py-2 text-base text-[#001e40] resize-none leading-relaxed"
+                placeholder="Type your answer here..."
+              />
+            </div>
+          );
         }
         // Regular text with inline bold
         return (
