@@ -1548,7 +1548,11 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
     if (isEraser) {
       ctx.globalCompositeOperation = "destination-out";
       ctx.fillStyle = "rgba(0,0,0,1)";
-      const r = currentTool === "eraser-large" ? 30 : 10;
+      // Canvas is 2x display resolution, so radius N canvas-units = N/2
+      // display. Bump the tap-erase dot to be clearly visible on MCQ
+      // diagram overlays (which are short and dense). Drag-erase
+      // lineWidth is in onMove below.
+      const r = currentTool === "eraser-large" ? 48 : 20;
       ctx.beginPath();
       ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
       ctx.fill();
@@ -1574,7 +1578,7 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
       // destination-out makes every pixel the stroke covers transparent.
       ctx.globalCompositeOperation = "destination-out";
       ctx.strokeStyle = "rgba(0,0,0,1)";
-      ctx.lineWidth = currentTool === "eraser-large" ? 60 : 20;
+      ctx.lineWidth = currentTool === "eraser-large" ? 96 : 40;
     } else {
       ctx.globalCompositeOperation = "source-over";
       ctx.strokeStyle = "#0066cc";

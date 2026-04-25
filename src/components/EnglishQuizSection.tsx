@@ -545,13 +545,19 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
                         }
                       }}
                       style={widthStyle}
-                      className={`text-left text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none resize-none leading-snug overflow-hidden ${widthCls}`}
+                      // min-w-0 lets flex actually shrink the textarea to
+                      // its weighted share. Without it, the textarea's
+                      // min-content (placeholder + padding) forces a wider
+                      // minimum and neighbouring cells get squashed — which
+                      // is why dash-based widths looked right for one-input
+                      // tables but broke when multiple columns had inputs.
+                      className={`text-left text-sm font-medium text-[#001e40] bg-white rounded px-2 py-1.5 border-2 border-[#d3e4fe] focus:border-[#003366] outline-none resize-none leading-snug overflow-hidden min-w-0 ${widthCls}`}
                       placeholder="..."
                     />
                   );
                 }
                 return (
-                  <span key={ci} style={widthStyle} className={`text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1.5 border border-[#d3e4fe] ${widthCls}`}>
+                  <span key={ci} style={widthStyle} className={`text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1.5 border border-[#d3e4fe] min-w-0 ${widthCls}`}>
                     {cell}
                   </span>
                 );
