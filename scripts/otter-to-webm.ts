@@ -4,13 +4,17 @@
 // noise around its studio black bg, so 4% RGB Euclidean distance misses
 // the noisier bg pixels and they survive as opaque black squares.
 //
-// This script keys with chromakey at similarity=0.04, blend=0. chromakey
-// works in YUV chroma space which catches noisy near-black bg pixels that
-// straight RGB colorkey misses, while 0.04 stays tight enough that the
-// otter's brown body fill (which has YUV chroma close-ish to dark grey)
-// stays opaque. blend=0 keeps the cut hard. Earlier 0.10 was too loose
-// — keyed out the body too. Run after dropping fresh otter mp4/mov
-// sources into public/avatars/.
+// This script keys with chromakey at similarity=0.04, blend=0, then
+// dilates the alpha plane to close small holes left where dark interior
+// details (eye centres, nose, mouth) fell within the chroma threshold.
+// Without the dilation pass we'd see speckled holes inside the otter
+// body. Pipeline:
+//   1. chromakey strips the studio black bg → yuva420p with body+holes.
+//   2. alphaextract pulls the alpha plane out as grayscale.
+//   3. dilation expands max values, filling 1–2 px holes inside the body
+//      while leaving the bg (a large connected black region) untouched.
+//   4. alphamerge re-attaches the cleaned mask to the original RGB.
+// Run after dropping fresh otter mp4/mov sources into public/avatars/.
 //
 // Run from yuna-teach/:
 //   npx tsx scripts/otter-to-webm.ts
@@ -50,7 +54,14 @@ function argsFor(job: Job, output: string): string[] {
   return [
     "-y",
     "-i", job.source,
-    "-vf", "chromakey=color=0x000000:similarity=0.04:blend=0.0,format=yuva420p",
+    "-filter_complex",
+    // Two-stage: chromakey for the bg cut, then dilate the alpha plane to
+    // fill 1-px speckle holes left inside the body (eye centres etc).
+    // Body is contiguous, bg is contiguous, so dilation expands the body
+    // mask into the small interior holes without bleeding into the bg.
+    "[0:v]chromakey=color=0x000000:similarity=0.04:blend=0.0,format=yuva420p,split[base][bg];" +
+    "[bg]alphaextract,dilation,dilation,dilation[mask];" +
+    "[base][mask]alphamerge",
     "-c:v", "libvpx-vp9",
     "-pix_fmt", "yuva420p",
     "-b:v", "1.2M",

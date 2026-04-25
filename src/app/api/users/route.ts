@@ -143,13 +143,39 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const { userId, settings } = await request.json();
-  if (!userId || !settings) {
-    return NextResponse.json({ error: "userId and settings required" }, { status: 400 });
+  const body = await request.json();
+  const { userId, settings, name } = body as { userId?: string; settings?: Record<string, unknown>; name?: string };
+  if (!userId) {
+    return NextResponse.json({ error: "userId required" }, { status: 400 });
   }
+  if (!settings && typeof name !== "string") {
+    return NextResponse.json({ error: "settings or name required" }, { status: 400 });
+  }
+
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { settings: true } });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-  const merged = { ...((user.settings as Record<string, unknown>) ?? {}), ...settings };
-  await prisma.user.update({ where: { id: userId }, data: { settings: merged } });
-  return NextResponse.json({ success: true, settings: merged });
+
+  const data: import("@prisma/client").Prisma.UserUpdateInput = {};
+  if (settings) {
+    const merged = { ...((user.settings as Record<string, unknown>) ?? {}), ...settings };
+    data.settings = merged as import("@prisma/client").Prisma.InputJsonValue;
+  }
+  if (typeof name === "string") {
+    const trimmed = name.trim();
+    if (trimmed.length < 2 || trimmed.length > 40) {
+      return NextResponse.json({ error: "Name must be 2–40 characters" }, { status: 400 });
+    }
+    // Uniqueness check — case-insensitive, ignore self.
+    const taken = await prisma.user.findFirst({
+      where: { name: { equals: trimmed, mode: "insensitive" }, NOT: { id: userId } },
+      select: { id: true },
+    });
+    if (taken) {
+      return NextResponse.json({ error: "That name is already taken" }, { status: 409 });
+    }
+    data.name = trimmed;
+  }
+
+  await prisma.user.update({ where: { id: userId }, data });
+  return NextResponse.json({ success: true, ...data });
 }
