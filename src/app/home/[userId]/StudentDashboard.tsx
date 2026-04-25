@@ -168,6 +168,38 @@ function findVisibleXpBar(): DOMRect | null {
 export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Rename modal — click the user's name in the side panel to open. Submits
+  // PATCH /api/users with { name }; server enforces 2-40 chars and a
+  // case-insensitive uniqueness check against all other users.
+  const [showRename, setShowRename] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [renameSaving, setRenameSaving] = useState(false);
+  async function submitRename() {
+    const trimmed = renameValue.trim();
+    if (trimmed.length < 2) { setRenameError("Too short"); return; }
+    if (trimmed === user.name) { setShowRename(false); return; }
+    setRenameSaving(true);
+    setRenameError(null);
+    try {
+      const res = await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, name: trimmed }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRenameError(data.error ?? "Could not save");
+        return;
+      }
+      setShowRename(false);
+      window.location.reload();
+    } catch {
+      setRenameError("Could not save");
+    } finally {
+      setRenameSaving(false);
+    }
+  }
   // Avatar gating: requires BOTH (a) the parent has explicitly enabled it on the
   // student's settings (settings.avatar === true) AND (b) the student has earned
   // the 100-point unlock threshold. New students start with avatar off.
@@ -919,7 +951,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-[#d3e4fe] flex items-center justify-center text-[#001e40] font-extrabold">{initials(user.name)}</div>
               <div>
-                <p className="font-bold text-[#0b1c30]">{user.name}</p>
+                <button
+                  onClick={() => { setRenameValue(user.name); setRenameError(null); setShowRename(true); }}
+                  className="font-bold text-[#0b1c30] hover:underline cursor-pointer"
+                  title="Click to change your name"
+                >{user.name}</button>
                 {user.linkedParents?.length > 0 && <p className="text-xs text-[#43474f]">Parent: {user.linkedParents[0].name}</p>}
               </div>
             </div>
@@ -1620,6 +1656,43 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           </button>
         )}
       </nav>
+
+      {/* Rename Modal */}
+      {showRename && (
+        <div className="fixed inset-0 bg-black/40 flex items-end lg:items-center justify-center z-50 p-4 pb-20 lg:pb-4" onClick={() => !renameSaving && setShowRename(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-headline font-extrabold text-lg text-[#001e40]">Change your name</h3>
+              <button onClick={() => !renameSaving && setShowRename(false)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+                <span className="material-symbols-outlined text-slate-500 text-base">close</span>
+              </button>
+            </div>
+            <input
+              type="text"
+              value={renameValue}
+              onChange={e => { setRenameValue(e.target.value); setRenameError(null); }}
+              onKeyDown={e => { if (e.key === "Enter" && !renameSaving) submitRename(); }}
+              maxLength={40}
+              autoFocus
+              className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-[#003366] outline-none text-[#001e40]"
+              placeholder="New name"
+            />
+            {renameError && <p className="text-xs text-[#ba1a1a] mt-2">{renameError}</p>}
+            <div className="flex gap-2 mt-5">
+              <button
+                onClick={() => setShowRename(false)}
+                disabled={renameSaving}
+                className="flex-1 py-2.5 rounded-xl bg-slate-100 text-[#001e40] text-sm font-bold hover:bg-slate-200 disabled:opacity-50"
+              >Cancel</button>
+              <button
+                onClick={submitRename}
+                disabled={renameSaving || renameValue.trim().length < 2}
+                className="flex-1 py-2.5 rounded-xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145] disabled:opacity-50"
+              >{renameSaving ? "Saving…" : "Save"}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
