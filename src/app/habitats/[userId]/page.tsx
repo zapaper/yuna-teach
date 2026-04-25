@@ -535,7 +535,9 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
         .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0) + bonusPts;
       setTotalPoints(pts);
       const earnedCrystals = papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length;
-      setCrystals(earnedCrystals + bonusCrystals - spentCrystals);
+      // Clamp at 0 — if a quiz is un-released or admin reduces bonusCrystals
+      // below what was already spent, the raw subtraction can go negative.
+      setCrystals(Math.max(0, earnedCrystals + bonusCrystals - spentCrystals));
     });
   }, [userId]);
 
@@ -582,7 +584,7 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
       } else {
         setPurchasedHabitats((prev) => (prev.includes(purchase.id) ? prev : [...prev, purchase.id]));
       }
-      if (!data.alreadyOwned) setCrystals((c) => c - purchase.cost);
+      if (!data.alreadyOwned) setCrystals((c) => Math.max(0, c - purchase.cost));
       if (purchase.kind === "habitat") setSelectedId(purchase.id);
       setPurchase(null);
     } catch {
