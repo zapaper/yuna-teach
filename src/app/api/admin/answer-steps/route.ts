@@ -292,11 +292,15 @@ export async function POST(request: NextRequest) {
         answer: { startsWith: PROCESSED_PREFIX },
         examPaper: { subject: "Mathematics" },
       },
-      select: { id: true, answer: true, questionNum: true, transcribedOptions: true },
+      select: {
+        id: true, answer: true, questionNum: true, transcribedOptions: true,
+        examPaperId: true,
+        examPaper: { select: { title: true } },
+      },
     });
     let reverted = 0;
     let skipped = 0;
-    const skippedDetails: { id: string; questionNum: string; reason: string }[] = [];
+    const skippedDetails: { id: string; questionNum: string; paperTitle: string; cleanEditorUrl: string; aiFinalAnswer: string; reason: string }[] = [];
     for (const r of rows) {
       const opts = Array.isArray(r.transcribedOptions)
         ? (r.transcribedOptions as unknown[]).filter((o): o is string => typeof o === "string" && o.trim().length > 0)
@@ -308,14 +312,27 @@ export async function POST(request: NextRequest) {
       // Accept single 1-4 / A-D, with or without parens. Strip parens.
       const cleaned = candidate.replace(/[().]/g, "").trim();
       if (/^[1-4A-Da-d]$/.test(cleaned)) {
+        // Restore the option index AND mark the row 'skipped' so the same
+        // MCQ doesn't drift back into pending now that its answer no
+        // longer starts with 'Steps:'.
         await prisma.examQuestion.update({
           where: { id: r.id },
-          data: { answer: cleaned },
+          data: {
+            answer: cleaned,
+            markingNotes: `${SKIPPED_PREFIX} (auto-reverted MCQ from answer-steps)`,
+          },
         });
         reverted++;
       } else {
         skipped++;
-        skippedDetails.push({ id: r.id, questionNum: r.questionNum, reason: candidate ? `couldn't normalise '${candidate}'` : "no Final answer line" });
+        skippedDetails.push({
+          id: r.id,
+          questionNum: r.questionNum,
+          paperTitle: r.examPaper.title,
+          cleanEditorUrl: `/exam/${r.examPaperId}/edit#q-${r.id}`,
+          aiFinalAnswer: candidate,
+          reason: candidate ? `couldn't normalise '${candidate}'` : "no Final answer line",
+        });
       }
     }
     return NextResponse.json({ reverted, skipped, skippedDetails });
