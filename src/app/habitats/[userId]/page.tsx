@@ -38,6 +38,13 @@ function petBlendMode(bg?: "white" | "black" | "alpha"): PetBlend {
   return "multiply";
 }
 
+// Bump this string whenever a pet asset is overwritten in place — bypasses
+// the 1-year immutable cache on /avatars/* (see next.config.ts headers).
+const ASSET_VERSION = "20260425b";
+function withVersion(path: string): string {
+  return path.includes("?") ? path : `${path}?v=${ASSET_VERSION}`;
+}
+
 // Placement region for unlocked pets on the landscape (was the teal marker).
 // Top 55%, height 15% → bottom 70% of the image.
 const PET_REGION_TOP_PCT = 55;
@@ -287,15 +294,20 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
   //            which has no alpha — pet renders as an opaque black square
   //            against the landscape.
   //   .mp4   → plain <source type="video/mp4"> (opaque clip, no transparency)
+  // Cache-bust query string: /avatars/* uses Cache-Control immutable +
+  // 1-year max-age (next.config.ts), so when we overwrite a clip in place
+  // browsers don't refetch. Bumping ASSET_VERSION forces every <video> to
+  // pull the latest copy on the next render.
   const sourceSet = (path: string | undefined) => {
     if (!path) return null;
+    const v = withVersion(path);
     if (/\.mp4$/i.test(path)) {
-      return <source src={path} type="video/mp4" />;
+      return <source src={v} type="video/mp4" />;
     }
-    const mov = path.replace(/\.webm$/i, ".mov");
+    const mov = withVersion(path.replace(/\.webm$/i, ".mov"));
     return (
       <>
-        <source src={path} type="video/webm" />
+        <source src={v} type="video/webm" />
         <source src={mov} type="video/quicktime" />
       </>
     );
@@ -713,8 +725,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                     mixBlendMode: petBlendMode(pet.bg),
                   }}
                 >
-                  <source src={pet.video} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
-                  {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
+                  <source src={withVersion(pet.video)} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+                  {pet.video.endsWith(".webm") && <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />}
                 </video>
               )
             ))}
@@ -752,8 +764,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                         autoPlay loop muted playsInline
                         className="w-full aspect-square object-contain pointer-events-none"
                       >
-                        <source src={pet.video} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
-                        {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
+                        <source src={withVersion(pet.video)} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+                        {pet.video.endsWith(".webm") && <source src={withVersion(pet.video.replace(/\.webm$/i, ".mov"))} type="video/quicktime" />}
                       </video>
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
                       {!unlocked && crystalCost && (

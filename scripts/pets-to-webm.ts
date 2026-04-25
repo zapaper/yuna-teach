@@ -56,14 +56,18 @@ function argsFor(job: Job, output: string): string[] {
   // libvpx-vp9 with pix_fmt yuva420p is the only cross-browser path for
   // WebM with alpha. -auto-alt-ref 0 must be set or VP9 drops the alpha.
   //
-  // colorkey similarity=0.10 keys pixels within ~10% RGB Euclidean distance
-  // of pure black — loose enough to catch the dark halo right at the sprite
-  // edge, tight enough to leave interior dark pixels (eyes, shadows) opaque.
-  // blend=0.0 ensures no gradient → no body translucency.
+  // colorkey similarity=0.04 — tight. Anything within ~4% RGB Euclidean
+  // distance of pure black is keyed out. The looser 0.10 we tried earlier
+  // bled into the dark outline strokes and eye centres on darker pets,
+  // leaving see-through holes through the sprite. With 0.04 the body
+  // (including outlines and eye details) stays opaque; only true studio
+  // black gets removed. There may be a thin black halo at the sprite
+  // edge — that's a smaller cosmetic issue than the see-through eyes.
+  // blend=0.0 keeps the cut hard so no body translucency.
   return [
     "-y",
     "-i", job.source,
-    "-vf", "colorkey=color=0x000000:similarity=0.10:blend=0.0,format=yuva420p",
+    "-vf", "colorkey=color=0x000000:similarity=0.04:blend=0.0,format=yuva420p",
     "-c:v", "libvpx-vp9",
     "-pix_fmt", "yuva420p",
     "-b:v", "1.2M",
