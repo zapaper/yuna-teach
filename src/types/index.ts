@@ -67,6 +67,7 @@ export interface ExamPaperSummary {
   markingStatus: string | null;
   extractionStatus: string | null;
   assignmentCount: number;
+  lastAssignedByStudent?: Record<string, string>;
   score: number | null;
   totalMarks: string | null;
   paperType: string | null;

@@ -40,7 +40,7 @@ function petBlendMode(bg?: "white" | "black" | "alpha"): PetBlend {
 
 // Bump this string whenever a pet asset is overwritten in place — bypasses
 // the 1-year immutable cache on /avatars/* (see next.config.ts headers).
-const ASSET_VERSION = "20260425c";
+const ASSET_VERSION = "20260425d";
 function withVersion(path: string): string {
   return path.includes("?") ? path : `${path}?v=${ASSET_VERSION}`;
 }

@@ -121,6 +121,8 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           markingStatus: true,
+          assignedToId: true,
+          createdAt: true,
           _count: { select: { questions: { where: { flagged: true } } } },
         },
       },
@@ -143,6 +145,19 @@ export async function GET(request: NextRequest) {
       markingStatus: p.markingStatus ?? null,
       extractionStatus: p.extractionStatus ?? null,
       assignmentCount: p._count.clones,
+      // Per-student last-assigned timestamp lookup. UI shows the entry for
+      // the currently selected student so the parent sees 'Last assigned
+      // 3 days ago' inline next to the Assign button.
+      lastAssignedByStudent: Object.fromEntries(
+        Array.from(
+          p.clones.reduce<Map<string, Date>>((acc, c) => {
+            if (!c.assignedToId) return acc;
+            const cur = acc.get(c.assignedToId);
+            if (!cur || c.createdAt > cur) acc.set(c.assignedToId, c.createdAt);
+            return acc;
+          }, new Map())
+        ).map(([k, v]) => [k, v.toISOString()])
+      ),
       score: p.score ?? null,
       totalMarks: p.totalMarks ?? null,
       paperType: p.paperType ?? null,

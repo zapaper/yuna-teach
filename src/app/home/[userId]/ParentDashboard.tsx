@@ -1882,27 +1882,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           setAssigningPaperId(null);
                         }
                       }
-                      async function handleUnassign(e: React.MouseEvent) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (!selectedStudentId || isAssigning) return;
-                        if (!confirm(`Remove "${p.title}" from ${selectedStudent?.name ?? "student"}'s queue?`)) return;
-                        setAssigningPaperId(p.id);
-                        try {
-                          const res = await fetch(`/api/exam/${p.id}/unassign`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ studentId: selectedStudentId }),
-                          });
-                          if (!res.ok) { alert("Failed to unassign paper."); return; }
-                          await refreshPapers();
-                          setAssignToast(`Paper removed from ${selectedStudent?.name ?? "student"}`);
-                          setTimeout(() => setAssignToast(null), 3000);
-                        } finally {
-                          setAssigningPaperId(null);
-                        }
-                      }
-                      const isAssigned = p.assignmentCount > 0;
+                      const lastAssignedIso = selectedStudentId ? p.lastAssignedByStudent?.[selectedStudentId] : null;
                       return (
                         <div
                           key={p.id}
@@ -1920,23 +1900,17 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             <p className="text-xs text-[#737780] font-medium mt-0.5">
                               {[p.subject, p.examType, p.level].filter(Boolean).join(" · ")}
                             </p>
+                            {lastAssignedIso && (
+                              <p className="text-[11px] text-[#43474f] mt-1">
+                                Last assigned {relativeDate(lastAssignedIso)}
+                              </p>
+                            )}
                           </div>
-                          {isAssigned ? (
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="material-symbols-outlined text-[#006c49] text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                              <button
-                                onClick={handleUnassign}
-                                disabled={isAssigning}
-                                className="text-xs font-bold text-[#ba1a1a] bg-[#ffdad6] px-3 py-1.5 rounded-xl hover:bg-[#ffc1bb] transition-colors disabled:opacity-50"
-                              >Remove</button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={handleAssign}
-                              disabled={isAssigning}
-                              className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
-                            >Assign</button>
-                          )}
+                          <button
+                            onClick={handleAssign}
+                            disabled={isAssigning}
+                            className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
+                          >Assign</button>
                         </div>
                       );
                     })}
