@@ -304,6 +304,22 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   useEffect(() => { refreshPapers(); }, [refreshPapers]);
 
+  // Re-pull the papers list when the parent comes back to the tab (focus or
+  // visibilitychange). Without this, a paper the student just completed
+  // stays as 'Not started' on the parent dashboard until manual refresh —
+  // the initial fetch is the only one we'd otherwise do.
+  useEffect(() => {
+    function onActive() {
+      if (document.visibilityState === "visible") refreshPapers();
+    }
+    window.addEventListener("focus", onActive);
+    document.addEventListener("visibilitychange", onActive);
+    return () => {
+      window.removeEventListener("focus", onActive);
+      document.removeEventListener("visibilitychange", onActive);
+    };
+  }, [refreshPapers]);
+
   // Keep quiz modal target student in sync with the currently selected student
   useEffect(() => { if (selectedStudentId) setQuizStudentId(selectedStudentId); }, [selectedStudentId]);
 
