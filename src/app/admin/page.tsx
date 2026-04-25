@@ -98,6 +98,13 @@ function AdminContent() {
       href: `/admin/classify-difficulty?userId=${userId}`,
       color: "bg-emerald-50 text-emerald-600",
     },
+    {
+      icon: "list_alt",
+      label: "Generate Answer Steps",
+      description: "P4–P6 Math difficulty 4–5: AI rewrites answer keys as step-by-step working. Mismatches get flagged.",
+      href: `/admin/answer-steps?userId=${userId}`,
+      color: "bg-amber-50 text-amber-600",
+    },
   ];
 
   return (
