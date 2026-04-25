@@ -598,16 +598,23 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
             </label>
           );
         }
-        // Answer lines: [LINES: N], [N lines], or [N] — render as a textarea
-        // with `rows={N}` so each subpart gets its own typing space. Stored
-        // under JSON key line0/line1/... so the marking layer sees per-subpart
-        // input separately from table cells and ticks.
-        const linesMatch = trimmed.match(/^\[(?:LINES?:\s*)?(\d+)\s*(?:lines?)?\]\s*$/i);
-        if (linesMatch) {
-          const count = parseInt(linesMatch[1]);
+        // Line with a [LINES: N] / [N lines] / [N] marker at the end — render
+        // the text portion, then a textarea with `rows={N}`. Handles both the
+        // "marker on its own line" case (textPart empty) and the common
+        // "Question? [LINES: 3]" case (textPart = "Question?"). Stored under
+        // JSON key line0/line1/... so each subpart's answer is separable.
+        const linesEndMatch = trimmed.match(/^(.*?)\s*\[(?:LINES?:\s*)?(\d+)\s*(?:lines?)?\]\s*$/i);
+        if (linesEndMatch) {
+          const textPart = linesEndMatch[1].trim();
+          const count = parseInt(linesEndMatch[2]);
           const lineKey = `line${lineIdx++}`;
           return (
             <div key={li} className="my-2">
+              {textPart && (
+                <p className="text-base text-[#001e40] leading-relaxed mb-2">
+                  {renderInlineBold(textPart)}
+                </p>
+              )}
               <textarea
                 rows={count}
                 spellCheck={false}
@@ -622,11 +629,19 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
             </div>
           );
         }
-        // Answer line: ___ (3+ underscores) — render as a single-row textarea.
-        if (trimmed.match(/^_{3,}$/)) {
+        // Line ending with ___ (3+ underscores) — same idea as above but a
+        // single-row textarea. Handles both "Answer: ___" and standalone "___".
+        const underscoreEndMatch = trimmed.match(/^(.*?)\s*_{3,}\s*$/);
+        if (underscoreEndMatch) {
+          const textPart = underscoreEndMatch[1].trim();
           const lineKey = `line${lineIdx++}`;
           return (
             <div key={li} className="my-2">
+              {textPart && (
+                <p className="text-base text-[#001e40] leading-relaxed mb-2">
+                  {renderInlineBold(textPart)}
+                </p>
+              )}
               <textarea
                 rows={1}
                 spellCheck={false}
