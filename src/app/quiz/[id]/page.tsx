@@ -1656,16 +1656,6 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
         onPointerCancel={onUp}
         onPointerLeave={onUp}
       />
-      {isActive && (
-        <button
-          onClick={handleUndo}
-          type="button"
-          title="Undo last stroke"
-          className="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/90 border border-[#d3e4fe] shadow-sm flex items-center justify-center text-[#43474f] hover:text-[#001e40]"
-        >
-          <span className="material-symbols-outlined text-base">undo</span>
-        </button>
-      )}
     </>
   );
 }

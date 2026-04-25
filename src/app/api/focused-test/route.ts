@@ -40,7 +40,23 @@ export async function POST(request: NextRequest) {
   const rawDifficultyMode = await getStudentDifficultyMode(studentId);
   const difficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, studentId, subject);
 
-  const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null) => ({
+  // Time-of-year exam-type gate (mirrors daily-quiz). In April we shouldn't
+  // be drawing EOY/Prelim questions for focused practice — students haven't
+  // covered that material yet. Mapping:
+  //   Jan – 17 Apr            : WA1
+  //   18 Apr – 14 Jul         : WA1, WA2, SA1
+  //   15 Jul – Aug            : WA1, WA2, WA3, SA1
+  //   Sep – Dec               : every type allowed
+  // null = no examType filter.
+  const now = new Date();
+  const m = now.getMonth() + 1;
+  const d = now.getDate();
+  let allowedExamTypes: string[] | null = null;
+  if (m < 4 || (m === 4 && d <= 17)) allowedExamTypes = ["WA1"];
+  else if (m < 7 || (m === 7 && d <= 14)) allowedExamTypes = ["WA1", "WA2", "SA1"];
+  else if (m <= 8) allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
+
+  const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null, examTypes: string[] | null) => ({
     syllabusTopic: topic,
     answer: { not: null } as { not: null },
     // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
@@ -57,6 +73,7 @@ export async function POST(request: NextRequest) {
       visible: true,
       subject: { contains: subject, mode: "insensitive" as const },
       ...(useLevel && levelVariants ? { level: { in: levelVariants } } : {}),
+      ...(examTypes ? { examType: { in: examTypes } } : {}),
     },
   });
 
@@ -82,16 +99,27 @@ export async function POST(request: NextRequest) {
   } as const;
 
   let topicMatched = await prisma.examQuestion.findMany({
-    where: questionWhere(true, difficultyFilter.primary),
+    where: questionWhere(true, difficultyFilter.primary, allowedExamTypes),
     select: questionSelect,
   });
+  // If the time-of-year filter zeroed out the pool (e.g. April with WA1
+  // only and the topic only appears in EOY papers), drop the examType
+  // filter so the student gets at least some practice. Surface a warning.
+  let examTypeFellBack = false;
+  if (topicMatched.length === 0 && allowedExamTypes) {
+    topicMatched = await prisma.examQuestion.findMany({
+      where: questionWhere(true, difficultyFilter.primary, null),
+      select: questionSelect,
+    });
+    examTypeFellBack = topicMatched.length > 0;
+  }
   // If the student-level filter zeroed out but the topic exists in the bank at
   // other levels, fall back to "any level" so English master papers tagged with
   // e.g. level="Primary 5" don't hide from a student whose level is stored as 5.
   let levelFallback = false;
   if (topicMatched.length === 0 && levelVariants) {
     topicMatched = await prisma.examQuestion.findMany({
-      where: questionWhere(false, difficultyFilter.primary),
+      where: questionWhere(false, difficultyFilter.primary, null),
       select: questionSelect,
     });
     levelFallback = topicMatched.length > 0;
@@ -108,7 +136,7 @@ export async function POST(request: NextRequest) {
       : null;
     if (broadened) {
       const withFallback = await prisma.examQuestion.findMany({
-        where: questionWhere(true, broadened),
+        where: questionWhere(true, broadened, examTypeFellBack ? null : allowedExamTypes),
         select: questionSelect,
       });
       if (withFallback.length > topicMatched.length) {
@@ -118,7 +146,7 @@ export async function POST(request: NextRequest) {
     }
     if (topicMatched.length < TARGET_POOL) {
       const noFilter = await prisma.examQuestion.findMany({
-        where: questionWhere(true, null),
+        where: questionWhere(true, null, examTypeFellBack ? null : allowedExamTypes),
         select: questionSelect,
       });
       if (noFilter.length > topicMatched.length) {
@@ -436,6 +464,9 @@ export async function POST(request: NextRequest) {
   // assigner knows the practice is shorter than usual.
   const warnings: string[] = [];
   const levelName = student?.level ? `P${student.level}` : "this level";
+  if (examTypeFellBack && allowedExamTypes) {
+    warnings.push(`No "${topic}" questions yet from ${allowedExamTypes.join("/")} papers (the typical scope at this point in the school year) — pulled from later-year papers instead.`);
+  }
   if (difficultyDropped) {
     warnings.push(`Not enough questions at the student's chosen difficulty (${modeWarningLabel(difficultyFilter.effectiveMode)}) — pulled from the full difficulty range instead.`);
   } else if (difficultyFellBack) {
