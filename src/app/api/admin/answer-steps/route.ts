@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
   const action = String(body.action ?? "preview");
 
   if (action === "preview") {
-    const limit = Math.min(20, Math.max(1, Number(body.limit ?? 10)));
+    const limit = Math.min(30, Math.max(1, Number(body.limit ?? 20)));
     const rawExclude = body.excludeIds;
     const excludeIds: string[] = Array.isArray(rawExclude)
       ? rawExclude.filter((x: unknown): x is string => typeof x === "string")

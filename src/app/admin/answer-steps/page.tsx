@@ -170,11 +170,11 @@ function Content() {
 
         <div className="flex gap-2 mb-4 flex-wrap">
           <button
-            onClick={() => fetchPreview(10)}
+            onClick={() => fetchPreview(20)}
             disabled={running || applying}
             className="px-4 py-2 rounded-lg bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] disabled:opacity-50"
           >
-            {running ? "Generating…" : items.length === 0 ? "Preview 10" : "Preview next 10"}
+            {running ? "Generating…" : items.length === 0 ? "Preview 20" : "Preview next 20"}
           </button>
           {items.length > 0 && (
             <button

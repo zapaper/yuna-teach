@@ -280,7 +280,12 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
   };
   const blend = petBlendMode(pet.bg);
   // Serve the right sources per clip format:
-  //   .webm  → dual source with .mov fallback (Safari picks MOV, others WebM)
+  //   .webm  → .webm first (VP9 alpha — works in Chrome/Firefox/Edge and
+  //            modern Safari), .mov as fallback for older Safari that can't
+  //            decode VP9 in WebM. Listing .mov first caused some browsers
+  //            with HEVC support (Edge, Chrome+HEVC ext) to play the .mov,
+  //            which has no alpha — pet renders as an opaque black square
+  //            against the landscape.
   //   .mp4   → plain <source type="video/mp4"> (opaque clip, no transparency)
   const sourceSet = (path: string | undefined) => {
     if (!path) return null;
@@ -290,8 +295,8 @@ function PetActor({ pet, startX, y, scale, widthPct, positionsRef, actionsRef }:
     const mov = path.replace(/\.webm$/i, ".mov");
     return (
       <>
-        <source src={mov} type="video/quicktime" />
         <source src={path} type="video/webm" />
+        <source src={mov} type="video/quicktime" />
       </>
     );
   };
@@ -708,8 +713,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                     mixBlendMode: petBlendMode(pet.bg),
                   }}
                 >
-                  {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
                   <source src={pet.video} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+                  {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
                 </video>
               )
             ))}
@@ -747,8 +752,8 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
                         autoPlay loop muted playsInline
                         className="w-full aspect-square object-contain pointer-events-none"
                       >
-                        {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
                         <source src={pet.video} type={pet.video.endsWith(".webm") ? "video/webm" : "video/mp4"} />
+                        {pet.video.endsWith(".webm") && <source src={pet.video.replace(/\.webm$/i, ".mov")} type="video/quicktime" />}
                       </video>
                       <p className={`text-[11px] font-bold ${unlocked ? "text-[#006c49]" : "text-[#43474f]"}`}>{pet.name}</p>
                       {!unlocked && crystalCost && (
