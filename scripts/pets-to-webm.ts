@@ -1,15 +1,24 @@
 // Re-encode pet clips to VP9 WebMs with clean alpha channels.
 //
-//   • merlion / unicorn / dragon / qilin: source .mp4 has a solid black
-//     background → chroma-key it out with a tight threshold.
-//   • otter: source .mov master already carries clean alpha (ProRes 4444) →
-//     straight re-encode, just preserve the alpha with no lossy squeeze on
-//     edge pixels (the current .webm has grey fringe because the earlier
-//     encode was too soft on the alpha).
+// All pet sources (.mp4 and .mov) are HEVC/h264 yuv420p — no alpha. They were
+// rendered against a solid black background, so the conversion to alpha is a
+// chroma-key step.
+//
+// The previous attempt used chromakey with similarity=0.03 + blend=0.08. That
+// produced translucent bodies because the blend gradient extended into dark
+// interior pixels (eyes, shadows fell inside the [0.03, 0.11] alpha ramp and
+// ended up as semi-transparent). The fix is twofold:
+//   • switch to `colorkey` (RGB Euclidean distance) — more predictable than
+//     `chromakey` (YUV) for a solid black backdrop, since YUV chroma channels
+//     pick up subtle compression noise on near-black pixels.
+//   • set blend=0 (hard cut), so alpha is binary inside the matte and there
+//     is no translucency on the body itself.
+// Edge anti-alias still works because the source frame already has rendered
+// edge pixels — we just decide each one is in or out, no gradient.
 //
 // Run: npx tsx scripts/pets-to-webm.ts
 //
-// Takes ~1–2 min per clip. Rough total: ~30 min.
+// Takes ~1–2 min per clip.
 
 import ffmpegStatic from "ffmpeg-static";
 import { spawn } from "child_process";
@@ -20,38 +29,41 @@ const FFMPEG = ffmpegStatic as unknown as string;
 const AVATARS = path.join(process.cwd(), "public/avatars");
 
 const CLIPS = ["smile", "stretch", "walk", "talk"] as const;
+const PETS = ["unicorn", "dragon", "qilin", "merlion", "otter"] as const;
 
 type Job = {
   pet: string;
   clip: string;
-  source: string; // absolute path
-  mode: "chromakey-black" | "mov-alpha-passthrough";
+  source: string;
 };
 
 function build(): Job[] {
   const jobs: Job[] = [];
-  const blackBg = ["merlion", "unicorn", "dragon", "qilin"];
-  for (const pet of blackBg) {
+  for (const pet of PETS) {
     for (const clip of CLIPS) {
-      const src = path.join(AVATARS, `${pet}_${clip}.mp4`);
-      if (fs.existsSync(src)) jobs.push({ pet, clip, source: src, mode: "chromakey-black" });
-      else console.warn("missing mp4 source:", src);
+      // Prefer .mov if present (slightly higher bitrate masters), else .mp4.
+      const mov = path.join(AVATARS, `${pet}_${clip}.mov`);
+      const mp4 = path.join(AVATARS, `${pet}_${clip}.mp4`);
+      const src = fs.existsSync(mov) ? mov : (fs.existsSync(mp4) ? mp4 : null);
+      if (src) jobs.push({ pet, clip, source: src });
+      else console.warn("missing source:", pet, clip);
     }
   }
-  // NOTE: otter is intentionally not re-encoded here. The .mov masters
-  // carry HEVC-with-alpha, which libvpx-vp9 via ffmpeg drops silently —
-  // output webm loses the alpha channel and pets render with a black box.
-  // Stick with the pre-existing otter webms (slight grey fringe beats no
-  // transparency at all) until we find a working HEVC-alpha → VP9-alpha path.
   return jobs;
 }
 
 function argsFor(job: Job, output: string): string[] {
   // libvpx-vp9 with pix_fmt yuva420p is the only cross-browser path for
   // WebM with alpha. -auto-alt-ref 0 must be set or VP9 drops the alpha.
-  const common = [
+  //
+  // colorkey similarity=0.10 keys pixels within ~10% RGB Euclidean distance
+  // of pure black — loose enough to catch the dark halo right at the sprite
+  // edge, tight enough to leave interior dark pixels (eyes, shadows) opaque.
+  // blend=0.0 ensures no gradient → no body translucency.
+  return [
     "-y",
     "-i", job.source,
+    "-vf", "colorkey=color=0x000000:similarity=0.10:blend=0.0,format=yuva420p",
     "-c:v", "libvpx-vp9",
     "-pix_fmt", "yuva420p",
     "-b:v", "1.2M",
@@ -59,27 +71,14 @@ function argsFor(job: Job, output: string): string[] {
     "-deadline", "good",
     "-cpu-used", "2",
     "-an",
+    output,
   ];
-  if (job.mode === "chromakey-black") {
-    // similarity 0.03 is tight — only pure/near-pure black gets keyed out,
-    // preserving dark details inside the sprite (eyes, shadows). blend 0.08
-    // softens the cut edge so there's no staircase alias. Earlier attempt
-    // at 0.12 was way too aggressive and keyed out the pet pixels too.
-    return [
-      ...common.slice(0, 3),
-      "-vf", "chromakey=color=0x000000:similarity=0.03:blend=0.08,format=yuva420p",
-      ...common.slice(3),
-      output,
-    ];
-  }
-  // MOV already has alpha — just transcode to VP9. No chroma-key needed.
-  return [...common, output];
 }
 
 async function run(job: Job): Promise<void> {
   const output = path.join(AVATARS, `${job.pet}_${job.clip}.webm`);
   const args = argsFor(job, output);
-  process.stdout.write(`\n[${job.pet} ${job.clip}] ${job.mode} → ${path.basename(output)}\n`);
+  process.stdout.write(`\n[${job.pet} ${job.clip}] ${path.basename(job.source)} → ${path.basename(output)}\n`);
   await new Promise<void>((resolve, reject) => {
     const p = spawn(FFMPEG, args, { stdio: ["ignore", "inherit", "inherit"] });
     p.on("error", reject);

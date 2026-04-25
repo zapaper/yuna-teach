@@ -382,38 +382,35 @@ const HABITATS: Habitat[] = [
     pets: [
       {
         id: "uni", name: "Unicorn",
-        video: "/avatars/unicorn_smile.mp4",
-        // The chroma-keyed alpha webms left a translucent body; falling
-        // back to .mp4 + bg:"black" (lighten blend) which reliably drops
-        // black pixels on every browser without a fragile alpha matte.
-        bg: "black",
+        video: "/avatars/unicorn_smile.webm",
+        bg: "alpha",
         animations: {
-          smile: "/avatars/unicorn_smile.mp4",
-          stretch: "/avatars/unicorn_stretch.mp4",
-          walk: "/avatars/unicorn_walk.mp4",
-          talk: "/avatars/unicorn_talk.mp4",
+          smile: "/avatars/unicorn_smile.webm",
+          stretch: "/avatars/unicorn_stretch.webm",
+          walk: "/avatars/unicorn_walk.webm",
+          talk: "/avatars/unicorn_talk.webm",
         },
       },
       {
         id: "dragon", name: "Dragon",
-        video: "/avatars/dragon_smile.mp4",
-        bg: "black",
+        video: "/avatars/dragon_smile.webm",
+        bg: "alpha",
         animations: {
-          smile: "/avatars/dragon_smile.mp4",
-          stretch: "/avatars/dragon_stretch.mp4",
-          walk: "/avatars/dragon_walk.mp4",
-          talk: "/avatars/dragon_talk.mp4",
+          smile: "/avatars/dragon_smile.webm",
+          stretch: "/avatars/dragon_stretch.webm",
+          walk: "/avatars/dragon_walk.webm",
+          talk: "/avatars/dragon_talk.webm",
         },
       },
       {
         id: "qilin", name: "Qilin",
-        video: "/avatars/qilin_smile.mp4",
-        bg: "black",
+        video: "/avatars/qilin_smile.webm",
+        bg: "alpha",
         animations: {
-          smile: "/avatars/qilin_smile.mp4",
-          stretch: "/avatars/qilin_stretch.mp4",
-          walk: "/avatars/qilin_walk.mp4",
-          talk: "/avatars/qilin_talk.mp4",
+          smile: "/avatars/qilin_smile.webm",
+          stretch: "/avatars/qilin_stretch.webm",
+          walk: "/avatars/qilin_walk.webm",
+          talk: "/avatars/qilin_talk.webm",
         },
       },
     ],
@@ -425,24 +422,24 @@ const HABITATS: Habitat[] = [
     pets: [
       {
         id: "otter", name: "Otter",
-        video: "/avatars/otter_smile.mp4",
-        bg: "black",
+        video: "/avatars/otter_smile.webm",
+        bg: "alpha",
         animations: {
-          smile: "/avatars/otter_smile.mp4",
-          stretch: "/avatars/otter_stretch.mp4",
-          walk: "/avatars/otter_walk.mp4",
-          talk: "/avatars/otter_talk.mp4",
+          smile: "/avatars/otter_smile.webm",
+          stretch: "/avatars/otter_stretch.webm",
+          walk: "/avatars/otter_walk.webm",
+          talk: "/avatars/otter_talk.webm",
         },
       },
       {
         id: "merlion", name: "Merlion",
-        video: "/avatars/merlion_smile.mp4",
-        bg: "black",
+        video: "/avatars/merlion_smile.webm",
+        bg: "alpha",
         animations: {
-          smile: "/avatars/merlion_smile.mp4",
-          stretch: "/avatars/merlion_stretch.mp4",
-          walk: "/avatars/merlion_walk.mp4",
-          talk: "/avatars/merlion_talk.mp4",
+          smile: "/avatars/merlion_smile.webm",
+          stretch: "/avatars/merlion_stretch.webm",
+          walk: "/avatars/merlion_walk.webm",
+          talk: "/avatars/merlion_talk.webm",
         },
       },
       {
