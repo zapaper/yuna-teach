@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
@@ -291,10 +291,30 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       .catch(() => setSpellingTests([]));
   }, [userId, selectedStudentId]);
 
+  // Fingerprint of the student's completed quizzes — when a new quiz is
+  // submitted or its markingStatus flips (pending→complete→released), this
+  // string changes and busts the insight cache. Without this, a fresh quiz
+  // result done after the parent first opens the dashboard would be ignored
+  // until the next day, so the AI insight stayed stale.
+  const studentQuizFingerprint = useMemo(() => {
+    if (!selectedStudentId) return "";
+    const parts = examPapers
+      .filter(p => p.assignedToId === selectedStudentId && p.completedAt)
+      .map(p => `${p.id}:${p.completedAt}:${p.markingStatus ?? ""}`)
+      .sort();
+    return parts.join("|");
+  }, [examPapers, selectedStudentId]);
+
   const recFetchingRef = useRef<string | null>(null);
   function fetchInsight(forceRefresh = false) {
     if (!selectedStudentId || recFetchingRef.current === selectedStudentId) return;
-    const key = `recs-fetched-${selectedStudentId}`;
+    // Hash the fingerprint into a short stable suffix for the cache key.
+    let fpHash = 0;
+    for (let i = 0; i < studentQuizFingerprint.length; i++) {
+      fpHash = (fpHash * 31 + studentQuizFingerprint.charCodeAt(i)) | 0;
+    }
+    const fpKey = (fpHash >>> 0).toString(36);
+    const key = `recs-fetched-${selectedStudentId}-${fpKey}`;
     if (!forceRefresh) {
       const cached = localStorage.getItem(key);
       if (cached && JSON.parse(cached).date === new Date().toDateString()) {
@@ -320,7 +340,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchInsight(); }, [userId, selectedStudentId]);
+  useEffect(() => { fetchInsight(); }, [userId, selectedStudentId, studentQuizFingerprint]);
 
   useEffect(() => {
     fetch(`/api/notifications?userId=${userId}`)
