@@ -182,13 +182,14 @@ export async function POST(request: NextRequest) {
     const excludeIds: string[] = Array.isArray(rawExclude)
       ? rawExclude.filter((x: unknown): x is string => typeof x === "string")
       : [];
-    // Fetch a buffer larger than `limit` because we filter MCQs out post-
-    // fetch. MCQ answer keys ("1", "C", "(2)") aren't multi-step, and
-    // overwriting them with "Steps:\n..." would destroy the option index
-    // the marker uses to grade student picks. Two heuristics:
-    //   transcribedOptions has ≥ 2 non-empty strings → it's MCQ
-    //   answer matches a single 1-4 / A-D pattern → it's MCQ
-    const fetchTake = limit * 3;
+    // Fetch a small buffer in case some rows turn out to be MCQ. MCQ
+    // detection is now driven entirely by transcribedOptions — if the
+    // row has 2+ populated option strings it's MCQ. The earlier 'answer
+    // matches a single 1-4 / A-D pattern' heuristic was too aggressive
+    // for math: a numeric OEQ answer of '4' got mistaken for an MCQ
+    // option index and dropped from preview, leaving previews of size
+    // ~8 when admin asked for 20.
+    const fetchTake = Math.ceil(limit * 1.3);
     const rows = await prisma.examQuestion.findMany({
       where: buildScope(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : undefined),
       select: {
@@ -204,15 +205,9 @@ export async function POST(request: NextRequest) {
       const opts = Array.isArray(r.transcribedOptions)
         ? (r.transcribedOptions as unknown[]).filter((o): o is string => typeof o === "string" && o.trim().length > 0)
         : [];
-      if (opts.length >= 2) return false;
-      const a = (r.answer ?? "").trim();
-      if (/^\(?[1-4A-Da-d]\)?$/.test(a)) return false;
-      // Also catch "X or Y" (e.g. "3 or 4", "(1) or (3)") — same heuristic
-      // used in marking.ts isMcqAnswer.
-      const normalized = a.replace(/[().]/g, "").trim();
-      const parts = normalized.split(/\s+or\s+/).map(p => p.trim());
-      if (parts.length > 1 && parts.every(p => /^[1-4A-Da-d]$/.test(p))) return false;
-      return true;
+      // MCQ iff the row has populated option strings. Don't second-guess
+      // from the answer text — math OEQ answers are often a single digit.
+      return opts.length < 2;
     }).slice(0, limit);
     const out = await Promise.all(oeqRows.map(async (r) => {
       const diag = await shrinkDiagram(r.diagramImageData);
