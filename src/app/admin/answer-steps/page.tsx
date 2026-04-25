@@ -88,10 +88,12 @@ function Content() {
     setApplying(true);
     setError(null);
     try {
-      // Honour the per-card skip — those rows aren't sent to apply, and they
-      // also get pushed into skipIds so the next preview won't surface them
-      // again (no DB write means they'd otherwise still match the scope).
+      // Honour the per-card skip — those rows aren't sent for AI apply, and
+      // their IDs go to the API as skippedIds so the server writes a
+      // 'skipped' marker. The marker then excludes them from the scope on
+      // every future preview (and survives page reloads).
       const ready = items.filter(it => !it.error && it.stepByStep && it.finalAnswer !== undefined && !skipNow.has(it.id));
+      const skippedIds = items.filter(it => skipNow.has(it.id)).map(it => it.id);
       const res = await fetch("/api/admin/answer-steps", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -104,6 +106,7 @@ function Content() {
             matchesKey: it.matchesKey,
             mismatchReason: it.mismatchReason ?? "",
           })),
+          skippedIds,
         }),
       });
       const data = await res.json();
@@ -111,16 +114,15 @@ function Content() {
         setError(data.error ?? "Apply failed");
         return;
       }
-      // Push BOTH applied IDs and skipped IDs into the cross-batch exclude
-      // set — applied ones won't match the scope anyway, but skipped ones
-      // would still be pending if we didn't push them, so they'd come
-      // straight back next preview.
-      const skippedIds = items.filter(it => skipNow.has(it.id)).map(it => it.id);
+      // Push applied IDs into the in-memory exclude set as belt-and-braces;
+      // skipped IDs are now persisted server-side via the SKIPPED_PREFIX
+      // marker so they're excluded from the next scope query regardless of
+      // session state.
       setSkipIds(prev => [...prev, ...ready.map(it => it.id), ...skippedIds]);
       setItems([]);
       setSkipNow(new Set());
       await loadCounts();
-      const skippedNote = skippedIds.length > 0 ? ` (${skippedIds.length} skipped)` : "";
+      const skippedNote = data.skipped > 0 ? ` (${data.skipped} skipped)` : "";
       alert(`Applied: ${data.updated} updated, ${data.flagged} flagged for review${skippedNote}.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Apply failed");

@@ -7,16 +7,23 @@ import { isSessionAdmin } from "@/lib/session";
 
 // Scope: clean-extracted master Math questions at difficulty 4-5 whose answer
 // key isn't already in our step-by-step format and that haven't been flagged
-// yet. We mark a row as processed by prefixing the new answer with "Steps:" —
-// no schema change.
+// or explicitly skipped. We mark rows by repurposing existing fields:
+//   processed → answer prefixed with "Steps:"
+//   mismatch  → flagged=true + markingNotes prefixed "[answer-steps mismatch]"
+//   skipped   → markingNotes prefixed "[answer-steps skipped]" (NOT flagged)
+// All three exclude the row from future scope.
 const PROCESSED_PREFIX = "Steps:";
+const SKIPPED_PREFIX = "[answer-steps skipped]";
 
 function buildScope(extra?: Prisma.ExamQuestionWhereInput): Prisma.ExamQuestionWhereInput {
   return {
     transcribedStem: { not: null },
     difficulty: { in: [4, 5] },
     flagged: false,
-    NOT: [{ answer: { startsWith: PROCESSED_PREFIX } }],
+    NOT: [
+      { answer: { startsWith: PROCESSED_PREFIX } },
+      { markingNotes: { startsWith: SKIPPED_PREFIX } },
+    ],
     examPaper: {
       subject: "Mathematics",
       sourceExamId: null,
@@ -208,8 +215,13 @@ export async function POST(request: NextRequest) {
   if (action === "apply") {
     type ApplyItem = { id: string; stepByStep: string; finalAnswer: string; matchesKey: boolean; mismatchReason: string };
     const items: ApplyItem[] = Array.isArray(body.items) ? (body.items as ApplyItem[]) : [];
+    const rawSkipped = body.skippedIds;
+    const skippedIds: string[] = Array.isArray(rawSkipped)
+      ? rawSkipped.filter((x: unknown): x is string => typeof x === "string")
+      : [];
     let updated = 0;
     let flagged = 0;
+    let skipped = 0;
     for (const it of items) {
       if (!it?.id) continue;
       if (it.matchesKey) {
@@ -236,7 +248,16 @@ export async function POST(request: NextRequest) {
         flagged++;
       }
     }
-    return NextResponse.json({ updated, flagged });
+    // Persist explicit skips so they don't resurface on the next preview or
+    // after a page reload. Not flagged — admin doesn't need to review.
+    for (const id of skippedIds) {
+      await prisma.examQuestion.update({
+        where: { id },
+        data: { markingNotes: `${SKIPPED_PREFIX} (admin chose not to apply)` },
+      });
+      skipped++;
+    }
+    return NextResponse.json({ updated, flagged, skipped });
   }
 
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });
