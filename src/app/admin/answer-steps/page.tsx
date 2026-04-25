@@ -4,11 +4,13 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
+type Subpart = { label: string; text: string };
 type PreviewItem = {
   id: string;
   questionNum: string;
   paperTitle: string;
   stem: string;
+  subparts: Subpart[] | null;
   existingAnswer: string;
   diagramImageData: string | null;
   // AI fields — present when no error
@@ -35,6 +37,10 @@ function Content() {
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [counts, setCounts] = useState<Counts | null>(null);
   const [items, setItems] = useState<PreviewItem[]>([]);
+  // Per-card skip set within the current preview batch — admin can opt-out
+  // a specific question and Apply will leave it untouched (and the next
+  // preview won't include it again because skipIds carries it forward).
+  const [skipNow, setSkipNow] = useState<Set<string>>(new Set());
   const [running, setRunning] = useState(false);
   const [applying, setApplying] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +75,7 @@ function Content() {
         return;
       }
       setItems(data.items ?? []);
+      setSkipNow(new Set());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Preview failed");
     } finally {
@@ -81,7 +88,10 @@ function Content() {
     setApplying(true);
     setError(null);
     try {
-      const ready = items.filter(it => !it.error && it.stepByStep && it.finalAnswer !== undefined);
+      // Honour the per-card skip — those rows aren't sent to apply, and they
+      // also get pushed into skipIds so the next preview won't surface them
+      // again (no DB write means they'd otherwise still match the scope).
+      const ready = items.filter(it => !it.error && it.stepByStep && it.finalAnswer !== undefined && !skipNow.has(it.id));
       const res = await fetch("/api/admin/answer-steps", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -101,19 +111,31 @@ function Content() {
         setError(data.error ?? "Apply failed");
         return;
       }
-      // Push the just-applied IDs into the skip set so the next preview
-      // doesn't show the same questions again (some go to flagged, some to
-      // processed — both should be excluded next round).
-      setSkipIds(prev => [...prev, ...ready.map(it => it.id)]);
+      // Push BOTH applied IDs and skipped IDs into the cross-batch exclude
+      // set — applied ones won't match the scope anyway, but skipped ones
+      // would still be pending if we didn't push them, so they'd come
+      // straight back next preview.
+      const skippedIds = items.filter(it => skipNow.has(it.id)).map(it => it.id);
+      setSkipIds(prev => [...prev, ...ready.map(it => it.id), ...skippedIds]);
       setItems([]);
+      setSkipNow(new Set());
       await loadCounts();
-      alert(`Applied: ${data.updated} updated, ${data.flagged} flagged for review.`);
+      const skippedNote = skippedIds.length > 0 ? ` (${skippedIds.length} skipped)` : "";
+      alert(`Applied: ${data.updated} updated, ${data.flagged} flagged for review${skippedNote}.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Apply failed");
     } finally {
       setApplying(false);
     }
-  }, [items, loadCounts]);
+  }, [items, skipNow, loadCounts]);
+
+  function toggleSkip(id: string) {
+    setSkipNow(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   if (allowed === null) return <div className="p-8 text-sm text-[#43474f]">Checking access…</div>;
   if (!allowed) return <div className="p-8 text-sm text-[#ba1a1a]">Admin access required.</div>;
@@ -168,23 +190,44 @@ function Content() {
         {error && <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-sm text-rose-700">{error}</div>}
 
         <div className="space-y-4">
-          {items.map(it => (
-            <div key={it.id} className="bg-white rounded-xl border border-slate-200 p-4">
+          {items.map(it => {
+            const skipped = skipNow.has(it.id);
+            return (
+            <div key={it.id} className={`bg-white rounded-xl border p-4 ${skipped ? "border-slate-300 opacity-50" : "border-slate-200"}`}>
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <p className="text-xs text-[#737780]">{it.paperTitle}</p>
                   <p className="text-sm font-bold text-[#001e40]">Q{it.questionNum}</p>
                 </div>
-                {it.error ? (
-                  <span className="text-xs px-2 py-1 rounded bg-rose-100 text-rose-700">{it.error}</span>
-                ) : it.matchesKey ? (
-                  <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Match → will save</span>
-                ) : (
-                  <span className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700">Mismatch → will flag</span>
-                )}
+                <div className="flex items-center gap-2">
+                  {skipped ? (
+                    <span className="text-xs px-2 py-1 rounded bg-slate-200 text-slate-600">Skipped</span>
+                  ) : it.error ? (
+                    <span className="text-xs px-2 py-1 rounded bg-rose-100 text-rose-700">{it.error}</span>
+                  ) : it.matchesKey ? (
+                    <span className="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700">Match → will save</span>
+                  ) : (
+                    <span className="text-xs px-2 py-1 rounded bg-amber-100 text-amber-700">Mismatch → will flag</span>
+                  )}
+                  <button
+                    onClick={() => toggleSkip(it.id)}
+                    className={`text-xs px-2 py-1 rounded border ${skipped ? "bg-white border-slate-300 text-slate-600 hover:bg-slate-50" : "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100"}`}
+                  >
+                    {skipped ? "Undo skip" : "Don't apply"}
+                  </button>
+                </div>
               </div>
 
               <p className="text-sm text-[#0b1c30] whitespace-pre-wrap mb-2">{it.stem}</p>
+              {it.subparts && it.subparts.length > 0 && (
+                <div className="mb-2 ml-2 space-y-1">
+                  {it.subparts.map(sp => (
+                    <p key={sp.label} className="text-sm text-[#0b1c30] whitespace-pre-wrap">
+                      <span className="font-bold">({sp.label})</span> {sp.text}
+                    </p>
+                  ))}
+                </div>
+              )}
               {it.diagramImageData && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -214,7 +257,8 @@ function Content() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
         </main>
       </div>

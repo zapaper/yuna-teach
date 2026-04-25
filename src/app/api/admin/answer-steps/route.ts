@@ -78,18 +78,25 @@ async function shrinkDiagram(base64: string | null | undefined): Promise<string 
   }
 }
 
+type Subpart = { label: string; text: string };
+
 async function generateForQuestion(q: {
   id: string;
   stem: string;
   options: unknown;
+  subparts: unknown;
   answer: string | null;
   diagramBase64: string | null;
 }): Promise<AiOut | { error: string }> {
   const optList = Array.isArray(q.options) ? q.options.filter((o): o is string => typeof o === "string" && o.trim().length > 0) : [];
+  const subparts: Subpart[] = Array.isArray(q.subparts)
+    ? q.subparts.filter((s): s is Subpart => !!s && typeof s === "object" && typeof (s as Subpart).label === "string" && typeof (s as Subpart).text === "string")
+    : [];
   const lines = [
     STEP_PROMPT,
     "",
     `Question: ${q.stem}`,
+    ...(subparts.length > 0 ? subparts.map(s => `(${s.label}) ${s.text}`) : []),
     ...(optList.length > 0 ? optList.map((o, i) => `Option (${i + 1}): ${o}`) : []),
     `Existing answer key: ${q.answer ?? "(blank)"}`,
   ];
@@ -158,7 +165,8 @@ export async function POST(request: NextRequest) {
       where: buildScope(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : undefined),
       select: {
         id: true, questionNum: true, transcribedStem: true,
-        transcribedOptions: true, answer: true, diagramImageData: true,
+        transcribedOptions: true, transcribedSubparts: true,
+        answer: true, diagramImageData: true,
         examPaper: { select: { title: true, level: true, subject: true } },
       },
       orderBy: { id: "asc" },
@@ -170,6 +178,7 @@ export async function POST(request: NextRequest) {
         id: r.id,
         stem: r.transcribedStem ?? "",
         options: r.transcribedOptions,
+        subparts: r.transcribedSubparts,
         answer: r.answer,
         diagramBase64: diag,
       });
@@ -178,6 +187,7 @@ export async function POST(request: NextRequest) {
         questionNum: r.questionNum,
         paperTitle: r.examPaper.title,
         stem: r.transcribedStem ?? "",
+        subparts: Array.isArray(r.transcribedSubparts) ? r.transcribedSubparts : null,
         existingAnswer: r.answer ?? "",
         // Keep the original diagram (untransformed) for display in the UI —
         // the shrunk one was just for the AI call.
