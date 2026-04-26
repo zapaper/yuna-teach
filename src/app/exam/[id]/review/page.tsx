@@ -1392,12 +1392,19 @@ function ExamReviewContent({ id }: { id: string }) {
                                   <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{word}</span>
                                   {isBlank ? (
                                     // Student left blank — show correct in red
-                                    <span className="font-bold text-[#ba1a1a] text-sm">[{correctAns}]</span>
+                                    <>
+                                      <span className="font-bold text-[#ba1a1a] text-sm">[{correctAns}]</span>
+                                      <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                    </>
                                   ) : isMatch ? (
-                                    <span className="font-bold text-[#006c49] text-sm">[{studentAns}]</span>
+                                    <>
+                                      <span className="font-bold text-[#006c49] text-sm">[{studentAns}]</span>
+                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
+                                    </>
                                   ) : (
                                     <>
                                       <span className="font-bold text-[#ba1a1a] line-through text-sm">[{studentAns}]</span>
+                                      <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
                                       <span className="font-bold text-[#006c49] text-sm">[{correctAns}]</span>
                                     </>
                                   )}
