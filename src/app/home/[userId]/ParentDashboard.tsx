@@ -2075,6 +2075,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         <p className="text-xs text-[#43474f]">
                           Assigned {relativeDate(paper.createdAt)}
                           {paper.subject && <> &middot; {paper.subject}</>}
+                          {paper.questionCount > 0 && <> &middot; {paper.questionCount}q</>}
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
@@ -2117,6 +2118,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             <p className="text-xs text-[#43474f]">
                               {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
                               {paper.subject && <> &middot; {paper.subject}</>}
+                              {paper.questionCount > 0 && <> &middot; {paper.questionCount}q</>}
                             </p>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
