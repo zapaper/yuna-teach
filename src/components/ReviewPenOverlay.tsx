@@ -34,7 +34,12 @@ export function ReviewPenOverlay({
   // needs since touch sampling is sparse and raw lineTo looks jagged.
   const lastMid = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const dirty = useRef(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track whether the server currently holds anything for this key. If
+  // the canvas is blank and the server is also blank (no initialDataUrl,
+  // never saved), skip the fetch entirely — sending null in that case
+  // is a no-op write that wastes a round trip and DB space on the
+  // 'pen overlay tapped but nothing drawn' path.
+  const hasSavedNonBlank = useRef<boolean>(!!initialDataUrl);
   const [active, setActive] = useState(false);
 
   function getPosXY(clientX: number, clientY: number) {
@@ -46,26 +51,39 @@ export function ReviewPenOverlay({
     };
   }
 
-  // Push the current canvas as a PNG data URL up to the API. Debounced
-  // so a multi-stroke session ends with a single PATCH instead of one
-  // per pen-up.
-  const scheduleSave = useCallback(() => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const dataUrl = isCanvasBlank(canvas) ? null : canvas.toDataURL("image/png");
-      try {
-        await fetch(`/api/exam/${paperId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reviewAnnotations: { [storageKey]: dataUrl } }),
-        });
-      } catch {
-        // Best-effort save; parents can re-trigger by drawing more.
-      }
+  // Flush the canvas immediately to the API. Called on the
+  // 'review:save-pen' custom event (parent dispatches before navigation),
+  // on component unmount, and on tab hide. No debounce — saves happen
+  // when the parent leaves the current view, not while they're drawing.
+  const flush = useCallback(async () => {
+    if (!dirty.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const blank = isCanvasBlank(canvas);
+    // Skip the round trip if the canvas is blank AND the server already
+    // has nothing saved here. Avoids a no-op DB write every time the
+    // parent toggles Pen on then off without drawing.
+    if (blank && !hasSavedNonBlank.current) {
       dirty.current = false;
-    }, 1500);
+      return;
+    }
+    const dataUrl = blank ? null : canvas.toDataURL("image/png");
+    dirty.current = false;
+    try {
+      await fetch(`/api/exam/${paperId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        // keepalive lets the request survive page-unload — back / Reviewed
+        // buttons trigger pagehide before the fetch completes, and without
+        // this the browser cancels the request mid-flight.
+        keepalive: true,
+        body: JSON.stringify({ reviewAnnotations: { [storageKey]: dataUrl } }),
+      });
+      hasSavedNonBlank.current = !blank;
+    } catch {
+      // Re-mark dirty so the next flush retries.
+      dirty.current = true;
+    }
   }, [paperId, storageKey]);
 
   function applyStyle(ctx: CanvasRenderingContext2D) {
@@ -128,7 +146,9 @@ export function ReviewPenOverlay({
     if (!isDrawing.current) return;
     isDrawing.current = false;
     lastPos.current = null;
-    if (dirty.current) scheduleSave();
+    // No debounced save on pen-up. The dirty flag will be flushed when
+    // the parent dispatches 'review:save-pen' (back / next-prev /
+    // reviewed buttons) or when this overlay unmounts.
   }
 
   function clearAll() {
@@ -137,7 +157,9 @@ export function ReviewPenOverlay({
     const ctx = canvas.getContext("2d");
     ctx?.clearRect(0, 0, canvas.width, canvas.height);
     dirty.current = true;
-    scheduleSave();
+    // Clear is a destructive action — flush immediately so the user
+    // sees the empty state stick across reload.
+    flush();
   }
 
   // Resize canvas to parent's scroll dimensions and re-paint any saved
@@ -193,6 +215,26 @@ export function ReviewPenOverlay({
     // not a live source of truth (we own the canvas after first paint).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Flush triggers: parent's custom 'review:save-pen' event (fired by
+  // back / next / prev / reviewed buttons), tab hidden, and unmount.
+  useEffect(() => {
+    function onSaveEvent() { flush(); }
+    function onVisibilityChange() {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") flush();
+    }
+    window.addEventListener("review:save-pen", onSaveEvent);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("pagehide", onSaveEvent);
+    return () => {
+      window.removeEventListener("review:save-pen", onSaveEvent);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", onSaveEvent);
+      // Unmount = parent navigated to a different question. Flush so
+      // the strokes from this question survive the navigation.
+      flush();
+    };
+  }, [flush]);
 
   return (
     <>

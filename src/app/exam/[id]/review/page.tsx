@@ -1293,6 +1293,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
                     <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full relative">
                       <ReviewPenOverlay
+                        key={`passage:${currentSection?.label ?? "unnamed"}`}
                         paperId={id}
                         storageKey={`passage:${currentSection?.label ?? "unnamed"}`}
                         initialDataUrl={data.reviewAnnotations?.[`passage:${currentSection?.label ?? "unnamed"}`] ?? null}
@@ -1936,6 +1937,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                                   }}
                                                 />
                                                 <ReviewPenOverlay
+                                                  key={overlayKey}
                                                   paperId={id}
                                                   storageKey={overlayKey}
                                                   initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
@@ -2031,6 +2033,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   aspectRatio={`400 / ${visibleH}`}
                                 />
                                 <ReviewPenOverlay
+                                  key={overlayKey}
                                   paperId={id}
                                   storageKey={overlayKey}
                                   initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
