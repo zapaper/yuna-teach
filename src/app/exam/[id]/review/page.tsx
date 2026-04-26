@@ -1392,7 +1392,10 @@ function ExamReviewContent({ id }: { id: string }) {
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded relative -top-px">({num})</span>
                                   {isBlank ? (
-                                    <span className="border-b-2 border-slate-300 px-1 text-sm text-[#737780]">____</span>
+                                    // Student left it blank — show the correct word in
+                                    // red bold so they can see what they should have
+                                    // answered.
+                                    <span className="font-bold text-[#ba1a1a] underline decoration-2 decoration-[#ba1a1a]/40 underline-offset-2 px-1 text-sm">{correctWord}</span>
                                   ) : isCorrect ? (
                                     <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentWord}</span>
                                   ) : (
