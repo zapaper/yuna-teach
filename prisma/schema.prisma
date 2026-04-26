@@ -99,6 +99,11 @@ model ExamPaper {
   // each value a PNG data URL produced by the /exam/[id]/annotate page.
   // Null means no annotations yet.
   annotationsByPage Json?
+  // Parent's red-pen annotations made on the quiz review page.
+  // Object keyed by either "passage:<sectionIdx>" (English passage)
+  // or "question:<questionId>" (per-question OEQ canvas), each value a
+  // PNG data URL. Cleared by the parent via the Clear button.
+  reviewAnnotations Json?
 
   user       User           @relation("UploadedPapers", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo User?          @relation("AssignedPapers", fields: [assignedToId], references: [id], onDelete: SetNull)
