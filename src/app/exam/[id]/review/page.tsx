@@ -1421,7 +1421,10 @@ function ExamReviewContent({ id }: { id: string }) {
                             } else if (isCompCloze) {
                               // Comprehension Cloze: student types the missing
                               // word directly (no word bank). Show their typed
-                              // answer in green if it matches the key, in red
+                              // answer in green if the AI marker awarded full
+                              // marks for it (which can happen even if the
+                              // word doesn't exactly match the answer key —
+                              // a synonym or acceptable variant), in red
                               // (followed by the correct answer in green) if
                               // wrong, or just the correct answer in red if
                               // they left it blank.
@@ -1429,8 +1432,11 @@ function ExamReviewContent({ id }: { id: string }) {
                               const studentAns = (q?.studentAnswer ?? "").trim();
                               const correctAns = (q?.answer ?? "").trim();
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
-                              const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
-                              const isMatch = !isBlank && norm(studentAns) === norm(correctAns);
+                              const earned = q?.marksAwarded ?? 0;
+                              const available = q?.marksAvailable ?? 1;
+                              // Trust the marker — full marks earned means
+                              // green even if string doesn't exactly match.
+                              const isMatch = !isBlank && earned >= available;
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
