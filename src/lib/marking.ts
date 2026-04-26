@@ -437,7 +437,27 @@ interface QuestionMarkResult {
 function buildMarkingNotes(result: QuestionMarkResult): string {
   const parts: string[] = [];
   if (result.studentAnswer) parts.push(`Detected: ${result.studentAnswer}`);
-  if (result.notes) parts.push(result.notes);
+  if (result.notes) {
+    let notes = result.notes;
+    // Strip the drawable count-diff header (Expected: N. Student: M.
+    // Extras: X. Missing: Y.) from the displayed notes — it was only
+    // there as a chain-of-thought scaffold for the AI and the
+    // server-side clamp at the call site. Marking is reliable now,
+    // and parents/students don't need to see the audit numbers.
+    notes = notes.replace(/Expected\s*:?\s*\d+\.?\s*Student\s*:?\s*\d+\.?\s*Extras\s*:?\s*\d+\.?\s*Missing\s*:?\s*\d+\.?\s*/gi, "").trim();
+    // If the AI restated 'Final answer: X' that's identical to the
+    // already-extracted studentAnswer, drop it — duplicate noise that
+    // showed up in OEQ science marking notes. Also strip the leading
+    // 'Final answer:' label when the value differs (rare).
+    if (result.studentAnswer) {
+      const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+      const sa = norm(result.studentAnswer);
+      notes = notes.replace(/(?:^|\b)Final answer\s*:?\s*([^\n.|]+)\.?/gi, (_full, val: string) => {
+        return norm(val) === sa ? "" : `Final answer: ${val.trim()}`;
+      }).trim();
+    }
+    if (notes) parts.push(notes);
+  }
   return parts.join(" | ");
 }
 

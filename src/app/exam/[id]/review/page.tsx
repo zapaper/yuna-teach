@@ -2023,30 +2023,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                   </div>
                                 );
                               })()}
-                              {drawableDiagram && (() => {
-                                const k = `question:${currentQ.id}:drawable`;
-                                return (
-                                  <div className="w-full rounded-xl border border-[#e5eeff] overflow-hidden relative select-none">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                      src={toSrc(drawableDiagram)}
-                                      alt="Question diagram"
-                                      className="w-full block pointer-events-none select-none"
-                                      draggable={false}
-                                      style={{ WebkitTouchCallout: "none", WebkitUserDrag: "none" } as React.CSSProperties}
-                                    />
-                                    <ReviewPenOverlay
-                                      key={k}
-                                      paperId={id}
-                                      storageKey={k}
-                                      initialDataUrl={data.reviewAnnotations?.[k] ?? null}
-                                      readOnly={isStudent}
-                                      onSaved={handlePenSaved}
-                                      scaleToFit
-                                    />
-                                  </div>
-                                );
-                              })()}
+                              {/* drawableDiagram is the BLANK canvas background
+                                  the student drew on. The drawn version comes
+                                  through as a SubmissionImage further down, so
+                                  rendering this here just doubles up with a
+                                  blank copy. Dropped per parent feedback. */}
                               {/* MCQ options — image grid */}
                               {currentQ.transcribedOptionImages && currentQ.transcribedOptionImages.some(img => img) && (
                                 <div className="grid grid-cols-2 gap-3 mt-2">
