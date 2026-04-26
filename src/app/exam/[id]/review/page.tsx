@@ -2019,15 +2019,21 @@ function ExamReviewContent({ id }: { id: string }) {
                           const hasDrawable = !!(currentQ.transcribedSubparts as { label: string }[] | null)?.find(s => s.label === "_drawable");
                           const defaultH = hasDrawable ? 360 : 300;
                           const visibleH = Math.min(canvasHeights[currentQ.id] ?? defaultH, 600);
+                          const overlayKey = `question:${currentQ.id}`;
                           return (
                             <div>
                               <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
-                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white">
+                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white relative">
                                 <SubmissionImage
                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
                                   alt={`Written answer for Q${currentQ.questionNum}`}
                                   className="w-full h-auto block"
                                   aspectRatio={`400 / ${visibleH}`}
+                                />
+                                <ReviewPenOverlay
+                                  paperId={id}
+                                  storageKey={overlayKey}
+                                  initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
                                 />
                               </div>
                             </div>
