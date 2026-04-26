@@ -26,6 +26,12 @@ export async function PATCH(
   if ("transcribedStem" in body) data.transcribedStem = body.transcribedStem ?? null;
   if ("transcribedOptions" in body) data.transcribedOptions = body.transcribedOptions === null ? Prisma.DbNull : body.transcribedOptions;
   if ("transcribedSubparts" in body) data.transcribedSubparts = body.transcribedSubparts === null ? Prisma.DbNull : body.transcribedSubparts;
+  if ("difficulty" in body) {
+    // Clamp 1-5; null clears the rating. 0 is the existing 'tried but
+    // failed' sentinel — admin override sets a real value.
+    const d = body.difficulty;
+    data.difficulty = d == null ? null : Math.max(1, Math.min(5, Number(d)));
+  }
 
   console.log("[questions PATCH] id:", id, "fields:", Object.keys(data));
   let question;

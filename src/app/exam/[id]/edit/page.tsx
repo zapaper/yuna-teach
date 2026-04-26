@@ -1180,6 +1180,7 @@ function QuestionEditCard({
                 aiDifficulty={question.difficulty ?? null}
                 empiricalDifficulty={question.empiricalDifficulty ?? null}
                 empiricalAttempts={question.empiricalAttempts ?? 0}
+                onChange={(d) => onSave(question.id, "difficulty", d)}
               />
               <input
                 type="number"
@@ -1636,37 +1637,78 @@ function PageSelectionModal({
 // Small admin-only chip next to the marks input showing the question's
 // difficulty. Empirical (from student attempts) overrides the AI rating
 // once there are ≥5 attempts; otherwise the AI seed label is shown.
+// Click to manually override — opens a 1-5 picker that PATCHes the AI
+// difficulty field. Empirical rating still wins once ≥5 attempts come
+// in, so manual overrides are a soft seed.
 function DifficultyBadge({
   aiDifficulty,
   empiricalDifficulty,
   empiricalAttempts,
+  onChange,
 }: {
   aiDifficulty: number | null;
   empiricalDifficulty: number | null;
   empiricalAttempts: number;
+  onChange?: (d: number) => void;
 }) {
+  const [picking, setPicking] = useState(false);
   // 0 is a sentinel for 'classification was attempted but no rating came
   // back' — treat it as unrated in the UI.
   const validAi = aiDifficulty !== null && aiDifficulty >= 1 && aiDifficulty <= 5 ? aiDifficulty : null;
   const source = empiricalDifficulty !== null && empiricalAttempts >= 5 ? "empirical" : validAi !== null ? "ai" : null;
-  if (!source) return null;
-  const d = source === "empirical" ? empiricalDifficulty! : validAi!;
-  const palette = d <= 2
+  const d = source === "empirical" ? empiricalDifficulty! : (validAi ?? 0);
+  const palette = !source
+    ? { bg: "bg-slate-100", text: "text-slate-500", ring: "ring-slate-200" }
+    : d <= 2
     ? { bg: "bg-emerald-100", text: "text-emerald-700", ring: "ring-emerald-200" }
     : d === 3
     ? { bg: "bg-amber-100", text: "text-amber-700", ring: "ring-amber-200" }
     : { bg: "bg-rose-100", text: "text-rose-700", ring: "ring-rose-200" };
-  const label = d === 1 ? "Very Easy" : d === 2 ? "Easy" : d === 3 ? "Medium" : d === 4 ? "Hard" : "Very Hard";
+  const label = d === 1 ? "Very Easy" : d === 2 ? "Easy" : d === 3 ? "Medium" : d === 4 ? "Hard" : d === 5 ? "Very Hard" : "Set lvl";
   const title = source === "empirical"
-    ? `Empirical (from ${empiricalAttempts} attempts)`
-    : "AI-rated (no student attempts yet)";
+    ? `Empirical (from ${empiricalAttempts} attempts) — click to override AI seed`
+    : source === "ai"
+    ? "AI-rated — click to override"
+    : "No rating yet — click to set manually";
+  if (picking && onChange) {
+    return (
+      <span className="inline-flex items-center gap-0.5 mr-1">
+        {[1, 2, 3, 4, 5].map(n => {
+          const p = n <= 2
+            ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+            : n === 3
+            ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+            : "bg-rose-100 text-rose-700 hover:bg-rose-200";
+          const isCurrent = n === d;
+          return (
+            <button
+              key={n}
+              type="button"
+              onClick={() => { onChange(n); setPicking(false); }}
+              className={`w-5 h-5 rounded text-[10px] font-bold tabular-nums ${p} ${isCurrent ? "ring-2 ring-[#001e40]" : ""}`}
+              title={`Set difficulty ${n}`}
+            >{n}</button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setPicking(false)}
+          className="text-slate-400 hover:text-slate-700 text-xs ml-0.5"
+          title="Cancel"
+        >×</button>
+      </span>
+    );
+  }
   return (
-    <span
+    <button
+      type="button"
       title={title}
-      className={`px-1.5 py-0.5 rounded text-[10px] font-bold tabular-nums ${palette.bg} ${palette.text} ring-1 ${palette.ring} mr-1`}
+      onClick={() => onChange && setPicking(true)}
+      disabled={!onChange}
+      className={`px-1.5 py-0.5 rounded text-[10px] font-bold tabular-nums ${palette.bg} ${palette.text} ring-1 ${palette.ring} mr-1 ${onChange ? "hover:brightness-95 cursor-pointer" : "cursor-default"}`}
     >
-      Lv {d} · {label}
+      {source ? `Lv ${d} · ${label}` : label}
       {source === "empirical" && <span className="ml-1 opacity-60">◉</span>}
-    </span>
+    </button>
   );
 }
