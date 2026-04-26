@@ -236,17 +236,33 @@ export function ReviewPenOverlay({
         const img = new Image();
         img.onload = () => {
           const canv = canvasRef.current;
-          const cx = canv?.getContext("2d");
-          if (!canv || !cx) return;
-          // Draw at the PNG's natural dimensions (no scaling). The
-          // saved canvas size (= scrollHeight × DPR at save time) is
-          // baked into the PNG. Stretching the image to fit the
-          // current canvas dimensions moves strokes off the text
-          // they were marking when scrollHeight differs between save
-          // and load (font load, image load, viewport width change).
-          // Drawing 1:1 keeps each stroke at its original pixel
-          // coordinate so it sits over the same text it was drawn on.
-          cx.drawImage(img, 0, 0);
+          if (!canv) return;
+          // Preserve every saved stroke even if the surrounding text
+          // layout has shrunk since save time (layout changes between
+          // draw and reload would otherwise either clip strokes off
+          // the bottom or stretch them off the text they were marking).
+          // If the saved PNG is taller/wider than the current canvas,
+          // extend the canvas to fit it. Result: nothing is lost on
+          // reload; the canvas may visually extend past the passage's
+          // last line by the difference, which is acceptable.
+          const dprNow = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 3);
+          const seedCssW = img.naturalWidth / dprNow;
+          const seedCssH = img.naturalHeight / dprNow;
+          const curCssW = parseFloat(canv.style.width) || 0;
+          const curCssH = parseFloat(canv.style.height) || 0;
+          const wantW = Math.max(curCssW, seedCssW);
+          const wantH = Math.max(curCssH, seedCssH);
+          if (wantW > curCssW || wantH > curCssH) {
+            canv.style.width = `${wantW}px`;
+            canv.style.height = `${wantH}px`;
+            canv.width = Math.round(wantW * dprNow);
+            canv.height = Math.round(wantH * dprNow);
+          }
+          const cx = canv.getContext("2d");
+          // Natural size — strokes land at the same pixel they were
+          // drawn at, so they stay over the same text content they
+          // were marking (assuming text didn't reflow).
+          if (cx) cx.drawImage(img, 0, 0);
         };
         img.src = seed;
         initialPaintPending.current = null;
