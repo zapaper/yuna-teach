@@ -1915,8 +1915,9 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const spCanvasId = `${currentQ.id}_${sp.label}`;
                                             const spDefault = sp.diagramBase64 ? 340 : 260;
                                             const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 600);
+                                            const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             return (
-                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white">
+                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative">
                                                 <SubmissionImage
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
@@ -1933,6 +1934,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                                       img.style.display = "none";
                                                     }
                                                   }}
+                                                />
+                                                <ReviewPenOverlay
+                                                  paperId={id}
+                                                  storageKey={overlayKey}
+                                                  initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
                                                 />
                                               </div>
                                             );
