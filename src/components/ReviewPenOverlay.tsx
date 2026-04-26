@@ -235,11 +235,18 @@ export function ReviewPenOverlay({
       if (seed && newCtx) {
         const img = new Image();
         img.onload = () => {
-          // Re-read the canvas at draw time — it may have been resized
-          // again between the load() and the draw().
           const canv = canvasRef.current;
           const cx = canv?.getContext("2d");
-          if (canv && cx) cx.drawImage(img, 0, 0, canv.width, canv.height);
+          if (!canv || !cx) return;
+          // Draw at the PNG's natural dimensions (no scaling). The
+          // saved canvas size (= scrollHeight × DPR at save time) is
+          // baked into the PNG. Stretching the image to fit the
+          // current canvas dimensions moves strokes off the text
+          // they were marking when scrollHeight differs between save
+          // and load (font load, image load, viewport width change).
+          // Drawing 1:1 keeps each stroke at its original pixel
+          // coordinate so it sits over the same text it was drawn on.
+          cx.drawImage(img, 0, 0);
         };
         img.src = seed;
         initialPaintPending.current = null;
