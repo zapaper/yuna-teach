@@ -311,36 +311,37 @@ export function ReviewPenOverlay({
 
   return (
     <>
-      {/* Toolbar: absolutely positioned so it doesn't take vertical
-          space in the parent's flow. Otherwise the text below shifts
-          ~24 px down on the parent's view (toolbar present), but stays
-          at the top on the student's view (readOnly = no toolbar) — so
-          parent's strokes land one line below their text on student
-          view. Absolute positioning keeps layout identical for both. */}
-      {!readOnly && (
-        <div className="absolute top-2 right-2 z-20 flex gap-1.5 pointer-events-none">
-          <button
-            type="button"
-            onClick={() => setActive(v => !v)}
-            className={`pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm border ${
-              active
-                ? "bg-rose-600 text-white border-rose-700 hover:bg-rose-700"
-                : "bg-white text-rose-600 border-rose-300 hover:bg-rose-50"
-            }`}
-            title={active ? "Pen on — tap to disable" : "Tap to draw on this passage"}
-          >
-            {active ? "Pen on" : "Pen"}
-          </button>
-          <button
-            type="button"
-            onClick={clearAll}
-            className="pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 shadow-sm"
-            title="Clear all ink"
-          >
-            Clear
-          </button>
-        </div>
-      )}
+      {/* Toolbar: sticky to the top of the parent's scroll context so
+          the buttons stay floating alongside the section header even
+          when the parent scrolls the passage internally. We render
+          the wrapper (and reserve its height) for readOnly viewers
+          too — using visibility: hidden — so both parent and student
+          see identical text positions and saved strokes line up. */}
+      <div
+        className="sticky top-0 z-20 flex justify-end gap-1.5 pointer-events-none"
+        style={{ visibility: readOnly ? "hidden" : "visible" }}
+      >
+        <button
+          type="button"
+          onClick={() => setActive(v => !v)}
+          className={`pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm border ${
+            active
+              ? "bg-rose-600 text-white border-rose-700 hover:bg-rose-700"
+              : "bg-white text-rose-600 border-rose-300 hover:bg-rose-50"
+          }`}
+          title={active ? "Pen on — tap to disable" : "Tap to draw on this passage"}
+        >
+          {active ? "Pen on" : "Pen"}
+        </button>
+        <button
+          type="button"
+          onClick={clearAll}
+          className="pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 shadow-sm"
+          title="Clear all ink"
+        >
+          Clear
+        </button>
+      </div>
       <canvas
         ref={canvasRef}
         className="absolute top-0 left-0 z-10"
