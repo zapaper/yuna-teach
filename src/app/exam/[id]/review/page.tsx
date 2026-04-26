@@ -1506,18 +1506,24 @@ function ExamReviewContent({ id }: { id: string }) {
                               const isCorrect = !isBlank && studentLetter === correctLetter;
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
-                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded relative -top-px">({num})</span>
+                                  <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
                                   {isBlank ? (
                                     // Student left it blank — show the correct word in
-                                    // red bold so they can see what they should have
-                                    // answered.
-                                    <span className="font-bold text-[#ba1a1a] underline decoration-2 decoration-[#ba1a1a]/40 underline-offset-2 px-1 text-sm">{correctWord}</span>
+                                    // red bold + red cross so the missed answer is clear.
+                                    <>
+                                      <span className="font-bold text-[#ba1a1a] underline decoration-2 decoration-[#ba1a1a]/40 underline-offset-2 px-1 text-sm">{correctWord}</span>
+                                      <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                    </>
                                   ) : isCorrect ? (
-                                    <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentWord}</span>
+                                    <>
+                                      <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentWord}</span>
+                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
+                                    </>
                                   ) : (
                                     <>
-                                      <span className="font-bold text-[#ba1a1a] line-through px-1 text-sm">{studentWord}</span>
-                                      <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{correctWord}</span>
+                                      <span className="font-bold text-[#ba1a1a] px-1 text-sm">{studentWord}</span>
+                                      <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                      <span className="font-bold text-[#ba1a1a] px-1 text-sm">{correctWord}</span>
                                     </>
                                   )}
                                 </span>
