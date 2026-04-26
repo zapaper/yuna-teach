@@ -235,6 +235,10 @@ export async function POST(request: NextRequest) {
     transcribedSubparts: true,
     transcribedOptions: true,
     transcribedOptionImages: true,
+    // sourceQuestionId is the master a question was cloned from (or
+    // null if it IS a master). Needed for the dedup pass in
+    // buildPools so master + synthetic variants don't both surface.
+    sourceQuestionId: true,
     // diagramImageData needed for mergeOeqGroup (Math/Science only)
     ...(subject !== "english" ? { diagramImageData: true } : {}),
     diagramBounds: true,
@@ -346,13 +350,31 @@ export async function POST(request: NextRequest) {
     return questionNum.replace(/[a-zA-Z]+$/, "");
   }
 
+  // Normalise stems before dedup so trivial whitespace/punctuation/case
+  // differences don't slip a duplicate through (a common cause: the
+  // master and a re-extracted clone differ by a stray trailing space).
+  function normStem(s: string): string {
+    return s.toLowerCase().replace(/\s+/g, " ").replace(/[^\w\s]/g, "").trim();
+  }
+
   function buildPools(questions: Q[]) {
-    // ── MCQ pool: deduplicate by stem ──────────────────────────────────────
+    // ── MCQ pool: deduplicate by source AND by normalised stem ──────────
+    // Source key catches master + its synthetic variants (synth carries
+    // sourceQuestionId pointing to the master). Stem key catches questions
+    // that share text but have no source link (e.g. two papers asking the
+    // same question). Both together prevent the 'duplicate MCQ in one
+    // quiz' bug the user hit when a master + its synthetic both made
+    // it into the pool with slightly different stems.
     const mcqStemMap = new Map<string, Q>();
+    const mcqSeenSources = new Set<string>();
     for (const q of questions) {
       if (!hasOptions(q)) continue;
-      const stem = (q.transcribedStem ?? "").trim();
+      const stem = normStem(q.transcribedStem ?? "");
       if (!stem) continue;
+      const sourceKey = q.sourceQuestionId ?? q.id;
+      if (mcqSeenSources.has(sourceKey)) continue;
+      if (mcqStemMap.has(stem)) continue;
+      mcqSeenSources.add(sourceKey);
       mcqStemMap.set(stem, q);
     }
 
@@ -370,10 +392,18 @@ export async function POST(request: NextRequest) {
       group.sort((a, b) => a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true }));
     }
     const oeqLeadStemMap = new Map<string, Q[]>();
+    const oeqSeenSources = new Set<string>();
     for (const group of oeqGroupMap.values()) {
       // Find lead stem from any member of the group (not just the first)
-      const leadStem = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
-      if (!leadStem) continue; // Group has no stem at all — skip
+      const leadStemRaw = (group.find(q => (q.transcribedStem ?? "").trim())?.transcribedStem ?? "").trim();
+      if (!leadStemRaw) continue; // Group has no stem at all — skip
+      const leadStem = normStem(leadStemRaw);
+      // Same source-key dedup as MCQ — catches groups whose lead member
+      // is a synthetic of a master we've already kept.
+      const sourceKey = group[0].sourceQuestionId ?? group[0].id;
+      if (oeqSeenSources.has(sourceKey)) continue;
+      if (oeqLeadStemMap.has(leadStem)) continue;
+      oeqSeenSources.add(sourceKey);
       oeqLeadStemMap.set(leadStem, group);
     }
 
