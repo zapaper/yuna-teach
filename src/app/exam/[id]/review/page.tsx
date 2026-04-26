@@ -1374,11 +1374,32 @@ function ExamReviewContent({ id }: { id: string }) {
                             const num = mk[1];
                             const word = mk[2].trim();
                             if (isEditing && word) {
-                              // Show erroneous word with red underline
+                              // Editing: show misspelled word + student's correction
+                              // in brackets. Green if matches answer key, red if
+                              // wrong (with the correct answer also shown in
+                              // green so reader sees the right word). Same
+                              // rendering for parent and student.
+                              const q = sectionQuestions.find(sq => sq.questionNum === num);
+                              const studentAns = (q?.studentAnswer ?? "").trim();
+                              const correctAns = (q?.answer ?? "").trim();
+                              const isBlank = !studentAns || studentAns === "__SKIPPED__";
+                              const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+                              const isMatch = !isBlank && norm(studentAns) === norm(correctAns);
                               parts.push(
-                                <span key={`q${num}`} className="inline-flex items-center gap-0.5 mx-0.5">
-                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded">({num})</span>
+                                <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
+                                  <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
                                   <span className="underline decoration-red-400 decoration-2 font-bold text-red-700 text-sm">{word}</span>
+                                  {isBlank ? (
+                                    // Student left blank — show correct in red
+                                    <span className="font-bold text-[#ba1a1a] text-sm">[{correctAns}]</span>
+                                  ) : isMatch ? (
+                                    <span className="font-bold text-[#006c49] text-sm">[{studentAns}]</span>
+                                  ) : (
+                                    <>
+                                      <span className="font-bold text-[#ba1a1a] line-through text-sm">[{studentAns}]</span>
+                                      <span className="font-bold text-[#006c49] text-sm">[{correctAns}]</span>
+                                    </>
+                                  )}
                                 </span>
                               );
                             } else if (isVocabCloze && word) {
