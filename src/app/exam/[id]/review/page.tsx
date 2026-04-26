@@ -1695,8 +1695,16 @@ function ExamReviewContent({ id }: { id: string }) {
                                         if (isSynthesis) {
                                           let combined: string;
                                           if (studentAns.includes("|||")) {
+                                            // Mid-sentence keyword: '<before>|||<after>'
                                             const [before, after] = studentAns.split("|||");
                                             combined = `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
+                                          } else if (keyword) {
+                                            // Starting-word format: only one input, the
+                                            // keyword goes at the start of the rewrite
+                                            // (e.g. 'Although ___'). Prepend it so the
+                                            // reader sees the full sentence.
+                                            const stripped = studentAns.trim().replace(new RegExp(`^${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`, "i"), "");
+                                            combined = stripped ? `${keyword} ${stripped}`.replace(/\s+/g, " ").trim() : keyword;
                                           } else {
                                             combined = studentAns;
                                           }
