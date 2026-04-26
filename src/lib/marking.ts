@@ -2536,7 +2536,7 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           // — punctuation is irrelevant for that section and surfacing the
           // last char makes the AI fixate on the missing period.
           const lastCharLine = isSynthesisQ ? "" : `\nLast character of answer: "${lastChar}"`;
-          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — completely ignore punctuation, including missing or extra full stops.)" : ""}` });
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods only; other punctuation must be correct.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
@@ -2545,14 +2545,20 @@ Mark this answer. Compare the student's typed answer against the expected answer
 
 SPELLING & GRAMMAR PENALTY: Deduct 0.5 marks ONLY for genuine spelling errors (misspelled words). Do NOT deduct for punctuation (periods, commas, apostrophes, capitalisation). Do NOT flag missing or extra periods — ignore all punctuation completely.
 
-For Synthesis & Transformation: This tests SENTENCE FORMATION. Be FAIR but not loose:
-- The student's rewrite must use the required keyword(s) in the correct grammatical form.
-- Allow slight variations that are grammatically correct AND do not change the meaning of the expected answer (e.g. minor word-order differences, equivalent connectors, or synonyms that preserve meaning and register). Do NOT penalise these.
-- Do NOT deduct for periods, commas, capitalisation, or any punctuation. Ignore punctuation entirely.
-- Deduct 0.5 for each genuine grammar error (wrong tense, subject-verb agreement, wrong form of the keyword, etc.).
-- Deduct 0.5 if the rewritten sentence changes the meaning of the original sentence.
-- The starting/joining word is included in the expected answer; the student must use it.
-- Award full marks if the sentence is grammatical, uses the keyword correctly, and conveys the same meaning as the expected answer — even if some wording differs.
+For Synthesis & Transformation: This is ALL-OR-NOTHING marking. Award FULL marks (${marksAvailable}) if every condition holds, otherwise award 0. NO partial credit, no half-marks.
+- Award FULL marks ONLY when ALL of these are true:
+  • The rewritten sentence is grammatically correct.
+  • It uses the required keyword(s) in the correct form.
+  • It conveys the same meaning as the expected answer (minor word-order differences, equivalent connectors, or synonyms that preserve meaning and register are OK).
+  • There are NO spelling errors anywhere in the answer.
+  • Punctuation is correct, EXCEPT a missing or extra full stop (period) is fine — ignore periods.
+  • All other punctuation (commas, apostrophes, semicolons, question marks, capitalisation of proper nouns and the first word) is correct.
+- Award 0 marks if ANY of these are wrong:
+  • Any spelling mistake → 0.
+  • Any missing or wrong punctuation other than a period → 0.
+  • Wrong tense / wrong form of keyword / subject-verb disagreement → 0.
+  • Meaning changed from the expected answer → 0.
+- Do NOT split the difference between 0 and full. The mark must be exactly 0 or exactly ${marksAvailable}.
 For Comprehension OEQ: This tests READING COMPREHENSION. Be LENIENT on language, STRICT on content:
 - Mark based on whether the answer shows understanding of the passage and addresses the question.
 - The student's answer does NOT need to match the expected answer word-for-word. Accept any answer that conveys the same meaning or key idea.
