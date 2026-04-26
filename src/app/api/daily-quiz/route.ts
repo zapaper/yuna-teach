@@ -196,15 +196,18 @@ export async function POST(request: NextRequest) {
   const rawDifficultyMode = await getStudentDifficultyMode(targetStudentId);
   const difficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, targetStudentId, subjectFilter);
 
-  const questionWhere = (lf: string | null, examTypeFilter: string[] | null, difficultyLevels: number[] | null) => ({
+  const questionWhere = (lf: string | null, examTypeFilter: string[] | null, difficultyLevels: number[] | null, allowUnrated: boolean) => ({
     // Don't filter by transcribedStem — multi-part questions (e.g. Q38a stem-only
     // + Q38bc sub-parts) must be kept together for mergeOeqGroup. Stem-less
     // questions are filtered at the group level.
     answer: { not: null as null },
     ...(difficultyLevels && difficultyLevels.length > 0
-      // Accept unrated (null) difficulty as well so an un-classified bank
-      // doesn't zero out the pool.
-      ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
+      // Strict bucket by default. Only allow difficulty=null (unrated) on
+      // the broadened/fallback passes — otherwise an unrated bank pulls
+      // potentially-hard questions into an "easier" student's pool.
+      ? (allowUnrated
+        ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
+        : { difficulty: { in: difficultyLevels } })
       : {}),
     examPaper: {
       sourceExamId: null,
@@ -252,42 +255,51 @@ export async function POST(request: NextRequest) {
       select: { sourceQuestionId: true },
     }),
     // Find all clean-extracted questions from master papers (matching level + semester)
-    // Light query first (no blobs) — full data loaded later for selected questions only
+    // Light query first (no blobs) — full data loaded later for selected questions only.
+    // Primary pass is STRICT (no unrated) so the student's chosen difficulty
+    // is honoured. Unrated questions and the fallback level only join in
+    // later passes when the strict pool is too small.
     prisma.examQuestion.findMany({
-      where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, difficultyFilter.primary),
+      where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, difficultyFilter.primary, false),
       select: questionSelectLight,
     }),
   ]);
   let topicMatched = initialTopicMatched;
-  // Difficulty fallback — if the primary bucket (e.g. Lv 1-3 for "easier")
-  // returned too few rows, broaden to primary + fallback, then drop the
-  // filter entirely.
+  // Difficulty fallback ladder for non-standard modes:
+  //   1. strict primary (e.g. Lv 1-3)  — already done above
+  //   2. primary + unrated              — accept null difficulty
+  //   3. primary + fallback (e.g. + Lv 4) + unrated
+  // We never drop the difficulty cap entirely — for "easier"/"adaptive"
+  // mode that would let a Lv 5 'Very Hard' question through, defeating
+  // the whole point of the setting. Same for "hard": never let Lv 1-2
+  // through.
   const TARGET_POOL = 30;
   const difficultyWarnings: string[] = [];
   if (difficultyFilter.primary && topicMatched.length < TARGET_POOL) {
-    const broadened = difficultyFilter.fallback
-      ? [...difficultyFilter.primary, ...difficultyFilter.fallback]
-      : null;
-    if (broadened) {
+    // Step 2: same levels but include unrated rows.
+    const withNull = await prisma.examQuestion.findMany({
+      where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, difficultyFilter.primary, true),
+      select: questionSelectLight,
+    });
+    if (withNull.length > topicMatched.length) {
+      topicMatched = withNull;
+      difficultyWarnings.push(`Lv ${difficultyFilter.primary.join(",")} pool was thin — also drawing unrated questions.`);
+    }
+    // Step 3: add the fallback bucket (e.g. Lv 4 for easier mode), still
+    // including unrated.
+    if (topicMatched.length < TARGET_POOL && difficultyFilter.fallback) {
+      const broadened = [...difficultyFilter.primary, ...difficultyFilter.fallback];
       const withFallback = await prisma.examQuestion.findMany({
-        where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, broadened),
+        where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, broadened, true),
         select: questionSelectLight,
       });
       if (withFallback.length > topicMatched.length) {
         topicMatched = withFallback;
-        difficultyWarnings.push(`Fell back from Lv ${difficultyFilter.primary.join(",")} to Lv ${broadened.join(",")} for this quiz.`);
+        difficultyWarnings.push(`Fell back from Lv ${difficultyFilter.primary.join(",")} to Lv ${broadened.join(",")} (incl. unrated) for this quiz.`);
       }
     }
-    if (topicMatched.length < TARGET_POOL) {
-      const noFilter = await prisma.examQuestion.findMany({
-        where: questionWhere(levelFilter ?? null, subject === "english" ? null : allowedExamTypes, null),
-        select: questionSelectLight,
-      });
-      if (noFilter.length > topicMatched.length) {
-        topicMatched = noFilter;
-        difficultyWarnings.push(`Not enough questions at the student's ${modeWarningLabel(difficultyFilter.effectiveMode)} — pulled from the full difficulty range instead.`);
-      }
-    }
+    // No final 'drop all caps' pass — the cap is part of the contract
+    // with the parent's setting.
   }
   if (difficultyWarnings.length > 0) {
     console.log(`[daily-quiz] student=${targetStudentId} subject=${subject}:`, difficultyWarnings.join(" · "));
@@ -974,7 +986,7 @@ export async function POST(request: NextRequest) {
     const prevLevelQuestions = await prisma.examQuestion.findMany({
       // Prior-level top-up ignores the difficulty filter — we're already
       // stretching for questions at this point, don't double-constrain.
-      where: questionWhere(prevLevelFilter, null, null),
+      where: questionWhere(prevLevelFilter, null, null, true),
       select: questionSelectLight,
     });
     const { mcqPool: allPrevMcq, oeqPool: allPrevOeq } = buildPools(prevLevelQuestions);

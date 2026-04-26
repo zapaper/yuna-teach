@@ -56,16 +56,19 @@ export async function POST(request: NextRequest) {
   else if (m < 7 || (m === 7 && d <= 14)) allowedExamTypes = ["WA1", "WA2", "SA1"];
   else if (m <= 8) allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
 
-  const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null, examTypes: string[] | null) => ({
+  const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null, examTypes: string[] | null, allowUnrated: boolean = false) => ({
     syllabusTopic: topic,
     answer: { not: null } as { not: null },
     // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
     // may have the stem only on one part. Filtering by stem at query level drops the
     // other parts and breaks grouping. We filter at the group level below.
     ...(difficultyLevels && difficultyLevels.length > 0
-      // null difficulty = unrated — still accept so an unrated bank doesn't
-      // suddenly return zero questions when the student picks a mode.
-      ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
+      // Strict by default. Unrated rows only join in when explicitly
+      // allowed on a fallback pass — otherwise an unrated bank pulls
+      // potentially-hard questions into an "easier" student's pool.
+      ? (allowUnrated
+        ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
+        : { difficulty: { in: difficultyLevels } })
       : {}),
     examPaper: {
       sourceExamId: null,
@@ -124,34 +127,38 @@ export async function POST(request: NextRequest) {
     });
     levelFallback = topicMatched.length > 0;
   }
-  // Difficulty fallback: if the primary bucket (e.g. Lv 1-3 for "easier")
-  // didn't produce enough questions, broaden to primary + fallback (e.g.
-  // Lv 1-4). If that still falls short, drop the difficulty filter entirely.
+  // Difficulty fallback ladder for non-standard modes:
+  //   1. strict primary (e.g. Lv 1-3) — already done above (allowUnrated=false)
+  //   2. primary + unrated
+  //   3. primary + fallback (e.g. + Lv 4) + unrated
+  // We never drop the difficulty cap entirely — for "easier"/"adaptive"
+  // mode that would let a Lv 5 'Very Hard' question through, defeating
+  // the whole point of the setting.
   let difficultyFellBack = false;
-  let difficultyDropped = false;
   const TARGET_POOL = 10;
   if (difficultyFilter.primary && topicMatched.length < TARGET_POOL) {
-    const broadened = difficultyFilter.fallback
-      ? [...difficultyFilter.primary, ...difficultyFilter.fallback]
-      : null;
-    if (broadened) {
+    const examTypeArg = examTypeFellBack ? null : allowedExamTypes;
+    // Step 2: same levels but include unrated rows.
+    const withNull = await prisma.examQuestion.findMany({
+      where: questionWhere(true, difficultyFilter.primary, examTypeArg, true),
+      select: questionSelect,
+    });
+    if (withNull.length > topicMatched.length) {
+      topicMatched = withNull;
+      difficultyFellBack = true;
+    }
+    // Step 3: add the fallback bucket (e.g. Lv 4 for easier mode), still
+    // including unrated. No final 'drop all caps' pass — the cap is part
+    // of the contract with the parent's difficulty setting.
+    if (topicMatched.length < TARGET_POOL && difficultyFilter.fallback) {
+      const broadened = [...difficultyFilter.primary, ...difficultyFilter.fallback];
       const withFallback = await prisma.examQuestion.findMany({
-        where: questionWhere(true, broadened, examTypeFellBack ? null : allowedExamTypes),
+        where: questionWhere(true, broadened, examTypeArg, true),
         select: questionSelect,
       });
       if (withFallback.length > topicMatched.length) {
         topicMatched = withFallback;
         difficultyFellBack = true;
-      }
-    }
-    if (topicMatched.length < TARGET_POOL) {
-      const noFilter = await prisma.examQuestion.findMany({
-        where: questionWhere(true, null, examTypeFellBack ? null : allowedExamTypes),
-        select: questionSelect,
-      });
-      if (noFilter.length > topicMatched.length) {
-        topicMatched = noFilter;
-        difficultyDropped = true;
       }
     }
   }
@@ -467,12 +474,11 @@ export async function POST(request: NextRequest) {
   if (examTypeFellBack && allowedExamTypes) {
     warnings.push(`No "${topic}" questions yet from ${allowedExamTypes.join("/")} papers (the typical scope at this point in the school year) — pulled from later-year papers instead.`);
   }
-  if (difficultyDropped) {
-    warnings.push(`Not enough questions at the student's chosen difficulty (${modeWarningLabel(difficultyFilter.effectiveMode)}) — pulled from the full difficulty range instead.`);
-  } else if (difficultyFellBack) {
+  if (difficultyFellBack) {
     const primary = difficultyFilter.primary?.join(", ") ?? "";
     const fallback = difficultyFilter.fallback?.join(", ") ?? "";
-    warnings.push(`Too few Lv ${primary} questions for "${topic}" at ${levelName ?? "this level"} — broadened to include Lv ${fallback}.`);
+    const broadenedNote = fallback ? `broadened to include Lv ${fallback}` : "also drawing unrated questions";
+    warnings.push(`Too few Lv ${primary} questions for "${topic}" at ${levelName ?? "this level"} — ${broadenedNote}.`);
   }
   if (levelFallback) {
     const levelsUsed = [...new Set(topicMatched.map(q => q.examPaper.level).filter(Boolean))].join(", ");
