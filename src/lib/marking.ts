@@ -447,13 +447,17 @@ function buildMarkingNotes(result: QuestionMarkResult): string {
     notes = notes.replace(/Expected\s*:?\s*\d+\.?\s*Student\s*:?\s*\d+\.?\s*Extras\s*:?\s*\d+\.?\s*Missing\s*:?\s*\d+\.?\s*/gi, "").trim();
     // If the AI restated 'Final answer: X' that's identical to the
     // already-extracted studentAnswer, drop it — duplicate noise that
-    // showed up in OEQ science marking notes. Also strip the leading
-    // 'Final answer:' label when the value differs (rare).
+    // showed up in OEQ science marking notes (often multi-line bullet
+    // lists, e.g. 'Final answer:\n- foo\n- bar'). Match dotall so the
+    // bullets after the label are captured, then compare normalised.
     if (result.studentAnswer) {
-      const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+      const norm = (s: string) => s.toLowerCase().replace(/[\s-]+/g, " ").trim();
       const sa = norm(result.studentAnswer);
-      notes = notes.replace(/(?:^|\b)Final answer\s*:?\s*([^\n.|]+)\.?/gi, (_full, val: string) => {
-        return norm(val) === sa ? "" : `Final answer: ${val.trim()}`;
+      // Tail-anchored 'Final answer:' block — the AI typically puts it
+      // at the end of the notes. If its content matches studentAnswer,
+      // drop the whole block.
+      notes = notes.replace(/\n*\bFinal answer\s*:?\s*\n?([\s\S]+?)\s*$/i, (full, val: string) => {
+        return norm(val) === sa ? "" : full;
       }).trim();
     }
     if (notes) parts.push(notes);
