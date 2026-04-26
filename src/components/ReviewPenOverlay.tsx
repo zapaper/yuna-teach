@@ -45,6 +45,12 @@ export function ReviewPenOverlay({
   // is a no-op write that wastes a round trip and DB space on the
   // 'pen overlay tapped but nothing drawn' path.
   const hasSavedNonBlank = useRef<boolean>(!!initialDataUrl);
+  // Defer painting the saved PNG until the canvas has real dimensions
+  // (parent's scrollHeight can be 0 on first effect run before layout
+  // settles). Stash the seed and let the first non-zero fitAndPaint
+  // draw it in.
+  const initialPaintPending = useRef<string | null>(initialDataUrl ?? null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [active, setActive] = useState(false);
 
   function getPosXY(clientX: number, clientY: number) {
@@ -77,22 +83,40 @@ export function ReviewPenOverlay({
     }
     const dataUrl = blank ? null : canvas.toDataURL("image/png");
     dirty.current = false;
+    const body = JSON.stringify({ reviewAnnotations: { [storageKey]: dataUrl } });
+    // Pick the right transport. sendBeacon for pagehide is the only
+    // way to reliably ship a >64KB body during page-unload (fetch
+    // keepalive caps the whole tab at 64KB and a single PNG can blow
+    // past that). For normal in-page navigation the React unmount
+    // flush is plain fetch which has no size limit.
+    const onUnload = typeof document !== "undefined" && document.visibilityState === "hidden";
     try {
-      await fetch(`/api/exam/${paperId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        // keepalive lets the request survive page-unload — back / Reviewed
-        // buttons trigger pagehide before the fetch completes, and without
-        // this the browser cancels the request mid-flight.
-        keepalive: true,
-        body: JSON.stringify({ reviewAnnotations: { [storageKey]: dataUrl } }),
-      });
+      if (onUnload && typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+        const blob = new Blob([body], { type: "application/json" });
+        const ok = navigator.sendBeacon(`/api/exam/${paperId}`, blob);
+        if (!ok) throw new Error("sendBeacon refused");
+      } else {
+        await fetch(`/api/exam/${paperId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+      }
       hasSavedNonBlank.current = !blank;
     } catch {
       // Re-mark dirty so the next flush retries.
       dirty.current = true;
     }
   }, [paperId, storageKey, readOnly]);
+
+  // Debounced save on pen-up. Without this, all save weight is on
+  // navigation/unmount, and big PNG bodies can lose the race with
+  // page navigation. A short debounce means most strokes are already
+  // saved by the time the parent navigates.
+  const scheduleSave = useCallback(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => { flush(); }, 600);
+  }, [flush]);
 
   function applyStyle(ctx: CanvasRenderingContext2D) {
     ctx.globalCompositeOperation = "source-over";
@@ -154,9 +178,10 @@ export function ReviewPenOverlay({
     if (!isDrawing.current) return;
     isDrawing.current = false;
     lastPos.current = null;
-    // No debounced save on pen-up. The dirty flag will be flushed when
-    // the parent dispatches 'review:save-pen' (back / next-prev /
-    // reviewed buttons) or when this overlay unmounts.
+    // Schedule an eager save so navigation isn't the only safety net
+    // — important because PNG bodies can be 50-200 KB which can race
+    // page-unload otherwise.
+    scheduleSave();
   }
 
   function clearAll() {
@@ -202,19 +227,26 @@ export function ReviewPenOverlay({
       if (snapshot && newCtx) {
         try { newCtx.putImageData(snapshot, 0, 0); } catch { /* dimension change clears */ }
       }
+      // Paint the seed annotation after the FIRST resize that produced
+      // real dimensions. Painting it before fitAndPaint had real width
+      // would draw it at the default 300×150 canvas size, then leave a
+      // tiny smudge in the top-left after the real resize.
+      const seed = initialPaintPending.current;
+      if (seed && newCtx) {
+        const img = new Image();
+        img.onload = () => {
+          // Re-read the canvas at draw time — it may have been resized
+          // again between the load() and the draw().
+          const canv = canvasRef.current;
+          const cx = canv?.getContext("2d");
+          if (canv && cx) cx.drawImage(img, 0, 0, canv.width, canv.height);
+        };
+        img.src = seed;
+        initialPaintPending.current = null;
+      }
     }
 
     fitAndPaint();
-    // Initial paint of saved annotation. Done after fitAndPaint so the
-    // canvas has the right dimensions to draw the image at full size.
-    if (initialDataUrl) {
-      const img = new Image();
-      img.onload = () => {
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-      };
-      img.src = initialDataUrl;
-    }
 
     const obs = new ResizeObserver(fitAndPaint);
     obs.observe(parent);
