@@ -1360,6 +1360,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         onSaved={handlePenSaved}
                         controlledActive={passagePenActive}
                         clearSignal={passagePenClearSignal}
+                        scaleToFit
                       />
                       {(() => {
                         const pLines = currentSection.passage!.split("\n");

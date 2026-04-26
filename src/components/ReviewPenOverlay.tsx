@@ -72,6 +72,11 @@ export function ReviewPenOverlay({
   // settles). Stash the seed and let the first non-zero fitAndPaint
   // draw it in.
   const initialPaintPending = useRef<string | null>(initialDataUrl ?? null);
+  // Mirror scaleToFit into a ref so the resize observer (set up once
+  // on mount) always reads the current value without re-subscribing
+  // when the prop changes.
+  const scaleToFitRef = useRef(scaleToFit);
+  scaleToFitRef.current = scaleToFit;
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [internalActive, setActive] = useState(false);
   const isControlled = controlledActive !== undefined;
@@ -238,11 +243,18 @@ export function ReviewPenOverlay({
       const w = p.scrollWidth;
       const h = p.scrollHeight;
       if (w === 0 || h === 0) return;
-      // Capture existing pixels so a resize doesn't wipe the user's work.
-      const ctx = c.getContext("2d");
-      let snapshot: ImageData | null = null;
-      if (c.width > 0 && c.height > 0 && ctx) {
-        try { snapshot = ctx.getImageData(0, 0, c.width, c.height); } catch { /* tainted */ }
+      // Snapshot existing pixels into a throwaway canvas so we can
+      // either re-paint at natural size (scaleToFit=false) or stretch
+      // to the new dimensions (scaleToFit=true) on resize. Live
+      // viewport changes (rotate, browser resize) hit this path.
+      let snapshotCanvas: HTMLCanvasElement | null = null;
+      if (c.width > 0 && c.height > 0) {
+        try {
+          snapshotCanvas = document.createElement("canvas");
+          snapshotCanvas.width = c.width;
+          snapshotCanvas.height = c.height;
+          snapshotCanvas.getContext("2d")?.drawImage(c, 0, 0);
+        } catch { snapshotCanvas = null; }
       }
       c.style.width = `${w}px`;
       c.style.height = `${h}px`;
@@ -252,8 +264,17 @@ export function ReviewPenOverlay({
       c.width = Math.round(w * dpr);
       c.height = Math.round(h * dpr);
       const newCtx = c.getContext("2d");
-      if (snapshot && newCtx) {
-        try { newCtx.putImageData(snapshot, 0, 0); } catch { /* dimension change clears */ }
+      if (snapshotCanvas && newCtx) {
+        try {
+          if (scaleToFitRef.current) {
+            // Stretch the prior canvas content to fit new dimensions
+            // — strokes scale with viewport.
+            newCtx.drawImage(snapshotCanvas, 0, 0, c.width, c.height);
+          } else {
+            // Natural-pixel restore — strokes stay at original coords.
+            newCtx.drawImage(snapshotCanvas, 0, 0);
+          }
+        } catch { /* ignore */ }
       }
       // Paint the seed annotation after the FIRST resize that produced
       // real dimensions. Painting it before fitAndPaint had real width
