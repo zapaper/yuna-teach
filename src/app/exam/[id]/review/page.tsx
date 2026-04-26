@@ -512,6 +512,11 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   const isStudent = userId === assignedToId;
+  // Hoisted toolbar state for the passage overlay — rendered next to
+  // the section header instead of floating inside the passage box.
+  // Resets on section change so each section starts with pen off.
+  const [passagePenActive, setPassagePenActive] = useState(false);
+  const [passagePenClearSignal, setPassagePenClearSignal] = useState(0);
   // After ReviewPenOverlay successfully PATCHes new annotation, update
   // local state so re-mounting the overlay (next/prev nav) seeds with
   // the just-drawn ink instead of the stale value from page load.
@@ -628,6 +633,11 @@ function ExamReviewContent({ id }: { id: string }) {
   const currentSectionLabel = currentSection?.label.toLowerCase() ?? "";
   const isTypedSection = currentItem?.type === "section";
   const sectionQuestions = currentItem?.type === "section" ? currentItem.questions : [];
+
+  // Reset the passage pen state when navigating between sections so
+  // each new section starts with the pen off.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setPassagePenActive(false); }, [currentSectionLabel]);
 
   // For quiz OEQ: determine submission page index for the current question.
   // Prefer stored oeqPageMap (set at submission time) to avoid mismatches when
@@ -1295,12 +1305,40 @@ function ExamReviewContent({ id }: { id: string }) {
 
               return (
                 <div className="bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]">
-                  {/* Section header */}
-                  <div className="flex items-center justify-between mb-6">
+                  {/* Section header — also hosts the passage pen toolbar
+                      (parents only) so Pen / Clear stay docked here
+                      regardless of how the parent scrolls the passage. */}
+                  <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
                     <h3 className="font-headline text-lg font-extrabold text-[#001e40]">{currentSection?.label}</h3>
-                    <span className={`text-sm font-bold px-3 py-1 rounded-full ${
-                      earnedMarks === totalMarks ? "bg-[#d1fae5] text-[#006c49]" : earnedMarks > 0 ? "bg-[#fef3c7] text-[#633f00]" : "bg-[#ffdad6] text-[#ba1a1a]"
-                    }`}>{earnedMarks} / {totalMarks}</span>
+                    <div className="flex items-center gap-2">
+                      {!isStudent && currentSection?.passage && !currentSection.passage.startsWith("[") && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setPassagePenActive(v => !v)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm border ${
+                              passagePenActive
+                                ? "bg-rose-600 text-white border-rose-700 hover:bg-rose-700"
+                                : "bg-white text-rose-600 border-rose-300 hover:bg-rose-50"
+                            }`}
+                            title={passagePenActive ? "Pen on — tap to disable" : "Tap to draw on the passage"}
+                          >
+                            {passagePenActive ? "Pen on" : "Pen"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPassagePenClearSignal(s => s + 1)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 shadow-sm"
+                            title="Clear all passage ink"
+                          >
+                            Clear
+                          </button>
+                        </>
+                      )}
+                      <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+                        earnedMarks === totalMarks ? "bg-[#d1fae5] text-[#006c49]" : earnedMarks > 0 ? "bg-[#fef3c7] text-[#633f00]" : "bg-[#ffdad6] text-[#ba1a1a]"
+                      }`}>{earnedMarks} / {totalMarks}</span>
+                    </div>
                   </div>
 
                   {/* Visual Text passage images — passage is stored as a sentinel
@@ -1318,6 +1356,8 @@ function ExamReviewContent({ id }: { id: string }) {
                         initialDataUrl={data.reviewAnnotations?.[`passage:${currentSection?.label ?? "unnamed"}`] ?? null}
                         readOnly={isStudent}
                         onSaved={handlePenSaved}
+                        controlledActive={passagePenActive}
+                        clearSignal={passagePenClearSignal}
                       />
                       {(() => {
                         const pLines = currentSection.passage!.split("\n");

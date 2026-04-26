@@ -21,6 +21,8 @@ export function ReviewPenOverlay({
   initialDataUrl,
   readOnly = false,
   onSaved,
+  controlledActive,
+  clearSignal,
 }: {
   paperId: string;
   storageKey: string;
@@ -34,6 +36,15 @@ export function ReviewPenOverlay({
   // same session re-mounts the overlay with the stale initialDataUrl
   // from page-load time, and just-drawn ink disappears until reload.
   onSaved?: (storageKey: string, dataUrl: string | null) => void;
+  // Pass a boolean to render in 'controlled' mode — the internal
+  // Pen/Clear toolbar is suppressed and the active state comes from
+  // the parent. Used by the review page to hoist the toolbar up
+  // alongside the section header.
+  controlledActive?: boolean;
+  // Bump this number to trigger a clear from outside (paired with
+  // controlledActive when the toolbar is hoisted). The component
+  // ignores the value, just watches for it changing.
+  clearSignal?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
@@ -57,7 +68,9 @@ export function ReviewPenOverlay({
   // draw it in.
   const initialPaintPending = useRef<string | null>(initialDataUrl ?? null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [active, setActive] = useState(false);
+  const [internalActive, setActive] = useState(false);
+  const isControlled = controlledActive !== undefined;
+  const active = isControlled ? !!controlledActive : internalActive;
 
   function getPosXY(clientX: number, clientY: number) {
     const canvas = canvasRef.current!;
@@ -289,6 +302,24 @@ export function ReviewPenOverlay({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // External clear trigger — used when the toolbar is hoisted out of
+  // the overlay (controlled mode). Skip the very first render so the
+  // initial value doesn't fire a phantom clear on mount.
+  const lastClearSignal = useRef<number | undefined>(clearSignal);
+  useEffect(() => {
+    if (clearSignal === undefined) return;
+    if (lastClearSignal.current === undefined) {
+      lastClearSignal.current = clearSignal;
+      return;
+    }
+    if (clearSignal !== lastClearSignal.current) {
+      lastClearSignal.current = clearSignal;
+      clearAll();
+    }
+    // clearAll is stable across renders for our purposes (no closure deps that change).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clearSignal]);
+
   // Flush triggers: parent's custom 'review:save-pen' event (fired by
   // back / next / prev / reviewed buttons), tab hidden, and unmount.
   useEffect(() => {
@@ -316,32 +347,36 @@ export function ReviewPenOverlay({
           when the parent scrolls the passage internally. We render
           the wrapper (and reserve its height) for readOnly viewers
           too — using visibility: hidden — so both parent and student
-          see identical text positions and saved strokes line up. */}
-      <div
-        className="sticky top-0 z-20 flex justify-end gap-1.5 pointer-events-none"
-        style={{ visibility: readOnly ? "hidden" : "visible" }}
-      >
-        <button
-          type="button"
-          onClick={() => setActive(v => !v)}
-          className={`pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm border ${
-            active
-              ? "bg-rose-600 text-white border-rose-700 hover:bg-rose-700"
-              : "bg-white text-rose-600 border-rose-300 hover:bg-rose-50"
-          }`}
-          title={active ? "Pen on — tap to disable" : "Tap to draw on this passage"}
+          see identical text positions and saved strokes line up.
+          When controlled (toolbar hoisted by the page into the
+          section header), the internal toolbar is omitted entirely. */}
+      {!isControlled && (
+        <div
+          className="sticky top-0 z-20 flex justify-end gap-1.5 pointer-events-none"
+          style={{ visibility: readOnly ? "hidden" : "visible" }}
         >
-          {active ? "Pen on" : "Pen"}
-        </button>
-        <button
-          type="button"
-          onClick={clearAll}
-          className="pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 shadow-sm"
-          title="Clear all ink"
-        >
-          Clear
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setActive(v => !v)}
+            className={`pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm border ${
+              active
+                ? "bg-rose-600 text-white border-rose-700 hover:bg-rose-700"
+                : "bg-white text-rose-600 border-rose-300 hover:bg-rose-50"
+            }`}
+            title={active ? "Pen on — tap to disable" : "Tap to draw on this passage"}
+          >
+            {active ? "Pen on" : "Pen"}
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 shadow-sm"
+            title="Clear all ink"
+          >
+            Clear
+          </button>
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         className="absolute top-0 left-0 z-10"
