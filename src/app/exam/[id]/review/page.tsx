@@ -1292,12 +1292,14 @@ function ExamReviewContent({ id }: { id: string }) {
                   {/* Passage text */}
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
                     <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full relative">
-                      <ReviewPenOverlay
-                        key={`passage:${currentSection?.label ?? "unnamed"}`}
-                        paperId={id}
-                        storageKey={`passage:${currentSection?.label ?? "unnamed"}`}
-                        initialDataUrl={data.reviewAnnotations?.[`passage:${currentSection?.label ?? "unnamed"}`] ?? null}
-                      />
+                      {!isStudent && (
+                        <ReviewPenOverlay
+                          key={`passage:${currentSection?.label ?? "unnamed"}`}
+                          paperId={id}
+                          storageKey={`passage:${currentSection?.label ?? "unnamed"}`}
+                          initialDataUrl={data.reviewAnnotations?.[`passage:${currentSection?.label ?? "unnamed"}`] ?? null}
+                        />
+                      )}
                       {(() => {
                         const pLines = currentSection.passage!.split("\n");
                         // Detect line-numbered table (Comp OEQ reading passage)
@@ -1936,12 +1938,14 @@ function ExamReviewContent({ id }: { id: string }) {
                                                     }
                                                   }}
                                                 />
-                                                <ReviewPenOverlay
-                                                  key={overlayKey}
-                                                  paperId={id}
-                                                  storageKey={overlayKey}
-                                                  initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
-                                                />
+                                                {!isStudent && (
+                                                  <ReviewPenOverlay
+                                                    key={overlayKey}
+                                                    paperId={id}
+                                                    storageKey={overlayKey}
+                                                    initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
+                                                  />
+                                                )}
                                               </div>
                                             );
                                           })()}
@@ -2032,12 +2036,14 @@ function ExamReviewContent({ id }: { id: string }) {
                                   className="w-full h-auto block"
                                   aspectRatio={`400 / ${visibleH}`}
                                 />
-                                <ReviewPenOverlay
-                                  key={overlayKey}
-                                  paperId={id}
-                                  storageKey={overlayKey}
-                                  initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
-                                />
+                                {!isStudent && (
+                                  <ReviewPenOverlay
+                                    key={overlayKey}
+                                    paperId={id}
+                                    storageKey={overlayKey}
+                                    initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
+                                  />
+                                )}
                               </div>
                             </div>
                           );
