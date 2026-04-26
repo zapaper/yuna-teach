@@ -299,6 +299,11 @@ function ExamReviewContent({ id }: { id: string }) {
     fetchData();
   }, [id]);
 
+  // Reset the passage pen state when navigating between items (sections
+  // or questions) so each new view starts with the pen off. Placed
+  // before early returns to keep the hook order stable across renders.
+  useEffect(() => { setPassagePenActive(false); }, [currentIdx]);
+
   // Fetch pending review papers for "Reviewed, next" button
   useEffect(() => {
     if (!assignedToId || !userId || userId === assignedToId) return; // only for parents
@@ -633,11 +638,6 @@ function ExamReviewContent({ id }: { id: string }) {
   const currentSectionLabel = currentSection?.label.toLowerCase() ?? "";
   const isTypedSection = currentItem?.type === "section";
   const sectionQuestions = currentItem?.type === "section" ? currentItem.questions : [];
-
-  // Reset the passage pen state when navigating between sections so
-  // each new section starts with the pen off.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setPassagePenActive(false); }, [currentSectionLabel]);
 
   // For quiz OEQ: determine submission page index for the current question.
   // Prefer stored oeqPageMap (set at submission time) to avoid mismatches when
