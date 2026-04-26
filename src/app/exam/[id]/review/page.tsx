@@ -1376,6 +1376,33 @@ function ExamReviewContent({ id }: { id: string }) {
                                   <span className="underline decoration-2 font-semibold text-[#001e40] px-1 text-sm">{word}</span>
                                 </span>
                               );
+                            } else if (isGrammarCloze) {
+                              // Grammar cloze: fill the blank with the actual word the
+                              // student chose (looked up from the word bank by letter).
+                              // Green = correct, red = wrong (with the correct word
+                              // shown next to it). No answer = empty underline.
+                              const q = sectionQuestions.find(sq => sq.questionNum === num);
+                              const studentLetter = (q?.studentAnswer ?? "").trim().toUpperCase();
+                              const correctLetter = (q?.answer ?? "").trim().toUpperCase();
+                              const studentWord = wordBank.get(studentLetter) ?? "";
+                              const correctWord = wordBank.get(correctLetter) ?? correctLetter;
+                              const isBlank = !studentLetter || studentLetter === "__SKIPPED__";
+                              const isCorrect = !isBlank && studentLetter === correctLetter;
+                              parts.push(
+                                <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
+                                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1 rounded relative -top-px">({num})</span>
+                                  {isBlank ? (
+                                    <span className="border-b-2 border-slate-300 px-1 text-sm text-[#737780]">____</span>
+                                  ) : isCorrect ? (
+                                    <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{studentWord}</span>
+                                  ) : (
+                                    <>
+                                      <span className="font-bold text-[#ba1a1a] line-through px-1 text-sm">{studentWord}</span>
+                                      <span className="font-bold text-[#006c49] underline decoration-2 decoration-[#006c49]/40 underline-offset-2 px-1 text-sm">{correctWord}</span>
+                                    </>
+                                  )}
+                                </span>
+                              );
                             } else {
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-center gap-0.5 mx-0.5">
