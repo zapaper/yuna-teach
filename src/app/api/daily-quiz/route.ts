@@ -984,9 +984,20 @@ export async function POST(request: NextRequest) {
   if (student?.level && student.level > 1 && (mcqFreshPool.length < mcqTarget || oeqFreshPool.length < oeqTarget)) {
     const prevLevelFilter = `Primary ${student.level - 1}`;
     const prevLevelQuestions = await prisma.examQuestion.findMany({
-      // Prior-level top-up ignores the difficulty filter — we're already
-      // stretching for questions at this point, don't double-constrain.
-      where: questionWhere(prevLevelFilter, null, null, true),
+      // Prior-level top-up STILL respects the student's difficulty cap.
+      // The earlier behaviour ignored it ('we're already stretching'),
+      // which let a Lv 5 question from the prior level land in a quiz
+      // the parent had set to 'progressive' — defeating the setting.
+      // Use the broadened bucket (primary + fallback + unrated) so the
+      // top-up doesn't completely zero out, while honouring the cap.
+      where: questionWhere(
+        prevLevelFilter,
+        null,
+        difficultyFilter.primary
+          ? [...difficultyFilter.primary, ...(difficultyFilter.fallback ?? [])]
+          : null,
+        true,
+      ),
       select: questionSelectLight,
     });
     const { mcqPool: allPrevMcq, oeqPool: allPrevOeq } = buildPools(prevLevelQuestions);
