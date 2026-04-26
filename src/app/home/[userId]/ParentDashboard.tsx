@@ -1437,7 +1437,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </div>
             <div className="flex-1 min-w-0">
               <h5 className="font-bold text-sm text-[#001e40] truncate">{paper.title}</h5>
-              <p className="text-xs text-[#43474f]">{isMarking ? "Marking…" : relativeDate(paper.completedAt!)}</p>
+              <p className="text-xs text-[#43474f]">
+                {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
+                {paper.questionCount > 0 && <> &middot; {paper.questionCount}q</>}
+              </p>
             </div>
             <div className="flex items-center gap-1 shrink-0">
               {(paper.paperType === "quiz" || paper.paperType === "focused") && (
@@ -2673,7 +2676,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             </div>
                             <div className="flex-1 min-w-0">
                               <h5 className="font-bold text-[#001e40] truncate">{paper.title}</h5>
-                              <p className="text-sm text-[#43474f]">{isMarking ? "Marking…" : relativeDate(paper.completedAt!)}</p>
+                              <p className="text-sm text-[#43474f]">
+                                {isMarking ? "Marking…" : relativeDate(paper.completedAt!)}
+                                {paper.questionCount > 0 && <> &middot; {paper.questionCount}q</>}
+                              </p>
                             </div>
                             <div className="text-right shrink-0">
                               {isMarking ? (
