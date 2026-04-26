@@ -576,7 +576,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     && p.paperType === null
     && !(p.subject ?? "").toLowerCase().includes("english")
     && !p.title.startsWith("[Synthetic Bank]")
-    && !/Focused:/i.test(p.title)
+    // \bFocused\b catches both 'P5 Focused: Fractions' (current format)
+    // and legacy 'Focused Test on Fractions' style titles. \bFocus\b
+    // catches the human-typed 'Focus on Fractions'. Daily Quiz too.
+    && !/\bFocus(ed)?\b/i.test(p.title)
     && !/Daily Quiz/i.test(p.title)
   );
 
