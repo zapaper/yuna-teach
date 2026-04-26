@@ -1843,14 +1843,40 @@ function ExamReviewContent({ id }: { id: string }) {
                                   Quiz page renders both too; review was hiding
                                   the static diagram whenever drawable was present
                                   which lost the diagram for Q7/Q8 in tests. */}
-                              {currentQ.diagramImageData && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full rounded-xl border border-[#e5eeff]" />
-                              )}
-                              {drawableDiagram && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={toSrc(drawableDiagram)} alt="Question diagram" className="w-full rounded-xl border border-[#e5eeff]" />
-                              )}
+                              {currentQ.diagramImageData && (() => {
+                                const k = `question:${currentQ.id}:diagram`;
+                                return (
+                                  <div className="w-full rounded-xl border border-[#e5eeff] overflow-hidden relative">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full block" />
+                                    <ReviewPenOverlay
+                                      key={k}
+                                      paperId={id}
+                                      storageKey={k}
+                                      initialDataUrl={data.reviewAnnotations?.[k] ?? null}
+                                      readOnly={isStudent}
+                                      onSaved={handlePenSaved}
+                                    />
+                                  </div>
+                                );
+                              })()}
+                              {drawableDiagram && (() => {
+                                const k = `question:${currentQ.id}:drawable`;
+                                return (
+                                  <div className="w-full rounded-xl border border-[#e5eeff] overflow-hidden relative">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={toSrc(drawableDiagram)} alt="Question diagram" className="w-full block" />
+                                    <ReviewPenOverlay
+                                      key={k}
+                                      paperId={id}
+                                      storageKey={k}
+                                      initialDataUrl={data.reviewAnnotations?.[k] ?? null}
+                                      readOnly={isStudent}
+                                      onSaved={handlePenSaved}
+                                    />
+                                  </div>
+                                );
+                              })()}
                               {/* MCQ options — image grid */}
                               {currentQ.transcribedOptionImages && currentQ.transcribedOptionImages.some(img => img) && (
                                 <div className="grid grid-cols-2 gap-3 mt-2">
