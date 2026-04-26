@@ -23,6 +23,7 @@ export function ReviewPenOverlay({
   onSaved,
   controlledActive,
   clearSignal,
+  scaleToFit = false,
 }: {
   paperId: string;
   storageKey: string;
@@ -45,6 +46,10 @@ export function ReviewPenOverlay({
   // controlledActive when the toolbar is hoisted). The component
   // ignores the value, just watches for it changing.
   clearSignal?: number;
+  // Diagrams scale with viewport (same image at different sizes), so
+  // strokes should scale with them. Passages keep natural size since
+  // text reflow is local — stretching would distort. Default false.
+  scaleToFit?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
@@ -260,14 +265,22 @@ export function ReviewPenOverlay({
         img.onload = () => {
           const canv = canvasRef.current;
           if (!canv) return;
-          // Preserve every saved stroke even if the surrounding text
-          // layout has shrunk since save time (layout changes between
-          // draw and reload would otherwise either clip strokes off
-          // the bottom or stretch them off the text they were marking).
-          // If the saved PNG is taller/wider than the current canvas,
-          // extend the canvas to fit it. Result: nothing is lost on
-          // reload; the canvas may visually extend past the passage's
-          // last line by the difference, which is acceptable.
+          const cx = canv.getContext("2d");
+          if (!cx) return;
+          if (scaleToFit) {
+            // Diagrams: same image scales with viewport, so the
+            // strokes should scale with the canvas. Stretch the seed
+            // PNG to fill current canvas dimensions — annotations
+            // stay in the right place over the diagram regardless of
+            // device size.
+            cx.drawImage(img, 0, 0, canv.width, canv.height);
+            return;
+          }
+          // Passages / OEQ submission images: text/layout can shift
+          // between save and load, but stretching would distort. Use
+          // natural size and extend the canvas to fit if the saved
+          // PNG is bigger, so no stroke gets clipped on a smaller
+          // viewport.
           const dprNow = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 3);
           const seedCssW = img.naturalWidth / dprNow;
           const seedCssH = img.naturalHeight / dprNow;
@@ -281,11 +294,8 @@ export function ReviewPenOverlay({
             canv.width = Math.round(wantW * dprNow);
             canv.height = Math.round(wantH * dprNow);
           }
-          const cx = canv.getContext("2d");
-          // Natural size — strokes land at the same pixel they were
-          // drawn at, so they stay over the same text content they
-          // were marking (assuming text didn't reflow).
-          if (cx) cx.drawImage(img, 0, 0);
+          const cx2 = canv.getContext("2d");
+          if (cx2) cx2.drawImage(img, 0, 0);
         };
         img.src = seed;
         initialPaintPending.current = null;

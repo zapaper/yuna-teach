@@ -2017,6 +2017,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                       initialDataUrl={data.reviewAnnotations?.[k] ?? null}
                                       readOnly={isStudent}
                                       onSaved={handlePenSaved}
+                                      scaleToFit
                                     />
                                   </div>
                                 );
@@ -2040,6 +2041,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                       initialDataUrl={data.reviewAnnotations?.[k] ?? null}
                                       readOnly={isStudent}
                                       onSaved={handlePenSaved}
+                                      scaleToFit
                                     />
                                   </div>
                                 );
@@ -2186,6 +2188,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                                   initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
                                                   readOnly={isStudent}
                                                   onSaved={handlePenSaved}
+                                                  scaleToFit
                                                 />
                                               </div>
                                             );
@@ -2284,6 +2287,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
                                   readOnly={isStudent}
                                   onSaved={handlePenSaved}
+                                  scaleToFit
                                 />
                               </div>
                             </div>
