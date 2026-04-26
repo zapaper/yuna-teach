@@ -27,16 +27,22 @@ export function ReviewPenOverlay({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  // Track previous midpoint for quadratic-curve smoothing. Between three
+  // consecutive samples a, b, c we draw quadraticCurveTo(b, mid(b,c))
+  // starting from mid(a,b). Turns the per-segment 60 Hz straight facets
+  // into smooth curves — what finger input on iOS Safari especially
+  // needs since touch sampling is sparse and raw lineTo looks jagged.
+  const lastMid = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const dirty = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [active, setActive] = useState(false);
 
-  function getPos(e: React.PointerEvent) {
+  function getPosXY(clientX: number, clientY: number) {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) * (canvas.width / rect.width),
-      y: (e.clientY - rect.top) * (canvas.height / rect.height),
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top) * (canvas.height / rect.height),
     };
   }
 
@@ -62,28 +68,59 @@ export function ReviewPenOverlay({
     }, 1500);
   }, [paperId, storageKey]);
 
-  function onDown(e: React.PointerEvent) {
-    if (!active || e.button !== 0) return;
-    isDrawing.current = true;
-    lastPos.current = getPos(e);
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-  }
-
-  function onMove(e: React.PointerEvent) {
-    if (!isDrawing.current) return;
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx || !lastPos.current) return;
-    const pos = getPos(e);
+  function applyStyle(ctx: CanvasRenderingContext2D) {
     ctx.globalCompositeOperation = "source-over";
     ctx.strokeStyle = "rgba(220, 38, 38, 0.95)";
     ctx.lineWidth = 4;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    ctx.beginPath();
-    ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
+  }
+
+  function onDown(e: React.PointerEvent) {
+    if (!active || e.button !== 0) return;
+    e.preventDefault();
+    isDrawing.current = true;
+    const pos = getPosXY(e.clientX, e.clientY);
     lastPos.current = pos;
+    lastMid.current = { x: pos.x, y: pos.y };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    // Drop a small dot on tap so a single quick tap leaves a mark
+    // instead of nothing (no movement = no segment otherwise).
+    const ctx = canvasRef.current?.getContext("2d");
+    if (ctx) {
+      applyStyle(ctx);
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    dirty.current = true;
+  }
+
+  function onMove(e: React.PointerEvent) {
+    if (!isDrawing.current || !lastPos.current) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) return;
+    e.preventDefault();
+    // getCoalescedEvents returns every pointer sample the OS buffered
+    // since the previous pointermove — on iOS Safari especially,
+    // raw 60 Hz pointermove throws away intermediate samples and fast
+    // strokes look jagged.
+    const native = e.nativeEvent as PointerEvent;
+    const samples = typeof native.getCoalescedEvents === "function"
+      ? native.getCoalescedEvents()
+      : [native];
+    applyStyle(ctx);
+    for (const s of samples) {
+      const cur = getPosXY(s.clientX, s.clientY);
+      const prev = lastPos.current!;
+      const mid = { x: (prev.x + cur.x) / 2, y: (prev.y + cur.y) / 2 };
+      ctx.beginPath();
+      ctx.moveTo(lastMid.current.x, lastMid.current.y);
+      ctx.quadraticCurveTo(prev.x, prev.y, mid.x, mid.y);
+      ctx.stroke();
+      lastMid.current = mid;
+      lastPos.current = cur;
+    }
     dirty.current = true;
   }
 
@@ -126,8 +163,11 @@ export function ReviewPenOverlay({
       }
       c.style.width = `${w}px`;
       c.style.height = `${h}px`;
-      c.width = w * 2; // 2x DPR for crisp ink
-      c.height = h * 2;
+      // Use the device DPR (capped at 3) so retina iPhones get crisp ink
+      // without a 4x texture blowing up memory.
+      const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 3);
+      c.width = Math.round(w * dpr);
+      c.height = Math.round(h * dpr);
       const newCtx = c.getContext("2d");
       if (snapshot && newCtx) {
         try { newCtx.putImageData(snapshot, 0, 0); } catch { /* dimension change clears */ }
