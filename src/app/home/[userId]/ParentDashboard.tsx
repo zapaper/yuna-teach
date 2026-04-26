@@ -2140,6 +2140,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             ) : (
                               <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontVariationSettings: "'FILL' 1" }}>pending_actions</span>
                             )}
+                            {paper.markingStatus === "released" && (
+                              <span
+                                title="Reviewed and released"
+                                className="material-symbols-outlined text-[#006c49] text-base ml-1"
+                                style={{ fontVariationSettings: "'FILL' 1" }}
+                              >check_circle</span>
+                            )}
                           </div>
                         </div>
                       );
@@ -2684,6 +2691,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                   </span>
                                 ) : (
                                   <span className="text-xs font-extrabold text-[#d58d00]">PENDING</span>
+                                )}
+                                {paper.markingStatus === "released" && (
+                                  <span
+                                    title="Reviewed and released"
+                                    className="material-symbols-outlined text-[#006c49] text-base ml-1 align-middle"
+                                    style={{ fontVariationSettings: "'FILL' 1" }}
+                                  >check_circle</span>
                                 )}
                               </>)}
                             </div>

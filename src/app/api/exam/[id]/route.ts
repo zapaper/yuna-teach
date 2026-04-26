@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { promises as fs } from "fs";
 import path from "path";
@@ -261,6 +262,18 @@ export async function PATCH(
   if ("metadata" in body && typeof body.metadata === "object" && body.metadata !== null && !("skipPages" in body) && !("passagePages" in body)) {
     // Direct metadata update (e.g. sectionOcrTexts)
     data.metadata = body.metadata;
+  }
+  // Parent's red-pen review annotations. Body shape: { reviewAnnotations:
+  // { key: dataUrl | null } } — null clears that key. Merges into the
+  // existing object so multiple passages/questions can be saved
+  // independently without one overwriting the others.
+  if ("reviewAnnotations" in body && typeof body.reviewAnnotations === "object" && body.reviewAnnotations !== null) {
+    const existing = await prisma.examPaper.findUnique({ where: { id }, select: { reviewAnnotations: true } });
+    const merged: Record<string, string> = { ...((existing?.reviewAnnotations as Record<string, string>) ?? {}) };
+    for (const [k, v] of Object.entries(body.reviewAnnotations as Record<string, string | null>)) {
+      if (v === null) delete merged[k]; else if (typeof v === "string") merged[k] = v;
+    }
+    data.reviewAnnotations = Object.keys(merged).length > 0 ? merged : Prisma.JsonNull;
   }
 
   const paper = await prisma.examPaper.update({ where: { id }, data });

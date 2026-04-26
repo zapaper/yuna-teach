@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { jsPDF } from "jspdf";
 import FormattedText from "@/components/FormattedText";
 import { VisualTextImages } from "@/components/EnglishQuizSection";
+import { ReviewPenOverlay } from "@/components/ReviewPenOverlay";
 import { playClick } from "@/lib/sfx";
 import React from "react";
 
@@ -87,6 +88,9 @@ interface ReviewData {
   feedbackSummary: string | null;
   questions: ReviewQuestion[];
   bookletScores?: BookletScore[];
+  // Parent's red-pen review annotations: keyed by 'passage:<sectionLabel>'
+  // or 'question:<questionId>', value is a PNG data URL.
+  reviewAnnotations?: Record<string, string> | null;
 }
 
 export default function ExamReviewPage({
@@ -1287,7 +1291,12 @@ function ExamReviewContent({ id }: { id: string }) {
                   )}
                   {/* Passage text */}
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
-                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full">
+                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full relative">
+                      <ReviewPenOverlay
+                        paperId={id}
+                        storageKey={`passage:${currentSection?.label ?? "unnamed"}`}
+                        initialDataUrl={data.reviewAnnotations?.[`passage:${currentSection?.label ?? "unnamed"}`] ?? null}
+                      />
                       {(() => {
                         const pLines = currentSection.passage!.split("\n");
                         // Detect line-numbered table (Comp OEQ reading passage)
