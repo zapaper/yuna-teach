@@ -30,7 +30,9 @@ function SubmissionImage({ src, alt, className, aspectRatio, onError }: {
         key={src}
         src={src}
         alt={alt}
-        className={className}
+        className={`${className ?? ""} pointer-events-none select-none`}
+        draggable={false}
+        style={{ WebkitTouchCallout: "none", WebkitUserDrag: "none" } as React.CSSProperties}
         onLoad={() => setLoading(false)}
         onError={(e) => { setLoading(false); onError?.(e); }}
       />
@@ -1991,9 +1993,15 @@ function ExamReviewContent({ id }: { id: string }) {
                               {currentQ.diagramImageData && (() => {
                                 const k = `question:${currentQ.id}:diagram`;
                                 return (
-                                  <div className="w-full rounded-xl border border-[#e5eeff] overflow-hidden relative">
+                                  <div className="w-full rounded-xl border border-[#e5eeff] overflow-hidden relative select-none">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={toSrc(currentQ.diagramImageData)} alt="Diagram" className="w-full block" />
+                                    <img
+                                      src={toSrc(currentQ.diagramImageData)}
+                                      alt="Diagram"
+                                      className="w-full block pointer-events-none select-none"
+                                      draggable={false}
+                                      style={{ WebkitTouchCallout: "none", WebkitUserDrag: "none" } as React.CSSProperties}
+                                    />
                                     <ReviewPenOverlay
                                       key={k}
                                       paperId={id}
@@ -2008,9 +2016,15 @@ function ExamReviewContent({ id }: { id: string }) {
                               {drawableDiagram && (() => {
                                 const k = `question:${currentQ.id}:drawable`;
                                 return (
-                                  <div className="w-full rounded-xl border border-[#e5eeff] overflow-hidden relative">
+                                  <div className="w-full rounded-xl border border-[#e5eeff] overflow-hidden relative select-none">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={toSrc(drawableDiagram)} alt="Question diagram" className="w-full block" />
+                                    <img
+                                      src={toSrc(drawableDiagram)}
+                                      alt="Question diagram"
+                                      className="w-full block pointer-events-none select-none"
+                                      draggable={false}
+                                      style={{ WebkitTouchCallout: "none", WebkitUserDrag: "none" } as React.CSSProperties}
+                                    />
                                     <ReviewPenOverlay
                                       key={k}
                                       paperId={id}
