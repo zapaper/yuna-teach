@@ -436,9 +436,19 @@ interface QuestionMarkResult {
 /** Build markingNotes string, prefixing with detected student answer when available */
 function buildMarkingNotes(result: QuestionMarkResult): string {
   const parts: string[] = [];
-  if (result.studentAnswer) parts.push(`Detected: ${result.studentAnswer}`);
+  if (result.studentAnswer) {
+    // The AI's detect prompt asks for 'Working: ... Final answer: X'.
+    // Strip the 'Working:' label so we don't render 'Detected: Working: …'
+    // — the label is scaffolding, not part of the answer.
+    const cleaned = result.studentAnswer.replace(/^\s*working\s*:?\s*/i, "").trim();
+    parts.push(`Detected: ${cleaned || result.studentAnswer}`);
+  }
   if (result.notes) {
     let notes = result.notes;
+    // Drop a leading 'Working:' label too — same scaffolding the AI's
+    // detect prompt produces. Without this, 'Detected: X | Working: Y'
+    // surfaces twice.
+    notes = notes.replace(/^\s*working\s*:?\s*/i, "").trim();
     // Strip the drawable count-diff header (Expected: N. Student: M.
     // Extras: X. Missing: Y.) from the displayed notes — it was only
     // there as a chain-of-thought scaffold for the AI and the
