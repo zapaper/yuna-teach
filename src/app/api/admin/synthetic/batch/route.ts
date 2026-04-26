@@ -179,12 +179,15 @@ export async function GET(request: NextRequest) {
 
   // MCQ branch (original behaviour). Source pool: Grammar/Vocabulary MCQ for
   // English, plain MCQ for math/science. All four-option questions with a
-  // numeric answer (1-4).
+  // numeric answer (1-4). Vocabulary Cloze MCQ is intentionally excluded —
+  // its question shape is "passage with a blank, pick the word", and the
+  // synthetic generator targets standalone Grammar/Vocab MCQ only.
   const mcqWhere: Prisma.ExamQuestionWhereInput = {
     syntheticGenerated: false,
     transcribedStem: { not: null },
     transcribedOptions: { not: Prisma.JsonNull },
     answer: { not: null },
+    NOT: { syllabusTopic: { contains: "cloze", mode: "insensitive" } },
     examPaper: paperFilter,
   };
   const questions = await prisma.examQuestion.findMany({
