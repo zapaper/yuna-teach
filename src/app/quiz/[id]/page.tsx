@@ -1632,12 +1632,16 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
       canvas.style.height = `${h}px`;
       canvas.width = newW;
       canvas.height = newH;
-      // Restore content scaled to new size
+      // Restore content at NATURAL size — drawing at the new canvas
+      // dimensions stretched existing strokes when the canvas grew
+      // (e.g. user dragged out the scribble area), making the
+      // student's ink elongate. Drawing 1:1 keeps strokes at their
+      // original pixel coords; new space below/right is empty.
       if (saved && ctx) {
         const tmp = document.createElement("canvas");
         tmp.width = saved.width; tmp.height = saved.height;
         tmp.getContext("2d")!.putImageData(saved, 0, 0);
-        ctx.drawImage(tmp, 0, 0, newW, newH);
+        ctx.drawImage(tmp, 0, 0);
       }
     });
     obs.observe(parent);
