@@ -1443,9 +1443,9 @@ function ExamReviewContent({ id }: { id: string }) {
                                     </>
                                   ) : (
                                     <>
-                                      <span className="font-bold text-[#ba1a1a] line-through text-sm">[{studentAns}]</span>
+                                      <span className="font-bold text-[#ba1a1a] text-sm">[{studentAns}]</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
-                                      <span className="font-bold text-[#006c49] text-sm">[{correctAns}]</span>
+                                      <span className="font-bold text-[#ba1a1a] text-sm">[{correctAns}]</span>
                                     </>
                                   )}
                                 </span>
