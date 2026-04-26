@@ -311,12 +311,14 @@ export function ReviewPenOverlay({
 
   return (
     <>
-      {/* Toolbar: floats top-right of the parent. The parent must be
-          position:relative for absolute positioning to anchor correctly.
-          Read-only viewers (students) see no toolbar — just the painted
-          annotation under the canvas. */}
+      {/* Toolbar: absolutely positioned so it doesn't take vertical
+          space in the parent's flow. Otherwise the text below shifts
+          ~24 px down on the parent's view (toolbar present), but stays
+          at the top on the student's view (readOnly = no toolbar) — so
+          parent's strokes land one line below their text on student
+          view. Absolute positioning keeps layout identical for both. */}
       {!readOnly && (
-        <div className="sticky top-2 z-20 flex justify-end gap-1.5 pointer-events-none mb-1">
+        <div className="absolute top-2 right-2 z-20 flex gap-1.5 pointer-events-none">
           <button
             type="button"
             onClick={() => setActive(v => !v)}
