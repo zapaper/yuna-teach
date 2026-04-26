@@ -827,8 +827,14 @@ function ExamReviewContent({ id }: { id: string }) {
 
   // Renders marking notes: bolds verdict labels and **keyword** markers
   function renderMarkingNotes(text: string) {
-    return text.split("|").map((part, i, arr) => {
-      const trimmed = part.trim();
+    // Drop the 'Detected: …' segment — the student's detected answer
+    // already gets its own 'Detected Answer' card above the marking
+    // notes. Repeating it here is just noise.
+    const parts = text
+      .split("|")
+      .map(p => p.trim())
+      .filter(p => p && !/^detected\s*:/i.test(p));
+    return parts.map((trimmed, i, arr) => {
       const boldRe = /(\*\*[^*\n]+\*\*|\([a-zA-Z]\)\s+(?:Partially\s+)?(?:Correct|Incorrect))/gi;
       const segments: React.ReactNode[] = [];
       let last = 0;
@@ -2123,7 +2129,21 @@ function ExamReviewContent({ id }: { id: string }) {
                                 return (
                                   <div className="space-y-4 mt-2">
                                     {realSubs.map((sp) => {
-                                      const imgSrc = sp.refImageBase64 ? toSrc(sp.refImageBase64) : sp.diagramBase64 ? toSrc(sp.diagramBase64) : null;
+                                      // Skip rendering the canvas-background
+                                      // diagram when a SubmissionImage will
+                                      // render below — the submission already
+                                      // includes the same diagram with the
+                                      // student's ink baked in. Reference
+                                      // images (refImageBase64) are different —
+                                      // they're answer templates / question
+                                      // figures that the submission doesn't
+                                      // show, so keep those.
+                                      const hasSubmission = isQuiz && currentQOeqIndex >= 0;
+                                      const imgSrc = sp.refImageBase64
+                                        ? toSrc(sp.refImageBase64)
+                                        : (sp.diagramBase64 && !hasSubmission)
+                                          ? toSrc(sp.diagramBase64)
+                                          : null;
                                       const partStudent = studentParts[sp.label.toLowerCase()];
                                       const partAnswer = answerParts[sp.label.toLowerCase()];
                                       const partIsCorrect = sp.label.toLowerCase() in partCorrectMap
