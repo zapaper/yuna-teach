@@ -287,6 +287,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   // Filters for papers view
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
+  // Independent filter for the All Activities view — kept separate so a
+  // parent narrowing one view doesn't accidentally affect the other.
+  const [activitiesSubjectFilter, setActivitiesSubjectFilter] = useState<"math" | "science" | "english" | null>(null);
   const [examTypeFilter, setExamTypeFilter] = useState<string | null>(null);
   const [expandedWeekDay, setExpandedWeekDay] = useState<number | null>(null);
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
@@ -2053,17 +2056,51 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </div>
 
             {(() => {
-              const unstartedPapers = studentPapers.filter(p => !p.completedAt && (p.paperType === "quiz" || p.paperType === "focused" || p.sourceExamId));
-              const allActivities = [...unstartedPapers, ...completedPapers];
-              if (allActivities.length === 0) return (
-                <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-[#c3c6d1]">
-                  <span className="material-symbols-outlined text-4xl text-[#c3c6d1] mb-3 block">history</span>
-                  <p className="font-bold text-[#001e40]">No papers yet</p>
-                  <p className="text-sm text-[#43474f] mt-1">Assigned and completed papers will appear here.</p>
-                </div>
-              );
+              // Subject filter — applied to both unstarted and completed lists.
+              // 'math' / 'science' / 'english' match anywhere in the subject
+              // string ('Mathematics', 'Science', 'English' etc.).
+              const matchesSubject = (p: ExamPaperSummary) => {
+                if (!activitiesSubjectFilter) return true;
+                const s = (p.subject ?? "").toLowerCase();
+                return s.includes(activitiesSubjectFilter);
+              };
+              const unstartedPapers = studentPapers
+                .filter(p => !p.completedAt && (p.paperType === "quiz" || p.paperType === "focused" || p.sourceExamId))
+                .filter(matchesSubject);
+              const filteredCompleted = completedPapers.filter(matchesSubject);
+              const allActivities = [...unstartedPapers, ...filteredCompleted];
               return (
                 <div className="space-y-3">
+                  {/* Subject filter pills */}
+                  <div className="flex gap-2 mb-2 flex-wrap">
+                    {([
+                      { key: null, label: "All" },
+                      { key: "math", label: "Math" },
+                      { key: "science", label: "Science" },
+                      { key: "english", label: "English" },
+                    ] as { key: "math" | "science" | "english" | null; label: string }[]).map(opt => (
+                      <button
+                        key={opt.label}
+                        onClick={() => setActivitiesSubjectFilter(opt.key)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+                          activitiesSubjectFilter === opt.key
+                            ? "bg-[#003366] text-[#799dd6] shadow-sm"
+                            : "bg-[#eff4ff] text-[#001e40] hover:bg-[#dce9ff]"
+                        }`}
+                      >{opt.label}</button>
+                    ))}
+                  </div>
+
+                  {allActivities.length === 0 && (
+                    <div className="text-center py-16 bg-white rounded-3xl border-2 border-dashed border-[#c3c6d1]">
+                      <span className="material-symbols-outlined text-4xl text-[#c3c6d1] mb-3 block">history</span>
+                      <p className="font-bold text-[#001e40]">No papers match</p>
+                      <p className="text-sm text-[#43474f] mt-1">
+                        {activitiesSubjectFilter ? "Try switching to a different subject or clear the filter." : "Assigned and completed papers will appear here."}
+                      </p>
+                    </div>
+                  )}
+
                   {/* Unstarted papers first */}
                   {unstartedPapers.length > 0 && (
                     <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-1 mt-2">Assigned — Not Started</p>
@@ -2093,10 +2130,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     </div>
                   ))}
                   {/* Completed papers */}
-                  {completedPapers.length > 0 && unstartedPapers.length > 0 && (
+                  {filteredCompleted.length > 0 && unstartedPapers.length > 0 && (
                     <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-1 mt-4">Completed</p>
                   )}
-                  {[...completedPapers]
+                  {[...filteredCompleted]
                     .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
                     .slice(0, activityLimit)
                     .map(paper => {
@@ -2156,9 +2193,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </div>
                       );
                     })}
-                  {completedPapers.length > activityLimit && (
+                  {filteredCompleted.length > activityLimit && (
                     <button onClick={() => setActivityLimit(l => l + 20)} className="w-full py-3 text-sm font-bold text-[#003366] bg-[#eff4ff] rounded-2xl hover:bg-[#dce9ff] transition-colors">
-                      See more ({completedPapers.length - activityLimit} remaining)
+                      See more ({filteredCompleted.length - activityLimit} remaining)
                     </button>
                   )}
                 </div>
