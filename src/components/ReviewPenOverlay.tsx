@@ -19,10 +19,15 @@ export function ReviewPenOverlay({
   paperId,
   storageKey,
   initialDataUrl,
+  readOnly = false,
 }: {
   paperId: string;
   storageKey: string;
   initialDataUrl?: string | null;
+  // readOnly = student viewing the parent's annotations. Paints the
+  // saved PNG but shows no Pen/Clear toolbar and ignores all pointer
+  // events. No save calls are made.
+  readOnly?: boolean;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
@@ -56,6 +61,9 @@ export function ReviewPenOverlay({
   // on component unmount, and on tab hide. No debounce — saves happen
   // when the parent leaves the current view, not while they're drawing.
   const flush = useCallback(async () => {
+    // Read-only viewers (students) never write back; cleanup paths
+    // (unmount, pagehide, visibilitychange) all funnel through here.
+    if (readOnly) return;
     if (!dirty.current) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -84,7 +92,7 @@ export function ReviewPenOverlay({
       // Re-mark dirty so the next flush retries.
       dirty.current = true;
     }
-  }, [paperId, storageKey]);
+  }, [paperId, storageKey, readOnly]);
 
   function applyStyle(ctx: CanvasRenderingContext2D) {
     ctx.globalCompositeOperation = "source-over";
@@ -239,37 +247,45 @@ export function ReviewPenOverlay({
   return (
     <>
       {/* Toolbar: floats top-right of the parent. The parent must be
-          position:relative for absolute positioning to anchor correctly. */}
-      <div className="sticky top-2 z-20 flex justify-end gap-1.5 pointer-events-none mb-1">
-        <button
-          type="button"
-          onClick={() => setActive(v => !v)}
-          className={`pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm border ${
-            active
-              ? "bg-rose-600 text-white border-rose-700 hover:bg-rose-700"
-              : "bg-white text-rose-600 border-rose-300 hover:bg-rose-50"
-          }`}
-          title={active ? "Pen on — tap to disable" : "Tap to draw on this passage"}
-        >
-          {active ? "Pen on" : "Pen"}
-        </button>
-        <button
-          type="button"
-          onClick={clearAll}
-          className="pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 shadow-sm"
-          title="Clear all ink"
-        >
-          Clear
-        </button>
-      </div>
+          position:relative for absolute positioning to anchor correctly.
+          Read-only viewers (students) see no toolbar — just the painted
+          annotation under the canvas. */}
+      {!readOnly && (
+        <div className="sticky top-2 z-20 flex justify-end gap-1.5 pointer-events-none mb-1">
+          <button
+            type="button"
+            onClick={() => setActive(v => !v)}
+            className={`pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm border ${
+              active
+                ? "bg-rose-600 text-white border-rose-700 hover:bg-rose-700"
+                : "bg-white text-rose-600 border-rose-300 hover:bg-rose-50"
+            }`}
+            title={active ? "Pen on — tap to disable" : "Tap to draw on this passage"}
+          >
+            {active ? "Pen on" : "Pen"}
+          </button>
+          <button
+            type="button"
+            onClick={clearAll}
+            className="pointer-events-auto px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 shadow-sm"
+            title="Clear all ink"
+          >
+            Clear
+          </button>
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         className="absolute top-0 left-0 z-10"
-        style={{ touchAction: active ? "none" : "auto", pointerEvents: active ? "auto" : "none" }}
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
+        // Read-only: never accept events. Editable: only when Pen is on.
+        style={{
+          touchAction: !readOnly && active ? "none" : "auto",
+          pointerEvents: !readOnly && active ? "auto" : "none",
+        }}
+        onPointerDown={readOnly ? undefined : onDown}
+        onPointerMove={readOnly ? undefined : onMove}
+        onPointerUp={readOnly ? undefined : onUp}
+        onPointerCancel={readOnly ? undefined : onUp}
       />
     </>
   );
