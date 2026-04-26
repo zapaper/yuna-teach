@@ -20,6 +20,7 @@ export function ReviewPenOverlay({
   storageKey,
   initialDataUrl,
   readOnly = false,
+  onSaved,
 }: {
   paperId: string;
   storageKey: string;
@@ -28,6 +29,11 @@ export function ReviewPenOverlay({
   // saved PNG but shows no Pen/Clear toolbar and ignores all pointer
   // events. No save calls are made.
   readOnly?: boolean;
+  // Called after a successful save so the parent can refresh its
+  // local cache. Without this, navigating away and back inside the
+  // same session re-mounts the overlay with the stale initialDataUrl
+  // from page-load time, and just-drawn ink disappears until reload.
+  onSaved?: (storageKey: string, dataUrl: string | null) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
@@ -103,11 +109,15 @@ export function ReviewPenOverlay({
         });
       }
       hasSavedNonBlank.current = !blank;
+      // Notify the parent so its cache reflects what's now on the
+      // server — otherwise re-mounting this overlay (next/prev nav)
+      // would seed from the stale initial data.
+      onSaved?.(storageKey, dataUrl);
     } catch {
       // Re-mark dirty so the next flush retries.
       dirty.current = true;
     }
-  }, [paperId, storageKey, readOnly]);
+  }, [paperId, storageKey, readOnly, onSaved]);
 
   // Debounced save on pen-up. Without this, all save weight is on
   // navigation/unmount, and big PNG bodies can lose the race with

@@ -512,6 +512,18 @@ function ExamReviewContent({ id }: { id: string }) {
   }
 
   const isStudent = userId === assignedToId;
+  // After ReviewPenOverlay successfully PATCHes new annotation, update
+  // local state so re-mounting the overlay (next/prev nav) seeds with
+  // the just-drawn ink instead of the stale value from page load.
+  const handlePenSaved = (key: string, dataUrl: string | null) => {
+    setData((prev) => {
+      if (!prev) return prev;
+      const next = { ...((prev.reviewAnnotations ?? {}) as Record<string, string>) };
+      if (dataUrl === null) delete next[key];
+      else next[key] = dataUrl;
+      return { ...prev, reviewAnnotations: next };
+    });
+  };
   // When a student goes back from a completed quiz, ferry the score into the
   // home URL so the experience bar can animate the points flowing in. The
   // student dashboard will replay the animation only once per paper (guarded
@@ -1304,6 +1316,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         storageKey={`passage:${currentSection?.label ?? "unnamed"}`}
                         initialDataUrl={data.reviewAnnotations?.[`passage:${currentSection?.label ?? "unnamed"}`] ?? null}
                         readOnly={isStudent}
+                        onSaved={handlePenSaved}
                       />
                       {(() => {
                         const pLines = currentSection.passage!.split("\n");
@@ -1979,6 +1992,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                                   storageKey={overlayKey}
                                                   initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
                                                   readOnly={isStudent}
+                                                  onSaved={handlePenSaved}
                                                 />
                                               </div>
                                             );
@@ -2076,6 +2090,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                   storageKey={overlayKey}
                                   initialDataUrl={data.reviewAnnotations?.[overlayKey] ?? null}
                                   readOnly={isStudent}
+                                  onSaved={handlePenSaved}
                                 />
                               </div>
                             </div>
