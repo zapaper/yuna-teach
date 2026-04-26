@@ -1615,11 +1615,20 @@ function ExamReviewContent({ id }: { id: string }) {
                                       if (studentAns.startsWith("{")) {
                                         t = t.split("\n").filter(l => !l.trim().startsWith("|")).join("\n").trim();
                                       }
+                                      // Synthesis: trim off the answer template (the
+                                      // **keyword** + blank ____ lines) so we only show
+                                      // the source sentence(s) the student is rewriting.
+                                      // Keeping the scaffolding clutters the review.
+                                      if (isSynthesis) {
+                                        const lines = t.split("\n");
+                                        let endIdx = lines.length;
+                                        for (let i = 0; i < lines.length; i++) {
+                                          if (/\*\*|_{3,}/.test(lines[i])) { endIdx = i; break; }
+                                        }
+                                        t = lines.slice(0, endIdx).join("\n").trim();
+                                      }
                                       return t;
                                     })()} />
-                                  )}
-                                  {isSynthesis && keyword && (
-                                    <p className="text-sm font-bold text-[#001e40]">{keyword}</p>
                                   )}
                                   <div className="bg-white rounded-lg p-3 border border-slate-200">
                                     <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
@@ -1679,10 +1688,30 @@ function ExamReviewContent({ id }: { id: string }) {
                                       <p className="text-sm text-[#001e40] whitespace-pre-wrap">{(() => {
                                         // Synthesis answers store "<before>|||<after>" — the two blanks the
                                         // student filled on either side of the keyword. Splice the actual
-                                        // keyword in so the reader sees a full transformed sentence.
-                                        if (isSynthesis && studentAns.includes("|||")) {
-                                          const [before, after] = studentAns.split("|||");
-                                          return `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
+                                        // keyword in so the reader sees a full transformed sentence, with
+                                        // the keyword(s) bolded so they stand out from the student's text.
+                                        if (isSynthesis) {
+                                          let combined: string;
+                                          if (studentAns.includes("|||")) {
+                                            const [before, after] = studentAns.split("|||");
+                                            combined = `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
+                                          } else {
+                                            combined = studentAns;
+                                          }
+                                          if (!combined) return <span className="italic text-[#737780]">No answer</span>;
+                                          // Bold every keyword occurrence — synthesis stems may have one
+                                          // primary keyword but other significant words may be wrapped
+                                          // in **bold** in the stem too.
+                                          const keywords = Array.from(stemRaw.matchAll(/\*\*([^*]+)\*\*/g)).map(m => m[1].trim()).filter(Boolean);
+                                          if (keywords.length === 0) return combined;
+                                          const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                                          const re = new RegExp(`\\b(${keywords.map(escape).join("|")})\\b`, "gi");
+                                          const parts = combined.split(re);
+                                          return parts.map((p, i) =>
+                                            keywords.some(k => k.toLowerCase() === p.toLowerCase())
+                                              ? <strong key={i} className="font-bold">{p}</strong>
+                                              : <span key={i}>{p}</span>
+                                          );
                                         }
                                         return studentAns || <span className="italic text-[#737780]">No answer</span>;
                                       })()}</p>
