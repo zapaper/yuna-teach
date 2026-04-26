@@ -231,8 +231,11 @@ function ExamReviewContent({ id }: { id: string }) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         let paperQuestionMap: Record<string, any> = {};
         let paperIsQuiz = false;
+        // Hoisted so the markData merge below can attach this.
+        let paperReviewAnnotations: Record<string, string> | null = null;
         if (paperRes.ok) {
           const paper = await paperRes.json();
+          paperReviewAnnotations = (paper.reviewAnnotations as Record<string, string> | null) ?? null;
           setPaperTitle(paper.title ?? "");
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
@@ -275,6 +278,9 @@ function ExamReviewContent({ id }: { id: string }) {
               }
             }
           }
+          // mark route doesn't carry reviewAnnotations — pull from the
+          // paper response so the overlay's initialDataUrl seeds correctly.
+          markData.reviewAnnotations = paperReviewAnnotations;
           setData(markData);
           // Pre-populate cached elaborations and flagged state
           const cached: Record<string, string> = {};
