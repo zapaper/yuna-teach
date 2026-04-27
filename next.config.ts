@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // @napi-rs/canvas ships a .node native binding loaded via require(), and
+  // pdfjs-dist's legacy build uses Node-only APIs. Both need to stay
+  // out of the bundler so Node loads them at runtime on the server.
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
