@@ -2981,6 +2981,13 @@ Primary-school Science answers are concept-based, not word-for-word. Award parti
 - Award 0 only when the answer is blank, fully off-topic, or misses every key concept.
 - In notes, list which concepts/phrases the student got right and which were missing.
 
+SCIENCE — UNKEYED-BUT-VALID ANSWERS (IMPORTANT):
+Answer keys are NOT exhaustive. Sometimes a student gives a scientifically valid, observation-grounded answer that directly addresses the question but isn't listed in the expected answer.
+- If the student's answer (a) is scientifically correct at primary-school level, (b) directly answers what the question asks, and (c) is consistent with the diagram / context provided, AWARD CREDIT proportional to how completely it addresses the question — even if no concept overlaps with the expected answer.
+- Use this rule sparingly and only when the alternative reasoning is clearly valid science. Do NOT use it to rescue partial / vague / off-topic answers.
+- When applying this rule, prefix the notes with "[Alternative valid answer]" so the parent can spot it during review and override if they disagree.
+- Do NOT apply this rule for English questions, math, or factual recall (e.g. "name the parts of a flower"). Only for Science explanation/reasoning questions where multiple valid lines of reasoning may exist.
+
 SCIENCE KEY-TERM EMPHASIS IN NOTES (IMPORTANT):
 In the notes field, wrap every key scientific term or phrase from the expected answer in **double asterisks** so the review UI renders them in bold. Emphasise especially the terms/phrases the student MISSED (the ones that cost them marks).
 - Examples of key terms: **photosynthesis**, **chlorophyll**, **evaporation**, **blocks light**, **heat energy is transferred**, **potential energy**.
