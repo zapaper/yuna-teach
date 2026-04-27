@@ -1874,8 +1874,13 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
     const subDir = path.join(SUBMISSIONS_DIR, paperId);
     const ai = getAI();
 
-    for (let i = 0; i < oeqQuestions.length; i++) {
-      const q = oeqQuestions[i];
+    // Mark all OEQs in parallel — Gemini calls are the bottleneck, so
+    // running them concurrently roughly N×s the throughput. The shared
+    // `updates` array and `totalAwarded` counter are mutated from
+    // concurrent contexts, which is safe in JS (single-threaded array
+    // push + numeric add). `continue` inside the loop body becomes
+    // `return` from the async IIFE.
+    await Promise.all(oeqQuestions.map((q, i) => (async () => {
       const expectedAnswer = q.answer || "?";
       const marksAvailable = q.marksAvailable ?? 1;
 
@@ -1948,7 +1953,7 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
               data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No written answer found" },
             })
           );
-          continue;
+          return;
         }
 
         // For multi-part questions, send per-subpart images so the AI sees each answer clearly
@@ -1999,7 +2004,7 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
             data: { marksAwarded: 0, markingNotes: "No answer submitted" },
           })
         );
-        continue;
+        return;
       }
 
       try {
@@ -2048,7 +2053,7 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
           })
         );
       }
-    }
+    })()));
 
     // Batch update
     await prisma.$transaction([
@@ -2425,8 +2430,10 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
       const subDir = path.join(SUBMISSIONS_DIR, paperId);
       const ai = getAI();
 
-      for (let i = 0; i < oeqQuestions.length; i++) {
-        const q = oeqQuestions[i];
+      // Same parallel pattern as the focused-test OEQ loop above.
+      // updates.push and totalAwarded mutations remain safe because JS
+      // is single-threaded; `continue` becomes `return` from the IIFE.
+      await Promise.all(oeqQuestions.map((q, i) => (async () => {
         const marksAvailable = q.marksAvailable ?? 1;
 
         // Build the expected-answer text. If subparts carry per-part answers
@@ -2496,7 +2503,7 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
               })
             );
             console.log(`[quiz-marking] Typed Q${q.questionNum}: blank submission → 0/${marksAvailable}`);
-            continue;
+            return;
           }
         }
 
@@ -2637,7 +2644,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               })
             );
           }
-          continue;
+          return;
         }
 
         // Student's handwritten answer from submission files
@@ -2684,7 +2691,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
                 data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No written answer found" },
               })
             );
-            continue;
+            return;
           }
           console.log(`[quiz-marking] Drawable Q${q.questionNum}: ink detected — proceeding to mark`);
         }
@@ -2713,7 +2720,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
                 data: { marksAwarded: 0, studentAnswer: "No answer detected", markingNotes: "No written answer found" },
               })
             );
-            continue;
+            return;
           }
         }
 
@@ -2763,7 +2770,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               data: { marksAwarded: 0, studentAnswer: blankStudent, markingNotes: blankNotes },
             })
           );
-          continue;
+          return;
         }
         // Fallback: try combined image
         if (!hasSubmission) {
@@ -2796,7 +2803,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               data: { marksAwarded: 0, markingNotes: "No answer submitted" },
             })
           );
-          continue;
+          return;
         }
 
         // ── PHASE 1: Detect what the student wrote (WITHOUT showing the answer key) ──
@@ -3177,7 +3184,7 @@ Return ONLY valid JSON:
             })
           );
         }
-      }
+      })()));
     }
 
     // Batch update OEQ marks + set paper score/status
