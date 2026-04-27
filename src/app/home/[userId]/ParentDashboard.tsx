@@ -2030,6 +2030,20 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             disabled={isAssigning}
                             className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
                           >Assign</button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!selectedStudentId) return;
+                              const url = `/api/exam/${p.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
+                              window.open(url, "_blank");
+                            }}
+                            disabled={!selectedStudentId}
+                            title="Download a printable PDF for this student"
+                            className="text-xs font-bold text-[#001e40] bg-white border border-[#c3c6d1] px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 shrink-0 inline-flex items-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-base">print</span>
+                            Print
+                          </button>
                         </div>
                       );
                     })}
