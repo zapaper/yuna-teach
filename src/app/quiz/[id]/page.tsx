@@ -146,6 +146,42 @@ function QuizContent({ id }: { id: string }) {
   const [flagVoiceTarget, setFlagVoiceTarget] = useState<string | null>(null);
 
   // Toggle flag locally AND persist immediately to the DB so the flag survives even if the quiz is never submitted.
+  // Scan an ink-only PNG Blob and return the CSS pixel y of the
+  // lowest non-transparent pixel + a small padding. Used at submit
+  // time to trim canvasHeights to actual ink content rather than how
+  // far the student dragged the canvas — so the review page doesn't
+  // show a giant blank area below sparse strokes.
+  async function inkBottomCss(inkBlob: Blob, fallbackCss: number, maxCanvasCss = 600): Promise<number> {
+    try {
+      const bitmap = await createImageBitmap(inkBlob);
+      const c = document.createElement("canvas");
+      c.width = bitmap.width;
+      c.height = bitmap.height;
+      const ctx = c.getContext("2d");
+      if (!ctx) return fallbackCss;
+      ctx.drawImage(bitmap, 0, 0);
+      const data = ctx.getImageData(0, 0, bitmap.width, bitmap.height).data;
+      let bottomInternal = -1;
+      for (let y = bitmap.height - 1; y >= 0; y--) {
+        let found = false;
+        for (let x = 0; x < bitmap.width; x++) {
+          if (data[(y * bitmap.width + x) * 4 + 3] > 0) { found = true; break; }
+        }
+        if (found) { bottomInternal = y; break; }
+      }
+      if (bottomInternal < 0) return 200; // nothing drawn — small placeholder
+      // Internal canvas pixel height ≈ maxCanvasCss × DPR; recover DPR
+      // from the bitmap so a different device's submission still maps
+      // correctly. Add 20 CSS px padding so the bottom stroke isn't
+      // flush against the edge.
+      const dpr = bitmap.height / maxCanvasCss;
+      const cssBottom = Math.round(bottomInternal / dpr) + 20;
+      return Math.min(cssBottom, fallbackCss);
+    } catch {
+      return fallbackCss;
+    }
+  }
+
   function plainToggleFlag(qId: string, nowFlagged: boolean) {
     setFlaggedIds(prev => {
       const next = new Set(prev);
@@ -344,6 +380,13 @@ function QuizContent({ id }: { id: string }) {
             const [composite, ink] = await Promise.all([handle.exportImage(), handle.exportInk()]);
             form.append(`page_${i}`, composite, `page_${i}.jpg`);
             form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+            // Trim canvasHeights to actual ink-bottom — student may
+            // have dragged the canvas tall but only written near the
+            // top. Capped at the visible height so we never claim
+            // they wrote further than they could see.
+            const visible = canvasHeights.current[q.id] ?? 360;
+            const trimmed = await inkBottomCss(ink, visible);
+            canvasHeights.current[q.id] = trimmed;
           }
           const spRefs = oeqSubpartHandles.current[q.id];
           if (spRefs) {
@@ -352,6 +395,10 @@ function QuizContent({ id }: { id: string }) {
                 const [spComposite, spInk] = await Promise.all([spHandle.exportImage(), spHandle.exportInk()]);
                 form.append(`page_${i}_${label}`, spComposite, `page_${i}_${label}.jpg`);
                 form.append(`page_${i}_${label}_ink`, spInk, `page_${i}_${label}_ink.png`);
+                const spKey = `${q.id}_${label}`;
+                const spVisible = canvasHeights.current[spKey] ?? 260;
+                const spTrimmed = await inkBottomCss(spInk, spVisible);
+                canvasHeights.current[spKey] = spTrimmed;
               }
             }
           }
@@ -540,6 +587,9 @@ function QuizContent({ id }: { id: string }) {
             // Save combined image
             form.append(`page_${i}`, composite, `page_${i}.jpg`);
             form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+            // Trim canvasHeights to ink content (see saveProgress comment).
+            const visible = canvasHeights.current[q.id] ?? 360;
+            canvasHeights.current[q.id] = await inkBottomCss(ink, visible);
           }
           // Save individual subpart images
           const spRefs = oeqSubpartHandles.current[q.id];
@@ -552,6 +602,9 @@ function QuizContent({ id }: { id: string }) {
                 ]);
                 form.append(`page_${i}_${label}`, spComposite, `page_${i}_${label}.jpg`);
                 form.append(`page_${i}_${label}_ink`, spInk, `page_${i}_${label}_ink.png`);
+                const spKey = `${q.id}_${label}`;
+                const spVisible = canvasHeights.current[spKey] ?? 260;
+                canvasHeights.current[spKey] = await inkBottomCss(spInk, spVisible);
               }
             }
           }
