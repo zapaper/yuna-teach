@@ -2987,14 +2987,30 @@ When the expected answer contains a specific scientific TERM that names the unde
 - Synonyms allowed only when they are scientifically interchangeable (e.g. 'water vapour' ≈ 'gas form of water'). When in doubt, treat the missing term as missing.
 - This rule overrides the synonym leniency above for these named terms — be strict about terminology, lenient about prose around it.
 
-DEFINITION QUESTIONS (IMPORTANT):
-When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. "What is a community?", "Define a population", "Explain what a habitat is"), the marking is stricter than for a regular reasoning question:
-- The term in the QUESTION is the one being defined — the student does not need to repeat it.
-- The expected answer is the DEFINITION, and every distinguishing component of that definition is a required key concept. List them out before marking.
-  - Example: "A community consists of DIFFERENT POPULATIONS LIVING TOGETHER in a HABITAT." Required components: (1) different populations / multiple species, (2) living together, (3) in a habitat.
-  - A student who writes "a group of organisms living together" has captured only ONE of THREE components and is missing the discriminating ideas — give 1/3 of the marks (or 0 if the answer collapses to something true of any group, not specifically a community). Never full marks.
-- A definition that omits a discriminating component (the bit that distinguishes the term from a related term — e.g. "different populations" distinguishes a community from a population) cannot earn full marks even if it is "broadly true".
-- In notes, list each required component and tick / cross each one against what the student wrote.
+DEFINITION QUESTIONS (IMPORTANT — STRICT):
+When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. "What is a community?", "Define a population", "Explain what a habitat is", "What is photosynthesis?"), the marking is significantly STRICTER than for a regular reasoning question. Definition questions test exact knowledge of a textbook definition, not approximate understanding.
+
+PROCESS:
+1. The term being defined is in the QUESTION — the student does not need to repeat it.
+2. Read the expected answer and list its DISCRIMINATING COMPONENTS — the parts that distinguish this term from neighbouring concepts (e.g. "different populations" is what distinguishes a community from a population; "in the presence of sunlight" is what distinguishes photosynthesis from other plant processes).
+3. Award marks ONLY when the student's answer contains every discriminating component (or its scientifically interchangeable synonym). Vague paraphrase that "captures the gist" does NOT earn marks here.
+
+SCORING TABLE (apply strictly):
+- 1-mark definition question: all-or-nothing. Missing ANY discriminating component → 0. Don't award half a mark.
+- 2-mark definition question: full marks ONLY if every discriminating component is present. Missing one of two key components → 1. Missing both → 0. An answer that "broadly captures the idea" but no specific terms → 0.
+- 3+ mark definition question: deduct one mark per missing discriminating component, never below 0.
+
+ANCHOR EXAMPLES (use these to calibrate strictness):
+- Q: "What is a community?" Expected: "Different populations of organisms living together in a habitat." (2 marks)
+  - "A group of organisms living together" → 0/2. Missing "different populations" (could describe a single population) and missing "habitat". Not specific enough to be a community.
+  - "Different populations living together" → 1/2. Has "different populations" but missing "habitat".
+  - "Different populations of organisms in a habitat" → 2/2.
+- Q: "What is photosynthesis?" Expected: "The process by which plants use sunlight to make food (glucose) from water and carbon dioxide." (2 marks)
+  - "Plants make food" → 0/2. Missing the entire mechanism — sunlight, water, carbon dioxide. Vague paraphrase, not a definition.
+  - "Plants make food using sunlight" → 1/2.
+  - "Plants use sunlight to make food from water and carbon dioxide" → 2/2.
+
+In notes: write each discriminating component with **double asterisks** and tick / cross each one. Be explicit ("missing **habitat**"). Never give a definition question full marks unless every discriminating component is present.
 
 SCIENCE — UNKEYED-BUT-VALID ANSWERS (IMPORTANT):
 Answer keys are NOT exhaustive. Sometimes a student gives a scientifically valid, observation-grounded answer that directly addresses the question but isn't listed in the expected answer.
