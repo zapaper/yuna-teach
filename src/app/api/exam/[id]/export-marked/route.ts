@@ -21,37 +21,16 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
-// Caveat-Regular pulled once per cold start and held in module memory.
-// ~150KB. We fetch from Google Fonts' GitHub repo (OFL, public,
-// commit-stable URLs) because the public CSS API now only serves WOFF2,
-// which pdf-lib + fontkit won't embed. The variable-axis URL is the
-// fallback in case the static instance is moved.
+// Caveat font is bundled in the repo at public/fonts/Caveat-Regular.ttf.
+// Read once per cold start, held in module memory. Bundled rather than
+// fetched at runtime because Google's CSS API only serves WOFF2 now and
+// fontkit won't embed WOFF2.
 let _caveatBytes: Buffer | null = null;
-const CAVEAT_CANDIDATES = [
-  "https://github.com/google/fonts/raw/main/ofl/caveat/static/Caveat-Regular.ttf",
-  "https://github.com/google/fonts/raw/main/ofl/caveat/Caveat%5Bwght%5D.ttf",
-];
 async function getCaveatBytes(): Promise<Buffer> {
   if (_caveatBytes) return _caveatBytes;
-  let lastErr: unknown = null;
-  for (const url of CAVEAT_CANDIDATES) {
-    try {
-      const r = await fetch(url, { redirect: "follow" });
-      if (!r.ok) { lastErr = new Error(`${url} → ${r.status}`); continue; }
-      const buf = Buffer.from(await r.arrayBuffer());
-      // Sanity: TTF starts with 0x00 0x01 0x00 0x00 (or "OTTO"). Reject
-      // anything that looks like HTML / WOFF / a 404 page.
-      if (buf.length < 1024 || buf.slice(0, 4).toString("hex") !== "00010000") {
-        lastErr = new Error(`${url} did not return a valid TTF (first 4 bytes: ${buf.slice(0, 4).toString("hex")})`);
-        continue;
-      }
-      _caveatBytes = buf;
-      return buf;
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-  throw new Error(`Caveat font fetch failed: ${String(lastErr)}`);
+  const fontPath = path.join(process.cwd(), "public", "fonts", "Caveat-Regular.ttf");
+  _caveatBytes = await fs.readFile(fontPath);
+  return _caveatBytes;
 }
 
 let _ai: GoogleGenAI | null = null;
