@@ -2982,10 +2982,19 @@ Primary-school Science answers are concept-based, not word-for-word. Award parti
 - In notes, list which concepts/phrases the student got right and which were missing.
 
 KEY-TERM REQUIREMENT (IMPORTANT):
-When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
+When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
 - 'fertilisation' must appear as 'fertilisation' / 'fertilization'. 'joining of male and female cells' is NOT a substitute — it describes the process but doesn't name it. Mark 0 for that concept.
 - Synonyms allowed only when they are scientifically interchangeable (e.g. 'water vapour' ≈ 'gas form of water'). When in doubt, treat the missing term as missing.
 - This rule overrides the synonym leniency above for these named terms — be strict about terminology, lenient about prose around it.
+
+DEFINITION QUESTIONS (IMPORTANT):
+When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. "What is a community?", "Define a population", "Explain what a habitat is"), the marking is stricter than for a regular reasoning question:
+- The term in the QUESTION is the one being defined — the student does not need to repeat it.
+- The expected answer is the DEFINITION, and every distinguishing component of that definition is a required key concept. List them out before marking.
+  - Example: "A community consists of DIFFERENT POPULATIONS LIVING TOGETHER in a HABITAT." Required components: (1) different populations / multiple species, (2) living together, (3) in a habitat.
+  - A student who writes "a group of organisms living together" has captured only ONE of THREE components and is missing the discriminating ideas — give 1/3 of the marks (or 0 if the answer collapses to something true of any group, not specifically a community). Never full marks.
+- A definition that omits a discriminating component (the bit that distinguishes the term from a related term — e.g. "different populations" distinguishes a community from a population) cannot earn full marks even if it is "broadly true".
+- In notes, list each required component and tick / cross each one against what the student wrote.
 
 SCIENCE — UNKEYED-BUT-VALID ANSWERS (IMPORTANT):
 Answer keys are NOT exhaustive. Sometimes a student gives a scientifically valid, observation-grounded answer that directly addresses the question but isn't listed in the expected answer.
