@@ -1176,6 +1176,18 @@ function ExamReviewContent({ id }: { id: string }) {
               <span className="material-symbols-outlined text-base">refresh</span>
               {remarking ? "Re-marking…" : englishSections ? "Re-mark All" : "Re-mark"}
             </button>
+            {!isStudent && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
+              <button
+                onClick={() => {
+                  window.open(`/api/exam/${id}/export-marked?userId=${userId}`, "_blank");
+                }}
+                title="Download a PDF with red-pen marks for printing"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#c3c6d1]/30 text-sm font-bold text-[#43474f] hover:bg-[#eff4ff] hover:text-[#001e40] transition-all"
+              >
+                <span className="material-symbols-outlined text-base">file_download</span>
+                Export marked paper
+              </button>
+            ) : null}
           </div>
         )}
 
