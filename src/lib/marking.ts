@@ -2977,9 +2977,15 @@ Only insist on the relationship word / qualifier when the question EXPLICITLY as
 SCIENCE PARTIAL-CREDIT RULE (IMPORTANT):
 Primary-school Science answers are concept-based, not word-for-word. Award partial marks whenever the student's answer contains some of the key scientific concepts or phrases from the expected answer, even if the wording differs or the answer is incomplete.
 - If the student captures ONE of multiple required concepts → award proportional partial marks (e.g. 1 of 2).
-- Synonymous or equivalent phrasings count as the correct concept (e.g. "stops light" ≈ "blocks light", "goes up" ≈ "increases").
+- Synonymous or equivalent everyday phrasings count as the correct concept (e.g. "stops light" ≈ "blocks light", "goes up" ≈ "increases", "moves" ≈ "travels").
 - Award 0 only when the answer is blank, fully off-topic, or misses every key concept.
 - In notes, list which concepts/phrases the student got right and which were missing.
+
+KEY-TERM REQUIREMENT (IMPORTANT):
+When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
+- 'fertilisation' must appear as 'fertilisation' / 'fertilization'. 'joining of male and female cells' is NOT a substitute — it describes the process but doesn't name it. Mark 0 for that concept.
+- Synonyms allowed only when they are scientifically interchangeable (e.g. 'water vapour' ≈ 'gas form of water'). When in doubt, treat the missing term as missing.
+- This rule overrides the synonym leniency above for these named terms — be strict about terminology, lenient about prose around it.
 
 SCIENCE — UNKEYED-BUT-VALID ANSWERS (IMPORTANT):
 Answer keys are NOT exhaustive. Sometimes a student gives a scientifically valid, observation-grounded answer that directly addresses the question but isn't listed in the expected answer.
