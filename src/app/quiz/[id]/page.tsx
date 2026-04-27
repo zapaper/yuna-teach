@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState, useRef, useImperativeHandle, forwardRef, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnglishQuizSection from "@/components/EnglishQuizSection";
+import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playPointChime, playClick } from "@/lib/sfx";
 
 /* ────────────── types ────────────── */
@@ -137,12 +138,18 @@ function QuizContent({ id }: { id: string }) {
   const [savingProgress, setSavingProgress] = useState(false);
   const [progressSaved, setProgressSaved] = useState(false);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+  // The modal asks the user if they want to leave a voice note when
+  // FLAGGING a question (not when un-flagging). If the user picks
+  // 'No, just flag it' or cancels mid-record, we fall back to the
+  // plain POST flag toggle. If they record + end, the upload endpoint
+  // raises the flag itself in the same call.
+  const [flagVoiceTarget, setFlagVoiceTarget] = useState<string | null>(null);
 
   // Toggle flag locally AND persist immediately to the DB so the flag survives even if the quiz is never submitted.
-  function toggleFlag(qId: string) {
+  function plainToggleFlag(qId: string, nowFlagged: boolean) {
     setFlaggedIds(prev => {
       const next = new Set(prev);
-      next.has(qId) ? next.delete(qId) : next.add(qId);
+      if (nowFlagged) next.add(qId); else next.delete(qId);
       return next;
     });
     fetch(`/api/exam/${id}/flag`, {
@@ -150,6 +157,17 @@ function QuizContent({ id }: { id: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ questionId: qId, userId }),
     }).catch(() => {});
+  }
+
+  function toggleFlag(qId: string) {
+    const isCurrentlyFlagged = flaggedIds.has(qId);
+    if (isCurrentlyFlagged) {
+      // Un-flagging: skip the popup, just toggle off.
+      plainToggleFlag(qId, false);
+      return;
+    }
+    // Flagging on — open the voice-note modal first.
+    setFlagVoiceTarget(qId);
   }
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -1045,6 +1063,24 @@ function QuizContent({ id }: { id: string }) {
           </>
         )}
       </div>
+
+      {/* Voice-note popup for flagging questions. Lives at root so it
+          renders above all quiz UI. */}
+      <FlagVoiceModal
+        paperId={id}
+        questionId={flagVoiceTarget ?? ""}
+        userId={userId}
+        open={flagVoiceTarget !== null}
+        onClose={() => setFlagVoiceTarget(null)}
+        onJustFlag={() => {
+          if (flagVoiceTarget) plainToggleFlag(flagVoiceTarget, true);
+        }}
+        onVoiceFlagged={() => {
+          if (flagVoiceTarget) {
+            setFlaggedIds(prev => new Set(prev).add(flagVoiceTarget));
+          }
+        }}
+      />
     </div>
   );
 }

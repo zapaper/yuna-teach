@@ -134,6 +134,10 @@ model ExamQuestion {
   flagged         Boolean @default(false)
   flaggedAt       DateTime?
   flaggedByUserId String?
+  // Filename of the voice note the user recorded when they flagged the
+  // question, saved on disk under VOLUME_PATH/flag-voices/<paperId>/.
+  // Null when the flag was raised without a recording.
+  flagVoiceNote   String?
   adminReply      String?
   adminRepliedAt  DateTime?
   adminReplyRead  Boolean  @default(false)
