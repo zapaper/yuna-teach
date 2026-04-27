@@ -2161,8 +2161,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                           {/* Per-subpart submission image (falls back to combined) */}
                                           {isQuiz && currentQOeqIndex >= 0 && (() => {
                                             const spCanvasId = `${currentQ.id}_${sp.label}`;
-                                            const spDefault = sp.diagramBase64 ? 340 : 260;
-                                            const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 600);
+                                            // Drawable subparts looked squished vertically — bumped
+                                            // ~50 % so the canvas isn't compressed against the
+                                            // student's actual writing aspect.
+                                            const spDefault = sp.diagramBase64 ? 510 : 390;
+                                            const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 900);
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             return (
                                               <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative">
@@ -2269,8 +2272,11 @@ function ExamReviewContent({ id }: { id: string }) {
                         {/* Written answer image */}
                         {(() => {
                           const hasDrawable = !!(currentQ.transcribedSubparts as { label: string }[] | null)?.find(s => s.label === "_drawable");
-                          const defaultH = hasDrawable ? 360 : 300;
-                          const visibleH = Math.min(canvasHeights[currentQ.id] ?? defaultH, 600);
+                          // Same +50 % bump as the per-subpart path. 900 cap mirrors
+                          // the per-subpart cap so a really tall drawable doesn't
+                          // get clipped after being drawn.
+                          const defaultH = hasDrawable ? 540 : 450;
+                          const visibleH = Math.min(canvasHeights[currentQ.id] ?? defaultH, 900);
                           const overlayKey = `question:${currentQ.id}`;
                           return (
                             <div>
