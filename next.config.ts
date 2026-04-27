@@ -10,6 +10,14 @@ const nextConfig: NextConfig = {
   // pdfjs-dist's legacy build uses Node-only APIs. Both need to stay
   // out of the bundler so Node loads them at runtime on the server.
   serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
+  // pdfjs-dist dynamically imports its worker file at runtime; the
+  // standalone tracer doesn't see that import, so we tell it to copy
+  // the worker into the deployed bundle for the inbound-email route.
+  outputFileTracingIncludes: {
+    "/api/inbound-email/route": [
+      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
