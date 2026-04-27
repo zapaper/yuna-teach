@@ -2991,7 +2991,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   style={{ background: "#006c49", border: "2px solid #ffffff" }}
                 />
               </div>
-              <h3 className="text-xl font-extrabold tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#0b1c30" }}>
+              <h3 className="font-headline text-xl font-extrabold tracking-tight" style={{ color: "#0b1c30" }}>
                 Welcome to your homepage!
               </h3>
             </div>
@@ -3003,9 +3003,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             <div className="px-8 pb-8">
               <button
                 onClick={() => setShowDiagnosticWelcome(false)}
-                className="w-full py-4 px-6 text-white font-bold rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center"
+                className="font-headline w-full py-4 px-6 text-white font-bold rounded-lg transition-all duration-200 active:scale-95 flex items-center justify-center"
                 style={{
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
                   background: "linear-gradient(to right, #001e40, #003366)",
                   boxShadow: "0 4px 12px rgba(0,30,64,0.15)",
                 }}

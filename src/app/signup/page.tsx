@@ -248,7 +248,7 @@ function SignupFlow() {
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img alt="MarkForYou.com" className="h-10 w-auto" src="/logo_t.png" />
-            <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#001e40" }}>
+            <span className="text-lg font-bold tracking-tight" style={{ fontFamily: "var(--font-jakarta), sans-serif", color: "#001e40" }}>
               MarkForYou.com
             </span>
           </Link>
@@ -281,7 +281,7 @@ function SignupFlow() {
                 </span>
                 <h1
                   className="text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#0b1c30" }}
+                  style={{ fontFamily: "var(--font-jakarta), sans-serif", color: "#0b1c30" }}
                 >
                   A warm welcome <br />
                   <span className="italic font-medium" style={{ color: "#006c49" }}>to parents</span>
@@ -442,7 +442,7 @@ function SignupFlow() {
                 </div>
                 <h1
                   className="text-4xl lg:text-5xl font-extrabold leading-tight"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#001e40" }}
+                  style={{ fontFamily: "var(--font-jakarta), sans-serif", color: "#001e40" }}
                 >
                   Tell us about your student
                 </h1>
@@ -606,7 +606,7 @@ function SignupFlow() {
 
                 <h1
                   className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight"
-                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#001e40" }}
+                  style={{ fontFamily: "var(--font-jakarta), sans-serif", color: "#001e40" }}
                 >
                   You are all set!
                 </h1>
