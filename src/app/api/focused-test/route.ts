@@ -475,10 +475,10 @@ export async function POST(request: NextRequest) {
     warnings.push(`No "${topic}" questions yet from ${allowedExamTypes.join("/")} papers (the typical scope at this point in the school year) — pulled from later-year papers instead.`);
   }
   if (difficultyFellBack) {
-    const primary = difficultyFilter.primary?.join(", ") ?? "";
-    const fallback = difficultyFilter.fallback?.join(", ") ?? "";
-    const broadenedNote = fallback ? `broadened to include Lv ${fallback}` : "also drawing unrated questions";
-    warnings.push(`Too few Lv ${primary} questions for "${topic}" at ${levelName ?? "this level"} — ${broadenedNote}.`);
+    // Friendlier parent-facing wording — internal Lv numbers don't mean
+    // anything to the parent. The reality is "we slipped in some
+    // slightly harder questions"; that's what they need to know.
+    warnings.push(`We have included a few slightly more difficult questions on "${topic}".`);
   }
   if (levelFallback) {
     const levelsUsed = [...new Set(topicMatched.map(q => q.examPaper.level).filter(Boolean))].join(", ");

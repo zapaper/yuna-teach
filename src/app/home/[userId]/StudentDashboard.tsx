@@ -423,13 +423,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
     const pts = examPapers.filter(p => p.completedAt).reduce((sum, p) => sum + (p.score ?? 0), 0) + bonusPoints;
     const milestones = [
       { points: 100, key: `points-milestone-100-${userId}`, msg: "You have scored more than 100 points. You can now select your profile avatar!" },
-      { points: 500, key: `points-milestone-500-${userId}`, msg: "You have scored more than 500 points! A new Fox avatar has been unlocked!" },
-      { points: 750, key: `points-milestone-750-${userId}`, msg: "You have scored more than 750 points! A new Otter avatar has been unlocked!" },
-      { points: 250, key: `points-milestone-250-${userId}`, msg: "You have scored more than 250 points! A new Tiger avatar has been unlocked!" },
-      { points: 1000, key: `points-milestone-1000-${userId}`, msg: "You have scored more than 1000 points! A new Unicorn avatar has been unlocked!" },
-      { points: 1250, key: `points-milestone-1250-${userId}`, msg: "You have scored more than 1250 points! A new Dragon avatar has been unlocked!" },
-      { points: 1500, key: `points-milestone-1500-${userId}`, msg: "You have scored more than 1500 points! A new Merlion avatar has been unlocked!" },
-      { points: 1750, key: `points-milestone-1750-${userId}`, msg: "You have scored more than 1750 points! The legendary Qilin avatar has been unlocked!" },
+      { points: 500, key: `points-milestone-500-${userId}`, msg: "You have scored more than 500 points! A new **Fox** avatar has been unlocked!" },
+      { points: 750, key: `points-milestone-750-${userId}`, msg: "You have scored more than 750 points! A new **Otter** avatar has been unlocked!" },
+      { points: 250, key: `points-milestone-250-${userId}`, msg: "You have scored more than 250 points! A new **Tiger** avatar has been unlocked!" },
+      { points: 1000, key: `points-milestone-1000-${userId}`, msg: "You have scored more than 1000 points! A new **Unicorn** avatar has been unlocked!" },
+      { points: 1250, key: `points-milestone-1250-${userId}`, msg: "You have scored more than 1250 points! A new **Dragon** avatar has been unlocked!" },
+      { points: 1500, key: `points-milestone-1500-${userId}`, msg: "You have scored more than 1500 points! A new **Merlion** avatar has been unlocked!" },
+      { points: 1750, key: `points-milestone-1750-${userId}`, msg: "You have scored more than 1750 points! The legendary **Qilin** avatar has been unlocked!" },
     ];
     for (const m of milestones) {
       if (pts >= m.points && !localStorage.getItem(m.key)) {
@@ -784,13 +784,54 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       {/* Points milestone — avatar selection */}
       {showPointsMilestone && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center">
+          {/* Confetti — pure-CSS burst behind the modal so the new avatar
+              feels celebratory. 24 pieces falling from above with random
+              colour, horizontal start, delay, duration, and rotation. */}
+          <div className="pointer-events-none fixed inset-0 overflow-hidden z-[99]">
+            {Array.from({ length: 24 }).map((_, i) => {
+              const colors = ["#006c49", "#003366", "#d58d00", "#ba1a1a", "#6cf8bb", "#ffddb4", "#a7c8ff"];
+              const color = colors[i % colors.length];
+              const left = Math.round((i * 4.17) % 100);
+              const delay = (i % 8) * 0.12;
+              const dur = 1.6 + (i % 4) * 0.3;
+              const size = 8 + (i % 3) * 4;
+              const rot = (i * 47) % 360;
+              return (
+                <span
+                  key={i}
+                  style={{
+                    position: "absolute",
+                    top: "-24px",
+                    left: `${left}%`,
+                    width: `${size}px`,
+                    height: `${size * 0.4}px`,
+                    background: color,
+                    transform: `rotate(${rot}deg)`,
+                    animation: `confetti-fall ${dur}s ease-in ${delay}s forwards`,
+                    borderRadius: "2px",
+                  }}
+                />
+              );
+            })}
+            <style jsx>{`
+              @keyframes confetti-fall {
+                0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+                80% { opacity: 1; }
+                100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+              }
+            `}</style>
+          </div>
+          <div className="relative bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl text-center z-[101]">
             <div className="w-16 h-16 rounded-full bg-[#ffddb4]/50 flex items-center justify-center mx-auto mb-4">
               <span className="material-symbols-outlined text-3xl text-[#d58d00]" style={{ fontVariationSettings: "'FILL' 1" }}>stars</span>
             </div>
             <h2 className="font-headline text-xl font-extrabold text-[#001e40] mb-2">Congratulations!</h2>
             <p className="text-sm text-[#43474f] mb-6">
-              {milestoneMessage}
+              {milestoneMessage.split(/(\*\*[^*]+\*\*)/g).map((part, i) => (
+                part.startsWith("**") && part.endsWith("**")
+                  ? <strong key={i} className="font-extrabold text-[#001e40]">{part.slice(2, -2)}</strong>
+                  : <span key={i}>{part}</span>
+              ))}
             </p>
             <div className="grid grid-cols-3 gap-3 mb-6">
               {[
