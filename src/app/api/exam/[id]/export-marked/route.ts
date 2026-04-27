@@ -22,14 +22,23 @@ const VOLUME_PATH =
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
 // Caveat-Regular pulled once per cold start and held in module memory.
-// ~150KB. Google's open-fonts CDN serves it without auth.
-const CAVEAT_URL = "https://fonts.gstatic.com/s/caveat/v18/WnznHAc5bAfYB2QRah7pcpNvOx-pjcB9eg.ttf";
+// ~150KB. We resolve the current font URL via Google's CSS API rather
+// than hardcoding a versioned gstatic URL (which silently 404s when the
+// font is republished). Spoof a Chrome User-Agent so the CSS endpoint
+// returns TTF (default with no UA is WOFF2, which pdf-lib won't embed).
 let _caveatBytes: Buffer | null = null;
 async function getCaveatBytes(): Promise<Buffer> {
   if (_caveatBytes) return _caveatBytes;
-  const r = await fetch(CAVEAT_URL);
-  if (!r.ok) throw new Error(`Caveat font fetch failed: ${r.status}`);
-  const buf = Buffer.from(await r.arrayBuffer());
+  const cssRes = await fetch("https://fonts.googleapis.com/css2?family=Caveat&display=swap", {
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36" },
+  });
+  if (!cssRes.ok) throw new Error(`Caveat CSS fetch failed: ${cssRes.status}`);
+  const css = await cssRes.text();
+  const m = css.match(/url\((https:[^)]+\.ttf)\)/);
+  if (!m) throw new Error(`Caveat TTF URL not found in CSS: ${css.slice(0, 200)}`);
+  const ttfRes = await fetch(m[1]);
+  if (!ttfRes.ok) throw new Error(`Caveat TTF fetch failed: ${ttfRes.status}`);
+  const buf = Buffer.from(await ttfRes.arrayBuffer());
   _caveatBytes = buf;
   return buf;
 }
