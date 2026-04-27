@@ -167,14 +167,27 @@ export async function POST(request: NextRequest) {
     console.warn(`[inbound-email] no master paper for prefix ${paperPrefix}`);
     return NextResponse.json({ ok: true, ignored: "paper not found" });
   }
+  // Resolve the student. Two conditions, ANDed:
+  //   1. id starts with the 8-char prefix from the print code
+  //   2. is a STUDENT role (don't ever match a parent / admin)
+  //   3. unless the sender is admin, the student must be in the parent's
+  //      linkedStudent list — admins can mark for any student.
+  // Earlier version used object spread on the `where` clause which
+  // accidentally clobbered the startsWith filter for non-admin parents,
+  // letting any linked student match (the first one in the list won).
   const linkedStudentIds = parent.parentLinks.map(l => l.studentId);
-  const student = await prisma.user.findFirst({
-    where: { id: { startsWith: studentPrefix }, ...(parent.name?.toLowerCase() === "admin" ? {} : { id: { in: linkedStudentIds } }) },
+  const isAdminSender = parent.name?.toLowerCase() === "admin";
+  const candidates = await prisma.user.findMany({
+    where: { id: { startsWith: studentPrefix }, role: "STUDENT" },
     select: { id: true, name: true },
   });
+  const student = candidates.find(s => isAdminSender || linkedStudentIds.includes(s.id)) ?? null;
   if (!student) {
-    console.warn(`[inbound-email] no linked student for prefix ${studentPrefix} (parent=${parent.id})`);
+    console.warn(`[inbound-email] no linked student for prefix ${studentPrefix} (parent=${parent.id}, candidates=${candidates.length}, linked=${linkedStudentIds.length})`);
     return NextResponse.json({ ok: true, ignored: "student not found" });
+  }
+  if (candidates.length > 1) {
+    console.warn(`[inbound-email] ${candidates.length} students share prefix ${studentPrefix}; picked ${student.id} (${student.name}). Consider lengthening the print-code prefix.`);
   }
 
   console.log(`[inbound-email] matched paper=${masterPaper.id} student=${student.id} from ${fromEmail}; ${attachments.length} attachments`);
