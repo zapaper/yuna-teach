@@ -94,6 +94,19 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  try {
+    return await handle(request, params);
+  } catch (err) {
+    console.error("[export-marked] FATAL:", err);
+    const msg = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: "Export failed", detail: msg }, { status: 500 });
+  }
+}
+
+async function handle(
+  request: NextRequest,
+  params: Promise<{ id: string }>,
+) {
   const { id } = await params;
   const userId = request.nextUrl.searchParams.get("userId");
   if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
