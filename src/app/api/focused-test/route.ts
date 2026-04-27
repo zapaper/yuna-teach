@@ -185,6 +185,11 @@ export async function POST(request: NextRequest) {
   // topic tag — and the parent is often the row with the diagram/lead stem. Without
   // this, a subpart like "Express the number of lemon muffins..." gets pulled on its
   // own and shows up in practice with no pie chart.
+  // BUT: we also need the sibling itself to be on-topic (or untagged — the parent
+  // diagram row often has no syllabusTopic). Otherwise a paper that mistakenly
+  // tagged Q12c with a different topic from its siblings drags an unrelated
+  // question into the practice (parent reported a 'light energy' Q showed up
+  // in a 'life cycles' practice this way).
   const siblingKeys = new Set<string>();
   for (const q of topicMatched) siblingKeys.add(`${q.examPaperId}::${baseNum(q.questionNum)}`);
   const siblingWheres = [...siblingKeys].map(k => {
@@ -193,7 +198,13 @@ export async function POST(request: NextRequest) {
   });
   const siblings = siblingWheres.length > 0
     ? await prisma.examQuestion.findMany({
-        where: { OR: siblingWheres, answer: { not: null } as { not: null } },
+        where: {
+          OR: siblingWheres,
+          answer: { not: null } as { not: null },
+          // On-topic OR untagged — keeps the parent/diagram row (which is
+          // often untagged) but rejects an off-topic subpart.
+          AND: [{ OR: [{ syllabusTopic: topic }, { syllabusTopic: null }] }],
+        },
         select: questionSelect,
       })
     : [];
