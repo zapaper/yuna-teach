@@ -37,7 +37,7 @@ export async function GET(
   const [paper, parent, link] = await Promise.all([
     prisma.examPaper.findUnique({
       where: { id },
-      select: { id: true, title: true, pdfPath: true },
+      select: { id: true, title: true, pdfPath: true, metadata: true },
     }),
     prisma.user.findUnique({
       where: { id: userId },
@@ -73,11 +73,23 @@ export async function GET(
     return NextResponse.json({ error: "PDF file missing on server" }, { status: 500 });
   }
 
-  // Stamp the code on page 1 top-right.
+  // Drop answer-key + skip pages so the parent only prints the question
+  // pages. answerPages / skipPages are 1-based; pdf-lib removePage() is
+  // 0-based, so we shift and remove from highest → lowest index to keep
+  // earlier indices stable.
   const doc = await PDFDocument.load(pdfBytes);
+  const meta = (paper.metadata ?? null) as { answerPages?: number[]; skipPages?: number[] } | null;
+  const pagesToDrop = new Set<number>([
+    ...(meta?.answerPages ?? []).map(p => p - 1),
+    ...(meta?.skipPages ?? []).map(p => p - 1),
+  ]);
+  if (pagesToDrop.size > 0) {
+    const sorted = Array.from(pagesToDrop).filter(i => i >= 0 && i < doc.getPageCount()).sort((a, b) => b - a);
+    for (const i of sorted) doc.removePage(i);
+  }
   const pages = doc.getPages();
   if (pages.length === 0) {
-    return NextResponse.json({ error: "Empty PDF" }, { status: 500 });
+    return NextResponse.json({ error: "Empty PDF after removing answer pages" }, { status: 500 });
   }
   const page = pages[0];
   const font = await doc.embedFont(StandardFonts.HelveticaBold);
