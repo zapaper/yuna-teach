@@ -6,6 +6,8 @@ import sharp from "sharp";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { markExamPaper } from "@/lib/marking";
+import { renderPdfToJpegs } from "@/lib/pdf-server";
+import { maskBottomRightCorner } from "@/lib/watermark";
 
 // SendGrid Inbound Parse webhook.
 // Parents scan their printed exam paper, email it to hello@markforyou.com.
@@ -220,27 +222,46 @@ export async function POST(request: NextRequest) {
     select: { id: true },
   });
 
-  // Save attachments under submissions/<cloneId>/page_N.jpg. PDFs get
-  // each page extracted at marking time by the existing pipeline; for
-  // now we save them with their original extension and let downstream
-  // image-only paths handle the JPEGs.
+  // Flatten attachments into one ordered stream of JPEG page buffers.
+  // PDFs get rendered to one JPEG per page via pdfjs + @napi-rs/canvas;
+  // images (jpg/png) are normalised through sharp. This matches the
+  // submissions/<paperId>/page_N.jpg convention the marking pipeline
+  // uses (page_0.jpg = first non-hidden page of the master, etc).
+  const pageJpegs: Buffer[] = [];
+  for (const a of attachments) {
+    if (a.mime === "application/pdf") {
+      try {
+        const rendered = await renderPdfToJpegs(a.buf);
+        for (const j of rendered) pageJpegs.push(j);
+      } catch (err) {
+        console.error(`[inbound-email] PDF render failed for ${a.name}:`, err);
+      }
+      continue;
+    }
+    if (a.mime?.startsWith("image/")) {
+      try {
+        const norm = await sharp(a.buf).resize({ width: 1600, withoutEnlargement: true }).jpeg({ quality: 88 }).toBuffer();
+        pageJpegs.push(norm);
+      } catch (err) {
+        console.error(`[inbound-email] sharp normalise failed for ${a.name}:`, err);
+      }
+    }
+  }
+  if (pageJpegs.length === 0) {
+    console.warn(`[inbound-email] no usable pages from ${fromEmail} for paper ${clone.id}`);
+    return NextResponse.json({ ok: true, ignored: "no pages rendered", paperId: clone.id });
+  }
+
+  // Mask CamScanner-style watermarks the same way the in-app upload flow
+  // does, so the marking AI doesn't get distracted by stray text in the
+  // bottom-right corner.
   const subDir = path.join(SUBMISSIONS_DIR, clone.id);
   await fs.mkdir(subDir, { recursive: true });
-  for (let i = 0; i < attachments.length; i++) {
-    const a = attachments[i];
-    const ext = a.mime === "application/pdf" ? "pdf"
-      : a.mime?.includes("png") ? "png"
-      : "jpg";
-    let bufToSave = a.buf;
-    if (ext === "jpg" || ext === "png") {
-      // Normalise to a manageable size + JPEG.
-      try {
-        bufToSave = await sharp(a.buf).resize({ width: 1600, withoutEnlargement: true }).jpeg({ quality: 88 }).toBuffer();
-      } catch { /* keep original */ }
-    }
-    const dest = path.join(subDir, `page_${i}.${ext === "png" ? "jpg" : ext}`);
-    await fs.writeFile(dest, bufToSave);
+  for (let i = 0; i < pageJpegs.length; i++) {
+    const masked = await maskBottomRightCorner(pageJpegs[i]);
+    await fs.writeFile(path.join(subDir, `page_${i}.jpg`), masked);
   }
+  console.log(`[inbound-email] saved ${pageJpegs.length} page JPGs for ${clone.id}`);
 
   // Kick off marking in the background — don't block the webhook.
   markExamPaper(clone.id).catch(err => {
