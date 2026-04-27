@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import sharp from "sharp";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { GoogleGenAI } from "@google/genai";
@@ -21,16 +22,18 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
-// Caveat font is bundled in the repo at public/fonts/Caveat-Regular.ttf.
-// Read once per cold start, held in module memory. Bundled rather than
-// fetched at runtime because Google's CSS API only serves WOFF2 now and
-// fontkit won't embed WOFF2.
-let _caveatBytes: Buffer | null = null;
-async function getCaveatBytes(): Promise<Buffer> {
-  if (_caveatBytes) return _caveatBytes;
-  const fontPath = path.join(process.cwd(), "public", "fonts", "Caveat-Regular.ttf");
-  _caveatBytes = await fs.readFile(fontPath);
-  return _caveatBytes;
+// Kalam-Regular is bundled at public/fonts/Kalam-Regular.ttf. We use
+// Kalam (not Caveat) because Caveat ships only as a variable-weight
+// TTF on Google Fonts; pdf-lib/fontkit reads variable fonts but the
+// glyph advance metrics come back wrong, leading to large gaps between
+// letters in the rendered PDF. Kalam has a proper static-Regular TTF
+// and is visually similar — casual handwriting style.
+let _handFontBytes: Buffer | null = null;
+async function getHandFontBytes(): Promise<Buffer> {
+  if (_handFontBytes) return _handFontBytes;
+  const fontPath = path.join(process.cwd(), "public", "fonts", "Kalam-Regular.ttf");
+  _handFontBytes = await fs.readFile(fontPath);
+  return _handFontBytes;
 }
 
 let _ai: GoogleGenAI | null = null;
@@ -39,34 +42,88 @@ function getAI() {
   return _ai;
 }
 
-// Compress freeform marking notes into a 3-7 word teacher-style note
-// suitable for writing in red ink at the margin. Batched: one Gemini
-// call handles every question on the paper at once.
-async function summariseNotes(items: { id: string; note: string }[]): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
-  if (items.length === 0) return out;
-  const ai = getAI();
-  const prompt = `You are summarising a teacher's marking comments into very short red-pen notes for a primary school exam paper. For each item, output a 3-7 word note suitable for writing at the margin of the paper. Use teacher shorthand. Examples: "missing 'fertilisation'", "no working shown", "incorrect formula", "(b) wrong unit". Reply ONLY with a JSON array, one entry per input, in the same order. Each entry: {"id": "<id>", "note": "<short note>"}.
+// Per-subpart mark placement. Gemini looks at the cropped question
+// region and tells us where each subpart's answer ends on the page
+// AND whether each subpart was correct/partial/wrong, so we can stamp
+// a mark next to each (a)/(b)/(c) instead of one mark for the whole
+// question. Coordinates are returned relative to the cropped region.
+type SubpartMark = {
+  label: string;       // "a", "b", "c" — or "" for no-subpart questions
+  yPctEnd: number;     // 0-100, relative to the CROPPED region
+  xPctEnd: number;     // 0-100, relative to the CROPPED region
+  status: "correct" | "partial" | "wrong" | "blank";
+  note?: string;
+};
 
-Input:
-${JSON.stringify(items)}`;
+async function classifyQuestion(
+  regionJpeg: Buffer,
+  q: { id: string; questionNum: string; answer: string | null; marksAwarded: number | null; marksAvailable: number | null; markingNotes: string | null },
+): Promise<SubpartMark[]> {
+  const ai = getAI();
+  const prompt = `You are placing red-pen marks on a primary-school exam paper that has already been graded. The attached image is the cropped region for ONE question on the student's scanned page. Top of the image = 0%, bottom = 100%; left = 0%, right = 100%.
+
+QUESTION CONTEXT:
+- Question number: ${q.questionNum}
+- Expected answer: ${q.answer ?? "(none provided)"}
+- Marks awarded: ${q.marksAwarded ?? 0} of ${q.marksAvailable ?? 0}
+- Marking notes from AI marker: ${q.markingNotes ?? "(no notes)"}
+
+For EACH subpart in the question (e.g. "(a)", "(b)", "(c)") — or, if there are no subparts, a single entry — output:
+1. "label": the subpart letter without parentheses (e.g. "a"), or "" if there are no subparts
+2. "yPctEnd": Y position in the cropped image (0-100) just BELOW where the student's handwritten answer for THIS subpart ends. If the subpart is blank, use the Y of the empty answer space.
+3. "xPctEnd": X position (0-100) just to the RIGHT of the student's last word for that subpart. If they wrote to the right margin, use 95-100.
+4. "status": one of "correct", "partial", "wrong", "blank". Use the marking notes to decide per-subpart status — the notes typically call out which subparts lost marks (e.g. "(b) missing fertilisation"). If notes don't break it down, infer from context (e.g. award fully if marks=full).
+5. "note": a 3-7 word teacher shorthand explaining the deduction, ONLY if status is partial / wrong / blank. Examples: "missing 'fertilisation'", "no working shown", "wrong unit". Omit for "correct".
+
+OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO commentary.`;
+
   try {
     const resp = await ai.models.generateContent({
       model: "gemini-2.5-flash",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: "image/jpeg", data: regionJpeg.toString("base64") } },
+        ],
+      }],
       config: { temperature: 0, responseMimeType: "application/json" },
     });
     const raw = resp.text ?? "[]";
-    const arr = JSON.parse(raw) as { id: string; note: string }[];
-    for (const e of arr) {
-      if (e.id && e.note) out.set(e.id, String(e.note).trim().slice(0, 60));
+    const arr = JSON.parse(raw) as SubpartMark[];
+    const cleaned: SubpartMark[] = [];
+    for (const m of arr) {
+      if (typeof m.yPctEnd !== "number" || typeof m.xPctEnd !== "number") continue;
+      const status = (m.status ?? "wrong") as SubpartMark["status"];
+      cleaned.push({
+        label: String(m.label ?? "").trim(),
+        yPctEnd: clamp(m.yPctEnd, 0, 100),
+        xPctEnd: clamp(m.xPctEnd, 0, 100),
+        status,
+        note: m.note ? String(m.note).trim().slice(0, 60) : undefined,
+      });
     }
+    if (cleaned.length === 0) {
+      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), note: q.markingNotes?.slice(0, 50) });
+    }
+    return cleaned;
   } catch (err) {
-    console.error("[export-marked] note summarisation failed:", err);
-    // Fall back to truncated raw notes.
-    for (const it of items) out.set(it.id, it.note.slice(0, 50));
+    console.error(`[export-marked] classifyQuestion Q${q.questionNum} failed:`, err);
+    return [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), note: q.markingNotes?.slice(0, 50) }];
   }
-  return out;
+}
+
+function fallbackStatus(q: { marksAwarded: number | null; marksAvailable: number | null }): SubpartMark["status"] {
+  const a = q.marksAwarded ?? 0;
+  const v = q.marksAvailable ?? 0;
+  if (v <= 0) return "blank";
+  if (a >= v) return "correct";
+  if (a === 0) return "wrong";
+  return "partial";
+}
+
+function clamp(v: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, v));
 }
 
 // Look up the master metadata so we can compute the same submission-
@@ -118,7 +175,7 @@ async function handle(
       questions: {
         select: {
           id: true, questionNum: true, pageIndex: true,
-          yStartPct: true, yEndPct: true,
+          yStartPct: true, yEndPct: true, answer: true,
           marksAwarded: true, marksAvailable: true, markingNotes: true,
         },
         orderBy: { orderIndex: "asc" },
@@ -181,24 +238,48 @@ async function handle(
     bySubPage.set(subPage, arr);
   }
 
-  // Collect partial / wrong notes for AI summarisation.
-  const toSummarise: { id: string; note: string }[] = [];
-  for (const q of paper.questions) {
-    const a = q.marksAwarded ?? 0;
-    const v = q.marksAvailable ?? 0;
-    if (v <= 0) continue;
-    if (a >= v) continue; // correct, no note needed
-    const n = (q.markingNotes ?? "").trim();
-    if (!n) continue;
-    toSummarise.push({ id: q.id, note: n });
+  // For each question on each scanned page: crop the question's region
+  // out of the page JPG with sharp, send to Gemini for per-subpart Y/X
+  // positions + status, and remember those marks for stamping.
+  type PerQuestionMarks = { qId: string; pageRegion: { topPx: number; leftPx: number; widthPx: number; heightPx: number }; marks: SubpartMark[] };
+  const allMarks: { pageIdx: number; perQ: PerQuestionMarks[] }[] = [];
+
+  for (let i = 0; i < pageFiles.length; i++) {
+    const jpgPath = path.join(subDir, pageFiles[i]);
+    const jpgBytes = await fs.readFile(jpgPath);
+    const meta = await sharp(jpgBytes).metadata();
+    const Wpx = meta.width ?? 0;
+    const Hpx = meta.height ?? 0;
+    const qs = bySubPage.get(i) ?? [];
+    if (qs.length === 0 || Wpx === 0 || Hpx === 0) {
+      allMarks.push({ pageIdx: i, perQ: [] });
+      continue;
+    }
+    // Crop each question's region in parallel, then classify in parallel.
+    const perQ = await Promise.all(qs.map(async (q) => {
+      const yStartPct = q.yStartPct ?? 0;
+      const yEndPct = q.yEndPct ?? 100;
+      const topPx = Math.max(0, Math.floor(Hpx * yStartPct / 100));
+      const bottomPx = Math.min(Hpx, Math.ceil(Hpx * yEndPct / 100));
+      const heightPx = Math.max(1, bottomPx - topPx);
+      let regionBuf: Buffer;
+      try {
+        regionBuf = await sharp(jpgBytes).extract({ left: 0, top: topPx, width: Wpx, height: heightPx }).jpeg({ quality: 80 }).toBuffer();
+      } catch (err) {
+        console.error(`[export-marked] crop failed for Q${q.questionNum}:`, err);
+        return { qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q) }] };
+      }
+      const marks = await classifyQuestion(regionBuf, q);
+      return { qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks };
+    }));
+    allMarks.push({ pageIdx: i, perQ });
   }
-  const summaries = await summariseNotes(toSummarise);
 
   // Build the PDF.
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
-  const caveatBytes = await getCaveatBytes();
-  const caveat = await doc.embedFont(caveatBytes);
+  const handFontBytes = await getHandFontBytes();
+  const handFont = await doc.embedFont(handFontBytes);
   const helvetica = await doc.embedFont(StandardFonts.HelveticaBold);
   const RED = rgb(0.85, 0.10, 0.10);
 
@@ -212,65 +293,78 @@ async function handle(
     page.drawImage(img, { x: 0, y: 0, width: pageW, height: pageH });
 
     const qs = bySubPage.get(i) ?? [];
-    for (const q of qs) {
-      const yStartPct = q.yStartPct ?? 0;
-      const yEndPct = q.yEndPct ?? 100;
-      // PDF coords have y=0 at the bottom. The image's yStartPct=0 is
-      // the TOP of the page. So bottom-right of the question box is at
-      // pdfY = pageH - (yEndPct/100)*pageH + small margin.
-      const markX = pageW * 0.92;          // 8% in from right edge
-      const markY = pageH - (yEndPct / 100) * pageH + pageH * 0.005;
-      const a = q.marksAwarded ?? 0;
-      const v = q.marksAvailable ?? 0;
-      const correct = v > 0 && a >= v;
-      const wrong = v > 0 && a === 0;
-      const partial = v > 0 && a > 0 && a < v;
-      const markSize = Math.max(28, Math.round(pageH * 0.022));
+    const perQ = (allMarks.find(p => p.pageIdx === i)?.perQ) ?? [];
+    const markSize = Math.max(28, Math.round(pageH * 0.022));
+    const noteSize = Math.max(18, Math.round(pageH * 0.014));
 
-      if (correct) {
-        drawTick(page, markX, markY, markSize, RED);
-      } else if (wrong) {
-        drawCross(page, markX, markY, markSize, RED);
-      } else if (partial) {
-        drawTick(page, markX - markSize * 0.55, markY, markSize, RED);
-        drawCross(page, markX + markSize * 0.05, markY, markSize, RED);
-      } else {
-        // Unmarked / no marks available — skip.
-        continue;
+    for (const q of qs) {
+      const entry = perQ.find(e => e.qId === q.id);
+      if (!entry) continue;
+      const totalAwarded = q.marksAwarded ?? 0;
+      const totalAvail = q.marksAvailable ?? 0;
+      const isMcq = entry.marks.length === 1 && entry.marks[0].label === "" && totalAvail > 0; // MCQs come back as a single empty-label entry, fine
+
+      for (const m of entry.marks) {
+        // Region coords → page coords (image y is top-down, PDF y is bottom-up).
+        const regionTopPx = entry.pageRegion.topPx;
+        const regionH = entry.pageRegion.heightPx;
+        const regionW = entry.pageRegion.widthPx;
+        const yPx = regionTopPx + (m.yPctEnd / 100) * regionH;
+        const xPx = (m.xPctEnd / 100) * regionW;
+        // Clamp the mark x so it never strays into the right margin past
+        // the page edge or so far left it overlaps the writing.
+        const markX = Math.min(pageW - markSize * 0.6, Math.max(xPx + markSize * 0.4, pageW * 0.15));
+        const markY = pageH - yPx - markSize * 0.2; // small lift so it sits just above the baseline
+
+        const status = m.status;
+        if (status === "blank") continue;
+
+        if (status === "correct") {
+          drawTick(page, markX, markY, markSize, RED);
+        } else if (status === "wrong") {
+          drawCross(page, markX, markY, markSize, RED);
+        } else if (status === "partial") {
+          drawTick(page, markX - markSize * 0.55, markY, markSize, RED);
+          drawCross(page, markX + markSize * 0.05, markY, markSize, RED);
+        }
+
+        // Caveat note for non-correct subparts. Sits to the LEFT of the
+        // mark on the same line, right-aligned so it never overlaps.
+        if (status !== "correct" && m.note) {
+          const note = m.note;
+          const noteW = handFont.widthOfTextAtSize(note, noteSize);
+          const maxW = Math.max(60, markX - markSize * 1.5);
+          const finalText = noteW > maxW ? note.slice(0, Math.max(3, Math.floor(note.length * (maxW / noteW)) - 1)) + "…" : note;
+          const finalW = handFont.widthOfTextAtSize(finalText, noteSize);
+          page.drawText(finalText, {
+            x: markX - markSize - finalW - 2,
+            y: markY - noteSize * 0.1,
+            size: noteSize,
+            font: handFont,
+            color: RED,
+          });
+        }
       }
 
-      // Score chip (e.g. "1/2") next to the mark, in Helvetica so it's
-      // crisp at small sizes.
-      if (v > 0 && !correct) {
-        const chip = `${a}/${v}`;
-        const chipSize = Math.round(markSize * 0.45);
+      // For partial-credit OEQ, also stamp a small "N/M" chip near the
+      // FIRST mark so the parent sees the overall score at a glance.
+      // (For MCQ where there's only one subpart this duplicates the
+      // status, but it's still useful as a numeric anchor.)
+      if (totalAvail > 0 && totalAwarded < totalAvail && entry.marks.length > 0) {
+        const first = entry.marks[0];
+        const yPx = entry.pageRegion.topPx + (first.yPctEnd / 100) * entry.pageRegion.heightPx;
+        const chipY = pageH - yPx + markSize * 0.3;
+        const chip = `${totalAwarded}/${totalAvail}`;
+        const chipSize = Math.round(markSize * 0.5);
         page.drawText(chip, {
-          x: markX - markSize * 1.2,
-          y: markY - markSize * 0.1,
+          x: pageW - 60,
+          y: chipY,
           size: chipSize,
           font: helvetica,
           color: RED,
         });
       }
-
-      if (!correct) {
-        const note = summaries.get(q.id);
-        if (note) {
-          // Caveat sits below the mark, right-aligned to the page edge.
-          const noteSize = Math.max(18, Math.round(pageH * 0.014));
-          const noteW = caveat.widthOfTextAtSize(note, noteSize);
-          const maxW = pageW * 0.30;
-          const finalText = noteW > maxW ? note.slice(0, Math.floor(note.length * (maxW / noteW)) - 1) + "…" : note;
-          const finalW = caveat.widthOfTextAtSize(finalText, noteSize);
-          page.drawText(finalText, {
-            x: pageW - finalW - pageW * 0.02,
-            y: markY - markSize - noteSize * 0.4,
-            size: noteSize,
-            font: caveat,
-            color: RED,
-          });
-        }
-      }
+      void isMcq;
     }
   }
 
