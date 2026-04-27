@@ -22,25 +22,36 @@ const VOLUME_PATH =
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
 // Caveat-Regular pulled once per cold start and held in module memory.
-// ~150KB. We resolve the current font URL via Google's CSS API rather
-// than hardcoding a versioned gstatic URL (which silently 404s when the
-// font is republished). Spoof a Chrome User-Agent so the CSS endpoint
-// returns TTF (default with no UA is WOFF2, which pdf-lib won't embed).
+// ~150KB. We fetch from Google Fonts' GitHub repo (OFL, public,
+// commit-stable URLs) because the public CSS API now only serves WOFF2,
+// which pdf-lib + fontkit won't embed. The variable-axis URL is the
+// fallback in case the static instance is moved.
 let _caveatBytes: Buffer | null = null;
+const CAVEAT_CANDIDATES = [
+  "https://github.com/google/fonts/raw/main/ofl/caveat/static/Caveat-Regular.ttf",
+  "https://github.com/google/fonts/raw/main/ofl/caveat/Caveat%5Bwght%5D.ttf",
+];
 async function getCaveatBytes(): Promise<Buffer> {
   if (_caveatBytes) return _caveatBytes;
-  const cssRes = await fetch("https://fonts.googleapis.com/css2?family=Caveat&display=swap", {
-    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36" },
-  });
-  if (!cssRes.ok) throw new Error(`Caveat CSS fetch failed: ${cssRes.status}`);
-  const css = await cssRes.text();
-  const m = css.match(/url\((https:[^)]+\.ttf)\)/);
-  if (!m) throw new Error(`Caveat TTF URL not found in CSS: ${css.slice(0, 200)}`);
-  const ttfRes = await fetch(m[1]);
-  if (!ttfRes.ok) throw new Error(`Caveat TTF fetch failed: ${ttfRes.status}`);
-  const buf = Buffer.from(await ttfRes.arrayBuffer());
-  _caveatBytes = buf;
-  return buf;
+  let lastErr: unknown = null;
+  for (const url of CAVEAT_CANDIDATES) {
+    try {
+      const r = await fetch(url, { redirect: "follow" });
+      if (!r.ok) { lastErr = new Error(`${url} → ${r.status}`); continue; }
+      const buf = Buffer.from(await r.arrayBuffer());
+      // Sanity: TTF starts with 0x00 0x01 0x00 0x00 (or "OTTO"). Reject
+      // anything that looks like HTML / WOFF / a 404 page.
+      if (buf.length < 1024 || buf.slice(0, 4).toString("hex") !== "00010000") {
+        lastErr = new Error(`${url} did not return a valid TTF (first 4 bytes: ${buf.slice(0, 4).toString("hex")})`);
+        continue;
+      }
+      _caveatBytes = buf;
+      return buf;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw new Error(`Caveat font fetch failed: ${String(lastErr)}`);
 }
 
 let _ai: GoogleGenAI | null = null;
