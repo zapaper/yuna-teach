@@ -68,6 +68,12 @@ export async function renderPdfToJpegs(
         viewport,
         canvasFactory: factory as unknown as object,
         background: "white",
+        // Skip rendering annotations (form fields, highlights, comments).
+        // We only need the page surface for OCR + marking; annotations
+        // would just add noise — and PDFs with fractional border widths
+        // trigger 'AnnotationBorderStyle.setWidth - ignoring width: …'
+        // warnings in pdfjs that clutter the logs.
+        annotationMode: 0,
       } as Parameters<typeof page.render>[0]).promise;
       out.push(cc.canvas.toBuffer("image/jpeg", quality));
       factory.destroy(cc);
