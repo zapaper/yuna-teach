@@ -462,7 +462,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       const data = await res.json();
       if (!res.ok) { setEnterError(data.error || "Invalid code"); return; }
       setEnterSuccess(true);
-      setTimeout(() => { setShowLinkModal(false); router.refresh(); }, 1500);
+      // The home page listens for postMessage('student-linked') and
+      // re-fetches the user record (which is where linkedStudents lives
+      // — router.refresh() alone doesn't help on this fully-client page).
+      setTimeout(() => {
+        setShowLinkModal(false);
+        window.postMessage({ type: "student-linked" }, "*");
+      }, 1500);
     } catch { setEnterError("Something went wrong"); }
     finally { setEnterLoading(false); }
   }
