@@ -244,6 +244,37 @@ NO commentary.`;
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+// Group the flat question list into booklets/sections by detecting
+// question-number resets. Walk in extraction order — each time the
+// parsed numeric question number drops below the previous one, start
+// a new booklet. e.g. Q1..Q30 then Q1..Q15 → two booklets.
+type BookletSummary = { label: string; firstQ: string; lastQ: string; earned: number; available: number; questionCount: number };
+function summariseBooklets(flat: { questionNum: string; marksAwarded: number; marksAvailable: number }[]): BookletSummary[] {
+  const booklets: { items: typeof flat }[] = [];
+  let current: typeof flat = [];
+  let prevNum = -1;
+  for (const q of flat) {
+    const m = q.questionNum.match(/^(\d+)/);
+    const num = m ? Number(m[1]) : NaN;
+    if (Number.isFinite(num) && num < prevNum) {
+      // Number reset: start a new booklet.
+      if (current.length > 0) booklets.push({ items: current });
+      current = [];
+    }
+    current.push(q);
+    if (Number.isFinite(num)) prevNum = num;
+  }
+  if (current.length > 0) booklets.push({ items: current });
+  return booklets.map((b, i) => ({
+    label: `Booklet ${String.fromCharCode("A".charCodeAt(0) + i)}`,
+    firstQ: b.items[0].questionNum,
+    lastQ: b.items[b.items.length - 1].questionNum,
+    earned: b.items.reduce((s, q) => s + q.marksAwarded, 0),
+    available: b.items.reduce((s, q) => s + q.marksAvailable, 0),
+    questionCount: b.items.length,
+  }));
+}
+
 // Convert any LaTeX math fragments that slip through into plain
 // Unicode so the review UI (which doesn't run a math renderer) shows
 // a readable string instead of literal '$\\angle DHG = 48^\\circ$'.
@@ -908,10 +939,18 @@ async function runDiagnosisInBackground(
   if (coverTeacherAwarded > 0 || coverPaperTotal > 0) {
     console.log(`[diagnose] headline ${totalEarned}/${totalAvailable} (cover detected: paper=${coverPaperTotal || "?"} teacher=${coverTeacherAwarded || "?"} | per-q sums: ${aiTotalEarned}/${aiTotalAvailable}${rawEarned > totalAvailable ? " — clamped" : ""})`);
   }
+
+  // Booklet-level breakdown — Q1..QN then Q1..QM is two booklets.
+  // Useful as 'overarching paper diagnosis' on multi-section papers
+  // where a single headline number would hide the structure.
+  const booklets = summariseBooklets(flat);
+  if (booklets.length > 1) {
+    console.log(`[diagnose] booklet breakdown: ${booklets.map(b => `${b.label} ${b.firstQ}..${b.lastQ} ${b.earned}/${b.available}`).join(" | ")}`);
+  }
   await maybeReply(
     fromEmail,
     `Diagnose: ${student.name} — ${formatNum(totalEarned)}/${formatNum(totalAvailable)} marks`,
-    buildSummaryHtml(student.name, totalAvailable, totalEarned, weak, strong, parent.id, paper.id),
+    buildSummaryHtml(student.name, totalAvailable, totalEarned, weak, strong, booklets, parent.id, paper.id),
     { html: true },
   ).catch((err) => console.error("[diagnose] reply email failed:", err));
 
@@ -924,6 +963,7 @@ function buildSummaryHtml(
   totalEarned: number,
   weak: { topic: string; earned: number; available: number; lost: number }[],
   strong: { topic: string; earned: number; available: number; total: number }[],
+  booklets: BookletSummary[],
   parentId: string,
   paperId: string,
 ): string {
@@ -945,9 +985,23 @@ function buildSummaryHtml(
     ? "<p>And there are no obvious weak topics — the deductions were spread evenly across the paper.</p>"
     : `<ul style="margin: 8px 0 18px;">${weak.map(w => `<li style="margin: 4px 0;"><strong>${escapeHtml(w.topic)}</strong> — lost ${formatNum(w.lost)} mark${w.lost === 1 ? "" : "s"} (${formatNum(w.earned)}/${formatNum(w.available)})</li>`).join("")}</ul>`;
 
+  // Multi-booklet papers get an explicit per-booklet tally so the
+  // parent sees the structure instead of one headline number.
+  const bookletBreakdown = booklets.length > 1
+    ? `<div style="background:#f5f8ff; border:1px solid #dce4f4; border-radius:10px; padding:12px 16px; margin: 12px 0 18px;">
+  <p style="margin:0 0 6px; font-weight:bold; color:#001e40;">Paper diagnosis</p>
+  <p style="margin:0 0 8px; font-size:13px; color:#43474f;">Across ${booklets.length} booklets / sections:</p>
+  <ul style="margin:0; padding-left:18px; font-size:14px;">
+    ${booklets.map(b => `<li style="margin:2px 0;"><strong>${escapeHtml(b.label)}</strong> (Q${escapeHtml(b.firstQ)}–Q${escapeHtml(b.lastQ)}) — ${formatNum(b.earned)}/${formatNum(b.available)} (${b.questionCount} questions)</li>`).join("")}
+  </ul>
+</div>`
+    : "";
+
   return `<!doctype html><html><body style="font-family: -apple-system, system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #0b1c30; line-height: 1.5;">
 <h2 style="color: #001e40; margin-bottom: 4px;">Diagnostic results for ${escapeHtml(studentName)}</h2>
 <p style="color: #43474f; margin-top: 0;">${formatNum(totalEarned)} of ${formatNum(totalAvailable)} marks.</p>
+
+${bookletBreakdown}
 
 ${strongCopy}
 
