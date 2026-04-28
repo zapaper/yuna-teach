@@ -264,6 +264,96 @@ NO commentary.`;
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+// Scan EVERY page for marking-scheme banners — the small italic
+// instructions that say things like 'Questions 1 to 10 carry 1 mark
+// each' or 'Questions 11 to 15 carry 2 marks each'. Singapore primary
+// papers use these consistently to declare per-question marks; treating
+// them as ground truth removes the per-page Gemini call's tendency to
+// guess (and over-allocate). Runs in parallel; cost is one extra
+// Gemini-flash call per page.
+type MarkingBand = { from: number; to: number; marksPerQ: number };
+
+async function scanMarkingSchemeOnPage(jpeg: Buffer, pageLabel: string): Promise<MarkingBand[]> {
+  const ai = getAI();
+  const prompt = `Look at this scanned exam page. Find any printed MARKING SCHEME BANNER — the small instruction that tells the student how many marks each question is worth. They typically appear at the start of a section / booklet, or just above the first question of a new sub-section.
+
+Examples of how a banner reads (verbatim from real papers):
+- "Questions 1 to 10 carry 1 mark each."
+- "Questions 11 to 15 carry 2 marks each. Show your working clearly."
+- "For questions 1 to 5 (Booklet B), four options 1, 2, 3, 4 are given. Each carries 1 mark."
+- "Questions 21 to 30 carry 2 marks each."
+
+For EACH banner you see on THIS page, output one entry. Output a JSON array (possibly empty if no banner is on this page).
+
+Each entry:
+- "from": the starting question number in the band (integer)
+- "to": the ending question number in the band (integer)
+- "marksPerQ": the per-question mark value (number; halves allowed)
+
+If a banner says "carry 2, 4 or 5 marks" without a fixed value, use the LOWEST value (it's a placeholder for variable-mark questions and we'll allow per-question overrides). If the page has no marking-scheme banner, return [].
+
+OUTPUT: JSON array only. No commentary.`;
+  try {
+    const resp = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: "image/jpeg", data: jpeg.toString("base64") } },
+        ],
+      }],
+      config: { temperature: 0, responseMimeType: "application/json" },
+    });
+    const raw = resp.text ?? "[]";
+    const parsed = JSON.parse(raw) as { from?: number; to?: number; marksPerQ?: number }[];
+    if (!Array.isArray(parsed)) return [];
+    const out: MarkingBand[] = [];
+    for (const b of parsed) {
+      const from = Number(b.from);
+      const to = Number(b.to);
+      const m = Number(b.marksPerQ);
+      if (Number.isFinite(from) && Number.isFinite(to) && Number.isFinite(m) && from > 0 && to >= from && m > 0) {
+        out.push({ from, to, marksPerQ: m });
+      }
+    }
+    if (out.length > 0) {
+      console.log(`[diagnose] marking-scheme ${pageLabel}: ${out.map(b => `Q${b.from}-${b.to}=${b.marksPerQ}m`).join(", ")}`);
+    }
+    return out;
+  } catch (err) {
+    console.error(`[diagnose] marking-scheme ${pageLabel} failed:`, err);
+    return [];
+  }
+}
+
+// Apply the discovered banner ranges to a list of questions. Returns
+// how many were touched. Multiple banners can cover the same range
+// (e.g. one on the cover plus one repeated near the questions); we
+// take the LATER banner if there's overlap, since that's the more
+// specific one. Each band is independent.
+function applyMarkingBands(flat: { questionNum: string; marksAwarded: number; marksAvailable: number; isCorrect: boolean }[], bands: MarkingBand[]): number {
+  if (bands.length === 0) return 0;
+  // Build a per-Q-number lookup, last band wins.
+  const perQ = new Map<number, number>();
+  for (const b of bands) {
+    for (let n = b.from; n <= b.to; n++) perQ.set(n, b.marksPerQ);
+  }
+  let touched = 0;
+  for (const q of flat) {
+    const m = q.questionNum.match(/^(\d+)/);
+    if (!m) continue;
+    const num = Number(m[1]);
+    const corrected = perQ.get(num);
+    if (typeof corrected !== "number" || corrected === q.marksAvailable) continue;
+    const ratio = q.marksAvailable > 0 ? q.marksAwarded / q.marksAvailable : (q.isCorrect ? 1 : 0);
+    q.marksAvailable = corrected;
+    q.marksAwarded = Math.min(corrected, Math.round(ratio * corrected * 2) / 2);
+    touched++;
+  }
+  return touched;
+}
+
 // Group the flat question list into booklets/sections by detecting
 // question-number resets. Walk in extraction order — each time the
 // parsed numeric question number drops below the previous one, start
@@ -742,12 +832,18 @@ async function runDiagnosisInBackground(
   console.log(`[diagnose] analysing ${pageJpegs.length} pages for student=${student.id} (${student.name})`);
   const t0 = Date.now();
   const coverScanIndices = new Set<number>([0, 1, pageJpegs.length - 2, pageJpegs.length - 1].filter(i => i >= 0 && i < pageJpegs.length));
-  const [perPage, coverScans] = await Promise.all([
+  const [perPage, coverScans, markingSchemePerPage] = await Promise.all([
     Promise.all(pageJpegs.map(buf => diagnosePage(buf, subjectHint, levelHint))),
     Promise.all(pageJpegs.map((buf, i) => coverScanIndices.has(i)
       ? readCoverTotal(buf, `p${i}`)
       : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null, rawDescription: "" }))),
+    Promise.all(pageJpegs.map((buf, i) => scanMarkingSchemeOnPage(buf, `p${i}`))),
   ]);
+  const allBands: MarkingBand[] = markingSchemePerPage.flat();
+  if (allBands.length > 0) {
+    const totalFromBands = allBands.reduce((s, b) => s + (b.to - b.from + 1) * b.marksPerQ, 0);
+    console.log(`[diagnose] marking-scheme bands: ${allBands.map(b => `Q${b.from}-${b.to}=${b.marksPerQ}m`).join(" | ")} (sum=${totalFromBands})`);
+  }
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
   const rawFlat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
 
@@ -775,6 +871,18 @@ async function runDiagnosisInBackground(
   });
   if (dupSkips.length > 0) {
     console.log(`[diagnose] deduped ${dupSkips.length} continuation page(s): ${dupSkips.join(", ")}`);
+  }
+
+  // Apply discovered marking-scheme bands as ground truth on per-
+  // question marks. This runs before any audit/clamp so the rest of
+  // the pipeline (booklet breakdown, topic loss, headline score)
+  // uses the corrected values directly.
+  if (allBands.length > 0) {
+    const touched = applyMarkingBands(flat, allBands);
+    if (touched > 0) {
+      const newSum = flat.reduce((s, q) => s + q.marksAvailable, 0);
+      console.log(`[diagnose] marking-scheme bands applied to ${touched} questions; per-q sum=${newSum}`);
+    }
   }
 
   // Second-pass MCQ "1" detection. Every MCQ where the model didn't
@@ -887,9 +995,21 @@ async function runDiagnosisInBackground(
   // booklet papers fall through to the simple max. Also covers the
   // case where the same total ends up reported on cover + summary.
   const distinctPaperTotals = Array.from(new Set(allPaperTotals));
-  const coverPaperTotal = distinctPaperTotals.length > 1
+  const coverPaperTotalRaw = distinctPaperTotals.length > 1
     ? distinctPaperTotals.reduce((s, n) => s + n, 0)
     : (allPaperTotals.length > 0 ? Math.max(...allPaperTotals) : 0);
+  // Marking-scheme banner sum is a more reliable signal than the
+  // visual cover total when both are available. If the bands cover
+  // a sensible range and sum to something within ±5 of the cover
+  // figure, prefer the band sum (it's derived from explicit "QX to
+  // QY carry N marks" statements). Otherwise fall back to the cover.
+  const bandSum = allBands.reduce((s, b) => s + (b.to - b.from + 1) * b.marksPerQ, 0);
+  const coverPaperTotal = bandSum > 0 && (coverPaperTotalRaw === 0 || Math.abs(bandSum - coverPaperTotalRaw) <= 5)
+    ? bandSum
+    : coverPaperTotalRaw;
+  if (bandSum > 0 && coverPaperTotalRaw > 0 && Math.abs(bandSum - coverPaperTotalRaw) > 5) {
+    console.log(`[diagnose] band sum ${bandSum} disagrees with cover ${coverPaperTotalRaw} — sticking with cover`);
+  }
   const coverTeacherAwarded = allTeacherAwarded.length > 0 ? Math.min(...allTeacherAwarded) : 0;
   if (coverPaperTotal > 0 || coverTeacherAwarded > 0) {
     console.log(`[diagnose] cover-page totals: paperTotalMarks=${coverPaperTotal || "?"} teacherAwarded=${coverTeacherAwarded || "?"} (distinct paper totals=[${distinctPaperTotals.join(",")}] — ${distinctPaperTotals.length > 1 ? "summed" : "max"}, teacher raw=[${allTeacherAwarded.join(",")}], inline=[${perPage.map(p => p.teacherAwardedMarks ?? "_").join(",")}])`);
