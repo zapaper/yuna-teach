@@ -1511,7 +1511,10 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
   }
   function onHandleUp() { dragStart.current = null; }
 
-  // Re-size + preserve content
+  // Re-size + preserve content. The previous strokes get redrawn at
+  // their NATURAL bitmap size (anchored top-left) — never stretched to
+  // fit the new dimensions, otherwise expanding the pad downward
+  // would smear existing handwriting vertically.
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || height === 0) return;
@@ -1520,11 +1523,15 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     const w = parent.offsetWidth;
     const ctx = canvas.getContext("2d");
     let tempCanvas: HTMLCanvasElement | null = null;
+    let prevW = 0;
+    let prevH = 0;
     if (ctx && canvas.width > 0 && canvas.height > 0) {
       tempCanvas = document.createElement("canvas");
       tempCanvas.width = canvas.width;
       tempCanvas.height = canvas.height;
       tempCanvas.getContext("2d")!.drawImage(canvas, 0, 0);
+      prevW = canvas.width;
+      prevH = canvas.height;
     }
     canvas.style.width = `${w}px`;
     canvas.style.height = `${height}px`;
@@ -1532,7 +1539,16 @@ function McqScratchPad({ tool }: { tool: DrawTool }) {
     const newH = height * 2;
     canvas.width = newW;
     canvas.height = newH;
-    if (ctx && tempCanvas) ctx.drawImage(tempCanvas, 0, 0, newW, newH);
+    if (ctx && tempCanvas) {
+      // Use the smaller of old/new bitmap on each axis so we copy only
+      // the overlapping region. Avoids stretching when newH > prevH
+      // and avoids cropping when newH < prevH (the bottom of the old
+      // content just gets clipped, which is the natural behaviour for
+      // shrinking).
+      const copyW = Math.min(prevW, newW);
+      const copyH = Math.min(prevH, newH);
+      ctx.drawImage(tempCanvas, 0, 0, copyW, copyH, 0, 0, copyW, copyH);
+    }
     // Clear history on resize (image coordinates change)
     history.current = [];
   }, [height]);
