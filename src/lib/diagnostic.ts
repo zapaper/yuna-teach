@@ -389,9 +389,14 @@ async function runDiagnosisInBackground(
       pageCount: pageJpegs.length,
       userId: parent.id,
       assignedToId: student.id,
+      // instantFeedback lets the student see results without the parent
+      // needing to click 'Mark as Reviewed'. We deliberately leave
+      // markingStatus at 'complete' (not 'released') so the parent
+      // dashboard still surfaces the diagnostic as 'awaiting review' —
+      // they probably want to look at it before treating it as final.
       instantFeedback: true,
       completedAt: new Date(),
-      markingStatus: "released",
+      markingStatus: "complete",
       // Prefer the cover-page totals when the AI spotted them — they're
       // what the parent / school actually see. Falls back to per-question
       // sums if the cover wasn't visible / readable.
