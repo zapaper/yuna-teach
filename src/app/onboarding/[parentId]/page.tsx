@@ -179,9 +179,18 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         }),
       });
     } catch { /* non-fatal */ }
-    // Pass the choice through to the home dashboard so it can surface
-    // the right follow-up (instructions / quiz / print).
-    router.replace(`/home/${parentId}?diagnostic=${kind}`);
+    // Route based on choice:
+    // - scan-email: home dashboard with a popup that explains the
+    //   email instructions
+    // - platform-quiz: the legacy signup wizard's student-creation +
+    //   diagnostic-quiz subject picker, resumed via ?parentId=&step=2
+    // - printable: home dashboard for now; printable-onboarding wiring
+    //   comes later
+    if (kind === "platform-quiz") {
+      router.replace(`/signup?parentId=${parentId}&step=2`);
+    } else {
+      router.replace(`/home/${parentId}?diagnostic=${kind}`);
+    }
   }
 
   const q = QUESTIONS[step];

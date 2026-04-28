@@ -17,8 +17,14 @@ function SignupFlow() {
   const searchParams = useSearchParams();
   const initialStep = searchParams.get("step");
 
+  // Onboarding routes the parent to /signup?parentId=…&step=2 when
+  // they pick 'platform quiz' from the post-questionnaire diagnosis
+  // card. Resume there with the parentId already known.
+  const initialParentIdParam = searchParams.get("parentId");
   const [step, setStep] = useState<1 | 2 | 3>(
-    initialStep === "2" ? 2 : initialStep === "3" ? 3 : 1
+    initialParentIdParam && initialStep === "2" ? 2
+      : initialParentIdParam && initialStep === "3" ? 3
+      : 1
   );
 
   // ── Step 1: Parent state ──
@@ -28,7 +34,7 @@ function SignupFlow() {
   const [parentShowPw, setParentShowPw] = useState(false);
   const [parentError, setParentError] = useState("");
   const [parentLoading, setParentLoading] = useState(false);
-  const [parentId, setParentId] = useState<string | null>(null);
+  const [parentId, setParentId] = useState<string | null>(initialParentIdParam);
 
   // ── Step 2: Student state ──
   const [studentName, setStudentName] = useState("");

@@ -64,7 +64,7 @@ function scorePct(paper: ExamPaperSummary) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean }) {
+export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome, diagnosticChoice }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean; diagnosticChoice?: string }) {
   const router = useRouter();
   const avatarTypeMap: Record<string, string[]> = Object.fromEntries(
     ["bunny","bear","tiger","fox","otter","uni","dragon","merlion","qilin","whitetiger"].map(k => [
@@ -221,6 +221,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showFeedback, setShowFeedback] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
+  // Onboarding's 'Scan and email' choice routes here with
+  // ?diagnostic=scan-email. Show a one-shot popup explaining the email
+  // address + offering a fallback to the platform-quiz path.
+  const [showScanEmailPopup, setShowScanEmailPopup] = useState(diagnosticChoice === "scan-email");
   const [showDiagnosticWelcome, setShowDiagnosticWelcome] = useState(() => {
     if (!diagnosticWelcome) return false;
     try {
@@ -3030,6 +3034,53 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         </div>
         );
       })()}
+
+      {showScanEmailPopup && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
+            <div className="px-6 pt-7 pb-4 flex flex-col items-center text-center">
+              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
+              </div>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Email us your child&apos;s test</h3>
+            </div>
+            <div className="px-7 pb-2 text-[#43474f] text-sm leading-relaxed space-y-3">
+              <p>
+                Send any past paper (graded or ungraded) — Math, Science or English — to:
+              </p>
+              <p className="text-center font-mono font-bold text-[#003366] bg-[#f0f5ff] rounded-xl py-3 select-all">
+                diagnose@inbound.markforyou.com
+              </p>
+              <p>
+                No subject or body needed. Our AI auto-marks the paper, finds the gaps, and we&apos;ll take it from there. Since this is your only child for now, the diagnosis will be tagged to them automatically.
+              </p>
+              <p className="text-xs text-[#73797f]">
+                Prefer a 15-min on-screen quiz instead? You can start one any time — just hit <strong>Daily Quiz</strong> on your dashboard.
+              </p>
+            </div>
+            <div className="px-7 pt-5 pb-7 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setShowScanEmailPopup(false);
+                  router.replace(`/home/${userId}`);
+                }}
+                className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
+              >
+                Got it
+              </button>
+              <button
+                onClick={() => {
+                  setShowScanEmailPopup(false);
+                  router.replace(`/signup?parentId=${userId}&step=2`);
+                }}
+                className="w-full py-3 rounded-2xl border-2 border-[#c3c6d1] text-[#001e40] font-bold hover:bg-[#eff4ff] transition-colors text-sm"
+              >
+                Set up the platform quiz instead
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showDiagnosticWelcome && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
