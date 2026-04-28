@@ -58,6 +58,8 @@ type DiagnosedQuestion = {
   isBlank: boolean;
   feedback: string;            // 1-2 sentence explanation, used for the parent's review
   topic: string;               // single short topic label, e.g. "Fractions", "Photosynthesis"
+  marksAvailable: number;      // marks the question is worth (1 for MCQ, more for OEQ)
+  marksAwarded: number;        // marks the student earned (0..marksAvailable)
   yStartPct: number;           // 0-100, top of the question region on the cropped page
   yEndPct: number;             // 0-100, bottom
 };
@@ -80,9 +82,13 @@ TASK: For each distinct question on this page, output a JSON record. The record 
 7. "isBlank": true if the student wrote nothing.
 8. "feedback": 1-2 sentence explanation suitable for showing the parent. Always include — even when correct.
 9. "topic": ONE short topic label appropriate to the syllabus (e.g. "Fractions", "Decimals", "Photosynthesis", "Comprehension", "Synthesis & Transformation"). NOT a sentence.
-10. "yStartPct" and "yEndPct": 0-100 vertical bounds of the question on the cropped image.
+10. "marksAvailable": the marks the question is worth based on the printed paper (look for "[2]", "(2 marks)", etc near the question). Default 1 for MCQ, 2 for typical OEQ if not printed. Half-marks allowed (e.g. 0.5).
+11. "marksAwarded": the marks the student actually earned (0..marksAvailable). Use partial marks for OEQ when only some of the required components are present. For MCQ, all-or-nothing (0 or marksAvailable).
+12. "yStartPct" and "yEndPct": 0-100 vertical bounds of the question on the cropped image.
 
-Skip cover pages, instructions, and any non-question content.
+CRITICAL: Output EVERY question on the page, even compactly-laid-out ones. Long papers often have 4-8 questions per page. Do not skip questions just because they look similar to neighbours.
+
+Skip cover pages, pure instruction pages, and any non-question content.
 
 OUTPUT: a JSON array of question records. NO commentary.`;
   try {
@@ -100,19 +106,26 @@ OUTPUT: a JSON array of question records. NO commentary.`;
     const raw = resp.text ?? "[]";
     const parsed = JSON.parse(raw) as DiagnosedQuestion[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.map(q => ({
-      questionNum: String(q.questionNum ?? "?"),
-      stem: String(q.stem ?? ""),
-      options: Array.isArray(q.options) ? q.options.map(o => String(o)) : [],
-      expectedAnswer: String(q.expectedAnswer ?? ""),
-      studentAnswer: String(q.studentAnswer ?? ""),
-      isCorrect: Boolean(q.isCorrect),
-      isBlank: Boolean(q.isBlank),
-      feedback: String(q.feedback ?? ""),
-      topic: String(q.topic ?? "Uncategorised"),
-      yStartPct: clamp(Number(q.yStartPct ?? 0), 0, 100),
-      yEndPct: clamp(Number(q.yEndPct ?? 100), 0, 100),
-    }));
+    return parsed.map(q => {
+      const marksAvailable = Math.max(0, Number(q.marksAvailable ?? 1));
+      const isCorrect = Boolean(q.isCorrect);
+      const marksAwardedRaw = Number(q.marksAwarded ?? (isCorrect ? marksAvailable : 0));
+      return {
+        questionNum: String(q.questionNum ?? "?"),
+        stem: String(q.stem ?? ""),
+        options: Array.isArray(q.options) ? q.options.map(o => String(o)) : [],
+        expectedAnswer: String(q.expectedAnswer ?? ""),
+        studentAnswer: String(q.studentAnswer ?? ""),
+        isCorrect,
+        isBlank: Boolean(q.isBlank),
+        feedback: String(q.feedback ?? ""),
+        topic: String(q.topic ?? "Uncategorised"),
+        marksAvailable,
+        marksAwarded: clamp(marksAwardedRaw, 0, marksAvailable),
+        yStartPct: clamp(Number(q.yStartPct ?? 0), 0, 100),
+        yEndPct: clamp(Number(q.yEndPct ?? 100), 0, 100),
+      };
+    });
   } catch (err) {
     console.error("[diagnose] page analysis failed:", err);
     return [];
@@ -197,6 +210,28 @@ export async function handleDiagnostic(
   const perPage = await Promise.all(pageJpegs.map(buf => diagnosePage(buf, subjectHint, levelHint)));
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
   const flat = perPage.flatMap((qs, pageIdx) => qs.map(q => ({ ...q, pageIndex: pageIdx })));
+  // Verbose breakdown so the parent can sanity-check the AI's work.
+  // Logs: total questions, total marks, per-page question counts, the
+  // exact list of wrong/blank questions, and the topics that lost marks.
+  {
+    const totalAvail = flat.reduce((s, q) => s + q.marksAvailable, 0);
+    const totalAwarded = flat.reduce((s, q) => s + q.marksAwarded, 0);
+    const perPageCounts = perPage.map((qs, i) => `p${i}=${qs.length}`).join(" ");
+    const wrong = flat.filter(q => !q.isCorrect);
+    const wrongDesc = wrong.map(q => `Q${q.questionNum}(${q.topic}, ${q.marksAwarded}/${q.marksAvailable}, p${q.pageIndex})`).join(" | ");
+    const lossByTopic = new Map<string, number>();
+    for (const q of wrong) {
+      lossByTopic.set(q.topic, (lossByTopic.get(q.topic) ?? 0) + (q.marksAvailable - q.marksAwarded));
+    }
+    const topicLossDesc = [...lossByTopic.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([t, l]) => `${t}=-${l}`)
+      .join(" | ");
+    console.log(`[diagnose] ${flat.length} questions across ${pageJpegs.length} pages (${perPageCounts})`);
+    console.log(`[diagnose] score: ${totalAwarded} / ${totalAvail}`);
+    console.log(`[diagnose] wrong/partial (${wrong.length}): ${wrongDesc || "none"}`);
+    console.log(`[diagnose] marks lost by topic: ${topicLossDesc || "none"}`);
+  }
   if (flat.length === 0) {
     await maybeReply(fromEmail, "Diagnose: no questions detected", "We couldn't find any questions in the photos you sent. Try a clearer photo or PDF, with one full page per image.").catch(() => {});
     return Response.json({ ok: true, ignored: "no questions detected" });
@@ -218,8 +253,8 @@ export async function handleDiagnostic(
       instantFeedback: true,
       completedAt: new Date(),
       markingStatus: "released",
-      score: flat.filter(q => q.isCorrect).length,
-      totalMarks: String(flat.length),
+      score: flat.reduce((s, q) => s + q.marksAwarded, 0),
+      totalMarks: String(flat.reduce((s, q) => s + q.marksAvailable, 0)),
       metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr } as Prisma.InputJsonValue,
       questions: {
         create: flat.map((q, idx) => ({
@@ -230,8 +265,8 @@ export async function handleDiagnostic(
           orderIndex: idx,
           yStartPct: q.yStartPct,
           yEndPct: q.yEndPct,
-          marksAvailable: 1,
-          marksAwarded: q.isCorrect ? 1 : 0,
+          marksAvailable: q.marksAvailable,
+          marksAwarded: q.marksAwarded,
           studentAnswer: q.studentAnswer || null,
           markingNotes: q.feedback || null,
           syllabusTopic: q.topic || null,
@@ -257,39 +292,45 @@ export async function handleDiagnostic(
   // approach gives the parent something actionable even when the
   // student is mostly strong and wrong answers are spread thinly —
   // a strict <50% threshold tends to flag nothing on a 26-page paper.
-  const byTopic = new Map<string, { right: number; total: number }>();
+  const byTopic = new Map<string, { earned: number; available: number; total: number; right: number }>();
   for (const q of flat) {
     const t = q.topic;
-    const cur = byTopic.get(t) ?? { right: 0, total: 0 };
+    const cur = byTopic.get(t) ?? { earned: 0, available: 0, total: 0, right: 0 };
+    cur.earned += q.marksAwarded;
+    cur.available += q.marksAvailable;
     cur.total++;
     if (q.isCorrect) cur.right++;
     byTopic.set(t, cur);
   }
   const allTopics = Array.from(byTopic.entries()).map(([topic, s]) => ({
     topic,
+    earned: s.earned,
+    available: s.available,
+    lost: s.available - s.earned,
     right: s.right,
     total: s.total,
-    wrong: s.total - s.right,
   }));
   const weak = allTopics
-    .filter(t => t.wrong > 0)
+    .filter(t => t.lost > 0)
     .sort((a, b) => {
-      if (b.wrong !== a.wrong) return b.wrong - a.wrong;
-      return (a.right / a.total) - (b.right / b.total);
+      if (b.lost !== a.lost) return b.lost - a.lost;
+      return (a.earned / a.available) - (b.earned / b.available);
     })
     .slice(0, 3);
   const strong = allTopics
-    .filter(t => t.total >= 2 && t.right === t.total)
+    .filter(t => t.total >= 2 && t.lost === 0)
     .slice(0, 5);
 
+  const totalEarned = flat.reduce((s, q) => s + q.marksAwarded, 0);
+  const totalAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
   await maybeReply(
     fromEmail,
-    `Diagnose: ${student.name} — ${flat.filter(q => q.isCorrect).length}/${flat.length} correct`,
-    buildSummaryHtml(student.name, flat.length, flat.filter(q => q.isCorrect).length, weak, strong, parent.id, paper.id),
+    `Diagnose: ${student.name} — ${formatNum(totalEarned)}/${formatNum(totalAvailable)} marks`,
+    buildSummaryHtml(student.name, totalAvailable, totalEarned, weak, strong, parent.id, paper.id),
     { html: true },
   ).catch((err) => console.error("[diagnose] reply email failed:", err));
 
-  console.log(`[diagnose] paper=${paper.id} student=${student.id} score=${flat.filter(q => q.isCorrect).length}/${flat.length} weak=[${weak.map(w => w.topic).join(", ")}]`);
+  console.log(`[diagnose] paper=${paper.id} student=${student.id} marks=${totalEarned}/${totalAvailable} weak=[${weak.map(w => `${w.topic}(-${w.lost})`).join(", ")}]`);
 
   return Response.json({
     ok: true,
@@ -303,22 +344,22 @@ export async function handleDiagnostic(
 
 function buildSummaryHtml(
   studentName: string,
-  total: number,
-  correct: number,
-  weak: { topic: string; right: number; total: number }[],
-  strong: { topic: string; right: number; total: number }[],
+  totalAvailable: number,
+  totalEarned: number,
+  weak: { topic: string; earned: number; available: number; lost: number }[],
+  strong: { topic: string; earned: number; available: number; total: number }[],
   parentId: string,
   paperId: string,
 ): string {
   const dashboardUrl = `${APP_URL}/home/${parentId}?focusedSuggest=${encodeURIComponent(weak.map(w => w.topic).join(","))}`;
   const reviewUrl = `${APP_URL}/exam/${paperId}/review?userId=${parentId}`;
   const weakList = weak.length === 0
-    ? "<p>No clear weak topics — the answers were spread fairly evenly. Nice work!</p>"
-    : `<ul>${weak.map(w => `<li><strong>${escapeHtml(w.topic)}</strong> — ${w.right}/${w.total} correct</li>`).join("")}</ul>`;
+    ? "<p>No marks lost — every question was correct. Nice work!</p>"
+    : `<ul>${weak.map(w => `<li><strong>${escapeHtml(w.topic)}</strong> — lost ${formatNum(w.lost)} mark${w.lost === 1 ? "" : "s"} (${formatNum(w.earned)}/${formatNum(w.available)})</li>`).join("")}</ul>`;
   const strongList = strong.length === 0 ? "" : `<p><em>Strengths:</em> ${strong.map(s => escapeHtml(s.topic)).join(", ")}</p>`;
   return `<!doctype html><html><body style="font-family: -apple-system, system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #0b1c30;">
 <h2 style="color: #001e40;">Diagnostic results for ${escapeHtml(studentName)}</h2>
-<p>${correct} of ${total} questions correct.</p>
+<p>${formatNum(totalEarned)} of ${formatNum(totalAvailable)} marks.</p>
 <h3 style="color: #001e40;">Topics to work on</h3>
 ${weakList}
 ${strongList}
@@ -329,6 +370,10 @@ ${strongList}
 </p>
 <p style="font-size: 12px; color: #43474f; margin-top: 32px;">The diagnostic paper has been added to ${escapeHtml(studentName)}'s activities. We've also tagged the weak topics — clicking <em>Assign focused practice</em> will pre-fill the topic selector.</p>
 </body></html>`;
+}
+
+function formatNum(n: number): string {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1);
 }
 
 function escapeHtml(s: string): string {
@@ -344,5 +389,17 @@ async function maybeReply(to: string, subject: string, body: string, opts: { htm
   const msg = opts.html
     ? { to, from: { email: FROM_ADDRESS, name: FROM_NAME }, subject, html: body }
     : { to, from: { email: FROM_ADDRESS, name: FROM_NAME }, subject, text: body };
-  await sgMail.send(msg);
+  try {
+    const [resp] = await sgMail.send(msg);
+    console.log(`[diagnose] reply email sent to=${to} from=${FROM_ADDRESS} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`);
+  } catch (err) {
+    // SendGrid wraps the API error in err.response.body — print that
+    // in full so we can see the actual reason (unverified sender,
+    // suppression list hit, malformed from address, etc).
+    const errAny = err as { response?: { body?: unknown; statusCode?: number } } & Error;
+    console.error(
+      `[diagnose] sgMail.send failed to=${to} from=${FROM_ADDRESS} status=${errAny.response?.statusCode ?? "?"} body=${JSON.stringify(errAny.response?.body)} msg=${errAny.message}`,
+    );
+    throw err;
+  }
 }
