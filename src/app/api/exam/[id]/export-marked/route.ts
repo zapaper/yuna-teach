@@ -421,16 +421,14 @@ async function handle(
         // status === "wrong" (covers full-wrong AND partial credit)
         drawCross(page, markX, markY, markSize, RED);
 
-        // "-N" deduction badge to the LEFT of the cross, sized close
+        // "-N" deduction badge to the RIGHT of the cross, sized close
         // to the cross itself so the deduction is the loudest signal
-        // on the page (parent feedback: "-2" was too small to read at
-        // a glance).
+        // on the page.
         const lost = m.marksLost > 0 ? m.marksLost : 1;
         const badge = `-${formatMarks(lost)}`;
         const badgeSize = Math.round(markSize * 0.95);
-        const badgeW = helvetica.widthOfTextAtSize(badge, badgeSize);
         page.drawText(badge, {
-          x: markX - markSize * 0.5 - badgeW,
+          x: markX + markSize * 0.6,
           y: markY - badgeSize * 0.05,
           size: badgeSize,
           font: helvetica,
