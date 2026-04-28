@@ -2161,6 +2161,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       const isMarking = paper.markingStatus === "in_progress";
                       return (
                         <div key={paper.id} onClick={() => {
+                            // Block clicks while the AI marker is still
+                            // running — the review page would 404 / show
+                            // partial data and the parent ends up
+                            // refreshing in confusion.
+                            if (isMarking) return;
                             const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
                             if (isQuizOrFocused || paper.completedAt) {
                               router.push(`/exam/${paper.id}/review?userId=${userId}`);
@@ -2169,7 +2174,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
                             }
                           }}
-                          className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow ${isMarking ? "opacity-60" : "cursor-pointer hover:shadow-md"}`}>
+                          className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow ${isMarking ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-md"}`}>
                           <div className="w-11 h-11 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#001e40] shrink-0">
                             <span className="material-symbols-outlined text-lg">{activityIcon(paper)}</span>
                           </div>

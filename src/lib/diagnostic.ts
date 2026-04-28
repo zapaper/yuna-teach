@@ -399,6 +399,39 @@ async function runDiagnosisInBackground(
     : "";
   const levelHint = student.level ? `Primary ${student.level}` : null;
 
+  // Create the paper FIRST with markingStatus='in_progress' so it
+  // appears on the dashboard as "Marking…" while the Gemini analysis
+  // runs (~60-90s). The parent sees it immediately and clicks are
+  // blocked until status flips to 'complete'. We update the score +
+  // questions in a second pass after the analysis finishes.
+  const placeholderPaper = await prisma.examPaper.create({
+    data: {
+      title: `Diagnostic — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
+      subject: subjectHint || null,
+      level: levelHint,
+      paperType: "diagnostic",
+      pageCount: pageJpegs.length,
+      userId: parent.id,
+      assignedToId: student.id,
+      instantFeedback: true,
+      completedAt: new Date(),
+      markingStatus: "in_progress",
+      metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr } as Prisma.InputJsonValue,
+    },
+    select: { id: true },
+  });
+  const paperId = placeholderPaper.id;
+
+  // Save the page JPGs straight away — they're already in memory and
+  // the review UI renders them via /api/exam/<id>/submission, so the
+  // parent (admin) can scroll through the scans even while marking.
+  const subDir = path.join(SUBMISSIONS_DIR, paperId);
+  await fs.mkdir(subDir, { recursive: true });
+  for (let i = 0; i < pageJpegs.length; i++) {
+    await fs.writeFile(path.join(subDir, `page_${i}.jpg`), pageJpegs[i]);
+  }
+  console.log(`[diagnose] paper=${paperId} created in_progress with ${pageJpegs.length} page JPGs saved`);
+
   // Run Gemini diagnosis on every page in parallel. The first and last
   // few pages also get a dedicated cover-scan call (focused only on
   // teacher's running total) to cross-check the totals — handwritten
@@ -460,62 +493,43 @@ async function runDiagnosisInBackground(
     return;
   }
 
-  // Materialise as an ExamPaper (paperType: "diagnostic"). Unlike scan
-  // submissions, there's no master to clone from — this is a standalone
-  // record. completedAt + markingStatus released so the student sees
-  // results immediately, instantFeedback true for parity.
-  const paper = await prisma.examPaper.create({
-    data: {
-      title: `Diagnostic — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
-      subject: subjectHint || null,
-      level: levelHint,
-      paperType: "diagnostic",
-      pageCount: pageJpegs.length,
-      userId: parent.id,
-      assignedToId: student.id,
-      // instantFeedback lets the student see results without the parent
-      // needing to click 'Mark as Reviewed'. We deliberately leave
-      // markingStatus at 'complete' (not 'released') so the parent
-      // dashboard still surfaces the diagnostic as 'awaiting review' —
-      // they probably want to look at it before treating it as final.
-      instantFeedback: true,
-      completedAt: new Date(),
-      markingStatus: "complete",
-      // Prefer the cover-page totals when the AI spotted them — they're
-      // what the parent / school actually see. Falls back to per-question
-      // sums if the cover wasn't visible / readable.
-      score: coverTeacherAwarded > 0 ? coverTeacherAwarded : flat.reduce((s, q) => s + q.marksAwarded, 0),
-      totalMarks: String(coverPaperTotal > 0 ? coverPaperTotal : flat.reduce((s, q) => s + q.marksAvailable, 0)),
-      metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr } as Prisma.InputJsonValue,
-      questions: {
-        create: flat.map((q, idx) => ({
-          questionNum: q.questionNum,
-          imageData: "", // populated later if needed; not required for review
-          answer: q.expectedAnswer || null,
-          pageIndex: q.pageIndex,
-          orderIndex: idx,
-          yStartPct: q.yStartPct,
-          yEndPct: q.yEndPct,
-          marksAvailable: q.marksAvailable,
-          marksAwarded: q.marksAwarded,
-          studentAnswer: q.studentAnswer || null,
-          markingNotes: q.feedback || null,
-          syllabusTopic: q.topic || null,
-          transcribedStem: q.stem || null,
-          transcribedOptions: (q.options ?? []).length > 0 ? ((q.options ?? []) as Prisma.InputJsonValue) : Prisma.JsonNull,
-        })),
+  // Backfill the placeholder paper with the analysis results and flip
+  // markingStatus to 'complete'. instantFeedback stays true so the
+  // student sees the score immediately — no parent release needed.
+  await prisma.$transaction([
+    prisma.examQuestion.createMany({
+      data: flat.map((q, idx) => ({
+        examPaperId: paperId,
+        questionNum: q.questionNum,
+        imageData: "",
+        answer: q.expectedAnswer || null,
+        pageIndex: q.pageIndex,
+        orderIndex: idx,
+        yStartPct: q.yStartPct,
+        yEndPct: q.yEndPct,
+        marksAvailable: q.marksAvailable,
+        marksAwarded: q.marksAwarded,
+        studentAnswer: q.studentAnswer || null,
+        markingNotes: q.feedback || null,
+        syllabusTopic: q.topic || null,
+        transcribedStem: q.stem || null,
+        transcribedOptions: (q.options ?? []).length > 0 ? ((q.options ?? []) as Prisma.InputJsonValue) : Prisma.JsonNull,
+      })),
+    }),
+    prisma.examPaper.update({
+      where: { id: paperId },
+      data: {
+        markingStatus: "complete",
+        // Prefer cover-page totals when the AI spotted them — that's
+        // what the school treats as ground truth.
+        score: coverTeacherAwarded > 0 ? coverTeacherAwarded : flat.reduce((s, q) => s + q.marksAwarded, 0),
+        totalMarks: String(coverPaperTotal > 0 ? coverPaperTotal : flat.reduce((s, q) => s + q.marksAvailable, 0)),
       },
-    },
-    select: { id: true },
-  });
-
-  // Save the page JPGs so the review UI can render them as the
-  // "submission" image — same convention the scan flow uses.
-  const subDir = path.join(SUBMISSIONS_DIR, paper.id);
-  await fs.mkdir(subDir, { recursive: true });
-  for (let i = 0; i < pageJpegs.length; i++) {
-    await fs.writeFile(path.join(subDir, `page_${i}.jpg`), pageJpegs[i]);
-  }
+    }),
+  ]);
+  const paper = { id: paperId };
+  // Page JPGs were saved to disk at placeholder creation, so the
+  // submission render works straight away — nothing more to do here.
 
   // Group by topic. Weak topics = the top 3 by absolute wrong count
   // (tie-break: lower correct percentage first). Strong topics = any
