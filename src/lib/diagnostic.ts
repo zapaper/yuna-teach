@@ -920,22 +920,40 @@ function buildSummaryHtml(
 ): string {
   const dashboardUrl = `${APP_URL}/home/${parentId}?focusedSuggest=${encodeURIComponent(weak.map(w => w.topic).join(","))}`;
   const reviewUrl = `${APP_URL}/exam/${paperId}/review?userId=${parentId}`;
+
+  // Preamble: lead with strengths, transition into weak areas. If
+  // there are no clear strengths or no clear weak areas, soften the
+  // copy so it never feels accusatory or robotically templated.
+  const strongCopy = strong.length === 0
+    ? `<p>${escapeHtml(studentName)} attempted every question — nice effort across the paper.</p>`
+    : `<p>${escapeHtml(studentName)} did really well in <strong>${strong.map(s => escapeHtml(s.topic)).join("</strong>, <strong>")}</strong> — every question correct in those topics.</p>`;
+
+  const weakHeading = weak.length === 0
+    ? ""
+    : `<p>That said, we spotted a few areas where ${escapeHtml(studentName)} may benefit from more practice:</p>`;
+
   const weakList = weak.length === 0
-    ? "<p>No marks lost — every question was correct. Nice work!</p>"
-    : `<ul>${weak.map(w => `<li><strong>${escapeHtml(w.topic)}</strong> — lost ${formatNum(w.lost)} mark${w.lost === 1 ? "" : "s"} (${formatNum(w.earned)}/${formatNum(w.available)})</li>`).join("")}</ul>`;
-  const strongList = strong.length === 0 ? "" : `<p><em>Strengths:</em> ${strong.map(s => escapeHtml(s.topic)).join(", ")}</p>`;
-  return `<!doctype html><html><body style="font-family: -apple-system, system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #0b1c30;">
-<h2 style="color: #001e40;">Diagnostic results for ${escapeHtml(studentName)}</h2>
-<p>${formatNum(totalEarned)} of ${formatNum(totalAvailable)} marks.</p>
-<h3 style="color: #001e40;">Topics to work on</h3>
+    ? "<p>And there are no obvious weak topics — the deductions were spread evenly across the paper.</p>"
+    : `<ul style="margin: 8px 0 18px;">${weak.map(w => `<li style="margin: 4px 0;"><strong>${escapeHtml(w.topic)}</strong> — lost ${formatNum(w.lost)} mark${w.lost === 1 ? "" : "s"} (${formatNum(w.earned)}/${formatNum(w.available)})</li>`).join("")}</ul>`;
+
+  return `<!doctype html><html><body style="font-family: -apple-system, system-ui, sans-serif; max-width: 560px; margin: 0 auto; color: #0b1c30; line-height: 1.5;">
+<h2 style="color: #001e40; margin-bottom: 4px;">Diagnostic results for ${escapeHtml(studentName)}</h2>
+<p style="color: #43474f; margin-top: 0;">${formatNum(totalEarned)} of ${formatNum(totalAvailable)} marks.</p>
+
+${strongCopy}
+
+${weakHeading}
 ${weakList}
-${strongList}
-<p style="margin-top: 28px;">
+
+<p>These insights have been saved to ${escapeHtml(studentName)}'s record — you can open the marked paper to see the AI's question-by-question explanation, or jump straight to assigning focused practice on the weak topics.</p>
+
+<p style="margin-top: 24px;">
   <a href="${reviewUrl}" style="display:inline-block; background:#003366; color:#fff; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:bold;">See the marked paper</a>
   &nbsp;
   <a href="${dashboardUrl}" style="display:inline-block; background:#fff; color:#001e40; border:2px solid #001e40; padding:10px 16px; border-radius:10px; text-decoration:none; font-weight:bold;">Assign focused practice</a>
 </p>
-<p style="font-size: 12px; color: #43474f; margin-top: 32px;">The diagnostic paper has been added to ${escapeHtml(studentName)}'s activities. We've also tagged the weak topics — clicking <em>Assign focused practice</em> will pre-fill the topic selector.</p>
+
+<p style="margin-top: 32px; color: #43474f;">From the MarkForYou Team.</p>
 </body></html>`;
 }
 
