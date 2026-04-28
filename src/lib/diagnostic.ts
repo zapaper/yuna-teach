@@ -289,6 +289,75 @@ function isMcqQuestion(q: { options?: string[]; expectedAnswer?: string }): bool
   return /^[A-D1-4]$/i.test(a);
 }
 
+// Geometry-focused recheck. Math geometry questions require multi-step
+// formal reasoning (area / perimeter / angle properties / construction)
+// that the per-page combined prompt rushes through and gets wrong.
+// Re-mark with the most advanced model available — defaults to
+// gemini-3-pro-preview (override via GEOMETRY_MODEL env if Railway's
+// API key doesn't have access yet).
+const GEOMETRY_MODEL = process.env.GEOMETRY_MODEL ?? "gemini-3-pro-preview";
+
+async function remarkGeometryQuestion(
+  regionJpeg: Buffer,
+  q: { questionNum: string; stem: string; options: string[]; expectedAnswer: string; studentAnswer: string; marksAvailable: number },
+): Promise<{ marksAwarded: number; isCorrect: boolean; expectedAnswer: string; studentAnswer: string; feedback: string } | null> {
+  const ai = getAI();
+  const isMcq = q.options.length >= 2;
+  const prompt = `You are a meticulous primary-school MATHEMATICS tutor specialising in GEOMETRY. The attached image is the cropped region for ONE geometry question on a student's scanned exam paper.
+
+QUESTION CONTEXT:
+- Question number: ${q.questionNum}
+- Question stem (transcribed): ${q.stem}
+- ${isMcq ? `MCQ options: ${q.options.join(" | ")}` : "Open-ended question"}
+- First-pass expected answer (may be wrong, please verify): ${q.expectedAnswer || "(none)"}
+- First-pass student answer (may be misread, please verify by looking at the image): ${q.studentAnswer || "(blank)"}
+- Marks available: ${q.marksAvailable}
+
+INSTRUCTIONS:
+1. Read the diagram carefully — note all labelled lengths, angles, shape types, and any markings (right-angle squares, parallel arrows, equal-tick marks).
+2. Identify the geometric concept being tested (area, perimeter, angle sum, similarity, transformations, etc.) and apply the appropriate formula or property step-by-step.
+3. Compute the correct answer formally. Show your reasoning to yourself; only the final result is returned.
+4. Re-read the student's handwritten answer in the image — correct any misreads from the first pass.
+5. Compare student's answer to your derived correct answer. Allow for unit-equivalent forms (e.g. "5cm" vs "5 cm") but be strict about value.
+6. Award marks: full marks if correct; partial (typically half) if working is shown but final answer is wrong; 0 if blank or fundamentally wrong with no salvageable steps.
+
+OUTPUT (JSON only):
+{
+  "expectedAnswer": "<your derived correct answer>",
+  "studentAnswer": "<what the student actually wrote, possibly corrected from the first pass>",
+  "isCorrect": <boolean>,
+  "marksAwarded": <number 0 .. ${q.marksAvailable}>,
+  "feedback": "<1-2 sentences explaining what went wrong, naming the specific geometric property or formula. 'Correct' if isCorrect.>"
+}
+
+NO commentary outside the JSON.`;
+  try {
+    const resp = await ai.models.generateContent({
+      model: GEOMETRY_MODEL,
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: "image/jpeg", data: regionJpeg.toString("base64") } },
+        ],
+      }],
+      config: { temperature: 0, responseMimeType: "application/json" },
+    });
+    const raw = resp.text ?? "{}";
+    const parsed = JSON.parse(raw) as { expectedAnswer?: string; studentAnswer?: string; isCorrect?: boolean; marksAwarded?: number; feedback?: string };
+    return {
+      marksAwarded: clamp(Number(parsed.marksAwarded ?? 0), 0, q.marksAvailable),
+      isCorrect: Boolean(parsed.isCorrect),
+      expectedAnswer: String(parsed.expectedAnswer ?? q.expectedAnswer),
+      studentAnswer: String(parsed.studentAnswer ?? q.studentAnswer),
+      feedback: String(parsed.feedback ?? ""),
+    };
+  } catch (err) {
+    console.error(`[diagnose] geometry recheck Q${q.questionNum} failed (model=${GEOMETRY_MODEL}):`, err);
+    return null;
+  }
+}
+
 
 // Dedicated, narrow Gemini call to read the teacher's running total on
 // a single page. Used as a second-source cross-check against the
@@ -554,6 +623,55 @@ async function runDiagnosisInBackground(
       }
     }
     if (overrides > 0) console.log(`[diagnose] MCQ-1 recheck: overrode ${overrides} answers to "1"`);
+  }
+
+  // Geometry recheck. Math geometry questions get re-marked with the
+  // most advanced model — primary-school geometry needs multi-step
+  // formal reasoning the lighter pass tends to short-cut. The topic
+  // tag is constrained to the math syllabus list, so 'Geometry' here
+  // already implies a math question.
+  const geomCandidates = flat.filter(q => q.topic === "Geometry");
+  if (geomCandidates.length > 0) {
+    console.log(`[diagnose] geometry recheck: ${geomCandidates.length} questions via ${GEOMETRY_MODEL}`);
+    const tg = Date.now();
+    await Promise.all(geomCandidates.map(async q => {
+      const jpg = pageJpegs[q.pageIndex];
+      if (!jpg) return;
+      try {
+        const meta = await sharp(jpg).metadata();
+        const W = meta.width ?? 0;
+        const H = meta.height ?? 0;
+        if (!W || !H) return;
+        const top = Math.max(0, Math.floor(H * (q.yStartPct ?? 0) / 100));
+        const bot = Math.min(H, Math.ceil(H * (q.yEndPct ?? 100) / 100));
+        const h = Math.max(1, bot - top);
+        const region = await sharp(jpg).extract({ left: 0, top, width: W, height: h }).jpeg({ quality: 92 }).toBuffer();
+        const result = await remarkGeometryQuestion(region, {
+          questionNum: q.questionNum,
+          stem: q.stem,
+          options: q.options ?? [],
+          expectedAnswer: q.expectedAnswer,
+          studentAnswer: q.studentAnswer,
+          marksAvailable: q.marksAvailable,
+        });
+        if (result) {
+          const before = `${q.marksAwarded}/${q.marksAvailable} (${q.isCorrect ? "✓" : "✗"})`;
+          q.expectedAnswer = result.expectedAnswer;
+          q.studentAnswer = result.studentAnswer;
+          q.isCorrect = result.isCorrect;
+          q.marksAwarded = result.marksAwarded;
+          q.feedback = result.feedback || q.feedback;
+          q.isBlank = !q.studentAnswer.trim();
+          const after = `${q.marksAwarded}/${q.marksAvailable} (${q.isCorrect ? "✓" : "✗"})`;
+          if (before !== after) {
+            console.log(`[diagnose] geometry Q${q.questionNum}: ${before} → ${after}`);
+          }
+        }
+      } catch (err) {
+        console.error(`[diagnose] geometry Q${q.questionNum} crop failed:`, err);
+      }
+    }));
+    console.log(`[diagnose] geometry recheck done in ${Date.now() - tg}ms`);
   }
 
   // Authoritative totals from BOTH passes (per-page detector + dedicated
