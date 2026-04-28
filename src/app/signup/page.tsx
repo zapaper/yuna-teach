@@ -143,9 +143,12 @@ function SignupFlow() {
         return;
       }
       const user = await res.json();
-      setParentId(user.id);
-      setStep(2);
-      setTimeout(() => window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }), 50);
+      // Replaces the legacy step 2/3 flow (separate student-creation
+      // form + diagnostic-quiz subject picker). The new onboarding
+      // gathers four lightweight preference questions and lands the
+      // parent on the home dashboard, where they create the student
+      // account from the same flow that's used for additional kids.
+      router.push(`/onboarding/${user.id}`);
     } catch {
       setParentError("Something went wrong. Please try again.");
     } finally {
