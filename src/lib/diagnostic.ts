@@ -460,9 +460,18 @@ async function maybeReply(to: string, subject: string, body: string, opts: { htm
     return;
   }
   ensureSendGrid();
+  // Disable SendGrid's click + open tracking. Click tracking rewrites
+  // every link through a tracking subdomain (urlNNNN.markforyou.com)
+  // that we haven't set up CNAMEs for, so the parent's 'See marked
+  // paper' / 'Assign focused practice' links 404 with NXDOMAIN.
+  const trackingSettings = {
+    clickTracking: { enable: false, enableText: false },
+    openTracking: { enable: false },
+    subscriptionTracking: { enable: false },
+  };
   const msg = opts.html
-    ? { to, from: { email: FROM_ADDRESS, name: FROM_NAME }, subject, html: body }
-    : { to, from: { email: FROM_ADDRESS, name: FROM_NAME }, subject, text: body };
+    ? { to, from: { email: FROM_ADDRESS, name: FROM_NAME }, subject, html: body, trackingSettings }
+    : { to, from: { email: FROM_ADDRESS, name: FROM_NAME }, subject, text: body, trackingSettings };
   try {
     const [resp] = await sgMail.send(msg);
     console.log(`[diagnose] reply email sent to=${to} from=${FROM_ADDRESS} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`);
