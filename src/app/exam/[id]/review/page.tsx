@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useRef, useState, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { jsPDF } from "jspdf";
 import FormattedText from "@/components/FormattedText";
 import { VisualTextImages } from "@/components/EnglishQuizSection";
 import { ReviewPenOverlay } from "@/components/ReviewPenOverlay";
@@ -125,7 +124,6 @@ function ExamReviewContent({ id }: { id: string }) {
   const [submissionPageOverride, setSubmissionPageOverride] = useState<number | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [submissionPageCount, setSubmissionPageCount] = useState(0);
-  const [downloading, setDownloading] = useState(false);
   const [elaborations, setElaborations] = useState<Record<string, string>>({});
   const [elaborating, setElaborating] = useState<string | null>(null);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
@@ -394,53 +392,6 @@ function ExamReviewContent({ id }: { id: string }) {
       });
     } catch (err) {
       console.error("Failed to save sticker:", err);
-    }
-  }
-
-  async function downloadPdf() {
-    setDownloading(true);
-    try {
-      const metaRes = await fetch(`/api/exam/${id}/submission`);
-      const meta = await metaRes.json();
-      const count = meta.pageCount ?? 0;
-      if (count === 0) return;
-
-      const pages: { dataUrl: string; w: number; h: number }[] = [];
-      for (let i = 0; i < count; i++) {
-        const res = await fetch(`/api/exam/${id}/submission?page=${i}`);
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-          const el = new window.Image();
-          el.onload = () => resolve(el);
-          el.onerror = reject;
-          el.src = url;
-        });
-        const canvas = document.createElement("canvas");
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.getContext("2d")!.drawImage(img, 0, 0);
-        pages.push({ dataUrl: canvas.toDataURL("image/jpeg", 0.92), w: img.naturalWidth, h: img.naturalHeight });
-        URL.revokeObjectURL(url);
-      }
-
-      const first = pages[0];
-      const pdf = new jsPDF({
-        orientation: first.w > first.h ? "landscape" : "portrait",
-        unit: "px",
-        format: [first.w, first.h],
-      });
-      pdf.addImage(first.dataUrl, "JPEG", 0, 0, first.w, first.h);
-      for (let i = 1; i < pages.length; i++) {
-        const pg = pages[i];
-        pdf.addPage([pg.w, pg.h], pg.w > pg.h ? "landscape" : "portrait");
-        pdf.addImage(pg.dataUrl, "JPEG", 0, 0, pg.w, pg.h);
-      }
-      pdf.save(`${paperTitle}.pdf`);
-    } catch (err) {
-      console.error("Download failed:", err);
-    } finally {
-      setDownloading(false);
     }
   }
 
@@ -897,15 +848,7 @@ function ExamReviewContent({ id }: { id: string }) {
             <span className="material-symbols-outlined text-[#001e40]">arrow_back</span>
           </button>
           <h1 className="font-headline font-bold text-lg text-[#001e40]">{isQuiz ? "Quiz Review" : "Exam Review"}</h1>
-          {!isQuiz ? (
-            <button
-              onClick={downloadPdf}
-              disabled={downloading}
-              className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors disabled:opacity-50"
-            >
-              <span className="material-symbols-outlined text-[#001e40]">download</span>
-            </button>
-          ) : <div className="w-10" />}
+          <div className="w-10" />
         </div>
         {/* Desktop: left-aligned with title + download */}
         <div className="hidden lg:flex items-center justify-between px-8 py-3 max-w-5xl mx-auto">
@@ -918,18 +861,7 @@ function ExamReviewContent({ id }: { id: string }) {
             </button>
             <p className="font-headline font-bold text-[#001e40] truncate">{paperTitle}</p>
           </div>
-          <div className="flex items-center gap-3">
-            {!isQuiz && (
-              <button
-                onClick={downloadPdf}
-                disabled={downloading}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#c3c6d1] text-sm font-semibold text-[#43474f] hover:bg-[#eff4ff] transition-colors disabled:opacity-50 shrink-0"
-              >
-                <span className="material-symbols-outlined text-base">download</span>
-                {downloading ? "Downloading…" : "Download"}
-              </button>
-            )}
-          </div>
+          <div className="flex items-center gap-3" />
         </div>
       </header>
 
