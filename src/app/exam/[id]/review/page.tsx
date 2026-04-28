@@ -2298,7 +2298,11 @@ function ExamReviewContent({ id }: { id: string }) {
                           );
                         })()}
                       </div>
-                    ) : currentQ.imageData ? (
+                    ) : currentQ.imageData && (isQuiz || submissionPageCount === 0) ? (
+                      // Master question crop. We hide it for exam papers
+                      // that have a submission scan, because the same
+                      // question content is already visible in the
+                      // student's marked-up scanned page rendered below.
                       <div className="mb-5 rounded-2xl overflow-hidden border border-[#e5eeff]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={currentQ.imageData} alt={`Question ${currentQ.questionNum}`} className="w-full h-auto" />
