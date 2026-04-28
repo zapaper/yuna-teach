@@ -225,6 +225,25 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ?diagnostic=scan-email. Show a one-shot popup explaining the email
   // address + offering a fallback to the platform-quiz path.
   const [showScanEmailPopup, setShowScanEmailPopup] = useState(diagnosticChoice === "scan-email");
+  // First-time-assign popup. After the parent assigns their first
+  // daily quiz / focused practice, ask if they want to open the
+  // child's homepage in a new tab to follow along. Tracked on the
+  // parent record so the popup never fires twice.
+  const [firstAssignPrompt, setFirstAssignPrompt] = useState<{ studentId: string; studentName: string } | null>(null);
+  function maybeShowFirstAssignPrompt(studentIdHit: string) {
+    const settings = (user.settings ?? {}) as { firstAssignDone?: boolean };
+    if (settings.firstAssignDone) return;
+    const child = user.linkedStudents.find(s => s.id === studentIdHit);
+    if (!child) return;
+    setFirstAssignPrompt({ studentId: studentIdHit, studentName: child.name });
+    // Persist so we never prompt again, even if this tab refreshes
+    // before the parent dismisses.
+    fetch("/api/users", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, settings: { firstAssignDone: true } }),
+    }).catch(() => { /* non-fatal */ });
+  }
   const [showDiagnosticWelcome, setShowDiagnosticWelcome] = useState(() => {
     if (!diagnosticWelcome) return false;
     try {
@@ -1027,6 +1046,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     const data = await res.json();
                     if (!res.ok) { alert(data.error || "Failed"); return; }
                     setShowQuiz(false); setQuizTargetDay(null);
+                    maybeShowFirstAssignPrompt(quizStudentId);
                     await refreshPapers();
                     return;
                   }
@@ -1046,6 +1066,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   if (!res.ok) { alert(data.error || "Failed"); return; }
                   if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
                   setShowQuiz(false); setQuizTargetDay(null); setFocusedTopic("");
+                  maybeShowFirstAssignPrompt(quizStudentId);
                   await refreshPapers();
                   return;
                 }
@@ -1064,11 +1085,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 if (!res.ok) { alert(data.error || "Failed"); return; }
                 setShowQuiz(false);
                 setQuizTargetDay(null);
-                // First-time user: auto-open student tab only if this student has no prior quizzes
-                const studentHasPriorQuizzes = examPapers.some(p => p.assignedToId === quizStudentId && p.paperType === "quiz");
-                if (!studentHasPriorQuizzes) {
-                  window.open(`/home/${quizStudentId}?firstQuiz=1`, "_blank");
-                }
+                maybeShowFirstAssignPrompt(quizStudentId);
                 await refreshPapers();
               } catch { alert("Something went wrong"); }
               finally { setCreatingQuiz(false); }
@@ -3034,6 +3051,40 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         </div>
         );
       })()}
+
+      {firstAssignPrompt && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
+            <div className="px-6 pt-7 pb-3 flex flex-col items-center text-center">
+              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>open_in_new</span>
+              </div>
+              <h3 className="font-headline text-lg font-extrabold text-[#0b1c30] mb-2">First assignment sent! 🎉</h3>
+              <p className="text-sm text-[#43474f] leading-relaxed">
+                Want to open <strong className="text-[#001e40]">{firstAssignPrompt.studentName}</strong>&apos;s homepage in a new tab so you can follow along while they work?
+              </p>
+            </div>
+            <div className="px-6 pt-4 pb-6 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  const sid = firstAssignPrompt.studentId;
+                  setFirstAssignPrompt(null);
+                  window.open(`/home/${sid}?firstQuiz=1`, "_blank");
+                }}
+                className="w-full py-3 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
+              >
+                Open in new tab
+              </button>
+              <button
+                onClick={() => setFirstAssignPrompt(null)}
+                className="w-full py-3 rounded-2xl border-2 border-[#c3c6d1] text-[#001e40] font-semibold hover:bg-[#eff4ff] transition-colors text-sm"
+              >
+                Not now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showScanEmailPopup && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}>
