@@ -2479,8 +2479,8 @@ function ExamReviewContent({ id }: { id: string }) {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full border-4 border-[#dce9ff] border-t-[#003366] animate-spin" />
-            <p className="font-headline font-extrabold text-lg text-[#001e40]">Generating marked paper</p>
-            <p className="text-sm text-[#43474f] text-center">The AI is placing red-pen marks on each question. This may take 5–10 seconds.</p>
+            <p className="font-headline font-extrabold text-lg text-[#001e40]">Generating annotated marked paper</p>
+            <p className="text-sm text-[#43474f] text-center">10–15 seconds</p>
           </div>
         </div>
       )}
