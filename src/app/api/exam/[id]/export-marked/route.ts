@@ -50,8 +50,9 @@ function getAI() {
 type SubpartMark = {
   label: string;       // "a", "b", "c" — or "" for no-subpart questions
   yPctEnd: number;     // 0-100, relative to the CROPPED region
-  xPctEnd: number;     // 0-100, relative to the CROPPED region
-  status: "correct" | "partial" | "wrong" | "blank";
+  xPctEnd: number;     // 0-100, relative to the CROPPED region (kept for future use)
+  status: "correct" | "wrong" | "blank";
+  marksLost: number;   // marks deducted on this subpart (0 if correct/blank)
   note?: string;
 };
 
@@ -69,11 +70,24 @@ QUESTION CONTEXT:
 - Marking notes from AI marker: ${q.markingNotes ?? "(no notes)"}
 
 For EACH subpart in the question (e.g. "(a)", "(b)", "(c)") — or, if there are no subparts, a single entry — output:
-1. "label": the subpart letter without parentheses (e.g. "a"), or "" if there are no subparts
+1. "label": the subpart letter without parentheses (e.g. "a"), or "" if there are no subparts.
 2. "yPctEnd": Y position in the cropped image (0-100) just BELOW where the student's handwritten answer for THIS subpart ends. If the subpart is blank, use the Y of the empty answer space.
 3. "xPctEnd": X position (0-100) just to the RIGHT of the student's last word for that subpart. If they wrote to the right margin, use 95-100.
-4. "status": one of "correct", "partial", "wrong", "blank". Use the marking notes to decide per-subpart status — the notes typically call out which subparts lost marks (e.g. "(b) missing fertilisation"). If notes don't break it down, infer from context (e.g. award fully if marks=full).
-5. "note": a 3-7 word teacher shorthand explaining the deduction, ONLY if status is partial / wrong / blank. Examples: "missing 'fertilisation'", "no working shown", "wrong unit". Omit for "correct".
+4. "status": EXACTLY ONE of "correct" (full marks for this subpart), "wrong" (any marks lost — including partial credit), or "blank" (student wrote nothing). Do NOT output "partial" — partial credit counts as "wrong" for the purposes of the visual mark.
+5. "marksLost": the number of marks deducted on THIS subpart. 0 if status is "correct" or "blank". For wrong subparts, estimate based on the marking notes — if notes say "(b) lost 1 mark" use 1; if the question is 1-mark and the subpart is wrong, use 1; if the question carries 2 marks and the student got partial credit, often 1; if uncertain, default to 1.
+6. "note": a SHORT but FULLY EXPLAINED teacher comment, ONLY if status is "wrong" or "blank". Style guide:
+   - Start with a capital letter.
+   - Quote any specific keywords, formulas, or values in single quotes.
+   - Use natural connectors ("and", "or", commas) — not raw lists.
+   - Examples (good):
+     - "Missing keywords 'different populations' and 'habitat'"
+     - "No working shown"
+     - "Wrong unit — should be 'cm', not 'm'"
+     - "Did not name the process 'fertilisation'"
+     - "Diagram missing the arrow showing direction of force"
+   - Examples (bad — too terse): "missing populations, habitat", "wrong unit", "no working"
+   - Cap length at ~10 words. Better to omit detail than to be cryptic.
+   - Omit entirely for "correct" subparts.
 
 OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO commentary.`;
 
@@ -90,27 +104,38 @@ OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO comment
       config: { temperature: 0, responseMimeType: "application/json" },
     });
     const raw = resp.text ?? "[]";
-    const arr = JSON.parse(raw) as SubpartMark[];
+    const arr = JSON.parse(raw) as Array<Partial<SubpartMark> & { status?: string; marksLost?: number }>;
     const cleaned: SubpartMark[] = [];
     for (const m of arr) {
       if (typeof m.yPctEnd !== "number" || typeof m.xPctEnd !== "number") continue;
-      const status = (m.status ?? "wrong") as SubpartMark["status"];
+      // Coerce any "partial" the model still emits down to "wrong".
+      const rawStatus = String(m.status ?? "wrong").toLowerCase();
+      const status: SubpartMark["status"] = rawStatus === "correct" ? "correct"
+        : rawStatus === "blank" ? "blank"
+        : "wrong";
       cleaned.push({
         label: String(m.label ?? "").trim(),
         yPctEnd: clamp(m.yPctEnd, 0, 100),
         xPctEnd: clamp(m.xPctEnd, 0, 100),
         status,
-        note: m.note ? String(m.note).trim().slice(0, 60) : undefined,
+        marksLost: status === "wrong" ? Math.max(0, Number(m.marksLost ?? 1)) : 0,
+        note: m.note ? String(m.note).trim().slice(0, 90) : undefined,
       });
     }
     if (cleaned.length === 0) {
-      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), note: q.markingNotes?.slice(0, 50) });
+      cleaned.push({ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: q.markingNotes?.slice(0, 80) });
     }
     return cleaned;
   } catch (err) {
     console.error(`[export-marked] classifyQuestion Q${q.questionNum} failed:`, err);
-    return [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), note: q.markingNotes?.slice(0, 50) }];
+    return [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q), note: q.markingNotes?.slice(0, 80) }];
   }
+}
+
+function fallbackLost(q: { marksAwarded: number | null; marksAvailable: number | null }): number {
+  const a = q.marksAwarded ?? 0;
+  const v = q.marksAvailable ?? 0;
+  return Math.max(0, v - a);
 }
 
 function fallbackStatus(q: { marksAwarded: number | null; marksAvailable: number | null }): SubpartMark["status"] {
@@ -118,12 +143,19 @@ function fallbackStatus(q: { marksAwarded: number | null; marksAvailable: number
   const v = q.marksAvailable ?? 0;
   if (v <= 0) return "blank";
   if (a >= v) return "correct";
-  if (a === 0) return "wrong";
-  return "partial";
+  return "wrong"; // partial credit also renders as a single cross
 }
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
+}
+
+function formatMarks(n: number): string {
+  // 1 → "1", 0.5 → "½", 1.5 → "1½", 2 → "2"
+  const whole = Math.floor(n);
+  const half = n - whole >= 0.49 && n - whole <= 0.51;
+  if (half) return whole === 0 ? "½" : `${whole}½`;
+  return String(whole);
 }
 
 // Look up the master metadata so we can compute the same submission-
@@ -170,7 +202,7 @@ async function handle(
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {
-      id: true, title: true, pageCount: true, metadata: true,
+      id: true, title: true, pageCount: true, metadata: true, subject: true,
       sourceExamId: true, assignedToId: true, userId: true,
       questions: {
         select: {
@@ -263,7 +295,7 @@ async function handle(
   const flatResults = await Promise.all(flatJobs.map(async ({ pageIdx, q }) => {
     const { jpgBytes, Wpx, Hpx } = pageData[pageIdx];
     if (Wpx === 0 || Hpx === 0) {
-      return { pageIdx, qId: q.id, pageRegion: { topPx: 0, leftPx: 0, widthPx: 0, heightPx: 0 }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q) }] satisfies SubpartMark[] };
+      return { pageIdx, qId: q.id, pageRegion: { topPx: 0, leftPx: 0, widthPx: 0, heightPx: 0 }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q) }] satisfies SubpartMark[] };
     }
     const yStartPct = q.yStartPct ?? 0;
     const yEndPct = q.yEndPct ?? 100;
@@ -275,7 +307,7 @@ async function handle(
       regionBuf = await sharp(jpgBytes).extract({ left: 0, top: topPx, width: Wpx, height: heightPx }).jpeg({ quality: 80 }).toBuffer();
     } catch (err) {
       console.error(`[export-marked] crop failed for Q${q.questionNum}:`, err);
-      return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q) }] satisfies SubpartMark[] };
+      return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q) }] satisfies SubpartMark[] };
     }
     const marks = await classifyQuestion(regionBuf, q);
     return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks };
@@ -309,42 +341,61 @@ async function handle(
     const perQ = (allMarks.find(p => p.pageIdx === i)?.perQ) ?? [];
     const markSize = Math.max(28, Math.round(pageH * 0.022));
     const noteSize = Math.max(18, Math.round(pageH * 0.014));
+    const isScience = (paper.subject ?? "").toLowerCase().includes("science");
 
     for (const q of qs) {
       const entry = perQ.find(e => e.qId === q.id);
       if (!entry) continue;
-      const totalAwarded = q.marksAwarded ?? 0;
-      const totalAvail = q.marksAvailable ?? 0;
-      const isMcq = entry.marks.length === 1 && entry.marks[0].label === "" && totalAvail > 0; // MCQs come back as a single empty-label entry, fine
+
+      // Detect OEQ via the answer field — MCQ answers are a single
+      // letter/digit; anything else (even a one-word OEQ answer)
+      // counts as OEQ for layout purposes.
+      const answerStr = (q.answer ?? "").trim();
+      const isMcq = /^[A-D1-4]$/i.test(answerStr);
+      const isOeq = !isMcq;
+
+      // Mark column: 10% from the right edge by default; 15% for
+      // Science OEQ (the user wants more breathing room there).
+      const rightInsetPct = isScience && isOeq ? 0.15 : 0.10;
+      const markRightX = pageW * (1 - rightInsetPct);
+      const markX = markRightX - markSize * 0.5;
 
       for (const m of entry.marks) {
-        // Y comes from Gemini (just below where the student's writing
-        // for this subpart ends). X is FIXED at 10% from the right
-        // edge so every mark on the paper aligns down a single column.
         const regionTopPx = entry.pageRegion.topPx;
         const regionH = entry.pageRegion.heightPx;
         const yPx = regionTopPx + (m.yPctEnd / 100) * regionH;
-        const markRightX = pageW * 0.90;            // 10% in from right edge
-        const markX = markRightX - markSize * 0.5;  // centre the glyph on that line
-        const markY = pageH - yPx - markSize * 0.2; // small lift so it sits just above baseline
+        const markY = pageH - yPx - markSize * 0.2;
 
         const status = m.status;
         if (status === "blank") continue;
 
         if (status === "correct") {
           drawTick(page, markX, markY, markSize, RED);
-        } else if (status === "wrong") {
-          drawCross(page, markX, markY, markSize, RED);
-        } else if (status === "partial") {
-          drawTick(page, markX - markSize * 0.30, markY, markSize, RED);
-          drawCross(page, markX + markSize * 0.30, markY, markSize, RED);
+          continue;
         }
 
-        // Note for non-correct subparts. Right-aligned at the same 10%-
-        // from-edge line, sitting just below the mark.
-        if (status !== "correct" && m.note) {
+        // status === "wrong" (covers full-wrong AND partial credit)
+        drawCross(page, markX, markY, markSize, RED);
+
+        // "-N" deduction badge to the LEFT of the cross, in red
+        // helvetica so the digit reads cleanly at small sizes.
+        const lost = m.marksLost > 0 ? m.marksLost : 1;
+        const badge = `-${formatMarks(lost)}`;
+        const badgeSize = Math.round(markSize * 0.55);
+        const badgeW = helvetica.widthOfTextAtSize(badge, badgeSize);
+        page.drawText(badge, {
+          x: markX - markSize * 0.4 - badgeW,
+          y: markY - badgeSize * 0.1,
+          size: badgeSize,
+          font: helvetica,
+          color: RED,
+        });
+
+        // Note in handwriting, right-aligned to the mark column,
+        // sitting just below the cross.
+        if (m.note) {
           const note = m.note;
-          const maxW = pageW * 0.30; // hard cap so a long note doesn't bleed across the page
+          const maxW = pageW * 0.30;
           let finalText = note;
           let finalW = handFont.widthOfTextAtSize(finalText, noteSize);
           if (finalW > maxW) {
@@ -360,26 +411,6 @@ async function handle(
           });
         }
       }
-
-      // For partial-credit OEQ, also stamp a small "N/M" chip near the
-      // FIRST mark so the parent sees the overall score at a glance.
-      // (For MCQ where there's only one subpart this duplicates the
-      // status, but it's still useful as a numeric anchor.)
-      if (totalAvail > 0 && totalAwarded < totalAvail && entry.marks.length > 0) {
-        const first = entry.marks[0];
-        const yPx = entry.pageRegion.topPx + (first.yPctEnd / 100) * entry.pageRegion.heightPx;
-        const chipY = pageH - yPx + markSize * 0.3;
-        const chip = `${totalAwarded}/${totalAvail}`;
-        const chipSize = Math.round(markSize * 0.5);
-        page.drawText(chip, {
-          x: pageW - 60,
-          y: chipY,
-          size: chipSize,
-          font: helvetica,
-          color: RED,
-        });
-      }
-      void isMcq;
     }
   }
 
