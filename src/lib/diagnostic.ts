@@ -180,7 +180,7 @@ TASK: For each distinct question on this page, output a JSON record. The record 
        "Booklet B: For each question from 1 to 10, four options are given. Choose the most suitable answer. (10 marks)"
        "Questions 1 to 28 carry 2 marks each."
        If the page contains such a banner OR you can recall it from the cover, use it as the default mark for every question in that section. e.g. if Section A says "1 mark each", every question in Section A is worth 1 mark — DO NOT randomly upgrade an OEQ subpart to 2 marks just because it looks long.
-    b. Per-question notation. Look for "[2]", "(2 marks)", "[1m]", "[2 marks]", or marks at the END of the stem near the answer line. This OVERRIDES the section default.
+    b. Per-question notation. Look for "[2]", "[3]", "(2 marks)", "[1m]", "[2 marks]", or any small bracketed integer / "[N]" form printed AT THE END OF THE STEM right next to the answer blank. Singapore primary papers print this everywhere — especially in Booklet B / Section B for OEQ. This notation OVERRIDES the section default. If you see "[3]" next to a question's answer line, marksAvailable for that question is exactly 3.
     c. Last resort. If neither (a) nor (b) is visible, default 1 for MCQ, 2 for OEQ that genuinely looks like a multi-mark question — but be conservative; over-allocation is the most common error.
     Half-marks allowed (e.g. 0.5).
 11. "marksAwarded": the marks the student actually earned (0..marksAvailable). Use partial marks for OEQ when only some of the required components are present. For MCQ, all-or-nothing (0 or marksAvailable).
@@ -217,7 +217,7 @@ OUTPUT FORMAT: a JSON OBJECT with three keys:
 
 NO commentary.`;
   try {
-    const resp = await ai.models.generateContent({
+    const resp = await withRetries("diagnosePage", 3, () => ai.models.generateContent({
       model: "gemini-2.5-pro",
       contents: [{
         role: "user",
@@ -227,7 +227,7 @@ NO commentary.`;
         ],
       }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const raw = resp.text ?? "{}";
     const parsed = JSON.parse(raw) as { questions?: DiagnosedQuestion[]; paperTotalMarks?: number | null; teacherAwardedMarks?: number | null } | DiagnosedQuestion[];
     // Tolerate the legacy plain-array shape in case Gemini drops the wrapper object.
@@ -264,6 +264,26 @@ NO commentary.`;
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+// Wrap any Gemini call so transient fetch failures (UND_ERR_HEADERS_TIMEOUT,
+// ECONNRESET, AggregateError) get retried with linear backoff instead
+// of taking out the whole diagnostic. Each attempt is its own
+// generateContent invocation; we surface the last error if all retries
+// fail so callers can fall back to a sensible default.
+async function withRetries<T>(label: string, attempts: number, fn: () => Promise<T>): Promise<T> {
+  let lastErr: unknown = null;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`[diagnose] ${label} attempt ${i}/${attempts} failed: ${msg}`);
+      if (i < attempts) await new Promise(r => setTimeout(r, 800 * i));
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+}
+
 // Scan EVERY page for marking-scheme banners — the small italic
 // instructions that say things like 'Questions 1 to 10 carry 1 mark
 // each' or 'Questions 11 to 15 carry 2 marks each'. Singapore primary
@@ -294,7 +314,7 @@ If a banner says "carry 2, 4 or 5 marks" without a fixed value, use the LOWEST v
 
 OUTPUT: JSON array only. No commentary.`;
   try {
-    const resp = await ai.models.generateContent({
+    const resp = await withRetries(`scanMarkingScheme ${pageLabel}`, 3, () => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{
         role: "user",
@@ -304,7 +324,7 @@ OUTPUT: JSON array only. No commentary.`;
         ],
       }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const raw = resp.text ?? "[]";
     const parsed = JSON.parse(raw) as { from?: number; to?: number; marksPerQ?: number }[];
     if (!Array.isArray(parsed)) return [];
@@ -466,11 +486,11 @@ OUTPUT (JSON array, same length, same order):
 [{"q": "1", "m": 1}, {"q": "2", "m": 1}, ...]
 NO commentary.`;
   try {
-    const resp = await ai.models.generateContent({
+    const resp = await withRetries("auditMarksAvailable", 3, () => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const raw = resp.text ?? "[]";
     const parsed = JSON.parse(raw) as { q?: string; m?: number }[];
     if (!Array.isArray(parsed)) return out;
@@ -510,7 +530,7 @@ Reply with JSON only: {"isOne": true} or {"isOne": false}.
 
 If the student clearly wrote a different digit (2, 3, 4, 5) and there is no separate "1" anywhere, return false.`;
   try {
-    const resp = await ai.models.generateContent({
+    const resp = await withRetries(`detectMcqAnswerOne ${qLabel}`, 3, () => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{
         role: "user",
@@ -520,7 +540,7 @@ If the student clearly wrote a different digit (2, 3, 4, 5) and there is no sepa
         ],
       }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const raw = resp.text ?? "{}";
     const parsed = JSON.parse(raw) as { isOne?: boolean };
     return Boolean(parsed.isOne);
@@ -589,7 +609,7 @@ OUTPUT (JSON only):
 
 NO commentary outside the JSON.`;
   try {
-    const resp = await ai.models.generateContent({
+    const resp = await withRetries(`remarkGeometry Q${q.questionNum}`, 2, () => ai.models.generateContent({
       model: GEOMETRY_MODEL,
       contents: [{
         role: "user",
@@ -599,7 +619,7 @@ NO commentary outside the JSON.`;
         ],
       }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const raw = resp.text ?? "{}";
     const parsed = JSON.parse(raw) as { expectedAnswer?: string; studentAnswer?: string; isCorrect?: boolean; marksAwarded?: number; feedback?: string };
     return {
@@ -645,7 +665,7 @@ Return a JSON object with three keys:
 
 NO commentary outside the JSON.`;
   try {
-    const resp = await ai.models.generateContent({
+    const resp = await withRetries(`readCoverTotal ${pageLabel}`, 3, () => ai.models.generateContent({
       model: "gemini-2.5-pro",
       contents: [{
         role: "user",
@@ -655,7 +675,7 @@ NO commentary outside the JSON.`;
         ],
       }],
       config: { temperature: 0, responseMimeType: "application/json" },
-    });
+    }));
     const raw = resp.text ?? "{}";
     const parsed = JSON.parse(raw) as { paperTotalMarks?: number | null; teacherAwardedMarks?: number | null; description?: string };
     const paperTotalMarks = typeof parsed.paperTotalMarks === "number" && parsed.paperTotalMarks > 0 ? parsed.paperTotalMarks : null;
@@ -1021,8 +1041,11 @@ async function runDiagnosisInBackground(
   // we ask one Gemini call to rebalance them while preserving
   // relative weights and using halves where appropriate.
   const aiSumAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
+  // Trigger the rebalance whenever the per-q sum is materially above
+  // the cover total (more than 5% over). The user has seen 120/55
+  // sums on real papers; the audit is the safety net.
   if (coverPaperTotal > 0 && aiSumAvailable > coverPaperTotal * 1.05) {
-    console.log(`[diagnose] marks audit: per-q sum ${aiSumAvailable} > paper total ${coverPaperTotal} — calling rebalance`);
+    console.log(`[diagnose] marks audit: per-q sum ${aiSumAvailable} > paper total ${coverPaperTotal} (${Math.round(100 * aiSumAvailable / coverPaperTotal)}%) — calling rebalance`);
     const corrections = await auditMarksAvailable(
       flat.map(q => ({ questionNum: q.questionNum, marksAvailable: q.marksAvailable })),
       coverPaperTotal,
