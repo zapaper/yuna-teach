@@ -402,8 +402,10 @@ export async function DELETE(
     }
     const isOwner = paper.userId === requesterId || paper.assignedToId === requesterId;
 
-    if (paper.paperType === "quiz" || paper.paperType === "focused") {
-      // Owner, assigned student, or linked parent can delete
+    if (paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "diagnostic") {
+      // Owner, assigned student, or linked parent can delete.
+      // Diagnostics are standalone (no sourceExamId) so they fall into
+      // this branch instead of the clone path.
       if (!isOwner && !isLinkedParent) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
