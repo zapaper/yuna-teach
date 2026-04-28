@@ -251,7 +251,12 @@ export async function handleDiagnostic(
     await fs.writeFile(path.join(subDir, `page_${i}.jpg`), pageJpegs[i]);
   }
 
-  // Group by topic and pick weak ones (< 50% correct, at least 2 questions).
+  // Group by topic. Weak topics = the top 3 by absolute wrong count
+  // (tie-break: lower correct percentage first). Strong topics = any
+  // topic with 100% correct on 2+ questions. The "absolute mistakes"
+  // approach gives the parent something actionable even when the
+  // student is mostly strong and wrong answers are spread thinly —
+  // a strict <50% threshold tends to flag nothing on a 26-page paper.
   const byTopic = new Map<string, { right: number; total: number }>();
   for (const q of flat) {
     const t = q.topic;
@@ -260,12 +265,22 @@ export async function handleDiagnostic(
     if (q.isCorrect) cur.right++;
     byTopic.set(t, cur);
   }
-  const weak: { topic: string; right: number; total: number }[] = [];
-  const strong: { topic: string; right: number; total: number }[] = [];
-  for (const [topic, s] of byTopic) {
-    if (s.total >= 2 && s.right / s.total < 0.5) weak.push({ topic, ...s });
-    else if (s.total >= 2 && s.right / s.total >= 0.8) strong.push({ topic, ...s });
-  }
+  const allTopics = Array.from(byTopic.entries()).map(([topic, s]) => ({
+    topic,
+    right: s.right,
+    total: s.total,
+    wrong: s.total - s.right,
+  }));
+  const weak = allTopics
+    .filter(t => t.wrong > 0)
+    .sort((a, b) => {
+      if (b.wrong !== a.wrong) return b.wrong - a.wrong;
+      return (a.right / a.total) - (b.right / b.total);
+    })
+    .slice(0, 3);
+  const strong = allTopics
+    .filter(t => t.total >= 2 && t.right === t.total)
+    .slice(0, 5);
 
   await maybeReply(
     fromEmail,
