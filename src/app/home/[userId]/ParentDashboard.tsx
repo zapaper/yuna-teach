@@ -996,6 +996,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </div>
         )}
         </>)}
+        <div className="flex flex-col gap-3">
         <div className="flex gap-3">
           <button onClick={() => { setShowQuiz(false); setQuizTargetDay(null); }} className="flex-1 py-3 rounded-xl border-2 border-[#c3c6d1] text-[#001e40] font-bold">Cancel</button>
           <button
@@ -1072,6 +1073,51 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             {creatingQuiz && <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
             {creatingQuiz ? "Creating…" : assignMode === "focused" ? "Assign Practice" : "Assign Quiz"}
           </button>
+        </div>
+        {/* Printable focused practice — only for math/science focused, when the
+            student has the toggle enabled. Generates the practice the same way
+            and downloads a PDF the parent can print + scan back. */}
+        {assignMode === "focused" && quizSubject !== "english" && quizStudentId && (() => {
+          const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
+          const enabled = (quizStudent?.settings as Record<string, unknown> | null)?.printableFocusedPractice === true;
+          if (!enabled) return null;
+          return (
+            <button
+              disabled={creatingQuiz || !quizStudentId || !focusedTopic}
+              onClick={async () => {
+                setCreatingQuiz(true);
+                try {
+                  const scheduledForIso = quizTargetDay ? (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() : undefined;
+                  const res = await fetch("/api/focused-test", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      parentId: userId,
+                      studentId: quizStudentId,
+                      subject: quizSubject === "math" ? "Mathematics" : "Science",
+                      topic: focusedTopic,
+                      type: focusedType,
+                      ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
+                    }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) { alert(data.error || "Failed"); return; }
+                  if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
+                  // Trigger PDF download — opens in a new tab so the focused
+                  // practice itself is also assigned to the student.
+                  window.open(`/api/focused-test/${data.id}/printable?studentId=${quizStudentId}&userId=${userId}`, "_blank");
+                  setShowQuiz(false); setQuizTargetDay(null); setFocusedTopic("");
+                  await refreshPapers();
+                } catch { alert("Something went wrong"); }
+                finally { setCreatingQuiz(false); }
+              }}
+              className="w-full py-3 rounded-xl border-2 border-[#001e40] text-[#001e40] font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:bg-[#001e40] hover:text-white transition-colors"
+            >
+              <span className="material-symbols-outlined text-base">print</span>
+              Printable focused practice
+            </button>
+          );
+        })()}
         </div>
       </div>
     </div>
@@ -2352,6 +2398,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points and crystals. Crystals are only earned when parent reviews their work.", defaultOn: true },
                       { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
                       { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
+                      { key: "printableFocusedPractice" as const, label: "Enable printable focused practice", desc: "When assigning focused practice, also offer a downloadable PDF version. Print, write on paper, scan, email back to be marked." },
                     ].map(item => {
                       const stored = selectedStudent?.settings?.[item.key];
                       const isOn = "defaultOn" in item && item.defaultOn ? stored !== false : stored === true;
