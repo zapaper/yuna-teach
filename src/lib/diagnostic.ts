@@ -244,6 +244,51 @@ NO commentary.`;
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+// Re-check an MCQ answer specifically for "1" (a thin vertical stroke
+// that combined extract+mark passes routinely miss). Runs after the
+// per-page diagnosis on every MCQ whose detected studentAnswer isn't
+// already "1". Returns true if the model is confident the student
+// wrote a 1 in the answer area.
+async function detectMcqAnswerOne(regionJpeg: Buffer, qLabel: string): Promise<boolean> {
+  const ai = getAI();
+  const prompt = `Look very carefully at this cropped exam question region. The student wrote a single MCQ answer somewhere — a digit between 1 and 4 (or 1-5).
+
+QUESTION: did the student write a "1" as their answer?
+
+The number "1" handwritten by primary-school students is often very thin and easy to miss — usually just one short vertical stroke, sometimes with a tiny serif at top or bottom. It can look like a slash, a comma's stem, or a bare line. ANY plausible vertical stroke in the answer space counts as "1" for this question. If you see ANY mark in the answer area that could be a 1, say yes.
+
+Reply with JSON only: {"isOne": true} or {"isOne": false}.
+
+If the student clearly wrote a different digit (2, 3, 4, 5) and there is no separate "1" anywhere, return false.`;
+  try {
+    const resp = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: "image/jpeg", data: regionJpeg.toString("base64") } },
+        ],
+      }],
+      config: { temperature: 0, responseMimeType: "application/json" },
+    });
+    const raw = resp.text ?? "{}";
+    const parsed = JSON.parse(raw) as { isOne?: boolean };
+    return Boolean(parsed.isOne);
+  } catch (err) {
+    console.error(`[diagnose] detectMcqAnswerOne ${qLabel} failed:`, err);
+    return false;
+  }
+}
+
+function isMcqQuestion(q: { options?: string[]; expectedAnswer?: string }): boolean {
+  // Has options array and the expected answer reads as a single
+  // letter/digit, or has 2+ options. Either signal is enough.
+  if (Array.isArray(q.options) && q.options.length >= 2) return true;
+  const a = (q.expectedAnswer ?? "").trim();
+  return /^[A-D1-4]$/i.test(a);
+}
+
 
 // Dedicated, narrow Gemini call to read the teacher's running total on
 // a single page. Used as a second-source cross-check against the
@@ -469,6 +514,47 @@ async function runDiagnosisInBackground(
   ]);
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
   const flat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
+
+  // Second-pass MCQ "1" detection. Every MCQ where the model didn't
+  // already pick "1" gets a focused isolated re-check, because thin
+  // vertical "1"s are routinely missed in the first pass. Runs in
+  // parallel; cost is ~one Gemini-flash call per non-"1" MCQ.
+  const mcqRecheckCandidates = flat.filter(q => isMcqQuestion(q) && (q.studentAnswer ?? "").trim() !== "1");
+  if (mcqRecheckCandidates.length > 0) {
+    console.log(`[diagnose] MCQ-1 recheck: ${mcqRecheckCandidates.length} candidates`);
+    const recheck = await Promise.all(mcqRecheckCandidates.map(async q => {
+      const jpg = pageJpegs[q.pageIndex];
+      if (!jpg) return { q, isOne: false };
+      try {
+        const meta = await sharp(jpg).metadata();
+        const W = meta.width ?? 0;
+        const H = meta.height ?? 0;
+        if (!W || !H) return { q, isOne: false };
+        const top = Math.max(0, Math.floor(H * (q.yStartPct ?? 0) / 100));
+        const bot = Math.min(H, Math.ceil(H * (q.yEndPct ?? 100) / 100));
+        const h = Math.max(1, bot - top);
+        const region = await sharp(jpg).extract({ left: 0, top, width: W, height: h }).jpeg({ quality: 88 }).toBuffer();
+        const isOne = await detectMcqAnswerOne(region, `Q${q.questionNum}`);
+        return { q, isOne };
+      } catch (err) {
+        console.error(`[diagnose] MCQ-1 recheck Q${q.questionNum} crop failed:`, err);
+        return { q, isOne: false };
+      }
+    }));
+    let overrides = 0;
+    for (const r of recheck) {
+      if (r.isOne) {
+        r.q.studentAnswer = "1";
+        const expected = (r.q.expectedAnswer ?? "").trim();
+        const isCorrectNow = expected === "1";
+        r.q.isCorrect = isCorrectNow;
+        r.q.isBlank = false;
+        r.q.marksAwarded = isCorrectNow ? r.q.marksAvailable : 0;
+        overrides++;
+      }
+    }
+    if (overrides > 0) console.log(`[diagnose] MCQ-1 recheck: overrode ${overrides} answers to "1"`);
+  }
 
   // Authoritative totals from BOTH passes (per-page detector + dedicated
   // cover-scan). For paper-total-marks (a printed number, easy to read)
