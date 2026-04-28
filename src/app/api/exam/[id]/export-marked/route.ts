@@ -59,9 +59,13 @@ type SubpartMark = {
 async function classifyQuestion(
   regionJpeg: Buffer,
   q: { id: string; questionNum: string; answer: string | null; marksAwarded: number | null; marksAvailable: number | null; markingNotes: string | null },
+  subject: string,
 ): Promise<SubpartMark[]> {
   const ai = getAI();
+  const isMath = subject.toLowerCase().includes("math");
   const prompt = `You are placing red-pen marks on a primary-school exam paper that has already been graded. The attached image is the cropped region for ONE question on the student's scanned page. Top of the image = 0%, bottom = 100%; left = 0%, right = 100%.
+
+SUBJECT: ${subject || "(unknown)"}
 
 QUESTION CONTEXT:
 - Question number: ${q.questionNum}
@@ -75,18 +79,29 @@ For EACH subpart in the question (e.g. "(a)", "(b)", "(c)") — or, if there are
 3. "xPctEnd": X position (0-100) just to the RIGHT of the student's last word for that subpart. If they wrote to the right margin, use 95-100.
 4. "status": EXACTLY ONE of "correct" (full marks for this subpart), "wrong" (any marks lost — including partial credit), or "blank" (student wrote nothing). Do NOT output "partial" — partial credit counts as "wrong" for the purposes of the visual mark.
 5. "marksLost": the number of marks deducted on THIS subpart. 0 if status is "correct" or "blank". For wrong subparts, estimate based on the marking notes — if notes say "(b) lost 1 mark" use 1; if the question is 1-mark and the subpart is wrong, use 1; if the question carries 2 marks and the student got partial credit, often 1; if uncertain, default to 1.
-6. "note": a SHORT but FULLY EXPLAINED teacher comment, ONLY if status is "wrong" or "blank". Style guide:
+6. "note": a teacher's red-pen comment, ONLY if status is "wrong" or "blank". The marking notes above are already pithy — preserve their substance, don't over-condense. There is plenty of room on the printed paper for a useful comment.${isMath ? `
+
+   THIS QUESTION IS MATH. The note should pinpoint the calculation error and show the correct step. Use a multi-line format:
+   - Line 1: which step is wrong (e.g. "Wrong: 24 ÷ 3 = 9", "Forgot to convert m to cm")
+   - Line 2: the correct step or value (e.g. "Should be: 24 ÷ 3 = 8", "100 cm = 1 m, so 250 cm = 2.5 m")
+   - Add a third line only if needed for the final answer.
+   Use ' / ' inside the note string to indicate line breaks; the renderer will split them.
+   Examples:
+     - "Wrong: 24 ÷ 3 = 9 / Should be: 24 ÷ 3 = 8 / Final answer = 8 cm"
+     - "Missed unit conversion / 250 cm = 2.5 m / Total = 5.5 m"
+     - "Used wrong formula / Area of triangle = ½ × b × h / = ½ × 6 × 4 = 12 cm²"
+   Cap at ~25 words across all lines.` : `
+
+   For Science / English / other subjects, write a single-line comment (use a space or ' — ' to join clauses, NOT ' / '). Style:
    - Start with a capital letter.
-   - Quote any specific keywords, formulas, or values in single quotes.
+   - Quote specific keywords, formulas, or values in single quotes.
    - Use natural connectors ("and", "or", commas) — not raw lists.
    - Examples (good):
      - "Missing keywords 'different populations' and 'habitat'"
-     - "No working shown"
-     - "Wrong unit — should be 'cm', not 'm'"
      - "Did not name the process 'fertilisation'"
+     - "Wrong unit — should be 'cm', not 'm'"
      - "Diagram missing the arrow showing direction of force"
-   - Examples (bad — too terse): "missing populations, habitat", "wrong unit", "no working"
-   - Cap length at ~10 words. Better to omit detail than to be cryptic.
+   - Cap length at ~15 words. Better to omit detail than to be cryptic.`}
    - Omit entirely for "correct" subparts.
 
 OUTPUT: a JSON array, one entry per subpart, in order. NO other keys, NO commentary.`;
@@ -156,6 +171,34 @@ function formatMarks(n: number): string {
   const half = n - whole >= 0.49 && n - whole <= 0.51;
   if (half) return whole === 0 ? "½" : `${whole}½`;
   return String(whole);
+}
+
+// Greedy word-wrap a single line of text to fit within maxWidth at the
+// given font + size. Returns the original line when it already fits, or
+// a list of fragments that each measure under maxWidth. Long single
+// words are kept whole — better to overflow slightly than to split mid-
+// word and confuse a reader.
+function wrapText(
+  line: string,
+  font: { widthOfTextAtSize: (s: string, sz: number) => number },
+  size: number,
+  maxWidth: number,
+): string[] {
+  if (font.widthOfTextAtSize(line, size) <= maxWidth) return [line];
+  const words = line.split(/\s+/);
+  const out: string[] = [];
+  let current = "";
+  for (const w of words) {
+    const candidate = current ? `${current} ${w}` : w;
+    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+      current = candidate;
+    } else {
+      if (current) out.push(current);
+      current = w;
+    }
+  }
+  if (current) out.push(current);
+  return out;
 }
 
 // Look up the master metadata so we can compute the same submission-
@@ -309,7 +352,7 @@ async function handle(
       console.error(`[export-marked] crop failed for Q${q.questionNum}:`, err);
       return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q), marksLost: fallbackLost(q) }] satisfies SubpartMark[] };
     }
-    const marks = await classifyQuestion(regionBuf, q);
+    const marks = await classifyQuestion(regionBuf, q, paper.subject ?? "");
     return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks };
   }));
   console.log(`[export-marked] classification done in ${Date.now() - t0}ms`);
@@ -392,23 +435,28 @@ async function handle(
         });
 
         // Note in handwriting, right-aligned to the mark column,
-        // sitting just below the cross.
+        // sitting just below the cross. Math notes use ' / ' as a line
+        // break so step-by-step calculations stack vertically; other
+        // subjects pass through as a single line.
         if (m.note) {
-          const note = m.note;
-          const maxW = pageW * 0.30;
-          let finalText = note;
-          let finalW = handFont.widthOfTextAtSize(finalText, noteSize);
-          if (finalW > maxW) {
-            finalText = note.slice(0, Math.max(3, Math.floor(note.length * (maxW / finalW)) - 1)) + "…";
-            finalW = handFont.widthOfTextAtSize(finalText, noteSize);
+          const maxW = pageW * 0.32;
+          const rawLines = m.note.split(" / ").map(s => s.trim()).filter(Boolean);
+          const wrapped: string[] = [];
+          for (const line of rawLines) {
+            for (const w of wrapText(line, handFont, noteSize, maxW)) wrapped.push(w);
           }
-          page.drawText(finalText, {
-            x: markRightX - finalW,
-            y: markY - markSize * 0.6 - noteSize,
-            size: noteSize,
-            font: handFont,
-            color: RED,
-          });
+          let yCursor = markY - markSize * 0.6 - noteSize;
+          for (const line of wrapped) {
+            const lineW = handFont.widthOfTextAtSize(line, noteSize);
+            page.drawText(line, {
+              x: markRightX - lineW,
+              y: yCursor,
+              size: noteSize,
+              font: handFont,
+              color: RED,
+            });
+            yCursor -= noteSize * 1.25;
+          }
         }
       }
     }

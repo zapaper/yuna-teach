@@ -203,7 +203,12 @@ export async function POST(request: NextRequest) {
       totalMarks: masterPaper.totalMarks,
       metadata: masterPaper.metadata ?? Prisma.JsonNull,
       pageCount: masterPaper.pageCount,
-      instantFeedback: masterPaper.instantFeedback,
+      // Inbound-email clones are always instant-feedback: the parent has
+      // physically printed the paper, watched the student write on it,
+      // and emailed the scan. There's no in-app "review and release"
+      // step to wait on — students should see results as soon as the
+      // AI marker finishes.
+      instantFeedback: true,
       userId: masterPaper.userId,
       assignedToId: student.id,
       sourceExamId: masterPaper.id,
