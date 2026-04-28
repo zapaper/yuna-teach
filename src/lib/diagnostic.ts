@@ -173,13 +173,33 @@ TASK: For each distinct question on this page, output a JSON record. The record 
 7. "isBlank": true if the student wrote nothing.
 8. "feedback": 1-2 sentence explanation suitable for showing the parent. Always include — even when correct.
 9. "topic": ONE short topic label appropriate to the syllabus (e.g. "Fractions", "Decimals", "Photosynthesis", "Comprehension", "Synthesis & Transformation"). NOT a sentence.
-10. "marksAvailable": the marks the question is worth based on the printed paper (look for "[2]", "(2 marks)", etc near the question). Default 1 for MCQ, 2 for typical OEQ if not printed. Half-marks allowed (e.g. 0.5).
+10. "marksAvailable": the marks the question is worth. CRITICAL — read this in priority order:
+    a. SECTION HEADER FIRST. Singapore primary papers print a marking scheme banner at the top of each section / booklet. Examples:
+       "Section A: 25 questions. Each question carries 1 mark. (25 marks)"
+       "Section B (15 marks): 5 questions of 3 marks each."
+       "Booklet B: For each question from 1 to 10, four options are given. Choose the most suitable answer. (10 marks)"
+       "Questions 1 to 28 carry 2 marks each."
+       If the page contains such a banner OR you can recall it from the cover, use it as the default mark for every question in that section. e.g. if Section A says "1 mark each", every question in Section A is worth 1 mark — DO NOT randomly upgrade an OEQ subpart to 2 marks just because it looks long.
+    b. Per-question notation. Look for "[2]", "(2 marks)", "[1m]", "[2 marks]", or marks at the END of the stem near the answer line. This OVERRIDES the section default.
+    c. Last resort. If neither (a) nor (b) is visible, default 1 for MCQ, 2 for OEQ that genuinely looks like a multi-mark question — but be conservative; over-allocation is the most common error.
+    Half-marks allowed (e.g. 0.5).
 11. "marksAwarded": the marks the student actually earned (0..marksAvailable). Use partial marks for OEQ when only some of the required components are present. For MCQ, all-or-nothing (0 or marksAvailable).
 12. "yStartPct" and "yEndPct": 0-100 vertical bounds of the question on the cropped image.
 
 CRITICAL: Output EVERY question on the page, even compactly-laid-out ones. Long papers often have 4-8 questions per page. Do not skip questions just because they look similar to neighbours.
 
-Skip cover pages, pure instruction pages, and any non-question content from the questions array (but DO read them for the totals fields below).
+INSTRUCTION / SECTION HEADER PAGES (CRITICAL FOR MARK ALLOCATION):
+Singapore primary exam booklets begin every section with an INSTRUCTIONS banner that explicitly states the mark scheme. These are the SINGLE MOST IMPORTANT signal for marksAvailable — every question that follows in that section inherits the banner's per-question mark count.
+
+Examples of how the banner reads:
+- "Section A (28 marks): There are 14 questions in this section. Each question carries 1 mark."
+- "Section B (40 marks): There are 13 questions in this section. Each question carries 2, 4 or 5 marks. Show your working clearly..."
+- "Booklet A: Questions 1 to 28 each carry 1 mark."
+- "Booklet B (50 marks): Questions 1 to 5 carry 2 marks each. Questions 6 to 17 carry 3, 4 or 5 marks each."
+
+When you see such a banner: USE IT. Tag every question that follows it (until the next banner) with the per-question marks the banner specifies. Do NOT randomly assign 2 marks to a 1-mark MCQ just because the answer space is large.
+
+Skip cover pages, pure instruction pages, and any non-question content from the questions array (but DO read them for the totals fields below AND for the section's mark scheme that propagates to subsequent questions).
 
 PAPER TOTALS (CRUCIAL — overrides per-question marks):
 On a cover page, header, or final summary box, primary-school papers usually print a paper total like "Total: ___ / 50" and the teacher writes the awarded score in red ("31.5"). Look carefully on this page for either:
