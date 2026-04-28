@@ -6,7 +6,7 @@
 // as paperType: "diagnostic" and is visible only to the parent + that
 // student + admin (via standard ownership rules).
 
-import { promises as fs } from "fs";
+import { promises as fs, readFileSync } from "fs";
 import path from "path";
 import sgMail from "@sendgrid/mail";
 import sharp from "sharp";
@@ -15,6 +15,33 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { renderPdfToJpegs } from "@/lib/pdf-server";
 import { maskBottomRightCorner } from "@/lib/watermark";
+
+// Canonical syllabus topic lists. Diagnostic-flow topic tags MUST come
+// from these — that's what the focused-practice picker matches against.
+// Free-text labels would land tagged questions in 'Untagged' and the
+// 'Assign focused practice' deep-link wouldn't find them.
+function loadTopicFile(filename: string): string[] {
+  try {
+    return readFileSync(path.join(process.cwd(), "data", filename), "utf-8")
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+  } catch {
+    return [];
+  }
+}
+const MATH_TOPICS = loadTopicFile("math-topics.txt");
+const SCIENCE_TOPICS = loadTopicFile("science-topics.txt");
+const ENGLISH_TOPICS = loadTopicFile("english-topics.txt");
+
+function topicListForSubject(subject: string): string[] {
+  const s = subject.toLowerCase();
+  if (s.includes("math")) return MATH_TOPICS;
+  if (s.includes("sci")) return SCIENCE_TOPICS;
+  if (s.includes("eng")) return ENGLISH_TOPICS;
+  // No hint — give Gemini the union and let it pick.
+  return [...MATH_TOPICS, ...SCIENCE_TOPICS, ...ENGLISH_TOPICS];
+}
 
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
@@ -66,11 +93,17 @@ type DiagnosedQuestion = {
 
 async function diagnosePage(jpeg: Buffer, subjectHint: string, levelHint: string | null): Promise<DiagnosedQuestion[]> {
   const ai = getAI();
+  const allowedTopics = topicListForSubject(subjectHint);
   const prompt = `You are reviewing one page of a Singapore primary-school past paper photographed by a parent. The student has handwritten answers on the paper.
 
 CONTEXT:
 - Subject (best guess from the page): ${subjectHint || "auto-detect"}
 - Student level: ${levelHint ?? "unknown — primary school"}
+
+TOPIC VOCABULARY (REQUIRED):
+The "topic" field MUST be EXACTLY one of the strings below — copied verbatim, including capitalisation and punctuation. Do not invent new labels, do not abbreviate, do not paraphrase. If a question doesn't fit, pick the closest one. Strings outside this list will be rejected and the question will end up un-tagged.
+
+${allowedTopics.map(t => `- ${t}`).join("\n")}
 
 TASK: For each distinct question on this page, output a JSON record. The record must include:
 1. "questionNum": the printed number (e.g. "1", "12", "16a"). Use "?" if you can't tell.
@@ -110,6 +143,7 @@ OUTPUT: a JSON array of question records. NO commentary.`;
       const marksAvailable = Math.max(0, Number(q.marksAvailable ?? 1));
       const isCorrect = Boolean(q.isCorrect);
       const marksAwardedRaw = Number(q.marksAwarded ?? (isCorrect ? marksAvailable : 0));
+      const rawTopic = String(q.topic ?? "").trim();
       return {
         questionNum: String(q.questionNum ?? "?"),
         stem: String(q.stem ?? ""),
@@ -119,7 +153,7 @@ OUTPUT: a JSON array of question records. NO commentary.`;
         isCorrect,
         isBlank: Boolean(q.isBlank),
         feedback: String(q.feedback ?? ""),
-        topic: String(q.topic ?? "Uncategorised"),
+        topic: snapToCanonicalTopic(rawTopic, allowedTopics),
         marksAvailable,
         marksAwarded: clamp(marksAwardedRaw, 0, marksAvailable),
         yStartPct: clamp(Number(q.yStartPct ?? 0), 0, 100),
@@ -133,6 +167,27 @@ OUTPUT: a JSON array of question records. NO commentary.`;
 }
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
+
+// Map a free-text topic from Gemini onto the canonical syllabus list.
+// Tries exact match (case-insensitive) first, then a token-overlap
+// score so 'Fractions and Decimals' maps to 'Fractions' instead of
+// 'Untagged'. Falls back to 'Untagged' if no token overlaps at all.
+function snapToCanonicalTopic(raw: string, allowed: string[]): string {
+  if (!raw) return "Untagged";
+  const norm = raw.toLowerCase();
+  for (const t of allowed) {
+    if (t.toLowerCase() === norm) return t;
+  }
+  const rawTokens = new Set(norm.split(/[^a-z0-9]+/).filter(t => t.length >= 4));
+  let best: { topic: string; score: number } | null = null;
+  for (const t of allowed) {
+    const tokens = t.toLowerCase().split(/[^a-z0-9]+/).filter(s => s.length >= 4);
+    let overlap = 0;
+    for (const tok of tokens) if (rawTokens.has(tok)) overlap++;
+    if (overlap > 0 && (!best || overlap > best.score)) best = { topic: t, score: overlap };
+  }
+  return best?.topic ?? "Untagged";
+}
 
 function pickStudent(parent: DiagnoseParent, subjectHintFromMail: string): { id: string; name: string; level: number | null } | null {
   const links = parent.parentLinks;
