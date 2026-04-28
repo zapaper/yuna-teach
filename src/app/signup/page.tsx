@@ -21,11 +21,16 @@ function SignupFlow() {
   // they pick 'platform quiz' from the post-questionnaire diagnosis
   // card. Resume there with the parentId already known.
   const initialParentIdParam = searchParams.get("parentId");
+  // 'printable' mode means: create the diagnostic quiz the same way,
+  // but instead of taking the student into the on-screen quiz we
+  // download the printable PDF + show a remind-to-email popup.
+  const printableMode = searchParams.get("mode") === "printable";
   const [step, setStep] = useState<1 | 2 | 3>(
     initialParentIdParam && initialStep === "2" ? 2
       : initialParentIdParam && initialStep === "3" ? 3
       : 1
   );
+  const [showPrintableDone, setShowPrintableDone] = useState(false);
 
   // ── Step 1: Parent state ──
   const [parentName, setParentName] = useState("");
@@ -240,6 +245,12 @@ function SignupFlow() {
         return;
       }
       const quiz = await res.json();
+      if (printableMode) {
+        window.open(`/api/daily-quiz/${quiz.id}/printable?studentId=${studentId}&userId=${parentId}`, "_blank");
+        setShowPrintableDone(true);
+        setQuizLoading(null);
+        return;
+      }
       // Navigate the current tab into the student quiz; the quiz review page will
       // surface a 'Open parent homepage' button after submission.
       router.push(`/quiz/${quiz.id}?userId=${studentId}&diagnostic=1&parentId=${parentId}`);
@@ -725,7 +736,9 @@ function SignupFlow() {
                         className="w-full py-3 rounded-xl text-sm font-bold transition-colors disabled:opacity-40"
                         style={{ background: "#6cf8bb", color: "#001e40" }}
                       >
-                        {quizLoading ? "Creating quiz…" : "Start Quiz"}
+                        {quizLoading
+                          ? (printableMode ? "Preparing PDF…" : "Creating quiz…")
+                          : (printableMode ? "Download Quiz" : "Start Quiz")}
                       </button>
                     </div>
                   </div>
@@ -756,6 +769,44 @@ function SignupFlow() {
           </div>
         )}
       </main>
+
+      {showPrintableDone && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
+            <div className="px-6 pt-7 pb-4 flex flex-col items-center text-center">
+              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>print</span>
+              </div>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Quiz downloaded</h3>
+            </div>
+            <div className="px-7 pb-2 text-[#43474f] text-sm leading-relaxed space-y-3">
+              <p>
+                The PDF should be downloading now. Print it, let your child write the answers, then scan the completed pages and email them to:
+              </p>
+              <p className="text-center font-mono font-bold text-[#003366] bg-[#f0f5ff] rounded-xl py-3 select-all">
+                diagnose@inbound.markforyou.com
+              </p>
+              <p>
+                We&apos;ll auto-mark and tag the result to your child. No subject or body needed.
+              </p>
+              <p className="text-xs text-[#73797f]">
+                Prefer an on-screen quiz instead? You can start one any time — just hit <strong>Daily Quiz</strong> on your dashboard.
+              </p>
+            </div>
+            <div className="px-7 pt-5 pb-7">
+              <button
+                onClick={() => {
+                  setShowPrintableDone(false);
+                  if (parentId) router.replace(`/home/${parentId}`);
+                }}
+                className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
+              >
+                Go to dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Footer ── */}
       <footer className="w-full py-8 px-6 text-xs mt-auto" style={{ color: "rgba(11,28,48,0.4)" }}>

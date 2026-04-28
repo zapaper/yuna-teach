@@ -188,6 +188,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     //   comes later
     if (kind === "platform-quiz") {
       router.replace(`/signup?parentId=${parentId}&step=2`);
+    } else if (kind === "printable") {
+      // Same legacy wizard, just with the 'mode=printable' flag so the
+      // step-3 action button reads 'Download Quiz' and the post-create
+      // popup tells them to scan + email back.
+      router.replace(`/signup?parentId=${parentId}&step=2&mode=printable`);
     } else {
       router.replace(`/home/${parentId}?diagnostic=${kind}`);
     }
