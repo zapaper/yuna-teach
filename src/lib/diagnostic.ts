@@ -244,6 +244,18 @@ NO commentary.`;
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+// Clamp the headline score at the paper's total available marks. Logs
+// a warning if clamping was necessary so we can spot whatever inflated
+// the per-question sum (usually duplicate-question extraction).
+function clampScoreLogged(awarded: number, available: number, paperId: string): number {
+  if (available <= 0) return awarded;
+  if (awarded > available) {
+    console.warn(`[diagnose] paper=${paperId} score ${awarded} > total available ${available} — clamping to ${available}. Likely a duplicate-question extraction.`);
+    return available;
+  }
+  return Math.max(0, awarded);
+}
+
 // Re-check an MCQ answer specifically for "1" (a thin vertical stroke
 // that combined extract+mark passes routinely miss). Runs after the
 // per-page diagnosis on every MCQ whose detected studentAnswer isn't
@@ -582,7 +594,29 @@ async function runDiagnosisInBackground(
       : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null, rawDescription: "" }))),
   ]);
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
-  const flat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
+  const rawFlat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
+
+  // Deduplicate by questionNum. Multi-page questions (math OEQ that
+  // overflows to a second page, or a continued comprehension passage)
+  // get extracted on every page Gemini sees them, and we'd sum the
+  // marks twice. Keep the FIRST appearance — that's where the question
+  // stem actually starts and where the student typically writes the
+  // beginning of their answer.
+  const seenQNum = new Set<string>();
+  const dupSkips: string[] = [];
+  const flat = rawFlat.filter(q => {
+    const key = q.questionNum.trim().toLowerCase();
+    if (!key || key === "?") return true; // unidentified, can't dedupe — keep
+    if (seenQNum.has(key)) {
+      dupSkips.push(`Q${q.questionNum}@p${q.pageIndex}`);
+      return false;
+    }
+    seenQNum.add(key);
+    return true;
+  });
+  if (dupSkips.length > 0) {
+    console.log(`[diagnose] deduped ${dupSkips.length} duplicate question(s): ${dupSkips.join(", ")}`);
+  }
 
   // Second-pass MCQ "1" detection. Every MCQ where the model didn't
   // already pick "1" gets a focused isolated re-check, because thin
@@ -749,8 +783,15 @@ async function runDiagnosisInBackground(
       data: {
         markingStatus: "complete",
         // Prefer cover-page totals when the AI spotted them — that's
-        // what the school treats as ground truth.
-        score: coverTeacherAwarded > 0 ? coverTeacherAwarded : flat.reduce((s, q) => s + q.marksAwarded, 0),
+        // what the school treats as ground truth. Clamp the score to
+        // total available so a runaway per-question sum from
+        // duplicate-question detection can't produce nonsense like
+        // 93/55. Logged separately if it triggers.
+        score: clampScoreLogged(
+          coverTeacherAwarded > 0 ? coverTeacherAwarded : flat.reduce((s, q) => s + q.marksAwarded, 0),
+          coverPaperTotal > 0 ? coverPaperTotal : flat.reduce((s, q) => s + q.marksAvailable, 0),
+          paperId,
+        ),
         totalMarks: String(coverPaperTotal > 0 ? coverPaperTotal : flat.reduce((s, q) => s + q.marksAvailable, 0)),
       },
     }),
