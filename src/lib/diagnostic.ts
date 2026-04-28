@@ -125,12 +125,15 @@ Look for ALL of these (red ink, often small, may be at the end of an answer line
 - Margin comments — "how?", "explain more", "no working", "wrong unit", "incomplete", "not specific", "more detail" — even WITHOUT a half-mark symbol, these comments combined with a tick imply partial credit (typically half).
 
 OEQ SECTIONS — CRITICAL:
-OEQ questions often carry 2 marks across multiple lines or subparts (a)/(b)/(c). Teachers commonly:
-- Tick part of an answer and put "½" or "1" next to it
-- Mark each subpart separately — (a) might get a tick, (b) a half, (c) a cross
-- Write the subpart total as "1½/2" or "0.5/1" at the END of the question
+OEQ questions often carry 2 marks across multiple lines or subparts (a)/(b)/(c). Teachers in Singapore primary schools mark them by writing the AWARDED score (NOT a deduction) next to each subpart in red ink. Watch for ALL of these formats:
+- A bare red number "1.5" / "0.5" / "1" / "2" written at the end of an answer line or in the margin → that IS the marksAwarded for that subpart. NOT a deduction. So a "0.5" next to a 1-mark subpart means marksAwarded=0.5, not marksAwarded=0.5 less.
+- Red fraction "1½" / "½" / "1 1/2" → 1.5 / 0.5 / 1.5 awarded.
+- "1.5/2" or "1½/2" written at the END of a 2-mark question → marksAwarded for the WHOLE question is 1.5.
+- A tick next to part (a), a cross next to (b), and "1/2" written at the end → the whole question is 1 out of 2.
 
-You MUST inspect every line of an OEQ answer for these per-line / per-subpart half marks. Past runs missed many half-mark deductions because the AI gave full marks based on its own rubric while the teacher had clearly written "½" against one of the subparts. Sum the per-subpart teacher marks if present, and put that in marksAwarded.
+You MUST inspect every line of an OEQ answer for these per-line / per-subpart numeric scores. Past runs missed many half-mark deductions because the AI gave full marks based on its own rubric while the teacher had clearly written "0.5" or "1.5" next to one of the subparts. When in doubt: a small red number near an OEQ answer is the AWARDED MARKS — read it and use it.
+
+Sum the per-subpart teacher marks if present, and put the total in marksAwarded. If a final per-question score like "1.5/2" appears, that overrides per-subpart sums (the teacher already did the maths).
 
 WHEN A TEACHER MARK IS PRESENT:
 - "marksAwarded" must reflect the teacher's score, NOT your own.
@@ -241,23 +244,32 @@ NO commentary.`;
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
 
+
 // Dedicated, narrow Gemini call to read the teacher's running total on
 // a single page. Used as a second-source cross-check against the
 // per-page detector — fractional marks ("31 1/2", "31½") trip up the
 // combined extract+mark+classify prompt, so we ask in isolation.
-async function readCoverTotal(jpeg: Buffer): Promise<{ paperTotalMarks: number | null; teacherAwardedMarks: number | null }> {
+async function readCoverTotal(jpeg: Buffer, pageLabel: string): Promise<{ paperTotalMarks: number | null; teacherAwardedMarks: number | null; rawDescription: string }> {
   const ai = getAI();
-  const prompt = `Look at this scanned exam page. Is there a teacher's running total or final mark visible — typically in red ink, in a corner, header, or summary box? It looks like a number-over-number such as "31 1/2 / 50", "31.5/50", "42/60", or just a circled red number near the printed paper total.
+  const prompt = `Look at this scanned exam page. Find the teacher's running total / final mark — it's almost always in RED INK (red pen / red marker), and lives in a corner, header, or summary box at the top or bottom of the page. Examples of how it looks: "31 1/2 / 50", "31.5/50", "42/60", a circled red number, or a red number written next to a printed "/50" on the cover.
 
-CRITICAL — fractional marks: teachers OFTEN write half marks as "31 1/2", "31 ½", or "31.5". These are all THIRTY-ONE POINT FIVE (31.5), not 36, not 312. The "1/2" fraction is a single symbol. Read very carefully.
+CRITICAL — handwritten fractional marks (READ THESE VERY CAREFULLY):
+- "31 1/2" = 31.5. The "1/2" is a single fraction symbol, NOT digits 1 and 2.
+- "31 ½" = 31.5
+- "31.5" = 31.5
+- A digit immediately followed by "1/2" or "½" or ".5" = digit + 0.5
+- NEVER concatenate the fraction's "2" or "5" onto the leading digit. "31 1/2" is THIRTY-ONE-POINT-FIVE, not 312, 36, or 35.
 
-Return a JSON object with exactly two keys:
+Look in red ink first. The teacher's handwriting is what we want — not the printed denominator.
+
+Return a JSON object with three keys:
 - "paperTotalMarks": the printed paper total (the number after the slash, e.g. 50). Null if no total is visible.
 - "teacherAwardedMarks": the teacher's handwritten score. Half marks supported (e.g. 31.5). Null if no teacher total is visible.
+- "description": a short string describing what you actually saw on this page in the red-ink area. E.g. "Top-right corner has '31½ / 50' in red ink" or "No teacher mark visible; this looks like a regular question page" or "Saw a red '47' near a printed '/60'". Keep under 40 words. BE SPECIFIC about what numbers you saw and where.
 
-If the page has no totals at all (most pages won't), return {"paperTotalMarks": null, "teacherAwardedMarks": null}.
+If the page has no totals at all (most pages won't), return numerics as null and describe what you saw briefly.
 
-NO commentary.`;
+NO commentary outside the JSON.`;
   try {
     const resp = await ai.models.generateContent({
       model: "gemini-2.5-pro",
@@ -271,12 +283,15 @@ NO commentary.`;
       config: { temperature: 0, responseMimeType: "application/json" },
     });
     const raw = resp.text ?? "{}";
-    const parsed = JSON.parse(raw) as { paperTotalMarks?: number | null; teacherAwardedMarks?: number | null };
+    const parsed = JSON.parse(raw) as { paperTotalMarks?: number | null; teacherAwardedMarks?: number | null; description?: string };
     const paperTotalMarks = typeof parsed.paperTotalMarks === "number" && parsed.paperTotalMarks > 0 ? parsed.paperTotalMarks : null;
     const teacherAwardedMarks = typeof parsed.teacherAwardedMarks === "number" && parsed.teacherAwardedMarks >= 0 ? parsed.teacherAwardedMarks : null;
-    return { paperTotalMarks, teacherAwardedMarks };
-  } catch {
-    return { paperTotalMarks: null, teacherAwardedMarks: null };
+    const rawDescription = String(parsed.description ?? "").slice(0, 200);
+    console.log(`[diagnose] cover-scan ${pageLabel}: paperTotal=${paperTotalMarks ?? "_"} teacherAwarded=${teacherAwardedMarks ?? "_"} | "${rawDescription}"`);
+    return { paperTotalMarks, teacherAwardedMarks, rawDescription };
+  } catch (err) {
+    console.error(`[diagnose] cover-scan ${pageLabel} failed:`, err);
+    return { paperTotalMarks: null, teacherAwardedMarks: null, rawDescription: "" };
   }
 }
 
@@ -441,7 +456,9 @@ async function runDiagnosisInBackground(
   const coverScanIndices = new Set<number>([0, 1, pageJpegs.length - 2, pageJpegs.length - 1].filter(i => i >= 0 && i < pageJpegs.length));
   const [perPage, coverScans] = await Promise.all([
     Promise.all(pageJpegs.map(buf => diagnosePage(buf, subjectHint, levelHint))),
-    Promise.all(pageJpegs.map((buf, i) => coverScanIndices.has(i) ? readCoverTotal(buf) : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null }))),
+    Promise.all(pageJpegs.map((buf, i) => coverScanIndices.has(i)
+      ? readCoverTotal(buf, `p${i}`)
+      : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null, rawDescription: "" }))),
   ]);
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
   const flat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
