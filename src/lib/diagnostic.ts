@@ -234,6 +234,10 @@ export async function handleDiagnostic(
   }
 
   // Collect attachments — same field convention as the scan flow.
+  // Read every Blob into memory now: SendGrid retries inbound parse if
+  // we don't return 200 quickly, and the form's blobs are tied to the
+  // request lifecycle. Snapshotting them now lets us fire the heavy
+  // analysis as a background promise and acknowledge fast.
   const attachments: DiagnoseAttachment[] = [];
   for (const [key, val] of form.entries()) {
     if (!key.startsWith("attachment")) continue;
@@ -247,7 +251,30 @@ export async function handleDiagnostic(
     return Response.json({ ok: true, ignored: "no attachments" });
   }
 
-  // Render every attachment to per-page JPGs and CamScanner-mask.
+  // Fire-and-forget: SendGrid will retry if we hold the response open
+  // longer than ~30s and a 26-page Gemini run takes ~80s. Resolve the
+  // webhook immediately with a 200, run the diagnosis in the
+  // background. Any unhandled error inside is logged so the operator
+  // can see what went wrong without crashing the process.
+  runDiagnosisInBackground(attachments, parent, student, subjectStr, fromEmail).catch(err => {
+    console.error("[diagnose] background run failed:", err);
+  });
+
+  return Response.json({
+    ok: true,
+    queued: true,
+    student: student.name,
+    attachmentCount: attachments.length,
+  });
+}
+
+async function runDiagnosisInBackground(
+  attachments: DiagnoseAttachment[],
+  parent: DiagnoseParent,
+  student: { id: string; name: string; level: number | null },
+  subjectStr: string,
+  fromEmail: string,
+): Promise<void> {
   const pageJpegs: Buffer[] = [];
   for (const a of attachments) {
     if (a.mime === "application/pdf") {
@@ -267,7 +294,8 @@ export async function handleDiagnostic(
     }
   }
   if (pageJpegs.length === 0) {
-    return Response.json({ ok: true, ignored: "no usable pages" });
+    console.warn("[diagnose] no usable pages from attachments");
+    return;
   }
 
   // Subject hint comes from the email subject — parent may write
@@ -308,7 +336,7 @@ export async function handleDiagnostic(
   }
   if (flat.length === 0) {
     await maybeReply(fromEmail, "Diagnose: no questions detected", "We couldn't find any questions in the photos you sent. Try a clearer photo or PDF, with one full page per image.").catch(() => {});
-    return Response.json({ ok: true, ignored: "no questions detected" });
+    return;
   }
 
   // Materialise as an ExamPaper (paperType: "diagnostic"). Unlike scan
@@ -405,15 +433,6 @@ export async function handleDiagnostic(
   ).catch((err) => console.error("[diagnose] reply email failed:", err));
 
   console.log(`[diagnose] paper=${paper.id} student=${student.id} marks=${totalEarned}/${totalAvailable} weak=[${weak.map(w => `${w.topic}(-${w.lost})`).join(", ")}]`);
-
-  return Response.json({
-    ok: true,
-    paperId: paper.id,
-    studentId: student.id,
-    score: flat.filter(q => q.isCorrect).length,
-    total: flat.length,
-    weakTopics: weak.map(w => w.topic),
-  });
 }
 
 function buildSummaryHtml(
