@@ -327,6 +327,53 @@ function stripLatex(s: string | null | undefined): string {
 // Clamp the headline score at the paper's total available marks. Logs
 // a warning if clamping was necessary so we can spot whatever inflated
 // the per-question sum (usually duplicate-question extraction).
+// When the per-question marksAvailable sums exceed the printed paper
+// total (Gemini over-allocates because each per-page call has no
+// global view), ask the model in one shot to look at all the question
+// numbers + currently-assigned marks and rebalance them to match the
+// actual total. Returns a Map of questionNum → corrected marksAvailable.
+async function auditMarksAvailable(
+  questions: { questionNum: string; marksAvailable: number }[],
+  paperTotal: number,
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (paperTotal <= 0 || questions.length === 0) return out;
+  const ai = getAI();
+  const prompt = `You are auditing per-question mark allocations on a Singapore primary-school paper. The printed paper total is ${paperTotal} marks. Below is the list of questions detected by another AI pass, with the marks each was assigned. The sum of those is ${questions.reduce((s, q) => s + q.marksAvailable, 0)}, which exceeds the paper total — so some questions were over-allocated.
+
+Your job: produce a corrected mark allocation per question. Rules:
+- The sum of corrected marksAvailable across ALL questions MUST equal exactly ${paperTotal}.
+- Use INTEGER or HALF marks only (e.g. 0.5, 1, 1.5, 2). No quarter marks.
+- Most MCQs are worth 1 mark.
+- OEQ subparts are typically 1-3 marks each, with the harder/longer ones worth more.
+- Distribute reductions across the over-allocated questions sensibly — don't drop everything to 1.
+- Preserve the rough relative weight: a question that was 3 marks should not become 1.
+
+INPUT:
+${JSON.stringify(questions.map(q => ({ q: q.questionNum, m: q.marksAvailable })))}
+
+OUTPUT (JSON array, same length, same order):
+[{"q": "1", "m": 1}, {"q": "2", "m": 1}, ...]
+NO commentary.`;
+  try {
+    const resp = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: { temperature: 0, responseMimeType: "application/json" },
+    });
+    const raw = resp.text ?? "[]";
+    const parsed = JSON.parse(raw) as { q?: string; m?: number }[];
+    if (!Array.isArray(parsed)) return out;
+    for (const e of parsed) {
+      if (typeof e.q !== "string" || typeof e.m !== "number" || e.m < 0) continue;
+      out.set(e.q.trim().toLowerCase(), e.m);
+    }
+  } catch (err) {
+    console.error("[diagnose] marks audit failed:", err);
+  }
+  return out;
+}
+
 function clampScoreLogged(awarded: number, available: number, paperId: string): number {
   if (available <= 0) return awarded;
   if (awarded > available) {
@@ -815,10 +862,48 @@ async function runDiagnosisInBackground(
     ...coverScans.map(c => c.teacherAwardedMarks ?? null),
     ...perPage.map(p => p.teacherAwardedMarks ?? null),
   ].filter((n): n is number => typeof n === "number");
-  const coverPaperTotal = allPaperTotals.length > 0 ? Math.max(...allPaperTotals) : 0;
+  // Multi-booklet papers print a section total per booklet (Booklet A
+  // /35, Booklet B /20). Detect distinct totals and sum them; single-
+  // booklet papers fall through to the simple max. Also covers the
+  // case where the same total ends up reported on cover + summary.
+  const distinctPaperTotals = Array.from(new Set(allPaperTotals));
+  const coverPaperTotal = distinctPaperTotals.length > 1
+    ? distinctPaperTotals.reduce((s, n) => s + n, 0)
+    : (allPaperTotals.length > 0 ? Math.max(...allPaperTotals) : 0);
   const coverTeacherAwarded = allTeacherAwarded.length > 0 ? Math.min(...allTeacherAwarded) : 0;
   if (coverPaperTotal > 0 || coverTeacherAwarded > 0) {
-    console.log(`[diagnose] cover-page totals: paperTotalMarks=${coverPaperTotal || "?"} teacherAwarded=${coverTeacherAwarded || "?"} (raw scan=[${allTeacherAwarded.join(",")}], inline=[${perPage.map(p => p.teacherAwardedMarks ?? "_").join(",")}])`);
+    console.log(`[diagnose] cover-page totals: paperTotalMarks=${coverPaperTotal || "?"} teacherAwarded=${coverTeacherAwarded || "?"} (distinct paper totals=[${distinctPaperTotals.join(",")}] — ${distinctPaperTotals.length > 1 ? "summed" : "max"}, teacher raw=[${allTeacherAwarded.join(",")}], inline=[${perPage.map(p => p.teacherAwardedMarks ?? "_").join(",")}])`);
+  }
+
+  // Marks-availability audit. Each per-page Gemini call has no view
+  // of the whole paper and tends to over-allocate marks (defaulting
+  // to 2 for OEQs). When the per-q sum overshoots the cover total,
+  // we ask one Gemini call to rebalance them while preserving
+  // relative weights and using halves where appropriate.
+  const aiSumAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
+  if (coverPaperTotal > 0 && aiSumAvailable > coverPaperTotal * 1.05) {
+    console.log(`[diagnose] marks audit: per-q sum ${aiSumAvailable} > paper total ${coverPaperTotal} — calling rebalance`);
+    const corrections = await auditMarksAvailable(
+      flat.map(q => ({ questionNum: q.questionNum, marksAvailable: q.marksAvailable })),
+      coverPaperTotal,
+    );
+    if (corrections.size > 0) {
+      let touched = 0;
+      for (const q of flat) {
+        const key = q.questionNum.trim().toLowerCase();
+        const corrected = corrections.get(key);
+        if (typeof corrected === "number" && corrected !== q.marksAvailable) {
+          const ratio = q.marksAvailable > 0 ? q.marksAwarded / q.marksAvailable : (q.isCorrect ? 1 : 0);
+          const newAvail = Math.max(0, corrected);
+          const newAwarded = Math.min(newAvail, Math.round(ratio * newAvail * 2) / 2);
+          q.marksAvailable = newAvail;
+          q.marksAwarded = newAwarded;
+          touched++;
+        }
+      }
+      const newSum = flat.reduce((s, q) => s + q.marksAvailable, 0);
+      console.log(`[diagnose] marks audit: rebalanced ${touched} questions; new sum=${newSum}`);
+    }
   }
   // Verbose breakdown so the parent can sanity-check the AI's work.
   // Logs: total questions, total marks, per-page question counts, the
