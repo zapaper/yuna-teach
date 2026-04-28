@@ -653,26 +653,30 @@ async function runDiagnosisInBackground(
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
   const rawFlat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
 
-  // Deduplicate by questionNum. Multi-page questions (math OEQ that
-  // overflows to a second page, or a continued comprehension passage)
-  // get extracted on every page Gemini sees them, and we'd sum the
-  // marks twice. Keep the FIRST appearance — that's where the question
-  // stem actually starts and where the student typically writes the
-  // beginning of their answer.
-  const seenQNum = new Set<string>();
+  // Deduplicate by questionNum, but ONLY when the duplicate sits on
+  // an adjacent page (gap ≤ 1). Multi-page questions (math OEQ that
+  // overflows to the next page, or a continued comprehension passage)
+  // get re-extracted on each page they touch — collapse those.
+  // Multi-booklet papers reuse Q1..Q30 from booklet A as Q1..Q15 in
+  // booklet B; those are NOT duplicates and the page gap will be
+  // large, so we keep them.
+  const lastSeenPageByQNum = new Map<string, number>();
   const dupSkips: string[] = [];
   const flat = rawFlat.filter(q => {
     const key = q.questionNum.trim().toLowerCase();
-    if (!key || key === "?") return true; // unidentified, can't dedupe — keep
-    if (seenQNum.has(key)) {
+    if (!key || key === "?") return true;
+    const prev = lastSeenPageByQNum.get(key);
+    if (prev !== undefined && q.pageIndex - prev <= 1) {
+      // True continuation: same question continued onto the next page.
       dupSkips.push(`Q${q.questionNum}@p${q.pageIndex}`);
+      // Don't update lastSeen — a 3-page Q5 should still all collapse.
       return false;
     }
-    seenQNum.add(key);
+    lastSeenPageByQNum.set(key, q.pageIndex);
     return true;
   });
   if (dupSkips.length > 0) {
-    console.log(`[diagnose] deduped ${dupSkips.length} duplicate question(s): ${dupSkips.join(", ")}`);
+    console.log(`[diagnose] deduped ${dupSkips.length} continuation page(s): ${dupSkips.join(", ")}`);
   }
 
   // Second-pass MCQ "1" detection. Every MCQ where the model didn't
@@ -894,10 +898,15 @@ async function runDiagnosisInBackground(
 
   const aiTotalEarned = flat.reduce((s, q) => s + q.marksAwarded, 0);
   const aiTotalAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
-  const totalEarned = coverTeacherAwarded > 0 ? coverTeacherAwarded : aiTotalEarned;
+  // Single source of truth for what gets shown to the parent: cover-
+  // page total wins for total available; awarded comes from cover-
+  // teacher if seen, otherwise per-question sum, then clamped to
+  // total available so we never email '70/55'.
   const totalAvailable = coverPaperTotal > 0 ? coverPaperTotal : aiTotalAvailable;
+  const rawEarned = coverTeacherAwarded > 0 ? coverTeacherAwarded : aiTotalEarned;
+  const totalEarned = totalAvailable > 0 ? Math.min(rawEarned, totalAvailable) : rawEarned;
   if (coverTeacherAwarded > 0 || coverPaperTotal > 0) {
-    console.log(`[diagnose] using cover totals: ${totalEarned}/${totalAvailable} (per-question sums were ${aiTotalEarned}/${aiTotalAvailable})`);
+    console.log(`[diagnose] headline ${totalEarned}/${totalAvailable} (cover detected: paper=${coverPaperTotal || "?"} teacher=${coverTeacherAwarded || "?"} | per-q sums: ${aiTotalEarned}/${aiTotalAvailable}${rawEarned > totalAvailable ? " — clamped" : ""})`);
   }
   await maybeReply(
     fromEmail,
