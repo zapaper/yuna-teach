@@ -80,6 +80,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   // matches the CSS classes below — change one, change the other.
   const [phase, setPhase] = useState<"in" | "idle" | "out">("in");
   const [done, setDone] = useState(false);
+  const [showDiagnosisChoice, setShowDiagnosisChoice] = useState(false);
   // Block render until we've checked onboardingCompleted — otherwise
   // a re-signup user briefly sees Q1 before being redirected home.
   const [gated, setGated] = useState(true);
@@ -132,10 +133,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   }
 
   async function finish(allAnswers: Answers) {
-    setDone(true);
+    // Persist settings before showing the final card. Parents who
+    // selected mostly-paper or mixed-screen-time get a diagnosis-
+    // selection screen instead of the simple "All set!"; everyone
+    // else proceeds straight to the dashboard.
     try {
-      // Save parent-level settings (study mode, focus duration, default
-      // difficulty, default child level for any future student creation).
       await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -150,8 +152,6 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
           },
         }),
       });
-      // If a student account already exists (signup created one
-      // before bouncing here), propagate the difficulty + level too.
       if (studentId) {
         await fetch("/api/users", {
           method: "PATCH",
@@ -163,10 +163,25 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         });
       }
     } catch {
-      // Non-fatal — onboarding answers are best-effort. The parent can
-      // adjust everything from Student Settings later.
+      // Non-fatal — answers are best-effort.
     }
-    setTimeout(() => router.replace(`/home/${parentId}`), 1600);
+    setShowDiagnosisChoice(true);
+  }
+
+  async function chooseDiagnosis(kind: "scan-email" | "platform-quiz" | "printable") {
+    try {
+      await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: parentId,
+          settings: { diagnosticChoice: kind },
+        }),
+      });
+    } catch { /* non-fatal */ }
+    // Pass the choice through to the home dashboard so it can surface
+    // the right follow-up (instructions / quiz / print).
+    router.replace(`/home/${parentId}?diagnostic=${kind}`);
   }
 
   const q = QUESTIONS[step];
@@ -228,7 +243,83 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       </header>
 
       <main className="flex-1 px-6 max-w-md mx-auto w-full overflow-hidden flex flex-col justify-center pb-12 relative z-10">
-        {done ? (
+        {showDiagnosisChoice ? (() => {
+          // Heavy-screen-time parents see two options (platform quiz +
+          // email scan); paper / mixed parents also get the printable
+          // option since they explicitly want less screen time.
+          const screenHeavy = answers.studyMode === "both";
+          const optionsLight = [
+            {
+              key: "platform-quiz" as const,
+              icon: "devices",
+              title: "15-min quiz on the platform",
+              sub: "Quick on-screen diagnostic. Results show up immediately.",
+            },
+            {
+              key: "scan-email" as const,
+              icon: "mail",
+              title: "Scan and email a recent test",
+              sub: "Send any past paper (graded or ungraded) to diagnose@inbound.markforyou.com. Our AI auto-marks and finds the gaps.",
+            },
+          ];
+          const optionsPaper = [
+            {
+              key: "scan-email" as const,
+              icon: "mail",
+              title: "Scan and email a recent test",
+              sub: "Send any past paper (graded or ungraded) to diagnose@inbound.markforyou.com. Our AI auto-marks and finds the gaps.",
+            },
+            {
+              key: "platform-quiz" as const,
+              icon: "devices",
+              title: "15-min quiz on the platform",
+              sub: "Quick on-screen diagnostic. Results show up immediately.",
+            },
+            {
+              key: "printable" as const,
+              icon: "print",
+              title: "Print out a 15-min quiz",
+              sub: "Download a PDF, your child writes on paper, scan it back when done.",
+            },
+          ];
+          const opts = screenHeavy ? optionsLight : optionsPaper;
+          const blurb = screenHeavy
+            ? <>We can set a quick 15-min quiz to read where your child is in <strong>Math</strong>, <strong>Science</strong> or <strong>English</strong>. Or, if you'd rather use an existing test, scan and email one in.</>
+            : <>We need a quick read on where your child is in <strong>Math</strong>, <strong>Science</strong> or <strong>English</strong>. Pick whichever fits best:</>;
+          return (
+          <div style={{ animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
+            <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Great!</p>
+            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-4">Let's diagnose your child's current learning</h2>
+            <p className="text-sm text-[#43474f] leading-relaxed mb-6">{blurb}</p>
+            <div className="flex flex-col gap-3">
+              {opts.map((opt, i) => (
+                <button
+                  key={opt.key}
+                  onClick={() => chooseDiagnosis(opt.key)}
+                  className="group text-left bg-white border-2 border-[#dce9ff] rounded-2xl p-4 hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] transition-all"
+                  style={{ animation: `slideUp 0.4s ease-out ${0.1 + i * 0.08}s both` }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-[#dce9ff] group-hover:bg-[#003366] flex items-center justify-center shrink-0 transition-colors">
+                      <span className="material-symbols-outlined text-[#003366] group-hover:text-white transition-colors">{opt.icon}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-[#001e40] text-base leading-tight">{opt.title}</p>
+                      <p className="text-xs text-[#43474f] mt-1 leading-relaxed">{opt.sub}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => router.replace(`/home/${parentId}`)}
+              className="w-full mt-5 text-xs text-[#43474f] font-semibold hover:text-[#001e40]"
+            >
+              Skip for now — I'll decide later
+            </button>
+          </div>
+          );
+        })() : done ? (
           <div className="text-center" style={{ animation: "popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
             <div className="relative mx-auto w-20 h-20 mb-6">
               {/* Outer ring pulse */}
