@@ -91,7 +91,17 @@ type DiagnosedQuestion = {
   yEndPct: number;             // 0-100, bottom
 };
 
-async function diagnosePage(jpeg: Buffer, subjectHint: string, levelHint: string | null): Promise<DiagnosedQuestion[]> {
+// Per-page diagnosis output: the question array PLUS any cover-style
+// totals the page advertised (printed paper total like "/50" or
+// teacher-written running total like "31.5/50"). Taken as ground truth
+// when present.
+type PageDiagnosis = {
+  questions: DiagnosedQuestion[];
+  paperTotalMarks: number | null;     // printed total on the page, e.g. 50
+  teacherAwardedMarks: number | null; // teacher's running/final score, e.g. 31.5
+};
+
+async function diagnosePage(jpeg: Buffer, subjectHint: string, levelHint: string | null): Promise<PageDiagnosis> {
   const ai = getAI();
   const allowedTopics = topicListForSubject(subjectHint);
   const prompt = `You are reviewing one page of a Singapore primary-school past paper photographed by a parent. The student has handwritten answers on the paper, AND there may already be red-ink marks from the school teacher.
@@ -140,9 +150,21 @@ TASK: For each distinct question on this page, output a JSON record. The record 
 
 CRITICAL: Output EVERY question on the page, even compactly-laid-out ones. Long papers often have 4-8 questions per page. Do not skip questions just because they look similar to neighbours.
 
-Skip cover pages, pure instruction pages, and any non-question content.
+Skip cover pages, pure instruction pages, and any non-question content from the questions array (but DO read them for the totals fields below).
 
-OUTPUT: a JSON array of question records. NO commentary.`;
+PAPER TOTALS (CRUCIAL — overrides per-question marks):
+On a cover page, header, or final summary box, primary-school papers usually print a paper total like "Total: ___ / 50" and the teacher writes the awarded score in red ("31.5"). Look carefully on this page for either:
+- "paperTotalMarks": the printed total marks for the WHOLE paper (e.g. 50). Null if not visible on this page.
+- "teacherAwardedMarks": the teacher's handwritten total score for the whole paper (e.g. 31.5, often near "/50" or with a circle). Null if not visible.
+
+Both are PER-PAGE outputs but apply to the WHOLE paper. If you spot them on any page, return the actual numbers — the server will use them as authoritative totals over our per-question sums.
+
+OUTPUT FORMAT: a JSON OBJECT with three keys:
+- "questions": JSON array of question records as described above
+- "paperTotalMarks": number or null
+- "teacherAwardedMarks": number or null
+
+NO commentary.`;
   try {
     const resp = await ai.models.generateContent({
       model: "gemini-2.5-pro",
@@ -155,10 +177,13 @@ OUTPUT: a JSON array of question records. NO commentary.`;
       }],
       config: { temperature: 0, responseMimeType: "application/json" },
     });
-    const raw = resp.text ?? "[]";
-    const parsed = JSON.parse(raw) as DiagnosedQuestion[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map(q => {
+    const raw = resp.text ?? "{}";
+    const parsed = JSON.parse(raw) as { questions?: DiagnosedQuestion[]; paperTotalMarks?: number | null; teacherAwardedMarks?: number | null } | DiagnosedQuestion[];
+    // Tolerate the legacy plain-array shape in case Gemini drops the wrapper object.
+    const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.questions) ? parsed.questions : []);
+    const paperTotalMarks = (!Array.isArray(parsed) && typeof parsed.paperTotalMarks === "number" && parsed.paperTotalMarks > 0) ? parsed.paperTotalMarks : null;
+    const teacherAwardedMarks = (!Array.isArray(parsed) && typeof parsed.teacherAwardedMarks === "number" && parsed.teacherAwardedMarks >= 0) ? parsed.teacherAwardedMarks : null;
+    const questions = arr.map(q => {
       const marksAvailable = Math.max(0, Number(q.marksAvailable ?? 1));
       const isCorrect = Boolean(q.isCorrect);
       const marksAwardedRaw = Number(q.marksAwarded ?? (isCorrect ? marksAvailable : 0));
@@ -179,9 +204,10 @@ OUTPUT: a JSON array of question records. NO commentary.`;
         yEndPct: clamp(Number(q.yEndPct ?? 100), 0, 100),
       };
     });
+    return { questions, paperTotalMarks, teacherAwardedMarks };
   } catch (err) {
     console.error("[diagnose] page analysis failed:", err);
-    return [];
+    return { questions: [], paperTotalMarks: null, teacherAwardedMarks: null };
   }
 }
 
@@ -311,14 +337,25 @@ async function runDiagnosisInBackground(
   const t0 = Date.now();
   const perPage = await Promise.all(pageJpegs.map(buf => diagnosePage(buf, subjectHint, levelHint)));
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
-  const flat = perPage.flatMap((qs, pageIdx) => qs.map(q => ({ ...q, pageIndex: pageIdx })));
+  const flat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
+
+  // Authoritative totals: any page that spotted a printed paper total
+  // or a teacher-written running total wins over our per-question sum.
+  // Pick the highest value seen across pages — duplicate detection
+  // (cover + final summary) usually agrees, and if not, the larger
+  // total is more likely to be the real paper total.
+  const coverPaperTotal = Math.max(0, ...perPage.map(p => p.paperTotalMarks ?? 0));
+  const coverTeacherAwarded = Math.max(0, ...perPage.map(p => p.teacherAwardedMarks ?? 0));
+  if (coverPaperTotal > 0 || coverTeacherAwarded > 0) {
+    console.log(`[diagnose] cover-page totals: paperTotalMarks=${coverPaperTotal || "?"} teacherAwarded=${coverTeacherAwarded || "?"}`);
+  }
   // Verbose breakdown so the parent can sanity-check the AI's work.
   // Logs: total questions, total marks, per-page question counts, the
   // exact list of wrong/blank questions, and the topics that lost marks.
   {
     const totalAvail = flat.reduce((s, q) => s + q.marksAvailable, 0);
     const totalAwarded = flat.reduce((s, q) => s + q.marksAwarded, 0);
-    const perPageCounts = perPage.map((qs, i) => `p${i}=${qs.length}`).join(" ");
+    const perPageCounts = perPage.map((p, i) => `p${i}=${p.questions.length}`).join(" ");
     const wrong = flat.filter(q => !q.isCorrect);
     const wrongDesc = wrong.map(q => `Q${q.questionNum}(${q.topic}, ${q.marksAwarded}/${q.marksAvailable}, p${q.pageIndex})`).join(" | ");
     const lossByTopic = new Map<string, number>();
@@ -355,8 +392,11 @@ async function runDiagnosisInBackground(
       instantFeedback: true,
       completedAt: new Date(),
       markingStatus: "released",
-      score: flat.reduce((s, q) => s + q.marksAwarded, 0),
-      totalMarks: String(flat.reduce((s, q) => s + q.marksAvailable, 0)),
+      // Prefer the cover-page totals when the AI spotted them — they're
+      // what the parent / school actually see. Falls back to per-question
+      // sums if the cover wasn't visible / readable.
+      score: coverTeacherAwarded > 0 ? coverTeacherAwarded : flat.reduce((s, q) => s + q.marksAwarded, 0),
+      totalMarks: String(coverPaperTotal > 0 ? coverPaperTotal : flat.reduce((s, q) => s + q.marksAvailable, 0)),
       metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr } as Prisma.InputJsonValue,
       questions: {
         create: flat.map((q, idx) => ({
@@ -423,8 +463,13 @@ async function runDiagnosisInBackground(
     .filter(t => t.total >= 2 && t.lost === 0)
     .slice(0, 5);
 
-  const totalEarned = flat.reduce((s, q) => s + q.marksAwarded, 0);
-  const totalAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
+  const aiTotalEarned = flat.reduce((s, q) => s + q.marksAwarded, 0);
+  const aiTotalAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
+  const totalEarned = coverTeacherAwarded > 0 ? coverTeacherAwarded : aiTotalEarned;
+  const totalAvailable = coverPaperTotal > 0 ? coverPaperTotal : aiTotalAvailable;
+  if (coverTeacherAwarded > 0 || coverPaperTotal > 0) {
+    console.log(`[diagnose] using cover totals: ${totalEarned}/${totalAvailable} (per-question sums were ${aiTotalEarned}/${aiTotalAvailable})`);
+  }
   await maybeReply(
     fromEmail,
     `Diagnose: ${student.name} — ${formatNum(totalEarned)}/${formatNum(totalAvailable)} marks`,
