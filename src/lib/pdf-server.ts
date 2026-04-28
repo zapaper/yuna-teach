@@ -68,12 +68,17 @@ export async function renderPdfToJpegs(
         viewport,
         canvasFactory: factory as unknown as object,
         background: "white",
-        // Skip rendering annotations (form fields, highlights, comments).
-        // We only need the page surface for OCR + marking; annotations
-        // would just add noise — and PDFs with fractional border widths
-        // trigger 'AnnotationBorderStyle.setWidth - ignoring width: …'
-        // warnings in pdfjs that clutter the logs.
-        annotationMode: 0,
+        // ENABLE annotations (annotationMode = 1). Teachers / parents
+        // often mark up exam PDFs with digital annotations (highlights,
+        // free-text comments, ink drawings) using Adobe, GoodNotes,
+        // iPad markup, etc. These are stored as PDF annotation objects
+        // — distinct from the page content stream — and previously
+        // setting annotationMode: 0 meant we silently rendered the
+        // unmarked original. The diagnostic flow specifically needs
+        // those marks to read teacher's totals + per-question scores.
+        // (Trade-off: re-introduces the 'AnnotationBorderStyle ignoring
+        // width' warning on PDFs with fractional border widths. Cosmetic.)
+        annotationMode: 1,
       } as Parameters<typeof page.render>[0]).promise;
       out.push(cc.canvas.toBuffer("image/jpeg", quality));
       factory.destroy(cc);

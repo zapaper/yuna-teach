@@ -251,7 +251,12 @@ function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min
 // combined extract+mark+classify prompt, so we ask in isolation.
 async function readCoverTotal(jpeg: Buffer, pageLabel: string): Promise<{ paperTotalMarks: number | null; teacherAwardedMarks: number | null; rawDescription: string }> {
   const ai = getAI();
-  const prompt = `Look at this scanned exam page. Find the teacher's running total / final mark — it's almost always in RED INK (red pen / red marker), and lives in a corner, header, or summary box at the top or bottom of the page. Examples of how it looks: "31 1/2 / 50", "31.5/50", "42/60", a circled red number, or a red number written next to a printed "/50" on the cover.
+  const prompt = `Look at this scanned exam page for ANY teacher-written marks in RED INK (red pen / red marker). They could be:
+A. A SINGLE TOTAL: "31 1/2 / 50", "31.5/50", "42/60", a circled red number near a printed "/50".
+B. SECTION TOTALS: e.g. "Section A: 24/28" / "Section B: 7.5/22" written down a column. SUM these for teacherAwardedMarks.
+C. PER-QUESTION RED NUMBERS in the margin: e.g. "1", "0.5", "2", "1.5" written next to each question number. SUM all of them.
+
+Whatever red numbers you can see on this page, ADD them up and return the sum as teacherAwardedMarks.
 
 CRITICAL — handwritten fractional marks (READ THESE VERY CAREFULLY):
 - "31 1/2" = 31.5. The "1/2" is a single fraction symbol, NOT digits 1 and 2.
@@ -260,14 +265,12 @@ CRITICAL — handwritten fractional marks (READ THESE VERY CAREFULLY):
 - A digit immediately followed by "1/2" or "½" or ".5" = digit + 0.5
 - NEVER concatenate the fraction's "2" or "5" onto the leading digit. "31 1/2" is THIRTY-ONE-POINT-FIVE, not 312, 36, or 35.
 
-Look in red ink first. The teacher's handwriting is what we want — not the printed denominator.
+Look in red ink first. The teacher's handwriting is what we want — not the printed denominator. If the only red ink you see is a tick/cross with no number, that's NOT a total — return null.
 
 Return a JSON object with three keys:
 - "paperTotalMarks": the printed paper total (the number after the slash, e.g. 50). Null if no total is visible.
-- "teacherAwardedMarks": the teacher's handwritten score. Half marks supported (e.g. 31.5). Null if no teacher total is visible.
-- "description": a short string describing what you actually saw on this page in the red-ink area. E.g. "Top-right corner has '31½ / 50' in red ink" or "No teacher mark visible; this looks like a regular question page" or "Saw a red '47' near a printed '/60'". Keep under 40 words. BE SPECIFIC about what numbers you saw and where.
-
-If the page has no totals at all (most pages won't), return numerics as null and describe what you saw briefly.
+- "teacherAwardedMarks": the SUM of all red-ink numeric scores you found on this page. If you found section totals A=24, B=7.5, return 31.5. If you found a single grand total "31½", return 31.5. If you only found per-question marks, sum them. Null if no red-ink scores are visible at all.
+- "description": describe EVERY red-ink number / total you saw on this page and where, e.g. "Section A box shows '24/28' in red, Section B box shows '7.5/22' in red — sum is 31.5/50" or "Per-question marks in the margin: Q1=2, Q2=1.5, Q3=0... sum=12.5" or "No red ink anywhere on this page". Be exhaustive — list every red number. Up to 80 words.
 
 NO commentary outside the JSON.`;
   try {
@@ -383,6 +386,7 @@ async function runDiagnosisInBackground(
   subjectStr: string,
   fromEmail: string,
 ): Promise<void> {
+  // Render every attachment to per-page JPGs and CamScanner-mask.
   const pageJpegs: Buffer[] = [];
   for (const a of attachments) {
     if (a.mime === "application/pdf") {
