@@ -110,21 +110,47 @@ CONTEXT:
 - Subject (best guess from the page): ${subjectHint || "auto-detect"}
 - Student level: ${levelHint ?? "unknown — primary school"}
 
-TEACHER'S RED-INK MARKS (PRIORITY GROUND TRUTH):
+TEACHER'S RED-INK MARKS (PRIORITY GROUND TRUTH — READ CAREFULLY):
 Before assessing any answer, scan for the teacher's red-pen annotations. They are the authoritative score — your own judgement is the fallback used only when the teacher hasn't marked the question.
 
-Look for:
-- Red tick (✓) → full marks for that question or subpart
-- Red cross (✗) → 0 marks for that question or subpart
-- Half-tick / "✓½" / "½" / "0.5" → half marks
-- A small red number like "1/2" or "-1" → marks awarded / deducted exactly as written
-- Margin comments — "how?", "explain more", "no working", "wrong unit", "incomplete", "not specific" — indicate the teacher accepted the answer partly but wants something missing. Treat as partial credit (typically half).
-- Underlined or circled words inside the student's answer → the teacher is calling those out as either correct keywords or wrong ones; combine with the tick/cross context.
+Look for ALL of these (red ink, often small, may be at the end of an answer line, in the margin, or above the answer):
+- Red tick (✓) → full marks for that subpart
+- Red cross (✗) → 0 marks for that subpart
+- Half-mark indicators — TREAT ALL THE FOLLOWING AS 0.5 MARKS:
+    * "✓½" or "½" or "1/2" or "0.5" written in red
+    * A tick with a small ½ or ½ written next to it
+    * A horizontal line through a tick (sometimes used for half)
+    * "1/2" written above the answer
+- Explicit numerics like "1/2", "1.5", "-0.5", "-1" → use exactly the awarded / deducted value the teacher wrote
+- Margin comments — "how?", "explain more", "no working", "wrong unit", "incomplete", "not specific", "more detail" — even WITHOUT a half-mark symbol, these comments combined with a tick imply partial credit (typically half).
+
+OEQ SECTIONS — CRITICAL:
+OEQ questions often carry 2 marks across multiple lines or subparts (a)/(b)/(c). Teachers commonly:
+- Tick part of an answer and put "½" or "1" next to it
+- Mark each subpart separately — (a) might get a tick, (b) a half, (c) a cross
+- Write the subpart total as "1½/2" or "0.5/1" at the END of the question
+
+You MUST inspect every line of an OEQ answer for these per-line / per-subpart half marks. Past runs missed many half-mark deductions because the AI gave full marks based on its own rubric while the teacher had clearly written "½" against one of the subparts. Sum the per-subpart teacher marks if present, and put that in marksAwarded.
 
 WHEN A TEACHER MARK IS PRESENT:
 - "marksAwarded" must reflect the teacher's score, NOT your own.
-- Set "feedback" to explain what the teacher's annotation implies the student got wrong/missed. Example: if the answer key for "what is a community?" says "different populations living together in a habitat" and the student wrote "a group of organisms living together" with a teacher "✓½" and "how?" margin note, your feedback should be:
-  "Teacher gave half marks. The answer is too vague — missing the keywords 'different populations' and 'habitat' that distinguish a community from a generic group."
+- READ THE MARGIN COMMENT CAREFULLY and use it to write the feedback. The teacher's comment tells you WHY marks were lost. Translate it into a concrete, SPECIFIC explanation that names the actual missing element — pull the specific values, terms, or observations from the question stem / diagram / table / graph that the student should have referenced. A vague restatement of the teacher's comment is not enough.
+
+  Examples:
+    * Question shows a temperature graph going from 20°C to 80°C over 5 minutes. Student wrote "the metal got hotter". Teacher: "✓½" + "use data?" →
+      feedback: "Teacher gave 0.5 marks. The student should have quoted the numbers from the graph — e.g. 'the temperature rose from 20°C to 80°C in 5 minutes'. The question asked for an explanation supported by the data."
+    * Question shows a table with seedling heights of 5, 7, 9 cm over 3 weeks. Student wrote "the plants grew". Teacher: "✓½" + "use data" →
+      feedback: "Teacher gave 0.5 marks. The student needed to reference the actual heights from the table (5 cm → 9 cm over 3 weeks) instead of just saying the plants grew."
+    * Teacher: "✓½" + "how?" on "Why does ice melt in a warm room?" →
+      feedback: "Teacher gave half marks. The student stated ice melts but didn't explain the mechanism — heat energy from the warm room is transferred to the ice, causing the particles to gain energy and change state."
+    * Teacher: "✓½" + "incomplete" on a 2-mark question with two parts →
+      feedback: "Teacher gave half marks. The student answered part one but missed part two — name the specific missing part by looking at the question stem."
+    * Teacher: "✗" + "wrong unit" →
+      feedback: "Teacher marked wrong because the student used the wrong unit. The expected unit (from the question / answer key) is X."
+- For "what is a community?" with student "a group of organisms living together" and teacher "✓½" + "how?":
+    feedback: "Teacher gave half marks. The answer is too vague — missing the keywords 'different populations' and 'habitat' that distinguish a community from a generic group."
+
+The feedback should ALWAYS be specific enough that a parent reading it knows exactly what their child should have written. Generic comments like "didn't use data" are not useful — say WHICH data, by quoting from the question.
 
 WHEN NO TEACHER MARK IS PRESENT:
 - Mark the question yourself using the rubric in your standard primary-school marking pass.
