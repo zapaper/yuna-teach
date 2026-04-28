@@ -2323,7 +2323,19 @@ function ExamReviewContent({ id }: { id: string }) {
                           <img
                             src={`/api/exam/${id}/submission?page=${effectiveSubmissionPage}`}
                             alt={`Submission page for Q${currentQ.questionNum}`}
-                            className="w-full h-auto"
+                            className="w-full h-auto block"
+                          />
+                          {/* Parent red-pen overlay on the scanned page.
+                              Saved annotations are keyed per submission
+                              page index and replayed on the export PDF. */}
+                          <ReviewPenOverlay
+                            key={`submission:${effectiveSubmissionPage}`}
+                            paperId={id}
+                            storageKey={`submission:${effectiveSubmissionPage}`}
+                            initialDataUrl={data.reviewAnnotations?.[`submission:${effectiveSubmissionPage}`] ?? null}
+                            readOnly={isStudent}
+                            onSaved={handlePenSaved}
+                            scaleToFit
                           />
                           {submissionPageCount > 1 && (
                             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/50 rounded-full px-3 py-1">

@@ -247,6 +247,7 @@ async function handle(
     select: {
       id: true, title: true, pageCount: true, metadata: true, subject: true,
       sourceExamId: true, assignedToId: true, userId: true,
+      reviewAnnotations: true,
       questions: {
         select: {
           id: true, questionNum: true, pageIndex: true,
@@ -458,6 +459,23 @@ async function handle(
             yCursor -= noteSize * 1.25;
           }
         }
+      }
+    }
+
+    // Parent's red-pen overlay drawn LAST so their handwriting sits on
+    // top of the AI marks. Annotations are PNG data URLs keyed
+    // 'submission:<pageIdx>'; pdf-lib only embeds raw image bytes, so
+    // strip the data: prefix and decode.
+    const annotationKey = `submission:${i}`;
+    const annotations = (paper.reviewAnnotations as Record<string, string> | null) ?? null;
+    const dataUrl = annotations?.[annotationKey];
+    if (dataUrl?.startsWith("data:image/png;base64,")) {
+      try {
+        const pngBytes = Buffer.from(dataUrl.slice("data:image/png;base64,".length), "base64");
+        const pngImage = await doc.embedPng(pngBytes);
+        page.drawImage(pngImage, { x: 0, y: 0, width: pageW, height: pageH });
+      } catch (err) {
+        console.error(`[export-marked] failed to embed pen overlay for page ${i}:`, err);
       }
     }
   }
