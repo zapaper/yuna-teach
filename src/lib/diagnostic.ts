@@ -155,9 +155,11 @@ Skip cover pages, pure instruction pages, and any non-question content from the 
 PAPER TOTALS (CRUCIAL — overrides per-question marks):
 On a cover page, header, or final summary box, primary-school papers usually print a paper total like "Total: ___ / 50" and the teacher writes the awarded score in red ("31.5"). Look carefully on this page for either:
 - "paperTotalMarks": the printed total marks for the WHOLE paper (e.g. 50). Null if not visible on this page.
-- "teacherAwardedMarks": the teacher's handwritten total score for the whole paper (e.g. 31.5, often near "/50" or with a circle). Null if not visible.
+- "teacherAwardedMarks": the teacher's handwritten total score for the WHOLE paper. Null if not visible.
 
-Both are PER-PAGE outputs but apply to the WHOLE paper. If you spot them on any page, return the actual numbers — the server will use them as authoritative totals over our per-question sums.
+CRITICAL — handwritten fractional marks: teachers commonly write half marks as "31 1/2", "31½", "31.5", or "31 ½ ". Treat ALL of these as 31.5 (THIRTY-ONE POINT FIVE), NOT as 36, 312, or any other concatenation. The "1/2" fraction is one symbol, not two digits. If you see a number followed by "1/2" or "½" or ".5" or "0.5", the awarded marks are <number> + 0.5. Be very careful with this — past runs misread "31 1/2" as "36".
+
+Both fields apply to the WHOLE paper. If you spot them on any page, return the actual numbers — the server will use them as authoritative totals over our per-question sums. If unsure, return null rather than guessing.
 
 OUTPUT FORMAT: a JSON OBJECT with three keys:
 - "questions": JSON array of question records as described above
@@ -212,6 +214,45 @@ NO commentary.`;
 }
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
+
+// Dedicated, narrow Gemini call to read the teacher's running total on
+// a single page. Used as a second-source cross-check against the
+// per-page detector — fractional marks ("31 1/2", "31½") trip up the
+// combined extract+mark+classify prompt, so we ask in isolation.
+async function readCoverTotal(jpeg: Buffer): Promise<{ paperTotalMarks: number | null; teacherAwardedMarks: number | null }> {
+  const ai = getAI();
+  const prompt = `Look at this scanned exam page. Is there a teacher's running total or final mark visible — typically in red ink, in a corner, header, or summary box? It looks like a number-over-number such as "31 1/2 / 50", "31.5/50", "42/60", or just a circled red number near the printed paper total.
+
+CRITICAL — fractional marks: teachers OFTEN write half marks as "31 1/2", "31 ½", or "31.5". These are all THIRTY-ONE POINT FIVE (31.5), not 36, not 312. The "1/2" fraction is a single symbol. Read very carefully.
+
+Return a JSON object with exactly two keys:
+- "paperTotalMarks": the printed paper total (the number after the slash, e.g. 50). Null if no total is visible.
+- "teacherAwardedMarks": the teacher's handwritten score. Half marks supported (e.g. 31.5). Null if no teacher total is visible.
+
+If the page has no totals at all (most pages won't), return {"paperTotalMarks": null, "teacherAwardedMarks": null}.
+
+NO commentary.`;
+  try {
+    const resp = await ai.models.generateContent({
+      model: "gemini-2.5-pro",
+      contents: [{
+        role: "user",
+        parts: [
+          { text: prompt },
+          { inlineData: { mimeType: "image/jpeg", data: jpeg.toString("base64") } },
+        ],
+      }],
+      config: { temperature: 0, responseMimeType: "application/json" },
+    });
+    const raw = resp.text ?? "{}";
+    const parsed = JSON.parse(raw) as { paperTotalMarks?: number | null; teacherAwardedMarks?: number | null };
+    const paperTotalMarks = typeof parsed.paperTotalMarks === "number" && parsed.paperTotalMarks > 0 ? parsed.paperTotalMarks : null;
+    const teacherAwardedMarks = typeof parsed.teacherAwardedMarks === "number" && parsed.teacherAwardedMarks >= 0 ? parsed.teacherAwardedMarks : null;
+    return { paperTotalMarks, teacherAwardedMarks };
+  } catch {
+    return { paperTotalMarks: null, teacherAwardedMarks: null };
+  }
+}
 
 // Map a free-text topic from Gemini onto the canonical syllabus list.
 // Tries exact match (case-insensitive) first, then a token-overlap
@@ -332,22 +373,39 @@ async function runDiagnosisInBackground(
     : "";
   const levelHint = student.level ? `Primary ${student.level}` : null;
 
-  // Run Gemini diagnosis on every page in parallel.
+  // Run Gemini diagnosis on every page in parallel. The first and last
+  // few pages also get a dedicated cover-scan call (focused only on
+  // teacher's running total) to cross-check the totals — handwritten
+  // half marks like '31 1/2' trip up the combined prompt.
   console.log(`[diagnose] analysing ${pageJpegs.length} pages for student=${student.id} (${student.name})`);
   const t0 = Date.now();
-  const perPage = await Promise.all(pageJpegs.map(buf => diagnosePage(buf, subjectHint, levelHint)));
+  const coverScanIndices = new Set<number>([0, 1, pageJpegs.length - 2, pageJpegs.length - 1].filter(i => i >= 0 && i < pageJpegs.length));
+  const [perPage, coverScans] = await Promise.all([
+    Promise.all(pageJpegs.map(buf => diagnosePage(buf, subjectHint, levelHint))),
+    Promise.all(pageJpegs.map((buf, i) => coverScanIndices.has(i) ? readCoverTotal(buf) : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null }))),
+  ]);
   console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
   const flat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
 
-  // Authoritative totals: any page that spotted a printed paper total
-  // or a teacher-written running total wins over our per-question sum.
-  // Pick the highest value seen across pages — duplicate detection
-  // (cover + final summary) usually agrees, and if not, the larger
-  // total is more likely to be the real paper total.
-  const coverPaperTotal = Math.max(0, ...perPage.map(p => p.paperTotalMarks ?? 0));
-  const coverTeacherAwarded = Math.max(0, ...perPage.map(p => p.teacherAwardedMarks ?? 0));
+  // Authoritative totals from BOTH passes (per-page detector + dedicated
+  // cover-scan). For paper-total-marks (a printed number, easy to read)
+  // take the modal/highest value. For teacher-awarded (handwritten,
+  // can include halves) prefer the cover-scan's value if it disagrees
+  // with the per-page sum, and pick the SMALLEST non-zero value across
+  // pages — duplicate teacher totals often appear on cover + final
+  // page; a runaway larger value is more likely to be a misread.
+  const allPaperTotals = [
+    ...perPage.map(p => p.paperTotalMarks ?? 0),
+    ...coverScans.map(c => c.paperTotalMarks ?? 0),
+  ].filter(n => n > 0);
+  const allTeacherAwarded = [
+    ...coverScans.map(c => c.teacherAwardedMarks ?? null),
+    ...perPage.map(p => p.teacherAwardedMarks ?? null),
+  ].filter((n): n is number => typeof n === "number");
+  const coverPaperTotal = allPaperTotals.length > 0 ? Math.max(...allPaperTotals) : 0;
+  const coverTeacherAwarded = allTeacherAwarded.length > 0 ? Math.min(...allTeacherAwarded) : 0;
   if (coverPaperTotal > 0 || coverTeacherAwarded > 0) {
-    console.log(`[diagnose] cover-page totals: paperTotalMarks=${coverPaperTotal || "?"} teacherAwarded=${coverTeacherAwarded || "?"}`);
+    console.log(`[diagnose] cover-page totals: paperTotalMarks=${coverPaperTotal || "?"} teacherAwarded=${coverTeacherAwarded || "?"} (raw scan=[${allTeacherAwarded.join(",")}], inline=[${perPage.map(p => p.teacherAwardedMarks ?? "_").join(",")}])`);
   }
   // Verbose breakdown so the parent can sanity-check the AI's work.
   // Logs: total questions, total marks, per-page question counts, the
