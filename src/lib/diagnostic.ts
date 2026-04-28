@@ -221,13 +221,13 @@ NO commentary.`;
       const rawTopic = String(q.topic ?? "").trim();
       return {
         questionNum: String(q.questionNum ?? "?"),
-        stem: String(q.stem ?? ""),
-        options: Array.isArray(q.options) ? q.options.map(o => String(o)) : [],
-        expectedAnswer: String(q.expectedAnswer ?? ""),
-        studentAnswer: String(q.studentAnswer ?? ""),
+        stem: stripLatex(String(q.stem ?? "")),
+        options: Array.isArray(q.options) ? q.options.map(o => stripLatex(String(o))) : [],
+        expectedAnswer: stripLatex(String(q.expectedAnswer ?? "")),
+        studentAnswer: stripLatex(String(q.studentAnswer ?? "")),
         isCorrect,
         isBlank: Boolean(q.isBlank),
-        feedback: String(q.feedback ?? ""),
+        feedback: stripLatex(String(q.feedback ?? "")),
         topic: snapToCanonicalTopic(rawTopic, allowedTopics),
         marksAvailable,
         marksAwarded: clamp(marksAwardedRaw, 0, marksAvailable),
@@ -243,6 +243,55 @@ NO commentary.`;
 }
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
+
+// Convert any LaTeX math fragments that slip through into plain
+// Unicode so the review UI (which doesn't run a math renderer) shows
+// a readable string instead of literal '$\\angle DHG = 48^\\circ$'.
+// Best-effort — covers the patterns Gemini tends to emit on math /
+// geometry questions. Anything we don't match is left alone.
+function stripLatex(s: string | null | undefined): string {
+  if (!s) return "";
+  let out = s;
+  // Greek letters
+  const greek: Record<string, string> = {
+    "\\alpha": "α", "\\beta": "β", "\\gamma": "γ", "\\delta": "δ",
+    "\\theta": "θ", "\\pi": "π", "\\sigma": "σ", "\\omega": "ω",
+    "\\Delta": "Δ", "\\Sigma": "Σ", "\\Omega": "Ω",
+  };
+  for (const [k, v] of Object.entries(greek)) {
+    out = out.split(k).join(v);
+  }
+  // Symbols
+  out = out
+    .replace(/\\angle\s*/g, "∠")
+    .replace(/\\triangle\s*/g, "△")
+    .replace(/\\times/g, "×")
+    .replace(/\\div/g, "÷")
+    .replace(/\\pm/g, "±")
+    .replace(/\\leq/g, "≤")
+    .replace(/\\geq/g, "≥")
+    .replace(/\\neq/g, "≠")
+    .replace(/\\approx/g, "≈")
+    .replace(/\\cdot/g, "·")
+    .replace(/\\to/g, "→")
+    .replace(/\\rightarrow/g, "→");
+  // Degree: ^\circ or ^{\circ}
+  out = out.replace(/\^\s*\{?\s*\\circ\s*\}?/g, "°");
+  // Fractions \frac{a}{b} → a/b
+  out = out.replace(/\\frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, (_, a, b) => `${a}/${b}`);
+  // Superscripts ^2 / ^{2} → ², where we have a Unicode equivalent.
+  const supMap: Record<string, string> = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+  out = out.replace(/\^\s*\{([0-9])\}/g, (_, d) => supMap[d as string] ?? `^${d}`);
+  out = out.replace(/\^\s*([0-9])/g, (_, d) => supMap[d as string] ?? `^${d}`);
+  // Strip math delimiters $...$ and $$...$$
+  out = out.replace(/\$\$([^$]*)\$\$/g, "$1").replace(/\$([^$]*)\$/g, "$1");
+  // Strip remaining \word{} commands (best-effort) — keep the inner content if any
+  out = out.replace(/\\([a-zA-Z]+)\s*\{([^{}]*)\}/g, "$2");
+  out = out.replace(/\\([a-zA-Z]+)/g, "");
+  // Tidy up double spaces left by replacements
+  out = out.replace(/\s{2,}/g, " ").trim();
+  return out;
+}
 
 // Clamp the headline score at the paper's total available marks. Logs
 // a warning if clamping was necessary so we can spot whatever inflated
@@ -333,13 +382,21 @@ INSTRUCTIONS:
 5. Compare student's answer to your derived correct answer. Allow for unit-equivalent forms (e.g. "5cm" vs "5 cm") but be strict about value.
 6. Award marks: full marks if correct; partial (typically half) if working is shown but final answer is wrong; 0 if blank or fundamentally wrong with no salvageable steps.
 
+FORMATTING (CRITICAL): the feedback text will be displayed verbatim to a parent in plain HTML — no math renderer is available. Do NOT use LaTeX. NEVER write '$...$', '\\angle', '\\circ', '\\frac{...}{...}', '\\times', '\\div', or any backslash-command. Use plain Unicode math instead:
+- '∠ABC' (not '\\angle ABC')
+- '48°' (not '48^\\circ' or '$48^\\circ$')
+- '×' / '÷' (not '\\times' / '\\div')
+- '½' '¼' '¾' or 'a/b' (not '\\frac{a}{b}')
+- '²' '³' for squares / cubes (not '^2' / '^{3}')
+- 'π' (not '\\pi')
+
 OUTPUT (JSON only):
 {
-  "expectedAnswer": "<your derived correct answer>",
+  "expectedAnswer": "<your derived correct answer, plain text + unicode math, NO LaTeX>",
   "studentAnswer": "<what the student actually wrote, possibly corrected from the first pass>",
   "isCorrect": <boolean>,
   "marksAwarded": <number 0 .. ${q.marksAvailable}>,
-  "feedback": "<1-2 sentences explaining what went wrong, naming the specific geometric property or formula. 'Correct' if isCorrect.>"
+  "feedback": "<1-2 sentences explaining what went wrong, naming the specific geometric property or formula. Plain text only. 'Correct' if isCorrect.>"
 }
 
 NO commentary outside the JSON.`;
@@ -360,9 +417,9 @@ NO commentary outside the JSON.`;
     return {
       marksAwarded: clamp(Number(parsed.marksAwarded ?? 0), 0, q.marksAvailable),
       isCorrect: Boolean(parsed.isCorrect),
-      expectedAnswer: String(parsed.expectedAnswer ?? q.expectedAnswer),
-      studentAnswer: String(parsed.studentAnswer ?? q.studentAnswer),
-      feedback: String(parsed.feedback ?? ""),
+      expectedAnswer: stripLatex(parsed.expectedAnswer ?? q.expectedAnswer),
+      studentAnswer: stripLatex(parsed.studentAnswer ?? q.studentAnswer),
+      feedback: stripLatex(parsed.feedback ?? ""),
     };
   } catch (err) {
     console.error(`[diagnose] geometry recheck Q${q.questionNum} failed (model=${GEOMETRY_MODEL}):`, err);
