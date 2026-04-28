@@ -143,6 +143,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [remarking, setRemarking] = useState(false);
   const [advisoryDismissed, setAdvisoryDismissed] = useState(false);
   const [released, setReleased] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [pendingReviewIds, setPendingReviewIds] = useState<string[]>([]);
   const [sticker, setSticker] = useState<string | null>(null);
   const [showStickerPicker, setShowStickerPicker] = useState(false);
@@ -1178,11 +1179,37 @@ function ExamReviewContent({ id }: { id: string }) {
             </button>
             {!isStudent && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
               <button
-                onClick={() => {
-                  window.open(`/api/exam/${id}/export-marked?userId=${userId}`, "_blank");
+                onClick={async () => {
+                  if (exporting) return;
+                  setExporting(true);
+                  try {
+                    const r = await fetch(`/api/exam/${id}/export-marked?userId=${userId}`);
+                    if (!r.ok) {
+                      const detail = await r.json().catch(() => ({}));
+                      alert(`Export failed: ${detail.detail ?? r.status}`);
+                      return;
+                    }
+                    const blob = await r.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    // Server sets a Content-Disposition with the proper title
+                    // already; this fallback name only kicks in if the browser
+                    // ignores it, which most don't.
+                    a.download = "marked-paper.pdf";
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                  } catch (err) {
+                    alert(`Export failed: ${err instanceof Error ? err.message : String(err)}`);
+                  } finally {
+                    setExporting(false);
+                  }
                 }}
+                disabled={exporting}
                 title="Download a PDF with red-pen marks for printing"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#c3c6d1]/30 text-sm font-bold text-[#43474f] hover:bg-[#eff4ff] hover:text-[#001e40] transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-[#c3c6d1]/30 text-sm font-bold text-[#43474f] hover:bg-[#eff4ff] hover:text-[#001e40] transition-all disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-base">file_download</span>
                 Export marked paper
@@ -2504,6 +2531,20 @@ function ExamReviewContent({ id }: { id: string }) {
                 <img src={`/stickers/thumbs/${s}`} alt={s.replace("_t.PNG", "")} className="w-24 h-24 object-contain" />
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Export-marked progress modal — covers the screen while the
+          server runs Gemini classifications + builds the PDF. ~5-10s
+          on a typical 19-question paper. Uncloseable on purpose; if it
+          fails the alert in the click handler will surface the error. */}
+      {exporting && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full flex flex-col items-center gap-4">
+            <div className="w-12 h-12 rounded-full border-4 border-[#dce9ff] border-t-[#003366] animate-spin" />
+            <p className="font-headline font-extrabold text-lg text-[#001e40]">Generating marked paper</p>
+            <p className="text-sm text-[#43474f] text-center">The AI is placing red-pen marks on each question. This may take 5–10 seconds.</p>
           </div>
         </div>
       )}

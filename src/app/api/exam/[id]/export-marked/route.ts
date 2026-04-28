@@ -238,41 +238,54 @@ async function handle(
     bySubPage.set(subPage, arr);
   }
 
-  // For each question on each scanned page: crop the question's region
-  // out of the page JPG with sharp, send to Gemini for per-subpart Y/X
-  // positions + status, and remember those marks for stamping.
+  // Crop and classify EVERY question across EVERY page in parallel.
+  // Earlier we walked pages sequentially with Promise.all only inside
+  // each page; on a 19-question paper that meant ~5s of latency that
+  // could be ~1s with full fan-out. Each Gemini call is independent so
+  // there's nothing stopping us launching them all at once.
   type PerQuestionMarks = { qId: string; pageRegion: { topPx: number; leftPx: number; widthPx: number; heightPx: number }; marks: SubpartMark[] };
-  const allMarks: { pageIdx: number; perQ: PerQuestionMarks[] }[] = [];
 
-  for (let i = 0; i < pageFiles.length; i++) {
-    const jpgPath = path.join(subDir, pageFiles[i]);
-    const jpgBytes = await fs.readFile(jpgPath);
+  // Pre-load every page's bytes + metadata once.
+  const pageData = await Promise.all(pageFiles.map(async (file) => {
+    const jpgBytes = await fs.readFile(path.join(subDir, file));
     const meta = await sharp(jpgBytes).metadata();
-    const Wpx = meta.width ?? 0;
-    const Hpx = meta.height ?? 0;
+    return { jpgBytes, Wpx: meta.width ?? 0, Hpx: meta.height ?? 0 };
+  }));
+
+  // Build a flat list of (pageIdx, question) tuples and classify in parallel.
+  const flatJobs: { pageIdx: number; q: typeof paper.questions[number] }[] = [];
+  for (let i = 0; i < pageFiles.length; i++) {
     const qs = bySubPage.get(i) ?? [];
-    if (qs.length === 0 || Wpx === 0 || Hpx === 0) {
-      allMarks.push({ pageIdx: i, perQ: [] });
-      continue;
+    for (const q of qs) flatJobs.push({ pageIdx: i, q });
+  }
+  console.log(`[export-marked] classifying ${flatJobs.length} questions in parallel`);
+  const t0 = Date.now();
+  const flatResults = await Promise.all(flatJobs.map(async ({ pageIdx, q }) => {
+    const { jpgBytes, Wpx, Hpx } = pageData[pageIdx];
+    if (Wpx === 0 || Hpx === 0) {
+      return { pageIdx, qId: q.id, pageRegion: { topPx: 0, leftPx: 0, widthPx: 0, heightPx: 0 }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q) }] satisfies SubpartMark[] };
     }
-    // Crop each question's region in parallel, then classify in parallel.
-    const perQ = await Promise.all(qs.map(async (q) => {
-      const yStartPct = q.yStartPct ?? 0;
-      const yEndPct = q.yEndPct ?? 100;
-      const topPx = Math.max(0, Math.floor(Hpx * yStartPct / 100));
-      const bottomPx = Math.min(Hpx, Math.ceil(Hpx * yEndPct / 100));
-      const heightPx = Math.max(1, bottomPx - topPx);
-      let regionBuf: Buffer;
-      try {
-        regionBuf = await sharp(jpgBytes).extract({ left: 0, top: topPx, width: Wpx, height: heightPx }).jpeg({ quality: 80 }).toBuffer();
-      } catch (err) {
-        console.error(`[export-marked] crop failed for Q${q.questionNum}:`, err);
-        return { qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q) }] };
-      }
-      const marks = await classifyQuestion(regionBuf, q);
-      return { qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks };
-    }));
-    allMarks.push({ pageIdx: i, perQ });
+    const yStartPct = q.yStartPct ?? 0;
+    const yEndPct = q.yEndPct ?? 100;
+    const topPx = Math.max(0, Math.floor(Hpx * yStartPct / 100));
+    const bottomPx = Math.min(Hpx, Math.ceil(Hpx * yEndPct / 100));
+    const heightPx = Math.max(1, bottomPx - topPx);
+    let regionBuf: Buffer;
+    try {
+      regionBuf = await sharp(jpgBytes).extract({ left: 0, top: topPx, width: Wpx, height: heightPx }).jpeg({ quality: 80 }).toBuffer();
+    } catch (err) {
+      console.error(`[export-marked] crop failed for Q${q.questionNum}:`, err);
+      return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks: [{ label: "", yPctEnd: 95, xPctEnd: 95, status: fallbackStatus(q) }] satisfies SubpartMark[] };
+    }
+    const marks = await classifyQuestion(regionBuf, q);
+    return { pageIdx, qId: q.id, pageRegion: { topPx, leftPx: 0, widthPx: Wpx, heightPx }, marks };
+  }));
+  console.log(`[export-marked] classification done in ${Date.now() - t0}ms`);
+
+  // Re-bucket by page index for the stamping loop.
+  const allMarks: { pageIdx: number; perQ: PerQuestionMarks[] }[] = pageFiles.map((_, i) => ({ pageIdx: i, perQ: [] }));
+  for (const r of flatResults) {
+    allMarks[r.pageIdx].perQ.push({ qId: r.qId, pageRegion: r.pageRegion, marks: r.marks });
   }
 
   // Build the PDF.
@@ -305,16 +318,15 @@ async function handle(
       const isMcq = entry.marks.length === 1 && entry.marks[0].label === "" && totalAvail > 0; // MCQs come back as a single empty-label entry, fine
 
       for (const m of entry.marks) {
-        // Region coords → page coords (image y is top-down, PDF y is bottom-up).
+        // Y comes from Gemini (just below where the student's writing
+        // for this subpart ends). X is FIXED at 10% from the right
+        // edge so every mark on the paper aligns down a single column.
         const regionTopPx = entry.pageRegion.topPx;
         const regionH = entry.pageRegion.heightPx;
-        const regionW = entry.pageRegion.widthPx;
         const yPx = regionTopPx + (m.yPctEnd / 100) * regionH;
-        const xPx = (m.xPctEnd / 100) * regionW;
-        // Clamp the mark x so it never strays into the right margin past
-        // the page edge or so far left it overlaps the writing.
-        const markX = Math.min(pageW - markSize * 0.6, Math.max(xPx + markSize * 0.4, pageW * 0.15));
-        const markY = pageH - yPx - markSize * 0.2; // small lift so it sits just above the baseline
+        const markRightX = pageW * 0.90;            // 10% in from right edge
+        const markX = markRightX - markSize * 0.5;  // centre the glyph on that line
+        const markY = pageH - yPx - markSize * 0.2; // small lift so it sits just above baseline
 
         const status = m.status;
         if (status === "blank") continue;
@@ -324,21 +336,24 @@ async function handle(
         } else if (status === "wrong") {
           drawCross(page, markX, markY, markSize, RED);
         } else if (status === "partial") {
-          drawTick(page, markX - markSize * 0.55, markY, markSize, RED);
-          drawCross(page, markX + markSize * 0.05, markY, markSize, RED);
+          drawTick(page, markX - markSize * 0.30, markY, markSize, RED);
+          drawCross(page, markX + markSize * 0.30, markY, markSize, RED);
         }
 
-        // Caveat note for non-correct subparts. Sits to the LEFT of the
-        // mark on the same line, right-aligned so it never overlaps.
+        // Note for non-correct subparts. Right-aligned at the same 10%-
+        // from-edge line, sitting just below the mark.
         if (status !== "correct" && m.note) {
           const note = m.note;
-          const noteW = handFont.widthOfTextAtSize(note, noteSize);
-          const maxW = Math.max(60, markX - markSize * 1.5);
-          const finalText = noteW > maxW ? note.slice(0, Math.max(3, Math.floor(note.length * (maxW / noteW)) - 1)) + "…" : note;
-          const finalW = handFont.widthOfTextAtSize(finalText, noteSize);
+          const maxW = pageW * 0.30; // hard cap so a long note doesn't bleed across the page
+          let finalText = note;
+          let finalW = handFont.widthOfTextAtSize(finalText, noteSize);
+          if (finalW > maxW) {
+            finalText = note.slice(0, Math.max(3, Math.floor(note.length * (maxW / finalW)) - 1)) + "…";
+            finalW = handFont.widthOfTextAtSize(finalText, noteSize);
+          }
           page.drawText(finalText, {
-            x: markX - markSize - finalW - 2,
-            y: markY - noteSize * 0.1,
+            x: markRightX - finalW,
+            y: markY - markSize * 0.6 - noteSize,
             size: noteSize,
             font: handFont,
             color: RED,
