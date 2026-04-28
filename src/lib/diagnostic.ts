@@ -94,11 +94,30 @@ type DiagnosedQuestion = {
 async function diagnosePage(jpeg: Buffer, subjectHint: string, levelHint: string | null): Promise<DiagnosedQuestion[]> {
   const ai = getAI();
   const allowedTopics = topicListForSubject(subjectHint);
-  const prompt = `You are reviewing one page of a Singapore primary-school past paper photographed by a parent. The student has handwritten answers on the paper.
+  const prompt = `You are reviewing one page of a Singapore primary-school past paper photographed by a parent. The student has handwritten answers on the paper, AND there may already be red-ink marks from the school teacher.
 
 CONTEXT:
 - Subject (best guess from the page): ${subjectHint || "auto-detect"}
 - Student level: ${levelHint ?? "unknown — primary school"}
+
+TEACHER'S RED-INK MARKS (PRIORITY GROUND TRUTH):
+Before assessing any answer, scan for the teacher's red-pen annotations. They are the authoritative score — your own judgement is the fallback used only when the teacher hasn't marked the question.
+
+Look for:
+- Red tick (✓) → full marks for that question or subpart
+- Red cross (✗) → 0 marks for that question or subpart
+- Half-tick / "✓½" / "½" / "0.5" → half marks
+- A small red number like "1/2" or "-1" → marks awarded / deducted exactly as written
+- Margin comments — "how?", "explain more", "no working", "wrong unit", "incomplete", "not specific" — indicate the teacher accepted the answer partly but wants something missing. Treat as partial credit (typically half).
+- Underlined or circled words inside the student's answer → the teacher is calling those out as either correct keywords or wrong ones; combine with the tick/cross context.
+
+WHEN A TEACHER MARK IS PRESENT:
+- "marksAwarded" must reflect the teacher's score, NOT your own.
+- Set "feedback" to explain what the teacher's annotation implies the student got wrong/missed. Example: if the answer key for "what is a community?" says "different populations living together in a habitat" and the student wrote "a group of organisms living together" with a teacher "✓½" and "how?" margin note, your feedback should be:
+  "Teacher gave half marks. The answer is too vague — missing the keywords 'different populations' and 'habitat' that distinguish a community from a generic group."
+
+WHEN NO TEACHER MARK IS PRESENT:
+- Mark the question yourself using the rubric in your standard primary-school marking pass.
 
 TOPIC VOCABULARY (REQUIRED):
 The "topic" field MUST be EXACTLY one of the strings below — copied verbatim, including capitalisation and punctuation. Do not invent new labels, do not abbreviate, do not paraphrase. If a question doesn't fit, pick the closest one. Strings outside this list will be rejected and the question will end up un-tagged.
