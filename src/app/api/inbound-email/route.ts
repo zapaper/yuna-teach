@@ -8,6 +8,7 @@ import { Prisma } from "@prisma/client";
 import { markExamPaper } from "@/lib/marking";
 import { renderPdfToJpegs } from "@/lib/pdf-server";
 import { maskBottomRightCorner } from "@/lib/watermark";
+import { handleDiagnostic } from "@/lib/diagnostic";
 
 // SendGrid Inbound Parse webhook.
 // Parents scan their printed exam paper, email it to hello@markforyou.com.
@@ -105,8 +106,11 @@ export async function POST(request: NextRequest) {
 
   const fromRaw = form.get("from");
   const fromEmail = normaliseEmail(typeof fromRaw === "string" ? fromRaw : null);
+  const toRaw = form.get("to");
+  const toEmail = normaliseEmail(typeof toRaw === "string" ? toRaw : null);
+  const localPart = toEmail?.split("@")[0]?.toLowerCase() ?? "";
   const subject = form.get("subject");
-  console.log(`[inbound-email] from=${fromEmail} subject=${typeof subject === "string" ? subject : ""}`);
+  console.log(`[inbound-email] from=${fromEmail} to=${toEmail} subject=${typeof subject === "string" ? subject : ""}`);
 
   if (!fromEmail) {
     console.warn("[inbound-email] no sender — dropping");
@@ -115,11 +119,20 @@ export async function POST(request: NextRequest) {
 
   const parent = await prisma.user.findFirst({
     where: { email: { equals: fromEmail, mode: "insensitive" } },
-    select: { id: true, name: true, role: true, parentLinks: { select: { studentId: true } } },
+    select: { id: true, name: true, role: true, parentLinks: { select: { studentId: true, student: { select: { id: true, name: true, level: true } } } } },
   });
   if (!parent) {
     console.warn(`[inbound-email] no registered user for ${fromEmail} — dropping`);
     return NextResponse.json({ ok: true, ignored: "unknown sender" });
+  }
+
+  // Dispatch on the inbound mailbox local part. 'diagnose@' is the
+  // onboarding-by-photo flow: parent emails any past paper, the AI
+  // extracts + marks + topic-tags it, and replies with a weak-topic
+  // summary. Anything else falls through to the printed-paper scan
+  // flow that matches against the stamped print code.
+  if (localPart === "diagnose") {
+    return await handleDiagnostic(form, parent, fromEmail);
   }
 
   // Collect attachments (any file field whose name starts with 'attachment').
