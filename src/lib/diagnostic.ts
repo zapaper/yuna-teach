@@ -322,12 +322,15 @@ function snapToCanonicalTopic(raw: string, allowed: string[]): string {
 function pickStudent(parent: DiagnoseParent, subjectHintFromMail: string): { id: string; name: string; level: number | null } | null {
   const links = parent.parentLinks;
   if (links.length === 0) return null;
-  // Subject-line student-name match: parent might write "Diagnose for John"
-  // or "John's paper". Pick the first linked student whose name appears.
+  // Subject-line student-name match: parent might write "Diagnose for
+  // Mark Lim" or "Mark Lim's paper". Pick the linked student whose
+  // FULL NAME appears in the subject — preferring the longest match
+  // so "Mark Lim" wins over a sibling just called "Mark".
   const lower = subjectHintFromMail.toLowerCase();
-  for (const l of links) {
-    if (l.student.name && lower.includes(l.student.name.toLowerCase())) return l.student;
-  }
+  const matches = links
+    .filter(l => l.student.name && lower.includes(l.student.name.toLowerCase()))
+    .sort((a, b) => (b.student.name?.length ?? 0) - (a.student.name?.length ?? 0));
+  if (matches.length > 0) return matches[0].student;
   return links[0].student;
 }
 
