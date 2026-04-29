@@ -241,7 +241,11 @@ OUTPUT FORMAT: a JSON OBJECT with these keys:
 NO commentary.`;
   try {
     const resp = await withRetries("diagnosePage", 5, () => ai.models.generateContent({
-      model: "gemini-2.5-pro",
+      // Was gemini-2.5-pro — flash is ~5× faster and reliably handles
+      // the structured-output + image OCR we need here. Pro was
+      // hanging on the merged prompt long enough to trigger undici's
+      // headers-timeout and stall the whole paper.
+      model: "gemini-2.5-flash",
       contents: [{
         role: "user",
         parts: [
@@ -816,7 +820,14 @@ async function runDiagnosisInBackground(
   // classify+banner+totals is heavy and we kept seeing connection-
   // pool related fetch failures at higher concurrency.
   const PAGE_CONCURRENCY = 4;
-  const perPage = await mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, buf => diagnosePage(buf, subjectHint, levelHint));
+  let pagesDone = 0;
+  const perPage = await mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, async (buf, i) => {
+    const t0 = Date.now();
+    const out = await diagnosePage(buf, subjectHint, levelHint);
+    pagesDone++;
+    console.log(`[diagnose] p${i} done in ${Date.now() - t0}ms (${pagesDone}/${pageJpegs.length})`);
+    return out;
+  });
   const allBands: MarkingBand[] = perPage.flatMap(p => p.markingSchemeBands);
   if (allBands.length > 0) {
     const totalFromBands = allBands.reduce((s, b) => s + (b.to - b.from + 1) * b.marksPerQ, 0);
