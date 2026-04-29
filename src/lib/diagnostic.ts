@@ -99,6 +99,7 @@ type PageDiagnosis = {
   questions: DiagnosedQuestion[];
   paperTotalMarks: number | null;     // printed total on the page, e.g. 50
   teacherAwardedMarks: number | null; // teacher's running/final score, e.g. 31.5
+  markingSchemeBands: { from: number; to: number; marksPerQ: number }[]; // banner ranges spotted on this page
 };
 
 async function diagnosePage(jpeg: Buffer, subjectHint: string, levelHint: string | null): Promise<PageDiagnosis> {
@@ -224,10 +225,18 @@ CRITICAL — handwritten fractional marks: teachers commonly write half marks as
 
 Both fields apply to the WHOLE paper. If you spot them on any page, return the actual numbers — the server will use them as authoritative totals over our per-question sums. If unsure, return null rather than guessing.
 
-OUTPUT FORMAT: a JSON OBJECT with three keys:
+MARKING-SCHEME BANNERS:
+Singapore primary papers begin every section with a small banner like:
+- "Questions 1 to 10 carry 1 mark each."
+- "Questions 11 to 15 carry 2 marks each."
+- "For Booklet B, Questions 1 to 5 each carry 2 marks."
+If THIS page has any such banner, output every range as one entry in markingSchemeBands. Multiple banners on the same page = multiple entries. No banner = empty array.
+
+OUTPUT FORMAT: a JSON OBJECT with these keys:
 - "questions": JSON array of question records as described above
 - "paperTotalMarks": number or null
 - "teacherAwardedMarks": number or null
+- "markingSchemeBands": array of {"from": <int>, "to": <int>, "marksPerQ": <number>} — one per banner spotted on THIS page; [] if none
 
 NO commentary.`;
   try {
@@ -243,11 +252,22 @@ NO commentary.`;
       config: { temperature: 0, responseMimeType: "application/json" },
     }));
     const raw = resp.text ?? "{}";
-    const parsed = JSON.parse(raw) as { questions?: DiagnosedQuestion[]; paperTotalMarks?: number | null; teacherAwardedMarks?: number | null } | DiagnosedQuestion[];
+    const parsed = JSON.parse(raw) as { questions?: DiagnosedQuestion[]; paperTotalMarks?: number | null; teacherAwardedMarks?: number | null; markingSchemeBands?: { from?: number; to?: number; marksPerQ?: number }[] } | DiagnosedQuestion[];
     // Tolerate the legacy plain-array shape in case Gemini drops the wrapper object.
     const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.questions) ? parsed.questions : []);
     const paperTotalMarks = (!Array.isArray(parsed) && typeof parsed.paperTotalMarks === "number" && parsed.paperTotalMarks > 0) ? parsed.paperTotalMarks : null;
     const teacherAwardedMarks = (!Array.isArray(parsed) && typeof parsed.teacherAwardedMarks === "number" && parsed.teacherAwardedMarks >= 0) ? parsed.teacherAwardedMarks : null;
+    const markingSchemeBands: { from: number; to: number; marksPerQ: number }[] = [];
+    if (!Array.isArray(parsed) && Array.isArray(parsed.markingSchemeBands)) {
+      for (const b of parsed.markingSchemeBands) {
+        const from = Number(b.from);
+        const to = Number(b.to);
+        const m = Number(b.marksPerQ);
+        if (Number.isFinite(from) && Number.isFinite(to) && Number.isFinite(m) && from > 0 && to >= from && m > 0) {
+          markingSchemeBands.push({ from, to, marksPerQ: m });
+        }
+      }
+    }
     const questions = arr.map(q => {
       const marksAvailable = Math.max(0, Number(q.marksAvailable ?? 1));
       const isCorrect = Boolean(q.isCorrect);
@@ -269,10 +289,10 @@ NO commentary.`;
         yEndPct: clamp(Number(q.yEndPct ?? 100), 0, 100),
       };
     });
-    return { questions, paperTotalMarks, teacherAwardedMarks };
+    return { questions, paperTotalMarks, teacherAwardedMarks, markingSchemeBands };
   } catch (err) {
     console.error("[diagnose] page analysis failed:", err);
-    return { questions: [], paperTotalMarks: null, teacherAwardedMarks: null };
+    return { questions: [], paperTotalMarks: null, teacherAwardedMarks: null, markingSchemeBands: [] };
   }
 }
 
@@ -322,68 +342,11 @@ async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T,
   return results;
 }
 
-// Scan EVERY page for marking-scheme banners — the small italic
-// instructions that say things like 'Questions 1 to 10 carry 1 mark
-// each' or 'Questions 11 to 15 carry 2 marks each'. Singapore primary
-// papers use these consistently to declare per-question marks; treating
-// them as ground truth removes the per-page Gemini call's tendency to
-// guess (and over-allocate). Runs in parallel; cost is one extra
-// Gemini-flash call per page.
+// Marking-scheme banner ranges (e.g. 'Questions 1-10 carry 1 mark each')
+// are now read inside the merged per-page diagnose call rather than a
+// separate pass. Type kept for callers that consume them downstream.
 type MarkingBand = { from: number; to: number; marksPerQ: number };
 
-async function scanMarkingSchemeOnPage(jpeg: Buffer, pageLabel: string): Promise<MarkingBand[]> {
-  const ai = getAI();
-  const prompt = `Look at this scanned exam page. Find any printed MARKING SCHEME BANNER — the small instruction that tells the student how many marks each question is worth. They typically appear at the start of a section / booklet, or just above the first question of a new sub-section.
-
-Examples of how a banner reads (verbatim from real papers):
-- "Questions 1 to 10 carry 1 mark each."
-- "Questions 11 to 15 carry 2 marks each. Show your working clearly."
-- "For questions 1 to 5 (Booklet B), four options 1, 2, 3, 4 are given. Each carries 1 mark."
-- "Questions 21 to 30 carry 2 marks each."
-
-For EACH banner you see on THIS page, output one entry. Output a JSON array (possibly empty if no banner is on this page).
-
-Each entry:
-- "from": the starting question number in the band (integer)
-- "to": the ending question number in the band (integer)
-- "marksPerQ": the per-question mark value (number; halves allowed)
-
-If a banner says "carry 2, 4 or 5 marks" without a fixed value, use the LOWEST value (it's a placeholder for variable-mark questions and we'll allow per-question overrides). If the page has no marking-scheme banner, return [].
-
-OUTPUT: JSON array only. No commentary.`;
-  try {
-    const resp = await withRetries(`scanMarkingScheme ${pageLabel}`, 3, () => ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [{
-        role: "user",
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType: "image/jpeg", data: jpeg.toString("base64") } },
-        ],
-      }],
-      config: { temperature: 0, responseMimeType: "application/json" },
-    }));
-    const raw = resp.text ?? "[]";
-    const parsed = JSON.parse(raw) as { from?: number; to?: number; marksPerQ?: number }[];
-    if (!Array.isArray(parsed)) return [];
-    const out: MarkingBand[] = [];
-    for (const b of parsed) {
-      const from = Number(b.from);
-      const to = Number(b.to);
-      const m = Number(b.marksPerQ);
-      if (Number.isFinite(from) && Number.isFinite(to) && Number.isFinite(m) && from > 0 && to >= from && m > 0) {
-        out.push({ from, to, marksPerQ: m });
-      }
-    }
-    if (out.length > 0) {
-      console.log(`[diagnose] marking-scheme ${pageLabel}: ${out.map(b => `Q${b.from}-${b.to}=${b.marksPerQ}m`).join(", ")}`);
-    }
-    return out;
-  } catch (err) {
-    console.error(`[diagnose] marking-scheme ${pageLabel} failed:`, err);
-    return [];
-  }
-}
 
 // Apply the discovered banner ranges to a list of questions. Returns
 // how many were touched. Multiple banners can cover the same range
@@ -678,54 +641,6 @@ NO commentary outside the JSON.`;
 // a single page. Used as a second-source cross-check against the
 // per-page detector — fractional marks ("31 1/2", "31½") trip up the
 // combined extract+mark+classify prompt, so we ask in isolation.
-async function readCoverTotal(jpeg: Buffer, pageLabel: string): Promise<{ paperTotalMarks: number | null; teacherAwardedMarks: number | null; rawDescription: string }> {
-  const ai = getAI();
-  const prompt = `Look at this scanned exam page for ANY teacher-written marks in RED INK (red pen / red marker). They could be:
-A. A SINGLE TOTAL: "31 1/2 / 50", "31.5/50", "42/60", a circled red number near a printed "/50".
-B. SECTION TOTALS: e.g. "Section A: 24/28" / "Section B: 7.5/22" written down a column. SUM these for teacherAwardedMarks.
-C. PER-QUESTION RED NUMBERS in the margin: e.g. "1", "0.5", "2", "1.5" written next to each question number. SUM all of them.
-
-Whatever red numbers you can see on this page, ADD them up and return the sum as teacherAwardedMarks.
-
-CRITICAL — handwritten fractional marks (READ THESE VERY CAREFULLY):
-- "31 1/2" = 31.5. The "1/2" is a single fraction symbol, NOT digits 1 and 2.
-- "31 ½" = 31.5
-- "31.5" = 31.5
-- A digit immediately followed by "1/2" or "½" or ".5" = digit + 0.5
-- NEVER concatenate the fraction's "2" or "5" onto the leading digit. "31 1/2" is THIRTY-ONE-POINT-FIVE, not 312, 36, or 35.
-
-Look in red ink first. The teacher's handwriting is what we want — not the printed denominator. If the only red ink you see is a tick/cross with no number, that's NOT a total — return null.
-
-Return a JSON object with three keys:
-- "paperTotalMarks": the printed paper total (the number after the slash, e.g. 50). Null if no total is visible.
-- "teacherAwardedMarks": the SUM of all red-ink numeric scores you found on this page. If you found section totals A=24, B=7.5, return 31.5. If you found a single grand total "31½", return 31.5. If you only found per-question marks, sum them. Null if no red-ink scores are visible at all.
-- "description": describe EVERY red-ink number / total you saw on this page and where, e.g. "Section A box shows '24/28' in red, Section B box shows '7.5/22' in red — sum is 31.5/50" or "Per-question marks in the margin: Q1=2, Q2=1.5, Q3=0... sum=12.5" or "No red ink anywhere on this page". Be exhaustive — list every red number. Up to 80 words.
-
-NO commentary outside the JSON.`;
-  try {
-    const resp = await withRetries(`readCoverTotal ${pageLabel}`, 3, () => ai.models.generateContent({
-      model: "gemini-2.5-pro",
-      contents: [{
-        role: "user",
-        parts: [
-          { text: prompt },
-          { inlineData: { mimeType: "image/jpeg", data: jpeg.toString("base64") } },
-        ],
-      }],
-      config: { temperature: 0, responseMimeType: "application/json" },
-    }));
-    const raw = resp.text ?? "{}";
-    const parsed = JSON.parse(raw) as { paperTotalMarks?: number | null; teacherAwardedMarks?: number | null; description?: string };
-    const paperTotalMarks = typeof parsed.paperTotalMarks === "number" && parsed.paperTotalMarks > 0 ? parsed.paperTotalMarks : null;
-    const teacherAwardedMarks = typeof parsed.teacherAwardedMarks === "number" && parsed.teacherAwardedMarks >= 0 ? parsed.teacherAwardedMarks : null;
-    const rawDescription = String(parsed.description ?? "").slice(0, 200);
-    console.log(`[diagnose] cover-scan ${pageLabel}: paperTotal=${paperTotalMarks ?? "_"} teacherAwarded=${teacherAwardedMarks ?? "_"} | "${rawDescription}"`);
-    return { paperTotalMarks, teacherAwardedMarks, rawDescription };
-  } catch (err) {
-    console.error(`[diagnose] cover-scan ${pageLabel} failed:`, err);
-    return { paperTotalMarks: null, teacherAwardedMarks: null, rawDescription: "" };
-  }
-}
 
 // Map a free-text topic from Gemini onto the canonical syllabus list.
 // Tries exact match (case-insensitive) first, then a token-overlap
@@ -889,19 +804,13 @@ async function runDiagnosisInBackground(
   // half marks like '31 1/2' trip up the combined prompt.
   console.log(`[diagnose] analysing ${pageJpegs.length} pages for student=${student.id} (${student.name})`);
   const t0 = Date.now();
-  // Cap concurrent Gemini calls to avoid hitting API rate-limit /
-  // connection-pool ceilings. Cap = 8 lets a 38-page paper finish
-  // in waves without firing 80+ requests at once.
+  // ONE Gemini call per page now does extract + mark + classify +
+  // banner-detect + cover-total all in one shot. Saves the duplicated
+  // image bytes that the previous three separate passes were sending.
+  // Concurrency-cap to keep us under Gemini's connection ceiling.
   const PAGE_CONCURRENCY = 8;
-  const coverScanIndices = new Set<number>([0, 1, pageJpegs.length - 2, pageJpegs.length - 1].filter(i => i >= 0 && i < pageJpegs.length));
-  const [perPage, coverScans, markingSchemePerPage] = await Promise.all([
-    mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, buf => diagnosePage(buf, subjectHint, levelHint)),
-    mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, (buf, i) => coverScanIndices.has(i)
-      ? readCoverTotal(buf, `p${i}`)
-      : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null, rawDescription: "" })),
-    mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, (buf, i) => scanMarkingSchemeOnPage(buf, `p${i}`)),
-  ]);
-  const allBands: MarkingBand[] = markingSchemePerPage.flat();
+  const perPage = await mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, buf => diagnosePage(buf, subjectHint, levelHint));
+  const allBands: MarkingBand[] = perPage.flatMap(p => p.markingSchemeBands);
   if (allBands.length > 0) {
     const totalFromBands = allBands.reduce((s, b) => s + (b.to - b.from + 1) * b.marksPerQ, 0);
     console.log(`[diagnose] marking-scheme bands: ${allBands.map(b => `Q${b.from}-${b.to}=${b.marksPerQ}m`).join(" | ")} (sum=${totalFromBands})`);
@@ -1044,14 +953,10 @@ async function runDiagnosisInBackground(
   // with the per-page sum, and pick the SMALLEST non-zero value across
   // pages — duplicate teacher totals often appear on cover + final
   // page; a runaway larger value is more likely to be a misread.
-  const allPaperTotals = [
-    ...perPage.map(p => p.paperTotalMarks ?? 0),
-    ...coverScans.map(c => c.paperTotalMarks ?? 0),
-  ].filter(n => n > 0);
-  const allTeacherAwarded = [
-    ...coverScans.map(c => c.teacherAwardedMarks ?? null),
-    ...perPage.map(p => p.teacherAwardedMarks ?? null),
-  ].filter((n): n is number => typeof n === "number");
+  // Cover totals now come from the merged per-page diagnose call —
+  // no separate coverScans pass.
+  const allPaperTotals = perPage.map(p => p.paperTotalMarks ?? 0).filter(n => n > 0);
+  const allTeacherAwarded = perPage.map(p => p.teacherAwardedMarks ?? null).filter((n): n is number => typeof n === "number");
   // Multi-booklet papers print a section total per booklet (Booklet A
   // /35, Booklet B /20). Detect distinct totals and sum them; single-
   // booklet papers fall through to the simple max. Also covers the
