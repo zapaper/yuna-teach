@@ -2577,7 +2577,7 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           // — punctuation is irrelevant for that section and surfacing the
           // last char makes the AI fixate on the missing period.
           const lastCharLine = isSynthesisQ ? "" : `\nLast character of answer: "${lastChar}"`;
-          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods only; other punctuation must be correct.)" : ""}` });
+          parts.push({ text: `Student's typed answer (the delimiters below are NOT part of the answer):\n---\n${displayAnswer}\n---${lastCharLine}${tickInfo}${isTableAnswer ? "\n(This is a TABLE answer — do NOT penalise for punctuation.)" : ""}${isSynthesisQ ? "\n(This is a SYNTHESIS & TRANSFORMATION answer — all-or-nothing marking. Ignore missing/extra periods AND missing/extra spaces between words; other punctuation must be correct.)" : ""}` });
           parts.push({
             text: `Expected answer: ${expectedAnswer}
 Marks available: ${marksAvailable}
@@ -2593,9 +2593,10 @@ For Synthesis & Transformation: This is ALL-OR-NOTHING marking. Award FULL marks
   • It conveys the same meaning as the expected answer (minor word-order differences, equivalent connectors, or synonyms that preserve meaning and register are OK).
   • There are NO spelling errors anywhere in the answer.
   • Punctuation is correct, EXCEPT a missing or extra full stop (period) is fine — ignore periods.
+  • Missing or extra spaces between words are FINE — ignore spacing entirely. e.g. "Mary said,'I am tired.'" or "Mary said , 'I am tired.'" are both acceptable as long as the wording is correct.
   • All other punctuation (commas, apostrophes, semicolons, question marks, capitalisation of proper nouns and the first word) is correct.
 - Award 0 marks if ANY of these are wrong:
-  • Any spelling mistake → 0.
+  • Any spelling mistake → 0. (But missing/extra spaces are NOT a spelling mistake — ignore spacing.)
   • Any missing or wrong punctuation other than a period → 0.
   • Wrong tense / wrong form of keyword / subject-verb disagreement → 0.
   • Meaning changed from the expected answer → 0.
