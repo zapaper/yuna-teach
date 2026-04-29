@@ -748,13 +748,35 @@ async function scanAllPagesForMarksGuidance(jpegs: Buffer[]): Promise<string[]> 
     { text: `[Page ${i}]` },
     { inlineData: { mimeType: "image/jpeg" as const, data: b.toString("base64") } },
   ]).flat();
-  const prompt = `Look at every page above. Find every printed banner that allocates marks to questions. Examples:
-- "Questions 1 to 10 carry 1 mark each."
-- "Questions 11 to 15 carry 2 marks each. Show your working clearly."
-- "Section B (40 marks): There are 13 questions in this section. Each question carries 2, 4 or 5 marks."
-- "Booklet A: Questions 1 to 28 each carry 1 mark."
+  const prompt = `Look at every page above. Find ONLY the printed rules that ALLOCATE MARKS PER QUESTION RANGE. The signal phrasing is "Questions X to Y carry N mark(s) each" or "Question X carries N marks".
 
-Return a JSON object: {"lines": ["banner 1 text", "banner 2 text", ...]} containing each distinct banner you spotted. Copy the text VERBATIM. Skip duplicates. Empty array if none. NO commentary.`;
+INCLUDE rules like:
+- "Questions 1 to 10 carry 1 mark each."
+- "Questions 11 to 15 carry 2 marks each."
+- "Questions 1 to 5 carry 2 marks each."     (Booklet B reuses numbering)
+- "Each question in Section A carries 1 mark."
+
+EXCLUDE — do not return any of these:
+- Instructions to the student ("show your working", "shade the correct oval", "write your answers in the spaces provided", "give your answers in the units stated").
+- Generic notes about marks notation ("The number of marks available is shown in brackets [ ] at the end of each question").
+- Choice instructions ("Make your choice (1, 2, 3 or 4)").
+- Bare section totals on their own ("(20 marks)" / "(45 marks)").
+- Cover-page totals ("Total: 100 marks").
+
+Output a JSON object:
+{
+  "ranges": [
+    {"from": 1, "to": 10, "marksPerQ": 1, "note": "Booklet A"},
+    {"from": 11, "to": 15, "marksPerQ": 2, "note": "Booklet A"},
+    {"from": 1, "to": 5, "marksPerQ": 2, "note": "Booklet B"}
+  ]
+}
+
+- "from" / "to": question-number range (integer).
+- "marksPerQ": marks each question in that range carries (number, halves allowed).
+- "note": which booklet / section the range belongs to if you can tell from context (e.g. "Booklet A", "Booklet B", "Section A"); empty string otherwise.
+
+Deduplicate identical ranges. If you can't see any allocation rule, return {"ranges": []}. NO commentary.`;
   try {
     const resp = await ai.models.generateContent({
       model: "gemini-2.5-flash",
@@ -762,9 +784,28 @@ Return a JSON object: {"lines": ["banner 1 text", "banner 2 text", ...]} contain
       config: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 4000 },
     });
     const raw = resp.text ?? "{}";
-    const parsed = JSON.parse(raw) as { lines?: unknown };
-    if (!Array.isArray(parsed.lines)) return [];
-    return parsed.lines.filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+    const parsed = JSON.parse(raw) as { ranges?: { from?: number; to?: number; marksPerQ?: number; note?: string }[] };
+    if (!Array.isArray(parsed.ranges)) return [];
+    // Convert each {from, to, marksPerQ, note} into a clean one-liner.
+    // Dedupe (same from+to+marks+note collapses to one).
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const r of parsed.ranges) {
+      const from = Number(r.from);
+      const to = Number(r.to);
+      const m = Number(r.marksPerQ);
+      if (!Number.isFinite(from) || !Number.isFinite(to) || !Number.isFinite(m)) continue;
+      if (from <= 0 || to < from || m <= 0) continue;
+      const noteStr = (r.note ?? "").toString().trim();
+      const key = `${from}-${to}-${m}-${noteStr.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const noteSuffix = noteStr ? ` (${noteStr})` : "";
+      const rangeLabel = from === to ? `Question ${from}` : `Questions ${from} to ${to}`;
+      const markLabel = m === 1 ? "1 mark each" : `${m} marks each`;
+      out.push(`${rangeLabel} carry ${markLabel}${noteSuffix}.`);
+    }
+    return out;
   } catch (err) {
     console.error("[diagnose] scanAllPagesForMarksGuidance failed:", err);
     return [];
@@ -921,7 +962,11 @@ function buildStructurePreviewHtml(studentName: string, s: StructureResult): str
   const headerHtml = headerRows.length === 0
     ? "<p>No header detected.</p>"
     : `<table style="font-size:13px; border-collapse:collapse;">${headerRows.map(r => `<tr><td style="padding:3px 12px 3px 0; color:#43474f;">${escape(r.label)}</td><td style="padding:3px 0; color:#001e40; font-weight:bold;">${escape(r.value)}</td></tr>`).join("")}</table>`;
-  const guidance = h.marksGuidance ? `<p style="font-size:13px; color:#43474f; margin-top:6px;"><em>Marks guidance from paper:</em> ${escape(h.marksGuidance)}</p>` : "";
+  // marksGuidance intentionally omitted from the email — it's noisy
+  // and the per-paper / per-section counts below already convey the
+  // useful structure to the parent. Still kept on the server side
+  // (paper.metadata.structure) for downstream marking.
+  const guidance = "";
   const papersHtml = papers.map(p => {
     const sections = Array.isArray(p.sections) ? p.sections : [];
     const sectionRows = sections.map(sec => `<tr>
