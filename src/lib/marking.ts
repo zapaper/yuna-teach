@@ -220,7 +220,7 @@ Reply with ONLY one word: YES or NO.`;
 
 /** Detect MCQ answer(s) from a page image WITHOUT revealing expected answers (avoids confirmation bias).
  *  Returns map of questionId → detected digit/letter or null. */
-async function detectMcqAnswers(
+export async function detectMcqAnswers(
   imageBase64: string,
   questions: Array<{ id: string; questionNum: string; yStartPct: number | null; yEndPct: number | null }>,
   label: string,

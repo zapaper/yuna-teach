@@ -16,6 +16,7 @@ import { Prisma } from "@prisma/client";
 import { renderPdfToJpegs } from "@/lib/pdf-server";
 import { maskBottomRightCorner } from "@/lib/watermark";
 import { analyzeExamStructure, type StructureResult } from "@/lib/gemini";
+import { detectMcqAnswers } from "@/lib/marking";
 
 // Canonical syllabus topic lists. Diagnostic-flow topic tags MUST come
 // from these — that's what the focused-practice picker matches against.
@@ -121,13 +122,15 @@ QUESTION DETECTION DISCIPLINE (read carefully — this is the same rule the main
 6. Question numbers go in ASCENDING order. If a number on this page is smaller than ones above it, that's a NEW BOOKLET / SECTION (Booklet B) reusing numbers — extract them as-is, but they're a separate sequence.
 7. yStartPct = ~1-2% above the question number. yEndPct = top of the NEXT question number on this page (with ~1% padding), or 95 if it's the last on the page.
 8. If the page has NO question numbers at the left margin (cover, instructions banner, blank section page) return an empty questions array. DO NOT make up questions.
-9. SUBPART CONTINUATION across pages. When a question's parts span pages, the next page sometimes starts with "(c)" or "(d)" or "(ii)" at the LEFT MARGIN — the parent question stem (with its number) was on the previous page. In that case:
-   - Output the subpart as ITS OWN question entry on this page.
-   - Use the subpart label including parens as questionNum (e.g. "(c)", "(ii)").
+9. SUBPART CONTINUATION across pages. When a question's parts span pages, the next page often starts with "(c)" or "(d)" or "(ii)" at the LEFT MARGIN — the parent question stem (with its number) was on the previous page. In that case:
+   - Output the subpart as ITS OWN question entry on this page. NEVER merge it into the next numeric question's stem — the orphan subpart belongs to the PREVIOUS page's question, not the upcoming one.
+   - Use the subpart label including parens as questionNum (e.g. "(c)", "(ii)"). Do NOT prefix it with a guessed parent number (you don't know it from this page); the server re-attaches the parent for you.
    - Stem starts with "[continuation of the previous question]" so the server knows to merge marker context from the parent.
-   - yStartPct ≈ 1-3%, yEndPct ≈ next subpart label or 95.
+   - yStartPct ≈ 1-3%, yEndPct ≈ next subpart label / next numeric question, or 95 if it's alone.
    - The student's answer for this subpart is on THIS page; mark it as you would any OEQ.
    - Do NOT skip the page just because there's no integer question number visible.
+
+   COMMON FAILURE MODE TO AVOID: A page that begins with "(c) ____ marks" (orphan subpart, then answer space) followed lower down by "11. <new question stem>" is TWO separate questions: the orphan "(c)" plus the new "11". Do NOT lump (c)'s answer area into Q11's stem. The orphan owns the answer area immediately below it; Q11 starts at its own number.
 
 10. CRITICAL — OEQ pages where the marks are printed as "[N]" near an "Ans:" line. Singapore Booklet B / Section B / Paper 2 OEQ questions look like:
    "  16. The figure below shows...
@@ -205,7 +208,7 @@ TASK: For each distinct question on this page, output a JSON record. The record 
 2. "stem": the question text, transcribed verbatim.
 3. "options": array of MCQ option texts (e.g. ["1/2", "1/3", "1/4", "1/5"]). Empty array for OEQ.
 4. "expectedAnswer": the correct answer YOU determine. For MCQ, return the digit/letter of the correct option (e.g. "1", "2", or "A"). For OEQ, the expected text answer.
-5. "studentAnswer": exactly what the student wrote in handwriting, transcribed. "" if blank.
+5. "studentAnswer": exactly what the student wrote in handwriting, transcribed. "" if blank. For DRAWABLE diagrams (tick boxes, ticked options, drawn arrows, shaded shapes, circled letters), describe what was drawn in plain text — e.g. "ticked box B", "drew arrow from A to D", "shaded the rightmost square", "circled option 3". NEVER return the literal text "[object Object]" or any JSON-like structure — that's a programming-error indicator and is INVALID here. If you genuinely cannot transcribe the answer, use "(see image)".
 6. "isCorrect": true if the student's answer matches the expected answer (allow synonyms / equivalent expressions). Strict for MCQ. Forgiving for OEQ phrasing.
 
    SCIENCE OEQ — STRICT (CRITICAL FOR 2-3 MARK QUESTIONS):
@@ -360,8 +363,17 @@ function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min
 // non-string input (numbers, booleans, objects, arrays). The naive
 // String(value) approach turned objects into "[object Object]" which
 // then leaked into the review UI as the student's "answer text".
+//
+// Also filters the literal "[object Object]" string — Gemini sometimes
+// emits this verbatim for drawable-diagram answers (tick boxes, drawn
+// arrows) where it can't transcribe a text answer, presumably echoing
+// programming-error indicators from training data. Returning "" lets
+// the review UI fall through to "(see image)" instead of showing the
+// confusing literal.
 function toSafeString(v: unknown): string {
-  return typeof v === "string" ? v : "";
+  if (typeof v !== "string") return "";
+  if (/^\s*\[object Object\]\s*$/i.test(v)) return "";
+  return v;
 }
 
 // Robust JSON.parse for Gemini responses. Tolerates the model
@@ -1023,19 +1035,66 @@ async function runDiagnosisInBackground(
   console.log(JSON.stringify(structure, null, 2));
   console.log("[diagnose] STRUCTURE OUTPUT END ---");
 
-  // 6) Per-page extraction + marking. Cap at 4 concurrent gemini-flash
-  // calls. The diagnosePage prompt now has both the structure layout
-  // and the marks-guidance ranges as context, so it can extract
-  // questions and read teacher's red marks without inventing question
-  // numbers or guessing per-question marks.
+  // 6) Per-page extraction + marking. Higher concurrency since the
+  // paid Gemini account has plenty of RPM headroom for 2.5-flash and
+  // we want short wall-clock latency on long booklets. Each page also
+  // runs a follow-up MCQ-detection call serially after diagnosePage,
+  // so the effective in-flight count is ~2× this number.
+  // The diagnosePage prompt has both the structure layout and the
+  // marks-guidance ranges as context, so it can extract questions and
+  // read teacher's red marks without inventing question numbers or
+  // guessing per-question marks.
   const subjectHint = structure.header?.subject ?? subjectStr;
   const levelHint = structure.header?.level ?? (student.level ? `Primary ${student.level}` : null);
   console.log(`[diagnose] per-page extract+mark on ${pageJpegs.length} pages`);
   let pagesDone = 0;
   const tPages = Date.now();
-  const perPage = await mapWithConcurrency(pageJpegs, 4, async (buf, i) => {
+  const perPage = await mapWithConcurrency(pageJpegs, 12, async (buf, i) => {
     const tp = Date.now();
     const out = await diagnosePage(buf, subjectHint, levelHint);
+    // Dedicated MCQ-answer detection pass — mirrors the regular paper
+    // extraction's approach. The combined per-page diagnose prompt
+    // tries to do too much at once and frequently misreads the small
+    // blue digit at the bottom-right answer box. detectMcqAnswers does
+    // ONE thing: locate the rightmost-margin blue-ink digit per
+    // question. We override studentAnswer with its result and
+    // recompute isCorrect/marksAwarded against the expectedAnswer the
+    // combined pass already determined.
+    const mcqQs = out.questions.filter(q => Array.isArray(q.options) && q.options.length >= 2);
+    if (mcqQs.length > 0) {
+      try {
+        const imageBase64 = buf.toString("base64");
+        const detectQs = mcqQs.map(q => ({
+          id: `p${i}:${q.questionNum}`,
+          questionNum: q.questionNum,
+          yStartPct: typeof q.yStartPct === "number" ? q.yStartPct : null,
+          yEndPct: typeof q.yEndPct === "number" ? q.yEndPct : null,
+        }));
+        const detected = await detectMcqAnswers(imageBase64, detectQs, `diagnose p${i}`);
+        const norm = (s: string) => s.trim().replace(/[()]/g, "").toUpperCase().replace(/^I$/, "1");
+        for (const q of out.questions) {
+          if (!Array.isArray(q.options) || q.options.length < 2) continue;
+          const id = `p${i}:${q.questionNum}`;
+          if (!detected.has(id)) continue;
+          const det = detected.get(id);
+          if (det) {
+            q.studentAnswer = det;
+            q.isBlank = false;
+            if (q.expectedAnswer) {
+              q.isCorrect = norm(det) === norm(q.expectedAnswer);
+              q.marksAwarded = q.isCorrect ? q.marksAvailable : 0;
+            }
+          } else {
+            q.studentAnswer = "";
+            q.isBlank = true;
+            q.isCorrect = false;
+            q.marksAwarded = 0;
+          }
+        }
+      } catch (err) {
+        console.warn(`[diagnose] p${i} MCQ override pass failed:`, err);
+      }
+    }
     pagesDone++;
     console.log(`[diagnose] p${i} done in ${Date.now() - tp}ms (${pagesDone}/${pageJpegs.length})`);
     return out;
@@ -1063,11 +1122,23 @@ async function runDiagnosisInBackground(
   // own marks allocation row.
   let lastParent: { num: string; stem: string } | null = null;
   for (const q of flat) {
-    const isSubpart = /^\(\s*[a-z]+\s*\)$|^\(\s*[ivxlcdm]+\s*\)$/i.test(q.questionNum.trim());
+    const trimmed = q.questionNum.trim();
+    // Match orphan subparts like "(c)", "(ii)", "(c).", "c)", "c."
+    // The AI sometimes drops the parens or trails a period — be
+    // tolerant so we don't miss the orphan and dump it on Q(n+1).
+    const isSubpart =
+      /^\(\s*[a-z]+\s*\)\.?$/i.test(trimmed)
+      || /^\(\s*[ivxlcdm]+\s*\)\.?$/i.test(trimmed)
+      || /^[a-h]\)$/i.test(trimmed)
+      || /^[a-h]\.$/i.test(trimmed);
     if (!isSubpart) {
-      // Only treat as a parent if it looks like a numeric question.
-      if (/^\d/.test(q.questionNum.trim())) {
-        lastParent = { num: q.questionNum, stem: q.stem };
+      // Only update lastParent when the questionNum is a PURE integer
+      // (the parent question itself). Within-page subparts like "5(a)"
+      // / "5b" would otherwise overwrite lastParent — so a (c) at the
+      // top of the next page would get re-attached to "5(b)" instead
+      // of Q5, breaking the chain.
+      if (/^\d+$/.test(trimmed)) {
+        lastParent = { num: trimmed, stem: q.stem };
       }
       continue;
     }
