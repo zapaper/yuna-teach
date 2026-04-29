@@ -165,6 +165,12 @@ export async function POST(request: NextRequest) {
     where: { id: targetStudentId },
     select: { level: true },
   });
+  // P3 English isn't supported yet — refuse the request if a P3
+  // student is targeted with subject=english. UI hides the option, so
+  // this is a defensive guard.
+  if (student?.level === 3 && subject === "english") {
+    return NextResponse.json({ error: "Primary 3 English is not yet supported." }, { status: 400 });
+  }
   const levelFilter = student?.level ? `Primary ${student.level}` : undefined;
 
   // Determine which exam types are appropriate based on current date

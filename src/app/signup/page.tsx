@@ -557,7 +557,7 @@ function SignupFlow() {
                 <div className="space-y-3">
                   <label className="text-sm font-semibold ml-1" style={{ color: "#0b1c30" }}>Grade Level</label>
                   <div className="flex gap-3">
-                    {[4, 5, 6].map(l => (
+                    {[3, 4, 5, 6].map(l => (
                       <button
                         key={l}
                         type="button"

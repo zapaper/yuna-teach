@@ -28,6 +28,12 @@ export async function POST(request: NextRequest) {
     where: { id: studentId },
     select: { level: true },
   });
+  // P3 English isn't supported yet — refuse a P3 student requesting
+  // an english focused practice. UI hides the option, so this is a
+  // defensive guard.
+  if (student?.level === 3 && (subject ?? "").toLowerCase().includes("english")) {
+    return NextResponse.json({ error: "Primary 3 English is not yet supported." }, { status: 400 });
+  }
   // Source papers have inconsistent level formatting ("P5", "Primary 5", "5").
   // Accept all equivalent variants so the filter actually works.
   const levelVariants = student?.level

@@ -216,6 +216,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [quizStudentId, setQuizStudentId] = useState(initialStudentId ?? user.linkedStudents[0]?.id ?? "");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
   const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
+  // If the parent switches to a P3 student while English is selected,
+  // reset to Math — P3 English isn't supported yet.
+  useEffect(() => {
+    const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
+    if (quizStudent?.level === 3) {
+      setQuizSubject(prev => (prev === "english" ? "math" : prev));
+    }
+  }, [quizStudentId, user.linkedStudents]);
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [assignMode, setAssignMode] = useState<"quiz" | "focused">("quiz");
   const [activityLimit, setActivityLimit] = useState(20);
@@ -977,12 +985,21 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         </div>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Subject</p>
         <div className="flex gap-2 mb-4">
-          {(["math", "science", "english"] as const).map(s => (
-            <button key={s} onClick={() => setQuizSubject(s)}
-              className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-              {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
-            </button>
-          ))}
+          {(() => {
+            // P3 English isn't supported yet — hide the option for P3
+            // students. If quizSubject was already "english" when the
+            // parent switched to a P3 student, the auto-correct effect
+            // below resets it.
+            const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
+            const isP3 = quizStudent?.level === 3;
+            const subjects = isP3 ? (["math", "science"] as const) : (["math", "science", "english"] as const);
+            return subjects.map(s => (
+              <button key={s} onClick={() => setQuizSubject(s)}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
+              </button>
+            ));
+          })()}
         </div>
         {assignMode === "focused" && quizSubject === "english" && (
           <div className="mb-4">
@@ -3181,7 +3198,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">1. Subject</p>
                 <div className="flex flex-wrap gap-2">
-                  {(["math", "science", "english"] as const).map(subj => {
+                  {(() => {
+                    const onboardingStudent = user.linkedStudents.find(s => s.id === initialStudentId);
+                    const isP3 = onboardingStudent?.level === 3;
+                    const subjects = isP3 ? (["math", "science"] as const) : (["math", "science", "english"] as const);
+                    return subjects;
+                  })().map(subj => {
                     const isSelected = onboardingQuizSubject === subj;
                     return (
                       <button

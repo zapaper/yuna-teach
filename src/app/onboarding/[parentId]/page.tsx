@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type Answers = {
   questionDifficulty?: "adaptive" | "standard" | "hard";
-  childLevel?: 4 | 5 | 6;
+  childLevel?: 3 | 4 | 5 | 6;
 };
 
 type Question = {
@@ -38,6 +38,7 @@ const QUESTIONS: Question[] = [
     preamble: "Thank you.",
     prompt: "Now, please tell us about your child's level.",
     options: [
+      { value: 3, label: "Primary 3" },
       { value: 4, label: "Primary 4" },
       { value: 5, label: "Primary 5" },
       { value: 6, label: "Primary 6" },
@@ -473,7 +474,10 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">Subject</p>
                 <div className="flex flex-wrap gap-2">
-                  {(["math", "science", "english"] as const).map(subj => {
+                  {(answers.childLevel === 3
+                    ? (["math", "science"] as const)
+                    : (["math", "science", "english"] as const)
+                  ).map(subj => {
                     const isSelected = pickerSubject === subj;
                     return (
                       <button
