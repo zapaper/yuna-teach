@@ -292,10 +292,34 @@ async function withRetries<T>(label: string, attempts: number, fn: () => Promise
       lastErr = err;
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`[diagnose] ${label} attempt ${i}/${attempts} failed: ${msg}`);
-      if (i < attempts) await new Promise(r => setTimeout(r, 800 * i));
+      if (i < attempts) {
+        // Exponential backoff with jitter — much kinder when the
+        // failure is rate-limit / connection-pool related.
+        const base = 1500 * Math.pow(2, i - 1); // 1.5s, 3s, 6s, 12s, 24s
+        const jitter = Math.random() * 500;
+        await new Promise(r => setTimeout(r, base + jitter));
+      }
     }
   }
   throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+}
+
+// Bounded-parallelism map. We were firing 80+ Gemini calls at once on
+// a 38-page paper (per-page diagnose × 38, marking-scheme × 38, cover-
+// scan × 4) and hitting the API's connection / rate-limit ceiling —
+// the resulting fetch failures retried but eventually exhausted. Cap
+// active calls to LIMIT and queue the rest.
+async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T, idx: number) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return results;
 }
 
 // Scan EVERY page for marking-scheme banners — the small italic
@@ -865,13 +889,17 @@ async function runDiagnosisInBackground(
   // half marks like '31 1/2' trip up the combined prompt.
   console.log(`[diagnose] analysing ${pageJpegs.length} pages for student=${student.id} (${student.name})`);
   const t0 = Date.now();
+  // Cap concurrent Gemini calls to avoid hitting API rate-limit /
+  // connection-pool ceilings. Cap = 8 lets a 38-page paper finish
+  // in waves without firing 80+ requests at once.
+  const PAGE_CONCURRENCY = 8;
   const coverScanIndices = new Set<number>([0, 1, pageJpegs.length - 2, pageJpegs.length - 1].filter(i => i >= 0 && i < pageJpegs.length));
   const [perPage, coverScans, markingSchemePerPage] = await Promise.all([
-    Promise.all(pageJpegs.map(buf => diagnosePage(buf, subjectHint, levelHint))),
-    Promise.all(pageJpegs.map((buf, i) => coverScanIndices.has(i)
+    mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, buf => diagnosePage(buf, subjectHint, levelHint)),
+    mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, (buf, i) => coverScanIndices.has(i)
       ? readCoverTotal(buf, `p${i}`)
-      : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null, rawDescription: "" }))),
-    Promise.all(pageJpegs.map((buf, i) => scanMarkingSchemeOnPage(buf, `p${i}`))),
+      : Promise.resolve({ paperTotalMarks: null as number | null, teacherAwardedMarks: null as number | null, rawDescription: "" })),
+    mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, (buf, i) => scanMarkingSchemeOnPage(buf, `p${i}`)),
   ]);
   const allBands: MarkingBand[] = markingSchemePerPage.flat();
   if (allBands.length > 0) {
@@ -926,7 +954,7 @@ async function runDiagnosisInBackground(
   const mcqRecheckCandidates = flat.filter(q => isMcqQuestion(q) && (q.studentAnswer ?? "").trim() !== "1");
   if (mcqRecheckCandidates.length > 0) {
     console.log(`[diagnose] MCQ-1 recheck: ${mcqRecheckCandidates.length} candidates`);
-    const recheck = await Promise.all(mcqRecheckCandidates.map(async q => {
+    const recheck = await mapWithConcurrency(mcqRecheckCandidates, 8, async q => {
       const jpg = pageJpegs[q.pageIndex];
       if (!jpg) return { q, isOne: false };
       try {
@@ -944,7 +972,7 @@ async function runDiagnosisInBackground(
         console.error(`[diagnose] MCQ-1 recheck Q${q.questionNum} crop failed:`, err);
         return { q, isOne: false };
       }
-    }));
+    });
     let overrides = 0;
     for (const r of recheck) {
       if (r.isOne) {
@@ -969,7 +997,7 @@ async function runDiagnosisInBackground(
   if (geomCandidates.length > 0) {
     console.log(`[diagnose] geometry recheck: ${geomCandidates.length} questions via ${GEOMETRY_MODEL}`);
     const tg = Date.now();
-    await Promise.all(geomCandidates.map(async q => {
+    await mapWithConcurrency(geomCandidates, 4, async q => {
       const jpg = pageJpegs[q.pageIndex];
       if (!jpg) return;
       try {
@@ -1005,7 +1033,7 @@ async function runDiagnosisInBackground(
       } catch (err) {
         console.error(`[diagnose] geometry Q${q.questionNum} crop failed:`, err);
       }
-    }));
+    });
     console.log(`[diagnose] geometry recheck done in ${Date.now() - tg}ms`);
   }
 
