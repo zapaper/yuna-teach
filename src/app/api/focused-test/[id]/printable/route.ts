@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
 import { prisma } from "@/lib/db";
+import { isAdmin as isAdminUser } from "@/lib/admin";
 
 // GET /api/focused-test/[id]/printable?studentId=<id>&userId=<parent>
 //
@@ -49,7 +50,7 @@ export async function GET(
     prisma.user.findUnique({ where: { id: studentId }, select: { id: true, name: true, level: true } }),
     prisma.user.findUnique({
       where: { id: userId },
-      select: { name: true, parentLinks: { select: { studentId: true } } },
+      select: { name: true, settings: true, parentLinks: { select: { studentId: true } } },
     }),
   ]);
 
@@ -57,7 +58,7 @@ export async function GET(
   if (!student) return NextResponse.json({ error: "Student not found" }, { status: 404 });
   if (!requester) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const isAdmin = requester.name?.toLowerCase() === "admin";
+  const isAdmin = isAdminUser(requester);
   const isOwner = paper.userId === userId;
   const isLinked = requester.parentLinks.some(l => l.studentId === studentId);
   if (!isAdmin && !isOwner && !isLinked) {

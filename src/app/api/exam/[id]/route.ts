@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { isAdmin } from "@/lib/admin";
 import { promises as fs } from "fs";
 import path from "path";
 import { extractExamPaperBackground } from "@/lib/extraction";
@@ -46,7 +47,7 @@ export async function GET(
       },
     }),
     requestingUserId
-      ? prisma.user.findUnique({ where: { id: requestingUserId }, select: { name: true } })
+      ? prisma.user.findUnique({ where: { id: requestingUserId }, select: { name: true, settings: true } })
       : Promise.resolve(null),
   ]);
 
@@ -54,7 +55,7 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const requesterIsAdmin = requester?.name?.toLowerCase() === "admin";
+  const requesterIsAdmin = isAdmin(requester);
 
   return NextResponse.json({
     ...paper,
@@ -385,11 +386,12 @@ export async function DELETE(
   if (!paper) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Non-admin users may only delete focused tests they own
-  const isAdmin = requesterId === null; // admin calls don't pass userId, or check by name below
   const requester = requesterId
-    ? await prisma.user.findUnique({ where: { id: requesterId }, select: { name: true } })
+    ? await prisma.user.findUnique({ where: { id: requesterId }, select: { name: true, settings: true } })
     : null;
-  const callerIsAdmin = requester?.name?.toLowerCase() === "admin";
+  // Admin calls either pass no userId at all (treated as admin) or
+  // pass an admin user's id.
+  const callerIsAdmin = requesterId === null || isAdmin(requester);
 
   if (!callerIsAdmin) {
     // Check if requester is a parent linked to the assigned student

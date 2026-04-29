@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
+import { isAdmin as adminCheck } from "@/lib/admin";
 import ExamPaperCard from "@/components/ExamPaperCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   );
   const defaultAvatarMap: Record<string, string> = { admin: "bunny", papa: "bear" };
   const nameLower = user.name?.toLowerCase() ?? "";
+  const isAdminUser = adminCheck(user);
   // `user.name` is the immutable login username; `displayName` is the
   // mutable label shown in greetings/headers. Falls back to the
   // username when no override has been set.
@@ -1891,7 +1893,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
-                  {nameLower === "admin" && (
+                  {isAdminUser && (
                     <button
                       onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
@@ -3039,7 +3041,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
       {/* Parent avatar picker */}
       {showParentAvatarPicker && (() => {
-        const isAdminUser = user.name?.toLowerCase() === "admin";
         const whitetigerUnlockedParent = (user.settings as Record<string, unknown> | null)?.whitetiger === true;
         const parentAvatars = isAdminUser ? [
           { key: "bunny", label: "Bunny" },

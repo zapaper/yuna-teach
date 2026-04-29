@@ -99,6 +99,13 @@ function AdminContent() {
       color: "bg-emerald-50 text-emerald-600",
     },
     {
+      icon: "people",
+      label: "Manage Users",
+      description: "View all parent and student accounts. Delete accounts and inspect their links.",
+      href: `/admin/users?userId=${userId}`,
+      color: "bg-rose-50 text-rose-600",
+    },
+    {
       icon: "list_alt",
       label: "Generate Answer Steps",
       description: "P4–P6 Math difficulty 4–5: AI rewrites answer keys as step-by-step working. Mismatches get flagged.",

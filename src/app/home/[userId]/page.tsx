@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import TestCard from "@/components/TestCard";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
+import { isAdmin as isAdminUser } from "@/lib/admin";
 import ParentDashboard from "./ParentDashboard";
 import StudentDashboard from "./StudentDashboard";
 
@@ -140,7 +141,7 @@ export default function HomePage({
   }
 
   const isParent = user?.role === "PARENT";
-  const isAdmin = user?.name?.toLowerCase() === "admin";
+  const isAdmin = isAdminUser(user);
   const hasLinkedStudents = (user?.linkedStudents?.length ?? 0) > 0;
   const [showLinkPrompt, setShowLinkPrompt] = useState(false);
   const [showAllPapers, setShowAllPapers] = useState(false);

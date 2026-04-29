@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState, use } from "react";
 import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail, ExamCloneSummary, User } from "@/types";
+import { isAdmin as isAdminUser } from "@/lib/admin";
 import { jsPDF } from "jspdf";
 
 export default function ExamOverviewPage({
@@ -184,7 +185,7 @@ function ExamOverviewContent({ id }: { id: string }) {
           userRes.json(),
         ]);
         const currentUser = userData.user;
-        const adminCheck = currentUser?.name?.toLowerCase() === "admin";
+        const adminCheck = isAdminUser(currentUser);
         setIsAdmin(adminCheck);
         if (!adminCheck) {
           router.replace(`/home/${userId}`);

@@ -6,6 +6,7 @@ import sharp from "sharp";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { markExamPaper } from "@/lib/marking";
+import { isAdmin } from "@/lib/admin";
 import { renderPdfToJpegs } from "@/lib/pdf-server";
 import { maskBottomRightCorner } from "@/lib/watermark";
 import { handleDiagnostic } from "@/lib/diagnostic";
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
 
   const parent = await prisma.user.findFirst({
     where: { email: { equals: fromEmail, mode: "insensitive" } },
-    select: { id: true, name: true, role: true, parentLinks: { select: { studentId: true, student: { select: { id: true, name: true, level: true } } } } },
+    select: { id: true, name: true, settings: true, role: true, parentLinks: { select: { studentId: true, student: { select: { id: true, name: true, level: true } } } } },
   });
   if (!parent) {
     console.warn(`[inbound-email] no registered user for ${fromEmail} — dropping`);
@@ -189,7 +190,7 @@ export async function POST(request: NextRequest) {
   // accidentally clobbered the startsWith filter for non-admin parents,
   // letting any linked student match (the first one in the list won).
   const linkedStudentIds = parent.parentLinks.map(l => l.studentId);
-  const isAdminSender = parent.name?.toLowerCase() === "admin";
+  const isAdminSender = isAdmin(parent);
   const candidates = await prisma.user.findMany({
     where: { id: { startsWith: studentPrefix }, role: "STUDENT" },
     select: { id: true, name: true },

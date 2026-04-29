@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import { prisma } from "./db";
+import { isAdmin } from "./admin";
 
 const COOKIE_NAME = "yuna_session";
 const SECRET = process.env.SESSION_SECRET ?? "dev-only-change-me-in-production";
@@ -32,12 +33,12 @@ export async function clearSession(): Promise<void> {
  * Use this for routes/pages that must trust the caller's identity (admin, payments, etc.)
  * — do NOT trust ?userId= query params for those.
  */
-/** Returns true if the signed session belongs to the admin user. */
+/** Returns true if the signed session belongs to an admin user. */
 export async function isSessionAdmin(): Promise<boolean> {
   const id = await getSessionUserId();
   if (!id) return false;
-  const user = await prisma.user.findUnique({ where: { id }, select: { name: true } });
-  return user?.name?.toLowerCase() === "admin";
+  const user = await prisma.user.findUnique({ where: { id }, select: { name: true, settings: true } });
+  return isAdmin(user);
 }
 
 export async function getSessionUserId(): Promise<string | null> {

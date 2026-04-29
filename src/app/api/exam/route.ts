@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { isAdmin } from "@/lib/admin";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -32,9 +33,9 @@ export async function GET(request: NextRequest) {
       // Check if this parent is admin
       const parentUser = await prisma.user.findUnique({
         where: { id: userId },
-        select: { name: true },
+        select: { name: true, settings: true },
       });
-      const isAdminUser = parentUser?.name?.toLowerCase() === "admin";
+      const isAdminUser = isAdmin(parentUser);
 
       if (studentLevels.length > 0) {
         // Match levels with various formats: "Primary 5", "Pr 5", "P5", etc.

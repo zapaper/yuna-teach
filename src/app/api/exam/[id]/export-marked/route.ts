@@ -6,6 +6,7 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
+import { isAdmin as isAdminUser } from "@/lib/admin";
 
 // GET /api/exam/[id]/export-marked?userId=<parent>
 //
@@ -271,9 +272,9 @@ async function handle(
     masterMeta = master?.metadata ?? null;
   }
 
-  const requester = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, parentLinks: { select: { studentId: true } } } });
+  const requester = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true, parentLinks: { select: { studentId: true } } } });
   if (!requester) return NextResponse.json({ error: "User not found" }, { status: 404 });
-  const isAdmin = requester.name?.toLowerCase() === "admin";
+  const isAdmin = isAdminUser(requester);
   const isOwner = paper.userId === userId;
   const isLinkedParent = paper.assignedToId
     ? requester.parentLinks.some(l => l.studentId === paper.assignedToId)

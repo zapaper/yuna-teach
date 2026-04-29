@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { prisma } from "@/lib/db";
+import { isAdmin as isAdminUser } from "@/lib/admin";
 
 // GET /api/exam/[id]/print?studentId=<id>&userId=<parent>
 //
@@ -41,7 +42,7 @@ export async function GET(
     }),
     prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, role: true },
+      select: { id: true, name: true, settings: true, role: true },
     }),
     prisma.parentStudent.findFirst({
       where: { parentId: userId, studentId },
@@ -56,7 +57,7 @@ export async function GET(
   if (!parent) return NextResponse.json({ error: "User not found" }, { status: 404 });
   // Admins can print for any linked student; non-admins must have the
   // parent-student link.
-  const isAdmin = parent.name?.toLowerCase() === "admin";
+  const isAdmin = isAdminUser(parent);
   if (!isAdmin && !link) {
     return NextResponse.json({ error: "Not linked to that student" }, { status: 403 });
   }
