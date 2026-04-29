@@ -184,6 +184,14 @@ The "topic" field MUST be EXACTLY one of the strings below — copied verbatim, 
 
 ${allowedTopics.map(t => `- ${t}`).join("\n")}
 
+DISAMBIGUATION RULES — pay attention before tagging:
+- "Geometry" is for questions where the student must reason about SHAPES, ANGLES, AREA, PERIMETER, VOLUME, SYMMETRY, or GEOMETRIC CONSTRUCTIONS. Triangles, circles, polygons, parallel-lines theorems.
+- "Statistics" / "Data analysis" / "Graphs" — questions where the diagram is a CHART, BAR GRAPH, LINE GRAPH, PIE CHART, or TABLE OF DATA, and the student is asked to read values, compare quantities, compute averages, or interpret trends. The presence of axes, bars, slices, or a data table is the signal — even if the chart contains rectangular shapes, the question is NOT geometry.
+- Fractions / Ratio / Percentage questions can have a pictorial diagram (pie chart, shaded squares) — these are still the algebraic topic, NOT geometry.
+- Multi-step word problems with multiple operations: pick the dominant concept (e.g. a problem that ends in solving an equation is "Algebra" even if it briefly references area).
+
+Before outputting the topic, ask: "what concept is this question actually testing?" not "what shape appears in the figure?".
+
 TASK: For each distinct question on this page, output a JSON record. The record must include:
 1. "questionNum": the printed number (e.g. "1", "12", "16a"). Use "?" if you can't tell.
 2. "stem": the question text, transcribed verbatim.
