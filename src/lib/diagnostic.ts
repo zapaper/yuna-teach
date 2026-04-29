@@ -742,13 +742,25 @@ export async function handleDiagnostic(
 // each' on the cover and 'Questions 11-15 carry 2 marks each' partway
 // through. Sending all pages in one call lets flash see every banner
 // at once.
-async function scanAllPagesForMarksGuidance(jpegs: Buffer[]): Promise<string[]> {
+async function scanAllPagesForMarksGuidance(jpegs: Buffer[], structure: StructureResult): Promise<string[]> {
   const ai = getAI();
   const imageParts = jpegs.map((b, i) => [
     { text: `[Page ${i}]` },
     { inlineData: { mimeType: "image/jpeg" as const, data: b.toString("base64") } },
   ]).flat();
+  // Pass the already-detected paper layout so Gemini doesn't guess
+  // booklet attribution from scratch. e.g. if it spots a banner on
+  // page 12 and the structure says page 10 starts Booklet B, we want
+  // 'Booklet B' as the note, not 'Booklet A'.
+  const papersContext = (structure.papers ?? []).map(p =>
+    `- ${p.label ?? "Paper"}: starts page ${p.firstQuestionPageIndex ?? "?"}, expects ~${p.expectedQuestionCount ?? "?"} questions`
+  ).join("\n");
   const prompt = `Look at every page above. Find ONLY the printed rules that ALLOCATE MARKS PER QUESTION RANGE. The signal phrasing is "Questions X to Y carry N mark(s) each" or "Question X carries N marks".
+
+PAPER LAYOUT (use this to attribute each banner correctly to a booklet / paper):
+${papersContext || "(no layout context — make your best guess)"}
+
+When you spot a banner, note which paper/booklet it belongs to by looking at the page index it's on relative to the layout above. The same Q1-Q5 range can appear in multiple booklets — never collapse them into one entry.
 
 INCLUDE rules like:
 - "Questions 1 to 10 carry 1 mark each."
@@ -900,22 +912,18 @@ async function runDiagnosisInBackground(
   // each.") but in practice it often only catches the first one. Run
   // a separate focused pass over all pages and merge findings.
   try {
-    const extra = await scanAllPagesForMarksGuidance(pageJpegs);
+    const extra = await scanAllPagesForMarksGuidance(pageJpegs, structure);
     if (extra && extra.length > 0) {
-      const existing = (structure.header?.marksGuidance ?? "").trim();
-      const combined = [existing, ...extra]
-        .map(s => s.trim())
-        .filter(Boolean)
-        .filter((s, i, arr) => arr.findIndex(x => x.toLowerCase() === s.toLowerCase()) === i)
-        .join(" ");
+      // REPLACE the structure prompt's marksGuidance entirely. The
+      // structured-range pass has booklet attribution and excludes
+      // student instructions; merging would re-introduce the noise +
+      // duplicates that prompted this rewrite. Dedupe within extra
+      // (the formatter already handles from+to+marks+note collisions).
       if (!structure.header) {
-        // Fill required fields with empty strings so the type checks
-        // out — the structure prompt always returns a header in
-        // practice, but be defensive.
         structure.header = { school: "", level: "", subject: "", year: "", semester: "", title: "" };
       }
-      structure.header.marksGuidance = combined;
-      console.log(`[diagnose] marks-guidance enhancement: merged ${extra.length} additional banner(s)`);
+      structure.header.marksGuidance = extra.join(" ");
+      console.log(`[diagnose] marks-guidance enhancement: replaced with ${extra.length} structured banner(s)`);
     }
   } catch (err) {
     console.error("[diagnose] marks-guidance enhancement failed:", err);
