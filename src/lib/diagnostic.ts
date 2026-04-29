@@ -935,33 +935,154 @@ async function runDiagnosisInBackground(
   } catch (err) {
     console.error("[diagnose] marks-guidance enhancement failed:", err);
   }
-  void marksRanges; // Used by the per-question marking pass once it's wired back.
-
   // 5) Dump the full structure JSON to the log so the operator can
   // sanity-check it without opening the DB.
   console.log("[diagnose] STRUCTURE OUTPUT BEGIN ---");
   console.log(JSON.stringify(structure, null, 2));
   console.log("[diagnose] STRUCTURE OUTPUT END ---");
 
-  // Save into metadata so the dashboard can surface it later.
-  await prisma.examPaper.update({
-    where: { id: paperId },
-    data: {
-      title: structure.header?.title || `Diagnostic — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
-      subject: structure.header?.subject ?? null,
-      level: structure.header?.level ?? (student.level ? `Primary ${student.level}` : null),
-      totalMarks: structure.header?.totalMarks ?? null,
-      metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr, mode: "structure-only", structure } as unknown as Prisma.InputJsonValue,
-    },
+  // 6) Per-page extraction + marking. Cap at 4 concurrent gemini-flash
+  // calls. The diagnosePage prompt now has both the structure layout
+  // and the marks-guidance ranges as context, so it can extract
+  // questions and read teacher's red marks without inventing question
+  // numbers or guessing per-question marks.
+  const subjectHint = structure.header?.subject ?? subjectStr;
+  const levelHint = structure.header?.level ?? (student.level ? `Primary ${student.level}` : null);
+  console.log(`[diagnose] per-page extract+mark on ${pageJpegs.length} pages`);
+  let pagesDone = 0;
+  const tPages = Date.now();
+  const perPage = await mapWithConcurrency(pageJpegs, 4, async (buf, i) => {
+    const tp = Date.now();
+    const out = await diagnosePage(buf, subjectHint, levelHint);
+    pagesDone++;
+    console.log(`[diagnose] p${i} done in ${Date.now() - tp}ms (${pagesDone}/${pageJpegs.length})`);
+    return out;
+  });
+  console.log(`[diagnose] per-page done in ${Date.now() - tPages}ms`);
+
+  // Flatten + page-adjacency dedup (same Q on consecutive pages = a
+  // multi-page continuation; far-apart Q numbers reset = new booklet).
+  const rawFlat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
+  const lastSeenPageByQNum = new Map<string, number>();
+  const flat = rawFlat.filter(q => {
+    const key = q.questionNum.trim().toLowerCase();
+    if (!key || key === "?") return true;
+    const prev = lastSeenPageByQNum.get(key);
+    if (prev !== undefined && q.pageIndex - prev <= 1) return false;
+    lastSeenPageByQNum.set(key, q.pageIndex);
+    return true;
   });
 
-  // 5) Email the parent a readable summary.
+  // 7) Override marksAvailable from the marks-guidance ranges. Each
+  // question is matched to the booklet whose page range contains its
+  // pageIndex; then we look up the (questionNum, booklet) → marksPerQ
+  // entry. Falls back to whatever the per-page call inferred (which
+  // typically reads "[N]" inline notation).
+  const papers = Array.isArray(structure.papers) ? structure.papers : [];
+  function paperForPage(pageIdx: number): string {
+    // The paper whose firstQuestionPageIndex is the largest one ≤ pageIdx.
+    let best: string = "";
+    let bestStart = -1;
+    for (const p of papers) {
+      const start = typeof p.firstQuestionPageIndex === "number" ? p.firstQuestionPageIndex : -1;
+      if (start <= pageIdx && start > bestStart) {
+        best = p.label ?? "";
+        bestStart = start;
+      }
+    }
+    return best;
+  }
+  let touchedByGuidance = 0;
+  for (const q of flat) {
+    const m = q.questionNum.match(/^(\d+)/);
+    if (!m) continue;
+    const num = Number(m[1]);
+    const booklet = paperForPage(q.pageIndex);
+    // Pick the most-specific range matching this question. Booklet
+    // match wins; un-noted ranges are an OK fallback.
+    const candidates = marksRanges.filter(r => num >= r.from && num <= r.to);
+    const exactBooklet = candidates.find(r => r.note && booklet && r.note.toLowerCase().includes(booklet.toLowerCase().split(" ").pop()!));
+    const fallback = candidates.find(r => !r.note || r.note === "");
+    const chosen = exactBooklet ?? fallback ?? candidates[0];
+    if (chosen) {
+      const ratio = q.marksAvailable > 0 ? q.marksAwarded / q.marksAvailable : (q.isCorrect ? 1 : 0);
+      q.marksAvailable = chosen.marksPerQ;
+      q.marksAwarded = Math.min(chosen.marksPerQ, Math.round(ratio * chosen.marksPerQ * 2) / 2);
+      touchedByGuidance++;
+    }
+  }
+  if (touchedByGuidance > 0) {
+    console.log(`[diagnose] marks-guidance overrode marksAvailable on ${touchedByGuidance} of ${flat.length} questions`);
+  }
+
+  // 8) Final score + topic + booklet summary.
+  const aiTotalEarned = flat.reduce((s, q) => s + q.marksAwarded, 0);
+  const aiTotalAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
+  const printedTotal = Number(structure.header?.totalMarks ?? "");
+  const totalAvailable = Number.isFinite(printedTotal) && printedTotal > 0 ? printedTotal : aiTotalAvailable;
+  const totalEarned = totalAvailable > 0 ? Math.min(aiTotalEarned, totalAvailable) : aiTotalEarned;
+  console.log(`[diagnose] score: ${totalEarned}/${totalAvailable} (per-q sums ${aiTotalEarned}/${aiTotalAvailable})`);
+
+  // Topic-by-topic + weak/strong rollup.
+  const byTopic = new Map<string, { earned: number; available: number; total: number; right: number }>();
+  for (const q of flat) {
+    const t = q.topic || "Untagged";
+    const cur = byTopic.get(t) ?? { earned: 0, available: 0, total: 0, right: 0 };
+    cur.earned += q.marksAwarded;
+    cur.available += q.marksAvailable;
+    cur.total += 1;
+    if (q.isCorrect) cur.right += 1;
+    byTopic.set(t, cur);
+  }
+  const topicRows = Array.from(byTopic.entries()).map(([topic, v]) => ({ topic, ...v, lost: v.available - v.earned }));
+  const weak = [...topicRows].filter(t => t.lost > 0).sort((a, b) => b.lost - a.lost).slice(0, 3);
+  const strong = topicRows.filter(t => t.total >= 2 && t.lost === 0).slice(0, 5);
+  const topicChart = [...topicRows].filter(t => t.available > 0).sort((a, b) => (a.earned / a.available) - (b.earned / b.available));
+  const booklets = summariseBooklets(flat);
+
+  // 9) Persist questions + finalise the paper.
+  await prisma.$transaction([
+    prisma.examQuestion.createMany({
+      data: flat.map((q, idx) => ({
+        examPaperId: paperId,
+        questionNum: q.questionNum,
+        imageData: "",
+        answer: q.expectedAnswer || null,
+        pageIndex: q.pageIndex,
+        orderIndex: idx,
+        yStartPct: q.yStartPct,
+        yEndPct: q.yEndPct,
+        marksAvailable: q.marksAvailable,
+        marksAwarded: q.marksAwarded,
+        studentAnswer: q.studentAnswer || null,
+        markingNotes: q.feedback || null,
+        syllabusTopic: q.topic || null,
+        transcribedStem: q.stem || null,
+        transcribedOptions: (q.options ?? []).length > 0 ? ((q.options ?? []) as Prisma.InputJsonValue) : Prisma.JsonNull,
+      })),
+    }),
+    prisma.examPaper.update({
+      where: { id: paperId },
+      data: {
+        markingStatus: "complete",
+        title: structure.header?.title || `Diagnostic — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
+        subject: structure.header?.subject ?? null,
+        level: structure.header?.level ?? (student.level ? `Primary ${student.level}` : null),
+        totalMarks: String(totalAvailable),
+        score: totalEarned,
+        metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr, mode: "extract+mark", structure } as unknown as Prisma.InputJsonValue,
+      },
+    }),
+  ]);
+
+  // 10) Email the parent the full summary.
   await maybeReply(
     fromEmail,
-    `Diagnose preview — ${student.name}`,
-    buildStructurePreviewHtml(student.name, structure),
+    `Diagnose: ${student.name} — ${formatNum(totalEarned)}/${formatNum(totalAvailable)} marks`,
+    buildSummaryHtml(student.name, totalAvailable, totalEarned, weak, strong, booklets, topicChart, parent.id, paperId),
     { html: true },
   ).catch((err) => console.error("[diagnose] reply email failed:", err));
+  console.log(`[diagnose] paper=${paperId} marks=${totalEarned}/${totalAvailable} weak=[${weak.map(w => `${w.topic}(-${w.lost})`).join(", ")}]`);
 }
 
 function buildStructurePreviewHtml(studentName: string, s: StructureResult): string {
