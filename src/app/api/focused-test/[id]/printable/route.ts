@@ -91,10 +91,30 @@ export async function GET(
     const isMcq = isMcqQuestion(q);
     const marks = q.marksAvailable ?? 1;
 
-    // Embed the question crop at full content width; preserve aspect.
+    // For MCQ we prefer a CLEAN render from the transcribed stem +
+    // options instead of the scanned crop — keeps the printable crisp
+    // and free of original-paper artefacts. Falls back to the scanned
+    // image if transcription is missing. OEQ keeps the scanned image
+    // because drawable diagrams / graphs / tables aren't transcribable.
+    const cleanOpts = isMcq && Array.isArray(q.transcribedOptions)
+      ? (q.transcribedOptions as unknown[]).filter((x): x is string => typeof x === "string")
+      : [];
+    const useCleanMcq = isMcq && !!q.transcribedStem && cleanOpts.length >= 2;
+
     let imgH = 0;
     let imgEmbed: Awaited<ReturnType<typeof doc.embedJpg>> | Awaited<ReturnType<typeof doc.embedPng>> | null = null;
-    if (q.imageData) {
+    let cleanStemLines: string[] = [];
+    let cleanOptLines: string[][] = [];
+    let cleanH = 0;
+
+    if (useCleanMcq) {
+      cleanStemLines = wrapLines(q.transcribedStem ?? "", helv, 11, CONTENT_W);
+      for (const opt of cleanOpts) {
+        cleanOptLines.push(wrapLines(opt, helv, 11, CONTENT_W - 24));
+      }
+      const optTotalLines = cleanOptLines.reduce((s, l) => s + l.length, 0);
+      cleanH = cleanStemLines.length * LINE_PT + 6 + optTotalLines * LINE_PT;
+    } else if (q.imageData) {
       try {
         const { embed, height } = await embedDataUrlScaled(doc, q.imageData, CONTENT_W);
         imgEmbed = embed;
@@ -104,9 +124,11 @@ export async function GET(
       }
     }
 
-    // Compute working area height needed.
+    // Compute working area height needed. MCQ rows have no answer
+    // line — the student marks the printed question directly (circles
+    // the option / writes the digit next to it), so no extra space.
     const workingH = isMcq
-      ? LINE_PT * 1.6 // single answer line
+      ? 0
       : isMath
         ? Math.max(LINE_PT * 4, marks * A4_H * 0.10)
         : isScience
@@ -114,7 +136,8 @@ export async function GET(
           : LINE_PT * 2 * marks; // fallback similar to science
 
     const labelH = LINE_PT * 1.5; // 'Q12 (2 marks)' header
-    const totalNeeded = labelH + imgH + 8 + workingH + 12; // + spacing
+    const stemH = useCleanMcq ? cleanH : imgH;
+    const totalNeeded = labelH + stemH + 8 + workingH + 12; // + spacing
 
     // Page-break if not enough room. Always push to new page if first
     // question on the page wouldn't fit either (shouldn't happen at
@@ -131,8 +154,23 @@ export async function GET(
     page.drawText(label, { x: MARGIN, y: yCursor - 11, size: 11, font: helvBold, color: rgb(0, 0, 0) });
     yCursor -= labelH;
 
-    // Question image
-    if (imgEmbed && imgH > 0) {
+    // Question image / clean MCQ text
+    if (useCleanMcq) {
+      for (const line of cleanStemLines) {
+        page.drawText(line, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+        yCursor -= LINE_PT;
+      }
+      yCursor -= 6;
+      for (let oi = 0; oi < cleanOptLines.length; oi++) {
+        const lines = cleanOptLines[oi];
+        for (let li = 0; li < lines.length; li++) {
+          const text = li === 0 ? `(${oi + 1})  ${lines[li]}` : lines[li];
+          const x = MARGIN + (li === 0 ? 0 : 24);
+          page.drawText(text, { x, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+          yCursor -= LINE_PT;
+        }
+      }
+    } else if (imgEmbed && imgH > 0) {
       page.drawImage(imgEmbed, { x: MARGIN, y: yCursor - imgH, width: CONTENT_W, height: imgH });
       yCursor -= imgH + 6;
     } else if (q.transcribedStem) {
@@ -145,9 +183,7 @@ export async function GET(
 
     // Working area
     if (isMcq) {
-      page.drawText("Answer:", { x: MARGIN, y: yCursor - 11, size: 11, font: helvBold });
-      page.drawLine({ start: { x: MARGIN + 60, y: yCursor - 13 }, end: { x: MARGIN + 200, y: yCursor - 13 }, thickness: 0.6, color: rgb(0, 0, 0) });
-      yCursor -= LINE_PT * 1.6;
+      // No answer line — student marks the printed question directly.
     } else if (isMath) {
       // Plain working space — no lines, just a box outline so the
       // student knows where to write. ~10% page height per mark.
