@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 // Post-signup onboarding for new parent accounts. Four bubble-style
@@ -82,6 +82,34 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   const [phase, setPhase] = useState<"in" | "idle" | "out">("in");
   const [done, setDone] = useState(false);
   const [showDiagnosisChoice, setShowDiagnosisChoice] = useState(false);
+  // Q5 — student creation moved INTO onboarding so the parent flows
+  // through one continuous experience instead of bouncing back to the
+  // legacy /signup wizard. After diagnosisChoice is set, we transition
+  // to studentStep, then route to /home with the diagnostic mode.
+  const [diagnosisChoice, setDiagnosisChoice] = useState<"scan-email" | "platform-quiz" | "printable" | null>(null);
+  const [studentStep, setStudentStep] = useState(false);
+  const [studentName, setStudentName] = useState("");
+  const [studentPassword, setStudentPassword] = useState("");
+  const [studentPwConfirm, setStudentPwConfirm] = useState("");
+  const [studentNameAvailable, setStudentNameAvailable] = useState<boolean | null>(null);
+  const [checkingStudentName, setCheckingStudentName] = useState(false);
+  const [studentError, setStudentError] = useState("");
+  const [studentLoading, setStudentLoading] = useState(false);
+  const studentNameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkStudentName = useCallback((n: string) => {
+    if (studentNameDebounce.current) clearTimeout(studentNameDebounce.current);
+    if (!n.trim()) { setStudentNameAvailable(null); return; }
+    setCheckingStudentName(true);
+    studentNameDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/users/check?name=${encodeURIComponent(n.trim())}`);
+        const data = await res.json();
+        setStudentNameAvailable(data.available);
+      } catch { setStudentNameAvailable(null); }
+      finally { setCheckingStudentName(false); }
+    }, 400);
+  }, []);
   // Typewriter reveal — preamble + prompt animate in character-by-
   // character at ~20ms per char. Faster than 'classic' typewriter so
   // we don't slow the parent down. Resets on every step change.
@@ -184,22 +212,64 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         }),
       });
     } catch { /* non-fatal */ }
-    // Route based on choice:
-    // - scan-email: home dashboard with a popup that explains the
-    //   email instructions
-    // - platform-quiz: the legacy signup wizard's student-creation +
-    //   diagnostic-quiz subject picker, resumed via ?parentId=&step=2
-    // - printable: home dashboard for now; printable-onboarding wiring
-    //   comes later
-    // Every choice now flows through the student-creation form first
-    // (so the parent always ends up with a child account linked).
-    // Mode flag tells signup how to behave AFTER the student is
-    // created:
-    //  - platform-quiz: step 3 with 'Start Quiz' button (default)
-    //  - printable: step 3 with 'Download Quiz' button
-    //  - scan-email: skip step 3, jump straight to home with the
-    //    scan-email popup
-    router.replace(`/signup?parentId=${parentId}&step=2&mode=${kind}`);
+    setDiagnosisChoice(kind);
+    // Re-entering onboarding with an existing studentId means the
+    // parent already has a child linked — skip Q5 and route straight
+    // to home with the diagnostic mode.
+    if (studentId) {
+      router.replace(`/home/${parentId}?diagnostic=${kind}&studentId=${studentId}`);
+      return;
+    }
+    setShowDiagnosisChoice(false);
+    setStudentStep(true);
+  }
+
+  async function submitStudent(e: React.FormEvent) {
+    e.preventDefault();
+    setStudentError("");
+    if (!studentName.trim()) { setStudentError("Username is required."); return; }
+    if (!studentPassword) { setStudentError("Password is required."); return; }
+    if (studentPassword !== studentPwConfirm) { setStudentError("Passwords don't match."); return; }
+    if (studentNameAvailable === false) { setStudentError("Username is already taken."); return; }
+
+    setStudentLoading(true);
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: studentName.trim(),
+          role: "STUDENT",
+          password: studentPassword,
+          level: answers.childLevel ?? 4,
+          parentId,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setStudentError(data.error || "Registration failed");
+        return;
+      }
+      const student = await res.json();
+      // Persist questionDifficulty on the student so it applies to
+      // every quiz/focused practice from here on. The student-side
+      // toggle only knows "adaptive" | "standard"; map onboarding's
+      // "hard" → "standard" (full top-school range).
+      if (answers.questionDifficulty) {
+        const studentDifficulty = answers.questionDifficulty === "hard" ? "standard" : answers.questionDifficulty;
+        fetch("/api/users", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: student.id, settings: { questionDifficulty: studentDifficulty } }),
+        }).catch(() => { /* non-fatal */ });
+      }
+      const choice = diagnosisChoice ?? "scan-email";
+      router.replace(`/home/${parentId}?diagnostic=${choice}&studentId=${student.id}`);
+    } catch {
+      setStudentError("Something went wrong. Please try again.");
+    } finally {
+      setStudentLoading(false);
+    }
   }
 
   const q = QUESTIONS[step];
@@ -241,9 +311,17 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         <div className="flex items-center justify-between mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo_t.png" alt="MarkForYou" className="h-7 w-auto" />
-          {!done && step > 0 && (
+          {!done && (step > 0 || studentStep) && (
             <button
               onClick={() => {
+                // Back from Q5 student form returns to the diagnosis
+                // choice card; from any question card slides to the
+                // previous question.
+                if (studentStep) {
+                  setStudentStep(false);
+                  setShowDiagnosisChoice(true);
+                  return;
+                }
                 if (phase !== "idle") return;
                 setPhase("out");
                 setTimeout(() => {
@@ -259,22 +337,111 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             </button>
           )}
         </div>
-        {/* Progress bar */}
+        {/* Progress bar — 4 questions + diagnosis choice + student
+            creation. The diagnosis card and the student form each
+            occupy their own tick so the parent can see how much is
+            left after the questionnaire. */}
         <div className="flex gap-1.5">
-          {QUESTIONS.map((_, i) => (
-            <div
-              key={i}
-              className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${
-                i < step || done ? "bg-[#003366]" : i === step ? "bg-[#003366]/40" : "bg-slate-200"
-              }`}
-            />
-          ))}
+          {Array.from({ length: TOTAL_STEPS + 2 }).map((_, i) => {
+            const currentIdx = studentStep ? TOTAL_STEPS + 1
+              : showDiagnosisChoice ? TOTAL_STEPS
+              : step;
+            return (
+              <div
+                key={i}
+                className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${
+                  i < currentIdx || done ? "bg-[#003366]" : i === currentIdx ? "bg-[#003366]/40" : "bg-slate-200"
+                }`}
+              />
+            );
+          })}
         </div>
-        <p className="text-xs text-[#43474f] mt-2 font-medium tracking-wide">{done ? "All done" : `Step ${step + 1} of ${TOTAL_STEPS}`}</p>
+        <p className="text-xs text-[#43474f] mt-2 font-medium tracking-wide">
+          {done ? "All done"
+            : studentStep ? `Step ${TOTAL_STEPS + 2} of ${TOTAL_STEPS + 2}`
+            : showDiagnosisChoice ? `Step ${TOTAL_STEPS + 1} of ${TOTAL_STEPS + 2}`
+            : `Step ${step + 1} of ${TOTAL_STEPS + 2}`}
+        </p>
       </header>
 
       <main className="flex-1 px-6 max-w-md mx-auto w-full overflow-hidden flex flex-col justify-center pb-12 relative z-10">
-        {showDiagnosisChoice ? (() => {
+        {studentStep ? (
+          <div style={{ animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
+            <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Last step</p>
+            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">Set up your child&apos;s login</h2>
+            <p className="text-sm text-[#43474f] leading-relaxed mb-6">
+              Pick a username and password your child will use to log in to MarkForYou.
+            </p>
+            <form onSubmit={submitStudent} className="flex flex-col gap-4" autoComplete="off">
+              <div>
+                <label className="text-xs font-semibold text-[#001e40] mb-1.5 block ml-1">Child&apos;s username</label>
+                <input
+                  type="text"
+                  value={studentName}
+                  onChange={e => { setStudentName(e.target.value); checkStudentName(e.target.value); }}
+                  placeholder="e.g. SpaceExplorer123"
+                  name="mfy-onboarding-student-name"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="w-full px-4 py-3 bg-white border-2 border-[#dce9ff] rounded-2xl text-[#001e40] placeholder-[#c3c6d1] focus:border-[#003366] outline-none transition-colors"
+                />
+                {studentName.trim() && (
+                  <p className={`text-xs mt-1 ml-1 ${
+                    checkingStudentName ? "text-gray-400"
+                    : studentNameAvailable === true ? "text-green-600"
+                    : studentNameAvailable === false ? "text-red-500"
+                    : "text-gray-400"
+                  }`}>
+                    {checkingStudentName ? "Checking..."
+                    : studentNameAvailable === true ? "Username available ✓"
+                    : studentNameAvailable === false ? "Username is taken"
+                    : ""}
+                  </p>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-[#001e40] mb-1.5 block ml-1">Password</label>
+                  <input
+                    type="password"
+                    value={studentPassword}
+                    onChange={e => setStudentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    name="mfy-onboarding-student-pw"
+                    autoComplete="new-password"
+                    className="w-full px-4 py-3 bg-white border-2 border-[#dce9ff] rounded-2xl text-[#001e40] placeholder-[#c3c6d1] focus:border-[#003366] outline-none transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-[#001e40] mb-1.5 block ml-1">Confirm</label>
+                  <input
+                    type="password"
+                    value={studentPwConfirm}
+                    onChange={e => setStudentPwConfirm(e.target.value)}
+                    placeholder="••••••••"
+                    name="mfy-onboarding-student-pw-confirm"
+                    autoComplete="new-password"
+                    className="w-full px-4 py-3 bg-white border-2 border-[#dce9ff] rounded-2xl text-[#001e40] placeholder-[#c3c6d1] focus:border-[#003366] outline-none transition-colors"
+                  />
+                </div>
+              </div>
+              {studentPwConfirm && studentPassword !== studentPwConfirm && (
+                <p className="text-xs text-red-500 -mt-2 ml-1">Passwords don&apos;t match</p>
+              )}
+              {studentError && (
+                <p className="text-sm font-medium text-[#ba1a1a]">{studentError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={studentLoading || studentNameAvailable === false}
+                className="w-full mt-2 py-4 px-6 rounded-2xl font-bold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60"
+                style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
+              >
+                {studentLoading ? "Creating profile..." : "Create profile"}
+              </button>
+            </form>
+          </div>
+        ) : showDiagnosisChoice ? (() => {
           // Heavy-screen-time parents see two options (platform quiz +
           // email scan); paper / mixed parents also get the printable
           // option since they explicitly want less screen time.

@@ -225,6 +225,23 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ?diagnostic=scan-email. Show a one-shot popup explaining the email
   // address + offering a fallback to the platform-quiz path.
   const [showScanEmailPopup, setShowScanEmailPopup] = useState(diagnosticChoice === "scan-email");
+  // Onboarding's 'platform-quiz' / 'printable' choices route here with
+  // the new student already linked. Show a popup with the diagnostic-
+  // quiz subject + type picker; on Start/Download we hit the daily-quiz
+  // API and either trigger firstAssignPrompt (open child's homepage in
+  // a new tab) or download the printable PDF + show the email-it-back
+  // popup.
+  const [showOnboardingQuizPicker, setShowOnboardingQuizPicker] = useState(
+    (diagnosticChoice === "platform-quiz" || diagnosticChoice === "printable") && !!initialStudentId,
+  );
+  const [onboardingQuizSubject, setOnboardingQuizSubject] = useState<"math" | "science" | "english" | null>(null);
+  const [onboardingQuizType, setOnboardingQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
+  const [onboardingQuizDifficulty, setOnboardingQuizDifficulty] = useState<"adaptive" | "standard">(() => {
+    const s = user.linkedStudents.find(x => x.id === initialStudentId)?.settings as { questionDifficulty?: string } | undefined;
+    return s?.questionDifficulty === "adaptive" ? "adaptive" : "standard";
+  });
+  const [onboardingQuizLoading, setOnboardingQuizLoading] = useState(false);
+  const [showOnboardingPrintableDone, setShowOnboardingPrintableDone] = useState(false);
   // First-time-assign popup. After the parent assigns their first
   // daily quiz / focused practice, ask if they want to open the
   // child's homepage in a new tab to follow along. Tracked on the
@@ -243,6 +260,61 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, settings: { firstAssignDone: true } }),
     }).catch(() => { /* non-fatal */ });
+  }
+
+  async function startOnboardingQuiz() {
+    if (!initialStudentId || !onboardingQuizSubject) return;
+    setOnboardingQuizLoading(true);
+    try {
+      // Persist the difficulty choice on the student so it applies to
+      // every quiz/focused practice from here on.
+      await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: initialStudentId, settings: { questionDifficulty: onboardingQuizDifficulty } }),
+      }).catch(() => { /* non-fatal */ });
+
+      const body: Record<string, unknown> = {
+        userId,
+        studentId: initialStudentId,
+        quizType: onboardingQuizType,
+        subject: onboardingQuizSubject,
+      };
+      if (onboardingQuizSubject === "english") {
+        const sections = ["grammar-mcq", "vocab-mcq"];
+        if (onboardingQuizType === "mcq-oeq") sections.push("editing", "comprehension-cloze");
+        body.englishSections = sections;
+      }
+      const res = await fetch("/api/daily-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to create quiz");
+        return;
+      }
+      const quiz = await res.json();
+      if (diagnosticChoice === "printable") {
+        window.open(`/api/daily-quiz/${quiz.id}/printable?studentId=${initialStudentId}&userId=${userId}`, "_blank");
+        setShowOnboardingQuizPicker(false);
+        setShowOnboardingPrintableDone(true);
+      } else {
+        // Platform-quiz: close the picker and trigger the existing
+        // first-time-assign prompt asking whether to open the child's
+        // homepage in a new tab. Parent stays on the dashboard.
+        setShowOnboardingQuizPicker(false);
+        maybeShowFirstAssignPrompt(initialStudentId);
+        // Strip the diagnostic params from the URL so a refresh
+        // doesn't re-show the picker.
+        router.replace(`/home/${userId}`);
+      }
+    } catch {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setOnboardingQuizLoading(false);
+    }
   }
   const [showDiagnosticWelcome, setShowDiagnosticWelcome] = useState(() => {
     if (!diagnosticWelcome) return false;
@@ -3118,6 +3190,169 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <button
                 onClick={() => {
                   setShowScanEmailPopup(false);
+                  router.replace(`/home/${userId}`);
+                }}
+                className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showOnboardingQuizPicker && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
+            <div className="px-6 pt-7 pb-3 flex flex-col items-center text-center">
+              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  {diagnosticChoice === "printable" ? "print" : "quiz"}
+                </span>
+              </div>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">
+                {diagnosticChoice === "printable" ? "Print a diagnostic quiz" : "Start a diagnostic quiz"}
+              </h3>
+              <p className="text-xs text-[#43474f] mt-2 px-2">
+                {diagnosticChoice === "printable"
+                  ? "Pick a subject — we'll generate a printable PDF you can hand to your child."
+                  : "Pick a subject to set the first quiz for your child."}
+              </p>
+            </div>
+            <div className="px-6 pb-2 space-y-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">1. Subject</p>
+                <div className="flex flex-wrap gap-2">
+                  {(["math", "science", "english"] as const).map(subj => {
+                    const isSelected = onboardingQuizSubject === subj;
+                    return (
+                      <button
+                        key={subj}
+                        onClick={() => setOnboardingQuizSubject(subj)}
+                        disabled={onboardingQuizLoading}
+                        className="px-4 py-2 rounded-full text-sm font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                        style={{
+                          background: isSelected ? "#003366" : "#f0f5ff",
+                          color: isSelected ? "#ffffff" : "#003366",
+                          border: isSelected ? "1px solid #003366" : "1px solid #dce9ff",
+                        }}
+                      >
+                        {subj === "english" ? (
+                          <span className="font-extrabold text-base leading-none">A</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-sm">
+                            {subj === "math" ? "functions" : "science"}
+                          </span>
+                        )}
+                        {subj.charAt(0).toUpperCase() + subj.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">2. Difficulty</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setOnboardingQuizDifficulty("adaptive")}
+                    className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                    style={{
+                      background: onboardingQuizDifficulty === "adaptive" ? "#003366" : "#f0f5ff",
+                      color: onboardingQuizDifficulty === "adaptive" ? "#ffffff" : "#003366",
+                      border: onboardingQuizDifficulty === "adaptive" ? "1px solid #003366" : "1px solid #dce9ff",
+                    }}
+                  >
+                    Progressive (start easier)
+                  </button>
+                  <button
+                    onClick={() => setOnboardingQuizDifficulty("standard")}
+                    className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                    style={{
+                      background: onboardingQuizDifficulty === "standard" ? "#003366" : "#f0f5ff",
+                      color: onboardingQuizDifficulty === "standard" ? "#ffffff" : "#003366",
+                      border: onboardingQuizDifficulty === "standard" ? "1px solid #003366" : "1px solid #dce9ff",
+                    }}
+                  >
+                    Top schools difficulty
+                  </button>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">3. Question type</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setOnboardingQuizType("mcq")}
+                    className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                    style={{
+                      background: onboardingQuizType === "mcq" ? "#003366" : "#f0f5ff",
+                      color: onboardingQuizType === "mcq" ? "#ffffff" : "#003366",
+                      border: onboardingQuizType === "mcq" ? "1px solid #003366" : "1px solid #dce9ff",
+                    }}
+                  >
+                    MCQ Only
+                  </button>
+                  <button
+                    onClick={() => setOnboardingQuizType("mcq-oeq")}
+                    className="flex-1 py-2 rounded-lg text-xs font-semibold transition-colors"
+                    style={{
+                      background: onboardingQuizType === "mcq-oeq" ? "#003366" : "#f0f5ff",
+                      color: onboardingQuizType === "mcq-oeq" ? "#ffffff" : "#003366",
+                      border: onboardingQuizType === "mcq-oeq" ? "1px solid #003366" : "1px solid #dce9ff",
+                    }}
+                  >
+                    {onboardingQuizSubject === "english" ? "MCQ + Cloze" : "MCQ + written"}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 pt-5 pb-6 flex flex-col gap-2">
+              <button
+                onClick={startOnboardingQuiz}
+                disabled={!onboardingQuizSubject || onboardingQuizLoading}
+                className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors disabled:opacity-50"
+              >
+                {onboardingQuizLoading
+                  ? (diagnosticChoice === "printable" ? "Preparing PDF..." : "Creating quiz...")
+                  : (diagnosticChoice === "printable" ? "Download Quiz" : "Start Quiz")}
+              </button>
+              <button
+                onClick={() => {
+                  setShowOnboardingQuizPicker(false);
+                  router.replace(`/home/${userId}`);
+                }}
+                className="w-full py-2.5 rounded-2xl border border-[#dce9ff] text-[#43474f] font-semibold hover:bg-[#f0f5ff] transition-colors text-sm"
+              >
+                Skip for now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showOnboardingPrintableDone && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}>
+          <div className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
+            <div className="px-6 pt-7 pb-4 flex flex-col items-center text-center">
+              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>print</span>
+              </div>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Quiz downloaded</h3>
+            </div>
+            <div className="px-7 pb-2 text-[#43474f] text-sm leading-relaxed space-y-3">
+              <p>
+                The PDF should be downloading now. Print it, let your child write the answers, then scan the completed pages and email them to:
+              </p>
+              <p className="text-center font-mono font-bold text-[#003366] bg-[#f0f5ff] rounded-xl py-3 select-all">
+                diagnose@inbound.markforyou.com
+              </p>
+              <p>
+                We&apos;ll auto-mark and tag the result to your child.
+              </p>
+            </div>
+            <div className="px-7 pt-5 pb-7">
+              <button
+                onClick={() => {
+                  setShowOnboardingPrintableDone(false);
                   router.replace(`/home/${userId}`);
                 }}
                 className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
