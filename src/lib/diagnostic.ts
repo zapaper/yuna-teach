@@ -742,7 +742,11 @@ export async function handleDiagnostic(
 // each' on the cover and 'Questions 11-15 carry 2 marks each' partway
 // through. Sending all pages in one call lets flash see every banner
 // at once.
-async function scanAllPagesForMarksGuidance(jpegs: Buffer[], structure: StructureResult): Promise<string[]> {
+// Marks-guidance ranges in structured form so downstream marking can
+// look up 'is Q5 in Booklet B worth 2 marks?' efficiently.
+type MarksRange = { from: number; to: number; marksPerQ: number; note: string };
+
+async function scanAllPagesForMarksGuidance(jpegs: Buffer[], structure: StructureResult): Promise<{ lines: string[]; ranges: MarksRange[] }> {
   const ai = getAI();
   const imageParts = jpegs.map((b, i) => [
     { text: `[Page ${i}]` },
@@ -797,11 +801,12 @@ Deduplicate identical ranges. If you can't see any allocation rule, return {"ran
     });
     const raw = resp.text ?? "{}";
     const parsed = JSON.parse(raw) as { ranges?: { from?: number; to?: number; marksPerQ?: number; note?: string }[] };
-    if (!Array.isArray(parsed.ranges)) return [];
+    if (!Array.isArray(parsed.ranges)) return { lines: [], ranges: [] };
     // Convert each {from, to, marksPerQ, note} into a clean one-liner.
     // Dedupe (same from+to+marks+note collapses to one).
     const seen = new Set<string>();
-    const out: string[] = [];
+    const lines: string[] = [];
+    const ranges: MarksRange[] = [];
     for (const r of parsed.ranges) {
       const from = Number(r.from);
       const to = Number(r.to);
@@ -815,12 +820,13 @@ Deduplicate identical ranges. If you can't see any allocation rule, return {"ran
       const noteSuffix = noteStr ? ` (${noteStr})` : "";
       const rangeLabel = from === to ? `Question ${from}` : `Questions ${from} to ${to}`;
       const markLabel = m === 1 ? "1 mark each" : `${m} marks each`;
-      out.push(`${rangeLabel} carry ${markLabel}${noteSuffix}.`);
+      lines.push(`${rangeLabel} carry ${markLabel}${noteSuffix}.`);
+      ranges.push({ from, to, marksPerQ: m, note: noteStr });
     }
-    return out;
+    return { lines, ranges };
   } catch (err) {
     console.error("[diagnose] scanAllPagesForMarksGuidance failed:", err);
-    return [];
+    return { lines: [], ranges: [] };
   }
 }
 
@@ -911,23 +917,25 @@ async function runDiagnosisInBackground(
   // ("Questions 1-5 carry 2 marks each. Questions 10-20 carry 1 mark
   // each.") but in practice it often only catches the first one. Run
   // a separate focused pass over all pages and merge findings.
+  let marksRanges: MarksRange[] = [];
   try {
     const extra = await scanAllPagesForMarksGuidance(pageJpegs, structure);
-    if (extra && extra.length > 0) {
+    if (extra.lines.length > 0) {
       // REPLACE the structure prompt's marksGuidance entirely. The
       // structured-range pass has booklet attribution and excludes
       // student instructions; merging would re-introduce the noise +
-      // duplicates that prompted this rewrite. Dedupe within extra
-      // (the formatter already handles from+to+marks+note collisions).
+      // duplicates that prompted this rewrite.
       if (!structure.header) {
         structure.header = { school: "", level: "", subject: "", year: "", semester: "", title: "" };
       }
-      structure.header.marksGuidance = extra.join(" ");
-      console.log(`[diagnose] marks-guidance enhancement: replaced with ${extra.length} structured banner(s)`);
+      structure.header.marksGuidance = extra.lines.join(" ");
+      marksRanges = extra.ranges;
+      console.log(`[diagnose] marks-guidance enhancement: replaced with ${extra.lines.length} structured banner(s)`);
     }
   } catch (err) {
     console.error("[diagnose] marks-guidance enhancement failed:", err);
   }
+  void marksRanges; // Used by the per-question marking pass once it's wired back.
 
   // 5) Dump the full structure JSON to the log so the operator can
   // sanity-check it without opening the DB.
