@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useRef, useCallback } from "react";
+import { Suspense, useState, useRef, useCallback, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -42,10 +42,31 @@ function SignupFlow() {
   const [parentId, setParentId] = useState<string | null>(initialParentIdParam);
 
   // ── Step 2: Student state ──
+  // Username + password are intentionally left blank — parents pick
+  // them fresh on the form. Level pre-fills from the parent's
+  // onboarding answer (settings.defaultChildLevel) when the wizard
+  // is resumed via /signup?parentId=…&step=2.
   const [studentName, setStudentName] = useState("");
   const [studentPassword, setStudentPassword] = useState("");
   const [studentPwConfirm, setStudentPwConfirm] = useState("");
   const [studentLevel, setStudentLevel] = useState(4);
+
+  useEffect(() => {
+    if (!initialParentIdParam) return;
+    let alive = true;
+    (async () => {
+      try {
+        const r = await fetch(`/api/users?userId=${initialParentIdParam}`);
+        if (!r.ok) return;
+        const u = await r.json();
+        const lvl = (u?.settings as Record<string, unknown> | null)?.defaultChildLevel;
+        if (alive && typeof lvl === "number" && lvl >= 1 && lvl <= 6) {
+          setStudentLevel(lvl);
+        }
+      } catch { /* non-fatal */ }
+    })();
+    return () => { alive = false; };
+  }, [initialParentIdParam]);
   const [studentError, setStudentError] = useState("");
   const [studentLoading, setStudentLoading] = useState(false);
   const [studentId, setStudentId] = useState<string | null>(null);

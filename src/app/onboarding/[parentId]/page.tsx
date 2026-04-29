@@ -291,7 +291,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               key: "scan-email" as const,
               icon: "mail",
               title: "Scan and email a recent test",
-              sub: "Send any past paper (graded or ungraded) to diagnose@inbound.markforyou.com. Our AI auto-marks and finds the gaps.",
+              sub: (<>Send any past paper (graded or ungraded) to <strong className="text-[#003366] font-semibold">diagnose@inbound.markforyou.com</strong>. Our AI auto-marks and finds the gaps.</>) as React.ReactNode,
             },
           ];
           const optionsPaper = [
@@ -299,7 +299,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               key: "scan-email" as const,
               icon: "mail",
               title: "Scan and email a recent test",
-              sub: "Send any past paper (graded or ungraded) to diagnose@inbound.markforyou.com. Our AI auto-marks and finds the gaps.",
+              sub: (<>Send any past paper (graded or ungraded) to <strong className="text-[#003366] font-semibold">diagnose@inbound.markforyou.com</strong>. Our AI auto-marks and finds the gaps.</>) as React.ReactNode,
             },
             {
               key: "platform-quiz" as const,
