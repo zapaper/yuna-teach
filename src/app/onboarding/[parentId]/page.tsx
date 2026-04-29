@@ -38,7 +38,7 @@ const QUESTIONS: Question[] = [
   {
     key: "focusDuration",
     preamble: "Excellent!",
-    prompt: "What is the typical duration your child can focus on a homework before needing a break?",
+    prompt: "What is the typical duration your child can focus on a piece of work before needing a break?",
     options: [
       { value: "short", label: "5–20 minutes" },
       { value: "medium", label: "20–40 minutes" },
@@ -311,15 +311,23 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         <div className="flex items-center justify-between mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo_t.png" alt="MarkForYou" className="h-7 w-auto" />
-          {!done && (step > 0 || studentStep) && (
+          {!done && (step > 0 || showDiagnosisChoice || studentStep) && (
             <button
               onClick={() => {
                 // Back from Q5 student form returns to the diagnosis
-                // choice card; from any question card slides to the
+                // choice card; from the diagnosis card returns to Q4
+                // (childLevel); from any question card slides to the
                 // previous question.
                 if (studentStep) {
                   setStudentStep(false);
                   setShowDiagnosisChoice(true);
+                  return;
+                }
+                if (showDiagnosisChoice) {
+                  setShowDiagnosisChoice(false);
+                  // Q4's slide animation already finished; reset phase
+                  // to idle so the card is fully visible.
+                  setPhase("idle");
                   return;
                 }
                 if (phase !== "idle") return;
@@ -439,6 +447,9 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               >
                 {studentLoading ? "Creating profile..." : "Create profile"}
               </button>
+              <p className="text-xs text-[#43474f] text-center mt-2">
+                You can add more students later.
+              </p>
             </form>
           </div>
         ) : showDiagnosisChoice ? (() => {

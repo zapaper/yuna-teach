@@ -35,6 +35,9 @@ function SignupFlow() {
   const [showPrintableDone, setShowPrintableDone] = useState(false);
 
   // ── Step 1: Parent state ──
+  // parentFullName → User.displayName (mutable, shown in greetings)
+  // parentName     → User.name (immutable login username, unique)
+  const [parentFullName, setParentFullName] = useState("");
   const [parentName, setParentName] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const [parentPassword, setParentPassword] = useState("");
@@ -152,8 +155,10 @@ function SignupFlow() {
   async function handleParentSignup(e: React.FormEvent) {
     e.preventDefault();
     setParentError("");
-    if (!parentName.trim()) { setParentError("Name is required."); return; }
-    if (parentNameAvail === false) { setParentError("This name is already taken."); return; }
+    if (!parentFullName.trim()) { setParentError("Full name is required."); return; }
+    if (parentFullName.trim().length < 2) { setParentError("Full name is too short."); return; }
+    if (!parentName.trim()) { setParentError("Username is required."); return; }
+    if (parentNameAvail === false) { setParentError("This username is already taken."); return; }
     if (!parentEmail.trim()) { setParentError("Email is required."); return; }
     if (!EMAIL_RE.test(parentEmail.trim())) { setParentError("Please enter a valid email address."); return; }
     if (parentEmailAvail === false) { setParentError("This email is already registered."); return; }
@@ -166,6 +171,7 @@ function SignupFlow() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: parentName.trim(),
+          displayName: parentFullName.trim(),
           role: "PARENT",
           email: parentEmail.trim(),
           password: parentPassword,
@@ -343,10 +349,32 @@ function SignupFlow() {
 
               <form className="space-y-6" onSubmit={handleParentSignup} autoComplete="off">
                 <div className="grid grid-cols-1 gap-6">
+                  {/* Full Name (display) */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-semibold px-1" style={{ color: "rgba(11,28,48,0.8)" }}>
+                      Full Name
+                      <span className="font-normal text-xs ml-2" style={{ color: "rgba(11,28,48,0.35)" }}>How we&apos;ll greet you. Can be changed later.</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={parentFullName}
+                      onChange={e => setParentFullName(e.target.value)}
+                      placeholder="e.g. Sarah Lim"
+                      autoComplete="name"
+                      className="w-full px-5 py-4 border-0 rounded-xl transition-all duration-200"
+                      style={{
+                        background: "#eff4ff",
+                        color: "#0b1c30",
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+
                   {/* Username */}
                   <div className="space-y-2">
                     <label className="text-sm font-semibold px-1" style={{ color: "rgba(11,28,48,0.8)" }}>
                       Username
+                      <span className="font-normal text-xs ml-2" style={{ color: "rgba(11,28,48,0.35)" }}>What you&apos;ll log in with. Cannot be changed later.</span>
                     </label>
                     <input
                       type="text"
@@ -438,7 +466,7 @@ function SignupFlow() {
 
                 <button
                   type="submit"
-                  disabled={parentLoading || parentNameAvail === false || parentEmailAvail === false || parentEmailInvalid}
+                  disabled={parentLoading || !parentFullName.trim() || parentNameAvail === false || parentEmailAvail === false || parentEmailInvalid}
                   className="w-full py-5 px-8 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-60"
                   style={{ background: "linear-gradient(to bottom right, #001e40, #003366)", color: "#ffffff" }}
                 >

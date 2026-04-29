@@ -1629,7 +1629,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             </div>
             {linkTab === "share" ? (
               <div className="text-center">
-                <p className="text-xs text-slate-400 mb-4">Share this code with your parent so they can link with you.</p>
+                <p className="text-sm font-semibold text-[#003366] mb-4">Share this code with your parent so they can link their account with yours.</p>
                 {myCodeLoading ? (
                   <div className="h-16 flex items-center justify-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-2 border-slate-200 border-t-[#003366]" />

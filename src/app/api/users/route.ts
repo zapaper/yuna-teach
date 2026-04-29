@@ -59,13 +59,26 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, role, level, email, password, parentId } = body;
+  const { name, displayName, role, level, email, password, parentId } = body as {
+    name?: string; displayName?: string | null; role?: string; level?: number;
+    email?: string; password?: string; parentId?: string;
+  };
 
   if (!name || !role || !password) {
     return NextResponse.json(
       { error: "Name, role, and password are required" },
       { status: 400 }
     );
+  }
+  // displayName is optional; trim and reject obvious nonsense, but
+  // allow null/empty to mean "fall back to the username".
+  let displayNameClean: string | null = null;
+  if (typeof displayName === "string" && displayName.trim().length > 0) {
+    const trimmed = displayName.trim();
+    if (trimmed.length < 2 || trimmed.length > 40) {
+      return NextResponse.json({ error: "Full name must be 2–40 characters" }, { status: 400 });
+    }
+    displayNameClean = trimmed;
   }
 
   // Students: name must be unique
@@ -103,9 +116,10 @@ export async function POST(request: NextRequest) {
   const user = await prisma.user.create({
     data: {
       name,
-      role,
+      displayName: displayNameClean,
+      role: role as "PARENT" | "STUDENT",
       password,
-      email: role === "PARENT" ? email : null,
+      email: role === "PARENT" ? (email ?? null) : null,
       level: role === "STUDENT" ? (level ?? 1) : null,
     },
   });
