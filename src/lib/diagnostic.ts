@@ -121,7 +121,15 @@ QUESTION DETECTION DISCIPLINE (read carefully — this is the same rule the main
 6. Question numbers go in ASCENDING order. If a number on this page is smaller than ones above it, that's a NEW BOOKLET / SECTION (Booklet B) reusing numbers — extract them as-is, but they're a separate sequence.
 7. yStartPct = ~1-2% above the question number. yEndPct = top of the NEXT question number on this page (with ~1% padding), or 95 if it's the last on the page.
 8. If the page has NO question numbers at the left margin (cover, instructions banner, blank section page) return an empty questions array. DO NOT make up questions.
-9. CRITICAL — OEQ pages where the marks are printed as "[N]" near an "Ans:" line. Singapore Booklet B / Section B / Paper 2 OEQ questions look like:
+9. SUBPART CONTINUATION across pages. When a question's parts span pages, the next page sometimes starts with "(c)" or "(d)" or "(ii)" at the LEFT MARGIN — the parent question stem (with its number) was on the previous page. In that case:
+   - Output the subpart as ITS OWN question entry on this page.
+   - Use the subpart label including parens as questionNum (e.g. "(c)", "(ii)").
+   - Stem starts with "[continuation of the previous question]" so the server knows to merge marker context from the parent.
+   - yStartPct ≈ 1-3%, yEndPct ≈ next subpart label or 95.
+   - The student's answer for this subpart is on THIS page; mark it as you would any OEQ.
+   - Do NOT skip the page just because there's no integer question number visible.
+
+10. CRITICAL — OEQ pages where the marks are printed as "[N]" near an "Ans:" line. Singapore Booklet B / Section B / Paper 2 OEQ questions look like:
    "  16. The figure below shows...
         ...student writes here...
         Ans: __________ [3]"
@@ -321,13 +329,17 @@ NO commentary.`;
       const rawTopic = String(q.topic ?? "").trim();
       return {
         questionNum: String(q.questionNum ?? "?"),
-        stem: stripLatex(String(q.stem ?? "")),
-        options: Array.isArray(q.options) ? q.options.map(o => stripLatex(String(o))) : [],
-        expectedAnswer: stripLatex(String(q.expectedAnswer ?? "")),
-        studentAnswer: stripLatex(String(q.studentAnswer ?? "")),
+        stem: stripLatex(toSafeString(q.stem)),
+        options: Array.isArray(q.options) ? q.options.map(o => stripLatex(toSafeString(o))) : [],
+        expectedAnswer: stripLatex(toSafeString(q.expectedAnswer)),
+        // Drawable-diagram questions can have q.studentAnswer come
+        // back as an object (no text answer to give); String(obj)
+        // → "[object Object]" which then leaks into the review UI.
+        // toSafeString returns "" for any non-string input.
+        studentAnswer: stripLatex(toSafeString(q.studentAnswer)),
         isCorrect,
         isBlank: Boolean(q.isBlank),
-        feedback: stripLatex(String(q.feedback ?? "")),
+        feedback: stripLatex(toSafeString(q.feedback)),
         topic: snapToCanonicalTopic(rawTopic, allowedTopics),
         marksAvailable,
         marksAwarded: clamp(marksAwardedRaw, 0, marksAvailable),
@@ -343,6 +355,14 @@ NO commentary.`;
 }
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
+
+// Coerce arbitrary Gemini output into a string. Returns "" for any
+// non-string input (numbers, booleans, objects, arrays). The naive
+// String(value) approach turned objects into "[object Object]" which
+// then leaked into the review UI as the student's "answer text".
+function toSafeString(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
 
 // Robust JSON.parse for Gemini responses. Tolerates the model
 // occasionally wrapping output in ```json ... ``` fences despite our
@@ -1034,6 +1054,33 @@ async function runDiagnosisInBackground(
     lastSeenPageByQNum.set(key, q.pageIndex);
     return true;
   });
+
+  // Subpart-continuation context. When a question's questionNum looks
+  // like a bare subpart label "(c)" / "(ii)" — meaning the parent
+  // stem was on the previous page — prepend the most-recent parent
+  // question's stem to this entry's stem so the marker has context.
+  // We only attach context (no merge) so each subpart still gets its
+  // own marks allocation row.
+  let lastParent: { num: string; stem: string } | null = null;
+  for (const q of flat) {
+    const isSubpart = /^\(\s*[a-z]+\s*\)$|^\(\s*[ivxlcdm]+\s*\)$/i.test(q.questionNum.trim());
+    if (!isSubpart) {
+      // Only treat as a parent if it looks like a numeric question.
+      if (/^\d/.test(q.questionNum.trim())) {
+        lastParent = { num: q.questionNum, stem: q.stem };
+      }
+      continue;
+    }
+    if (!lastParent) continue;
+    // Re-namespace the questionNum so weak/strong + dashboard show it
+    // as a continuation of the parent (e.g. "16(c)" instead of just "(c)").
+    q.questionNum = `${lastParent.num}${q.questionNum}`;
+    // Prefix the stem so the marker has the parent context. The
+    // existing stem is the (c)-only text the AI captured.
+    if (!q.stem.toLowerCase().startsWith("[continuation")) {
+      q.stem = `[Continuation of Q${lastParent.num}] ${lastParent.stem.trim()}\n${q.stem}`;
+    }
+  }
 
   // 7) Override marksAvailable from the marks-guidance ranges. Each
   // question is matched to the booklet whose page range contains its

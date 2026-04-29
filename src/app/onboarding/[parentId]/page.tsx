@@ -209,7 +209,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   useEffect(() => {
     if (phase !== "idle") return;
     if (typedChars >= fullText.length) return;
-    const t = setTimeout(() => setTypedChars(c => c + 1), 18);
+    const t = setTimeout(() => setTypedChars(c => c + 1), 9);
     return () => clearTimeout(t);
   }, [typedChars, fullText, phase]);
   const preambleLen = q?.preamble ? q.preamble.length + 1 : 0; // +1 for separator space
@@ -293,6 +293,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               sub: (<>Send any past paper (graded or ungraded) to <strong className="text-[#003366] font-semibold">diagnose@inbound.markforyou.com</strong>. Our AI auto-marks and finds the gaps.</>) as React.ReactNode,
             },
           ];
+          // Long-focus children + paper/mixed preference → suggest a
+          // full past-year paper rather than the short 15-min quiz.
+          // The underlying download still uses the printable-quiz path
+          // for now; the label change communicates the intent.
+          const longFocus = answers.focusDuration === "long";
           const optionsPaper = [
             {
               key: "scan-email" as const,
@@ -306,16 +311,23 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               title: "15-min quiz on the platform",
               sub: "Quick on-screen diagnostic. Results show up immediately.",
             },
-            {
-              key: "printable" as const,
-              icon: "print",
-              title: "Print out a 15-min quiz",
-              sub: "Download a PDF, your child writes on paper, scan it back when done.",
-            },
+            longFocus
+              ? {
+                  key: "printable" as const,
+                  icon: "print",
+                  title: "Print out a 40-min past year paper",
+                  sub: "Download a full past-year paper PDF, your child works on paper, scan it back when done.",
+                }
+              : {
+                  key: "printable" as const,
+                  icon: "print",
+                  title: "Print out a 15-min quiz",
+                  sub: "Download a PDF, your child writes on paper, scan it back when done.",
+                },
           ];
           const opts = screenHeavy ? optionsLight : optionsPaper;
           const blurb = screenHeavy
-            ? <>We can set a quick 15-min quiz to read where your child is in <strong>Math</strong>, <strong>Science</strong> or <strong>English</strong>. Or, if you'd rather use an existing test, scan and email one in.</>
+            ? <>We can set a quick 15-min quiz to analyse your child&apos;s current ability in <strong>Math</strong>, <strong>Science</strong> or <strong>English</strong>. Or, if you&apos;d rather use an existing test, scan and email one in.</>
             : <>We need a quick read on where your child is in <strong>Math</strong>, <strong>Science</strong> or <strong>English</strong>. Pick whichever fits best:</>;
           return (
           <div style={{ animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>

@@ -615,21 +615,6 @@ function SignupFlow() {
               </form>
             </div>
 
-            {/* Illustration */}
-            <div className="w-full lg:w-1/2 flex justify-center order-1 lg:order-2">
-              <div className="relative w-2/3 lg:w-full max-w-lg mx-auto">
-                <div className="absolute inset-0 rounded-[3rem] rotate-3 scale-105 opacity-50" style={{ background: "#dce9ff" }} />
-                <div className="absolute inset-0 rounded-[3rem] -rotate-2 opacity-30" style={{ background: "#d5e3ff" }} />
-                <div className="relative rounded-[2rem] lg:rounded-[3rem] overflow-hidden p-4 lg:p-8 shadow-lg" style={{ background: "#ffffff" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    alt="Student learning"
-                    className="w-full h-auto object-contain"
-                    src="/step2.png"
-                  />
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
