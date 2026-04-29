@@ -240,7 +240,7 @@ OUTPUT FORMAT: a JSON OBJECT with these keys:
 
 NO commentary.`;
   try {
-    const resp = await withRetries("diagnosePage", 3, () => ai.models.generateContent({
+    const resp = await withRetries("diagnosePage", 5, () => ai.models.generateContent({
       model: "gemini-2.5-pro",
       contents: [{
         role: "user",
@@ -311,7 +311,11 @@ async function withRetries<T>(label: string, attempts: number, fn: () => Promise
     } catch (err) {
       lastErr = err;
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`[diagnose] ${label} attempt ${i}/${attempts} failed: ${msg}`);
+      // Surface err.cause (undici wraps the real reason there) so we
+      // can tell timeout vs DNS vs reset apart in the logs.
+      const cause = (err as { cause?: { code?: string; message?: string } }).cause;
+      const causeMsg = cause ? ` cause=${cause.code ?? ""}${cause.code && cause.message ? " " : ""}${cause.message ?? ""}` : "";
+      console.warn(`[diagnose] ${label} attempt ${i}/${attempts} failed: ${msg}${causeMsg}`);
       if (i < attempts) {
         // Exponential backoff with jitter — much kinder when the
         // failure is rate-limit / connection-pool related.
@@ -808,7 +812,10 @@ async function runDiagnosisInBackground(
   // banner-detect + cover-total all in one shot. Saves the duplicated
   // image bytes that the previous three separate passes were sending.
   // Concurrency-cap to keep us under Gemini's connection ceiling.
-  const PAGE_CONCURRENCY = 8;
+  // Drop to 4 concurrent — gemini-2.5-pro on combined extract+mark+
+  // classify+banner+totals is heavy and we kept seeing connection-
+  // pool related fetch failures at higher concurrency.
+  const PAGE_CONCURRENCY = 4;
   const perPage = await mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, buf => diagnosePage(buf, subjectHint, levelHint));
   const allBands: MarkingBand[] = perPage.flatMap(p => p.markingSchemeBands);
   if (allBands.length > 0) {
