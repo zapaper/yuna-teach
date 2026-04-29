@@ -279,7 +279,7 @@ NO commentary.`;
       config: { temperature: 0, responseMimeType: "application/json" },
     }));
     const raw = resp.text ?? "{}";
-    const parsed = JSON.parse(raw) as { questions?: DiagnosedQuestion[]; paperTotalMarks?: number | null; teacherAwardedMarks?: number | null; markingSchemeBands?: { from?: number; to?: number; marksPerQ?: number }[] } | DiagnosedQuestion[];
+    const parsed = safeJsonParse<{ questions?: DiagnosedQuestion[]; paperTotalMarks?: number | null; teacherAwardedMarks?: number | null; markingSchemeBands?: { from?: number; to?: number; marksPerQ?: number }[] } | DiagnosedQuestion[]>("diagnosePage", raw, {});
     // Tolerate the legacy plain-array shape in case Gemini drops the wrapper object.
     const arr = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.questions) ? parsed.questions : []);
     const paperTotalMarks = (!Array.isArray(parsed) && typeof parsed.paperTotalMarks === "number" && parsed.paperTotalMarks > 0) ? parsed.paperTotalMarks : null;
@@ -324,6 +324,27 @@ NO commentary.`;
 }
 
 function clamp(v: number, lo: number, hi: number) { return Math.max(lo, Math.min(hi, v)); }
+
+// Robust JSON.parse for Gemini responses. Tolerates the model
+// occasionally wrapping output in ```json ... ``` fences despite our
+// responseMimeType: "application/json" config, and trims stray
+// whitespace. Returns the fallback (caller-supplied) on parse failure
+// AND logs the raw text so we can spot the truncation / fence /
+// content-filter issue in Railway. The label distinguishes which call
+// site failed.
+function safeJsonParse<T>(label: string, raw: string, fallback: T): T {
+  if (!raw) return fallback;
+  let cleaned = raw.trim();
+  // Strip ```json or ``` fences from start and end (some Gemini
+  // responses still wrap in markdown despite responseMimeType).
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch (err) {
+    console.error(`[diagnose] ${label} JSON.parse failed: ${err instanceof Error ? err.message : String(err)} | raw (first 400 chars): ${raw.slice(0, 400)}`);
+    return fallback;
+  }
+}
 
 // Wrap any Gemini call so transient fetch failures (UND_ERR_HEADERS_TIMEOUT,
 // ECONNRESET, AggregateError) get retried with linear backoff instead
@@ -822,7 +843,7 @@ Deduplicate identical ranges. If you can't see any allocation rule, return {"ran
       config: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 4000 },
     });
     const raw = resp.text ?? "{}";
-    const parsed = JSON.parse(raw) as { ranges?: { from?: number; to?: number; marksPerQ?: number; note?: string }[] };
+    const parsed = safeJsonParse<{ ranges?: { from?: number; to?: number; marksPerQ?: number; note?: string }[] }>("scanMarksGuidance", raw, {});
     if (!Array.isArray(parsed.ranges)) return { lines: [], ranges: [] };
     // Convert each {from, to, marksPerQ, note} into a clean one-liner.
     // Dedupe (same from+to+marks+note collapses to one).
