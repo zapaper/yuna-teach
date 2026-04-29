@@ -75,6 +75,7 @@ export async function GET(
   // ── Cover page ────────────────────────────────────────────────
   let page = doc.addPage([A4_W, A4_H]);
   drawPrintCode(page, helvBold, code);
+  drawEmailBanner(page, helvBold);
   drawCoverPage(page, helvBold, helv, paper.title ?? "Focused Practice", student.name, paper.subject ?? "", paper.level ?? "", paper.questions.length, code);
 
   // ── Question pages ────────────────────────────────────────────
@@ -187,6 +188,33 @@ function isMcqQuestion(q: { transcribedOptions?: unknown; answer?: string | null
   return /^[A-D1-4]$/i.test(a);
 }
 
+function drawEmailBanner(page: PDFPage, font: PDFFont) {
+  // Centered banner at the very top of the cover page so parents know
+  // immediately where to send the completed scan. Light accent fill +
+  // brand blue text matches the rest of the cover styling.
+  const text = "Please email to diagnose@inbound.markforyou.com when done";
+  const fontSize = 11;
+  const w = font.widthOfTextAtSize(text, fontSize);
+  const padX = 14;
+  const padY = 7;
+  const bx = (A4_W - (w + padX * 2)) / 2;
+  const by = A4_H - MARGIN - (fontSize + padY * 2);
+  page.drawRectangle({
+    x: bx, y: by,
+    width: w + padX * 2, height: fontSize + padY * 2,
+    color: rgb(0.86, 0.91, 1.0), // soft brand-light fill
+    borderColor: rgb(0, 0.12, 0.25),
+    borderWidth: 0.6,
+  });
+  page.drawText(text, {
+    x: bx + padX,
+    y: by + padY + 1,
+    size: fontSize,
+    font,
+    color: rgb(0, 0.12, 0.25),
+  });
+}
+
 function drawPrintCode(page: PDFPage, font: PDFFont, code: string) {
   const fontSize = 9;
   const w = font.widthOfTextAtSize(code, fontSize);
@@ -227,7 +255,7 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, title: st
     "1. Write your name and date below.",
     "2. Answer every question.",
     "3. Show your working for math questions.",
-    "4. When done, ask your parent to scan the pages and email the scan to hello@inbound.markforyou.com.",
+    "4. When done, ask your parent to scan the pages and email the scan to diagnose@inbound.markforyou.com.",
     "5. The code in the top-right of each page tells us which paper this is — please don't cover or cut it off.",
   ];
   let iy = 240;

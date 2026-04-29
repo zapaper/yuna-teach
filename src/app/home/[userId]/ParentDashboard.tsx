@@ -3138,7 +3138,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </div>
               <h3 className="font-headline text-lg font-extrabold text-[#0b1c30] mb-2">First assignment sent! 🎉</h3>
               <p className="text-sm text-[#43474f] leading-relaxed">
-                Want to open <strong className="text-[#001e40]">{firstAssignPrompt.studentName}</strong>&apos;s homepage in a new tab so you can follow along while they work?
+                Do you want to open <strong className="text-[#001e40]">{firstAssignPrompt.studentName}</strong>&apos;s homepage in a new tab? Your child can work on the quiz on this page.
               </p>
             </div>
             <div className="px-6 pt-4 pb-6 flex flex-col gap-2">
@@ -3313,7 +3313,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               >
                 {onboardingQuizLoading
                   ? (diagnosticChoice === "printable" ? "Preparing PDF..." : "Creating quiz...")
-                  : (diagnosticChoice === "printable" ? "Download Quiz" : "Start Quiz")}
+                  : (diagnosticChoice === "printable" ? "Download Quiz (Beta)" : "Start Quiz")}
               </button>
               <button
                 onClick={() => {

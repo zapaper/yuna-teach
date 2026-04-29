@@ -753,7 +753,7 @@ function SignupFlow() {
                       >
                         {quizLoading
                           ? (printableMode ? "Preparing PDF…" : "Creating quiz…")
-                          : (printableMode ? "Download Quiz" : "Start Quiz")}
+                          : (printableMode ? "Download Quiz (Beta)" : "Start Quiz")}
                       </button>
                     </div>
                   </div>
