@@ -104,7 +104,21 @@ type PageDiagnosis = {
 async function diagnosePage(jpeg: Buffer, subjectHint: string, levelHint: string | null): Promise<PageDiagnosis> {
   const ai = getAI();
   const allowedTopics = topicListForSubject(subjectHint);
-  const prompt = `You are reviewing one page of a Singapore primary-school past paper photographed by a parent. The student has handwritten answers on the paper, AND there may already be red-ink marks from the school teacher.
+  const prompt = `You are extracting + marking ONE page of a Singapore primary-school past paper photographed by a parent. The student has handwritten answers on the paper, AND there may already be red-ink marks from the school teacher.
+
+QUESTION DETECTION DISCIPLINE (read carefully — this is the same rule the main extraction pipeline uses, and it's where the previous diagnostic flow has been getting things wrong):
+
+1. Scan ONLY the left-most ~5% of the page from top to bottom.
+2. A QUESTION NUMBER is a bare integer (or integer + ".") that is the VERY FIRST thing on a line, FLUSH WITH THE LEFT EDGE, with nothing to its left. e.g. "1.", "2.", "16.", "24.".
+3. The following are NOT question numbers — DO NOT split them out as separate questions:
+   - "(a)", "(b)", "(i)", "(ii)" — these are sub-parts of the parent question.
+   - "(1)", "(2)", "(3)", "(4)" — MCQ option labels (indented, not flush left).
+   - Numbers in the question stem, table cells, diagrams, footnotes, or page numbers in the header / footer.
+4. ONLY output a question if you can clearly SEE the integer printed at the LEFT MARGIN. NEVER invent or guess. If you can't see "Q14", do NOT output a Q14.
+5. Each question is ONE entry — sub-parts (a)/(b)/(c) belong inside that one entry's stem, not their own.
+6. Question numbers go in ASCENDING order. If a number on this page is smaller than ones above it, that's a NEW BOOKLET / SECTION (Booklet B) reusing numbers — extract them as-is, but they're a separate sequence.
+7. yStartPct = ~1-2% above the question number. yEndPct = top of the NEXT question number on this page (with ~1% padding), or 95 if it's the last on the page.
+8. If the page has NO question numbers at the left margin (cover, instructions banner, blank section page) return an empty questions array. DO NOT make up questions.
 
 CONTEXT:
 - Subject (best guess from the page): ${subjectHint || "auto-detect"}
@@ -551,11 +565,11 @@ If the student clearly wrote a different digit (2, 3, 4, 5) and there is no sepa
 }
 
 function isMcqQuestion(q: { options?: string[]; expectedAnswer?: string }): boolean {
-  // Has options array and the expected answer reads as a single
-  // letter/digit, or has 2+ options. Either signal is enough.
-  if (Array.isArray(q.options) && q.options.length >= 2) return true;
-  const a = (q.expectedAnswer ?? "").trim();
-  return /^[A-D1-4]$/i.test(a);
+  // ONLY treat as MCQ if the AI returned an options array of >= 2.
+  // The previous "expectedAnswer is a single digit/letter" fallback
+  // misclassified OEQ math answers like "1" or numeric short
+  // answers, which then fired the MCQ-1 recheck on OEQ regions.
+  return Array.isArray(q.options) && q.options.length >= 2;
 }
 
 // Geometry-focused recheck. Math geometry questions require multi-step
