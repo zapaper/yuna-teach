@@ -199,6 +199,25 @@ TASK: For each distinct question on this page, output a JSON record. The record 
 4. "expectedAnswer": the correct answer YOU determine. For MCQ, return the digit/letter of the correct option (e.g. "1", "2", or "A"). For OEQ, the expected text answer.
 5. "studentAnswer": exactly what the student wrote in handwriting, transcribed. "" if blank.
 6. "isCorrect": true if the student's answer matches the expected answer (allow synonyms / equivalent expressions). Strict for MCQ. Forgiving for OEQ phrasing.
+
+   SCIENCE OEQ — STRICT (CRITICAL FOR 2-3 MARK QUESTIONS):
+   Singapore primary science OEQ marking is concept-driven. For multi-mark questions (especially 2 or 3 marks), the student must do BOTH:
+   (a) include the required scientific key terms (e.g. "gravitational potential energy", "kinetic energy", "fertilisation", "evaporation", "photosynthesis")
+   (b) show a CHAIN OF REASONING that actually answers the question — connecting cause to effect step-by-step using those key terms.
+
+   A single keyword in isolation is NOT enough. Mere repetition of question wording is NOT enough. The chain matters.
+
+   Worked example — question: "Why did Ball A travel farther than Ball B?" (2 marks):
+   - Strong (full marks): "Ball A was held higher, so it has more gravitational potential energy. When released, this is converted to more kinetic energy, so Ball A moves faster and travels farther." → mentions GPE, KE, conversion, AND links to the outcome (travelled farther).
+   - Weak (partial / wrong): "Ball A has more energy." → vague, no specific concept named.
+   - Weak: "Gravitational potential energy is when something is high." → defines a term but never answers the question.
+   - Weak: "Ball A was held higher." → observation only, no concept linkage.
+
+   For 2-3 mark questions, set marksAwarded proportional to the number of distinct correct chain-links present. Missing the conversion step (GPE→KE) costs ~half. Missing the explicit link to the outcome costs ~half. Naming a key term but not using it correctly costs the keyword mark.
+
+   For 1-mark Science questions, presence of the key term + a sensible attempt at linking to the outcome is enough.
+
+   Use the "feedback" field to name the missing step / keyword explicitly so the parent knows what was lacking. e.g. "Mentioned gravitational potential energy but didn't connect it to kinetic energy — the chain GPE → KE → speed → distance is what the 2-mark question expects."
 7. "isBlank": true if the student wrote nothing.
 8. "feedback": 1-2 sentence explanation suitable for showing the parent. Always include — even when correct.
 9. "topic": ONE short topic label appropriate to the syllabus (e.g. "Fractions", "Decimals", "Photosynthesis", "Comprehension", "Synthesis & Transformation"). NOT a sentence.
