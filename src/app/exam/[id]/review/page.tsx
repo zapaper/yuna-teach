@@ -1287,7 +1287,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   {/* Section header — also hosts the passage pen toolbar
                       (parents only) so Pen / Clear stay docked here
                       regardless of how the parent scrolls the passage. */}
-                  <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
+                  <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                     <h3 className="font-headline text-lg font-extrabold text-[#001e40]">{currentSection?.label}</h3>
                     <div className="flex items-center gap-2">
                       {!isStudent && currentSection?.passage && !currentSection.passage.startsWith("[") && (
@@ -1319,6 +1319,11 @@ function ExamReviewContent({ id }: { id: string }) {
                       }`}>{earnedMarks} / {totalMarks}</span>
                     </div>
                   </div>
+                  {isSynthesis && (
+                    <p className="text-xs text-[#43474f] mb-6 italic">
+                      Strict marking follows MOE guideline. No partial marks given.
+                    </p>
+                  )}
 
                   {/* Visual Text passage images — passage is stored as a sentinel
                       like "[VISUAL_PAGES:paperId:0,1]" and resolved to scanned pages. */}
