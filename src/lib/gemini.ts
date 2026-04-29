@@ -2263,7 +2263,7 @@ Return ONLY valid JSON.`;
 
 // --- Intermediate types for the 3-stage pipeline ---
 
-interface StructureResult {
+export interface StructureResult {
   header: ExamHeaderInfo;
   pages: Array<{
     pageIndex: number;
@@ -2359,7 +2359,7 @@ function buildStructureContext(structure: StructureResult): string {
 }
 
 // Stage 1: Analyze exam structure (all pages)
-async function analyzeExamStructure(
+export async function analyzeExamStructure(
   imagesBase64: string[]
 ): Promise<StructureResult> {
   const imageParts = imagesBase64.map((data, i) => [

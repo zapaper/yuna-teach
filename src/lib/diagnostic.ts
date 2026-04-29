@@ -15,6 +15,7 @@ import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { renderPdfToJpegs } from "@/lib/pdf-server";
 import { maskBottomRightCorner } from "@/lib/watermark";
+import { analyzeExamStructure, type StructureResult } from "@/lib/gemini";
 
 // Canonical syllabus topic lists. Diagnostic-flow topic tags MUST come
 // from these — that's what the focused-practice picker matches against.
@@ -734,6 +735,15 @@ export async function handleDiagnostic(
   });
 }
 
+// STRUCTURE-ONLY MODE.
+// Per parent request: 'do not extract pages for now, I am wasting tokens'.
+// We render the PDF to per-page JPGs, then run ONLY the regular paper-
+// extraction structure-analysis prompt (the same one /api/exam/upload
+// uses) to get header + sections + per-paper expectations. The result
+// is logged in full to Railway and a compact summary is emailed to
+// the parent. No per-question marking, no geometry recheck, no MCQ-1
+// recheck. Once the structure output looks right we'll layer those
+// passes back on top.
 async function runDiagnosisInBackground(
   attachments: DiagnoseAttachment[],
   parent: DiagnoseParent,
@@ -741,7 +751,7 @@ async function runDiagnosisInBackground(
   subjectStr: string,
   fromEmail: string,
 ): Promise<void> {
-  // Render every attachment to per-page JPGs and CamScanner-mask.
+  // 1) Render PDF / image attachments to per-page JPG buffers.
   const pageJpegs: Buffer[] = [];
   for (const a of attachments) {
     if (a.mime === "application/pdf") {
@@ -765,24 +775,15 @@ async function runDiagnosisInBackground(
     return;
   }
 
-  // Subject hint comes from the email subject — parent may write
-  // "Math diagnostic" / "P5 science" / etc. Pure heuristic.
-  const subjectHint = subjectStr.toLowerCase().includes("sci") ? "Science"
-    : subjectStr.toLowerCase().includes("eng") ? "English"
-    : subjectStr.toLowerCase().includes("math") ? "Mathematics"
-    : "";
-  const levelHint = student.level ? `Primary ${student.level}` : null;
-
-  // Create the paper FIRST with markingStatus='in_progress' so it
-  // appears on the dashboard as "Marking…" while the Gemini analysis
-  // runs (~60-90s). The parent sees it immediately and clicks are
-  // blocked until status flips to 'complete'. We update the score +
-  // questions in a second pass after the analysis finishes.
-  const placeholderPaper = await prisma.examPaper.create({
+  // 2) Save a placeholder paper so the parent dashboard reflects the
+  // submission immediately. We mark it in_progress and never flip it
+  // to 'complete' in this stripped flow — the parent will see it as
+  // 'Marking…' until we wire the rest back on.
+  const placeholder = await prisma.examPaper.create({
     data: {
-      title: `Diagnostic — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
-      subject: subjectHint || null,
-      level: levelHint,
+      title: `Diagnostic (structure preview) — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
+      subject: null,
+      level: student.level ? `Primary ${student.level}` : null,
       paperType: "diagnostic",
       pageCount: pageJpegs.length,
       userId: parent.id,
@@ -790,15 +791,11 @@ async function runDiagnosisInBackground(
       instantFeedback: true,
       completedAt: new Date(),
       markingStatus: "in_progress",
-      metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr } as Prisma.InputJsonValue,
+      metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr, mode: "structure-only" } as Prisma.InputJsonValue,
     },
     select: { id: true },
   });
-  const paperId = placeholderPaper.id;
-
-  // Save the page JPGs straight away — they're already in memory and
-  // the review UI renders them via /api/exam/<id>/submission, so the
-  // parent (admin) can scroll through the scans even while marking.
+  const paperId = placeholder.id;
   const subDir = path.join(SUBMISSIONS_DIR, paperId);
   await fs.mkdir(subDir, { recursive: true });
   for (let i = 0; i < pageJpegs.length; i++) {
@@ -806,373 +803,86 @@ async function runDiagnosisInBackground(
   }
   console.log(`[diagnose] paper=${paperId} created in_progress with ${pageJpegs.length} page JPGs saved`);
 
-  // Run Gemini diagnosis on every page in parallel. The first and last
-  // few pages also get a dedicated cover-scan call (focused only on
-  // teacher's running total) to cross-check the totals — handwritten
-  // half marks like '31 1/2' trip up the combined prompt.
-  console.log(`[diagnose] analysing ${pageJpegs.length} pages for student=${student.id} (${student.name})`);
+  // 3) Run the regular extraction's structure-analysis prompt verbatim.
+  console.log(`[diagnose] structure-only mode: running analyzeExamStructure on ${pageJpegs.length} pages`);
   const t0 = Date.now();
-  // ONE Gemini call per page now does extract + mark + classify +
-  // banner-detect + cover-total all in one shot. Saves the duplicated
-  // image bytes that the previous three separate passes were sending.
-  // Concurrency-cap to keep us under Gemini's connection ceiling.
-  // Drop to 4 concurrent — gemini-2.5-pro on combined extract+mark+
-  // classify+banner+totals is heavy and we kept seeing connection-
-  // pool related fetch failures at higher concurrency.
-  const PAGE_CONCURRENCY = 4;
-  let pagesDone = 0;
-  const perPage = await mapWithConcurrency(pageJpegs, PAGE_CONCURRENCY, async (buf, i) => {
-    const t0 = Date.now();
-    const out = await diagnosePage(buf, subjectHint, levelHint);
-    pagesDone++;
-    console.log(`[diagnose] p${i} done in ${Date.now() - t0}ms (${pagesDone}/${pageJpegs.length})`);
-    return out;
-  });
-  const allBands: MarkingBand[] = perPage.flatMap(p => p.markingSchemeBands);
-  if (allBands.length > 0) {
-    const totalFromBands = allBands.reduce((s, b) => s + (b.to - b.from + 1) * b.marksPerQ, 0);
-    console.log(`[diagnose] marking-scheme bands: ${allBands.map(b => `Q${b.from}-${b.to}=${b.marksPerQ}m`).join(" | ")} (sum=${totalFromBands})`);
-  }
-  console.log(`[diagnose] page analysis done in ${Date.now() - t0}ms`);
-  const rawFlat = perPage.flatMap((page, pageIdx) => page.questions.map(q => ({ ...q, pageIndex: pageIdx })));
-
-  // Deduplicate by questionNum, but ONLY when the duplicate sits on
-  // an adjacent page (gap ≤ 1). Multi-page questions (math OEQ that
-  // overflows to the next page, or a continued comprehension passage)
-  // get re-extracted on each page they touch — collapse those.
-  // Multi-booklet papers reuse Q1..Q30 from booklet A as Q1..Q15 in
-  // booklet B; those are NOT duplicates and the page gap will be
-  // large, so we keep them.
-  const lastSeenPageByQNum = new Map<string, number>();
-  const dupSkips: string[] = [];
-  const flat = rawFlat.filter(q => {
-    const key = q.questionNum.trim().toLowerCase();
-    if (!key || key === "?") return true;
-    const prev = lastSeenPageByQNum.get(key);
-    if (prev !== undefined && q.pageIndex - prev <= 1) {
-      // True continuation: same question continued onto the next page.
-      dupSkips.push(`Q${q.questionNum}@p${q.pageIndex}`);
-      // Don't update lastSeen — a 3-page Q5 should still all collapse.
-      return false;
-    }
-    lastSeenPageByQNum.set(key, q.pageIndex);
-    return true;
-  });
-  if (dupSkips.length > 0) {
-    console.log(`[diagnose] deduped ${dupSkips.length} continuation page(s): ${dupSkips.join(", ")}`);
-  }
-
-  // Apply discovered marking-scheme bands as ground truth on per-
-  // question marks. This runs before any audit/clamp so the rest of
-  // the pipeline (booklet breakdown, topic loss, headline score)
-  // uses the corrected values directly.
-  if (allBands.length > 0) {
-    const touched = applyMarkingBands(flat, allBands);
-    if (touched > 0) {
-      const newSum = flat.reduce((s, q) => s + q.marksAvailable, 0);
-      console.log(`[diagnose] marking-scheme bands applied to ${touched} questions; per-q sum=${newSum}`);
-    }
-  }
-
-  // Second-pass MCQ "1" detection. Every MCQ where the model didn't
-  // already pick "1" gets a focused isolated re-check, because thin
-  // vertical "1"s are routinely missed in the first pass. Runs in
-  // parallel; cost is ~one Gemini-flash call per non-"1" MCQ.
-  const mcqRecheckCandidates = flat.filter(q => isMcqQuestion(q) && (q.studentAnswer ?? "").trim() !== "1");
-  if (mcqRecheckCandidates.length > 0) {
-    console.log(`[diagnose] MCQ-1 recheck: ${mcqRecheckCandidates.length} candidates`);
-    const recheck = await mapWithConcurrency(mcqRecheckCandidates, 8, async q => {
-      const jpg = pageJpegs[q.pageIndex];
-      if (!jpg) return { q, isOne: false };
-      try {
-        const meta = await sharp(jpg).metadata();
-        const W = meta.width ?? 0;
-        const H = meta.height ?? 0;
-        if (!W || !H) return { q, isOne: false };
-        const top = Math.max(0, Math.floor(H * (q.yStartPct ?? 0) / 100));
-        const bot = Math.min(H, Math.ceil(H * (q.yEndPct ?? 100) / 100));
-        const h = Math.max(1, bot - top);
-        const region = await sharp(jpg).extract({ left: 0, top, width: W, height: h }).jpeg({ quality: 88 }).toBuffer();
-        const isOne = await detectMcqAnswerOne(region, `Q${q.questionNum}`);
-        return { q, isOne };
-      } catch (err) {
-        console.error(`[diagnose] MCQ-1 recheck Q${q.questionNum} crop failed:`, err);
-        return { q, isOne: false };
-      }
-    });
-    let overrides = 0;
-    for (const r of recheck) {
-      if (r.isOne) {
-        r.q.studentAnswer = "1";
-        const expected = (r.q.expectedAnswer ?? "").trim();
-        const isCorrectNow = expected === "1";
-        r.q.isCorrect = isCorrectNow;
-        r.q.isBlank = false;
-        r.q.marksAwarded = isCorrectNow ? r.q.marksAvailable : 0;
-        overrides++;
-      }
-    }
-    if (overrides > 0) console.log(`[diagnose] MCQ-1 recheck: overrode ${overrides} answers to "1"`);
-  }
-
-  // Geometry recheck. Math geometry questions get re-marked with the
-  // most advanced model — primary-school geometry needs multi-step
-  // formal reasoning the lighter pass tends to short-cut. The topic
-  // tag is constrained to the math syllabus list, so 'Geometry' here
-  // already implies a math question.
-  const geomCandidates = flat.filter(q => q.topic === "Geometry");
-  if (geomCandidates.length > 0) {
-    console.log(`[diagnose] geometry recheck: ${geomCandidates.length} questions via ${GEOMETRY_MODEL}`);
-    const tg = Date.now();
-    await mapWithConcurrency(geomCandidates, 4, async q => {
-      const jpg = pageJpegs[q.pageIndex];
-      if (!jpg) return;
-      try {
-        const meta = await sharp(jpg).metadata();
-        const W = meta.width ?? 0;
-        const H = meta.height ?? 0;
-        if (!W || !H) return;
-        const top = Math.max(0, Math.floor(H * (q.yStartPct ?? 0) / 100));
-        const bot = Math.min(H, Math.ceil(H * (q.yEndPct ?? 100) / 100));
-        const h = Math.max(1, bot - top);
-        const region = await sharp(jpg).extract({ left: 0, top, width: W, height: h }).jpeg({ quality: 92 }).toBuffer();
-        const result = await remarkGeometryQuestion(region, {
-          questionNum: q.questionNum,
-          stem: q.stem,
-          options: q.options ?? [],
-          expectedAnswer: q.expectedAnswer,
-          studentAnswer: q.studentAnswer,
-          marksAvailable: q.marksAvailable,
-        });
-        if (result) {
-          const before = `${q.marksAwarded}/${q.marksAvailable} (${q.isCorrect ? "✓" : "✗"})`;
-          q.expectedAnswer = result.expectedAnswer;
-          q.studentAnswer = result.studentAnswer;
-          q.isCorrect = result.isCorrect;
-          q.marksAwarded = result.marksAwarded;
-          q.feedback = result.feedback || q.feedback;
-          q.isBlank = !q.studentAnswer.trim();
-          const after = `${q.marksAwarded}/${q.marksAvailable} (${q.isCorrect ? "✓" : "✗"})`;
-          if (before !== after) {
-            console.log(`[diagnose] geometry Q${q.questionNum}: ${before} → ${after}`);
-          }
-        }
-      } catch (err) {
-        console.error(`[diagnose] geometry Q${q.questionNum} crop failed:`, err);
-      }
-    });
-    console.log(`[diagnose] geometry recheck done in ${Date.now() - tg}ms`);
-  }
-
-  // Authoritative totals from BOTH passes (per-page detector + dedicated
-  // cover-scan). For paper-total-marks (a printed number, easy to read)
-  // take the modal/highest value. For teacher-awarded (handwritten,
-  // can include halves) prefer the cover-scan's value if it disagrees
-  // with the per-page sum, and pick the SMALLEST non-zero value across
-  // pages — duplicate teacher totals often appear on cover + final
-  // page; a runaway larger value is more likely to be a misread.
-  // Cover totals now come from the merged per-page diagnose call —
-  // no separate coverScans pass.
-  const allPaperTotals = perPage.map(p => p.paperTotalMarks ?? 0).filter(n => n > 0);
-  const allTeacherAwarded = perPage.map(p => p.teacherAwardedMarks ?? null).filter((n): n is number => typeof n === "number");
-  // Multi-booklet papers print a section total per booklet (Booklet A
-  // /35, Booklet B /20). Detect distinct totals and sum them; single-
-  // booklet papers fall through to the simple max. Also covers the
-  // case where the same total ends up reported on cover + summary.
-  const distinctPaperTotals = Array.from(new Set(allPaperTotals));
-  const coverPaperTotalRaw = distinctPaperTotals.length > 1
-    ? distinctPaperTotals.reduce((s, n) => s + n, 0)
-    : (allPaperTotals.length > 0 ? Math.max(...allPaperTotals) : 0);
-  // Marking-scheme banner sum is a more reliable signal than the
-  // visual cover total when both are available. If the bands cover
-  // a sensible range and sum to something within ±5 of the cover
-  // figure, prefer the band sum (it's derived from explicit "QX to
-  // QY carry N marks" statements). Otherwise fall back to the cover.
-  const bandSum = allBands.reduce((s, b) => s + (b.to - b.from + 1) * b.marksPerQ, 0);
-  const coverPaperTotal = bandSum > 0 && (coverPaperTotalRaw === 0 || Math.abs(bandSum - coverPaperTotalRaw) <= 5)
-    ? bandSum
-    : coverPaperTotalRaw;
-  if (bandSum > 0 && coverPaperTotalRaw > 0 && Math.abs(bandSum - coverPaperTotalRaw) > 5) {
-    console.log(`[diagnose] band sum ${bandSum} disagrees with cover ${coverPaperTotalRaw} — sticking with cover`);
-  }
-  const coverTeacherAwarded = allTeacherAwarded.length > 0 ? Math.min(...allTeacherAwarded) : 0;
-  if (coverPaperTotal > 0 || coverTeacherAwarded > 0) {
-    console.log(`[diagnose] cover-page totals: paperTotalMarks=${coverPaperTotal || "?"} teacherAwarded=${coverTeacherAwarded || "?"} (distinct paper totals=[${distinctPaperTotals.join(",")}] — ${distinctPaperTotals.length > 1 ? "summed" : "max"}, teacher raw=[${allTeacherAwarded.join(",")}], inline=[${perPage.map(p => p.teacherAwardedMarks ?? "_").join(",")}])`);
-  }
-
-  // Marks-availability audit. Each per-page Gemini call has no view
-  // of the whole paper and tends to over-allocate marks (defaulting
-  // to 2 for OEQs). When the per-q sum overshoots the cover total,
-  // we ask one Gemini call to rebalance them while preserving
-  // relative weights and using halves where appropriate.
-  const aiSumAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
-  // Trigger the rebalance whenever the per-q sum is materially above
-  // the cover total (more than 5% over). The user has seen 120/55
-  // sums on real papers; the audit is the safety net.
-  if (coverPaperTotal > 0 && aiSumAvailable > coverPaperTotal * 1.05) {
-    console.log(`[diagnose] marks audit: per-q sum ${aiSumAvailable} > paper total ${coverPaperTotal} (${Math.round(100 * aiSumAvailable / coverPaperTotal)}%) — calling rebalance`);
-    const corrections = await auditMarksAvailable(
-      flat.map(q => ({ questionNum: q.questionNum, marksAvailable: q.marksAvailable })),
-      coverPaperTotal,
-    );
-    if (corrections.size > 0) {
-      let touched = 0;
-      for (const q of flat) {
-        const key = q.questionNum.trim().toLowerCase();
-        const corrected = corrections.get(key);
-        if (typeof corrected === "number" && corrected !== q.marksAvailable) {
-          const ratio = q.marksAvailable > 0 ? q.marksAwarded / q.marksAvailable : (q.isCorrect ? 1 : 0);
-          const newAvail = Math.max(0, corrected);
-          const newAwarded = Math.min(newAvail, Math.round(ratio * newAvail * 2) / 2);
-          q.marksAvailable = newAvail;
-          q.marksAwarded = newAwarded;
-          touched++;
-        }
-      }
-      const newSum = flat.reduce((s, q) => s + q.marksAvailable, 0);
-      console.log(`[diagnose] marks audit: rebalanced ${touched} questions; new sum=${newSum}`);
-    }
-  }
-  // Verbose breakdown so the parent can sanity-check the AI's work.
-  // Logs: total questions, total marks, per-page question counts, the
-  // exact list of wrong/blank questions, and the topics that lost marks.
-  {
-    const totalAvail = flat.reduce((s, q) => s + q.marksAvailable, 0);
-    const totalAwarded = flat.reduce((s, q) => s + q.marksAwarded, 0);
-    const perPageCounts = perPage.map((p, i) => `p${i}=${p.questions.length}`).join(" ");
-    const wrong = flat.filter(q => !q.isCorrect);
-    const wrongDesc = wrong.map(q => `Q${q.questionNum}(${q.topic}, ${q.marksAwarded}/${q.marksAvailable}, p${q.pageIndex})`).join(" | ");
-    const lossByTopic = new Map<string, number>();
-    for (const q of wrong) {
-      lossByTopic.set(q.topic, (lossByTopic.get(q.topic) ?? 0) + (q.marksAvailable - q.marksAwarded));
-    }
-    const topicLossDesc = [...lossByTopic.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .map(([t, l]) => `${t}=-${l}`)
-      .join(" | ");
-    console.log(`[diagnose] ${flat.length} questions across ${pageJpegs.length} pages (${perPageCounts})`);
-    console.log(`[diagnose] score: ${totalAwarded} / ${totalAvail}`);
-    console.log(`[diagnose] wrong/partial (${wrong.length}): ${wrongDesc || "none"}`);
-    console.log(`[diagnose] marks lost by topic: ${topicLossDesc || "none"}`);
-  }
-  if (flat.length === 0) {
-    await maybeReply(fromEmail, "Diagnose: no questions detected", "We couldn't find any questions in the photos you sent. Try a clearer photo or PDF, with one full page per image.").catch(() => {});
+  let structure: StructureResult | null = null;
+  try {
+    const imagesB64 = pageJpegs.map(b => b.toString("base64"));
+    structure = await analyzeExamStructure(imagesB64);
+  } catch (err) {
+    console.error("[diagnose] structure analysis failed:", err);
+    await maybeReply(fromEmail, "Diagnose: structure analysis failed", "We couldn't read the paper structure from the photos you sent. Try a clearer scan or PDF.").catch(() => {});
     return;
   }
+  console.log(`[diagnose] structure analysis done in ${Date.now() - t0}ms`);
 
-  // Backfill the placeholder paper with the analysis results and flip
-  // markingStatus to 'complete'. instantFeedback stays true so the
-  // student sees the score immediately — no parent release needed.
-  await prisma.$transaction([
-    prisma.examQuestion.createMany({
-      data: flat.map((q, idx) => ({
-        examPaperId: paperId,
-        questionNum: q.questionNum,
-        imageData: "",
-        answer: q.expectedAnswer || null,
-        pageIndex: q.pageIndex,
-        orderIndex: idx,
-        yStartPct: q.yStartPct,
-        yEndPct: q.yEndPct,
-        marksAvailable: q.marksAvailable,
-        marksAwarded: q.marksAwarded,
-        studentAnswer: q.studentAnswer || null,
-        markingNotes: q.feedback || null,
-        syllabusTopic: q.topic || null,
-        transcribedStem: q.stem || null,
-        transcribedOptions: (q.options ?? []).length > 0 ? ((q.options ?? []) as Prisma.InputJsonValue) : Prisma.JsonNull,
-      })),
-    }),
-    prisma.examPaper.update({
-      where: { id: paperId },
-      data: {
-        markingStatus: "complete",
-        // Prefer cover-page totals when the AI spotted them — that's
-        // what the school treats as ground truth. Clamp the score to
-        // total available so a runaway per-question sum from
-        // duplicate-question detection can't produce nonsense like
-        // 93/55. Logged separately if it triggers.
-        score: clampScoreLogged(
-          coverTeacherAwarded > 0 ? coverTeacherAwarded : flat.reduce((s, q) => s + q.marksAwarded, 0),
-          coverPaperTotal > 0 ? coverPaperTotal : flat.reduce((s, q) => s + q.marksAvailable, 0),
-          paperId,
-        ),
-        totalMarks: String(coverPaperTotal > 0 ? coverPaperTotal : flat.reduce((s, q) => s + q.marksAvailable, 0)),
-      },
-    }),
-  ]);
-  const paper = { id: paperId };
-  // Page JPGs were saved to disk at placeholder creation, so the
-  // submission render works straight away — nothing more to do here.
+  // 4) Dump the full structure JSON to the log so the operator can
+  // sanity-check it without opening the DB.
+  console.log("[diagnose] STRUCTURE OUTPUT BEGIN ---");
+  console.log(JSON.stringify(structure, null, 2));
+  console.log("[diagnose] STRUCTURE OUTPUT END ---");
 
-  // Group by topic. Weak topics = the top 3 by absolute wrong count
-  // (tie-break: lower correct percentage first). Strong topics = any
-  // topic with 100% correct on 2+ questions. The "absolute mistakes"
-  // approach gives the parent something actionable even when the
-  // student is mostly strong and wrong answers are spread thinly —
-  // a strict <50% threshold tends to flag nothing on a 26-page paper.
-  const byTopic = new Map<string, { earned: number; available: number; total: number; right: number }>();
-  for (const q of flat) {
-    const t = q.topic;
-    const cur = byTopic.get(t) ?? { earned: 0, available: 0, total: 0, right: 0 };
-    cur.earned += q.marksAwarded;
-    cur.available += q.marksAvailable;
-    cur.total++;
-    if (q.isCorrect) cur.right++;
-    byTopic.set(t, cur);
-  }
-  const allTopics = Array.from(byTopic.entries()).map(([topic, s]) => ({
-    topic,
-    earned: s.earned,
-    available: s.available,
-    lost: s.available - s.earned,
-    right: s.right,
-    total: s.total,
-  }));
-  const weak = allTopics
-    .filter(t => t.lost > 0)
-    .sort((a, b) => {
-      if (b.lost !== a.lost) return b.lost - a.lost;
-      return (a.earned / a.available) - (b.earned / b.available);
-    })
-    .slice(0, 3);
-  const strong = allTopics
-    .filter(t => t.total >= 2 && t.lost === 0)
-    .slice(0, 5);
+  // Save into metadata so the dashboard can surface it later.
+  await prisma.examPaper.update({
+    where: { id: paperId },
+    data: {
+      title: structure.header?.title || `Diagnostic — ${new Date().toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
+      subject: structure.header?.subject ?? null,
+      level: structure.header?.level ?? (student.level ? `Primary ${student.level}` : null),
+      totalMarks: structure.header?.totalMarks ?? null,
+      metadata: { source: "diagnose-email", subjectHintFromEmail: subjectStr, mode: "structure-only", structure } as unknown as Prisma.InputJsonValue,
+    },
+  });
 
-  const aiTotalEarned = flat.reduce((s, q) => s + q.marksAwarded, 0);
-  const aiTotalAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
-  // Single source of truth for what gets shown to the parent: cover-
-  // page total wins for total available; awarded comes from cover-
-  // teacher if seen, otherwise per-question sum, then clamped to
-  // total available so we never email '70/55'.
-  const totalAvailable = coverPaperTotal > 0 ? coverPaperTotal : aiTotalAvailable;
-  const rawEarned = coverTeacherAwarded > 0 ? coverTeacherAwarded : aiTotalEarned;
-  const totalEarned = totalAvailable > 0 ? Math.min(rawEarned, totalAvailable) : rawEarned;
-  if (coverTeacherAwarded > 0 || coverPaperTotal > 0) {
-    console.log(`[diagnose] headline ${totalEarned}/${totalAvailable} (cover detected: paper=${coverPaperTotal || "?"} teacher=${coverTeacherAwarded || "?"} | per-q sums: ${aiTotalEarned}/${aiTotalAvailable}${rawEarned > totalAvailable ? " — clamped" : ""})`);
-  }
-
-  // Booklet-level breakdown — Q1..QN then Q1..QM is two booklets.
-  // Useful as 'overarching paper diagnosis' on multi-section papers
-  // where a single headline number would hide the structure.
-  const booklets = summariseBooklets(flat);
-  if (booklets.length > 1) {
-    console.log(`[diagnose] booklet breakdown: ${booklets.map(b => `${b.label} ${b.firstQ}..${b.lastQ} ${b.earned}/${b.available}`).join(" | ")}`);
-  }
-  // Sort all topics for the bar chart by % correct ascending — weakest
-  // at the top so the chart visually mirrors the weak-list above.
-  const topicChartRows = [...allTopics]
-    .filter(t => t.available > 0)
-    .sort((a, b) => (a.earned / a.available) - (b.earned / b.available));
+  // 5) Email the parent a readable summary.
   await maybeReply(
     fromEmail,
-    `Diagnose: ${student.name} — ${formatNum(totalEarned)}/${formatNum(totalAvailable)} marks`,
-    buildSummaryHtml(student.name, totalAvailable, totalEarned, weak, strong, booklets, topicChartRows, parent.id, paper.id),
+    `Diagnose preview — ${student.name}`,
+    buildStructurePreviewHtml(student.name, structure),
     { html: true },
   ).catch((err) => console.error("[diagnose] reply email failed:", err));
+}
 
-  console.log(`[diagnose] paper=${paper.id} student=${student.id} marks=${totalEarned}/${totalAvailable} weak=[${weak.map(w => `${w.topic}(-${w.lost})`).join(", ")}]`);
+function buildStructurePreviewHtml(studentName: string, s: StructureResult): string {
+  const h = s.header ?? {};
+  const papers = Array.isArray(s.papers) ? s.papers : [];
+  const escape = (v: string) => v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const headerRows: { label: string; value: string }[] = [];
+  if (h.school) headerRows.push({ label: "School", value: h.school });
+  if (h.level) headerRows.push({ label: "Level", value: h.level });
+  if (h.subject) headerRows.push({ label: "Subject", value: h.subject });
+  if (h.year) headerRows.push({ label: "Year", value: h.year });
+  if (h.semester) headerRows.push({ label: "Semester", value: h.semester });
+  if (h.totalMarks) headerRows.push({ label: "Total marks", value: h.totalMarks });
+  const headerHtml = headerRows.length === 0
+    ? "<p>No header detected.</p>"
+    : `<table style="font-size:13px; border-collapse:collapse;">${headerRows.map(r => `<tr><td style="padding:3px 12px 3px 0; color:#43474f;">${escape(r.label)}</td><td style="padding:3px 0; color:#001e40; font-weight:bold;">${escape(r.value)}</td></tr>`).join("")}</table>`;
+  const guidance = h.marksGuidance ? `<p style="font-size:13px; color:#43474f; margin-top:6px;"><em>Marks guidance from paper:</em> ${escape(h.marksGuidance)}</p>` : "";
+  const papersHtml = papers.map(p => {
+    const sections = Array.isArray(p.sections) ? p.sections : [];
+    const sectionRows = sections.map(sec => `<tr>
+      <td style="padding:4px 12px 4px 0; color:#001e40;">${escape(sec.name ?? "")}</td>
+      <td style="padding:4px 12px 4px 0; color:#43474f;">${escape(sec.type ?? "")}</td>
+      <td style="padding:4px 12px 4px 0; color:#43474f; text-align:right;">${sec.questionCount ?? "?"} questions</td>
+      <td style="padding:4px 0; color:#43474f; text-align:right;">${sec.marksPerQuestion ?? "varies"} mark${sec.marksPerQuestion === 1 ? "" : "s"} each</td>
+    </tr>`).join("");
+    return `<div style="margin-top:14px; padding:12px 14px; background:#f5f8ff; border-radius:10px;">
+      <p style="margin:0 0 6px; font-weight:bold; color:#001e40;">${escape(p.label ?? "Paper")}</p>
+      <p style="margin:0; font-size:13px; color:#43474f;">${p.expectedQuestionCount ?? "?"} questions; first question on page ${p.firstQuestionPageIndex ?? "?"}</p>
+      ${sections.length ? `<table style="margin-top:8px; font-size:13px; border-collapse:collapse; width:100%;">${sectionRows}</table>` : ""}
+    </div>`;
+  }).join("");
+  return `<!doctype html><html><body style="font-family:-apple-system,system-ui,sans-serif; max-width:560px; margin:0 auto; color:#0b1c30; line-height:1.5;">
+<h2 style="color:#001e40; margin-bottom:4px;">Diagnose preview for ${escape(studentName)}</h2>
+<p style="color:#43474f; margin-top:0;">Structure-only run. Per-question marking is paused while we tune the paper-structure pass.</p>
+<h3 style="color:#001e40;">Header</h3>
+${headerHtml}
+${guidance}
+<h3 style="color:#001e40; margin-top:18px;">Papers / booklets detected</h3>
+${papersHtml || "<p>None detected.</p>"}
+<p style="margin-top:24px; color:#43474f;">From the MarkForYou Team.</p>
+</body></html>`;
 }
 
 function buildSummaryHtml(
