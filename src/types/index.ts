@@ -15,7 +15,7 @@ export interface User {
   createdAt: string;
   emailVerified?: boolean;
   subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
-  linkedStudents: { id: string; name: string; displayName: string | null; level?: number | null; settings?: { avatar?: boolean; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard" } | null }[];
+  linkedStudents: { id: string; name: string; displayName: string | null; level?: number | null; settings?: { avatar?: boolean; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard"; includeAiQuestions?: boolean } | null }[];
   linkedParents: { id: string; name: string; displayName: string | null }[];
 }
 

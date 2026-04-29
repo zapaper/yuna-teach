@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   const student = await prisma.user.findUnique({
     where: { id: studentId },
-    select: { level: true },
+    select: { level: true, settings: true },
   });
   // P3 English isn't supported yet — refuse a P3 student requesting
   // an english focused practice. UI hides the option, so this is a
@@ -39,6 +39,9 @@ export async function POST(request: NextRequest) {
   const levelVariants = student?.level
     ? [`P${student.level}`, `Primary ${student.level}`, String(student.level)]
     : undefined;
+  // Parent setting: opt-out of AI-generated synthetic variants.
+  // Default ON; only excluded when explicitly false.
+  const includeAiQuestions = ((student?.settings as { includeAiQuestions?: unknown } | null)?.includeAiQuestions !== false);
 
   // Resolve the student's chosen difficulty mode. Applied ABOVE the
   // level/examType filters below — students who picked "easier" only see
@@ -65,6 +68,8 @@ export async function POST(request: NextRequest) {
   const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null, examTypes: string[] | null, allowUnrated: boolean = false) => ({
     syllabusTopic: topic,
     answer: { not: null } as { not: null },
+    // Honour the parent's "Include AI generated questions" toggle.
+    ...(includeAiQuestions ? {} : { syntheticGenerated: false }),
     // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
     // may have the stem only on one part. Filtering by stem at query level drops the
     // other parts and breaks grouping. We filter at the group level below.

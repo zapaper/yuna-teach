@@ -2474,19 +2474,29 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       studentId={selectedStudentId}
                       onChange={() => setSettingsTick(t => t + 1)}
                     />
-                    {[
+                    {([
                       { key: "avatar" as const, label: "Avatar", desc: "Show animated avatar on student homepage" },
                       { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points and crystals. Crystals are only earned when parent reviews their work.", defaultOn: true },
                       { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
                       { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
-                    ].map(item => {
-                      const stored = selectedStudent?.settings?.[item.key];
-                      const isOn = "defaultOn" in item && item.defaultOn ? stored !== false : stored === true;
+                      {
+                        key: "includeAiQuestions" as const,
+                        label: "Include AI generated questions.",
+                        desc: "Our AI studies the top school questions and MOE syllabus to generate simple variants. A human expert vets each question.",
+                        labelOff: "Exclude AI generated questions from quizzes.",
+                        descOff: "Only questions from top schools.",
+                        defaultOn: true,
+                      },
+                    ] as Array<{ key: string; label: string; desc: string; labelOff?: string; descOff?: string; defaultOn?: boolean }>).map(item => {
+                      const stored = (selectedStudent?.settings as Record<string, unknown> | null | undefined)?.[item.key];
+                      const isOn = item.defaultOn ? stored !== false : stored === true;
+                      const label = !isOn && item.labelOff ? item.labelOff : item.label;
+                      const desc = !isOn && item.descOff ? item.descOff : item.desc;
                       return (
                         <div key={item.key} className="flex items-center justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-[#001e40]">{item.label}</p>
-                            <p className="text-xs text-[#43474f]">{item.desc}</p>
+                            <p className="text-sm font-semibold text-[#001e40]">{label}</p>
+                            <p className="text-xs text-[#43474f]">{desc}</p>
                           </div>
                           <button
                             onClick={async () => {

@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
   // Get the student's level
   const student = await prisma.user.findUnique({
     where: { id: targetStudentId },
-    select: { level: true },
+    select: { level: true, settings: true },
   });
   // P3 English isn't supported yet — refuse the request if a P3
   // student is targeted with subject=english. UI hides the option, so
@@ -172,6 +172,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Primary 3 English is not yet supported." }, { status: 400 });
   }
   const levelFilter = student?.level ? `Primary ${student.level}` : undefined;
+  // Parent setting: parents can opt out of AI-generated synthetic
+  // variants. Default ON; only excluded when explicitly false.
+  const includeAiQuestions = ((student?.settings as { includeAiQuestions?: unknown } | null)?.includeAiQuestions !== false);
 
   // Determine which exam types are appropriate based on current date
   // Jan - Apr 17: WA1 only | Apr 18 - Jul 14: WA1, WA2, SA1 | Jul 15 - Aug: WA1, WA2, WA3, SA1 | Sep-Dec: all
@@ -207,6 +210,8 @@ export async function POST(request: NextRequest) {
     // + Q38bc sub-parts) must be kept together for mergeOeqGroup. Stem-less
     // questions are filtered at the group level.
     answer: { not: null as null },
+    // Honour the parent's "Include AI generated questions" toggle.
+    ...(includeAiQuestions ? {} : { syntheticGenerated: false }),
     ...(difficultyLevels && difficultyLevels.length > 0
       // Strict bucket by default. Only allow difficulty=null (unrated) on
       // the broadened/fallback passes — otherwise an unrated bank pulls
