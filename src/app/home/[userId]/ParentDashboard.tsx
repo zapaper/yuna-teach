@@ -3096,22 +3096,22 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           <div className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
             <div className="px-6 pt-7 pb-4 flex flex-col items-center text-center">
               <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
-                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
               </div>
-              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Email us your child&apos;s test</h3>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Welcome to your homepage</h3>
             </div>
             <div className="px-7 pb-2 text-[#43474f] text-sm leading-relaxed space-y-3">
               <p>
-                Send any past paper (graded or ungraded) — Math, Science or English — to:
+                This is the parent homepage — you can assign quizzes and papers from here whenever you&apos;re ready.
+              </p>
+              <p>
+                Or just send your child&apos;s most recent test (graded or ungraded) to:
               </p>
               <p className="text-center font-mono font-bold text-[#003366] bg-[#f0f5ff] rounded-xl py-3 select-all">
                 diagnose@inbound.markforyou.com
               </p>
               <p>
-                No subject or body needed. Our AI auto-marks the paper, finds the gaps, and we&apos;ll take it from there. Since this is your only child for now, the diagnosis will be tagged to them automatically.
-              </p>
-              <p className="text-xs text-[#73797f]">
-                Prefer a 15-min on-screen quiz instead? You can start one any time — just hit <strong>Daily Quiz</strong> on your dashboard.
+                We&apos;ll auto-mark it, find the gaps, and take it from there. Since you have one child linked, the diagnosis tags to them automatically.
               </p>
             </div>
             <div className="px-7 pt-5 pb-7 flex flex-col gap-2">
@@ -3123,15 +3123,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
               >
                 Got it
-              </button>
-              <button
-                onClick={() => {
-                  setShowScanEmailPopup(false);
-                  router.replace(`/signup?parentId=${userId}&step=2`);
-                }}
-                className="w-full py-3 rounded-2xl border-2 border-[#c3c6d1] text-[#001e40] font-bold hover:bg-[#eff4ff] transition-colors text-sm"
-              >
-                Set up the platform quiz instead
               </button>
             </div>
           </div>

@@ -24,7 +24,9 @@ function SignupFlow() {
   // 'printable' mode means: create the diagnostic quiz the same way,
   // but instead of taking the student into the on-screen quiz we
   // download the printable PDF + show a remind-to-email popup.
-  const printableMode = searchParams.get("mode") === "printable";
+  const diagnosticMode = searchParams.get("mode"); // "platform-quiz" | "printable" | "scan-email" | null
+  const printableMode = diagnosticMode === "printable";
+  const scanEmailMode = diagnosticMode === "scan-email";
   const [step, setStep] = useState<1 | 2 | 3>(
     initialParentIdParam && initialStep === "2" ? 2
       : initialParentIdParam && initialStep === "3" ? 3
@@ -217,6 +219,13 @@ function SignupFlow() {
       }
       const user = await res.json();
       setStudentId(user.id);
+      // Scan-email parents skip the diagnostic-quiz subject picker —
+      // they're going to email a paper in instead. Push them to the
+      // home dashboard with the popup explaining what to do next.
+      if (scanEmailMode && parentId) {
+        router.push(`/home/${parentId}?diagnostic=scan-email`);
+        return;
+      }
       setStep(3);
       setTimeout(() => window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior }), 50);
     } catch {

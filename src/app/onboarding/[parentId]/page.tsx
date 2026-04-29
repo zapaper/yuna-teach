@@ -191,16 +191,15 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     //   diagnostic-quiz subject picker, resumed via ?parentId=&step=2
     // - printable: home dashboard for now; printable-onboarding wiring
     //   comes later
-    if (kind === "platform-quiz") {
-      router.replace(`/signup?parentId=${parentId}&step=2`);
-    } else if (kind === "printable") {
-      // Same legacy wizard, just with the 'mode=printable' flag so the
-      // step-3 action button reads 'Download Quiz' and the post-create
-      // popup tells them to scan + email back.
-      router.replace(`/signup?parentId=${parentId}&step=2&mode=printable`);
-    } else {
-      router.replace(`/home/${parentId}?diagnostic=${kind}`);
-    }
+    // Every choice now flows through the student-creation form first
+    // (so the parent always ends up with a child account linked).
+    // Mode flag tells signup how to behave AFTER the student is
+    // created:
+    //  - platform-quiz: step 3 with 'Start Quiz' button (default)
+    //  - printable: step 3 with 'Download Quiz' button
+    //  - scan-email: skip step 3, jump straight to home with the
+    //    scan-email popup
+    router.replace(`/signup?parentId=${parentId}&step=2&mode=${kind}`);
   }
 
   const q = QUESTIONS[step];
