@@ -121,6 +121,11 @@ QUESTION DETECTION DISCIPLINE (read carefully — this is the same rule the main
 6. Question numbers go in ASCENDING order. If a number on this page is smaller than ones above it, that's a NEW BOOKLET / SECTION (Booklet B) reusing numbers — extract them as-is, but they're a separate sequence.
 7. yStartPct = ~1-2% above the question number. yEndPct = top of the NEXT question number on this page (with ~1% padding), or 95 if it's the last on the page.
 8. If the page has NO question numbers at the left margin (cover, instructions banner, blank section page) return an empty questions array. DO NOT make up questions.
+9. CRITICAL — OEQ pages where the marks are printed as "[N]" near an "Ans:" line. Singapore Booklet B / Section B / Paper 2 OEQ questions look like:
+   "  16. The figure below shows...
+        ...student writes here...
+        Ans: __________ [3]"
+   The "[3]" lives in the BOTTOM-RIGHT of the question's region next to or near the "Ans:" / "Answer:" line. Do NOT skip these questions — every numbered question you can see at the left margin must be output, even if there's a lot of blank answer space between the stem and the "Ans:" line. If a page has only ONE OEQ stem near the top with mostly blank answer space below, it's still ONE question — output it with yEndPct=95.
 
 CONTEXT:
 - Subject (best guess from the page): ${subjectHint || "auto-detect"}
@@ -196,7 +201,16 @@ TASK: For each distinct question on this page, output a JSON record. The record 
        "Booklet B: For each question from 1 to 10, four options are given. Choose the most suitable answer. (10 marks)"
        "Questions 1 to 28 carry 2 marks each."
        If the page contains such a banner OR you can recall it from the cover, use it as the default mark for every question in that section. e.g. if Section A says "1 mark each", every question in Section A is worth 1 mark — DO NOT randomly upgrade an OEQ subpart to 2 marks just because it looks long.
-    b. Per-question notation. Look for "[2]", "[3]", "(2 marks)", "[1m]", "[2 marks]", or any small bracketed integer / "[N]" form printed AT THE END OF THE STEM right next to the answer blank. Singapore primary papers print this everywhere — especially in Booklet B / Section B for OEQ. This notation OVERRIDES the section default. If you see "[3]" next to a question's answer line, marksAvailable for that question is exactly 3.
+    b. Per-question "[N]" notation. CRITICAL — this is the most common way Singapore primary papers (especially Booklet B / Section B OEQ) print marks. ALWAYS scan for it before defaulting. Look in TWO places:
+       i. AT THE END OF THE STEM, immediately after the question text, e.g. "What is the area of triangle ABC?  [2]"
+       ii. NEAR THE ANSWER LINE — usually BOTTOM-RIGHT of the question's region, on the same line as "Ans: ___" or "Answer: ___". The "[3]" can be just before, after, or above that "Ans:" label. Examples:
+         - "Ans: ____________ [3]"
+         - "Answer:                        [5]"
+         - A bare "[2]" floating in the bottom-right corner of the question's space
+       The "[N]" is NEVER a question number, NEVER a line/footnote reference. It's always a small bracketed integer (1-10).
+       This notation OVERRIDES the section default. If you see "[3]" in either location, marksAvailable for that question is exactly 3.
+
+    DO NOT skip a question just because you can't immediately see a marks indicator — re-scan the bottom-right of the question's region for "[N]" before falling through to the default.
     c. Last resort. If neither (a) nor (b) is visible, default 1 for MCQ, 2 for OEQ that genuinely looks like a multi-mark question — but be conservative; over-allocation is the most common error.
     Half-marks allowed (e.g. 0.5).
 11. "marksAwarded": the marks the student actually earned (0..marksAvailable). Use partial marks for OEQ when only some of the required components are present. For MCQ, all-or-nothing (0 or marksAvailable).
