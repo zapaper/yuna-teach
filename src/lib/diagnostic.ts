@@ -735,6 +735,42 @@ export async function handleDiagnostic(
   });
 }
 
+// One-shot Gemini-flash call: scan every page for marks-guidance
+// banner text and return distinct lines. The regular structure
+// prompt is supposed to do this but in practice catches only the
+// first banner — papers commonly print 'Questions 1-5 carry 2 marks
+// each' on the cover and 'Questions 11-15 carry 2 marks each' partway
+// through. Sending all pages in one call lets flash see every banner
+// at once.
+async function scanAllPagesForMarksGuidance(jpegs: Buffer[]): Promise<string[]> {
+  const ai = getAI();
+  const imageParts = jpegs.map((b, i) => [
+    { text: `[Page ${i}]` },
+    { inlineData: { mimeType: "image/jpeg" as const, data: b.toString("base64") } },
+  ]).flat();
+  const prompt = `Look at every page above. Find every printed banner that allocates marks to questions. Examples:
+- "Questions 1 to 10 carry 1 mark each."
+- "Questions 11 to 15 carry 2 marks each. Show your working clearly."
+- "Section B (40 marks): There are 13 questions in this section. Each question carries 2, 4 or 5 marks."
+- "Booklet A: Questions 1 to 28 each carry 1 mark."
+
+Return a JSON object: {"lines": ["banner 1 text", "banner 2 text", ...]} containing each distinct banner you spotted. Copy the text VERBATIM. Skip duplicates. Empty array if none. NO commentary.`;
+  try {
+    const resp = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [...imageParts, { text: prompt }] }],
+      config: { responseMimeType: "application/json", temperature: 0, maxOutputTokens: 4000 },
+    });
+    const raw = resp.text ?? "{}";
+    const parsed = JSON.parse(raw) as { lines?: unknown };
+    if (!Array.isArray(parsed.lines)) return [];
+    return parsed.lines.filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+  } catch (err) {
+    console.error("[diagnose] scanAllPagesForMarksGuidance failed:", err);
+    return [];
+  }
+}
+
 // STRUCTURE-ONLY MODE.
 // Per parent request: 'do not extract pages for now, I am wasting tokens'.
 // We render the PDF to per-page JPGs, then run ONLY the regular paper-
@@ -817,7 +853,34 @@ async function runDiagnosisInBackground(
   }
   console.log(`[diagnose] structure analysis done in ${Date.now() - t0}ms`);
 
-  // 4) Dump the full structure JSON to the log so the operator can
+  // 4) Marks-guidance enhancement pass. The regular structure prompt
+  // is supposed to scan every page for marks-guidance banners
+  // ("Questions 1-5 carry 2 marks each. Questions 10-20 carry 1 mark
+  // each.") but in practice it often only catches the first one. Run
+  // a separate focused pass over all pages and merge findings.
+  try {
+    const extra = await scanAllPagesForMarksGuidance(pageJpegs);
+    if (extra && extra.length > 0) {
+      const existing = (structure.header?.marksGuidance ?? "").trim();
+      const combined = [existing, ...extra]
+        .map(s => s.trim())
+        .filter(Boolean)
+        .filter((s, i, arr) => arr.findIndex(x => x.toLowerCase() === s.toLowerCase()) === i)
+        .join(" ");
+      if (!structure.header) {
+        // Fill required fields with empty strings so the type checks
+        // out — the structure prompt always returns a header in
+        // practice, but be defensive.
+        structure.header = { school: "", level: "", subject: "", year: "", semester: "", title: "" };
+      }
+      structure.header.marksGuidance = combined;
+      console.log(`[diagnose] marks-guidance enhancement: merged ${extra.length} additional banner(s)`);
+    }
+  } catch (err) {
+    console.error("[diagnose] marks-guidance enhancement failed:", err);
+  }
+
+  // 5) Dump the full structure JSON to the log so the operator can
   // sanity-check it without opening the DB.
   console.log("[diagnose] STRUCTURE OUTPUT BEGIN ---");
   console.log(JSON.stringify(structure, null, 2));

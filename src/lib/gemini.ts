@@ -2378,6 +2378,10 @@ export async function analyzeExamStructure(
     config: {
       responseMimeType: "application/json",
       temperature: 0.1,
+      // 38-page papers produce a lot of output (per-page pages array
+      // + papers array + sections per paper). Bump from the default
+      // ~8k cap so the response doesn't get truncated mid-string.
+      maxOutputTokens: 32000,
     },
   }, 2, 5000, "structure-analysis");
 
