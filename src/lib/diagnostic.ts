@@ -1153,6 +1153,62 @@ async function runDiagnosisInBackground(
     }
   }
 
+  // 6.5) Geometry recheck. The combined per-page diagnose prompt
+  // rushes through multi-step geometry reasoning and frequently gets
+  // the formal answer wrong (area / perimeter / angle properties).
+  // remarkGeometryQuestion runs the more capable gemini-3-pro-preview
+  // on a cropped per-question region and overrides
+  // marksAwarded / isCorrect / feedback / expected & student answers.
+  // Math papers only — non-math 'Geometry' tags don't exist.
+  const subjectLower = (subjectHint ?? subjectStr ?? "").toLowerCase();
+  const isMathPaper = subjectLower.includes("math");
+  if (isMathPaper) {
+    const geomQs = flat.filter(q =>
+      (q.topic ?? "").toLowerCase() === "geometry"
+      && typeof q.yStartPct === "number" && typeof q.yEndPct === "number"
+      && q.yEndPct > q.yStartPct
+    );
+    if (geomQs.length > 0) {
+      console.log(`[diagnose] geometry recheck: ${geomQs.length} question(s) on ${GEOMETRY_MODEL}`);
+      const tGeom = Date.now();
+      await mapWithConcurrency(geomQs, 4, async (q) => {
+        const buf = pageJpegs[q.pageIndex];
+        if (!buf) return;
+        try {
+          const meta = await sharp(buf).metadata();
+          const imgH = meta.height ?? 0;
+          const imgW = meta.width ?? 0;
+          if (imgH <= 0 || imgW <= 0) return;
+          const top = Math.max(0, Math.floor((q.yStartPct / 100) * imgH));
+          const bottom = Math.min(imgH, Math.ceil((q.yEndPct / 100) * imgH));
+          const cropH = Math.max(20, bottom - top);
+          const cropped = await sharp(buf)
+            .extract({ left: 0, top, width: imgW, height: cropH })
+            .jpeg({ quality: 88 })
+            .toBuffer();
+          const result = await remarkGeometryQuestion(cropped, {
+            questionNum: q.questionNum,
+            stem: q.stem,
+            options: q.options ?? [],
+            expectedAnswer: q.expectedAnswer ?? "",
+            studentAnswer: q.studentAnswer ?? "",
+            marksAvailable: q.marksAvailable,
+          });
+          if (result) {
+            q.marksAwarded = clamp(result.marksAwarded, 0, q.marksAvailable);
+            q.isCorrect = result.isCorrect;
+            if (result.expectedAnswer) q.expectedAnswer = result.expectedAnswer;
+            if (result.studentAnswer) q.studentAnswer = result.studentAnswer;
+            if (result.feedback) q.feedback = result.feedback;
+          }
+        } catch (err) {
+          console.warn(`[diagnose] geometry recheck Q${q.questionNum} failed:`, err);
+        }
+      });
+      console.log(`[diagnose] geometry recheck done in ${Date.now() - tGeom}ms`);
+    }
+  }
+
   // 7) Override marksAvailable from the marks-guidance ranges. Each
   // question is matched to the booklet whose page range contains its
   // pageIndex; then we look up the (questionNum, booklet) → marksPerQ
