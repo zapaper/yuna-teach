@@ -592,8 +592,24 @@ function TranscribeEditContent({ id }: { id: string }) {
                   subparts: q.type === "open" ? null : q.subparts,
                 })}
                 onDelete={async () => {
-                  if (!confirm(`Delete Q${q.questionNum}? This cannot be undone.`)) return;
-                  await fetch(`/api/exam/questions/${q.id}`, { method: "DELETE" });
+                  if (!confirm(`Clear the clean extraction for Q${q.questionNum}?\n\nThe original scanned question and answer key will be kept — written-paper marking will still work. The question will be removed from online quizzes / focused practice.`)) return;
+                  // Clear ONLY the clean-extract fields. The underlying
+                  // ExamQuestion row + original imageData/answer/marks
+                  // stay intact so scanned-paper marking continues to
+                  // work. Quiz/focused-practice already filters out
+                  // questions with null transcribedStem.
+                  await fetch(`/api/exam/questions/${q.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      transcribedStem: null,
+                      transcribedOptions: null,
+                      transcribedOptionImages: null,
+                      transcribedSubparts: null,
+                      diagramBounds: null,
+                      diagramImageData: null,
+                    }),
+                  });
                   setQuestions(qs => qs.filter(x => x.id !== q.id));
                 }}
                 onUpdate={(update) => updateQuestion(q.id, update)}
@@ -785,7 +801,7 @@ function QuestionCard({
         </button>
         <button
           onClick={onDelete}
-          title="Remove question"
+          title="Clear clean extract (keeps original scan + answer key)"
           className="p-1 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"

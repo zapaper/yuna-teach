@@ -25,7 +25,10 @@ export async function PATCH(
   if ("elaboration" in body) data.elaboration = body.elaboration ?? null;
   if ("transcribedStem" in body) data.transcribedStem = body.transcribedStem ?? null;
   if ("transcribedOptions" in body) data.transcribedOptions = body.transcribedOptions === null ? Prisma.DbNull : body.transcribedOptions;
+  if ("transcribedOptionImages" in body) data.transcribedOptionImages = body.transcribedOptionImages === null ? Prisma.DbNull : body.transcribedOptionImages;
   if ("transcribedSubparts" in body) data.transcribedSubparts = body.transcribedSubparts === null ? Prisma.DbNull : body.transcribedSubparts;
+  if ("diagramBounds" in body) data.diagramBounds = body.diagramBounds === null ? Prisma.DbNull : body.diagramBounds;
+  if ("diagramImageData" in body) data.diagramImageData = body.diagramImageData ?? null;
   if ("difficulty" in body) {
     // Clamp 1-5; null clears the rating. 0 is the existing 'tried but
     // failed' sentinel — admin override sets a real value.
