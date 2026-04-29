@@ -11,8 +11,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 // show a brief "all set" confirmation before pushing to the home page.
 
 type Answers = {
-  studyMode?: "paper" | "mixed" | "both";
-  focusDuration?: "short" | "long";
   questionDifficulty?: "adaptive" | "standard" | "hard";
   childLevel?: 4 | 5 | 6;
 };
@@ -26,27 +24,8 @@ type Question = {
 
 const QUESTIONS: Question[] = [
   {
-    key: "studyMode",
-    preamble: "Hi there! We'll ask a few quick questions so we can tailor MarkForYou to your child's learning needs.",
-    prompt: "First, which best describes how you'd like your child to study?",
-    options: [
-      { value: "paper", label: "Mostly on paper", sub: "Print worksheets, minimise screen time." },
-      { value: "mixed", label: "Mix of paper and screen", sub: "Some homework on tablet/PC, some on paper." },
-      { value: "both", label: "Comfortable with both", sub: "Either format works equally well." },
-    ],
-  },
-  {
-    key: "focusDuration",
-    preamble: "Excellent!",
-    prompt: "What is the typical duration your child can focus on a piece of work before needing a break?",
-    options: [
-      { value: "short", label: "5–20 minutes" },
-      { value: "medium", label: "20–40 minutes" },
-      { value: "long", label: "40–60 minutes" },
-    ],
-  },
-  {
     key: "questionDifficulty",
+    preamble: "Hi there! Two quick questions so we can tailor MarkForYou to your child.",
     prompt: "What kind of question difficulty best suits your child at this point?",
     options: [
       { value: "adaptive", label: "Start easy and progress as they gain mastery" },
@@ -81,12 +60,16 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   // matches the CSS classes below — change one, change the other.
   const [phase, setPhase] = useState<"in" | "idle" | "out">("in");
   const [done, setDone] = useState(false);
-  const [showDiagnosisChoice, setShowDiagnosisChoice] = useState(false);
-  // Q5 — student creation moved INTO onboarding so the parent flows
-  // through one continuous experience instead of bouncing back to the
-  // legacy /signup wizard. After diagnosisChoice is set, we transition
-  // to studentStep, then route to /home with the diagnostic mode.
-  const [diagnosisChoice, setDiagnosisChoice] = useState<"scan-email" | "platform-quiz" | "printable" | null>(null);
+  // After the two preference questions we show a quiz picker (subject
+  // + question type). Difficulty inherits from Q1, so the picker only
+  // captures what's not already known.
+  const [showQuizPicker, setShowQuizPicker] = useState(false);
+  const [pickerSubject, setPickerSubject] = useState<"math" | "science" | "english" | null>(null);
+  const [pickerType, setPickerType] = useState<"mcq" | "mcq-oeq">("mcq");
+  // Clickable "or, send a scanned recent test" message at the bottom
+  // of the picker. Click → popup with the diagnose@ instructions.
+  const [showScanEmailInfo, setShowScanEmailInfo] = useState(false);
+  // Student-creation step (final card before we route to /home).
   const [studentStep, setStudentStep] = useState(false);
   const [studentName, setStudentName] = useState("");
   const [studentPassword, setStudentPassword] = useState("");
@@ -166,10 +149,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   }
 
   async function finish(allAnswers: Answers) {
-    // Persist settings before showing the final card. Parents who
-    // selected mostly-paper or mixed-screen-time get a diagnosis-
-    // selection screen instead of the simple "All set!"; everyone
-    // else proceeds straight to the dashboard.
+    // Persist parent preferences and move to the quiz picker. Settings
+    // are best-effort; failures here shouldn't block the flow.
     try {
       await fetch("/api/users", {
         method: "PATCH",
@@ -177,8 +158,6 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         body: JSON.stringify({
           userId: parentId,
           settings: {
-            studyMode: allAnswers.studyMode,
-            focusDuration: allAnswers.focusDuration,
             questionDifficulty: allAnswers.questionDifficulty,
             defaultChildLevel: allAnswers.childLevel,
             onboardingCompleted: true,
@@ -198,29 +177,25 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     } catch {
       // Non-fatal — answers are best-effort.
     }
-    setShowDiagnosisChoice(true);
+    setShowQuizPicker(true);
   }
 
-  async function chooseDiagnosis(kind: "scan-email" | "platform-quiz" | "printable") {
-    try {
-      await fetch("/api/users", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: parentId,
-          settings: { diagnosticChoice: kind },
-        }),
-      });
-    } catch { /* non-fatal */ }
-    setDiagnosisChoice(kind);
+  function continueFromPicker() {
+    if (!pickerSubject) return;
     // Re-entering onboarding with an existing studentId means the
-    // parent already has a child linked — skip Q5 and route straight
-    // to home with the diagnostic mode.
+    // parent already has a child linked — skip the student step and
+    // route straight to home with the chosen quiz pre-selected.
     if (studentId) {
-      router.replace(`/home/${parentId}?diagnostic=${kind}&studentId=${studentId}`);
+      const params = new URLSearchParams({
+        diagnostic: "platform-quiz",
+        studentId,
+        subject: pickerSubject,
+        quizType: pickerType,
+      });
+      router.replace(`/home/${parentId}?${params.toString()}`);
       return;
     }
-    setShowDiagnosisChoice(false);
+    setShowQuizPicker(false);
     setStudentStep(true);
   }
 
@@ -257,14 +232,41 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
       // "hard" → "standard" (full top-school range).
       if (answers.questionDifficulty) {
         const studentDifficulty = answers.questionDifficulty === "hard" ? "standard" : answers.questionDifficulty;
-        fetch("/api/users", {
+        await fetch("/api/users", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId: student.id, settings: { questionDifficulty: studentDifficulty } }),
         }).catch(() => { /* non-fatal */ });
       }
-      const choice = diagnosisChoice ?? "scan-email";
-      router.replace(`/home/${parentId}?diagnostic=${choice}&studentId=${student.id}`);
+
+      // Create the daily-quiz the parent picked. Failure here is
+      // non-fatal — we still route to /home so the parent can try
+      // again from there. We DON'T await firstAssignDone — that
+      // setting flips when the dashboard's firstAssignPrompt resolves.
+      if (pickerSubject) {
+        try {
+          const quizBody: Record<string, unknown> = {
+            userId: parentId,
+            studentId: student.id,
+            quizType: pickerType,
+            subject: pickerSubject,
+          };
+          if (pickerSubject === "english") {
+            const sections = ["grammar-mcq", "vocab-mcq"];
+            if (pickerType === "mcq-oeq") sections.push("editing", "comprehension-cloze");
+            quizBody.englishSections = sections;
+          }
+          await fetch("/api/daily-quiz", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(quizBody),
+          });
+        } catch (err) {
+          console.warn("Diagnostic quiz creation failed:", err);
+        }
+      }
+
+      router.replace(`/home/${parentId}?firstAssignStudent=${student.id}`);
     } catch {
       setStudentError("Something went wrong. Please try again.");
     } finally {
@@ -311,22 +313,19 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         <div className="flex items-center justify-between mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo_t.png" alt="MarkForYou" className="h-7 w-auto" />
-          {!done && (step > 0 || showDiagnosisChoice || studentStep) && (
+          {!done && (step > 0 || showQuizPicker || studentStep) && (
             <button
               onClick={() => {
-                // Back from Q5 student form returns to the diagnosis
-                // choice card; from the diagnosis card returns to Q4
-                // (childLevel); from any question card slides to the
-                // previous question.
+                // Back from student form → quiz picker.
+                // Back from quiz picker → last question (level).
+                // Back from any question → previous question.
                 if (studentStep) {
                   setStudentStep(false);
-                  setShowDiagnosisChoice(true);
+                  setShowQuizPicker(true);
                   return;
                 }
-                if (showDiagnosisChoice) {
-                  setShowDiagnosisChoice(false);
-                  // Q4's slide animation already finished; reset phase
-                  // to idle so the card is fully visible.
+                if (showQuizPicker) {
+                  setShowQuizPicker(false);
                   setPhase("idle");
                   return;
                 }
@@ -345,14 +344,13 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             </button>
           )}
         </div>
-        {/* Progress bar — 4 questions + diagnosis choice + student
-            creation. The diagnosis card and the student form each
-            occupy their own tick so the parent can see how much is
-            left after the questionnaire. */}
+        {/* Progress bar — 2 questions + quiz picker + student creation.
+            The picker and student form each occupy their own tick so
+            the parent can see how much is left. */}
         <div className="flex gap-1.5">
           {Array.from({ length: TOTAL_STEPS + 2 }).map((_, i) => {
             const currentIdx = studentStep ? TOTAL_STEPS + 1
-              : showDiagnosisChoice ? TOTAL_STEPS
+              : showQuizPicker ? TOTAL_STEPS
               : step;
             return (
               <div
@@ -367,7 +365,7 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         <p className="text-xs text-[#43474f] mt-2 font-medium tracking-wide">
           {done ? "All done"
             : studentStep ? `Step ${TOTAL_STEPS + 2} of ${TOTAL_STEPS + 2}`
-            : showDiagnosisChoice ? `Step ${TOTAL_STEPS + 1} of ${TOTAL_STEPS + 2}`
+            : showQuizPicker ? `Step ${TOTAL_STEPS + 1} of ${TOTAL_STEPS + 2}`
             : `Step ${step + 1} of ${TOTAL_STEPS + 2}`}
         </p>
       </header>
@@ -452,95 +450,94 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
               </p>
             </form>
           </div>
-        ) : showDiagnosisChoice ? (() => {
-          // Heavy-screen-time parents see two options (platform quiz +
-          // email scan); paper / mixed parents also get the printable
-          // option since they explicitly want less screen time.
-          const screenHeavy = answers.studyMode === "both";
-          const optionsLight = [
-            {
-              key: "platform-quiz" as const,
-              icon: "devices",
-              title: "15-min quiz on the platform",
-              sub: "Quick on-screen diagnostic. Results show up immediately.",
-            },
-            {
-              key: "scan-email" as const,
-              icon: "mail",
-              title: "Scan and email a recent test",
-              sub: (<>Send any past paper (graded or ungraded) to <strong className="text-[#003366] font-semibold">diagnose@inbound.markforyou.com</strong>. Our AI auto-marks and finds the gaps.</>) as React.ReactNode,
-            },
-          ];
-          // Long-focus children + paper/mixed preference → suggest a
-          // full past-year paper rather than the short 15-min quiz.
-          // The underlying download still uses the printable-quiz path
-          // for now; the label change communicates the intent.
-          const longFocus = answers.focusDuration === "long";
-          const optionsPaper = [
-            {
-              key: "scan-email" as const,
-              icon: "mail",
-              title: "Scan and email a recent test",
-              sub: (<>Send any past paper (graded or ungraded) to <strong className="text-[#003366] font-semibold">diagnose@inbound.markforyou.com</strong>. Our AI auto-marks and finds the gaps.</>) as React.ReactNode,
-            },
-            {
-              key: "platform-quiz" as const,
-              icon: "devices",
-              title: "15-min quiz on the platform",
-              sub: "Quick on-screen diagnostic. Results show up immediately.",
-            },
-            longFocus
-              ? {
-                  key: "printable" as const,
-                  icon: "print",
-                  title: "Print out a 40-min past year paper",
-                  sub: "Download a full past-year paper PDF, your child works on paper, scan it back when done.",
-                }
-              : {
-                  key: "printable" as const,
-                  icon: "print",
-                  title: "Print out a 15-min quiz",
-                  sub: "Download a PDF, your child writes on paper, scan it back when done.",
-                },
-          ];
-          const opts = screenHeavy ? optionsLight : optionsPaper;
-          const blurb = screenHeavy
-            ? <>We can set a quick 15-min quiz to analyse your child&apos;s current ability in <strong>Math</strong>, <strong>Science</strong> or <strong>English</strong>. Or, if you&apos;d rather use an existing test, scan and email one in.</>
-            : <>We need a quick read on where your child is in <strong>Math</strong>, <strong>Science</strong> or <strong>English</strong>. Pick whichever fits best:</>;
-          return (
+        ) : showQuizPicker ? (
           <div style={{ animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
             <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Great!</p>
-            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-4">Let's diagnose your child's current learning</h2>
-            <p className="text-sm text-[#43474f] leading-relaxed mb-6">{blurb}</p>
-            <div className="flex flex-col gap-3">
-              {opts.map((opt, i) => (
-                <button
-                  key={opt.key}
-                  onClick={() => chooseDiagnosis(opt.key)}
-                  className="group text-left bg-white border-2 border-[#dce9ff] rounded-2xl p-4 hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] transition-all"
-                  style={{ animation: `slideUp 0.4s ease-out ${0.1 + i * 0.08}s both` }}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#dce9ff] group-hover:bg-[#003366] flex items-center justify-center shrink-0 transition-colors">
-                      <span className="material-symbols-outlined text-[#003366] group-hover:text-white transition-colors">{opt.icon}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#001e40] text-base leading-tight">{opt.title}</p>
-                      <p className="text-xs text-[#43474f] mt-1 leading-relaxed">{opt.sub}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
+            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">What kind of quiz would you like to assign?</h2>
+            <p className="text-sm text-[#43474f] leading-relaxed mb-5">
+              Pick a subject and question type — we&apos;ll set up a quick on-screen diagnostic for your child.
+            </p>
+            <div className="space-y-4 mb-5">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">Subject</p>
+                <div className="flex flex-wrap gap-2">
+                  {(["math", "science", "english"] as const).map(subj => {
+                    const isSelected = pickerSubject === subj;
+                    return (
+                      <button
+                        key={subj}
+                        type="button"
+                        onClick={() => setPickerSubject(subj)}
+                        className="px-4 py-2.5 rounded-full text-sm font-semibold transition-colors flex items-center gap-1.5"
+                        style={{
+                          background: isSelected ? "#003366" : "#ffffff",
+                          color: isSelected ? "#ffffff" : "#003366",
+                          border: isSelected ? "2px solid #003366" : "2px solid #dce9ff",
+                        }}
+                      >
+                        {subj === "english" ? (
+                          <span className="font-extrabold text-base leading-none">A</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-sm">
+                            {subj === "math" ? "functions" : "science"}
+                          </span>
+                        )}
+                        {subj.charAt(0).toUpperCase() + subj.slice(1)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#43474f] mb-2">Question type</p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPickerType("mcq")}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                    style={{
+                      background: pickerType === "mcq" ? "#003366" : "#ffffff",
+                      color: pickerType === "mcq" ? "#ffffff" : "#003366",
+                      border: pickerType === "mcq" ? "2px solid #003366" : "2px solid #dce9ff",
+                    }}
+                  >
+                    MCQ Only
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPickerType("mcq-oeq")}
+                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                    style={{
+                      background: pickerType === "mcq-oeq" ? "#003366" : "#ffffff",
+                      color: pickerType === "mcq-oeq" ? "#ffffff" : "#003366",
+                      border: pickerType === "mcq-oeq" ? "2px solid #003366" : "2px solid #dce9ff",
+                    }}
+                  >
+                    {pickerSubject === "english" ? "MCQ + Cloze" : "MCQ + written"}
+                  </button>
+                </div>
+              </div>
             </div>
             <button
-              onClick={() => router.replace(`/home/${parentId}`)}
-              className="w-full mt-5 text-xs text-[#43474f] font-semibold hover:text-[#001e40]"
+              type="button"
+              onClick={continueFromPicker}
+              disabled={!pickerSubject}
+              className="w-full py-4 px-6 rounded-2xl font-bold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
+              style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
             >
-              Skip for now — I'll decide later
+              Continue
+            </button>
+            {/* Scan-email alternative — informational, not a primary
+                option. Click for the diagnose@ instructions. */}
+            <button
+              type="button"
+              onClick={() => setShowScanEmailInfo(true)}
+              className="w-full mt-4 text-xs text-[#43474f] hover:text-[#001e40] leading-relaxed text-center"
+            >
+              Or, you can email a scanned recent test for our AI to diagnose. <span className="underline font-semibold">Tap for details.</span>
             </button>
           </div>
-          );
-        })() : done ? (
+        ) : done ? (
           <div className="text-center" style={{ animation: "popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
             <div className="relative mx-auto w-20 h-20 mb-6">
               {/* Outer ring pulse */}
@@ -609,6 +606,42 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
           50% { opacity: 0; }
         }
       `}</style>
+
+      {showScanEmailInfo && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}
+          onClick={() => setShowScanEmailInfo(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-6 pt-7 pb-3 flex flex-col items-center text-center">
+              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
+              </div>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Email a scanned test</h3>
+            </div>
+            <div className="px-7 pb-2 text-[#43474f] text-sm leading-relaxed space-y-3">
+              <p>
+                Please send a scanned copy of your child&apos;s recent test (marked or unmarked). Our AI will mark it and diagnose your child&apos;s learning gap.
+              </p>
+              <p className="text-center font-mono font-bold text-[#003366] bg-[#f0f5ff] rounded-xl py-3 select-all">
+                diagnose@inbound.markforyou.com
+              </p>
+            </div>
+            <div className="px-7 pt-5 pb-7">
+              <button
+                onClick={() => setShowScanEmailInfo(false)}
+                className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

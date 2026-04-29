@@ -64,7 +64,7 @@ function scorePct(paper: ExamPaperSummary) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome, diagnosticChoice }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean; diagnosticChoice?: string }) {
+export default function ParentDashboard({ userId, user, initialStudentId, initialView, initialOpenQuiz, diagnosticWelcome, diagnosticChoice, firstAssignStudentId }: { userId: string; user: User; initialStudentId?: string; initialView?: string; initialOpenQuiz?: boolean; diagnosticWelcome?: boolean; diagnosticChoice?: string; firstAssignStudentId?: string }) {
   const router = useRouter();
   const avatarTypeMap: Record<string, string[]> = Object.fromEntries(
     ["bunny","bear","tiger","fox","otter","uni","dragon","merlion","qilin","whitetiger"].map(k => [
@@ -229,14 +229,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ?diagnostic=scan-email. Show a one-shot popup explaining the email
   // address + offering a fallback to the platform-quiz path.
   const [showScanEmailPopup, setShowScanEmailPopup] = useState(diagnosticChoice === "scan-email");
-  // Onboarding's 'platform-quiz' / 'printable' choices route here with
-  // the new student already linked. Show a popup with the diagnostic-
-  // quiz subject + type picker; on Start/Download we hit the daily-quiz
-  // API and either trigger firstAssignPrompt (open child's homepage in
-  // a new tab) or download the printable PDF + show the email-it-back
-  // popup.
+  // Onboarding's 'platform-quiz' choice routes here when the parent
+  // re-enters with an existing studentId — otherwise the new
+  // onboarding flow creates the quiz directly and lands here with
+  // ?firstAssignStudent=<id>. The picker is preserved as a fallback.
   const [showOnboardingQuizPicker, setShowOnboardingQuizPicker] = useState(
-    (diagnosticChoice === "platform-quiz" || diagnosticChoice === "printable") && !!initialStudentId,
+    diagnosticChoice === "platform-quiz" && !!initialStudentId,
   );
   const [onboardingQuizSubject, setOnboardingQuizSubject] = useState<"math" | "science" | "english" | null>(null);
   const [onboardingQuizType, setOnboardingQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
@@ -245,7 +243,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     return s?.questionDifficulty === "adaptive" ? "adaptive" : "standard";
   });
   const [onboardingQuizLoading, setOnboardingQuizLoading] = useState(false);
-  const [showOnboardingPrintableDone, setShowOnboardingPrintableDone] = useState(false);
   // First-time-assign popup. After the parent assigns their first
   // daily quiz / focused practice, ask if they want to open the
   // child's homepage in a new tab to follow along. Tracked on the
@@ -299,21 +296,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         alert(data.error || "Failed to create quiz");
         return;
       }
-      const quiz = await res.json();
-      if (diagnosticChoice === "printable") {
-        window.open(`/api/daily-quiz/${quiz.id}/printable?studentId=${initialStudentId}&userId=${userId}`, "_blank");
-        setShowOnboardingQuizPicker(false);
-        setShowOnboardingPrintableDone(true);
-      } else {
-        // Platform-quiz: close the picker and trigger the existing
-        // first-time-assign prompt asking whether to open the child's
-        // homepage in a new tab. Parent stays on the dashboard.
-        setShowOnboardingQuizPicker(false);
-        maybeShowFirstAssignPrompt(initialStudentId);
-        // Strip the diagnostic params from the URL so a refresh
-        // doesn't re-show the picker.
-        router.replace(`/home/${userId}`);
-      }
+      await res.json();
+      // Close the picker and trigger the existing first-time-assign
+      // prompt asking whether to open the child's homepage in a new
+      // tab. Parent stays on the dashboard.
+      setShowOnboardingQuizPicker(false);
+      maybeShowFirstAssignPrompt(initialStudentId);
+      // Strip the diagnostic params from the URL so a refresh doesn't
+      // re-show the picker.
+      router.replace(`/home/${userId}`);
     } catch {
       alert("Something went wrong. Please try again.");
     } finally {
@@ -334,6 +325,18 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       if (typeof window !== "undefined") window.localStorage.setItem(`mfy-welcome-shown-${userId}`, "1");
     } catch { /* ignore */ }
   }, [showDiagnosticWelcome, userId]);
+
+  // Onboarding lands here with ?firstAssignStudent=<id> after the
+  // parent creates their first student + diagnostic quiz inline. Fire
+  // the existing first-time-assign prompt so the parent can choose to
+  // open the child's homepage in a new tab. Strip the param so a
+  // refresh doesn't re-fire.
+  useEffect(() => {
+    if (!firstAssignStudentId) return;
+    maybeShowFirstAssignPrompt(firstAssignStudentId);
+    router.replace(`/home/${userId}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstAssignStudentId]);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [sendingFeedback, setSendingFeedback] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<AdminNotif[]>([]);
@@ -1172,50 +1175,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             {creatingQuiz ? "Creating…" : assignMode === "focused" ? "Assign Practice" : "Assign Quiz"}
           </button>
         </div>
-        {/* Printable focused practice — only for math/science focused, when the
-            student has the toggle enabled. Generates the practice the same way
-            and downloads a PDF the parent can print + scan back. */}
-        {assignMode === "focused" && quizSubject !== "english" && quizStudentId && (() => {
-          const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
-          const enabled = (quizStudent?.settings as Record<string, unknown> | null)?.printableFocusedPractice === true;
-          if (!enabled) return null;
-          return (
-            <button
-              disabled={creatingQuiz || !quizStudentId || !focusedTopic}
-              onClick={async () => {
-                setCreatingQuiz(true);
-                try {
-                  const scheduledForIso = quizTargetDay ? (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() : undefined;
-                  const res = await fetch("/api/focused-test", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      parentId: userId,
-                      studentId: quizStudentId,
-                      subject: quizSubject === "math" ? "Mathematics" : "Science",
-                      topic: focusedTopic,
-                      type: focusedType,
-                      ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
-                    }),
-                  });
-                  const data = await res.json();
-                  if (!res.ok) { alert(data.error || "Failed"); return; }
-                  if (Array.isArray(data.warnings) && data.warnings.length > 0) alert(data.warnings.join("\n"));
-                  // Trigger PDF download — opens in a new tab so the focused
-                  // practice itself is also assigned to the student.
-                  window.open(`/api/focused-test/${data.id}/printable?studentId=${quizStudentId}&userId=${userId}`, "_blank");
-                  setShowQuiz(false); setQuizTargetDay(null); setFocusedTopic("");
-                  await refreshPapers();
-                } catch { alert("Something went wrong"); }
-                finally { setCreatingQuiz(false); }
-              }}
-              className="w-full py-3 rounded-xl border-2 border-[#001e40] text-[#001e40] font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:bg-[#001e40] hover:text-white transition-colors"
-            >
-              <span className="material-symbols-outlined text-base">print</span>
-              Printable focused practice
-            </button>
-          );
-        })()}
         </div>
       </div>
     </div>
@@ -2501,7 +2460,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points and crystals. Crystals are only earned when parent reviews their work.", defaultOn: true },
                       { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
                       { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
-                      { key: "printableFocusedPractice" as const, label: "Enable printable focused practice", desc: "When assigning focused practice, also offer a downloadable PDF version. Print, write on paper, scan, email back to be marked." },
                     ].map(item => {
                       const stored = selectedStudent?.settings?.[item.key];
                       const isOn = "defaultOn" in item && item.defaultOn ? stored !== false : stored === true;
@@ -3211,17 +3169,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           <div className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
             <div className="px-6 pt-7 pb-3 flex flex-col items-center text-center">
               <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
-                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  {diagnosticChoice === "printable" ? "print" : "quiz"}
-                </span>
+                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>quiz</span>
               </div>
-              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">
-                {diagnosticChoice === "printable" ? "Print a diagnostic quiz" : "Start a diagnostic quiz"}
-              </h3>
+              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Start a diagnostic quiz</h3>
               <p className="text-xs text-[#43474f] mt-2 px-2">
-                {diagnosticChoice === "printable"
-                  ? "Pick a subject — we'll generate a printable PDF you can hand to your child."
-                  : "Pick a subject to set the first quiz for your child."}
+                Pick a subject to set the first quiz for your child.
               </p>
             </div>
             <div className="px-6 pb-2 space-y-4">
@@ -3316,9 +3268,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 disabled={!onboardingQuizSubject || onboardingQuizLoading}
                 className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors disabled:opacity-50"
               >
-                {onboardingQuizLoading
-                  ? (diagnosticChoice === "printable" ? "Preparing PDF..." : "Creating quiz...")
-                  : (diagnosticChoice === "printable" ? "Download Quiz (Beta)" : "Start Quiz")}
+                {onboardingQuizLoading ? "Creating quiz..." : "Start Quiz"}
               </button>
               <button
                 onClick={() => {
@@ -3328,41 +3278,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 className="w-full py-2.5 rounded-2xl border border-[#dce9ff] text-[#43474f] font-semibold hover:bg-[#f0f5ff] transition-colors text-sm"
               >
                 Skip for now
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showOnboardingPrintableDone && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(11,28,48,0.4)", backdropFilter: "blur(4px)" }}>
-          <div className="w-full max-w-md rounded-3xl overflow-hidden flex flex-col bg-white shadow-2xl">
-            <div className="px-6 pt-7 pb-4 flex flex-col items-center text-center">
-              <div className="mb-4 w-14 h-14 rounded-2xl flex items-center justify-center bg-[#dce9ff]">
-                <span className="material-symbols-outlined text-[#003366] text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>print</span>
-              </div>
-              <h3 className="font-headline text-xl font-extrabold text-[#0b1c30]">Quiz downloaded</h3>
-            </div>
-            <div className="px-7 pb-2 text-[#43474f] text-sm leading-relaxed space-y-3">
-              <p>
-                The PDF should be downloading now. Print it, let your child write the answers, then scan the completed pages and email them to:
-              </p>
-              <p className="text-center font-mono font-bold text-[#003366] bg-[#f0f5ff] rounded-xl py-3 select-all">
-                diagnose@inbound.markforyou.com
-              </p>
-              <p>
-                We&apos;ll auto-mark and tag the result to your child.
-              </p>
-            </div>
-            <div className="px-7 pt-5 pb-7">
-              <button
-                onClick={() => {
-                  setShowOnboardingPrintableDone(false);
-                  router.replace(`/home/${userId}`);
-                }}
-                className="w-full py-3.5 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
-              >
-                Got it
               </button>
             </div>
           </div>
