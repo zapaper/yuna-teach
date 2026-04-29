@@ -1160,10 +1160,15 @@ async function runDiagnosisInBackground(
   if (booklets.length > 1) {
     console.log(`[diagnose] booklet breakdown: ${booklets.map(b => `${b.label} ${b.firstQ}..${b.lastQ} ${b.earned}/${b.available}`).join(" | ")}`);
   }
+  // Sort all topics for the bar chart by % correct ascending — weakest
+  // at the top so the chart visually mirrors the weak-list above.
+  const topicChartRows = [...allTopics]
+    .filter(t => t.available > 0)
+    .sort((a, b) => (a.earned / a.available) - (b.earned / b.available));
   await maybeReply(
     fromEmail,
     `Diagnose: ${student.name} — ${formatNum(totalEarned)}/${formatNum(totalAvailable)} marks`,
-    buildSummaryHtml(student.name, totalAvailable, totalEarned, weak, strong, booklets, parent.id, paper.id),
+    buildSummaryHtml(student.name, totalAvailable, totalEarned, weak, strong, booklets, topicChartRows, parent.id, paper.id),
     { html: true },
   ).catch((err) => console.error("[diagnose] reply email failed:", err));
 
@@ -1177,6 +1182,7 @@ function buildSummaryHtml(
   weak: { topic: string; earned: number; available: number; lost: number }[],
   strong: { topic: string; earned: number; available: number; total: number }[],
   booklets: BookletSummary[],
+  topicChart: { topic: string; earned: number; available: number; total: number }[],
   parentId: string,
   paperId: string,
 ): string {
@@ -1229,8 +1235,35 @@ ${weakList}
   <a href="${dashboardUrl}" style="display:inline-block; background:#fff; color:#001e40; border:2px solid #001e40; padding:10px 16px; border-radius:10px; text-decoration:none; font-weight:bold;">Assign focused practice</a>
 </p>
 
+${renderTopicChartHtml(topicChart)}
+
 <p style="margin-top: 32px; color: #43474f;">From the MarkForYou Team.</p>
 </body></html>`;
+}
+
+// CSS-only horizontal bar chart, table-based for email-client
+// compatibility (Outlook ignores most flexbox / div tricks). Each row:
+// topic name | filled bar (% of marks gained) | "earned/available".
+// Bar colour: green ≥75%, amber ≥50%, red below.
+function renderTopicChartHtml(rows: { topic: string; earned: number; available: number }[]): string {
+  if (rows.length === 0) return "";
+  const safeRows = rows.slice(0, 12); // keep the email tidy
+  return `<h3 style="margin-top:32px; color:#001e40; font-size:15px;">Topic-by-topic breakdown</h3>
+<table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:13px;">
+  ${safeRows.map(r => {
+    const pct = Math.max(0, Math.min(100, Math.round((r.earned / Math.max(1, r.available)) * 100)));
+    const fill = pct >= 75 ? "#006c49" : pct >= 50 ? "#d58d00" : "#ba1a1a";
+    return `<tr>
+      <td style="padding:5px 8px 5px 0; vertical-align:middle; color:#001e40; width:38%;">${escapeHtml(r.topic)}</td>
+      <td style="padding:5px 8px; vertical-align:middle; width:42%;">
+        <div style="background:#eef2ff; border-radius:4px; height:8px; overflow:hidden;">
+          <div style="background:${fill}; height:8px; width:${pct}%;"></div>
+        </div>
+      </td>
+      <td style="padding:5px 0 5px 8px; vertical-align:middle; text-align:right; color:#43474f; width:20%; white-space:nowrap;">${formatNum(r.earned)} / ${formatNum(r.available)}</td>
+    </tr>`;
+  }).join("")}
+</table>`;
 }
 
 function formatNum(n: number): string {
