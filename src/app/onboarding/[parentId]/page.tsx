@@ -27,7 +27,7 @@ type Question = {
 const QUESTIONS: Question[] = [
   {
     key: "studyMode",
-    preamble: "Hi there! 👋 We'll ask a few quick questions so we can tailor MarkForYou to your child's learning needs.",
+    preamble: "Hi there! We'll ask a few quick questions so we can tailor MarkForYou to your child's learning needs.",
     prompt: "First, which best describes how you'd like your child to study?",
     options: [
       { value: "paper", label: "Mostly on paper", sub: "Print worksheets, minimise screen time." },
@@ -40,8 +40,9 @@ const QUESTIONS: Question[] = [
     preamble: "Excellent!",
     prompt: "What is the typical duration your child can focus on a homework before needing a break?",
     options: [
-      { value: "short", label: "5–15 minutes" },
-      { value: "long", label: "20–40 minutes" },
+      { value: "short", label: "5–20 minutes" },
+      { value: "medium", label: "20–40 minutes" },
+      { value: "long", label: "40–60 minutes" },
     ],
   },
   {
@@ -81,6 +82,10 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   const [phase, setPhase] = useState<"in" | "idle" | "out">("in");
   const [done, setDone] = useState(false);
   const [showDiagnosisChoice, setShowDiagnosisChoice] = useState(false);
+  // Typewriter reveal — preamble + prompt animate in character-by-
+  // character at ~20ms per char. Faster than 'classic' typewriter so
+  // we don't slow the parent down. Resets on every step change.
+  const [typedChars, setTypedChars] = useState(0);
   // Block render until we've checked onboardingCompleted — otherwise
   // a re-signup user briefly sees Q1 before being redirected home.
   const [gated, setGated] = useState(true);
@@ -199,6 +204,19 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   }
 
   const q = QUESTIONS[step];
+  const fullText = `${q?.preamble ? q.preamble + " " : ""}${q?.prompt ?? ""}`;
+  // Reset typewriter on every step change.
+  useEffect(() => { setTypedChars(0); }, [step]);
+  useEffect(() => {
+    if (phase !== "idle") return;
+    if (typedChars >= fullText.length) return;
+    const t = setTimeout(() => setTypedChars(c => c + 1), 18);
+    return () => clearTimeout(t);
+  }, [typedChars, fullText, phase]);
+  const preambleLen = q?.preamble ? q.preamble.length + 1 : 0; // +1 for separator space
+  const typedPreamble = q?.preamble ? q.preamble.slice(0, Math.min(typedChars, q.preamble.length)) : "";
+  const typedPrompt = typedChars > preambleLen ? (q?.prompt ?? "").slice(0, typedChars - preambleLen) : "";
+  const typingComplete = typedChars >= fullText.length;
   const cardCls =
     "transition-all duration-300 ease-out " +
     (phase === "in" ? "translate-x-8 opacity-0"
@@ -348,16 +366,26 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         ) : (
           <div className={cardCls} key={step}>
             {q.preamble && (
-              <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">{q.preamble}</p>
+              <p className="text-base text-[#001e40] leading-relaxed mb-3">
+                {typedPreamble}
+                {!typingComplete && typedChars <= q.preamble.length && (
+                  <span className="inline-block w-0.5 h-4 bg-[#001e40] ml-0.5 align-middle" style={{ animation: "blink 0.8s step-end infinite" }} />
+                )}
+              </p>
             )}
-            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-7">{q.prompt}</h2>
-            <div className="flex flex-col gap-3">
+            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-7">
+              {typedPrompt}
+              {!typingComplete && typedChars > preambleLen && (
+                <span className="inline-block w-0.5 h-6 bg-[#001e40] ml-0.5 align-middle" style={{ animation: "blink 0.8s step-end infinite" }} />
+              )}
+            </h2>
+            <div className={`flex flex-col gap-3 transition-opacity duration-300 ${typingComplete ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
               {q.options.map((opt, i) => (
                 <button
                   key={String(opt.value)}
                   onClick={() => pickAnswer(opt.value)}
                   className="group text-left bg-white border-2 border-[#dce9ff] rounded-2xl p-4 hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] transition-all"
-                  style={{ animation: `slideUp 0.4s ease-out ${0.06 + i * 0.06}s both` }}
+                  style={typingComplete ? { animation: `slideUp 0.4s ease-out ${0.06 + i * 0.06}s both` } : undefined}
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-7 h-7 rounded-full border-2 border-[#dce9ff] group-hover:border-[#003366] group-hover:bg-[#003366] flex items-center justify-center shrink-0 mt-0.5 transition-all">
@@ -387,6 +415,9 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         @keyframes pulseRing {
           0% { transform: scale(1); opacity: 0.6; }
           100% { transform: scale(1.5); opacity: 0; }
+        }
+        @keyframes blink {
+          50% { opacity: 0; }
         }
       `}</style>
     </div>
