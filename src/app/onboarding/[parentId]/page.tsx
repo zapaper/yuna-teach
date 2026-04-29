@@ -78,6 +78,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   const [checkingStudentName, setCheckingStudentName] = useState(false);
   const [studentError, setStudentError] = useState("");
   const [studentLoading, setStudentLoading] = useState(false);
+  // Tracks the student ID created in submitStudent so the picker step
+  // (now AFTER the student form) can attach the daily-quiz to the
+  // newly-created child.
+  const [createdStudentId, setCreatedStudentId] = useState<string | null>(null);
+  const [pickerLoading, setPickerLoading] = useState(false);
   const studentNameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const checkStudentName = useCallback((n: string) => {
@@ -149,8 +154,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
   }
 
   async function finish(allAnswers: Answers) {
-    // Persist parent preferences and move to the quiz picker. Settings
-    // are best-effort; failures here shouldn't block the flow.
+    // Persist parent preferences. Best-effort — failures here shouldn't
+    // block the flow.
     try {
       await fetch("/api/users", {
         method: "PATCH",
@@ -177,26 +182,59 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     } catch {
       // Non-fatal — answers are best-effort.
     }
-    setShowQuizPicker(true);
+    // If the parent already has a linked student (re-entering
+    // onboarding), skip the student-creation step and go straight to
+    // the picker. Otherwise create the student first.
+    if (studentId) {
+      setShowQuizPicker(true);
+    } else {
+      setStudentStep(true);
+    }
   }
 
-  function continueFromPicker() {
+  async function startQuizFromPicker() {
     if (!pickerSubject) return;
-    // Re-entering onboarding with an existing studentId means the
-    // parent already has a child linked — skip the student step and
-    // route straight to home with the chosen quiz pre-selected.
-    if (studentId) {
-      const params = new URLSearchParams({
-        diagnostic: "platform-quiz",
-        studentId,
-        subject: pickerSubject,
-        quizType: pickerType,
-      });
-      router.replace(`/home/${parentId}?${params.toString()}`);
+    const sid = createdStudentId ?? studentId;
+    if (!sid) {
+      console.error("[onboarding] no studentId — cannot create quiz");
       return;
     }
-    setShowQuizPicker(false);
-    setStudentStep(true);
+    setPickerLoading(true);
+    try {
+      const quizBody: Record<string, unknown> = {
+        userId: parentId,
+        studentId: sid,
+        quizType: pickerType,
+        subject: pickerSubject,
+      };
+      if (pickerSubject === "english") {
+        const sections = ["grammar-mcq", "vocab-mcq"];
+        if (pickerType === "mcq-oeq") sections.push("editing", "comprehension-cloze");
+        quizBody.englishSections = sections;
+      }
+      await fetch("/api/daily-quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(quizBody),
+      });
+    } catch (err) {
+      console.warn("Diagnostic quiz creation failed:", err);
+    }
+    router.replace(`/home/${parentId}?firstAssignStudent=${sid}`);
+  }
+
+  function goToHomeFromPicker() {
+    // Parent declined the quiz — just route home. If a student was
+    // created in this onboarding session we still pass
+    // firstAssignStudent so the dashboard's open-in-new-tab prompt
+    // fires when the parent later assigns their first quiz from the
+    // dashboard.
+    const sid = createdStudentId ?? studentId;
+    if (sid) {
+      router.replace(`/home/${parentId}?firstAssignStudent=${sid}`);
+    } else {
+      router.replace(`/home/${parentId}`);
+    }
   }
 
   async function submitStudent(e: React.FormEvent) {
@@ -238,35 +276,12 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
           body: JSON.stringify({ userId: student.id, settings: { questionDifficulty: studentDifficulty } }),
         }).catch(() => { /* non-fatal */ });
       }
-
-      // Create the daily-quiz the parent picked. Failure here is
-      // non-fatal — we still route to /home so the parent can try
-      // again from there. We DON'T await firstAssignDone — that
-      // setting flips when the dashboard's firstAssignPrompt resolves.
-      if (pickerSubject) {
-        try {
-          const quizBody: Record<string, unknown> = {
-            userId: parentId,
-            studentId: student.id,
-            quizType: pickerType,
-            subject: pickerSubject,
-          };
-          if (pickerSubject === "english") {
-            const sections = ["grammar-mcq", "vocab-mcq"];
-            if (pickerType === "mcq-oeq") sections.push("editing", "comprehension-cloze");
-            quizBody.englishSections = sections;
-          }
-          await fetch("/api/daily-quiz", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(quizBody),
-          });
-        } catch (err) {
-          console.warn("Diagnostic quiz creation failed:", err);
-        }
-      }
-
-      router.replace(`/home/${parentId}?firstAssignStudent=${student.id}`);
+      // Save the new student ID and transition to the quiz picker.
+      // Quiz creation now happens in startQuizFromPicker so the parent
+      // can opt out via "Go to parent homepage".
+      setCreatedStudentId(student.id);
+      setStudentStep(false);
+      setShowQuizPicker(true);
     } catch {
       setStudentError("Something went wrong. Please try again.");
     } finally {
@@ -313,19 +328,16 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         <div className="flex items-center justify-between mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo_t.png" alt="MarkForYou" className="h-7 w-auto" />
-          {!done && (step > 0 || showQuizPicker || studentStep) && (
+          {!done && (step > 0 || studentStep) && (
             <button
               onClick={() => {
-                // Back from student form → quiz picker.
-                // Back from quiz picker → last question (level).
+                // Back from student form → last question (level).
                 // Back from any question → previous question.
+                // Back is hidden on the quiz picker — by then the
+                // student account is committed, so the only options
+                // are Start Quiz or Go to homepage.
                 if (studentStep) {
                   setStudentStep(false);
-                  setShowQuizPicker(true);
-                  return;
-                }
-                if (showQuizPicker) {
-                  setShowQuizPicker(false);
                   setPhase("idle");
                   return;
                 }
@@ -344,13 +356,13 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             </button>
           )}
         </div>
-        {/* Progress bar — 2 questions + quiz picker + student creation.
-            The picker and student form each occupy their own tick so
+        {/* Progress bar — 2 questions + student creation + quiz picker.
+            The student form and picker each occupy their own tick so
             the parent can see how much is left. */}
         <div className="flex gap-1.5">
           {Array.from({ length: TOTAL_STEPS + 2 }).map((_, i) => {
-            const currentIdx = studentStep ? TOTAL_STEPS + 1
-              : showQuizPicker ? TOTAL_STEPS
+            const currentIdx = showQuizPicker ? TOTAL_STEPS + 1
+              : studentStep ? TOTAL_STEPS
               : step;
             return (
               <div
@@ -364,8 +376,8 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         </div>
         <p className="text-xs text-[#43474f] mt-2 font-medium tracking-wide">
           {done ? "All done"
-            : studentStep ? `Step ${TOTAL_STEPS + 2} of ${TOTAL_STEPS + 2}`
-            : showQuizPicker ? `Step ${TOTAL_STEPS + 1} of ${TOTAL_STEPS + 2}`
+            : showQuizPicker ? `Step ${TOTAL_STEPS + 2} of ${TOTAL_STEPS + 2}`
+            : studentStep ? `Step ${TOTAL_STEPS + 1} of ${TOTAL_STEPS + 2}`
             : `Step ${step + 1} of ${TOTAL_STEPS + 2}`}
         </p>
       </header>
@@ -453,9 +465,9 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
         ) : showQuizPicker ? (
           <div style={{ animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
             <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Great!</p>
-            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">What kind of quiz would you like to assign?</h2>
+            <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">Let&apos;s get started.</h2>
             <p className="text-sm text-[#43474f] leading-relaxed mb-5">
-              Pick a subject and question type — we&apos;ll set up a quick on-screen diagnostic for your child.
+              You can start assigning a quiz for your child, or upload their completed papers to get an immediate analysis of their weak areas.
             </p>
             <div className="space-y-4 mb-5">
               <div>
@@ -520,15 +532,23 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             </div>
             <button
               type="button"
-              onClick={continueFromPicker}
-              disabled={!pickerSubject}
+              onClick={startQuizFromPicker}
+              disabled={!pickerSubject || pickerLoading}
               className="w-full py-4 px-6 rounded-2xl font-bold text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-50"
               style={{ background: "linear-gradient(to bottom right, #001e40, #003366)" }}
             >
-              Continue
+              {pickerLoading ? "Creating quiz…" : "Start Quiz"}
             </button>
-            {/* Scan-email alternative — informational, not a primary
-                option. Click for the diagnose@ instructions. */}
+            <button
+              type="button"
+              onClick={goToHomeFromPicker}
+              disabled={pickerLoading}
+              className="w-full mt-3 py-3.5 px-6 rounded-2xl font-bold text-[#001e40] bg-white border-2 border-[#dce9ff] hover:bg-[#f5f9ff] transition-all disabled:opacity-50"
+            >
+              Go to parent homepage
+            </button>
+            {/* Scan-email alternative — informational. Click for the
+                diagnose@ instructions. */}
             <button
               type="button"
               onClick={() => setShowScanEmailInfo(true)}
