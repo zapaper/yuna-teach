@@ -1016,12 +1016,27 @@ async function runDiagnosisInBackground(
   }
 
   // 8) Final score + topic + booklet summary.
+  // Pick the denominator carefully: if the per-question sum covers the
+  // printed total (within 5%), use the printed total. If the AI fell
+  // materially short of the printed total (e.g. it detected 68 marks
+  // of questions on a 100-mark paper), the AI under-extracted — using
+  // 100 as the denominator would mean dividing the AI's earned marks
+  // by a base that includes 32 marks of un-marked questions, which
+  // distorts the percentage downward. In that case use the AI sum so
+  // the percentage reflects the AI's actual coverage.
   const aiTotalEarned = flat.reduce((s, q) => s + q.marksAwarded, 0);
   const aiTotalAvailable = flat.reduce((s, q) => s + q.marksAvailable, 0);
   const printedTotal = Number(structure.header?.totalMarks ?? "");
-  const totalAvailable = Number.isFinite(printedTotal) && printedTotal > 0 ? printedTotal : aiTotalAvailable;
+  const printedTotalValid = Number.isFinite(printedTotal) && printedTotal > 0;
+  const aiCoversPrinted = printedTotalValid && aiTotalAvailable >= printedTotal * 0.95;
+  const totalAvailable = aiCoversPrinted
+    ? printedTotal
+    : (printedTotalValid && aiTotalAvailable > 0 ? aiTotalAvailable : (printedTotalValid ? printedTotal : aiTotalAvailable));
   const totalEarned = totalAvailable > 0 ? Math.min(aiTotalEarned, totalAvailable) : aiTotalEarned;
-  console.log(`[diagnose] score: ${totalEarned}/${totalAvailable} (per-q sums ${aiTotalEarned}/${aiTotalAvailable})`);
+  if (printedTotalValid && !aiCoversPrinted) {
+    console.warn(`[diagnose] AI per-q sum ${aiTotalAvailable} only covers ${Math.round(100 * aiTotalAvailable / printedTotal)}% of the printed total ${printedTotal} — using AI sum as denominator`);
+  }
+  console.log(`[diagnose] score: ${totalEarned}/${totalAvailable} (per-q sums ${aiTotalEarned}/${aiTotalAvailable}, printed total=${printedTotalValid ? printedTotal : "?"})`);
 
   // Topic-by-topic + weak/strong rollup.
   const byTopic = new Map<string, { earned: number; available: number; total: number; right: number }>();
