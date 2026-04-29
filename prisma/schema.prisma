@@ -9,7 +9,14 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  name      String
+  // `name` is the IMMUTABLE login username — set at signup, never
+  // changes. Stays unique. UI displays `displayName` if set, otherwise
+  // falls back to `name`. Login lookups go through `name`.
+  name        String
+  // Mutable display name shown in greetings, headers, etc. NULL means
+  // "use the username as the display name". Editable from the rename
+  // modal in the parent / student homepage.
+  displayName String?
   email     String?  @unique
   password  String   @default("1234")
   role      Role     @default(STUDENT)

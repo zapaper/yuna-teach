@@ -416,7 +416,7 @@ export default function HomePage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           parentId: userId,
-          parentName: user?.name,
+          parentName: user?.displayName ?? user?.name,
           messages: nextMessages.map(m => ({ role: m.role === "ai" ? "assistant" : "user", content: m.text })),
           studentSummaries: chatSummaries,
           availableActions: recActions,
@@ -558,7 +558,7 @@ export default function HomePage({
 
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-slate-800">
-          {user?.name || "Home"}
+          {(user?.displayName ?? user?.name) || "Home"}
         </h1>
 
         {/* Admin avatar videos */}

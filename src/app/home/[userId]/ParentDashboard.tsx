@@ -74,6 +74,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   );
   const defaultAvatarMap: Record<string, string> = { admin: "bunny", papa: "bear" };
   const nameLower = user.name?.toLowerCase() ?? "";
+  // `user.name` is the immutable login username; `displayName` is the
+  // mutable label shown in greetings/headers. Falls back to the
+  // username when no override has been set.
+  const displayName = user.displayName ?? user.name;
   const parentAvatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? defaultAvatarMap[nameLower] ?? null;
   const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
@@ -337,7 +341,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showPendingReview, setShowPendingReview] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   // Rename modal — click on user.name in the header opens this. Submitting
-  // hits PATCH /api/users with { name } and the server checks uniqueness.
+  // hits PATCH /api/users with { displayName }. The login username
+  // (`name`) is immutable post-signup; only the display label changes.
   const [showRename, setShowRename] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const [renameError, setRenameError] = useState<string | null>(null);
@@ -345,14 +350,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   async function submitRename() {
     const trimmed = renameValue.trim();
     if (trimmed.length < 2) { setRenameError("Too short"); return; }
-    if (trimmed === user.name) { setShowRename(false); return; }
+    const currentDisplay = user.displayName ?? user.name;
+    if (trimmed === currentDisplay) { setShowRename(false); return; }
     setRenameSaving(true);
     setRenameError(null);
     try {
       const res = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, name: trimmed }),
+        body: JSON.stringify({ userId, displayName: trimmed }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -360,7 +366,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         return;
       }
       setShowRename(false);
-      // Quickest way to refresh user.name everywhere — full reload.
       window.location.reload();
     } catch {
       setRenameError("Could not save");
@@ -1904,7 +1909,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </button>
           )}
           <h1 className="font-headline text-lg font-extrabold text-[#001e40]">
-            {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${user.name}'s Dashboard`}
+            {activeView === "papers" ? "Set Papers" : activeView === "activities" ? "All Activities" : `${displayName}'s Dashboard`}
           </h1>
         </div>
         <div className="flex items-center gap-5">
@@ -1914,16 +1919,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </button>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => { setRenameValue(user.name); setRenameError(null); setShowRename(true); }}
+              onClick={() => { setRenameValue(displayName); setRenameError(null); setShowRename(true); }}
               className="text-sm font-semibold text-[#001e40] hover:underline cursor-pointer"
               title="Click to change your name"
-            >{user.name}</button>
+            >{displayName}</button>
             <div className="relative">
               <button
                 onClick={() => setShowProfileMenu(v => !v)}
                 className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold hover:bg-[#003366]/80 transition-colors"
               >
-                {initials(user.name)}
+                {initials(displayName)}
               </button>
               {showProfileMenu && (
                 <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
@@ -1973,16 +1978,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           </button>
           <div className="flex items-center gap-2">
             <button
-              onClick={() => { setRenameValue(user.name); setRenameError(null); setShowRename(true); }}
+              onClick={() => { setRenameValue(displayName); setRenameError(null); setShowRename(true); }}
               className="text-sm font-semibold text-[#001e40] hover:underline cursor-pointer"
               title="Click to change your name"
-            >{user.name}</button>
+            >{displayName}</button>
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(v => !v)}
               className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold"
             >
-              {initials(user.name)}
+              {initials(displayName)}
             </button>
             {showProfileMenu && (
               <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">

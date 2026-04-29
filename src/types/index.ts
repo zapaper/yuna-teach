@@ -3,7 +3,11 @@ export type Role = "STUDENT" | "PARENT";
 
 export interface User {
   id: string;
+  // Immutable login username (set at signup, can't be changed).
   name: string;
+  // Mutable display name. NULL means "fall back to `name`" — UI code
+  // should use `displayName ?? name` (or the displayNameOf helper).
+  displayName: string | null;
   email: string | null;
   role: Role;
   level: number | null;
@@ -11,8 +15,8 @@ export interface User {
   createdAt: string;
   emailVerified?: boolean;
   subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
-  linkedStudents: { id: string; name: string; level?: number | null; settings?: { avatar?: boolean; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard" } | null }[];
-  linkedParents: { id: string; name: string }[];
+  linkedStudents: { id: string; name: string; displayName: string | null; level?: number | null; settings?: { avatar?: boolean; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard" } | null }[];
+  linkedParents: { id: string; name: string; displayName: string | null }[];
 }
 
 export interface SpellingTestSummary {

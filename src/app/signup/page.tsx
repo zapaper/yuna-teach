@@ -343,10 +343,10 @@ function SignupFlow() {
 
               <form className="space-y-6" onSubmit={handleParentSignup} autoComplete="off">
                 <div className="grid grid-cols-1 gap-6">
-                  {/* Full Name */}
+                  {/* Username */}
                   <div className="space-y-2">
                     <label className="text-sm font-semibold px-1" style={{ color: "rgba(11,28,48,0.8)" }}>
-                      Full Name
+                      Username
                     </label>
                     <input
                       type="text"
@@ -505,7 +505,7 @@ function SignupFlow() {
                 {/* Username */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold ml-1" style={{ color: "#0b1c30" }}>
-                    Child&apos;s preferred log in name
+                    Child&apos;s username
                   </label>
                   <input
                     type="text"

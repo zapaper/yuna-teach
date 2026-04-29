@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
     const u = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        parentLinks: { include: { student: { select: { id: true, name: true, level: true, settings: true } } } },
-        studentLinks: { include: { parent: { select: { id: true, name: true } } } },
+        parentLinks: { include: { student: { select: { id: true, name: true, displayName: true, level: true, settings: true } } } },
+        studentLinks: { include: { parent: { select: { id: true, name: true, displayName: true } } } },
       },
     });
     if (!u) return NextResponse.json({ user: null }, { status: 404 });
@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       user: {
         id: u.id,
         name: u.name,
+        displayName: u.displayName,
         email: u.email,
         role: u.role,
         level: u.level,
@@ -35,8 +36,8 @@ export async function GET(request: NextRequest) {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
     include: {
-      parentLinks: { include: { student: { select: { id: true, name: true, level: true, settings: true } } } },
-      studentLinks: { include: { parent: { select: { id: true, name: true } } } },
+      parentLinks: { include: { student: { select: { id: true, name: true, displayName: true, level: true, settings: true } } } },
+      studentLinks: { include: { parent: { select: { id: true, name: true, displayName: true } } } },
     },
   });
 
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
     users: users.map((u) => ({
       id: u.id,
       name: u.name,
+      displayName: u.displayName,
       email: u.email,
       role: u.role,
       level: u.level,
@@ -131,6 +133,7 @@ export async function POST(request: NextRequest) {
     {
       id: user.id,
       name: user.name,
+      displayName: user.displayName,
       email: user.email,
       role: user.role,
       level: user.level,
@@ -144,12 +147,15 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
-  const { userId, settings, name } = body as { userId?: string; settings?: Record<string, unknown>; name?: string };
+  // `name` is the immutable login username — set at signup, never
+  // changes here. Renames write to `displayName`, which is mutable
+  // and not unique.
+  const { userId, settings, displayName } = body as { userId?: string; settings?: Record<string, unknown>; displayName?: string | null };
   if (!userId) {
     return NextResponse.json({ error: "userId required" }, { status: 400 });
   }
-  if (!settings && typeof name !== "string") {
-    return NextResponse.json({ error: "settings or name required" }, { status: 400 });
+  if (!settings && typeof displayName === "undefined") {
+    return NextResponse.json({ error: "settings or displayName required" }, { status: 400 });
   }
 
   const user = await prisma.user.findUnique({ where: { id: userId }, select: { settings: true } });
@@ -160,20 +166,17 @@ export async function PATCH(request: NextRequest) {
     const merged = { ...((user.settings as Record<string, unknown>) ?? {}), ...settings };
     data.settings = merged as import("@prisma/client").Prisma.InputJsonValue;
   }
-  if (typeof name === "string") {
-    const trimmed = name.trim();
-    if (trimmed.length < 2 || trimmed.length > 40) {
-      return NextResponse.json({ error: "Name must be 2–40 characters" }, { status: 400 });
+  if (typeof displayName !== "undefined") {
+    if (displayName === null || (typeof displayName === "string" && displayName.trim() === "")) {
+      // Explicit null / empty string → clear, fall back to username.
+      data.displayName = null;
+    } else if (typeof displayName === "string") {
+      const trimmed = displayName.trim();
+      if (trimmed.length < 2 || trimmed.length > 40) {
+        return NextResponse.json({ error: "Name must be 2–40 characters" }, { status: 400 });
+      }
+      data.displayName = trimmed;
     }
-    // Uniqueness check — case-insensitive, ignore self.
-    const taken = await prisma.user.findFirst({
-      where: { name: { equals: trimmed, mode: "insensitive" }, NOT: { id: userId } },
-      select: { id: true },
-    });
-    if (taken) {
-      return NextResponse.json({ error: "That name is already taken" }, { status: 409 });
-    }
-    data.name = trimmed;
   }
 
   await prisma.user.update({ where: { id: userId }, data });

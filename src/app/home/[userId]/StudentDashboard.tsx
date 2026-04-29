@@ -168,9 +168,9 @@ function findVisibleXpBar(): DOMRect | null {
 export default function StudentDashboard({ userId, user, firstQuiz }: { userId: string; user: User; firstQuiz?: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  // Rename modal — click the user's name in the side panel to open. Submits
-  // PATCH /api/users with { name }; server enforces 2-40 chars and a
-  // case-insensitive uniqueness check against all other users.
+  // Rename modal — click the user's name in the side panel to open.
+  // PATCHes /api/users with { displayName }. The login username
+  // (`name`) is immutable post-signup; only the display label changes.
   const [showRename, setShowRename] = useState(false);
   const [renameValue, setRenameValue] = useState("");
   const [renameError, setRenameError] = useState<string | null>(null);
@@ -178,14 +178,15 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   async function submitRename() {
     const trimmed = renameValue.trim();
     if (trimmed.length < 2) { setRenameError("Too short"); return; }
-    if (trimmed === user.name) { setShowRename(false); return; }
+    const currentDisplay = user.displayName ?? user.name;
+    if (trimmed === currentDisplay) { setShowRename(false); return; }
     setRenameSaving(true);
     setRenameError(null);
     try {
       const res = await fetch("/api/users", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, name: trimmed }),
+        body: JSON.stringify({ userId, displayName: trimmed }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -460,16 +461,20 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       .catch(() => {});
   }, [userId]);
 
+  // `name` is the immutable login username; `displayName` is the
+  // mutable greeting label. Falls back to the username when not set.
+  const displayName = user.displayName ?? user.name;
+
   // Generate a simple AI tip from available data
   useEffect(() => {
     if (tests.length === 0 && examPapers.length === 0) return;
-    const name = user.name.split(" ")[0];
+    const name = displayName.split(" ")[0];
     if (tests.length > 0) {
       setAiTip(`${name}, you've completed ${tests.length} spelling test${tests.length !== 1 ? "s" : ""}. Keep scanning to track your progress!`);
     } else {
       setAiTip(`${name}, start by scanning your spelling list — AI will correct it in seconds!`);
     }
-  }, [tests, examPapers, user.name]);
+  }, [tests, examPapers, displayName]);
 
   async function fetchMyCode() {
     setMyCodeLoading(true);
@@ -990,13 +995,13 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           </div>
           <div className="mb-8 p-4 bg-[#e5eeff] rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#d3e4fe] flex items-center justify-center text-[#001e40] font-extrabold">{initials(user.name)}</div>
+              <div className="w-12 h-12 rounded-full bg-[#d3e4fe] flex items-center justify-center text-[#001e40] font-extrabold">{initials(displayName)}</div>
               <div>
                 <button
-                  onClick={() => { setRenameValue(user.name); setRenameError(null); setShowRename(true); }}
+                  onClick={() => { setRenameValue(displayName); setRenameError(null); setShowRename(true); }}
                   className="font-bold text-[#0b1c30] hover:underline cursor-pointer"
                   title="Click to change your name"
-                >{user.name}</button>
+                >{displayName}</button>
                 {user.linkedParents?.length > 0 && <p className="text-xs text-[#43474f]">Parent: {user.linkedParents[0].name}</p>}
               </div>
             </div>
@@ -1042,7 +1047,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                     {nextAvatarSrc && <video src={nextAvatarSrc} muted playsInline preload="auto" onCanPlayThrough={onAvatarPreloaded} className="absolute inset-0 invisible" />}
                   </button>
                 )}
-                <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+                <h1 className="text-4xl font-extrabold text-[#001e40] mb-2 tracking-tight font-headline">{greeting()}, {displayName.split(" ")[0]}!</h1>
               </div>
               <p className="text-lg text-[#43474f] font-medium">Ready to learn today? You&apos;re doing great!</p>
               {quizBadge && (
@@ -1345,7 +1350,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                   <video src={mobileAvatarSrc} autoPlay loop muted playsInline className="w-full h-full object-contain pointer-events-none" style={{ mixBlendMode: "multiply" }} />
                 </button>
               )}
-              <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {user.name.split(" ")[0]}!</h1>
+              <h1 className="text-2xl font-extrabold text-[#001e40] mb-1 font-headline">{greeting()}, {displayName.split(" ")[0]}!</h1>
             </div>
             <p className="text-sm text-[#43474f]">Ready to learn today?</p>
             <div className="flex flex-wrap gap-2 mt-3">
