@@ -1109,7 +1109,7 @@ function ExamReviewContent({ id }: { id: string }) {
               <span className="material-symbols-outlined text-base">refresh</span>
               {remarking ? "Re-marking…" : englishSections ? "Re-mark All" : "Re-mark"}
             </button>
-            {!isStudent && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
+            {!isStudent && paperType === null && (data.markingStatus === "complete" || data.markingStatus === "released") ? (
               <button
                 onClick={async () => {
                   if (exporting) return;
