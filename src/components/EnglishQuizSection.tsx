@@ -947,7 +947,7 @@ function ReadingPassage({ text }: { text: string }) {
       return "";
     });
     return (
-      <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full">
+      <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full lg:max-h-none lg:overflow-visible">
         <div>
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
@@ -963,10 +963,10 @@ function ReadingPassage({ text }: { text: string }) {
             if (isEmpty) return <div key={ri} className="h-6" />;
             return (
               <div key={ri} className="flex gap-2 min-h-[1.3rem]">
-                <p className={`flex-1 text-[11px] lg:text-[12px] text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>
+                <p className={`flex-1 text-[11px] lg:text-[13px] text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
-                {marginNum ? <span className="w-5 text-right text-[10px] lg:text-[11px] text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span> : <span className="w-5 shrink-0" />}
+                {marginNum ? <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span> : <span className="w-5 shrink-0" />}
               </div>
             );
           })}
@@ -977,7 +977,7 @@ function ReadingPassage({ text }: { text: string }) {
 
   // Plain text fallback
   return (
-    <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full">
+    <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full lg:max-h-none lg:overflow-visible">
       <p className="text-[12px] lg:text-[14px] text-[#0b1c30] leading-relaxed whitespace-pre-wrap text-justify" style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{text}</p>
     </div>
   );
