@@ -15,7 +15,13 @@ import "katex/dist/katex.min.css";
 // If the input contains no `$` and no `__`, falls through to a plain
 // string render so existing OCR-only stems aren't affected.
 
-const MATH_SEGMENT_RE = /\$([^$\n]+?)\$/g;
+// Match `$...$` ONLY when the content contains a backslash command
+// (e.g. `\frac`, `\pi`, `\angle`). This avoids accidentally rendering
+// currency like "$55 more than ... had $27" as math — the text
+// between the two real-currency dollar signs has no LaTeX command,
+// so the regex skips it and the dollar signs render as plain
+// characters.
+const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/g;
 const UNDERLINE_RE = /__([^_]+)__/g;
 
 function renderTextWithUnderline(text: string, keyBase: string): React.ReactNode[] {
@@ -39,7 +45,11 @@ function renderTextWithUnderline(text: string, keyBase: string): React.ReactNode
 
 export default function MathText({ text, className }: { text: string; className?: string }) {
   if (!text) return null;
-  if (!text.includes("$")) {
+  // Cheap pre-check: only enter the math-segment branch when the
+  // string plausibly contains a LaTeX command. A bare `$` without
+  // any `\command` is almost certainly currency and should fall
+  // through to plain text rendering.
+  if (!text.includes("$") || !/\\[a-zA-Z]/.test(text)) {
     return <span className={className}>{renderTextWithUnderline(text, "0")}</span>;
   }
 
