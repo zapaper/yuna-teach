@@ -65,38 +65,49 @@ export async function POST(request: NextRequest) {
   else if (m < 7 || (m === 7 && d <= 14)) allowedExamTypes = ["WA1", "WA2", "SA1"];
   else if (m <= 8) allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
 
-  const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null, examTypes: string[] | null, allowUnrated: boolean = false) => ({
-    syllabusTopic: topic,
-    answer: { not: null } as { not: null },
-    // Note: do NOT filter by transcribedStem here — multi-part questions (e.g. Q38a, Q38bc)
-    // may have the stem only on one part. Filtering by stem at query level drops the
-    // other parts and breaks grouping. We filter at the group level below.
-    ...(difficultyLevels && difficultyLevels.length > 0
-      // Strict by default. Unrated rows only join in when explicitly
-      // allowed on a fallback pass — otherwise an unrated bank pulls
-      // potentially-hard questions into an "easier" student's pool.
+  const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null, examTypes: string[] | null, allowUnrated: boolean = false) => {
+    const difficultyClause = difficultyLevels && difficultyLevels.length > 0
       ? (allowUnrated
         ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
         : { difficulty: { in: difficultyLevels } })
-      : {}),
-    examPaper: {
-      sourceExamId: null,
-      paperType: null,
-      visible: true,
-      subject: { contains: subject, mode: "insensitive" as const },
-      ...(useLevel && levelVariants ? { level: { in: levelVariants } } : {}),
-      ...(examTypes ? { examType: { in: examTypes } } : {}),
-      // Honour the parent's "Include AI generated questions" toggle.
-      // AI variants live on synthetic-bank papers (examType "Synthetic"
-      // + title prefix "[Synthetic Bank]"); excluded when opted out.
-      ...(includeAiQuestions ? {} : {
-        NOT: [
-          { examType: "Synthetic" },
-          { title: { startsWith: "[Synthetic Bank]" } },
-        ],
-      }),
-    },
-  });
+      : null;
+    // Time-of-year examType gate — accept either the bank paper's
+    // examType OR the question's syntheticSourceExamType so synthetic
+    // rows pass the gate based on their original source paper's term.
+    const examTypeClause = examTypes
+      ? {
+          OR: [
+            { examPaper: { examType: { in: examTypes } } },
+            { syntheticSourceExamType: { in: examTypes } },
+          ],
+        }
+      : null;
+    return {
+      syllabusTopic: topic,
+      answer: { not: null } as { not: null },
+      // Note: do NOT filter by transcribedStem here — multi-part
+      // questions (e.g. Q38a, Q38bc) may have the stem only on one
+      // part. Filtering by stem at query level drops the other parts
+      // and breaks grouping. We filter at the group level below.
+      ...(difficultyClause ?? {}),
+      ...(examTypeClause ?? {}),
+      examPaper: {
+        sourceExamId: null,
+        paperType: null,
+        visible: true,
+        subject: { contains: subject, mode: "insensitive" as const },
+        ...(useLevel && levelVariants ? { level: { in: levelVariants } } : {}),
+        // Honour the parent's "Include AI generated questions" toggle.
+        // Reject the synthetic-bank paper entirely when opted out.
+        ...(includeAiQuestions ? {} : {
+          NOT: [
+            { examType: "Synthetic" },
+            { title: { startsWith: "[Synthetic Bank]" } },
+          ],
+        }),
+      },
+    };
+  };
 
   const questionSelect = {
     id: true,

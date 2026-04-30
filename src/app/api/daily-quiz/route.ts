@@ -205,43 +205,60 @@ export async function POST(request: NextRequest) {
   const rawDifficultyMode = await getStudentDifficultyMode(targetStudentId);
   const difficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, targetStudentId, subjectFilter);
 
-  const questionWhere = (lf: string | null, examTypeFilter: string[] | null, difficultyLevels: number[] | null, allowUnrated: boolean) => ({
-    // Don't filter by transcribedStem — multi-part questions (e.g. Q38a stem-only
-    // + Q38bc sub-parts) must be kept together for mergeOeqGroup. Stem-less
-    // questions are filtered at the group level.
-    answer: { not: null as null },
-    ...(difficultyLevels && difficultyLevels.length > 0
-      // Strict bucket by default. Only allow difficulty=null (unrated) on
-      // the broadened/fallback passes — otherwise an unrated bank pulls
-      // potentially-hard questions into an "easier" student's pool.
+  const questionWhere = (lf: string | null, examTypeFilter: string[] | null, difficultyLevels: number[] | null, allowUnrated: boolean) => {
+    // Difficulty bucket (strict by default; allow difficulty=null on
+    // broadened/fallback passes only).
+    const difficultyClause = difficultyLevels && difficultyLevels.length > 0
       ? (allowUnrated
         ? { OR: [{ difficulty: { in: difficultyLevels } }, { difficulty: null }] }
         : { difficulty: { in: difficultyLevels } })
-      : {}),
-    examPaper: {
-      sourceExamId: null,
-      paperType: null,
-      visible: true,
-      subject: { contains: subjectFilter, mode: "insensitive" as const },
-      ...((() => {
-        const v = levelVariantsFor(lf);
-        return v ? { level: { in: v } } : {};
-      })()),
-      ...(examTypeFilter ? { examType: { in: examTypeFilter } } : {}),
-      // Honour the parent's "Include AI generated questions" toggle.
-      // AI variants live on synthetic-bank papers (examType "Synthetic"
-      // + title prefix "[Synthetic Bank]"). When the parent opts out,
-      // exclude both shapes. NOTE: this is paper-level — the
-      // syntheticGenerated flag on individual ExamQuestions means
-      // "this source has had variants made" and is irrelevant here.
-      ...(includeAiQuestions ? {} : {
-        NOT: [
-          { examType: "Synthetic" },
-          { title: { startsWith: "[Synthetic Bank]" } },
-        ],
-      }),
-    },
-  });
+      : null;
+    // Time-of-year examType gate. Match either the bank paper's
+    // examType (top-school sources) OR the question's
+    // syntheticSourceExamType (synthetic-bank rows whose source paper
+    // had that examType). This lets a synthetic question whose source
+    // was a WA1 paper pass the WA1 gate even though its bank paper
+    // sits under examType "Synthetic".
+    const examTypeClause = examTypeFilter
+      ? {
+          OR: [
+            { examPaper: { examType: { in: examTypeFilter } } },
+            { syntheticSourceExamType: { in: examTypeFilter } },
+          ],
+        }
+      : null;
+    return {
+      // Don't filter by transcribedStem — multi-part questions (e.g.
+      // Q38a stem-only + Q38bc sub-parts) must be kept together for
+      // mergeOeqGroup. Stem-less questions are filtered at the group
+      // level.
+      answer: { not: null as null },
+      ...(difficultyClause ?? {}),
+      ...(examTypeClause ?? {}),
+      examPaper: {
+        sourceExamId: null,
+        paperType: null,
+        visible: true,
+        subject: { contains: subjectFilter, mode: "insensitive" as const },
+        ...((() => {
+          const v = levelVariantsFor(lf);
+          return v ? { level: { in: v } } : {};
+        })()),
+        // Honour the parent's "Include AI generated questions" toggle.
+        // AI variants live on synthetic-bank papers (examType
+        // "Synthetic" + title prefix "[Synthetic Bank]"). When the
+        // parent opts out, exclude both shapes — this rejects the
+        // entire synthetic-bank paper before the OR-clause above can
+        // pull rows in via syntheticSourceExamType.
+        ...(includeAiQuestions ? {} : {
+          NOT: [
+            { examType: "Synthetic" },
+            { title: { startsWith: "[Synthetic Bank]" } },
+          ],
+        }),
+      },
+    };
+  };
 
   // Light select for pool building (excludes large blob fields)
   const questionSelectLight = {
