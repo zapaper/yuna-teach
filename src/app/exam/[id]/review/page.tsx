@@ -1281,9 +1281,21 @@ function ExamReviewContent({ id }: { id: string }) {
               const isVisualText = currentSectionLabel.includes("visual") && currentSectionLabel.includes("text");
               const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
               const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+              // Split-screen layout for passage-bound comp sections on
+              // lg+ — passage on the left, questions/answers on the
+              // right, each pane scrolls independently. Below lg the
+              // existing single-column stacked layout is preserved.
+              const useSplitScreen = isCompOeq || isVisualText;
+              const cardCls = useSplitScreen
+                ? "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-160px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]"
+                : "bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]";
+              const headerInCardCls = useSplitScreen ? "lg:col-span-2" : "";
+              const passageColCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
+              const questionsColCls = useSplitScreen ? "lg:row-start-2 lg:col-start-2 lg:overflow-y-auto lg:pl-2 lg:min-h-0" : "";
 
               return (
-                <div className="bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]">
+                <div className={cardCls}>
+                  <div className={headerInCardCls}>
                   {/* Section header — also hosts the passage pen toolbar
                       (parents only) so Pen / Clear stay docked here
                       regardless of how the parent scrolls the passage. */}
@@ -1324,7 +1336,9 @@ function ExamReviewContent({ id }: { id: string }) {
                       Strict marking follows MOE guideline. No partial marks given.
                     </p>
                   )}
+                  </div>
 
+                  <div className={passageColCls}>
                   {/* Visual Text passage images — passage is stored as a sentinel
                       like "[VISUAL_PAGES:paperId:0,1]" and resolved to scanned pages. */}
                   {currentSection?.passage && currentSection.passage.startsWith("[VISUAL_") && (
@@ -1332,7 +1346,7 @@ function ExamReviewContent({ id }: { id: string }) {
                   )}
                   {/* Passage text */}
                   {currentSection?.passage && !currentSection.passage.startsWith("[") && (
-                    <div className="mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full relative">
+                    <div className={`mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full relative ${useSplitScreen ? "lg:max-h-none lg:overflow-visible" : ""}`}>
                       <ReviewPenOverlay
                         key={`passage:${currentSection?.label ?? "unnamed"}`}
                         paperId={id}
@@ -1370,8 +1384,8 @@ function ExamReviewContent({ id }: { id: string }) {
                             const isEmpty = !textContent && !cells[0]?.trim();
                             return (
                               <div key={ri} className={`flex gap-3 ${isEmpty ? "h-4" : "min-h-[1.6rem]"}`}>
-                                <p className={`flex-1 text-[11px] lg:text-[13px] text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{textContent.replace(/^\s+/, "")}</p>
-                                {marginNum && <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0">{marginNum}</span>}
+                                <p className={`flex-1 text-[11px] text-[#0b1c30] leading-relaxed text-justify ${textContent.startsWith("    ") || textContent.startsWith("\t") ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(11px, 0.95vw, 13.5px)" }}>{textContent.replace(/^\s+/, "")}</p>
+                                {marginNum && <span className="w-5 text-right text-[#003366] font-bold font-mono shrink-0" style={{ fontSize: "clamp(10px, 0.78vw, 12px)" }}>{marginNum}</span>}
                               </div>
                             );
                           });
@@ -1552,6 +1566,9 @@ function ExamReviewContent({ id }: { id: string }) {
                     </div>
                   )}
 
+                  </div>
+
+                  <div className={questionsColCls}>
                   {/* Question results */}
                   <div className="space-y-3">
                     {sectionQuestions.map((q, qi) => {
@@ -1854,6 +1871,7 @@ function ExamReviewContent({ id }: { id: string }) {
                         </div>
                       );
                     })}
+                  </div>
                   </div>
                 </div>
               );
