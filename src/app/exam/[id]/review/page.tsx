@@ -1286,6 +1286,37 @@ function ExamReviewContent({ id }: { id: string }) {
               // right, each pane scrolls independently. Below lg the
               // existing single-column stacked layout is preserved.
               const useSplitScreen = isCompOeq || isVisualText;
+              // Position-based mapping for cloze / editing markers in
+              // the passage. Each `**(N)**` token in the passage
+              // corresponds to the i-th question in the section
+              // (sorted by question number). When a paper has TWO
+              // grammar-cloze passages and the AI re-numbered the
+              // markers (e.g. passage-2 starts at (1) again instead
+              // of continuing from (16)), looking up by raw marker
+              // number would either miss the question entirely or
+              // match the wrong section's question. Mirror the
+              // quiz-player's PassageWithInputs logic here.
+              const markerToQuestion = new Map<number, ReviewQuestion>();
+              const markerToDisplayNum = new Map<number, string>();
+              if (currentSection?.passage && (isGrammarCloze || isEditing || isCompCloze)) {
+                const passageQNumsInOrder: number[] = [];
+                const seen = new Set<number>();
+                const passageRegex = /\*\*\((\d+)\)/g;
+                let pm: RegExpExecArray | null;
+                while ((pm = passageRegex.exec(currentSection.passage)) !== null) {
+                  const n = parseInt(pm[1]);
+                  if (!seen.has(n)) { passageQNumsInOrder.push(n); seen.add(n); }
+                }
+                const sortedSecQs = [...sectionQuestions].sort((a, b) =>
+                  a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
+                );
+                passageQNumsInOrder.forEach((pn, i) => {
+                  if (i < sortedSecQs.length) {
+                    markerToQuestion.set(pn, sortedSecQs[i]);
+                    markerToDisplayNum.set(pn, sortedSecQs[i].questionNum);
+                  }
+                });
+              }
               const cardCls = useSplitScreen
                 ? "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:my-[-32px] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]"
                 : "bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]";
@@ -1411,7 +1442,12 @@ function ExamReviewContent({ id }: { id: string }) {
                           let mk;
                           while ((mk = mkRegex.exec(line)) !== null) {
                             if (mk.index > lastEnd) parts.push(<span key={`t${lastEnd}`}>{line.slice(lastEnd, mk.index)}</span>);
-                            const num = mk[1];
+                            const markerNum = parseInt(mk[1]);
+                            // Use position-based map first; fall back to raw
+                            // number lookup for sections that don't have a
+                            // pre-built map (e.g. a future section type).
+                            const mappedQ = markerToQuestion.get(markerNum);
+                            const num = mappedQ ? mappedQ.questionNum : mk[1];
                             const word = mk[2].trim();
                             if (isEditing && word) {
                               // Editing: show misspelled word + student's correction
@@ -1419,7 +1455,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               // wrong (with the correct answer also shown in
                               // green so reader sees the right word). Same
                               // rendering for parent and student.
-                              const q = sectionQuestions.find(sq => sq.questionNum === num);
+                              const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
                               const studentAns = (q?.studentAnswer ?? "").trim();
                               const correctAns = (q?.answer ?? "").trim();
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
@@ -1467,7 +1503,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               // (followed by the correct answer in green) if
                               // wrong, or just the correct answer in red if
                               // they left it blank.
-                              const q = sectionQuestions.find(sq => sq.questionNum === num);
+                              const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
                               const studentAns = (q?.studentAnswer ?? "").trim();
                               const correctAns = (q?.answer ?? "").trim();
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
@@ -1512,7 +1548,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z])\b/);
                                 return m ? m[1] : raw.trim().toUpperCase();
                               };
-                              const q = sectionQuestions.find(sq => sq.questionNum === num);
+                              const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
                               const studentLetter = extractLetter(q?.studentAnswer ?? "");
                               const correctLetter = extractLetter(q?.answer ?? "");
                               const studentWord = wordBank.get(studentLetter) ?? "";
