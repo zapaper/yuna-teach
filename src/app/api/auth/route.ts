@@ -40,6 +40,11 @@ export async function POST(request: NextRequest) {
   // Set signed session cookie so privileged routes (admin) can trust the caller
   await setSession(user.id);
 
+  // Stamp last-login for the manage-users panel. Best-effort — don't
+  // block the response if the write fails for any reason.
+  prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } })
+    .catch(() => { /* non-fatal */ });
+
   return NextResponse.json({
     id: user.id,
     name: user.name,

@@ -23,6 +23,7 @@ export async function GET() {
         displayName: true,
         email: true,
         createdAt: true,
+        lastLoginAt: true,
         settings: true,
         parentLinks: {
           select: { student: { select: { id: true, name: true, displayName: true, level: true } } },
@@ -40,6 +41,7 @@ export async function GET() {
         email: true,
         level: true,
         createdAt: true,
+        lastLoginAt: true,
         studentLinks: {
           select: { parent: { select: { id: true, name: true, displayName: true, email: true } } },
         },
@@ -55,6 +57,7 @@ export async function GET() {
       displayName: p.displayName,
       email: p.email,
       createdAt: p.createdAt.toISOString(),
+      lastLoginAt: p.lastLoginAt?.toISOString() ?? null,
       isAdmin: ((p.settings as { admin?: unknown } | null)?.admin === true) || p.name?.toLowerCase() === "admin",
       paperCount: p._count.examPapers,
       students: p.parentLinks.map(l => l.student),
@@ -66,6 +69,7 @@ export async function GET() {
       email: s.email,
       level: s.level,
       createdAt: s.createdAt.toISOString(),
+      lastLoginAt: s.lastLoginAt?.toISOString() ?? null,
       paperCount: s._count.assignedExamPapers,
       parents: s.studentLinks.map(l => l.parent),
     })),

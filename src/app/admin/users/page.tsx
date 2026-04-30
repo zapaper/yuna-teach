@@ -10,6 +10,7 @@ type ParentRow = {
   displayName: string | null;
   email: string | null;
   createdAt: string;
+  lastLoginAt: string | null;
   isAdmin: boolean;
   paperCount: number;
   students: { id: string; name: string; displayName: string | null; level: number | null }[];
@@ -22,9 +23,27 @@ type StudentRow = {
   email: string | null;
   level: number | null;
   createdAt: string;
+  lastLoginAt: string | null;
   paperCount: number;
   parents: { id: string; name: string; displayName: string | null; email: string | null }[];
 };
+
+// Friendly relative-time label, falling back to the local date for
+// anything older than ~30 days. NULL = never logged in.
+function lastLoginLabel(iso: string | null): string {
+  if (!iso) return "never";
+  const d = new Date(iso);
+  const ms = Date.now() - d.getTime();
+  if (ms < 0) return d.toLocaleString();
+  const min = Math.floor(ms / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 30) return `${day} day${day === 1 ? "" : "s"} ago`;
+  return d.toLocaleDateString();
+}
 
 export default function AdminUsersPage() {
   return (
@@ -140,7 +159,7 @@ function AdminUsersContent() {
                   username: p.name,
                   badge: p.isAdmin ? "ADMIN" : null,
                   email: p.email ?? "—",
-                  meta: `${p.paperCount} paper${p.paperCount === 1 ? "" : "s"} · joined ${new Date(p.createdAt).toLocaleDateString()}`,
+                  meta: `${p.paperCount} paper${p.paperCount === 1 ? "" : "s"} · joined ${new Date(p.createdAt).toLocaleDateString()} · last login ${lastLoginLabel(p.lastLoginAt)}`,
                   links: p.students.length > 0
                     ? p.students.map(s => `${s.displayName ?? s.name}${s.level ? ` (P${s.level})` : ""}`).join(", ")
                     : "no linked students",
@@ -160,7 +179,7 @@ function AdminUsersContent() {
                   username: s.name,
                   badge: s.level ? `P${s.level}` : null,
                   email: s.email ?? "—",
-                  meta: `${s.paperCount} paper${s.paperCount === 1 ? "" : "s"} · joined ${new Date(s.createdAt).toLocaleDateString()}`,
+                  meta: `${s.paperCount} paper${s.paperCount === 1 ? "" : "s"} · joined ${new Date(s.createdAt).toLocaleDateString()} · last login ${lastLoginLabel(s.lastLoginAt)}`,
                   links: s.parents.length > 0
                     ? s.parents.map(p => `${p.displayName ?? p.name}${p.email ? ` <${p.email}>` : ""}`).join(", ")
                     : "no linked parents",

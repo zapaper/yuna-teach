@@ -23,6 +23,8 @@ model User {
   level     Int?     // Primary 1-6, only for students
   settings  Json?    // Student settings: { avatar: boolean, crystalCurrency: boolean }
   createdAt DateTime @default(now())
+  // Last successful login timestamp. Set in POST /api/auth on login.
+  lastLoginAt DateTime?
 
   // Email verification & subscription
   emailVerified         Boolean  @default(false)
