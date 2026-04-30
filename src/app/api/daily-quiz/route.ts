@@ -210,8 +210,6 @@ export async function POST(request: NextRequest) {
     // + Q38bc sub-parts) must be kept together for mergeOeqGroup. Stem-less
     // questions are filtered at the group level.
     answer: { not: null as null },
-    // Honour the parent's "Include AI generated questions" toggle.
-    ...(includeAiQuestions ? {} : { syntheticGenerated: false }),
     ...(difficultyLevels && difficultyLevels.length > 0
       // Strict bucket by default. Only allow difficulty=null (unrated) on
       // the broadened/fallback passes — otherwise an unrated bank pulls
@@ -230,6 +228,18 @@ export async function POST(request: NextRequest) {
         return v ? { level: { in: v } } : {};
       })()),
       ...(examTypeFilter ? { examType: { in: examTypeFilter } } : {}),
+      // Honour the parent's "Include AI generated questions" toggle.
+      // AI variants live on synthetic-bank papers (examType "Synthetic"
+      // + title prefix "[Synthetic Bank]"). When the parent opts out,
+      // exclude both shapes. NOTE: this is paper-level — the
+      // syntheticGenerated flag on individual ExamQuestions means
+      // "this source has had variants made" and is irrelevant here.
+      ...(includeAiQuestions ? {} : {
+        NOT: [
+          { examType: "Synthetic" },
+          { title: { startsWith: "[Synthetic Bank]" } },
+        ],
+      }),
     },
   });
 
