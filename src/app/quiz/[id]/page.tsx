@@ -925,26 +925,7 @@ function QuizContent({ id }: { id: string }) {
             {paper.metadata?.englishSections ? (
               // English quiz: render sections by type
               (() => {
-                // Compute the index of the first not-yet-entered comp /
-                // visual-text section so we only render ONE Continue
-                // card at a time. Subsequent comp sections that
-                // haven't been entered are hidden until earlier ones
-                // are entered, which keeps the page focused on the
-                // next thing to do.
-                const sections = paper.metadata.englishSections;
-                const isCompLabel = (label: string) => {
-                  const l = label.toLowerCase();
-                  return l.includes("visual text") || l.includes("comprehension oeq") || l.includes("comp oeq") || l.includes("comprehension open");
-                };
-                const totalSections = sections.length;
-                const firstUnenteredCompIdx = (() => {
-                  for (let i = 0; i < sections.length; i++) {
-                    const isComp = isCompLabel(sections[i].label);
-                    const isPureComp = totalSections === 1 && isComp;
-                    if (isComp && !enteredCompSections.has(i) && !isPureComp) return i;
-                  }
-                  return -1;
-                })();
+                const totalSections = paper.metadata.englishSections.length;
                 return (
               <>
                 {paper.metadata.englishSections.map((sec, si) => {
@@ -978,10 +959,12 @@ function QuizContent({ id }: { id: string }) {
                   const divider = si > 0 ? (
                     <hr className="border-t-2 border-slate-200 my-10 lg:my-12" />
                   ) : null;
-                  // Continue card: render on lg+ ONLY when this is
-                  // the first not-yet-entered comp section. Mobile
-                  // never shows the card.
-                  const continueCard = (wantsSplit && !isEntered && si === firstUnenteredCompIdx) ? (
+                  // Continue card: render on lg+ for every unentered
+                  // comp section. Mobile never shows the card. Now
+                  // that sections render in document order, all
+                  // pending Continue buttons are visible at once
+                  // rather than gated one-by-one.
+                  const continueCard = (wantsSplit && !isEntered) ? (
                     <div className="hidden lg:block mb-12 lg:mb-16">
                       <button
                         type="button"

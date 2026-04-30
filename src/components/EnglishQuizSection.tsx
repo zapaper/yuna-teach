@@ -59,16 +59,24 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
   const outerCls = useSplitScreen
     ? "mb-12 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)] lg:my-[-32px] lg:px-8 xl:px-16 lg:py-4"
     : "mb-12";
-  const headerCls = useSplitScreen ? "lg:col-span-2" : "";
+  // Tighten the section header in split-screen — the header bar
+  // shouldn't eat into the precious viewport-height the passage and
+  // questions panes rely on. Smaller bottom margin + smaller heading
+  // font on lg+.
+  const headerCls = useSplitScreen ? "lg:col-span-2 lg:mb-0" : "";
+  const headerInnerCls = useSplitScreen ? "mb-6 lg:mb-2" : "mb-6";
+  const headerTitleCls = useSplitScreen
+    ? "font-headline text-xl lg:text-base font-extrabold text-[#001e40] tracking-tight"
+    : "font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight";
   const splitPassageCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
   const splitQuestionsCls = useSplitScreen ? "lg:row-start-2 lg:col-start-2 lg:overflow-y-auto lg:pl-2 lg:min-h-0" : "";
   return (
     <div className={outerCls}>
       <div className={headerCls}>
       {/* Section header */}
-      <div className="mb-6">
+      <div className={headerInnerCls}>
         <div className="flex items-center gap-3">
-          <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sectionLabel.toUpperCase()}</h2>
+          <h2 className={headerTitleCls}>{sectionLabel.toUpperCase()}</h2>
           {onToggleFlag && (sectionType === "grammar-cloze" || sectionType === "editing" || sectionType === "comprehension-cloze") && questions.length > 0 && (() => {
             const firstQ = questions[0];
             const isFlagged = !!flaggedIds?.has(firstQ.id);
@@ -963,10 +971,10 @@ function ReadingPassage({ text }: { text: string }) {
             if (isEmpty) return <div key={ri} className="h-6" />;
             return (
               <div key={ri} className="flex gap-2 min-h-[1.3rem]">
-                <p className={`flex-1 text-[11px] lg:text-[13px] text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>
+                <p className={`flex-1 text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(11px, 0.95vw, 13.5px)" }}>
                   {textContent.replace(/^\s+/, "")}
                 </p>
-                {marginNum ? <span className="w-5 text-right text-[10px] lg:text-xs text-[#003366] font-bold font-mono shrink-0 pt-0.5">{marginNum}</span> : <span className="w-5 shrink-0" />}
+                {marginNum ? <span className="w-5 text-right text-[#003366] font-bold font-mono shrink-0 pt-0.5" style={{ fontSize: "clamp(10px, 0.78vw, 12px)" }}>{marginNum}</span> : <span className="w-5 shrink-0" />}
               </div>
             );
           })}
@@ -978,7 +986,7 @@ function ReadingPassage({ text }: { text: string }) {
   // Plain text fallback
   return (
     <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full lg:max-h-none lg:overflow-visible">
-      <p className="text-[12px] lg:text-[14px] text-[#0b1c30] leading-relaxed whitespace-pre-wrap text-justify" style={{ overflowWrap: "break-word", wordBreak: "break-word" }}>{text}</p>
+      <p className="text-[#0b1c30] leading-relaxed whitespace-pre-wrap text-justify" style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(12px, 1vw, 14px)" }}>{text}</p>
     </div>
   );
 }
