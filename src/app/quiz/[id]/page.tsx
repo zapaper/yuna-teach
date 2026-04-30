@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState, useRef, useImperativeHandle, forwardRef, use } from "react";
+import { Suspense, useEffect, useMemo, useState, useRef, useImperativeHandle, forwardRef, use, Fragment } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnglishQuizSection from "@/components/EnglishQuizSection";
 import { FlagVoiceModal } from "@/components/FlagVoiceModal";
@@ -961,83 +961,107 @@ function QuizContent({ id }: { id: string }) {
                   const isCompOeq = label.includes("comprehension oeq") || label.includes("comp oeq") || label.includes("comprehension open");
                   const isTypedSection = isGrammarCloze || isEditing || isCompCloze || isVisualText;
 
-                  // Split-screen gating for passage-bound comp sections.
-                  // Pure-comp quiz (only one section, and it's comp/
-                  // visual-text) → auto-enter on first encounter.
-                  // Mixed quiz → render a "Continue to {section}" card
-                  // for the FIRST unentered comp section only. Later
-                  // unentered comp sections are hidden until the
-                  // current one is entered.
+                  // Split-screen gating ONLY applies on lg+ (desktop).
+                  // Below lg (mobile / iPad portrait) the section
+                  // always renders directly with the existing
+                  // single-column stacked layout — passage above,
+                  // questions below — same as before this feature
+                  // was added. The Continue card is purely a desktop
+                  // interaction.
                   const wantsSplit = isVisualText || isCompOeq;
                   const isPureCompQuiz = totalSections === 1 && wantsSplit;
                   const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
-                  if (wantsSplit && !isEntered) {
-                    if (si !== firstUnenteredCompIdx) return null;
-                    return (
-                      <div key={si} className="mb-12 lg:mb-16">
-                        <button
-                          type="button"
-                          onClick={() => setEnteredCompSections(prev => { const next = new Set(prev); next.add(si); return next; })}
-                          className="w-full bg-white rounded-2xl border-2 border-[#dce9ff] hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] transition-all p-8 lg:p-12 text-left"
-                        >
-                          <p className="text-xs font-extrabold text-[#003366] uppercase tracking-wider mb-2">Next section</p>
-                          <h2 className="font-headline font-extrabold text-2xl lg:text-3xl text-[#001e40] mb-4 leading-tight">{sec.label}</h2>
-                          <p className="text-sm text-[#43474f] leading-relaxed mb-6">
-                            On this section, the passage will sit on the left and the questions on the right so you can read and answer without scrolling between them.
-                          </p>
-                          <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#001e40] text-white text-sm font-bold">
-                            Continue to {sec.label}
-                            <span className="material-symbols-outlined text-base">arrow_forward</span>
-                          </span>
-                        </button>
-                      </div>
-                    );
-                  }
+                  // Sibling separator between sections (top border on
+                  // anything but the first section). Lives outside the
+                  // section content so it doesn't get hidden when the
+                  // section is gated behind the Continue card.
+                  const divider = si > 0 ? (
+                    <hr className="border-t-2 border-slate-200 my-10 lg:my-12" />
+                  ) : null;
+                  // Continue card: render on lg+ ONLY when this is
+                  // the first not-yet-entered comp section. Mobile
+                  // never shows the card.
+                  const continueCard = (wantsSplit && !isEntered && si === firstUnenteredCompIdx) ? (
+                    <div className="hidden lg:block mb-12 lg:mb-16">
+                      <button
+                        type="button"
+                        onClick={() => setEnteredCompSections(prev => { const next = new Set(prev); next.add(si); return next; })}
+                        className="w-full bg-white rounded-2xl border-2 border-[#dce9ff] hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] transition-all p-8 lg:p-12 text-left"
+                      >
+                        <p className="text-xs font-extrabold text-[#003366] uppercase tracking-wider mb-2">Next section</p>
+                        <h2 className="font-headline font-extrabold text-2xl lg:text-3xl text-[#001e40] mb-4 leading-tight">{sec.label}</h2>
+                        <p className="text-sm text-[#43474f] leading-relaxed mb-6">
+                          On this section, the passage will sit on the left and the questions on the right so you can read and answer without scrolling between them.
+                        </p>
+                        <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#001e40] text-white text-sm font-bold">
+                          Continue to {sec.label}
+                          <span className="material-symbols-outlined text-base">arrow_forward</span>
+                        </span>
+                      </button>
+                    </div>
+                  ) : null;
+                  // The section content itself is hidden on lg+ when
+                  // it's a comp section that hasn't been entered yet
+                  // (Continue card replaces it). Below lg the section
+                  // always shows.
+                  const lgHiddenWhenGated = wantsSplit && !isEntered ? "lg:hidden" : "";
 
                   if (isTypedSection) {
                     return (
-                      <EnglishQuizSection
-                        key={si}
-                        sectionLabel={sec.label}
-                        passage={sec.passage ?? null}
-                        questions={secQuestions}
-                        sectionType={isGrammarCloze ? "grammar-cloze" : isEditing ? "editing" : isCompCloze ? "comprehension-cloze" : "visual-text-mcq"}
-                        answers={mcqAnswers}
-                        onAnswer={selectMcqAnswer}
-                        tool={tool}
-                        onToolChange={(t) => setTool(t)}
-                        emptyFieldIds={emptyFieldIds}
-                        flaggedIds={flaggedIds}
-                        onToggleFlag={(qId) => toggleFlag(qId)}
-                        splitScreen={wantsSplit}
-                      />
+                      <Fragment key={si}>
+                        {divider}
+                        {continueCard}
+                        <div className={lgHiddenWhenGated}>
+                          <EnglishQuizSection
+                            sectionLabel={sec.label}
+                            passage={sec.passage ?? null}
+                            questions={secQuestions}
+                            sectionType={isGrammarCloze ? "grammar-cloze" : isEditing ? "editing" : isCompCloze ? "comprehension-cloze" : "visual-text-mcq"}
+                            answers={mcqAnswers}
+                            onAnswer={selectMcqAnswer}
+                            tool={tool}
+                            onToolChange={(t) => setTool(t)}
+                            emptyFieldIds={emptyFieldIds}
+                            flaggedIds={flaggedIds}
+                            onToggleFlag={(qId) => toggleFlag(qId)}
+                            splitScreen={wantsSplit && isEntered}
+                          />
+                        </div>
+                      </Fragment>
                     );
                   }
 
                   // Synthesis / Comp OEQ: typed answer sections
                   if (isSynthesis || isCompOeq) {
                     return (
-                      <EnglishQuizSection
-                        key={si}
-                        sectionLabel={sec.label}
-                        passage={sec.passage ?? null}
-                        questions={secQuestions}
-                        sectionType={isSynthesis ? "synthesis" : "comprehension-oeq"}
-                        answers={mcqAnswers}
-                        onAnswer={selectMcqAnswer}
-                        tool={tool}
-                        onToolChange={(t) => setTool(t)}
-                        emptyFieldIds={emptyFieldIds}
-                        flaggedIds={flaggedIds}
-                        onToggleFlag={(qId) => toggleFlag(qId)}
-                        splitScreen={wantsSplit}
-                      />
+                      <Fragment key={si}>
+                        {divider}
+                        {continueCard}
+                        <div className={lgHiddenWhenGated}>
+                          <EnglishQuizSection
+                            sectionLabel={sec.label}
+                            passage={sec.passage ?? null}
+                            questions={secQuestions}
+                            sectionType={isSynthesis ? "synthesis" : "comprehension-oeq"}
+                            answers={mcqAnswers}
+                            onAnswer={selectMcqAnswer}
+                            tool={tool}
+                            onToolChange={(t) => setTool(t)}
+                            emptyFieldIds={emptyFieldIds}
+                            flaggedIds={flaggedIds}
+                            onToggleFlag={(qId) => toggleFlag(qId)}
+                            splitScreen={wantsSplit && isEntered}
+                          />
+                        </div>
+                      </Fragment>
                     );
                   }
 
                   // Standard MCQ section (Grammar MCQ, Vocab MCQ, Vocab Cloze MCQ)
                   return (
-                    <div key={si} className="mb-12">
+                    <Fragment key={si}>
+                      {divider}
+                      <div className="mb-12">
                       <div className="mb-8 mt-4">
                         <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sec.label.toUpperCase()}</h2>
                         <p className="text-[#737780] mt-1 text-sm">Choose the most appropriate answer for each question.</p>
@@ -1114,6 +1138,7 @@ function QuizContent({ id }: { id: string }) {
                         ))}
                       </div>
                     </div>
+                    </Fragment>
                   );
                 })}
               </>
