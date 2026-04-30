@@ -519,15 +519,20 @@ function QuestionRow({
           }
           // For Synthesis: split question text from answer area
           // Pattern A: **Word** ____ (starting word)
-          // Pattern B: ____ **Word** ____ (joining word in middle)
+          // Pattern B: ____ **Word** ____ (joining word in middle —
+          //            both inline OR with newline between blanks
+          //            and keyword)
+          // Try B FIRST because it's the more specific shape; A would
+          // otherwise greedily grab from `**keyword**` onwards and
+          // strand the leading underscores in the question text.
           let questionText = stem;
           let answerArea = "";
           if (stem && q.syllabusTopic?.toLowerCase().includes("synthesis")) {
-            // Try Pattern A: **keyword** followed by underscores
-            const synthSplitA = stem.match(/^([\s\S]*?)(\*\*.+?\*\*\s*_+[\s\S]*)$/);
-            // Try Pattern B: underscores before **keyword**
-            const synthSplitB = stem.match(/^([\s\S]*?)(_{3,}\s*\n\s*\*\*.+?\*\*[\s\S]*)$/m);
-            const synthSplit = synthSplitA || synthSplitB;
+            const synthSplitB = stem.match(/^([\s\S]*?)(_{3,}[\s\S]*?\*\*[^*\n]+\*\*[\s\S]*)$/);
+            const synthSplitA = !synthSplitB
+              ? stem.match(/^([\s\S]*?)(\*\*[^*\n]+\*\*\s*_+[\s\S]*)$/)
+              : null;
+            const synthSplit = synthSplitB || synthSplitA;
             if (synthSplit) {
               questionText = synthSplit[1].trim();
               answerArea = synthSplit[2].trim();

@@ -1503,9 +1503,18 @@ function ExamReviewContent({ id }: { id: string }) {
                               // student chose (looked up from the word bank by letter).
                               // Green = correct, red = wrong (with the correct word
                               // shown next to it). No answer = empty underline.
+                              //
+                              // The answer key may be stored as "C", "(C)", "C: HIS",
+                              // "(C) HIS" etc. — extract the leading letter so the
+                              // comparison and word-bank lookup don't fail when the
+                              // key carries the word too.
+                              const extractLetter = (raw: string) => {
+                                const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z])\b/);
+                                return m ? m[1] : raw.trim().toUpperCase();
+                              };
                               const q = sectionQuestions.find(sq => sq.questionNum === num);
-                              const studentLetter = (q?.studentAnswer ?? "").trim().toUpperCase();
-                              const correctLetter = (q?.answer ?? "").trim().toUpperCase();
+                              const studentLetter = extractLetter(q?.studentAnswer ?? "");
+                              const correctLetter = extractLetter(q?.answer ?? "");
                               const studentWord = wordBank.get(studentLetter) ?? "";
                               const correctWord = wordBank.get(correctLetter) ?? correctLetter;
                               const isBlank = !studentLetter || studentLetter === "__SKIPPED__";
@@ -1574,8 +1583,19 @@ function ExamReviewContent({ id }: { id: string }) {
                     {sectionQuestions.map((q, qi) => {
                       const qCorrect = q.marksAwarded !== null && q.marksAwarded >= (q.marksAvailable ?? 1);
                       const isPartialQ = !qCorrect && (q.marksAwarded ?? 0) > 0;
-                      const studentAns = (q.studentAnswer ?? "");
-                      const correctAns = (q.answer ?? "");
+                      // For Grammar Cloze the answer key is sometimes stored
+                      // as "(C)" or "(C) HIS" instead of the bare letter "C".
+                      // Pull out the letter so the word-bank lookup + the
+                      // 'Your/Correct answer' display doesn't end up showing
+                      // "(C) HIS: —".
+                      const extractClozeLetter = (raw: string) => {
+                        const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z])\b/);
+                        return m ? m[1] : raw.trim().toUpperCase();
+                      };
+                      const rawStudent = q.studentAnswer ?? "";
+                      const rawCorrect = q.answer ?? "";
+                      const studentAns = isGrammarCloze ? extractClozeLetter(rawStudent) : rawStudent;
+                      const correctAns = isGrammarCloze ? extractClozeLetter(rawCorrect) : rawCorrect;
                       const studentWord = wordBank.get(studentAns.toUpperCase()) ?? "";
                       const correctWord = wordBank.get(correctAns.toUpperCase()) ?? "";
                       const displayNum = parseInt(q.questionNum);
@@ -1654,14 +1674,44 @@ function ExamReviewContent({ id }: { id: string }) {
                                           .map(k => (cells[k] ?? "").trim())
                                           .filter(v => v.length > 0);
 
+                                        // Recover the actual tick-box option text
+                                        // from the stem so 'Your answer' shows
+                                        // WHAT was ticked instead of just a count.
+                                        // Stem lines that match [ ]/[x]/[✓] (start
+                                        // OR end of line) become tick0, tick1, …
+                                        // in the same order RichStemText assigns
+                                        // them during the quiz.
+                                        const tickLines: string[] = [];
+                                        for (const line of (q.transcribedStem ?? "").split("\n")) {
+                                          const trimmed = line.trim();
+                                          const startMatch = trimmed.match(/^\[[ x✓✗]\]\s*(.*)/i);
+                                          const endMatch = !startMatch ? trimmed.match(/^(.*?)\s*\[[ x✓✗]\]\s*$/i) : null;
+                                          if (startMatch) tickLines.push(startMatch[1].trim());
+                                          else if (endMatch) tickLines.push(endMatch[1].trim());
+                                        }
+                                        const tickedTexts = ticks
+                                          .map(([k]) => {
+                                            const m = k.match(/^tick(\d+)$/);
+                                            const idx = m ? parseInt(m[1]) : -1;
+                                            return tickLines[idx] ?? `option ${idx + 1}`;
+                                          })
+                                          .filter(Boolean);
+
                                         // If only ticks + text + line answers (no
                                         // table), show all of them.
                                         if (!hasTableCells) {
                                           const hasAny = ticks.length > 0 || lineValues.length > 0 || textVal.trim().length > 0;
                                           return (
                                             <div className="space-y-1">
-                                              {ticks.length > 0 && (
-                                                <p className="text-xs text-[#43474f]">Ticked: {ticks.length} option(s)</p>
+                                              {tickedTexts.length > 0 && (
+                                                <div>
+                                                  <p className="text-xs text-[#43474f] mb-1">Ticked:</p>
+                                                  <ul className="text-sm text-[#001e40] list-disc pl-5 space-y-0.5">
+                                                    {tickedTexts.map((t, i) => (
+                                                      <li key={i} className="whitespace-pre-wrap">{t}</li>
+                                                    ))}
+                                                  </ul>
+                                                </div>
                                               )}
                                               {lineValues.map((v, i) => (
                                                 <p key={i} className="text-sm text-[#001e40] whitespace-pre-wrap">{v}</p>
