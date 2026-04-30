@@ -1642,15 +1642,36 @@ function ExamReviewContent({ id }: { id: string }) {
                                         const textVal = cells._text ?? "";
                                         const ticks = Object.entries(cells).filter(([k, v]) => k.startsWith("tick") && v === "true");
                                         const hasTableCells = Object.keys(cells).some(k => k.startsWith("r"));
+                                        // Comp-OEQ with [LINES: N] / ___ markers stores
+                                        // each subpart's typed answer under line0,
+                                        // line1, … RichStemText writes them; the review
+                                        // needs to read them back out and render each
+                                        // as its own paragraph.
+                                        const lineKeys = Object.keys(cells)
+                                          .filter(k => /^line\d+$/.test(k))
+                                          .sort((a, b) => parseInt(a.slice(4)) - parseInt(b.slice(4)));
+                                        const lineValues = lineKeys
+                                          .map(k => (cells[k] ?? "").trim())
+                                          .filter(v => v.length > 0);
 
-                                        // If only ticks + text (no table), show text and tick summary
+                                        // If only ticks + text + line answers (no
+                                        // table), show all of them.
                                         if (!hasTableCells) {
+                                          const hasAny = ticks.length > 0 || lineValues.length > 0 || textVal.trim().length > 0;
                                           return (
                                             <div className="space-y-1">
                                               {ticks.length > 0 && (
                                                 <p className="text-xs text-[#43474f]">Ticked: {ticks.length} option(s)</p>
                                               )}
-                                              <p className="text-sm text-[#001e40] whitespace-pre-wrap">{textVal || <span className="italic text-[#737780]">No text answer</span>}</p>
+                                              {lineValues.map((v, i) => (
+                                                <p key={i} className="text-sm text-[#001e40] whitespace-pre-wrap">{v}</p>
+                                              ))}
+                                              {textVal.trim() && (
+                                                <p className="text-sm text-[#001e40] whitespace-pre-wrap">{textVal}</p>
+                                              )}
+                                              {!hasAny && (
+                                                <p className="text-sm"><span className="italic text-[#737780]">No text answer</span></p>
+                                              )}
                                             </div>
                                           );
                                         }

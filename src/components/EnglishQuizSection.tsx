@@ -146,10 +146,15 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
             const stemForRender = sectionType === "comprehension-oeq" ? stem.trim() : stem.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
             const cleanStem = stem.replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
             // The outer fallback textarea fires when there are no inline answer
-            // markers (no table, no [LINES: N], no standalone ___). With any
-            // marker present, RichStemText renders per-position inputs and the
-            // outer textarea would be a duplicate.
-            const hasInlineLineMarkers = !!linesMatch || /^_{3,}\s*$/m.test(stem);
+            // markers (no table, no [LINES: N], no standalone ___, no tick
+            // boxes). With any marker present, RichStemText renders per-position
+            // inputs and the outer textarea would be a duplicate. Tick-box-only
+            // comp-OEQ used to slip through and got an extra empty textarea
+            // appended below the boxes — adding the [ ]/[x]/[✓] check fixes
+            // that.
+            const hasInlineLineMarkers = !!linesMatch
+              || /^_{3,}\s*$/m.test(stem)
+              || /\[[ x✓✗]\]/i.test(stem);
 
             // For synthesis: split into question text and answer segments
             // Answer line can be: "**Instead of** ___" or "___ **although** ___"
