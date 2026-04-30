@@ -924,6 +924,28 @@ function QuizContent({ id }: { id: string }) {
           <>
             {paper.metadata?.englishSections ? (
               // English quiz: render sections by type
+              (() => {
+                // Compute the index of the first not-yet-entered comp /
+                // visual-text section so we only render ONE Continue
+                // card at a time. Subsequent comp sections that
+                // haven't been entered are hidden until earlier ones
+                // are entered, which keeps the page focused on the
+                // next thing to do.
+                const sections = paper.metadata.englishSections;
+                const isCompLabel = (label: string) => {
+                  const l = label.toLowerCase();
+                  return l.includes("visual text") || l.includes("comprehension oeq") || l.includes("comp oeq") || l.includes("comprehension open");
+                };
+                const totalSections = sections.length;
+                const firstUnenteredCompIdx = (() => {
+                  for (let i = 0; i < sections.length; i++) {
+                    const isComp = isCompLabel(sections[i].label);
+                    const isPureComp = totalSections === 1 && isComp;
+                    if (isComp && !enteredCompSections.has(i) && !isPureComp) return i;
+                  }
+                  return -1;
+                })();
+                return (
               <>
                 {paper.metadata.englishSections.map((sec, si) => {
                   // Get ALL questions for this section (not just MCQ)
@@ -943,12 +965,14 @@ function QuizContent({ id }: { id: string }) {
                   // Pure-comp quiz (only one section, and it's comp/
                   // visual-text) → auto-enter on first encounter.
                   // Mixed quiz → render a "Continue to {section}" card
-                  // and only mount the section once the student clicks.
+                  // for the FIRST unentered comp section only. Later
+                  // unentered comp sections are hidden until the
+                  // current one is entered.
                   const wantsSplit = isVisualText || isCompOeq;
-                  const totalSections = paper.metadata?.englishSections?.length ?? 0;
                   const isPureCompQuiz = totalSections === 1 && wantsSplit;
                   const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
                   if (wantsSplit && !isEntered) {
+                    if (si !== firstUnenteredCompIdx) return null;
                     return (
                       <div key={si} className="mb-12 lg:mb-16">
                         <button
@@ -1093,6 +1117,8 @@ function QuizContent({ id }: { id: string }) {
                   );
                 })}
               </>
+                );
+              })()
             ) : (
               // Non-English: standard section
               <>

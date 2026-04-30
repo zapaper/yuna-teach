@@ -50,8 +50,14 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
   // to passage-bound comp sections — other section types ignore the
   // flag. Below lg, falls back to the single-column stacked layout.
   const useSplitScreen = !!splitScreen && (sectionType === "visual-text-mcq" || sectionType === "comprehension-oeq");
+  // Full-bleed: break out of the parent's max-w-4xl on lg+ so the
+  // split panes use the entire viewport width. The
+  // `mx-[calc(-50vw+50%)] w-screen` trick centers the element across
+  // the viewport regardless of how narrow the parent container is.
+  // Re-add comfortable horizontal padding so the content doesn't sit
+  // against the edge.
   const outerCls = useSplitScreen
-    ? "mb-12 lg:grid lg:grid-cols-2 lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-160px)]"
+    ? "mb-12 lg:grid lg:grid-cols-2 lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-160px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)] lg:px-8 xl:px-16"
     : "mb-12";
   const headerCls = useSplitScreen ? "lg:col-span-2" : "";
   const splitPassageCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
