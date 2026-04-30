@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState, useRef, useImperativeHandle, forwardRef, use, Fragment } from "react";
+import MathText from "@/components/MathText";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnglishQuizSection from "@/components/EnglishQuizSection";
 import { FlagVoiceModal } from "@/components/FlagVoiceModal";
@@ -1371,7 +1372,7 @@ function McqQuestionCard({
 
           {!hideStem && question.transcribedStem && (
             <p className="font-headline text-lg lg:text-xl font-semibold leading-relaxed text-[#0b1c30] mb-5 lg:mb-6 whitespace-pre-wrap">
-              {renderUnderline(question.transcribedStem)}
+              <MathText text={question.transcribedStem} />
             </p>
           )}
 
@@ -1446,7 +1447,7 @@ function McqQuestionCard({
                         isSelected ? "bg-[#001e40] text-white" : "bg-white border border-[#c3c6d1]/30 text-[#001e40]"
                       }`}>{i + 1}</span>
                       <span className={`font-headline font-semibold text-base ${isSelected ? "text-[#001e40] font-bold" : "text-[#0b1c30]"}`}>
-                        {text}
+                        <MathText text={text} />
                       </span>
                     </div>
                     {isSelected && (

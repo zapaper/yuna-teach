@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import FormattedText from "@/components/FormattedText";
 import { VisualTextImages } from "@/components/EnglishQuizSection";
 import { ReviewPenOverlay } from "@/components/ReviewPenOverlay";
+import MathText from "@/components/MathText";
 import { playClick } from "@/lib/sfx";
 import React from "react";
 
@@ -2091,7 +2092,7 @@ function ExamReviewContent({ id }: { id: string }) {
                             <>
                               {currentQ.transcribedStem && (
                                 <h3 className="font-headline text-lg lg:text-xl font-semibold text-[#001e40] leading-relaxed whitespace-pre-wrap">
-                                  {renderUnderline(currentQ.transcribedStem)}
+                                  <MathText text={currentQ.transcribedStem} />
                                 </h3>
                               )}
                               {/* Show question image only when stem is missing AND there's no clean
@@ -2176,7 +2177,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                           <span className={`w-10 h-10 rounded-full flex items-center justify-center font-headline font-bold shrink-0 ${
                                             isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-[#eff4ff] text-[#001e40]"
                                           }`}>{i + 1}</span>
-                                          <span className={`font-headline font-semibold text-base ${isOptCorrect || isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}>{opt}</span>
+                                          <span className={`font-headline font-semibold text-base ${isOptCorrect || isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}><MathText text={opt} /></span>
                                         </div>
                                         {isOptCorrect && isSelected && <span className="text-xs font-bold text-[#006c49] shrink-0">Correct</span>}
                                         {isOptCorrect && !isSelected && <span className="material-symbols-outlined text-[#006c49] shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}

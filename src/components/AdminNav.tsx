@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { icon: "tune",          label: "Subpart Marks", path: "/admin/subpart-marks" },
   { icon: "build",         label: "Fix Questions", path: "/admin/fix-questions" },
   { icon: "people",        label: "Manage Users",  path: "/admin/users" },
+  { icon: "function",      label: "LaTeX Convert", path: "/admin/latex-fraction" },
   { icon: "feedback",      label: "Feedback",      path: "/admin/feedback" },
 ];
 

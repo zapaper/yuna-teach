@@ -99,6 +99,13 @@ function AdminContent() {
       color: "bg-emerald-50 text-emerald-600",
     },
     {
+      icon: "function",
+      label: "Convert to LaTeX fraction",
+      description: "Find Math MCQ stems / options with mixed-number ('4 5/6') patterns and convert to LaTeX one by one with admin approval.",
+      href: `/admin/latex-fraction?userId=${userId}`,
+      color: "bg-violet-50 text-violet-600",
+    },
+    {
       icon: "people",
       label: "Manage Users",
       description: "View all parent and student accounts. Delete accounts and inspect their links.",
