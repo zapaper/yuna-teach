@@ -1287,7 +1287,7 @@ function ExamReviewContent({ id }: { id: string }) {
               // existing single-column stacked layout is preserved.
               const useSplitScreen = isCompOeq || isVisualText;
               const cardCls = useSplitScreen
-                ? "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-160px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]"
+                ? "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:my-[-32px] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]"
                 : "bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]";
               const headerInCardCls = useSplitScreen ? "lg:col-span-2" : "";
               const passageColCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
