@@ -258,12 +258,23 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // child's homepage in a new tab to follow along. Tracked on the
   // parent record so the popup never fires twice.
   const [firstAssignPrompt, setFirstAssignPrompt] = useState<{ studentId: string; studentName: string } | null>(null);
+  // In-session guard. The server-side firstAssignDone flag protects
+  // across page reloads, but within a single session the `user` prop
+  // is stale (it's a snapshot from page load). Without this ref the
+  // second assignment of the session re-checks the stale prop and
+  // re-fires the prompt.
+  const firstAssignShownRef = useRef(false);
   function maybeShowFirstAssignPrompt(studentIdHit: string) {
+    if (firstAssignShownRef.current) return;
     const settings = (user.settings ?? {}) as { firstAssignDone?: boolean };
     if (settings.firstAssignDone) return;
     const child = user.linkedStudents.find(s => s.id === studentIdHit);
     if (!child) return;
+    firstAssignShownRef.current = true;
     setFirstAssignPrompt({ studentId: studentIdHit, studentName: child.name });
+    // Mirror the change onto the in-memory user prop so any later
+    // re-render in this session also sees firstAssignDone=true.
+    user.settings = { ...(user.settings ?? {}), firstAssignDone: true };
     // Persist so we never prompt again, even if this tab refreshes
     // before the parent dismisses.
     fetch("/api/users", {
