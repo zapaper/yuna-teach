@@ -138,6 +138,12 @@ function QuizContent({ id }: { id: string }) {
   const [savingProgress, setSavingProgress] = useState(false);
   const [progressSaved, setProgressSaved] = useState(false);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+  // Tracks which English comp/visual-text sections the student has
+  // explicitly entered. Once entered, the section renders side-by-side
+  // (passage left, questions right) on lg+. Auto-entered for quizzes
+  // whose only section IS comp/visual-text — otherwise the parent /
+  // student gets a "Continue to {section}" card first.
+  const [enteredCompSections, setEnteredCompSections] = useState<Set<number>>(new Set());
   // The modal asks the user if they want to leave a voice note when
   // FLAGGING a question (not when un-flagging). If the user picks
   // 'No, just flag it' or cancels mid-record, we fall back to the
@@ -933,6 +939,37 @@ function QuizContent({ id }: { id: string }) {
                   const isCompOeq = label.includes("comprehension oeq") || label.includes("comp oeq") || label.includes("comprehension open");
                   const isTypedSection = isGrammarCloze || isEditing || isCompCloze || isVisualText;
 
+                  // Split-screen gating for passage-bound comp sections.
+                  // Pure-comp quiz (only one section, and it's comp/
+                  // visual-text) → auto-enter on first encounter.
+                  // Mixed quiz → render a "Continue to {section}" card
+                  // and only mount the section once the student clicks.
+                  const wantsSplit = isVisualText || isCompOeq;
+                  const totalSections = paper.metadata?.englishSections?.length ?? 0;
+                  const isPureCompQuiz = totalSections === 1 && wantsSplit;
+                  const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
+                  if (wantsSplit && !isEntered) {
+                    return (
+                      <div key={si} className="mb-12 lg:mb-16">
+                        <button
+                          type="button"
+                          onClick={() => setEnteredCompSections(prev => { const next = new Set(prev); next.add(si); return next; })}
+                          className="w-full bg-white rounded-2xl border-2 border-[#dce9ff] hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] transition-all p-8 lg:p-12 text-left"
+                        >
+                          <p className="text-xs font-extrabold text-[#003366] uppercase tracking-wider mb-2">Next section</p>
+                          <h2 className="font-headline font-extrabold text-2xl lg:text-3xl text-[#001e40] mb-4 leading-tight">{sec.label}</h2>
+                          <p className="text-sm text-[#43474f] leading-relaxed mb-6">
+                            On this section, the passage will sit on the left and the questions on the right so you can read and answer without scrolling between them.
+                          </p>
+                          <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#001e40] text-white text-sm font-bold">
+                            Continue to {sec.label}
+                            <span className="material-symbols-outlined text-base">arrow_forward</span>
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  }
+
                   if (isTypedSection) {
                     return (
                       <EnglishQuizSection
@@ -948,6 +985,7 @@ function QuizContent({ id }: { id: string }) {
                         emptyFieldIds={emptyFieldIds}
                         flaggedIds={flaggedIds}
                         onToggleFlag={(qId) => toggleFlag(qId)}
+                        splitScreen={wantsSplit}
                       />
                     );
                   }
@@ -968,6 +1006,7 @@ function QuizContent({ id }: { id: string }) {
                         emptyFieldIds={emptyFieldIds}
                         flaggedIds={flaggedIds}
                         onToggleFlag={(qId) => toggleFlag(qId)}
+                        splitScreen={wantsSplit}
                       />
                     );
                   }

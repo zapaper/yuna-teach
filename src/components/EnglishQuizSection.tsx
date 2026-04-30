@@ -26,6 +26,12 @@ interface Props {
   emptyFieldIds?: Set<string>;
   flaggedIds?: Set<string>;
   onToggleFlag?: (questionId: string) => void;
+  // When true and sectionType is visual-text-mcq or comprehension-oeq,
+  // render the passage and questions side-by-side on lg+ (tablet/
+  // desktop) so the student doesn't need to scroll between them.
+  // Each pane scrolls independently. Below lg falls back to the
+  // single-column stacked layout.
+  splitScreen?: boolean;
 }
 
 /**
@@ -37,9 +43,22 @@ interface Props {
  * - Synthesis: question stem with bold starting word + typed answer
  * - Comprehension OEQ: question stem with typed answer lines
  */
-export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag }: Props) {
+export default function EnglishQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen }: Props) {
+  // Split-screen renders the passage column and the questions column
+  // side-by-side in a 50/50 grid that fills the viewport on lg+
+  // (tablet/desktop). Each column scrolls independently. Only applied
+  // to passage-bound comp sections — other section types ignore the
+  // flag. Below lg, falls back to the single-column stacked layout.
+  const useSplitScreen = !!splitScreen && (sectionType === "visual-text-mcq" || sectionType === "comprehension-oeq");
+  const outerCls = useSplitScreen
+    ? "mb-12 lg:grid lg:grid-cols-2 lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-160px)]"
+    : "mb-12";
+  const headerCls = useSplitScreen ? "lg:col-span-2" : "";
+  const splitPassageCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
+  const splitQuestionsCls = useSplitScreen ? "lg:row-start-2 lg:col-start-2 lg:overflow-y-auto lg:pl-2 lg:min-h-0" : "";
   return (
-    <div className="mb-12">
+    <div className={outerCls}>
+      <div className={headerCls}>
       {/* Section header */}
       <div className="mb-6">
         <div className="flex items-center gap-3">
@@ -64,10 +83,11 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
         {sectionType === "comprehension-cloze" && <p className="text-[#737780] mt-1 text-sm">Fill in each blank with a suitable word.</p>}
         {sectionType === "synthesis" && <p className="text-[#737780] mt-1 text-sm">Rewrite the given sentence(s) using the word(s) provided. Your answer must be in one sentence. The meaning of your sentence must be the same as the meaning of the given sentence(s).</p>}
       </div>
+      </div>
 
       {/* Visual Text: show scanned page images with drawing overlay */}
       {sectionType === "visual-text-mcq" && (
-        <div className="relative">
+        <div className={`relative ${splitPassageCls}`}>
           {tool === "pen" && <PassageScratchOverlay />}
           <VisualTextImages passage={passage ?? ""} fallbackImage={questions.find(q => q.imageData && q.imageData.length > 100)?.imageData} />
         </div>
@@ -89,7 +109,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
 
       {/* Comprehension OEQ: reading passage with drawing overlay */}
       {sectionType === "comprehension-oeq" && passage && (
-        <div className="relative">
+        <div className={`relative ${splitPassageCls}`}>
           {tool === "pen" && <PassageScratchOverlay />}
           <ReadingPassage text={passage} />
         </div>
@@ -97,7 +117,8 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
 
       {/* Synthesis / Comprehension OEQ: typed answer sections */}
       {(sectionType === "synthesis" || sectionType === "comprehension-oeq") && (
-        <div className="space-y-8">
+        <div className={`space-y-8 ${sectionType === "comprehension-oeq" ? splitQuestionsCls : ""}`}>
+
           {questions.map((q) => {
             const stem = q.transcribedStem ?? "";
             const displayNum = parseInt(q.questionNum);
@@ -299,7 +320,8 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
 
       {/* Visual Text MCQ: standard question + options */}
       {sectionType === "visual-text-mcq" && (
-        <div className="space-y-6">
+        <div className={`space-y-6 ${splitQuestionsCls}`}>
+
           <p className="text-sm text-[#737780] italic">Choose the most appropriate answer for each question.</p>
           {questions.map((q, idx) => (
             <div key={q.id} className="bg-white rounded-2xl p-5 shadow-sm">
