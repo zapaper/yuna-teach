@@ -3153,6 +3153,28 @@ Return ONLY valid JSON:
               parsed.studentAnswer = detectedAnswer || parsed.studentAnswer;
               let awarded = Math.min(marksAvailable, Math.max(0, Number(parsed.marksAwarded) || 0));
 
+              // Per-part clamp. Multi-mark questions ask the AI to put
+              // an explicit "Awarded N mark(s)" line per part in the
+              // notes (see prompt instruction 3 above). When 2+ such
+              // lines appear AND their sum is less than the
+              // marksAwarded number Gemini also returned, trust the
+              // per-part breakdown — it's harder to hallucinate. This
+              // catches the case where the AI correctly describes
+              // "awarded 0 for side view, 1 for top view" but still
+              // returns marksAwarded:2 in the JSON anyway.
+              if (parsed.notes && marksAvailable > 1 && awarded > 0) {
+                const notesStr = String(parsed.notes);
+                const partMatches = [...notesStr.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
+                if (partMatches.length >= 2) {
+                  const partSum = partMatches.reduce((s, m) => s + parseFloat(m[1]), 0);
+                  const sumClamp = Math.min(marksAvailable, Math.max(0, partSum));
+                  if (sumClamp < awarded) {
+                    console.log(`[quiz-marking] Q${q.questionNum} per-part clamp: ${partMatches.length} parts sum=${partSum} → ${sumClamp}/${marksAvailable} (was ${awarded})`);
+                    awarded = sumClamp;
+                  }
+                }
+              }
+
               // Drawable-with-image tightening: the prompt requires the
               // notes field to surface the count diff. If the notes
               // explicitly say extras > 0 or missing > 0, the student's
