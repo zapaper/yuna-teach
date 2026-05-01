@@ -20,7 +20,7 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishSections, sourcePaperId, scheduledFor, focused } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishSections, sourcePaperId, scheduledFor, focused, revisionLevel } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
@@ -29,6 +29,11 @@ export async function POST(request: NextRequest) {
     sourcePaperId?: string; // admin: generate test quiz from specific paper
     scheduledFor?: string; // ISO date; when the quiz should appear on the student's dashboard
     focused?: boolean; // when true + english + single section, take 2x questions for that section
+    // Revision mode: when set, draw from this lower level (e.g. 4 for
+    // a P5 student) and relax filters — no WA1/2/3 time-of-year gate,
+    // no difficulty cap, prefer EOY/Prelim papers, fall back to all
+    // exam types if the year-end pool is too thin.
+    revisionLevel?: number;
   };
   const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
   const isFocusedEnglish = !!focused && subject === "english";
@@ -171,7 +176,17 @@ export async function POST(request: NextRequest) {
   if (student?.level === 3 && subject === "english") {
     return NextResponse.json({ error: "Primary 3 English is not yet supported." }, { status: 400 });
   }
-  const levelFilter = student?.level ? `Primary ${student.level}` : undefined;
+  // Revision mode: override the level + relax filters. Validated
+  // against the student's actual level so a tampered request can't
+  // pull, say, P1 questions for a P5 student. Must be at least 1
+  // and strictly less than the student's level.
+  const isRevision = typeof revisionLevel === "number"
+    && Number.isInteger(revisionLevel)
+    && revisionLevel >= 1
+    && !!student?.level
+    && revisionLevel < student.level;
+  const effectiveLevel = isRevision ? revisionLevel : student?.level ?? null;
+  const levelFilter = effectiveLevel ? `Primary ${effectiveLevel}` : undefined;
   // Parent setting: parents can opt out of AI-generated synthetic
   // variants. Default ON; only excluded when explicitly false.
   const includeAiQuestions = ((student?.settings as { includeAiQuestions?: unknown } | null)?.includeAiQuestions !== false);
@@ -191,6 +206,13 @@ export async function POST(request: NextRequest) {
   }
   // Sep-Dec: all types allowed including SA2, Prelim, End of Year etc.
 
+  // Revision-mode prefers full year-end papers — drop the time-of-year
+  // gate and try EOY / Prelim / SA2 first.
+  const REVISION_PREFERRED_EXAM_TYPES = ["EOY", "End of Year", "Prelim", "Preliminary", "SA2"];
+  if (isRevision) {
+    allowedExamTypes = REVISION_PREFERRED_EXAM_TYPES;
+  }
+
   const subjectFilter = subject === "science" ? "science" : subject === "english" ? "english" : "math";
 
   // Source papers store level as "P5" / "Primary 5" / "5" inconsistently — accept all.
@@ -203,7 +225,12 @@ export async function POST(request: NextRequest) {
   // through questionWhere. Null primary = no difficulty filter (standard or
   // adaptive-unlocked).
   const rawDifficultyMode = await getStudentDifficultyMode(targetStudentId);
-  const difficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, targetStudentId, subjectFilter);
+  const baseDifficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, targetStudentId, subjectFilter);
+  // Revision mode draws across all difficulties — the goal is broad
+  // recap coverage, not the targeted level the parent picked.
+  const difficultyFilter = isRevision
+    ? { primary: null, fallback: null }
+    : baseDifficultyFilter;
 
   const questionWhere = (lf: string | null, examTypeFilter: string[] | null, difficultyLevels: number[] | null, allowUnrated: boolean) => {
     // Difficulty bucket (strict by default; allow difficulty=null on
@@ -345,6 +372,20 @@ export async function POST(request: NextRequest) {
   }
   if (difficultyWarnings.length > 0) {
     console.log(`[daily-quiz] student=${targetStudentId} subject=${subject}:`, difficultyWarnings.join(" · "));
+  }
+
+  // Revision-mode pool fallback: if the EOY/Prelim/SA2 pool from the
+  // lower level is too small, broaden to ALL exam types so the parent
+  // still gets a full quiz instead of a half-empty one.
+  if (isRevision && topicMatched.length < TARGET_POOL) {
+    const broadened = await prisma.examQuestion.findMany({
+      where: questionWhere(levelFilter ?? null, null, null, true),
+      select: questionSelectLight,
+    });
+    if (broadened.length > topicMatched.length) {
+      topicMatched = broadened;
+      console.log(`[daily-quiz] revision pool broadened from ${REVISION_PREFERRED_EXAM_TYPES.join("/")} to all exam types (P${effectiveLevel}, ${broadened.length} qs)`);
+    }
   }
   const usedSourceIds = new Set(previousQuizQuestions.map(q => q.sourceQuestionId!));
 

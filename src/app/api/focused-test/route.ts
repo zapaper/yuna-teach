@@ -16,7 +16,16 @@ function baseNum(questionNum: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const { parentId, studentId, subject, topic, scheduledFor, type } = await request.json();
+  const { parentId, studentId, subject, topic, scheduledFor, type, revisionLevel } = await request.json() as {
+    parentId?: string;
+    studentId?: string;
+    subject?: string;
+    topic?: string;
+    scheduledFor?: string;
+    type?: string;
+    // Revision mode — see daily-quiz/route.ts for the contract.
+    revisionLevel?: number;
+  };
   const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
   const mcqOnly = type === "mcq";
 
@@ -34,10 +43,19 @@ export async function POST(request: NextRequest) {
   if (student?.level === 3 && (subject ?? "").toLowerCase().includes("english")) {
     return NextResponse.json({ error: "Primary 3 English is not yet supported." }, { status: 400 });
   }
+  // Revision mode: parent picked "revise P{n-1}" in the assign modal.
+  // Validated server-side so a tampered request can't drop a P5
+  // student to P1.
+  const isRevision = typeof revisionLevel === "number"
+    && Number.isInteger(revisionLevel)
+    && revisionLevel >= 1
+    && !!student?.level
+    && revisionLevel < student.level;
+  const effectiveLevel = isRevision ? revisionLevel : student?.level ?? null;
   // Source papers have inconsistent level formatting ("P5", "Primary 5", "5").
   // Accept all equivalent variants so the filter actually works.
-  const levelVariants = student?.level
-    ? [`P${student.level}`, `Primary ${student.level}`, String(student.level)]
+  const levelVariants = effectiveLevel
+    ? [`P${effectiveLevel}`, `Primary ${effectiveLevel}`, String(effectiveLevel)]
     : undefined;
   // Parent setting: opt-out of AI-generated synthetic variants.
   // Default ON; only excluded when explicitly false.
@@ -46,8 +64,12 @@ export async function POST(request: NextRequest) {
   // Resolve the student's chosen difficulty mode. Applied ABOVE the
   // level/examType filters below — students who picked "easier" only see
   // Lv 1-3 questions first, falling back to Lv 4 if too few, and so on.
-  const rawDifficultyMode = await getStudentDifficultyMode(studentId);
-  const difficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, studentId, subject);
+  // Revision mode draws across all difficulties.
+  const rawDifficultyMode = await getStudentDifficultyMode(studentId ?? "");
+  const baseDifficultyFilter = await resolveDifficultyFilter(rawDifficultyMode, studentId ?? "", subject ?? "");
+  const difficultyFilter = isRevision
+    ? { primary: null, fallback: null }
+    : baseDifficultyFilter;
 
   // Time-of-year exam-type gate (mirrors daily-quiz). In April we shouldn't
   // be drawing EOY/Prelim questions for focused practice — students haven't
@@ -64,6 +86,13 @@ export async function POST(request: NextRequest) {
   if (m < 4 || (m === 4 && d <= 17)) allowedExamTypes = ["WA1"];
   else if (m < 7 || (m === 7 && d <= 14)) allowedExamTypes = ["WA1", "WA2", "SA1"];
   else if (m <= 8) allowedExamTypes = ["WA1", "WA2", "WA3", "SA1"];
+
+  // Revision mode prefers full year-end papers — the lower level was
+  // already covered, so EOY/Prelim/SA2 give the broadest recap.
+  const REVISION_PREFERRED_EXAM_TYPES = ["EOY", "End of Year", "Prelim", "Preliminary", "SA2"];
+  if (isRevision) {
+    allowedExamTypes = REVISION_PREFERRED_EXAM_TYPES;
+  }
 
   const questionWhere = (useLevel: boolean, difficultyLevels: number[] | null, examTypes: string[] | null, allowUnrated: boolean = false) => {
     const difficultyClause = difficultyLevels && difficultyLevels.length > 0
@@ -137,13 +166,27 @@ export async function POST(request: NextRequest) {
   // If the time-of-year filter zeroed out the pool (e.g. April with WA1
   // only and the topic only appears in EOY papers), drop the examType
   // filter so the student gets at least some practice. Surface a warning.
+  // For revision mode we broaden on a lower threshold (any time the
+  // year-end pool is below TARGET_POOL_REVISION) rather than only on
+  // empty — the user explicitly asked for "fall back to all WA1/2/3
+  // if EOY/Prelim isn't enough".
   let examTypeFellBack = false;
-  if (topicMatched.length === 0 && allowedExamTypes) {
-    topicMatched = await prisma.examQuestion.findMany({
+  const TARGET_POOL_REVISION = 10;
+  const broadenWhen = isRevision
+    ? topicMatched.length < TARGET_POOL_REVISION
+    : topicMatched.length === 0;
+  if (broadenWhen && allowedExamTypes) {
+    const broader = await prisma.examQuestion.findMany({
       where: questionWhere(true, difficultyFilter.primary, null),
       select: questionSelect,
     });
-    examTypeFellBack = topicMatched.length > 0;
+    if (broader.length > topicMatched.length) {
+      topicMatched = broader;
+      examTypeFellBack = true;
+      if (isRevision) {
+        console.log(`[focused-test] revision pool broadened from ${REVISION_PREFERRED_EXAM_TYPES.join("/")} to all exam types (P${effectiveLevel}, ${broader.length} qs)`);
+      }
+    }
   }
   // If the student-level filter zeroed out but the topic exists in the bank at
   // other levels, fall back to "any level" so English master papers tagged with

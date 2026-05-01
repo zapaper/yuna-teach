@@ -235,6 +235,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   }, [quizStudentId, user.linkedStudents]);
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
   const [assignMode, setAssignMode] = useState<"quiz" | "focused">("quiz");
+  // Revision mode: when the student's settings.allowRevision is on and
+  // they're at P >= 2, the parent can flip to one level below for the
+  // upcoming quiz / focused practice. Resets to false whenever the
+  // modal opens or the student changes (see effect below).
+  const [revisionMode, setRevisionMode] = useState(false);
+  useEffect(() => { setRevisionMode(false); }, [showQuiz, quizStudentId]);
   const [activityLimit, setActivityLimit] = useState(20);
   const [focusedTopic, setFocusedTopic] = useState("");
   const [customTopic, setCustomTopic] = useState("");
@@ -995,6 +1001,28 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           For <span className="font-bold text-[#001e40]">{selectedStudent?.name ?? "student"}</span>{selectedStudent?.level ? ` (P${selectedStudent.level})` : ""}
           {quizTargetDay && <> · <span className="font-bold text-[#003366]">{quizTargetDay.toLocaleDateString(undefined, { weekday: "long" })}</span></>}
         </p>
+        {/* Revision-from-previous-level toggle. Only renders when the
+            parent has opted in via student settings AND the student is
+            at P2 or higher (so there is a "below" level to revise
+            from). Selecting it flips the API to relax filters and
+            prefer EOY/Prelim papers from the lower level. */}
+        {(() => {
+          const allowRev = ((selectedStudent?.settings as Record<string, unknown> | null | undefined)?.allowRevision === true);
+          const lvl = selectedStudent?.level ?? 0;
+          if (!allowRev || lvl < 2) return null;
+          return (
+            <div className="flex gap-2 mb-4">
+              <button onClick={() => setRevisionMode(false)}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 ${!revisionMode ? "border-[#003366] bg-[#eff4ff] text-[#003366]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                Current level (P{lvl})
+              </button>
+              <button onClick={() => setRevisionMode(true)}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 ${revisionMode ? "border-[#003366] bg-[#eff4ff] text-[#003366]" : "border-[#c3c6d1] text-[#43474f]"}`}>
+                Revise P{lvl - 1}
+              </button>
+            </div>
+          );
+        })()}
         <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-4">
           {(["quiz", "focused"] as const).map(m => (
             <button key={m} onClick={() => { setAssignMode(m); if (m === "focused" && quizSubject === "english") setQuizSubject("math"); }}
@@ -1147,6 +1175,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               setCreatingQuiz(true);
               try {
                 const scheduledForIso = quizTargetDay ? (() => { const d = new Date(quizTargetDay); d.setHours(9, 0, 0, 0); return d.toISOString(); })() : undefined;
+                // Revision-mode level — one below the student's current
+                // level, only when the parent picked the toggle.
+                const revisionLevel = revisionMode && selectedStudent?.level && selectedStudent.level >= 2
+                  ? selectedStudent.level - 1
+                  : null;
                 if (assignMode === "focused") {
                   if (quizSubject === "english") {
                     // Focused English: doubled single-section quiz via daily-quiz
@@ -1159,6 +1192,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         subject: "english",
                         englishSections: [...englishSections],
                         focused: true,
+                        ...(revisionLevel ? { revisionLevel } : {}),
                         ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
                       }),
                     });
@@ -1178,6 +1212,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       subject: quizSubject === "math" ? "Mathematics" : "Science",
                       topic: focusedTopic,
                       type: focusedType,
+                      ...(revisionLevel ? { revisionLevel } : {}),
                       ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
                     }),
                   });
@@ -1197,6 +1232,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     quizType: quizSubject === "english" ? "mcq" : quizType,
                     subject: quizSubject,
                     ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
+                    ...(revisionLevel ? { revisionLevel } : {}),
                     ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
                   }),
                 });
@@ -2549,6 +2585,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         labelOff: "Exclude AI generated questions from quizzes.",
                         descOff: "Only questions from top schools.",
                         defaultOn: true,
+                      },
+                      {
+                        key: "allowRevision" as const,
+                        label: "Allow revision from previous level",
+                        desc: "When on, daily-quiz / focused-practice setup gains a level toggle so you can pull from one level below (e.g. P4 for a P5 student). Revision quizzes use all difficulties and prefer EOY / Prelim papers.",
                       },
                     ] as Array<{ key: string; label: string; desc: string; labelOff?: string; descOff?: string; defaultOn?: boolean }>).map(item => {
                       const stored = (selectedStudent?.settings as Record<string, unknown> | null | undefined)?.[item.key];
