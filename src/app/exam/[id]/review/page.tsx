@@ -10,8 +10,9 @@ import { playClick } from "@/lib/sfx";
 import React from "react";
 
 /** Submission image with spinner while loading */
-function SubmissionImage({ src, alt, className, aspectRatio, onError }: {
+function SubmissionImage({ src, alt, className, aspectRatio, imgStyle, onError }: {
   src: string; alt: string; className?: string; aspectRatio?: string;
+  imgStyle?: React.CSSProperties;
   onError?: (e: React.SyntheticEvent<HTMLImageElement>) => void;
 }) {
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,7 @@ function SubmissionImage({ src, alt, className, aspectRatio, onError }: {
         alt={alt}
         className={`${className ?? ""} pointer-events-none select-none`}
         draggable={false}
-        style={{ WebkitTouchCallout: "none", WebkitUserDrag: "none" } as React.CSSProperties}
+        style={{ WebkitTouchCallout: "none", WebkitUserDrag: "none", ...(imgStyle ?? {}) } as React.CSSProperties}
         onLoad={() => setLoading(false)}
         onError={(e) => { setLoading(false); onError?.(e); }}
       />
@@ -2275,12 +2276,12 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 900);
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             return (
-                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative">
+                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative" style={{ height: spVisible }}>
                                                 <SubmissionImage
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
-                                                  className="w-full h-auto block"
-                                                  aspectRatio={`800 / ${spVisible * 2}`}
+                                                  className="block"
+                                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
                                                     if (sp === realSubs[0] && !img.dataset.fallback) {
@@ -2404,12 +2405,19 @@ function ExamReviewContent({ id }: { id: string }) {
                           return (
                             <div>
                               <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Written Answer</p>
-                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white relative">
+                              {/* Match the quiz player exactly: in the quiz the
+                                  canvas DOM is rendered at width:100% / height:600px
+                                  and the wrapper crops it to visibleHeight CSS px.
+                                  We stretch the saved 800x1200 image the same way
+                                  and crop with overflow-hidden, otherwise the
+                                  aspect-ratio approach blows up the canvas to ~2x
+                                  on wider screens. */}
+                              <div className="rounded-2xl overflow-hidden border border-[#e5eeff] bg-white relative" style={{ height: visibleH }}>
                                 <SubmissionImage
                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
                                   alt={`Written answer for Q${currentQ.questionNum}`}
-                                  className="w-full h-auto block"
-                                  aspectRatio={`400 / ${visibleH}`}
+                                  className="block"
+                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
                                 />
                                 <ReviewPenOverlay
                                   key={overlayKey}

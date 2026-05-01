@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     select: { email: true, password: true, name: true, displayName: true },
   });
 
-  if (!user) {
+  if (!user || !user.email) {
     console.warn(`[forgot-password] no user with email=${email.trim()}`);
     return NextResponse.json({ sent: true });
   }
