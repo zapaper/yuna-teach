@@ -258,17 +258,22 @@ function QuizContent({ id }: { id: string }) {
 
   // MCQ score count-up + "+N" popup animation on submission.
   // Exaggerated: ~700ms between pops, 1.8s each popup, haptic buzz + card shake per pop.
+  // Gated on `submitted` (in addition to mcqScore) so the chime
+  // doesn't fire during the brief window between scoring and the
+  // marking screen mounting — earlier the score was set before
+  // submitted flipped to true and the first ding played while the
+  // user was still on the loading-spinner screen.
   useEffect(() => {
-    if (!mcqScore) return;
+    if (!submitted || !mcqScore) return;
     if (mcqScore.correct === 0) { setDisplayedMarks(mcqScore.marksEarned); return; }
     const per = mcqScore.correct > 0 ? Math.round(mcqScore.marksEarned / mcqScore.correct) : 0;
     setDisplayedMarks(0);
     let running = 0;
     const timers: number[] = [];
     const STAGGER_MS = 700;
-    // Give the submission screen time to paint before the first "+N" fires —
-    // otherwise the first couple pop before the user even sees the score card.
-    const START_DELAY_MS = 1500;
+    // Small head-start so the marking-screen pop-in animation has a
+    // beat to settle before the first "+N" lands.
+    const START_DELAY_MS = 700;
     const POPUP_LIFETIME_MS = 1000;
     for (let i = 0; i < mcqScore.correct; i++) {
       timers.push(window.setTimeout(() => {
@@ -297,7 +302,7 @@ function QuizContent({ id }: { id: string }) {
       START_DELAY_MS + mcqScore.correct * STAGGER_MS + 400
     ));
     return () => { timers.forEach(t => window.clearTimeout(t)); };
-  }, [mcqScore]);
+  }, [submitted, mcqScore]);
 
   // Poll for OEQ marking
   useEffect(() => {
