@@ -77,6 +77,11 @@ export default function DocumentScanner({
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const detectInflightRef = useRef(false);
+  // Wall-clock ms when the most recent live-detect message was posted.
+  // Used by the rAF tick to recover if a detect call gets dropped /
+  // errors silently and the inflight flag would otherwise stay stuck
+  // true forever ("after a while I can't find edges anymore" bug).
+  const detectSentAtRef = useRef<number>(0);
   // Latest detected quad in *video coordinates* (the unscaled native
   // resolution of the stream), TL/TR/BR/BL, or null if no quad yet.
   const lastQuadRef = useRef<[number, number][] | null>(null);
@@ -139,6 +144,17 @@ export default function DocumentScanner({
       }
       if (msg.type === "error") {
         const id = msg.id;
+        // A live-detect error is transient — log and let the next
+        // tick try again, do NOT tear the scanner down. Without this
+        // any single hiccup would set stage='error' AND leave the
+        // inflight flag stuck (because the response never matched
+        // our 'detected' branch), which is what made the overlay
+        // permanently lose the page after a while.
+        if (id === "live") {
+          console.warn("[scanner] live detect error:", msg.message);
+          detectInflightRef.current = false;
+          return;
+        }
         if (id && pendingRef.current.has(id)) {
           pendingRef.current.get(id)?.reject(new Error(msg.message));
           pendingRef.current.delete(id);
@@ -282,6 +298,18 @@ export default function DocumentScanner({
     let running = true;
     const tick = () => {
       if (!running) return;
+      // Watchdog: if the last detect was sent more than 1.5s ago and
+      // the inflight flag is still true, assume the response was lost
+      // (worker error swallowed, message dropped, etc) and force a
+      // reset so the loop doesn't stall.
+      if (
+        detectInflightRef.current &&
+        detectSentAtRef.current > 0 &&
+        performance.now() - detectSentAtRef.current > 1500
+      ) {
+        console.warn("[scanner] detect inflight watchdog reset");
+        detectInflightRef.current = false;
+      }
       if (
         !detectInflightRef.current &&
         video.readyState >= 2 &&
@@ -301,6 +329,7 @@ export default function DocumentScanner({
           const imgData = ctx.getImageData(0, 0, dw, dh);
           liveScaleRef.current = scale;
           detectInflightRef.current = true;
+          detectSentAtRef.current = performance.now();
           worker.postMessage(
             { id: "live", type: "detect", imageData: imgData },
             [imgData.data.buffer],
@@ -569,8 +598,12 @@ export default function DocumentScanner({
       ) : null}
 
       {stage === "review" ? (
-        <div className="flex-1 flex flex-col pt-16 pb-24">
-          <div className="flex-1 overflow-y-auto px-4">
+        <div className="flex-1 min-h-0 flex flex-col pt-16 pb-24">
+          {/* min-h-0 on both this and the parent — flexbox children
+              default to min-height:auto which prevents overflow-y-auto
+              from kicking in. Without these the grid grows to fit all
+              thumbnails and the page can't scroll. */}
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {pages.map((p, i) => (
                 <div key={p.id} className="relative bg-white rounded-xl overflow-hidden shadow-lg">
