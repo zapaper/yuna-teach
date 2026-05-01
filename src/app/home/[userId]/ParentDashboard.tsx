@@ -3035,6 +3035,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           { key: "habitats" as const, label: "Allow collection of pets and habitats", desc: "Student unlocks habitats and pets as they earn points and crystals. Crystals are only earned when parent reviews their work.", defaultOn: true },
                           { key: "pvp" as const, label: "Arena Battle", desc: "Students can let their avatars battle in a weekly arena. More quizzes and more correct answers led to stronger avatars." },
                           { key: "skipReviewPerfect" as const, label: "Skip review for 100% score", desc: "Auto-release papers with perfect score without parent review" },
+                          { key: "allowRevision" as const, label: "Allow revision from previous level", desc: "When on, daily-quiz / focused-practice setup gains a level toggle so you can pull from one level below (e.g. P4 for a P5 student). Revision quizzes use all difficulties and prefer EOY / Prelim papers." },
                         ].map(item => {
                           const stored = selectedStudent?.settings?.[item.key];
                           const isOn = "defaultOn" in item && item.defaultOn ? stored !== false : stored === true;
