@@ -1985,13 +1985,13 @@ function ExamReviewContent({ id }: { id: string }) {
                                 </button>
                                 {expandedElabs.has(q.id) && (
                                   <div className="mt-2 p-3 bg-[#eff4ff] rounded-xl space-y-3">
-                                    <FormattedText text={elaborations[q.id]} className="text-sm text-[#43474f] leading-relaxed" />
                                     {elabDiagrams[q.id]?.map((d, i) => (
                                       <div key={i}>
                                         {d.title && <p className="text-xs font-semibold text-[#003366] mb-1">{d.title}</p>}
                                         <BarDiagram diagram={d} />
                                       </div>
                                     ))}
+                                    <FormattedText text={elaborations[q.id]} className="text-sm text-[#43474f] leading-relaxed" />
                                   </div>
                                 )}
                               </div>
@@ -2632,13 +2632,13 @@ function ExamReviewContent({ id }: { id: string }) {
                   {elaborations[currentQ.id] ? (
                     <div className="bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff] space-y-4">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">AI Explanation</p>
-                      <FormattedText text={elaborations[currentQ.id]} className="text-base text-[#43474f] leading-relaxed whitespace-pre-line" />
                       {elabDiagrams[currentQ.id]?.map((d, i) => (
                         <div key={i}>
                           {d.title && <p className="text-xs font-semibold text-[#003366] mb-1">{d.title}</p>}
                           <BarDiagram diagram={d} />
                         </div>
                       ))}
+                      <FormattedText text={elaborations[currentQ.id]} className="text-base text-[#43474f] leading-relaxed whitespace-pre-line" />
                     </div>
                   ) : (
                     <button

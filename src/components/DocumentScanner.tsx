@@ -488,16 +488,21 @@ export default function DocumentScanner({
 // that's the classic OpenCV.js footgun.
 // ─────────────────────────────────────────────────────────────────────
 
-// Load opencv.js with byte-level download progress, then inject it as
-// a Blob URL <script>. Streaming via fetch + ReadableStream lets us
-// report bytes-received to the UI — without it, the user has no idea
-// whether a slow first-load is downloading, compiling WASM, or stuck.
+// Load opencv.js end-to-end. We do TWO things:
+//   1. fetch() the file with byte-level progress so the user can see
+//      "Downloading: 4.2 / 10.4 MB" instead of an unbounded spinner.
+//      The bytes themselves are discarded — the browser cache holds
+//      them for the script tag in step 2.
+//   2. Inject a regular <script src="/vendor/opencv.js"> tag. Going
+//      via a blob URL caused iOS Safari to silently hang during
+//      WebAssembly instantiation, presumably a CSP/origin quirk.
+//      Direct same-origin src with the immutable Cache-Control header
+//      hits the cache from step 1 with no second download.
 //
-// The flow is:
-//   1. fetch /vendor/opencv.js, stream chunks, call onProgress
-//   2. Blob → object URL → <script src> tag
-//   3. After script onload, set onRuntimeInitialized so we know when
-//      the WASM is actually ready (call onCompile to update the UI)
+// Once the script executes, opencv.js asynchronously compiles its
+// embedded WASM and then calls cv.onRuntimeInitialized. We wait on
+// that AND poll cv.Mat as a belt-and-braces fallback in case the
+// callback gets clobbered by a late-attached handler.
 //
 // All cached on window so subsequent opens within the session resolve
 // immediately.
@@ -511,74 +516,73 @@ function loadOpenCV(
   if (w.__opencvLoading) return w.__opencvLoading;
 
   const p = (async (): Promise<CV> => {
-    const overallTimer = setTimeout(() => {
-      // Surface a clear error rather than letting the spinner hang
-      // forever. 5 minutes is generous for a 10 MB file even on 2G.
-      throw new Error("Scanner download timed out — your connection may be too slow.");
-    }, 300_000);
-    let scriptUrl: string | null = null;
-    try {
-      const res = await fetch("/vendor/opencv.js", { cache: "force-cache" });
-      if (!res.ok) throw new Error(`opencv.js fetch failed: HTTP ${res.status}`);
-      const totalStr = res.headers.get("content-length");
-      const total = totalStr ? parseInt(totalStr, 10) : null;
-      const reader = res.body?.getReader();
-      if (!reader) {
-        // Old browsers without ReadableStream — fall back to plain blob
-        const blob = await res.blob();
-        onProgress?.(blob.size, blob.size);
-        scriptUrl = URL.createObjectURL(blob);
-      } else {
-        const chunks: Uint8Array[] = [];
-        let received = 0;
-        for (;;) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (value) {
-            chunks.push(value);
-            received += value.byteLength;
-            onProgress?.(received, total);
-          }
+    // Step 1 — stream the file for progress; bytes go to the cache.
+    const res = await fetch("/vendor/opencv.js", { cache: "force-cache" });
+    if (!res.ok) throw new Error(`opencv.js fetch failed: HTTP ${res.status}`);
+    const totalStr = res.headers.get("content-length");
+    const total = totalStr ? parseInt(totalStr, 10) : null;
+    const reader = res.body?.getReader();
+    if (reader) {
+      let received = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        if (value) {
+          received += value.byteLength;
+          onProgress?.(received, total);
         }
-        const blob = new Blob(chunks as BlobPart[], { type: "application/javascript" });
-        scriptUrl = URL.createObjectURL(blob);
       }
-
-      // Inject the script. onload fires once the IIFE inside opencv.js
-      // has assigned `cv` to window; cv.Mat appears later when the
-      // WASM finishes compiling (cv.onRuntimeInitialized).
-      onCompile?.();
-      const cv = await new Promise<CV>((resolve, reject) => {
-        const timer = setTimeout(
-          () => reject(new Error("OpenCV WASM compile timed out — try reloading the page.")),
-          60_000,
-        );
-        const script = document.createElement("script");
-        script.src = scriptUrl!;
-        script.async = true;
-        script.onerror = () => { clearTimeout(timer); reject(new Error("Failed to execute opencv.js")); };
-        script.onload = () => {
-          const cvNow = (window as W).cv;
-          if (!cvNow) { clearTimeout(timer); reject(new Error("opencv.js loaded but window.cv is missing")); return; }
-          if (cvNow.Mat) { clearTimeout(timer); resolve(cvNow); return; }
-          const existing = cvNow.onRuntimeInitialized;
-          cvNow.onRuntimeInitialized = () => {
-            try { existing?.(); } catch { /* noop */ }
-            clearTimeout(timer);
-            resolve(cvNow);
-          };
-        };
-        document.head.appendChild(script);
-      });
-      return cv;
-    } finally {
-      clearTimeout(overallTimer);
-      if (scriptUrl) {
-        // Tiny memory win — we no longer need the blob URL once the
-        // script has executed; the cv object is on window.
-        try { URL.revokeObjectURL(scriptUrl); } catch { /* noop */ }
-      }
+    } else {
+      // Streams unsupported — drain via blob, still bounces through cache.
+      const blob = await res.blob();
+      onProgress?.(blob.size, blob.size);
     }
+
+    // Step 2 — script tag, wait for cv.Mat to appear.
+    onCompile?.();
+    return await new Promise<CV>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error("OpenCV WASM compile timed out — your device may be too slow. Try reloading and reopening the scanner.")),
+        45_000,
+      );
+      let pollHandle: ReturnType<typeof setInterval> | null = null;
+      const finish = (cvNow: CV) => {
+        clearTimeout(timer);
+        if (pollHandle) clearInterval(pollHandle);
+        resolve(cvNow);
+      };
+
+      const script = document.createElement("script");
+      script.src = "/vendor/opencv.js";
+      script.async = true;
+      script.onerror = () => {
+        clearTimeout(timer);
+        if (pollHandle) clearInterval(pollHandle);
+        reject(new Error("Failed to execute opencv.js"));
+      };
+      script.onload = () => {
+        const cvNow = (window as W).cv;
+        if (!cvNow) {
+          clearTimeout(timer);
+          if (pollHandle) clearInterval(pollHandle);
+          reject(new Error("opencv.js loaded but window.cv is missing"));
+          return;
+        }
+        if (cvNow.Mat) { finish(cvNow); return; }
+        // Belt-and-braces: hook the callback AND poll. Whichever
+        // fires first wins; the other clears its own timer.
+        const existing = cvNow.onRuntimeInitialized;
+        cvNow.onRuntimeInitialized = () => {
+          try { existing?.(); } catch { /* noop */ }
+          if ((window as W).cv?.Mat) finish((window as W).cv as CV);
+        };
+        pollHandle = setInterval(() => {
+          const cur = (window as W).cv;
+          if (cur && cur.Mat) finish(cur);
+        }, 250);
+      };
+      document.head.appendChild(script);
+    });
   })();
   w.__opencvLoading = p;
   // If the load fails, clear the cached promise so a retry can try

@@ -1573,13 +1573,13 @@ function ExamOverviewContent({ id }: { id: string }) {
                                   AI Elaboration
                                 </p>
                                 <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3 max-h-72 overflow-y-auto space-y-3">
-                                  <div>{elaborations[currentQ.id]}</div>
                                   {elabDiagrams[currentQ.id]?.map((d, i) => (
                                     <div key={i}>
                                       {d.title && <p className="text-xs font-semibold text-teal-700 mb-1">{d.title}</p>}
                                       <BarDiagram diagram={d} />
                                     </div>
                                   ))}
+                                  <div>{elaborations[currentQ.id]}</div>
                                 </div>
                               </div>
                             ) : (
