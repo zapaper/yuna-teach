@@ -1984,7 +1984,7 @@ function OeqQuestionCard({
               <div className="flex-1 min-w-0">
                 {question.transcribedStem && (
                   <p className="font-headline text-lg lg:text-xl font-bold text-[#001e40] leading-relaxed whitespace-pre-wrap">
-                    {stripQnPrefix(question.transcribedStem)}
+                    <MathText text={stripQnPrefix(question.transcribedStem)} />
                   </p>
                 )}
                 {/* When the main stem is empty we deliberately leave it empty. The
@@ -2038,7 +2038,7 @@ function OeqQuestionCard({
                       <p className="text-[10px] font-bold text-[#003366] uppercase tracking-widest mb-1">{spMarks} {spMarks === 1 ? "mark" : "marks"}</p>
                     )}
                     <p className="text-base text-[#0b1c30]">
-                      <span className="font-bold text-[#001e40]">({sp.label})</span> {spText}
+                      <span className="font-bold text-[#001e40]">({sp.label})</span> <MathText text={spText} />
                     </p>
                     {sp.refImageBase64 && (
                       <div className="mt-2 relative">
