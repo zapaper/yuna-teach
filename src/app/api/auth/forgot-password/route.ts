@@ -6,6 +6,7 @@ const FROM_ADDRESS = process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com"
 
 export async function POST(request: NextRequest) {
   const { email } = await request.json();
+  console.log(`[forgot-password] request received for email=${email ?? "(none)"}`);
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
 
   const user = await prisma.user.findFirst({
@@ -13,8 +14,12 @@ export async function POST(request: NextRequest) {
     select: { email: true, password: true, name: true, displayName: true },
   });
 
-  // Always return the same response to avoid email enumeration
-  if (!user?.email || !user.password) {
+  if (!user) {
+    console.warn(`[forgot-password] no user with email=${email.trim()}`);
+    return NextResponse.json({ sent: true });
+  }
+  if (!user.password) {
+    console.warn(`[forgot-password] user ${user.email} has no password set`);
     return NextResponse.json({ sent: true });
   }
 
@@ -23,6 +28,7 @@ export async function POST(request: NextRequest) {
     console.warn(`[forgot-password] SENDGRID_API_KEY not set — password for ${user.email}: ${user.password}`);
     return NextResponse.json({ sent: true });
   }
+  console.log(`[forgot-password] preparing to send to=${user.email} from=${FROM_ADDRESS}`);
 
   sgMail.setApiKey(apiKey);
 
