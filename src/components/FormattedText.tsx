@@ -1,16 +1,15 @@
 "use client";
 
-// Renders text with **bold** markers as <strong> tags.
-// Pass the same className you'd give a <p> (including whitespace-pre-line).
+import MathText from "./MathText";
+
+// Renders text with **bold**, __underline__, and `$…$` LaTeX math
+// markers. Delegated to MathText; the outer <p> is kept so callers
+// can continue passing block-level classes (whitespace-pre-line,
+// etc.).
 export default function FormattedText({ text, className }: { text: string; className?: string }) {
-  const parts = text.split(/(\*\*[^*\n]+\*\*)/g);
   return (
     <p className={className}>
-      {parts.map((part, i) =>
-        part.startsWith("**") && part.endsWith("**")
-          ? <strong key={i}>{part.slice(2, -2)}</strong>
-          : part
-      )}
+      <MathText text={text} />
     </p>
   );
 }

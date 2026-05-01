@@ -22,21 +22,27 @@ import "katex/dist/katex.min.css";
 // so the regex skips it and the dollar signs render as plain
 // characters.
 const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/g;
-const UNDERLINE_RE = /__([^_]+)__/g;
+// Inline decoration: **bold** and __underline__ in the same pass so
+// either / both can appear inside a sentence.
+const DECOR_RE = /\*\*([^*\n]+)\*\*|__([^_\n]+)__/g;
 
-function renderTextWithUnderline(text: string, keyBase: string): React.ReactNode[] {
-  if (!text.includes("__")) return [text];
+function renderTextDecorations(text: string, keyBase: string): React.ReactNode[] {
+  if (!text.includes("**") && !text.includes("__")) return [text];
   const out: React.ReactNode[] = [];
   let lastIdx = 0;
   let m: RegExpExecArray | null;
-  UNDERLINE_RE.lastIndex = 0;
-  while ((m = UNDERLINE_RE.exec(text)) !== null) {
+  DECOR_RE.lastIndex = 0;
+  while ((m = DECOR_RE.exec(text)) !== null) {
     if (m.index > lastIdx) out.push(text.slice(lastIdx, m.index));
-    out.push(
-      <span key={`${keyBase}u${m.index}`} className="underline decoration-2">
-        {m[1]}
-      </span>
-    );
+    if (m[1] !== undefined) {
+      out.push(<strong key={`${keyBase}b${m.index}`}>{m[1]}</strong>);
+    } else if (m[2] !== undefined) {
+      out.push(
+        <span key={`${keyBase}u${m.index}`} className="underline decoration-2">
+          {m[2]}
+        </span>
+      );
+    }
     lastIdx = m.index + m[0].length;
   }
   if (lastIdx < text.length) out.push(text.slice(lastIdx));
@@ -48,9 +54,9 @@ export default function MathText({ text, className }: { text: string; className?
   // Cheap pre-check: only enter the math-segment branch when the
   // string plausibly contains a LaTeX command. A bare `$` without
   // any `\command` is almost certainly currency and should fall
-  // through to plain text rendering.
+  // through to plain text + decoration rendering.
   if (!text.includes("$") || !/\\[a-zA-Z]/.test(text)) {
-    return <span className={className}>{renderTextWithUnderline(text, "0")}</span>;
+    return <span className={className}>{renderTextDecorations(text, "0")}</span>;
   }
 
   const parts: React.ReactNode[] = [];
@@ -59,13 +65,13 @@ export default function MathText({ text, className }: { text: string; className?
   MATH_SEGMENT_RE.lastIndex = 0;
   while ((m = MATH_SEGMENT_RE.exec(text)) !== null) {
     if (m.index > lastIdx) {
-      parts.push(...renderTextWithUnderline(text.slice(lastIdx, m.index), `t${m.index}`));
+      parts.push(...renderTextDecorations(text.slice(lastIdx, m.index), `t${m.index}`));
     }
     parts.push(<InlineMath key={`m${m.index}`} math={m[1]} />);
     lastIdx = m.index + m[0].length;
   }
   if (lastIdx < text.length) {
-    parts.push(...renderTextWithUnderline(text.slice(lastIdx), `tEnd`));
+    parts.push(...renderTextDecorations(text.slice(lastIdx), `tEnd`));
   }
   return <span className={className}>{parts}</span>;
 }

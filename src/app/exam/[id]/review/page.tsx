@@ -768,11 +768,7 @@ function ExamReviewContent({ id }: { id: string }) {
   function renderWithNewlines(text: string) {
     return text.split("|").map((part, i, arr) => (
       <span key={i}>
-        {part.trim().split(/(\*\*[^*]+\*\*)/).map((seg, j) =>
-          seg.startsWith("**") && seg.endsWith("**")
-            ? <strong key={j}>{seg.slice(2, -2)}</strong>
-            : seg
-        )}
+        <MathText text={part.trim()} />
         {i < arr.length - 1 ? <br /> : null}
       </span>
     ));
@@ -2646,7 +2642,7 @@ function ReviewRichText({ text }: { text: string }) {
             <div key={li} className="flex gap-1 my-0.5">
               {cells.map((cell, ci) => (
                 <span key={ci} className="flex-1 text-center text-xs font-medium text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 border border-[#d3e4fe]">
-                  {cell || "—"}
+                  {cell ? <MathText text={cell} /> : "—"}
                 </span>
               ))}
             </div>
@@ -2658,12 +2654,12 @@ function ReviewRichText({ text }: { text: string }) {
           return (
             <div key={li} className="flex items-center gap-2 text-sm text-[#001e40] my-0.5">
               <span>{checked ? "☑" : "☐"}</span>
-              <span>{renderBoldInline(content)}</span>
+              <MathText text={content} />
             </div>
           );
         }
         if (trimmed.match(/^_{3,}$/)) return <div key={li} className="border-b border-slate-300 my-1 w-48" />;
-        return <p key={li} className="text-sm text-[#001e40] leading-relaxed">{renderBoldInline(trimmed)}</p>;
+        return <p key={li} className="text-sm text-[#001e40] leading-relaxed"><MathText text={trimmed} /></p>;
       })}
     </div>
   );
