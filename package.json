@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "prisma migrate deploy && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static && HOSTNAME=0.0.0.0 node .next/standalone/server.js",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "node scripts/copy-opencv.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.42.0",

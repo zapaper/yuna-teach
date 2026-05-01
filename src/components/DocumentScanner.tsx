@@ -1,9 +1,13 @@
 "use client";
 
 // CamScanner-style document scanner.
-// Lazy-loaded dependency: OpenCV.js (~8MB compressed) for live edge
-// detection, perspective correction, and luminance normalisation. We
-// only import it when the scanner actually opens.
+// Lazy-loaded dependency: OpenCV.js (~10MB) for live edge detection,
+// perspective correction, and luminance normalisation. We deliberately
+// AVOID importing the npm package directly — Turbopack stack-overflows
+// trying to parse the multi-megabyte source file. Instead, the package
+// is copied to public/vendor/opencv.js at install time (see
+// scripts/copy-opencv.mjs) and we inject it via a <script> tag the
+// first time the scanner opens. The bundler never sees it.
 //
 // Stages:
 //   loading        — CV + camera initialising
@@ -79,21 +83,7 @@ export default function DocumentScanner({
     (async () => {
       try {
         setStatusMsg("Loading scanner…");
-        const mod = await import("@techstark/opencv-js");
-        // The package exports either a default or a namespace; both
-        // expose the same OpenCV runtime under cv.Mat etc.
-        const cv = (((mod as unknown) as { default?: CV }).default ?? (mod as unknown as CV));
-        if (!cv.Mat) {
-          await new Promise<void>((resolve, reject) => {
-            const timer = setTimeout(() => reject(new Error("OpenCV took too long to load")), 30000);
-            const existing = cv.onRuntimeInitialized;
-            cv.onRuntimeInitialized = () => {
-              try { existing?.(); } catch { /* noop */ }
-              clearTimeout(timer);
-              resolve();
-            };
-          });
-        }
+        const cv = await loadOpenCV();
         if (cancelled) return;
         cvRef.current = cv;
 
@@ -504,6 +494,48 @@ export default function DocumentScanner({
 // disposes its Mats in a finally block to avoid the WASM-heap leak
 // that's the classic OpenCV.js footgun.
 // ─────────────────────────────────────────────────────────────────────
+
+// Inject opencv.js as a <script> tag. Resolves once cv.Mat is
+// available. Cached on window so a second scanner open is instant.
+function loadOpenCV(): Promise<CV> {
+  type W = Window & { cv?: CV; __opencvLoading?: Promise<CV> };
+  const w = window as W;
+  if (w.cv && (w.cv as CV).Mat) return Promise.resolve(w.cv);
+  if (w.__opencvLoading) return w.__opencvLoading;
+
+  const p = new Promise<CV>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("OpenCV took too long to load")), 60000);
+    const script = document.createElement("script");
+    script.src = "/vendor/opencv.js";
+    script.async = true;
+    script.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error("Failed to load /vendor/opencv.js"));
+    };
+    script.onload = () => {
+      const cv = (window as W).cv;
+      if (!cv) {
+        clearTimeout(timer);
+        reject(new Error("opencv.js loaded but window.cv is missing"));
+        return;
+      }
+      if (cv.Mat) {
+        clearTimeout(timer);
+        resolve(cv);
+        return;
+      }
+      const existing = cv.onRuntimeInitialized;
+      cv.onRuntimeInitialized = () => {
+        try { existing?.(); } catch { /* noop */ }
+        clearTimeout(timer);
+        resolve(cv);
+      };
+    };
+    document.head.appendChild(script);
+  });
+  w.__opencvLoading = p;
+  return p;
+}
 
 type CvMat = { delete: () => void };
 type CvMatVector = { delete: () => void; get: (i: number) => CvMat; size: () => number; push_back: (m: CvMat) => void };

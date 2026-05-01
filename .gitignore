@@ -39,6 +39,10 @@ yarn-error.log*
 # local PDF storage (dev fallback for Railway volume)
 /.data
 
+# vendored static assets copied from node_modules at install time
+# (see scripts/copy-opencv.mjs)
+/public/vendor/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
