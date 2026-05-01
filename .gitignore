@@ -40,8 +40,9 @@ yarn-error.log*
 /.data
 
 # vendored static assets copied from node_modules at install time
-# (see scripts/copy-opencv.mjs)
-/public/vendor/
+# (see scripts/copy-opencv.mjs). Worker glue (scanner-worker.js etc.)
+# IS source code — only the auto-copied runtime gets ignored.
+/public/vendor/opencv.js
 
 # typescript
 *.tsbuildinfo
