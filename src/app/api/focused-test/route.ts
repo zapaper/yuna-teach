@@ -554,7 +554,12 @@ export async function POST(request: NextRequest) {
   // assigner knows the practice is shorter than usual.
   const warnings: string[] = [];
   const levelName = student?.level ? `P${student.level}` : "this level";
-  if (examTypeFellBack && allowedExamTypes) {
+  // The "typical scope at this point in the school year" message only
+  // makes sense for the time-of-year gate that fires for current-level
+  // quizzes. Revision mode deliberately broadens past the year-end
+  // preference list whenever the EOY/Prelim/SA2 pool is thin — that's
+  // the design, not a degradation, so we don't surface a warning.
+  if (examTypeFellBack && allowedExamTypes && !isRevision) {
     warnings.push(`No "${topic}" questions yet from ${allowedExamTypes.join("/")} papers (the typical scope at this point in the school year) — pulled from later-year papers instead.`);
   }
   if (difficultyFellBack) {
