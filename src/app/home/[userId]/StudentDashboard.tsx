@@ -1374,7 +1374,29 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               {todayActivities.length === 0 && <p className="text-sm text-[#43474f] text-center py-4">No activities yet today</p>}
             </div>
           </section>
-          {weekHomework.length > 0 && <section className="mb-8"><h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2><div className="space-y-3">{weekHomework.map(p => <button key={p.id} type="button" onClick={() => goToPaper(p)} className="w-full text-left flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer"><div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0"><span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span></div><div className="flex-1 min-w-0"><p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p><p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p></div></button>)}</div></section>}
+          <section className="mb-8">
+            <h2 className="text-lg font-bold text-[#001e40] mb-4 font-headline">This Week&apos;s Homework</h2>
+            {weekHomework.length > 0 ? (
+              <div className="space-y-3">
+                {weekHomework.map(p => (
+                  <button key={p.id} type="button" onClick={() => goToPaper(p)} className="w-full text-left flex items-center gap-3 p-4 bg-white rounded-2xl shadow-sm cursor-pointer">
+                    <div className="w-10 h-10 rounded-xl bg-[#eff4ff] flex items-center justify-center shrink-0">
+                      <span className="material-symbols-outlined text-[#001e40]">{paperIcon(p)}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm text-[#001e40] truncate">{p.title}</p>
+                      <p className="text-xs text-[#43474f]">{weekdayLabel(p)}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 bg-white/60 rounded-2xl">
+                <span className="material-symbols-outlined text-2xl text-[#c3c6d1] mb-1 block">celebration</span>
+                <p className="text-xs text-[#43474f]">All caught up! No pending homework.</p>
+              </div>
+            )}
+          </section>
           <h2 className="text-lg font-bold text-[#001e40] mb-3 font-headline">Self-learning</h2>
           <section className="mb-8 grid grid-cols-2 gap-3">
             {canCreateQuiz && (
