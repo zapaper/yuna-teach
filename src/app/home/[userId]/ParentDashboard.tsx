@@ -85,7 +85,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
-  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean } | null>(null);
+  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null } | null>(null);
   const [quizTargetDay, setQuizTargetDay] = useState<Date | null>(null);
 
   async function reschedulePaper(paperId: string, newDay: Date) {
@@ -2219,20 +2219,22 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             disabled={isAssigning}
                             className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
                           >Assign</button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!selectedStudentId) return;
-                              const url = `/api/exam/${p.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
-                              window.open(url, "_blank");
-                            }}
-                            disabled={!selectedStudentId}
-                            title="Download a printable PDF for this student"
-                            className="text-xs font-bold text-[#001e40] bg-white border border-[#c3c6d1] px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 shrink-0 inline-flex items-center gap-1"
-                          >
-                            <span className="material-symbols-outlined text-base">print</span>
-                            Print
-                          </button>
+                          {p.paperType !== "quiz" && p.paperType !== "focused" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!selectedStudentId) return;
+                                const url = `/api/exam/${p.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
+                                window.open(url, "_blank");
+                              }}
+                              disabled={!selectedStudentId}
+                              title="Download a printable PDF for this student"
+                              className="text-xs font-bold text-[#001e40] bg-white border border-[#c3c6d1] px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 shrink-0 inline-flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-base">print</span>
+                              Print
+                            </button>
+                          )}
                         </div>
                       );
                     })}
@@ -2322,22 +2324,28 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Same server route the existing print flow
-                            // already uses — stamps the print code that
-                            // SendGrid Inbound Parse looks for.
-                            window.open(
-                              `/api/exam/${paper.id}/print?studentId=${paper.assignedToId ?? ""}&userId=${userId}`,
-                              "_blank",
-                            );
-                          }}
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors"
-                          title="Print exam paper"
-                        >
-                          <span className="material-symbols-outlined text-lg">print</span>
-                        </button>
+                        {/* Print only for printable exam papers — quizzes
+                            and focused practices live in-app, there's
+                            nothing meaningful to print. Same gate as the
+                            Scan button below. */}
+                        {paper.paperType !== "quiz" && paper.paperType !== "focused" && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Same server route the existing print flow
+                              // already uses — stamps the print code that
+                              // SendGrid Inbound Parse looks for.
+                              window.open(
+                                `/api/exam/${paper.id}/print?studentId=${paper.assignedToId ?? ""}&userId=${userId}`,
+                                "_blank",
+                              );
+                            }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors"
+                            title="Print exam paper"
+                          >
+                            <span className="material-symbols-outlined text-lg">print</span>
+                          </button>
+                        )}
                         {/* Scan only makes sense for printable exam
                             papers (paperType=null). Quiz / focused
                             are answered in-app. For a clone we still
@@ -2526,7 +2534,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType });
                               }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "9px" }}>check_circle</span>
@@ -2859,7 +2867,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType });
                               }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined text-[10px] shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "10px" }}>check_circle</span>
@@ -3156,7 +3164,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{popup.title}</p>
-            {!popup.completed && selectedStudentId && (
+            {!popup.completed && selectedStudentId && popup.paperType !== "quiz" && popup.paperType !== "focused" && (
               <div className="flex gap-2 mb-3">
                 <button
                   onClick={() => {
