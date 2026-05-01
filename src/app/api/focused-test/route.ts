@@ -554,14 +554,10 @@ export async function POST(request: NextRequest) {
   // assigner knows the practice is shorter than usual.
   const warnings: string[] = [];
   const levelName = student?.level ? `P${student.level}` : "this level";
-  // The "typical scope at this point in the school year" message only
-  // makes sense for the time-of-year gate that fires for current-level
-  // quizzes. Revision mode deliberately broadens past the year-end
-  // preference list whenever the EOY/Prelim/SA2 pool is thin — that's
-  // the design, not a degradation, so we don't surface a warning.
-  if (examTypeFellBack && allowedExamTypes && !isRevision) {
-    warnings.push(`No "${topic}" questions yet from ${allowedExamTypes.join("/")} papers (the typical scope at this point in the school year) — pulled from later-year papers instead.`);
-  }
+  // No examType-fallback warning. If the fallback pulled enough
+  // questions to make a usable practice, the parent doesn't need to
+  // know which exam-type bucket they came from. A genuinely short
+  // practice still surfaces via the topic-shortfall branch below.
   if (difficultyFellBack) {
     // Friendlier parent-facing wording — internal Lv numbers don't mean
     // anything to the parent. The reality is "we slipped in some
