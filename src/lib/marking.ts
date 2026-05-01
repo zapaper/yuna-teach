@@ -1785,6 +1785,8 @@ CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains the �
 
 CRITICAL — DIGIT "1": A child's handwritten "1" is often just a single thin vertical stroke (|) with no serif or base. It is easily missed next to other digits. Read EVERY digit carefully. E.g. "51cm" must NOT be read as "5cm" — look for a thin vertical stroke before or after other digits. If the expected answer has more digits than what you detected, re-examine the handwriting for missed "1"s.
 
+LATEX MATH: stems and expected answers may contain LaTeX inline math wrapped in single dollar signs, e.g. '$4\\frac{5}{6}$', '$\\frac{29}{6}$'. Treat these semantically — '$4\\frac{5}{6}$' IS the mixed number 4 5/6, '$\\frac{29}{6}$' IS twenty-nine over six. A student who writes "4 5/6" or "29/6" in plain text is giving the same answer; mark accordingly. In your feedback text, render answers in plain student-friendly form (e.g. "4 5/6", not "\\frac{5}{6}").
+
 CRITICAL — GRID / DIAGRAM DRAWINGS:
 - When the answer involves drawing on a grid (e.g. plotting points, drawing shapes, completing figures), do NOT try to extract exact coordinates. Instead, compare the student's drawing VISUALLY against the expected answer image.
 - If the drawn point or shape is in the correct position on the grid (matching the answer image), award full marks. A point drawn slightly off-center within the correct grid cell still counts as correct.
@@ -3062,6 +3064,7 @@ Marks available: ${marksAvailable}
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
+LATEX MATH: stems and expected answers may contain LaTeX inline math wrapped in single dollar signs, e.g. '$4\\frac{5}{6}$', '$\\frac{29}{6}$'. Treat these semantically — '$4\\frac{5}{6}$' IS the mixed number 4 5/6, '$\\frac{29}{6}$' IS twenty-nine over six. A student who writes "4 5/6" or "29/6" in plain text is giving the same answer; mark accordingly. In your feedback text, render answers in plain student-friendly form (e.g. "4 5/6", not "\\frac{5}{6}").
 ${drawableMarkRule}${mathAnswerFirstRule}${sciencePartialRule}
 Instructions:
 1. Compare the student's detected answer against the expected answer (including synonyms and equivalent phrasing). For Science, apply the SCIENCE PARTIAL-CREDIT RULE above — partial credit for partial concept coverage.
