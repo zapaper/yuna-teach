@@ -460,16 +460,21 @@ export default function DocumentScanner({
       if (!res.ok || !data?.cloneId) {
         throw new Error(data?.error ?? `submit failed (${res.status})`);
       }
-      // Stop the camera before we navigate so it doesn't keep
-      // recording in the background.
+      // Stop the camera, close the scanner overlay, and refresh the
+      // dashboard so the new clone shows up in the assigned-papers
+      // list with its 'Marking…' indicator. The parent stays on
+      // their home page rather than being yanked to a half-marked
+      // review screen.
       streamRef.current?.getTracks().forEach((t) => t.stop());
-      router.push(`/exam/${data.cloneId}/review?userId=${parentId}`);
+      pages.forEach((p) => URL.revokeObjectURL(p.thumbUrl));
+      onClose();
+      router.refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "submit failed";
       setStage("review");
       setErrorMsg(msg);
     }
-  }, [pages, studentId, masterPaperId, parentId, router]);
+  }, [pages, studentId, masterPaperId, parentId, router, onClose]);
 
   // ── Render ──
   const closeAndCleanup = useCallback(() => {
@@ -598,12 +603,17 @@ export default function DocumentScanner({
       ) : null}
 
       {stage === "review" ? (
-        <div className="flex-1 min-h-0 flex flex-col pt-16 pb-24">
-          {/* min-h-0 on both this and the parent — flexbox children
-              default to min-height:auto which prevents overflow-y-auto
-              from kicking in. Without these the grid grows to fit all
-              thumbnails and the page can't scroll. */}
-          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+        <>
+          {/* Absolute positioning instead of flex+min-h-0 — iOS Safari
+              refuses to scroll an overflow-y:auto child of a fixed
+              flex container, but `absolute top-16 bottom-24` gives the
+              scroller an explicit, computable height that scrolls
+              reliably on every browser. -webkit-overflow-scrolling
+              keeps the inertia smooth on older iOS. */}
+          <div
+            className="absolute top-16 bottom-24 left-0 right-0 overflow-y-auto overscroll-contain px-4 pb-4"
+            style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+          >
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {pages.map((p, i) => (
                 <div key={p.id} className="relative bg-white rounded-xl overflow-hidden shadow-lg">
@@ -664,7 +674,7 @@ export default function DocumentScanner({
               Finalise &amp; mark ({pages.length})
             </button>
           </div>
-        </div>
+        </>
       ) : null}
 
       {stage === "error" ? (

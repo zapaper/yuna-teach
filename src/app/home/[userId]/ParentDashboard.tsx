@@ -2302,12 +2302,18 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         >
                           <span className="material-symbols-outlined text-lg">print</span>
                         </button>
-                        {paper.assignedToId && (
+                        {/* Scan only makes sense for printable exam
+                            papers (paperType=null). Quiz / focused
+                            are answered in-app. For a clone we still
+                            want to fire the scan flow against the
+                            master paper, which is reachable via
+                            sourceExamId. */}
+                        {paper.assignedToId && paper.paperType !== "quiz" && paper.paperType !== "focused" && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setScannerTarget({
-                                masterPaperId: paper.id,
+                                masterPaperId: paper.sourceExamId ?? paper.id,
                                 studentId: paper.assignedToId!,
                                 studentName: paper.assignedToName ?? null,
                                 paperTitle: paper.title,
@@ -3462,7 +3468,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           studentId={scannerTarget.studentId}
           studentName={scannerTarget.studentName}
           paperTitle={scannerTarget.paperTitle}
-          onClose={() => setScannerTarget(null)}
+          onClose={() => { setScannerTarget(null); refreshPapers(); }}
         />
       )}
     </div>

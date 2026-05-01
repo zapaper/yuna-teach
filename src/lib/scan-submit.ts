@@ -46,22 +46,39 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
     if (!link) throw new Error("parent not linked to student");
   }
 
-  const masterPaper = await prisma.examPaper.findFirst({
+  // Resolve the master. Callers may pass either the master's id or
+  // a clone's id (the parent dashboard's "scan" button doesn't always
+  // know which it has). If we got a clone, follow sourceExamId one
+  // hop to the master.
+  const masterSelect = {
+    id: true,
+    title: true,
+    subject: true,
+    level: true,
+    examType: true,
+    paperType: true,
+    totalMarks: true,
+    metadata: true,
+    pageCount: true,
+    userId: true,
+    questions: { orderBy: { orderIndex: "asc" as const } },
+  };
+  let masterPaper = await prisma.examPaper.findFirst({
     where: { id: masterPaperId, sourceExamId: null },
-    select: {
-      id: true,
-      title: true,
-      subject: true,
-      level: true,
-      examType: true,
-      paperType: true,
-      totalMarks: true,
-      metadata: true,
-      pageCount: true,
-      userId: true,
-      questions: { orderBy: { orderIndex: "asc" } },
-    },
+    select: masterSelect,
   });
+  if (!masterPaper) {
+    const maybeClone = await prisma.examPaper.findUnique({
+      where: { id: masterPaperId },
+      select: { sourceExamId: true },
+    });
+    if (maybeClone?.sourceExamId) {
+      masterPaper = await prisma.examPaper.findFirst({
+        where: { id: maybeClone.sourceExamId, sourceExamId: null },
+        select: masterSelect,
+      });
+    }
+  }
   if (!masterPaper) throw new Error("master paper not found");
 
   // Mirrors the clone shape created in inbound-email/route.ts:211–255.
