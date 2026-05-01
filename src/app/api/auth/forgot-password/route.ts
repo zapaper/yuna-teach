@@ -5,8 +5,9 @@ import sgMail from "@sendgrid/mail";
 const FROM_ADDRESS = process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com";
 
 export async function POST(request: NextRequest) {
-  const { email } = await request.json();
-  console.log(`[forgot-password] request received for email=${email ?? "(none)"}`);
+  const { email, debug } = await request.json();
+  // console.error so Railway shows the line regardless of log-level filter.
+  console.error(`[forgot-password] request received email=${email ?? "(none)"}`);
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
 
   const user = await prisma.user.findFirst({
@@ -15,20 +16,20 @@ export async function POST(request: NextRequest) {
   });
 
   if (!user || !user.email) {
-    console.warn(`[forgot-password] no user with email=${email.trim()}`);
-    return NextResponse.json({ sent: true });
+    console.error(`[forgot-password] no user with email=${email.trim()}`);
+    return NextResponse.json(debug ? { sent: true, debug: "user-not-found" } : { sent: true });
   }
   if (!user.password) {
-    console.warn(`[forgot-password] user ${user.email} has no password set`);
-    return NextResponse.json({ sent: true });
+    console.error(`[forgot-password] user ${user.email} has no password set`);
+    return NextResponse.json(debug ? { sent: true, debug: "no-password-on-record" } : { sent: true });
   }
 
   const apiKey = process.env.SENDGRID_API_KEY;
   if (!apiKey) {
-    console.warn(`[forgot-password] SENDGRID_API_KEY not set — password for ${user.email}: ${user.password}`);
-    return NextResponse.json({ sent: true });
+    console.error(`[forgot-password] SENDGRID_API_KEY not set`);
+    return NextResponse.json(debug ? { sent: true, debug: "no-sendgrid-key" } : { sent: true });
   }
-  console.log(`[forgot-password] preparing to send to=${user.email} from=${FROM_ADDRESS}`);
+  console.error(`[forgot-password] preparing to send to=${user.email} from=${FROM_ADDRESS}`);
 
   sgMail.setApiKey(apiKey);
 
@@ -57,13 +58,23 @@ export async function POST(request: NextRequest) {
         subscriptionTracking: { enable: false },
       },
     });
-    console.log(`[forgot-password] email sent to=${user.email} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`);
+    console.error(`[forgot-password] email sent to=${user.email} status=${resp.statusCode} messageId=${resp.headers?.["x-message-id"] ?? "n/a"}`);
+    return NextResponse.json(
+      debug
+        ? { sent: true, debug: "sent", status: resp.statusCode, messageId: resp.headers?.["x-message-id"] ?? null }
+        : { sent: true },
+    );
   } catch (err) {
     const errAny = err as { response?: { body?: unknown; statusCode?: number } } & Error;
+    const status = errAny.response?.statusCode ?? null;
+    const body = errAny.response?.body ?? null;
     console.error(
-      `[forgot-password] sgMail.send failed to=${user.email} from=${FROM_ADDRESS} status=${errAny.response?.statusCode ?? "?"} body=${JSON.stringify(errAny.response?.body)} msg=${errAny.message}`,
+      `[forgot-password] sgMail.send failed to=${user.email} from=${FROM_ADDRESS} status=${status ?? "?"} body=${JSON.stringify(body)} msg=${errAny.message}`,
+    );
+    return NextResponse.json(
+      debug
+        ? { sent: true, debug: "sg-failed", status, body, msg: errAny.message }
+        : { sent: true },
     );
   }
-
-  return NextResponse.json({ sent: true });
 }
