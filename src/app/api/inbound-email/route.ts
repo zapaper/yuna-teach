@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
   try {
     const { cloneId, pageCount } = await submitScannedPaper({
       parentId: parent.id,
-      masterPaperId: masterPaper.id,
+      paperId: masterPaper.id,
       studentId: student.id,
       jpegBuffers: pageJpegs,
     });

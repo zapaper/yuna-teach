@@ -2312,8 +2312,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              // Always pass the row the parent is
+                              // looking at (the assigned clone). The
+                              // backend updates that row in place
+                              // instead of creating a duplicate.
                               setScannerTarget({
-                                masterPaperId: paper.sourceExamId ?? paper.id,
+                                masterPaperId: paper.id,
                                 studentId: paper.assignedToId!,
                                 studentName: paper.assignedToName ?? null,
                                 paperTitle: paper.title,

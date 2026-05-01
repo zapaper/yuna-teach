@@ -16,7 +16,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id: masterPaperId } = await params;
+  const { id: paperId } = await params;
   const parentId = request.nextUrl.searchParams.get("userId");
   if (!parentId) return NextResponse.json({ error: "userId required" }, { status: 400 });
 
@@ -53,19 +53,23 @@ export async function POST(
   try {
     const { cloneId, pageCount } = await submitScannedPaper({
       parentId,
-      masterPaperId,
+      paperId,
       studentId,
       jpegBuffers,
     });
     return NextResponse.json({ cloneId, pageCount });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "submit failed";
-    console.error(`[scan-submit] parent=${parentId} master=${masterPaperId} student=${studentId} failed:`, err);
+    console.error(`[scan-submit] parent=${parentId} paper=${paperId} student=${studentId} failed:`, err);
     // Map known auth/validation messages to 4xx; everything else is 500.
-    if (msg === "parent not found" || msg === "parent not linked to student") {
+    if (
+      msg === "parent not found" ||
+      msg === "parent not linked to student" ||
+      msg === "paper assigned to a different student"
+    ) {
       return NextResponse.json({ error: msg }, { status: 403 });
     }
-    if (msg === "master paper not found") {
+    if (msg === "paper not found" || msg === "master paper not found") {
       return NextResponse.json({ error: msg }, { status: 404 });
     }
     if (msg === "no pages" || msg === "no usable pages") {
