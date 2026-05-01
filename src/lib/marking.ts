@@ -2445,11 +2445,60 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
         const subsForAns = (q.transcribedSubparts as Subpart[] | null) ?? null;
         const realSubsForAns = (subsForAns ?? []).filter(s => !s.label.startsWith("_"));
         const hasPerPartAnswers = realSubsForAns.some(sp => sp.answer);
-        const expectedAnswer = hasPerPartAnswers
-          ? realSubsForAns
-              .map(sp => `Part (${sp.label}): ${sp.answer ?? "(no answer key — rely on the expected answer image if provided, else award 0)"}`)
-              .join("\n")
-          : (q.answer || "?");
+
+        // Inline parser: pull each labelled part out of a single
+        // answer string. Catches the "answer key only mentions (c)"
+        // case that breaks q.answer matching (e.g. focused-practice
+        // questions whose source answer was only partially extracted).
+        const parseAnswerByPart = (answer: string, labels: string[]): Map<string, string> => {
+          const out = new Map<string, string>();
+          const found: { label: string; matchStart: number; sliceFrom: number }[] = [];
+          for (const label of labels) {
+            const lower = label.toLowerCase();
+            // Match "(c)", "c)", or "c:" (in any case) at a word
+            // boundary. Avoid matching letters embedded in words.
+            const re = new RegExp(`(?:^|[\\s|.,;])\\(?${lower}[\\):\\s]`, "i");
+            const m = answer.match(re);
+            if (m && m.index !== undefined) {
+              found.push({
+                label: lower,
+                matchStart: m.index,
+                sliceFrom: m.index + m[0].length,
+              });
+            }
+          }
+          if (found.length === 0) return out;
+          found.sort((a, b) => a.matchStart - b.matchStart);
+          for (let i = 0; i < found.length; i++) {
+            const end = i + 1 < found.length ? found[i + 1].matchStart : answer.length;
+            out.set(found[i].label, answer.slice(found[i].sliceFrom, end).trim());
+          }
+          return out;
+        };
+
+        let expectedAnswer: string;
+        if (hasPerPartAnswers) {
+          expectedAnswer = realSubsForAns
+            .map(sp => `Part (${sp.label}): ${sp.answer ?? "(no answer key — apply AI judgment per the ANSWER-KEY GAPS rule)"}`)
+            .join("\n");
+        } else if (realSubsForAns.length > 1 && q.answer) {
+          // Try to split q.answer across the subpart labels. Some
+          // master papers' answer fields only mention a subset of
+          // parts (e.g. only "(c) …" when the question has a, b, c).
+          // Fanning out keeps the AI honest: it sees explicit gaps
+          // rather than assuming the single line covers everything.
+          const labels = realSubsForAns.map(s => s.label.toLowerCase());
+          const parsed = parseAnswerByPart(q.answer, labels);
+          if (parsed.size > 0 && parsed.size < labels.length) {
+            expectedAnswer = labels
+              .map(l => `Part (${l}): ${parsed.get(l) ?? "(no answer key — apply AI judgment per the ANSWER-KEY GAPS rule)"}`)
+              .join("\n");
+          } else {
+            expectedAnswer = q.answer;
+          }
+        } else {
+          expectedAnswer = q.answer || "(no answer key — apply AI judgment per the ANSWER-KEY GAPS rule)";
+        }
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const parts: any[] = [];
@@ -3066,13 +3115,20 @@ CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
 LATEX MATH: stems and expected answers may contain LaTeX inline math wrapped in single dollar signs, e.g. '$4\\frac{5}{6}$', '$\\frac{29}{6}$'. Treat these semantically — '$4\\frac{5}{6}$' IS the mixed number 4 5/6, '$\\frac{29}{6}$' IS twenty-nine over six. A student who writes "4 5/6" or "29/6" in plain text is giving the same answer; mark accordingly. In YOUR feedback text, write fractions in the SAME LaTeX form (e.g. '$\\frac{5}{6}$' or '$4\\frac{5}{6}$') — the parent UI renders them as proper stacked fractions. Do NOT write bare '4 5/6' or '\\frac{5}{6}' without the surrounding '$' delimiters; either causes the parent to see raw text instead of a rendered fraction.
 ${drawableMarkRule}${mathAnswerFirstRule}${sciencePartialRule}
+ANSWER-KEY GAPS — FAIL-SAFE (IMPORTANT):
+Sometimes the expected answer above doesn't cover every part of the question. Examples: a multi-part (a)(b)(c) question whose answer key only mentions part (c); an answer field that's empty, "?", or just "see image" with no usable text; a per-part breakdown where one part says "(no answer key — …)". In those cases:
+- For parts that ARE covered by the expected answer: apply the ABSOLUTE RULE strictly — the provided answer is ground truth.
+- For parts NOT covered by the expected answer: mark on the student's own merit using your subject knowledge. A scientifically / mathematically valid, on-topic answer that directly addresses that part earns the mark(s) for that part. A blank or off-topic answer earns 0.
+- Prefix every per-part note where you applied this fallback with "[AI-judged, no key provided]" so the parent can spot it during review and override if needed.
+- DO NOT use this rule as an excuse to overrule a part that the answer key DOES cover. The ABSOLUTE RULE still binds those parts.
+
 Instructions:
 1. Compare the student's detected answer against the expected answer (including synonyms and equivalent phrasing). For Science, apply the SCIENCE PARTIAL-CREDIT RULE above — partial credit for partial concept coverage.
    - If correct → FULL MARKS.
    - Partially correct → PARTIAL marks for matching portions.
    - Wrong or blank → ZERO.
-2. For multi-part (a), (b), (c): compare each part against its part of the expected answer.
-3. In notes: describe whether the student's answer matches the expected answer, and for each part state "Awarded N mark(s)" explicitly so downstream code can parse per-part correctness. NEVER propose an alternative answer that contradicts the expected answer.
+2. For multi-part (a), (b), (c): compare each part against its part of the expected answer; for parts with no key, apply the ANSWER-KEY GAPS fail-safe above.
+3. In notes: describe whether the student's answer matches the expected answer, and for each part state "Awarded N mark(s)" explicitly so downstream code can parse per-part correctness. NEVER propose an alternative answer that contradicts a part the key DOES cover.
 
 Return ONLY valid JSON:
 {"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>"}`;
