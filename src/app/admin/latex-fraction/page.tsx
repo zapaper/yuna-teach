@@ -5,38 +5,45 @@ import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 import MathText from "@/components/MathText";
 
+type Subpart = { label: string; text: string };
+
 type Candidate = {
   id: string;
   questionNum: string;
+  isMcq: boolean;
   transcribedStem: string | null;
   transcribedOptions: unknown;
+  transcribedSubparts: unknown;
   answer: string | null;
   syllabusTopic: string | null;
   paper: { id: string; title: string; level: string | null; examType: string | null };
 };
 
-// Convert plain mixed numbers ("4 5/6") and bare fractions ("5/6")
-// inside a string into LaTeX math segments. Conservative — skips
-// dates / division-style "10/2" by requiring the fraction to appear
-// inside the same word boundary as a preceding integer (mixed) or
-// as a standalone "N/M" surrounded by spaces / start / end.
+// Convert mixed numbers and bare fractions inside a string to LaTeX
+// math segments. Conservative — only matches explicit `N/M` / `N M/N`
+// patterns at word boundaries so dates like "1/1/2024" stay alone.
 function convertToLatex(text: string): string {
   if (!text) return text;
   // Mixed number: "4 5/6" → "$4\frac{5}{6}$"
   let out = text.replace(/(\b\d+)\s+(\d+)\/(\d+)\b/g, "$$$1\\frac{$2}{$3}$$");
   // Bare fraction at word boundary: "5/6" → "$\frac{5}{6}$"
-  // Skip dates: 1/1/2024 has 3 parts (the regex with /g and \b
-  // boundaries already rejects this since the trailing /YYYY would
-  // leave a digit-slash continuation that breaks the \b). For
-  // safety, only match exactly "N/M" with a single slash.
-  out = out.replace(/\b(\d+)\/(\d+)\b(?!\/)/g, (full, a, b, offset, full2) => {
-    // Skip if directly after "$" (already in math) or immediately
-    // adjacent to another digit-slash on either side (likely date).
-    const before = (full2 as string).slice(Math.max(0, offset - 1), offset);
-    if (before === "$" || before === "{") return full;
-    return `$\\frac{${a}}{${b}}$`;
-  });
+  out = out.replace(/(?<!\/|\d|\$|\{)\b(\d+)\/(\d+)\b(?!\/)/g, "$\\frac{$1}{$2}$");
   return out;
+}
+
+function asStringArray(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.map(x => (typeof x === "string" ? x : ""));
+}
+
+function asSubpartArray(v: unknown): Subpart[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .filter((sp): sp is Record<string, unknown> => !!sp && typeof sp === "object")
+    .map(sp => ({
+      label: typeof sp.label === "string" ? sp.label : "",
+      text: typeof sp.text === "string" ? sp.text : "",
+    }));
 }
 
 export default function LatexFractionPage() {
@@ -56,6 +63,8 @@ function Content() {
   const [idx, setIdx] = useState(0);
   const [editStem, setEditStem] = useState("");
   const [editOptions, setEditOptions] = useState<string[]>([]);
+  const [editSubparts, setEditSubparts] = useState<Subpart[]>([]);
+  const [editAnswer, setEditAnswer] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,44 +82,57 @@ function Content() {
       .finally(() => setLoading(false));
   }, [allowed]);
 
-  // Re-seed the edit textareas with the proposed conversion every
-  // time the admin advances to a new candidate. Admin can hand-tweak
-  // before approving.
   const current = items[idx];
-  const currentOptions = useMemo(() => {
-    if (!current) return [] as string[];
-    const opts = current.transcribedOptions as unknown;
-    if (!Array.isArray(opts)) return [];
-    return opts.map(o => (typeof o === "string" ? o : ""));
-  }, [current]);
+  const currentOptions = useMemo(() => asStringArray(current?.transcribedOptions), [current]);
+  const currentSubparts = useMemo(() => asSubpartArray(current?.transcribedSubparts), [current]);
 
   useEffect(() => {
     if (!current) return;
     setEditStem(convertToLatex(current.transcribedStem ?? ""));
     setEditOptions(currentOptions.map(o => convertToLatex(o)));
+    setEditSubparts(currentSubparts.map(sp => ({ label: sp.label, text: convertToLatex(sp.text) })));
+    setEditAnswer(convertToLatex(current.answer ?? ""));
     setError(null);
-  }, [current, currentOptions]);
+  }, [current, currentOptions, currentSubparts]);
 
   async function approve() {
     if (!current) return;
     setSaving(true);
     setError(null);
     try {
+      const body: Record<string, unknown> = {
+        transcribedStem: editStem,
+      };
+      if (current.isMcq) {
+        body.transcribedOptions = editOptions;
+      }
+      if (currentSubparts.length > 0) {
+        // Preserve original ordering and any non-subpart entries we
+        // didn't render (sentinels like _drawable / _subref-…).
+        const orig = Array.isArray(current.transcribedSubparts) ? current.transcribedSubparts : [];
+        const merged = orig.map(o => {
+          if (!o || typeof o !== "object") return o;
+          const label = (o as { label?: unknown }).label;
+          if (typeof label !== "string") return o;
+          const editedHit = editSubparts.find(s => s.label === label);
+          if (!editedHit) return o;
+          return { ...(o as object), text: editedHit.text };
+        });
+        body.transcribedSubparts = merged;
+      }
+      if (editAnswer !== (current.answer ?? "")) {
+        body.answer = editAnswer;
+      }
       const res = await fetch(`/api/exam/questions/${current.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transcribedStem: editStem,
-          transcribedOptions: editOptions,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error ?? "Save failed");
         return;
       }
-      // Drop this item from the local list and stay on the same idx
-      // so the next item slides into place.
       setItems(prev => prev.filter((_, i) => i !== idx));
       setIdx(i => Math.max(0, Math.min(i, items.length - 2)));
     } catch {
@@ -120,12 +142,8 @@ function Content() {
     }
   }
 
-  function skip() {
-    setIdx(i => Math.min(items.length - 1, i + 1));
-  }
-  function back() {
-    setIdx(i => Math.max(0, i - 1));
-  }
+  function skip() { setIdx(i => Math.min(items.length - 1, i + 1)); }
+  function back() { setIdx(i => Math.max(0, i - 1)); }
 
   if (allowed === null) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" /></div>;
@@ -141,7 +159,7 @@ function Content() {
         <div className="bg-white border-b border-slate-200 px-4 py-3">
           <h1 className="text-lg font-bold text-slate-800">Convert to LaTeX fraction</h1>
           <p className="text-xs text-slate-400">
-            Math MCQ questions whose stem or options contain a mixed-number / bare-fraction pattern likely to be misread by students.
+            Math questions (MCQ + OEQ) whose stem, options, subparts, or answer contain a fraction or mixed-number pattern likely to be misread.
           </p>
         </div>
 
@@ -149,13 +167,15 @@ function Content() {
           {loading ? (
             <div className="text-center py-12"><div className="animate-spin inline-block rounded-full h-6 w-6 border-2 border-slate-200 border-t-slate-500" /></div>
           ) : items.length === 0 ? (
-            <div className="text-center py-12 text-slate-500 text-sm">No candidates left — every Math MCQ either has no fractions to convert, or has already been LaTeX'd.</div>
+            <div className="text-center py-12 text-slate-500 text-sm">No candidates left.</div>
           ) : !current ? null : (
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-              {/* Header row */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+              <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 gap-2 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0">{idx + 1} / {items.length}</span>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${current.isMcq ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>
+                    {current.isMcq ? "MCQ" : "OEQ"}
+                  </span>
                   <p className="text-xs text-slate-500 truncate">
                     <span className="font-bold text-slate-700">Q{current.questionNum}</span> · {current.paper.title}{current.paper.level ? ` (${current.paper.level})` : ""}{current.paper.examType ? ` · ${current.paper.examType}` : ""}{current.syllabusTopic ? ` · ${current.syllabusTopic}` : ""}
                   </p>
@@ -169,7 +189,6 @@ function Content() {
 
               {error && <div className="px-5 py-2 bg-red-50 border-b border-red-100 text-xs text-red-700">{error}</div>}
 
-              {/* Side-by-side: original (left) vs edited preview (right) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
                 {/* Left: original */}
                 <div className="px-5 py-4">
@@ -177,17 +196,32 @@ function Content() {
                   <div className="text-sm text-slate-800 whitespace-pre-wrap font-mono mb-3 bg-slate-50 rounded-lg p-3 border border-slate-100">
                     {current.transcribedStem}
                   </div>
-                  <div className="space-y-1.5">
-                    {currentOptions.map((opt, i) => (
-                      <div key={i} className="flex items-start gap-2 text-sm">
-                        <span className="text-xs font-bold text-slate-400 shrink-0 mt-0.5">({i + 1})</span>
-                        <span className={`text-slate-700 font-mono ${current.answer?.replace(/[().]/g, "").trim() === String(i + 1) ? "font-bold text-emerald-700" : ""}`}>{opt}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-slate-400 mt-3">
-                    Answer: <span className="font-bold text-emerald-700">{current.answer}</span>
-                  </p>
+                  {current.isMcq && currentOptions.length > 0 && (
+                    <div className="space-y-1.5 mb-3">
+                      {currentOptions.map((opt, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-xs font-bold text-slate-400 shrink-0 mt-0.5">({i + 1})</span>
+                          <span className={`text-slate-700 font-mono ${current.answer?.replace(/[().]/g, "").trim() === String(i + 1) ? "font-bold text-emerald-700" : ""}`}>{opt}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {currentSubparts.length > 0 && (
+                    <div className="space-y-1 mb-3">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Subparts</p>
+                      {currentSubparts.map(sp => (
+                        <div key={sp.label} className="flex items-start gap-2 text-sm">
+                          <span className="text-xs font-bold text-amber-600 shrink-0 mt-0.5">({sp.label})</span>
+                          <span className="text-slate-700 font-mono whitespace-pre-wrap">{sp.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {current.answer && (
+                    <p className="text-xs text-slate-500 mt-2 whitespace-pre-wrap">
+                      Answer key: <span className="font-mono text-emerald-700">{current.answer}</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Right: edited preview + textareas */}
@@ -196,37 +230,88 @@ function Content() {
                   <div className="text-sm text-slate-800 whitespace-pre-wrap mb-3 bg-emerald-50/50 rounded-lg p-3 border border-emerald-100">
                     <MathText text={editStem} />
                   </div>
-                  <div className="space-y-1.5 mb-4">
-                    {editOptions.map((opt, i) => (
-                      <div key={i} className="flex items-start gap-2 text-sm">
-                        <span className="text-xs font-bold text-slate-400 shrink-0 mt-0.5">({i + 1})</span>
-                        <span className={`text-slate-700 ${current.answer?.replace(/[().]/g, "").trim() === String(i + 1) ? "font-bold text-emerald-700" : ""}`}>
-                          <MathText text={opt} />
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  {current.isMcq && editOptions.length > 0 && (
+                    <div className="space-y-1.5 mb-4">
+                      {editOptions.map((opt, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-xs font-bold text-slate-400 shrink-0 mt-0.5">({i + 1})</span>
+                          <span className={`text-slate-700 ${current.answer?.replace(/[().]/g, "").trim() === String(i + 1) ? "font-bold text-emerald-700" : ""}`}>
+                            <MathText text={opt} />
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {editSubparts.length > 0 && (
+                    <div className="space-y-1.5 mb-4">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Subparts (preview)</p>
+                      {editSubparts.map(sp => (
+                        <div key={sp.label} className="flex items-start gap-2 text-sm">
+                          <span className="text-xs font-bold text-amber-600 shrink-0 mt-0.5">({sp.label})</span>
+                          <span className="text-slate-700 whitespace-pre-wrap"><MathText text={sp.text} /></span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {editAnswer && (
+                    <p className="text-xs text-slate-500 mb-4 whitespace-pre-wrap">
+                      Answer key: <span className="text-emerald-700"><MathText text={editAnswer} /></span>
+                    </p>
+                  )}
 
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Stem (editable)</p>
                   <textarea
                     value={editStem}
                     onChange={e => setEditStem(e.target.value)}
-                    rows={3}
+                    rows={4}
                     className="w-full text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 mb-3 focus:outline-none focus:border-slate-400 resize-y"
                   />
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Options (editable)</p>
-                  <div className="space-y-1">
-                    {editOptions.map((opt, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-400 w-6 shrink-0">({i + 1})</span>
-                        <input
-                          value={opt}
-                          onChange={e => setEditOptions(prev => prev.map((p, pi) => pi === i ? e.target.value : p))}
-                          className="flex-1 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-slate-400"
-                        />
+                  {current.isMcq && editOptions.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Options (editable)</p>
+                      <div className="space-y-1 mb-3">
+                        {editOptions.map((opt, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-400 w-6 shrink-0">({i + 1})</span>
+                            <input
+                              value={opt}
+                              onChange={e => setEditOptions(prev => prev.map((p, pi) => pi === i ? e.target.value : p))}
+                              className="flex-1 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-slate-400"
+                            />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </>
+                  )}
+                  {editSubparts.length > 0 && (
+                    <>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Subparts (editable)</p>
+                      <div className="space-y-1 mb-3">
+                        {editSubparts.map((sp, i) => (
+                          <div key={sp.label} className="flex items-start gap-2">
+                            <span className="text-xs font-bold text-amber-600 w-6 shrink-0 mt-1.5">({sp.label})</span>
+                            <textarea
+                              value={sp.text}
+                              onChange={e => setEditSubparts(prev => prev.map((p, pi) => pi === i ? { ...p, text: e.target.value } : p))}
+                              rows={2}
+                              className="flex-1 text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 focus:outline-none focus:border-slate-400 resize-y"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {(current.answer || editAnswer) && (
+                    <>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Answer key (editable)</p>
+                      <textarea
+                        value={editAnswer}
+                        onChange={e => setEditAnswer(e.target.value)}
+                        rows={2}
+                        className="w-full text-xs font-mono bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-slate-400 resize-y"
+                      />
+                    </>
+                  )}
                 </div>
               </div>
             </div>

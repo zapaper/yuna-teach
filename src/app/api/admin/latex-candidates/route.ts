@@ -2,22 +2,39 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
 
-// Detects mixed numbers in the stem or options that LOOK like the
-// kind of OCR ambiguity the user flagged ("4 5/6" misread as "45/6").
-// Only flags Math MCQ questions on master papers (paperType: null,
-// sourceExamId: null). Skips questions whose stem already contains
-// `$` (already LaTeX'd).
+// Detects mixed numbers ("4 5/6") AND bare fractions ("5/6") so OCR
+// ambiguities can be re-rendered as proper LaTeX. Used on Math
+// questions across the whole question pool — both MCQ and OEQ. The
+// "fraction" detector deliberately requires word boundaries on both
+// sides so we don't flag dates ("1/1/2024") or three-part ratios
+// ("3:4:5"). Numbers separated only by `/` count.
 const MIXED_NUMBER_RE = /\b\d+\s+\d+\/\d+\b/;
+const BARE_FRACTION_RE = /(?<!\/|\d)\b\d+\/\d+\b(?!\/)/;
 
-function hasMixedNumber(s: string | null | undefined): boolean {
-  return !!s && MIXED_NUMBER_RE.test(s);
+function hasFraction(s: string | null | undefined): boolean {
+  if (!s) return false;
+  return MIXED_NUMBER_RE.test(s) || BARE_FRACTION_RE.test(s);
+}
+
+// Walk all string-valued fields in a transcribedSubparts JSON blob
+// looking for fractions.
+function subpartsHaveFraction(value: unknown): boolean {
+  if (!Array.isArray(value)) return false;
+  for (const sp of value) {
+    if (sp && typeof sp === "object") {
+      const text = (sp as { text?: unknown }).text;
+      if (typeof text === "string" && hasFraction(text)) return true;
+    }
+  }
+  return false;
 }
 
 // GET /api/admin/latex-candidates
 //
-// Returns Math MCQ questions whose stem or any option contains a
-// space-separated mixed number ("4 5/6" style) — candidates for
-// admin LaTeX-fraction conversion.
+// Returns Math questions (MCQ or OEQ) whose stem, options, subparts,
+// or answer contain a fraction or mixed-number pattern likely to be
+// misread by students. Candidates already containing `$` (LaTeX
+// markers) are skipped.
 
 export async function GET() {
   if (!(await isSessionAdmin())) {
@@ -27,7 +44,6 @@ export async function GET() {
   const candidates = await prisma.examQuestion.findMany({
     where: {
       transcribedStem: { not: null },
-      transcribedOptions: { not: { equals: null } },
       examPaper: {
         sourceExamId: null,
         paperType: null,
@@ -39,6 +55,7 @@ export async function GET() {
       questionNum: true,
       transcribedStem: true,
       transcribedOptions: true,
+      transcribedSubparts: true,
       answer: true,
       syllabusTopic: true,
       examPaper: { select: { id: true, title: true, level: true, examType: true } },
@@ -46,28 +63,40 @@ export async function GET() {
     take: 5000,
   });
 
-  // Filter to MCQ + has mixed number + not already LaTeX'd.
   const matches = candidates.filter(q => {
-    const opts = q.transcribedOptions as unknown;
-    if (!Array.isArray(opts) || opts.length < 2) return false;
-    const optStrings = opts.filter((o): o is string => typeof o === "string");
     const stem = q.transcribedStem ?? "";
     if (stem.includes("$")) return false; // already converted
-    if (hasMixedNumber(stem)) return true;
-    if (optStrings.some(o => hasMixedNumber(o))) return true;
-    return false;
-  }).map(q => ({
-    id: q.id,
-    questionNum: q.questionNum,
-    transcribedStem: q.transcribedStem,
-    transcribedOptions: q.transcribedOptions,
-    answer: q.answer,
-    syllabusTopic: q.syllabusTopic,
-    paper: q.examPaper,
-  }));
+    if (hasFraction(stem)) return true;
 
-  // Sort by paper title then question number for predictable
-  // pagination through the admin UI.
+    const opts = q.transcribedOptions as unknown;
+    if (Array.isArray(opts)) {
+      for (const o of opts) {
+        if (typeof o === "string" && hasFraction(o)) return true;
+      }
+    }
+
+    if (subpartsHaveFraction(q.transcribedSubparts)) return true;
+
+    if (hasFraction(q.answer)) return true;
+
+    return false;
+  }).map(q => {
+    const opts = q.transcribedOptions as unknown;
+    const isMcq = Array.isArray(opts) && opts.filter((o): o is string => typeof o === "string").length >= 2;
+    return {
+      id: q.id,
+      questionNum: q.questionNum,
+      isMcq,
+      transcribedStem: q.transcribedStem,
+      transcribedOptions: q.transcribedOptions,
+      transcribedSubparts: q.transcribedSubparts,
+      answer: q.answer,
+      syllabusTopic: q.syllabusTopic,
+      paper: q.examPaper,
+    };
+  });
+
+  // Sort by paper title then question number.
   matches.sort((a, b) => {
     const at = a.paper.title ?? "";
     const bt = b.paper.title ?? "";
