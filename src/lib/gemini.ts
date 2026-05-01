@@ -140,7 +140,13 @@ ${DIAGRAM_BOUNDS_INSTRUCTION}
 
 Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
-- Preserve mathematical notation (e.g. "1/2", "3.5 cm²", "2 × 4")
+- FRACTIONS: write fractions and mixed numbers as LaTeX inline math wrapped in single dollar signs, NOT as plain text:
+    • Bare fraction "5/6"          →  "$\\frac{5}{6}$"
+    • Mixed number "4 5/6"         →  "$4\\frac{5}{6}$"
+    • Improper fraction "29/6"     →  "$\\frac{29}{6}$"
+  Apply this in BOTH the stem and every option string. The student-facing UI renders these as proper stacked fractions, so accuracy here directly improves readability.
+  Do NOT LaTeX-wrap whole numbers, decimals, percentages, or non-fraction expressions — only fractions/mixed numbers.
+- Preserve other mathematical notation (e.g. "3.5 cm²", "2 × 4", "∠ABC")
 - Include units in options if present (e.g. "12 cm", "0.75")
 - Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
 - If an option IS a visual/image (shape, diagram, figure), put a brief text description in options (e.g. "Triangle with sides 3cm, 4cm") AND provide its bounding box in optionBounds
@@ -802,7 +808,13 @@ ${DIAGRAM_BOUNDS_INSTRUCTION}
 Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
 - ALWAYS include ALL preamble/context text before (a) in the stem — never skip introductory sentences, given information, or setup text
-- Preserve all mathematical notation exactly (e.g. "1/2", "3.5 cm²", "2 × 4", "∠ABC")
+- FRACTIONS: write fractions and mixed numbers as LaTeX inline math wrapped in single dollar signs, NOT as plain text:
+    • Bare fraction "5/6"          →  "$\\frac{5}{6}$"
+    • Mixed number "4 5/6"         →  "$4\\frac{5}{6}$"
+    • Improper fraction "29/6"     →  "$\\frac{29}{6}$"
+  Apply this in the stem AND every sub-part text. The student-facing UI renders these as proper stacked fractions.
+  Do NOT LaTeX-wrap whole numbers, decimals, percentages, ratios, or non-fraction expressions — only fractions/mixed numbers.
+- Preserve other mathematical notation exactly (e.g. "3.5 cm²", "2 × 4", "∠ABC")
 - Include units (e.g. "cm", "kg", "m²")
 - Do NOT include blank answer lines or answer boxes in the text
 - Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
