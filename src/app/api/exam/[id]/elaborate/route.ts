@@ -192,7 +192,13 @@ Go straight into the correct answer and provide a clear step-by-step explanation
 
 Keep the explanation tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX or special math notation.
 
-Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**"), the rule being applied ("**order of operations**"), and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown.`,
+For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra:
+- Pick a **common number of units** that makes both fractions whole. E.g. if 1/4 of the total and 2/5 of the remainder appear, set total = 12 units (so 1/4 = **3 units**) and remainder = 5 parts (so 2/5 of remainder = 2 parts) — then rescale so 12 units total: total = 12 units, remainder = 5 units, day-1 = 7 units.
+- Show the unit values as a labelled list, e.g. "**Day 1 = 7 units**, **Day 2 = 2 units**, **Not sold = 3 units**".
+- Convert one known quantity into "1 unit = …" then read off the answer.
+This mirrors the answer-key format teachers use and is far easier to follow than algebra at primary level.
+
+Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**", "**1 unit**"), the rule being applied ("**order of operations**"), and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown.`,
     });
   } else {
     // For regular exam papers, use the raw question image
@@ -212,7 +218,13 @@ Go straight into the correct answer and provide a clear step-by-step explanation
 
 Keep the explanation tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX or special math notation.
 
-Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**"), the rule being applied, and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown. If the question image is provided, reference the actual question content.`,
+For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra:
+- Pick a **common number of units** that makes both fractions whole, then express each part of the question in those units.
+- Show the unit values as a labelled list, e.g. "**Day 1 = 7 units**, **Day 2 = 2 units**, **Not sold = 3 units**".
+- Convert one known quantity into "1 unit = …" then read off the answer.
+This mirrors the answer-key format teachers use and is far easier to follow than algebra at primary level.
+
+Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**", "**1 unit**"), the rule being applied, and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown. If the question image is provided, reference the actual question content.`,
     });
   }
 
