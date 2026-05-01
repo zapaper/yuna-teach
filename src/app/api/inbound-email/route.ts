@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import { GoogleGenAI } from "@google/genai";
 import sharp from "sharp";
 import { prisma } from "@/lib/db";
-import { Prisma } from "@prisma/client";
-import { markExamPaper } from "@/lib/marking";
 import { isAdmin } from "@/lib/admin";
 import { renderPdfToJpegs } from "@/lib/pdf-server";
-import { maskBottomRightCorner } from "@/lib/watermark";
 import { handleDiagnostic } from "@/lib/diagnostic";
+import { submitScannedPaper } from "@/lib/scan-submit";
 
 // SendGrid Inbound Parse webhook.
 // Parents scan their printed exam paper, email it to hello@markforyou.com.
@@ -25,16 +21,12 @@ import { handleDiagnostic } from "@/lib/diagnostic";
 //  4. Decode → master paperId prefix + studentId prefix.
 //  5. Find the matching master paper + verify the parent has access to
 //     that student.
-//  6. Create a clone (paperType: null, sourceExamId, assignedToId,
-//     completedAt). Save attachments under submissions/<cloneId>/.
-//  7. Trigger marking via markExamPaper.
+//  6. Hand the JPEG buffers to submitScannedPaper, which clones the
+//     master, saves the pages with watermark masking, and kicks off
+//     marking. Same helper the in-app scanner uses.
 //
 // Returns 200 on every path so SendGrid doesn't retry — failures are
 // logged for the operator to investigate.
-
-const VOLUME_PATH =
-  process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
-const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
 let _ai: GoogleGenAI | null = null;
 function getAI() {
@@ -206,59 +198,10 @@ export async function POST(request: NextRequest) {
 
   console.log(`[inbound-email] matched paper=${masterPaper.id} student=${student.id} from ${fromEmail}; ${attachments.length} attachments`);
 
-  // Create the clone. Mirrors the assign + complete flow used by the
-  // normal in-app submission path.
-  const clone = await prisma.examPaper.create({
-    data: {
-      title: masterPaper.title,
-      subject: masterPaper.subject,
-      level: masterPaper.level,
-      examType: masterPaper.examType,
-      totalMarks: masterPaper.totalMarks,
-      metadata: masterPaper.metadata ?? Prisma.JsonNull,
-      pageCount: masterPaper.pageCount,
-      // Inbound-email clones are always instant-feedback: the parent has
-      // physically printed the paper, watched the student write on it,
-      // and emailed the scan. There's no in-app "review and release"
-      // step to wait on — students should see results as soon as the
-      // AI marker finishes.
-      instantFeedback: true,
-      userId: masterPaper.userId,
-      assignedToId: student.id,
-      sourceExamId: masterPaper.id,
-      paperType: masterPaper.paperType,
-      completedAt: new Date(),
-      markingStatus: "in_progress",
-      questions: {
-        create: masterPaper.questions.map((q) => ({
-          questionNum: q.questionNum,
-          imageData: q.imageData,
-          answer: q.answer,
-          answerImageData: q.answerImageData,
-          pageIndex: q.pageIndex,
-          orderIndex: q.orderIndex,
-          yStartPct: q.yStartPct,
-          yEndPct: q.yEndPct,
-          marksAvailable: q.marksAvailable,
-          syllabusTopic: q.syllabusTopic,
-          transcribedStem: q.transcribedStem,
-          transcribedOptions: (q.transcribedOptions ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-          transcribedOptionImages: (q.transcribedOptionImages ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-          transcribedSubparts: (q.transcribedSubparts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-          diagramImageData: q.diagramImageData,
-          diagramBounds: (q.diagramBounds ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-          sourceQuestionId: q.id,
-        })),
-      },
-    },
-    select: { id: true },
-  });
-
   // Flatten attachments into one ordered stream of JPEG page buffers.
   // PDFs get rendered to one JPEG per page via pdfjs + @napi-rs/canvas;
-  // images (jpg/png) are normalised through sharp. This matches the
-  // submissions/<paperId>/page_N.jpg convention the marking pipeline
-  // uses (page_0.jpg = first non-hidden page of the master, etc).
+  // images (jpg/png) are passed through to submitScannedPaper which
+  // does its own sharp re-encoding + watermark masking.
   const pageJpegs: Buffer[] = [];
   for (const a of attachments) {
     if (a.mime === "application/pdf") {
@@ -271,39 +214,30 @@ export async function POST(request: NextRequest) {
       continue;
     }
     if (a.mime?.startsWith("image/")) {
-      try {
-        const norm = await sharp(a.buf).resize({ width: 1600, withoutEnlargement: true }).jpeg({ quality: 88 }).toBuffer();
-        pageJpegs.push(norm);
-      } catch (err) {
-        console.error(`[inbound-email] sharp normalise failed for ${a.name}:`, err);
-      }
+      pageJpegs.push(a.buf);
     }
   }
   if (pageJpegs.length === 0) {
-    console.warn(`[inbound-email] no usable pages from ${fromEmail} for paper ${clone.id}`);
-    return NextResponse.json({ ok: true, ignored: "no pages rendered", paperId: clone.id });
+    console.warn(`[inbound-email] no usable pages from ${fromEmail}`);
+    return NextResponse.json({ ok: true, ignored: "no pages rendered" });
   }
 
-  // Mask CamScanner-style watermarks the same way the in-app upload flow
-  // does, so the marking AI doesn't get distracted by stray text in the
-  // bottom-right corner.
-  const subDir = path.join(SUBMISSIONS_DIR, clone.id);
-  await fs.mkdir(subDir, { recursive: true });
-  for (let i = 0; i < pageJpegs.length; i++) {
-    const masked = await maskBottomRightCorner(pageJpegs[i]);
-    await fs.writeFile(path.join(subDir, `page_${i}.jpg`), masked);
+  try {
+    const { cloneId, pageCount } = await submitScannedPaper({
+      parentId: parent.id,
+      masterPaperId: masterPaper.id,
+      studentId: student.id,
+      jpegBuffers: pageJpegs,
+    });
+    return NextResponse.json({
+      ok: true,
+      paperId: cloneId,
+      student: student.name,
+      attachmentCount: attachments.length,
+      pageCount,
+    });
+  } catch (err) {
+    console.error(`[inbound-email] submitScannedPaper failed for parent=${parent.id} student=${student.id}:`, err);
+    return NextResponse.json({ ok: true, ignored: "submit failed" });
   }
-  console.log(`[inbound-email] saved ${pageJpegs.length} page JPGs for ${clone.id}`);
-
-  // Kick off marking in the background — don't block the webhook.
-  markExamPaper(clone.id).catch(err => {
-    console.error(`[inbound-email] markExamPaper failed for ${clone.id}:`, err);
-  });
-
-  return NextResponse.json({
-    ok: true,
-    paperId: clone.id,
-    student: student.name,
-    attachmentCount: attachments.length,
-  });
 }

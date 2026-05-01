@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
 import { isAdmin as adminCheck } from "@/lib/admin";
 import ExamPaperCard from "@/components/ExamPaperCard";
+import DocumentScanner from "@/components/DocumentScanner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -141,6 +142,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [aiInsight, setAiInsight] = useState("");
   const [recActions, setRecActions] = useState<RecAction[]>([]);
   const [recLoading, setRecLoading] = useState(false);
+  // In-app document scanner. Holds the assigned-paper context the
+  // parent is scanning a completed paper for; null = scanner closed.
+  const [scannerTarget, setScannerTarget] = useState<{
+    masterPaperId: string;
+    studentId: string;
+    studentName: string | null;
+    paperTitle: string;
+  } | null>(null);
 
   // UI state
   const [selectedStudentId, setSelectedStudentIdRaw] = useState(
@@ -2277,13 +2286,46 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Same server route the existing print flow
+                            // already uses — stamps the print code that
+                            // SendGrid Inbound Parse looks for.
+                            window.open(
+                              `/api/exam/${paper.id}/print?studentId=${paper.assignedToId ?? ""}&userId=${userId}`,
+                              "_blank",
+                            );
+                          }}
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors"
+                          title="Print exam paper"
+                        >
+                          <span className="material-symbols-outlined text-lg">print</span>
+                        </button>
+                        {paper.assignedToId && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setScannerTarget({
+                                masterPaperId: paper.id,
+                                studentId: paper.assignedToId!,
+                                studentName: paper.assignedToName ?? null,
+                                paperTitle: paper.title,
+                              });
+                            }}
+                            className="lg:hidden w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#006c49] hover:bg-[#e8fff3] transition-colors"
+                            title="Scan completed paper"
+                          >
+                            <span className="material-symbols-outlined text-lg">photo_camera</span>
+                          </button>
+                        )}
                         <button onClick={(e) => handleDeletePaper(e, paper.id)}
                           className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
                           title="Delete quiz"
                         >
                           <span className="material-symbols-outlined text-lg">delete</span>
                         </button>
-                        <span className="text-[10px] font-extrabold text-[#d58d00] uppercase">Not started</span>
+                        <span className="text-[10px] font-extrabold text-[#d58d00] uppercase hidden sm:inline">Not started</span>
                       </div>
                     </div>
                   ))}
@@ -3369,6 +3411,18 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </div>
           </div>
         </div>
+      )}
+
+      {/* In-app document scanner overlay (parent-only, mobile/tablet) */}
+      {scannerTarget && (
+        <DocumentScanner
+          parentId={userId}
+          masterPaperId={scannerTarget.masterPaperId}
+          studentId={scannerTarget.studentId}
+          studentName={scannerTarget.studentName}
+          paperTitle={scannerTarget.paperTitle}
+          onClose={() => setScannerTarget(null)}
+        />
       )}
     </div>
   );
