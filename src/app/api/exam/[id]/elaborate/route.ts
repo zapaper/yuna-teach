@@ -8,6 +8,64 @@ function getAI() {
   return _ai;
 }
 
+type DiagramRow = { label: string; units: number; value: string | null };
+type DiagramStep = { title: string | null; rows: DiagramRow[]; unitValue: string | null };
+
+// Shared rule block for the AI prompt — mirrors the solver's
+// `diagrams` schema so the same BarDiagram component renders both.
+// Kept as a constant so the quiz/exam prompts don't drift apart.
+const COMMON_DIAGRAM_RULES = `When a fraction-of-fraction word problem, ratio problem, before-vs-after comparison, or any question where a visual breakdown would help, also return a "diagrams" array using the Singapore model method:
+[{
+  "title": "<e.g. 'Step 1: Initial ratio' or null for single-step>",
+  "rows": [{ "label": "<name or quantity>", "units": <integer 1-12>, "value": "<known value, '?' if unknown, or null>" }],
+  "unitValue": "<value of 1 unit if determinable, else null>"
+}]
+Rules:
+- Use multi-step ONLY if the problem changes state (e.g. 'After …'). Most questions need exactly one diagram.
+- Each row = one labelled bar. units = the integer count (e.g. ratio 3:5 → units 3 and 5).
+- value = the actual quantity if known/solved, "?" if asked for, null if not relevant.
+- Optionally add a Total row.
+- Maximum 5 rows per step. units must be 1–12.
+- Only emit a diagram when it actually adds clarity. For straightforward arithmetic, return "diagrams": [].
+
+Respond with ONLY valid JSON (no markdown fences, no surrounding text):
+{
+  "solution": "<step-by-step text with **bold** as described above>",
+  "diagrams": [...]
+}`;
+
+// Wraps a possibly-JSON-encoded cached value into the API response
+// shape. Old rows pre-date the JSON shape and are stored as plain
+// text; treat those as solution-only with no diagrams.
+function parseCachedElaboration(cached: string): { elaboration: string; diagrams: DiagramStep[] } {
+  try {
+    const parsed = JSON.parse(cached) as { solution?: unknown; diagrams?: unknown };
+    if (parsed && typeof parsed.solution === "string") {
+      const diagrams = Array.isArray(parsed.diagrams) ? (parsed.diagrams as DiagramStep[]) : [];
+      return { elaboration: parsed.solution, diagrams };
+    }
+  } catch { /* not JSON — fall through */ }
+  return { elaboration: cached, diagrams: [] };
+}
+
+// Extract {solution, diagrams} from Gemini's text response. Strips
+// markdown fences if present (the model sometimes wraps despite the
+// prompt asking for none).
+function parseModelResponse(text: string): { solution: string; diagrams: DiagramStep[] } {
+  let raw = text.trim();
+  // Strip ```json ... ``` or ``` ... ``` fences if present.
+  const fence = raw.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+  if (fence) raw = fence[1].trim();
+  try {
+    const parsed = JSON.parse(raw) as { solution?: unknown; diagrams?: unknown };
+    if (parsed && typeof parsed.solution === "string") {
+      const diagrams = Array.isArray(parsed.diagrams) ? (parsed.diagrams as DiagramStep[]) : [];
+      return { solution: parsed.solution, diagrams };
+    }
+  } catch { /* not JSON — treat the whole thing as plain solution text */ }
+  return { solution: text, diagrams: [] };
+}
+
 // POST /api/exam/[id]/elaborate
 // Body: { questionId }
 // Returns: { elaboration: string }
@@ -51,9 +109,12 @@ export async function POST(
   const isCompClozeQuestion = (question.syllabusTopic ?? "").toLowerCase().includes("comprehension") &&
     (question.syllabusTopic ?? "").toLowerCase().includes("cloze");
 
-  // Return cached elaboration if available (except Comp Cloze)
+  // Return cached elaboration if available (except Comp Cloze).
+  // Cached value may be the new JSON shape ({solution, diagrams}) or
+  // the legacy plain-text shape — fall through to plain text on parse
+  // failure so old rows still render.
   if (question.elaboration && !isCompClozeQuestion) {
-    return NextResponse.json({ elaboration: question.elaboration });
+    return NextResponse.json(parseCachedElaboration(question.elaboration));
   }
 
   const isQuiz = question.examPaper?.paperType === "quiz" || question.examPaper?.paperType === "focused";
@@ -190,15 +251,11 @@ Correct answer: ${question.answer ?? "Not provided"}${studentAnswerNote}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${sectionHint}
 
-Keep the explanation tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX or special math notation.
+Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
-For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra:
-- Pick a **common number of units** that makes both fractions whole. E.g. if 1/4 of the total and 2/5 of the remainder appear, set total = 12 units (so 1/4 = **3 units**) and remainder = 5 parts (so 2/5 of remainder = 2 parts) — then rescale so 12 units total: total = 12 units, remainder = 5 units, day-1 = 7 units.
-- Show the unit values as a labelled list, e.g. "**Day 1 = 7 units**, **Day 2 = 2 units**, **Not sold = 3 units**".
-- Convert one known quantity into "1 unit = …" then read off the answer.
-This mirrors the answer-key format teachers use and is far easier to follow than algebra at primary level.
+For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, then express each part of the question in those units. Convert one known quantity into "1 unit = …" then read off the answer. This mirrors the answer-key format teachers use.
 
-Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**", "**1 unit**"), the rule being applied ("**order of operations**"), and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown.`,
+${COMMON_DIAGRAM_RULES}`,
     });
   } else {
     // For regular exam papers, use the raw question image
@@ -216,15 +273,13 @@ Correct answer: ${question.answer ?? "Not provided"}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
-Keep the explanation tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX or special math notation.
+Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
-For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra:
-- Pick a **common number of units** that makes both fractions whole, then express each part of the question in those units.
-- Show the unit values as a labelled list, e.g. "**Day 1 = 7 units**, **Day 2 = 2 units**, **Not sold = 3 units**".
-- Convert one known quantity into "1 unit = …" then read off the answer.
-This mirrors the answer-key format teachers use and is far easier to follow than algebra at primary level.
+For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder*, prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, express each part in those units, then convert via "1 unit = …" to read off the answer.
 
-Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**", "**1 unit**"), the rule being applied, and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown. If the question image is provided, reference the actual question content.`,
+${COMMON_DIAGRAM_RULES}
+
+If the question image is provided, reference the actual question content.`,
     });
   }
 
@@ -234,17 +289,22 @@ Use **double asterisks** liberally to **bold key words** inside each step — th
       contents: [{ role: "user", parts }],
     });
 
-    const elaboration = response.text ?? "Unable to generate explanation.";
+    const raw = response.text ?? "";
+    const { solution, diagrams } = parseModelResponse(raw);
+    const elaboration = solution || "Unable to generate explanation.";
 
-    // Cache the elaboration in the database (except Comp Cloze — student-specific)
+    // Cache the FULL JSON shape so the next view returns diagrams
+    // too without re-prompting. Comp-Cloze stays uncached because
+    // the explanation is student-specific.
     if (!isCompClozeQuestion) {
+      const cached = JSON.stringify({ solution: elaboration, diagrams });
       await prisma.examQuestion.update({
         where: { id: questionId },
-        data: { elaboration },
+        data: { elaboration: cached },
       });
     }
 
-    return NextResponse.json({ elaboration });
+    return NextResponse.json({ elaboration, diagrams });
   } catch (err) {
     console.error("Elaboration failed:", err);
     return NextResponse.json(

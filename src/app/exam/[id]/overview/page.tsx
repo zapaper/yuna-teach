@@ -6,6 +6,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ExamPaperDetail, ExamCloneSummary, User } from "@/types";
 import { isAdmin as isAdminUser } from "@/lib/admin";
 import { jsPDF } from "jspdf";
+import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
+
+// AI-explainer cache reader. Newer entries are JSON ({solution,
+// diagrams}); older ones are bare text. Returns shape both consumers
+// can render.
+function parseElabCache(cached: string): { text: string; diagrams: DiagramStep[] } {
+  try {
+    const parsed = JSON.parse(cached) as { solution?: unknown; diagrams?: unknown };
+    if (parsed && typeof parsed.solution === "string") {
+      const diagrams = Array.isArray(parsed.diagrams) ? (parsed.diagrams as DiagramStep[]) : [];
+      return { text: parsed.solution, diagrams };
+    }
+  } catch { /* not JSON */ }
+  return { text: cached, diagrams: [] };
+}
 
 export default function ExamOverviewPage({
   params,
@@ -83,6 +98,7 @@ function ExamOverviewContent({ id }: { id: string }) {
 
   // AI elaboration + flag state
   const [elaborations, setElaborations] = useState<Record<string, string>>({});
+  const [elabDiagrams, setElabDiagrams] = useState<Record<string, DiagramStep[]>>({});
   const [elaborating, setElaborating] = useState<string | null>(null);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   const [flagging, setFlagging] = useState<string | null>(null);
@@ -296,14 +312,21 @@ function ExamOverviewContent({ id }: { id: string }) {
           }
         }
         setMarkingDetail(md);
-        // Pre-populate cached elaborations and flagged state
+        // Pre-populate cached elaborations and flagged state.
+        // Cache value may be JSON ({solution, diagrams}) or legacy plain text.
         const cached: Record<string, string> = {};
+        const cachedDiagrams: Record<string, DiagramStep[]> = {};
         const flagged = new Set<string>();
         for (const q of md.questions ?? []) {
-          if (q.elaboration) cached[q.id] = q.elaboration;
+          if (q.elaboration) {
+            const { text, diagrams } = parseElabCache(q.elaboration);
+            cached[q.id] = text;
+            if (diagrams.length > 0) cachedDiagrams[q.id] = diagrams;
+          }
           if (q.flagged) flagged.add(q.id);
         }
         if (Object.keys(cached).length > 0) setElaborations(prev => ({ ...prev, ...cached }));
+        if (Object.keys(cachedDiagrams).length > 0) setElabDiagrams(prev => ({ ...prev, ...cachedDiagrams }));
         if (flagged.size > 0) setFlaggedIds(prev => { const next = new Set(prev); flagged.forEach(id => next.add(id)); return next; });
       }
       if (subRes.ok) {
@@ -428,8 +451,11 @@ function ExamOverviewContent({ id }: { id: string }) {
         body: JSON.stringify({ questionId }),
       });
       if (res.ok) {
-        const { elaboration } = await res.json();
+        const { elaboration, diagrams } = (await res.json()) as { elaboration: string; diagrams?: DiagramStep[] };
         setElaborations(prev => ({ ...prev, [questionId]: elaboration }));
+        if (Array.isArray(diagrams) && diagrams.length > 0) {
+          setElabDiagrams(prev => ({ ...prev, [questionId]: diagrams }));
+        }
       }
     } catch {
       // ignore
@@ -1546,8 +1572,14 @@ function ExamOverviewContent({ id }: { id: string }) {
                                 <p className="text-xs font-semibold text-teal-500 uppercase tracking-wide mb-1">
                                   AI Elaboration
                                 </p>
-                                <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3 max-h-40 overflow-y-auto">
-                                  {elaborations[currentQ.id]}
+                                <div className="text-sm text-teal-800 leading-relaxed whitespace-pre-line rounded-lg bg-teal-50 border border-teal-200 p-3 max-h-72 overflow-y-auto space-y-3">
+                                  <div>{elaborations[currentQ.id]}</div>
+                                  {elabDiagrams[currentQ.id]?.map((d, i) => (
+                                    <div key={i}>
+                                      {d.title && <p className="text-xs font-semibold text-teal-700 mb-1">{d.title}</p>}
+                                      <BarDiagram diagram={d} />
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
                             ) : (

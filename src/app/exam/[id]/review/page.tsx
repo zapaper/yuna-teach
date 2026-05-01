@@ -6,6 +6,7 @@ import FormattedText from "@/components/FormattedText";
 import { VisualTextImages } from "@/components/EnglishQuizSection";
 import { ReviewPenOverlay } from "@/components/ReviewPenOverlay";
 import MathText from "@/components/MathText";
+import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
 import { playClick } from "@/lib/sfx";
 import React from "react";
 
@@ -39,6 +40,20 @@ function SubmissionImage({ src, alt, className, aspectRatio, imgStyle, onError }
       />
     </div>
   );
+}
+
+// AI-explainer cache reader. Newer entries are JSON ({solution,
+// diagrams}); older ones are bare text from before the bar-model
+// feature shipped. JSON.parse-then-shape-check handles both.
+function parseElabCache(cached: string): { text: string; diagrams: DiagramStep[] } {
+  try {
+    const parsed = JSON.parse(cached) as { solution?: unknown; diagrams?: unknown };
+    if (parsed && typeof parsed.solution === "string") {
+      const diagrams = Array.isArray(parsed.diagrams) ? (parsed.diagrams as DiagramStep[]) : [];
+      return { text: parsed.solution, diagrams };
+    }
+  } catch { /* not JSON */ }
+  return { text: cached, diagrams: [] };
 }
 
 function renderUnderline(text: string): React.ReactNode {
@@ -127,6 +142,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [showAll, setShowAll] = useState(false);
   const [submissionPageCount, setSubmissionPageCount] = useState(0);
   const [elaborations, setElaborations] = useState<Record<string, string>>({});
+  const [elabDiagrams, setElabDiagrams] = useState<Record<string, DiagramStep[]>>({});
   const [elaborating, setElaborating] = useState<string | null>(null);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   const [flagging, setFlagging] = useState<string | null>(null);
@@ -285,14 +301,22 @@ function ExamReviewContent({ id }: { id: string }) {
           // paper response so the overlay's initialDataUrl seeds correctly.
           markData.reviewAnnotations = paperReviewAnnotations;
           setData(markData);
-          // Pre-populate cached elaborations and flagged state
+          // Pre-populate cached elaborations and flagged state.
+          // Cache value may be JSON ({solution, diagrams}) or legacy
+          // plain text — parseElabCache returns the right shape either way.
           const cached: Record<string, string> = {};
+          const cachedDiagrams: Record<string, DiagramStep[]> = {};
           const flagged = new Set<string>();
           for (const q of markData.questions ?? []) {
-            if (q.elaboration) cached[q.id] = q.elaboration;
+            if (q.elaboration) {
+              const { text, diagrams } = parseElabCache(q.elaboration);
+              cached[q.id] = text;
+              if (diagrams.length > 0) cachedDiagrams[q.id] = diagrams;
+            }
             if (q.flagged) flagged.add(q.id);
           }
           if (Object.keys(cached).length > 0) setElaborations(cached);
+          if (Object.keys(cachedDiagrams).length > 0) setElabDiagrams(cachedDiagrams);
           if (flagged.size > 0) setFlaggedIds(flagged);
         }
       } finally {
@@ -411,8 +435,11 @@ function ExamReviewContent({ id }: { id: string }) {
         body: JSON.stringify({ questionId }),
       });
       if (res.ok) {
-        const { elaboration } = await res.json();
+        const { elaboration, diagrams } = (await res.json()) as { elaboration: string; diagrams?: DiagramStep[] };
         setElaborations((prev) => ({ ...prev, [questionId]: elaboration }));
+        if (Array.isArray(diagrams) && diagrams.length > 0) {
+          setElabDiagrams((prev) => ({ ...prev, [questionId]: diagrams }));
+        }
         // Auto-expand after fetch completes
         setExpandedElabs(prev => new Set(prev).add(questionId));
       }
@@ -1957,8 +1984,14 @@ function ExamReviewContent({ id }: { id: string }) {
                                   {expandedElabs.has(q.id) ? "Hide explanation" : "Show explanation"}
                                 </button>
                                 {expandedElabs.has(q.id) && (
-                                  <div className="mt-2 p-3 bg-[#eff4ff] rounded-xl">
+                                  <div className="mt-2 p-3 bg-[#eff4ff] rounded-xl space-y-3">
                                     <FormattedText text={elaborations[q.id]} className="text-sm text-[#43474f] leading-relaxed" />
+                                    {elabDiagrams[q.id]?.map((d, i) => (
+                                      <div key={i}>
+                                        {d.title && <p className="text-xs font-semibold text-[#003366] mb-1">{d.title}</p>}
+                                        <BarDiagram diagram={d} />
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
@@ -2597,9 +2630,15 @@ function ExamReviewContent({ id }: { id: string }) {
               {currentQ.marksAwarded !== null && (
                 <div className="mt-4">
                   {elaborations[currentQ.id] ? (
-                    <div className="bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff]">
+                    <div className="bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff] space-y-4">
                       <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">AI Explanation</p>
                       <FormattedText text={elaborations[currentQ.id]} className="text-base text-[#43474f] leading-relaxed whitespace-pre-line" />
+                      {elabDiagrams[currentQ.id]?.map((d, i) => (
+                        <div key={i}>
+                          {d.title && <p className="text-xs font-semibold text-[#003366] mb-1">{d.title}</p>}
+                          <BarDiagram diagram={d} />
+                        </div>
+                      ))}
                     </div>
                   ) : (
                     <button
