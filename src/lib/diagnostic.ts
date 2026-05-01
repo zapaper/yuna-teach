@@ -1084,12 +1084,14 @@ async function runDiagnosisInBackground(
               q.isCorrect = norm(det) === norm(q.expectedAnswer);
               q.marksAwarded = q.isCorrect ? q.marksAvailable : 0;
             }
-          } else {
-            q.studentAnswer = "";
-            q.isBlank = true;
-            q.isCorrect = false;
-            q.marksAwarded = 0;
           }
+          // If detection returned null we DON'T zero out the per-page
+          // diagnose's existing marks. The diagnostic flow runs on
+          // already-graded papers where the per-page prompt has read
+          // the teacher's red marks; a faint student digit / red ink
+          // overlay can defeat the right-margin blue-ink detector but
+          // the teacher's tick is still valid evidence. Leaving the
+          // per-page values alone preserves that signal.
         }
       } catch (err) {
         console.warn(`[diagnose] p${i} MCQ override pass failed:`, err);
