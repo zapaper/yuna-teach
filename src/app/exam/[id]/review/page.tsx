@@ -2258,6 +2258,15 @@ function ExamReviewContent({ id }: { id: string }) {
                                           )}
                                           {/* Per-subpart submission image (falls back to combined) */}
                                           {isQuiz && currentQOeqIndex >= 0 && (() => {
+                                            // Hide canvas when the overall question was blank
+                                            // (mirrors the non-subpart case below). Subparts
+                                            // with their own diagram (drawable) still render.
+                                            const sa = (currentQ.studentAnswer ?? "").trim().toLowerCase();
+                                            const isBlankAnswer = !currentQ.studentAnswer
+                                              || sa === "__skipped__"
+                                              || sa === "no answer detected"
+                                              || sa.startsWith("no answer");
+                                            if (isBlankAnswer && !sp.diagramBase64 && !sp.refImageBase64) return null;
                                             const spCanvasId = `${currentQ.id}_${sp.label}`;
                                             // Drawable subparts looked squished vertically — bumped
                                             // ~50 % so the canvas isn't compressed against the
@@ -2373,7 +2382,19 @@ function ExamReviewContent({ id }: { id: string }) {
                       <div className="space-y-4 mb-4">
                         {/* Written answer image */}
                         {(() => {
+                          // Hide the entire 'Written Answer' canvas when the
+                          // marker recorded the question as blank — no point
+                          // rendering a 450-pixel-tall white box that adds
+                          // nothing. 'No answer detected' is the marker's
+                          // standard tag for missing blue ink (see
+                          // marking.ts BLUE INK CHECK).
+                          const sa = (currentQ.studentAnswer ?? "").trim().toLowerCase();
                           const hasDrawable = !!(currentQ.transcribedSubparts as { label: string }[] | null)?.find(s => s.label === "_drawable");
+                          const isBlankAnswer = !currentQ.studentAnswer
+                            || sa === "__skipped__"
+                            || sa === "no answer detected"
+                            || sa.startsWith("no answer");
+                          if (isBlankAnswer && !hasDrawable) return null;
                           // Same +50 % bump as the per-subpart path. 900 cap mirrors
                           // the per-subpart cap so a really tall drawable doesn't
                           // get clipped after being drawn.
