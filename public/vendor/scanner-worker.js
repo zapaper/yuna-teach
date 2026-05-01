@@ -143,6 +143,7 @@ function warpAndClean(cv, imageData, quad) {
 
   let src = null, warped = null, rgb = null, rgba = null, lab = null, labChannels = null;
   let M = null, srcPts = null, dstPts = null, clahe = null;
+  let lBlur = null;
   try {
     src = cv.matFromImageData(imageData);
     warped = new cv.Mat();
@@ -163,7 +164,23 @@ function warpAndClean(cv, imageData, quad) {
     labChannels = new cv.MatVector();
     cv.split(lab, labChannels);
     const L = labChannels.get(0);
-    clahe = new cv.CLAHE(2.0, new cv.Size(8, 8));
+
+    // ── Shadow removal — flatten the lighting ──
+    // Estimate the illumination by blurring L with a very wide
+    // Gaussian (~5% of the long edge), then subtract that estimate
+    // from L and re-bias to ~mid-grey. The high-frequency content
+    // (ink, text edges) survives; the low-frequency content
+    // (uneven lighting, soft shadows) is gone. Coefficient 0.85 is
+    // tuned so paper whites still look white without over-blowing
+    // dark ink.
+    const sigma = Math.max(15, Math.round(Math.max(Wd, Hd) * 0.05));
+    lBlur = new cv.Mat();
+    cv.GaussianBlur(L, lBlur, new cv.Size(0, 0), sigma);
+    cv.addWeighted(L, 1.0, lBlur, -0.85, 200, L);
+
+    // CLAHE adds local contrast on top so faint pencil writing
+    // doesn't get washed out.
+    clahe = new cv.CLAHE(2.5, new cv.Size(8, 8));
     clahe.apply(L, L);
     cv.merge(labChannels, lab);
     cv.cvtColor(lab, rgb, cv.COLOR_Lab2RGB);
@@ -188,6 +205,7 @@ function warpAndClean(cv, imageData, quad) {
     if (srcPts) srcPts.delete();
     if (dstPts) dstPts.delete();
     if (clahe) clahe.delete();
+    if (lBlur) lBlur.delete();
   }
 }
 

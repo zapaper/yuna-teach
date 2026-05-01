@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { playClick } from "@/lib/sfx";
 
 type Stage = "loading" | "capture" | "review" | "submitting" | "error";
 
@@ -63,6 +64,11 @@ export default function DocumentScanner({
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [statusMsg, setStatusMsg] = useState<string>("Loading scanner…");
   const [elapsedSec, setElapsedSec] = useState(0);
+  // Whether we currently have a stable detected page edge — drives the
+  // shutter-enabled state and the "hold steady" hint.
+  const [edgeLocked, setEdgeLocked] = useState(false);
+  // Animation state: thumb-flying-to-corner after a successful capture.
+  const [flyThumb, setFlyThumb] = useState<{ id: string; thumbUrl: string } | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const overlayRef = useRef<HTMLCanvasElement | null>(null);
@@ -74,6 +80,10 @@ export default function DocumentScanner({
   // Latest detected quad in *video coordinates* (the unscaled native
   // resolution of the stream), TL/TR/BR/BL, or null if no quad yet.
   const lastQuadRef = useRef<[number, number][] | null>(null);
+  // Wall-clock ms when lastQuadRef was set. Lets the live loop keep
+  // showing the previous quad for ~600ms after a single missed
+  // detection so the overlay doesn't flicker on and off frame-to-frame.
+  const lastQuadAtRef = useRef<number>(0);
   // Outstanding worker requests keyed by id, used by the warp path to
   // await a single-shot response. The live detect loop short-circuits
   // via detectInflightRef and doesn't go through this map.
@@ -153,11 +163,23 @@ export default function DocumentScanner({
               ([x, y]) => [x / ds, y / ds],
             ) as [number, number][];
             lastQuadRef.current = q;
+            lastQuadAtRef.current = performance.now();
+            setEdgeLocked(true);
             drawOverlay(overlay, video, q);
           }
         } else {
-          lastQuadRef.current = null;
-          clearOverlay(overlay, video);
+          // Anti-flicker: keep showing the last quad for up to
+          // ~600ms after the first miss so the polygon doesn't
+          // strobe between frames when the detector momentarily
+          // loses the page.
+          const age = performance.now() - lastQuadAtRef.current;
+          if (lastQuadRef.current && age < 600) {
+            drawOverlay(overlay, video, lastQuadRef.current);
+          } else {
+            lastQuadRef.current = null;
+            setEdgeLocked(false);
+            clearOverlay(overlay, video);
+          }
         }
         return;
       }
@@ -299,6 +321,13 @@ export default function DocumentScanner({
     const worker = workerRef.current;
     const video = videoRef.current;
     if (!worker || !video) return;
+    // Edge must be locked — the button is disabled in this state but
+    // a stale tap could still race; bail defensively.
+    if (!lastQuadRef.current) return;
+
+    // Audible feedback the moment the user taps, before any worker
+    // round-trip — the camera shutter cue is meant to be tight.
+    playClick(0.5);
 
     // Snap a still at full video resolution. Re-detect at full-res
     // for a tighter crop than what the live (downsampled) loop saw.
@@ -370,6 +399,12 @@ export default function DocumentScanner({
         return [...prev, newPage];
       });
       setRetakeIdx(null);
+      // "Captured!" feedback — the thumb pops in centred, animates to
+      // the top-right page-count badge over ~700ms, then unmounts.
+      setFlyThumb({ id: newPage.id, thumbUrl });
+      setTimeout(() => {
+        setFlyThumb((cur) => (cur && cur.id === newPage.id ? null : cur));
+      }, 750);
     } catch (err) {
       console.error("[scanner] capture failed:", err);
       setErrorMsg("Failed to process the page. Try again with steadier framing.");
@@ -415,7 +450,18 @@ export default function DocumentScanner({
   }, [onClose, pages]);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col text-white" style={{ touchAction: "none" }}>
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col text-white">
+      {/* Inline keyframes for the captured-thumb fly animation. Plain
+          <style> tag rather than styled-jsx so we don't pull in any
+          extra plugin — the name is unique enough not to collide. */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes scannerThumbFly {
+          0%   { top: 50%; right: 50%; transform: translate(50%, -50%) scale(1.6); width: 140px; height: 140px; opacity: 0; }
+          15%  { top: 50%; right: 50%; transform: translate(50%, -50%) scale(1.6); width: 140px; height: 140px; opacity: 1; }
+          75%  { top: 12px; right: 12px; transform: translate(0, 0) scale(1); width: 56px; height: 56px; opacity: 1; }
+          100% { top: 12px; right: 12px; transform: translate(0, 0) scale(1); width: 56px; height: 56px; opacity: 0; }
+        }
+      `}} />
       {/* Top bar */}
       <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/70 to-transparent">
         <button
@@ -452,7 +498,7 @@ export default function DocumentScanner({
 
       {stage === "capture" ? (
         <>
-          <div className="flex-1 relative overflow-hidden">
+          <div className="flex-1 relative overflow-hidden" style={{ touchAction: "none" }}>
             <video
               ref={videoRef}
               playsInline
@@ -474,6 +520,31 @@ export default function DocumentScanner({
                 {errorMsg}
               </div>
             ) : null}
+            {!edgeLocked && !errorMsg && retakeIdx == null ? (
+              <div className="absolute bottom-32 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs font-medium px-3 py-1.5 rounded-full max-w-[80vw] text-center pointer-events-none">
+                Hold steady so we can find the page edges
+              </div>
+            ) : null}
+            {/* Captured-thumb fly-to-corner animation. Renders for
+                ~500ms then unmounts. The element itself is what's
+                animated via Tailwind's transform utilities. */}
+            {flyThumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={flyThumb.id}
+                src={flyThumb.thumbUrl}
+                alt=""
+                className="absolute pointer-events-none rounded-lg shadow-xl border-2 border-white"
+                style={{
+                  top: 0,
+                  right: 0,
+                  width: 56,
+                  height: 56,
+                  objectFit: "cover",
+                  animation: "scannerThumbFly 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards",
+                }}
+              />
+            ) : null}
           </div>
           {/* Bottom bar */}
           <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-6 bg-gradient-to-t from-black/80 to-transparent">
@@ -486,7 +557,10 @@ export default function DocumentScanner({
             </button>
             <button
               onClick={handleCapture}
-              className="w-20 h-20 rounded-full bg-white border-4 border-white/40 active:scale-95 transition-transform shadow-2xl"
+              disabled={!edgeLocked}
+              className={`w-20 h-20 rounded-full border-4 active:scale-95 transition-all shadow-2xl ${
+                edgeLocked ? "bg-white border-white/40" : "bg-white/40 border-white/20 cursor-not-allowed"
+              }`}
               aria-label="Capture page"
             />
             <div className="w-[80px]" /> {/* spacer to balance the Done button */}
