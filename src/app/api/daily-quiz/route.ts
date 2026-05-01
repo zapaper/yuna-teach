@@ -979,7 +979,13 @@ export async function POST(request: NextRequest) {
     // there, and the student's percentage can go above 100%.
     const resolveMarks = (q: FullQ) => q.marksAvailable ?? ((q.syllabusTopic ?? "").toLowerCase().includes("synthesis") ? 2 : 1);
     const totalMarks = allSelectedFull.reduce((sum, q) => sum + resolveMarks(q), 0);
-    const levelLabel = levelFilter ? `P${student!.level} ` : "";
+    // Title-level labelling. In revision mode use the effective
+    // (lower) level instead of the student's actual level — the
+    // parent dashboard should show "P5 Revision …" for a P6 student
+    // revising P5, not "P6 …".
+    const titleLevel = effectiveLevel ?? student?.level ?? null;
+    const levelLabel = titleLevel ? `P${titleLevel} ` : "";
+    const revisionLabel = isRevision ? "Revision " : "";
     // Check if any non-MCQ sections are included
     const hasOeq = selectedExtra.some(q => {
       const t = (q.syllabusTopic ?? "").toLowerCase();
@@ -1011,18 +1017,21 @@ export async function POST(request: NextRequest) {
     if (isFocusedEnglish && (englishSections?.length ?? 0) === 1) {
       const secKey = englishSections![0];
       const secLabel = sectionLabels[secKey] ?? secKey;
-      engTitle = `${levelLabel}Focus: ${secLabel}`;
+      const kind = isRevision ? "Revision" : "Focus";
+      engTitle = `${levelLabel}${kind}: ${secLabel}`;
     } else if (firstShort) {
       // Daily English quiz: show the first selected section, with '+' if there are more.
-      engTitle = `${levelLabel}${firstShort}${extraMarker}`;
+      engTitle = `${levelLabel}${revisionLabel}${firstShort}${extraMarker}`;
     } else {
-      engTitle = `${levelLabel}English Quiz ${engQuizType}`;
+      engTitle = `${levelLabel}${revisionLabel}English Quiz ${engQuizType}`;
     }
 
     const paper = await prisma.examPaper.create({
       data: {
         title: engTitle,
         subject: "English Language",
+        // levelFilter already reflects the effective (revision) level
+        // — set above when isRevision flipped the level filter.
         level: levelFilter || null,
         userId,
         assignedToId: targetStudentId,
@@ -1299,11 +1308,16 @@ export async function POST(request: NextRequest) {
   }) as FullQ[];
 
   const totalMarks = allSelectedFull2.reduce((sum, q) => sum + (isMcq(q.answer) ? 2 : (q.marksAvailable ?? 1)), 0);
-  const levelLabel = levelFilter ? `P${student!.level} ` : "";
+  // Title-level labelling — mirrors the English-quiz block above. Use
+  // the effective (revision) level so "P5 Revision Quiz – Math" shows
+  // up correctly on a P6 student's dashboard.
+  const titleLevel = effectiveLevel ?? student?.level ?? null;
+  const levelLabel = titleLevel ? `P${titleLevel} ` : "";
+  const quizKindLabel = isRevision ? "Revision Quiz" : "Daily Quiz";
 
   const paper = await prisma.examPaper.create({
     data: {
-      title: `${levelLabel}Daily Quiz – ${subject === "science" ? "Science" : "Math"} (${quizType === "mcq" ? "MCQ" : "MCQ + OEQ"})`,
+      title: `${levelLabel}${quizKindLabel} – ${subject === "science" ? "Science" : "Math"} (${quizType === "mcq" ? "MCQ" : "MCQ + OEQ"})`,
       subject: subject === "science" ? "Science" : "Mathematics",
       level: levelFilter || null,
       userId,

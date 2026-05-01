@@ -513,12 +513,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No clean questions found for this topic" }, { status: 404 });
   }
 
-  const levelLabel = student?.level ? `P${student.level} ` : "";
+  // For revision-mode papers we tag the title with "Revision" and the
+  // *actual* level we drew from (effectiveLevel — one below the
+  // student's), so the parent dashboard immediately distinguishes
+  // a P4 revision practice from a normal P5 one. Non-revision keeps
+  // the existing format.
+  const labelLevel = effectiveLevel ?? student?.level ?? null;
+  const titlePrefix = labelLevel ? `P${labelLevel} ` : "";
+  const focusKind = isRevision ? "Revision" : "Focused";
   const paper = await prisma.examPaper.create({
     data: {
-      title: `${levelLabel}Focused: ${topic}`,
+      title: `${titlePrefix}${focusKind}: ${topic}`,
       subject,
-      level: student?.level ? `P${student.level}` : null,
+      level: labelLevel ? `P${labelLevel}` : null,
       userId: parentId,
       assignedToId: studentId || null,
       ...(scheduledForDate ? { scheduledFor: scheduledForDate } : {}),
