@@ -5,7 +5,18 @@ import sgMail from "@sendgrid/mail";
 const FROM_ADDRESS = process.env.SENDGRID_FROM_ADDRESS ?? "hello@markforyou.com";
 
 export async function POST(request: NextRequest) {
-  const { email, debug } = await request.json();
+  // Empty / non-JSON bodies (e.g. uptime probes hitting the route) used to
+  // surface as 'Unexpected end of JSON input' 500s in Railway. Treat them
+  // the same as a missing email field.
+  let email: string | undefined;
+  let debug: boolean | undefined;
+  try {
+    const body = await request.json();
+    email = body?.email;
+    debug = body?.debug;
+  } catch {
+    return NextResponse.json({ error: "Email is required" }, { status: 400 });
+  }
   // console.error so Railway shows the line regardless of log-level filter.
   console.error(`[forgot-password] request received email=${email ?? "(none)"}`);
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
