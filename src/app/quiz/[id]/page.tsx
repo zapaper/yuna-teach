@@ -693,8 +693,7 @@ function QuizContent({ id }: { id: string }) {
           <div className="w-20 h-20 rounded-full bg-[#6cf8bb]/30 flex items-center justify-center mx-auto mb-6">
             <span className="material-symbols-outlined text-4xl text-[#006c49]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
           </div>
-          <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-1">Quiz Complete!</h2>
-          <p className="text-sm text-[#43474f] mb-6">Time: {formatTime(elapsed)}</p>
+          <h2 className="font-headline text-2xl font-extrabold text-[#001e40] mb-6">Quiz Complete!</h2>
 
           {mcqScore && mcqScore.total > 0 && (
             <div className="bg-[#eff4ff] rounded-2xl p-6 mb-4 relative overflow-visible">
@@ -881,10 +880,9 @@ function QuizContent({ id }: { id: string }) {
             </button>
           </div>
           <div className="h-8 w-px bg-[#c3c6d1]/20 mx-1" />
-          <div className="flex items-center gap-2 px-4 py-1.5 bg-[#eff4ff] rounded-lg">
-            <span className="material-symbols-outlined text-[#001e40] text-lg">timer</span>
-            <span className="font-headline font-bold text-[#001e40] tabular-nums">{formatTime(elapsed)}</span>
-          </div>
+          {/* Timer hidden for quiz/focused — only the printable
+              exam player keeps it. Tracking still runs in the
+              background so timeSpentSeconds is recorded. */}
           <button
             onClick={handleSubmit}
             disabled={submitting}
@@ -913,10 +911,6 @@ function QuizContent({ id }: { id: string }) {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-[#43474f] opacity-70">Progress</span>
                 <h2 className="font-headline text-2xl font-extrabold text-[#001e40]">{answeredCount} / {mcqQuestions.length} MCQ</h2>
               </div>
-              <span className="font-headline font-bold text-[#001e40] tabular-nums text-sm flex items-center gap-1">
-                <span className="material-symbols-outlined text-base">timer</span>
-                {formatTime(elapsed)}
-              </span>
             </div>
             <div className="h-3 w-full bg-[#dce9ff] rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-[#006c49] to-[#4edea3] rounded-full transition-all duration-500"

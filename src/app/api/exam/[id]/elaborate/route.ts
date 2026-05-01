@@ -190,7 +190,9 @@ Correct answer: ${question.answer ?? "Not provided"}${studentAnswerNote}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${sectionHint}
 
-Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). Do not use LaTeX or any special math notation. Use **double asterisks** to bold step labels (e.g. **Step 1:**), the answer label (**Answer:**), and key subject terms (e.g. **numerator**, **photosynthesis**). No other markdown.`,
+Keep the explanation tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX or special math notation.
+
+Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**"), the rule being applied ("**order of operations**"), and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown.`,
     });
   } else {
     // For regular exam papers, use the raw question image
@@ -208,7 +210,9 @@ Correct answer: ${question.answer ?? "Not provided"}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
-Keep the explanation concise (under 200 words), age-appropriate, and encouraging. Use simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). Do not use LaTeX or any special math notation. Use **double asterisks** to bold step labels (e.g. **Step 1:**), the answer label (**Answer:**), and key subject terms (e.g. **numerator**, **photosynthesis**). No other markdown. If the question image is provided, reference the actual question content.`,
+Keep the explanation tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX or special math notation.
+
+Use **double asterisks** liberally to **bold key words** inside each step — the operation ("**multiply**", "**divide**"), the value being computed ("**total**", "**common multiple**"), the rule being applied, and the subject term ("**numerator**", "**photosynthesis**"). Always bold step labels (**Step 1:**) and the answer label (**Answer:**). Bold should make the key reasoning scannable in one glance. No other markdown. If the question image is provided, reference the actual question content.`,
     });
   }
 
