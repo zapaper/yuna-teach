@@ -16,9 +16,10 @@
 //   submitting     — uploading to /api/exam/[masterPaperId]/scan-submit
 //   error          — terminal failure (camera blocked, server error, etc)
 //
-// On camera-permission denial we fall back to <input capture> so the
-// parent can still pick photos through the native camera app — those
-// skip the live edge / dehaze pipeline but go through the same upload.
+// We deliberately do NOT offer a "use camera app instead" fallback:
+// the marking pipeline is boundary-based, so each page must be
+// perspective-corrected and dehazed before upload. Raw phone photos
+// without the OpenCV pass would skew the marker.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -57,7 +58,7 @@ export default function DocumentScanner({
   const [retakeIdx, setRetakeIdx] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [statusMsg, setStatusMsg] = useState<string>("Loading scanner…");
-  const [cameraBlocked, setCameraBlocked] = useState(false);
+  const [elapsedSec, setElapsedSec] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const overlayRef = useRef<HTMLCanvasElement | null>(null);
@@ -68,7 +69,16 @@ export default function DocumentScanner({
   // Latest detected quad in *video coordinates* (the unscaled native
   // resolution of the stream), TL/TR/BR/BL, or null if no quad yet.
   const lastQuadRef = useRef<[number, number][] | null>(null);
-  const fileFallbackRef = useRef<HTMLInputElement | null>(null);
+
+  // ── Loading-stage elapsed-time counter ──
+  useEffect(() => {
+    if (stage !== "loading") return;
+    const start = Date.now();
+    const interval = setInterval(() => {
+      setElapsedSec(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [stage]);
 
   // ── Body scroll lock while overlay is open ──
   useEffect(() => {
@@ -140,13 +150,11 @@ export default function DocumentScanner({
         if (cancelled) return;
         const msg = err instanceof Error ? err.message : "init failed";
         if (msg === "blocked") {
-          setCameraBlocked(true);
           setStage("error");
-          setErrorMsg("Camera access was blocked. Use 'Pick photo from gallery' below to upload pictures instead.");
+          setErrorMsg("Camera access was blocked. Allow camera in your browser settings and reopen the scanner.");
         } else if (msg === "no-camera") {
-          setCameraBlocked(true);
           setStage("error");
-          setErrorMsg("No camera found on this device. Use 'Pick photo from gallery' to upload pictures instead.");
+          setErrorMsg("No camera found on this device. Open the scanner on a phone or tablet with a rear camera.");
         } else {
           setStage("error");
           setErrorMsg(msg);
@@ -274,29 +282,6 @@ export default function DocumentScanner({
     }
   }, [retakeIdx]);
 
-  // ── Native-camera fallback (camera blocked / no camera) ──
-  const handleFileFallback = useCallback(async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const newPages: Page[] = [];
-    for (const file of Array.from(files)) {
-      if (!file.type.startsWith("image/")) continue;
-      // Skip CV processing — let the server normalise. Just produce
-      // a thumbnail for the review grid.
-      const blob = file;
-      const thumbUrl = await blobToThumb(blob);
-      newPages.push({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        blob,
-        thumbUrl,
-      });
-    }
-    if (newPages.length === 0) return;
-    setPages((prev) => [...prev, ...newPages]);
-    setCameraBlocked(false);
-    setErrorMsg("");
-    setStage("review");
-  }, []);
-
   // ── Submit to backend ──
   const handleSubmit = useCallback(async () => {
     if (pages.length === 0) return;
@@ -364,27 +349,8 @@ export default function DocumentScanner({
         <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
           <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
           <p className="text-sm text-white/80 whitespace-pre-line max-w-sm">{statusMsg}</p>
-          {stage === "loading" && (
-            <>
-              <input
-                ref={fileFallbackRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                multiple
-                hidden
-                onChange={(e) => handleFileFallback(e.target.files)}
-              />
-              <button
-                onClick={() => fileFallbackRef.current?.click()}
-                className="mt-4 px-5 py-3 rounded-full bg-white/10 text-white text-sm font-bold hover:bg-white/20"
-              >
-                Use camera app instead
-              </button>
-              <p className="text-[11px] text-white/50 max-w-xs">
-                Skips the live edge guide and dehaze — uploads the raw photos to be marked.
-              </p>
-            </>
+          {stage === "loading" && elapsedSec >= 1 && (
+            <p className="text-xs text-white/40 tabular-nums">{elapsedSec}s elapsed</p>
           )}
         </div>
       ) : null}
@@ -503,25 +469,6 @@ export default function DocumentScanner({
         <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
           <span className="material-symbols-outlined text-5xl text-white/70">photo_camera_off</span>
           <p className="text-sm text-white/80 max-w-sm">{errorMsg}</p>
-          {cameraBlocked ? (
-            <>
-              <input
-                ref={fileFallbackRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                multiple
-                hidden
-                onChange={(e) => handleFileFallback(e.target.files)}
-              />
-              <button
-                onClick={() => fileFallbackRef.current?.click()}
-                className="px-5 py-3 rounded-full bg-white text-black font-bold"
-              >
-                Pick photo from gallery
-              </button>
-            </>
-          ) : null}
           <button
             onClick={closeAndCleanup}
             className="text-sm text-white/60 underline mt-2"
