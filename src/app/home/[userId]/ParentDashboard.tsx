@@ -3040,8 +3040,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                           const stored = selectedStudent?.settings?.[item.key];
                           const isOn = "defaultOn" in item && item.defaultOn ? stored !== false : stored === true;
                           return (
-                            <div key={item.key} className="flex items-center justify-between">
-                              <div>
+                            <div key={item.key} className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-[#001e40]">{item.label}</p>
                                 <p className="text-sm text-[#43474f]">{item.desc}</p>
                               </div>
@@ -3068,7 +3068,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                     setSettingsTick(t => t + 1);
                                   }
                                 }}
-                                className={`w-12 h-7 rounded-full transition-colors relative ${isOn ? "bg-[#006c49]" : "bg-slate-200"}`}
+                                className={`shrink-0 mt-1 w-12 h-7 rounded-full transition-colors relative ${isOn ? "bg-[#006c49]" : "bg-slate-200"}`}
                               >
                                 <span className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform"
                                   style={isOn ? { left: "1.375rem" } : { left: "0.125rem" }}
