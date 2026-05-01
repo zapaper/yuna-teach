@@ -45,6 +45,20 @@ const nextConfig: NextConfig = {
         source: "/:file(step1|step2|step3|logo_t).png",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
+      // Landing-page hero photo. Same idea — content rarely changes, and a
+      // re-fetch on every new tab is wasteful (~225 KB).
+      {
+        source: "/:file(girlmom).jpg",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      // OpenCV.js runtime for the in-app document scanner. 10MB; copied
+      // out of node_modules at install time (scripts/copy-opencv.mjs).
+      // First scanner open downloads it, every subsequent open is
+      // instant from cache.
+      {
+        source: "/vendor/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
     ];
   },
 };

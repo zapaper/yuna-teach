@@ -3092,14 +3092,54 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
       {/* Diagnostic welcome modal */}
       {/* Scheduler paper popup */}
-      {schedulerPopup && (
+      {schedulerPopup && (() => {
+        // The popup only opens for not-yet-completed papers (line ~2483
+        // / ~2811), so Print + Scan are always relevant. Print stamps
+        // the per-student print code via the existing route. Scan (the
+        // in-app camera flow) is mobile/tablet only — desktop hides it
+        // with lg:hidden. Both depend on knowing which student the
+        // scheduler is currently filtered to (selectedStudentId).
+        const popup = schedulerPopup;
+        return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
-            <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{schedulerPopup.title}</p>
+            <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{popup.title}</p>
+            {!popup.completed && selectedStudentId && (
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => {
+                    setSchedulerPopup(null);
+                    window.open(
+                      `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`,
+                      "_blank",
+                    );
+                  }}
+                  className="flex-1 py-2.5 rounded-xl border-2 border-[#001e40]/20 text-[#001e40] text-sm font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-base">print</span>
+                  Print
+                </button>
+                <button
+                  onClick={() => {
+                    setSchedulerPopup(null);
+                    setScannerTarget({
+                      masterPaperId: popup.id,
+                      studentId: selectedStudentId,
+                      studentName: selectedStudent?.name ?? null,
+                      paperTitle: popup.title,
+                    });
+                  }}
+                  className="lg:hidden flex-1 py-2.5 rounded-xl border-2 border-[#006c49]/30 text-[#006c49] text-sm font-bold hover:bg-[#e8fff3] transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-base">photo_camera</span>
+                  Scan
+                </button>
+              </div>
+            )}
             <div className="flex gap-3">
               <button
                 onClick={async (e) => {
-                  const id = schedulerPopup.id;
+                  const id = popup.id;
                   setSchedulerPopup(null);
                   await handleDeletePaper(e as unknown as React.MouseEvent, id);
                 }}
@@ -3117,7 +3157,8 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Parent avatar picker */}
       {showParentAvatarPicker && (() => {
