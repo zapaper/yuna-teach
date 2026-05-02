@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isAdmin } from "@/lib/admin";
+import { bumpUserActivity } from "@/lib/track-activity";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
+  // Touch lastLoginAt so the admin "Last active" stamp tracks
+  // dashboard refreshes, not just sign-ins. Throttled to one DB
+  // write per user per 5 min — see track-activity.ts.
+  bumpUserActivity(userId);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let where: any = undefined;

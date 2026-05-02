@@ -6,6 +6,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { extractExamPaperBackground } from "@/lib/extraction";
 import { tagSyllabusTopics } from "@/lib/gemini";
+import { bumpUserActivity } from "@/lib/track-activity";
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -84,6 +85,9 @@ export async function PATCH(
   // --- Clone-on-assign: when assignedToId is provided, create a clone ---
   if ("assignedToId" in body && body.assignedToId) {
     const studentId = body.assignedToId as string;
+    // Track the parent's activity for the admin "Last active" stamp.
+    const masterForBump = await prisma.examPaper.findUnique({ where: { id }, select: { userId: true } });
+    bumpUserActivity(masterForBump?.userId ?? null);
     const instantFeedback = body.instantFeedback === true;
 
     // Check if an incomplete clone already exists for this student + master
@@ -103,6 +107,24 @@ export async function PATCH(
     });
     if (!master) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    // Auto-create the parent_students link if the parent skipped the
+    // signup linking step but has reached the assign flow. Without
+    // this, the admin page (and other features that read parentLinks)
+    // see "no linked students" even though the parent's clearly
+    // working with that student. upsert is idempotent so existing
+    // links are no-ops.
+    if (master.userId && master.userId !== studentId) {
+      try {
+        await prisma.parentStudent.upsert({
+          where: { parentId_studentId: { parentId: master.userId, studentId } },
+          update: {},
+          create: { parentId: master.userId, studentId },
+        });
+      } catch (err) {
+        console.warn(`[assign] couldn't auto-link parent=${master.userId} student=${studentId}:`, err);
+      }
     }
 
     // Create clone with questions

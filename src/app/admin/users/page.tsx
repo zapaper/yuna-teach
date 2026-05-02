@@ -159,7 +159,7 @@ function AdminUsersContent() {
                   username: p.name,
                   badge: p.isAdmin ? "ADMIN" : null,
                   email: p.email ?? "—",
-                  meta: `${p.paperCount} paper${p.paperCount === 1 ? "" : "s"} · joined ${new Date(p.createdAt).toLocaleDateString()} · last login ${lastLoginLabel(p.lastLoginAt)}`,
+                  meta: `${p.paperCount} paper${p.paperCount === 1 ? "" : "s"} · joined ${new Date(p.createdAt).toLocaleDateString()} · last active ${lastLoginLabel(p.lastLoginAt)}`,
                   links: p.students.length > 0
                     ? p.students.map(s => `${s.displayName ?? s.name}${s.level ? ` (P${s.level})` : ""}`).join(", ")
                     : "no linked students",
