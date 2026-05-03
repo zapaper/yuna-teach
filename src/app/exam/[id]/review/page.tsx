@@ -109,6 +109,11 @@ interface ReviewData {
   // Parent's red-pen review annotations: keyed by 'passage:<sectionLabel>'
   // or 'question:<questionId>', value is a PNG data URL.
   reviewAnnotations?: Record<string, string> | null;
+  // True when this paper was compiled by the "Revise Work" admin
+  // tool. The review UI uses this to suppress the score ring (a
+  // revision paper IS a curated set of past mistakes, so a 0% on
+  // the ring is just demoralising).
+  isRevision?: boolean;
 }
 
 export default function ExamReviewPage({
@@ -646,7 +651,10 @@ function ExamReviewContent({ id }: { id: string }) {
   // Only show a percentage once the paper has actually been marked. Otherwise
   // effectiveScore is 0, the ring renders 0% and the "Perfect score!" branch
   // (incorrectQuestions.length === 0) fires incorrectly for an unmarked paper.
-  const isMarked = data.markingStatus === "complete" || data.markingStatus === "released";
+  // Compiled "revise work" papers are a curated set of past mistakes;
+  // any score is misleading (would always read 0–low%), so treat
+  // them as if not yet marked for the score-ring purposes.
+  const isMarked = !data.isRevision && (data.markingStatus === "complete" || data.markingStatus === "released");
   const pct = isMarked && totalM && totalM > 0 ? Math.min(100, Math.round((effectiveScore / totalM) * 100)) : null;
   const denominatorLabel = rawTotal !== null
     ? (skippedMarks > 0 ? `${rawTotal} − ${skippedMarks} skipped` : String(rawTotal))
@@ -670,8 +678,11 @@ function ExamReviewContent({ id }: { id: string }) {
       .slice(0, 3)
       .map(([t]) => t);
   })();
-  // Friendly one-liner encouragement based on percentage
-  const encouragement = !isMarked ? "Not marked yet"
+  // Friendly one-liner encouragement based on percentage. Revision
+  // papers swap the score-pegged copy for plain "Revision set" so
+  // there's still a useful header line.
+  const encouragement = data.isRevision ? "Revision set"
+    : !isMarked ? "Not marked yet"
     : pct === null ? "Keep going!"
     : pct >= 90 ? "Outstanding work!"
     : pct >= 80 ? "Excellent work!"

@@ -118,16 +118,20 @@ export async function GET(
           flagged: cq?.flagged ?? false,
         };
       });
-      const { sourceExamId: _, questions: __, metadata: _meta, ...rest } = paper;
+      const { sourceExamId: _, questions: __, metadata: cloneMeta, ...rest } = paper;
       const bookletScores = computeBookletScores(master.metadata, merged);
-      return NextResponse.json({ ...rest, questions: merged, ...(bookletScores ? { bookletScores } : {}) });
+      // Surface isRevision so the review UI can suppress the score
+      // ring on compiled-revision papers (would otherwise read 0%).
+      const isRevision = !!(cloneMeta as { revisionMode?: string } | null)?.revisionMode;
+      return NextResponse.json({ ...rest, questions: merged, isRevision, ...(bookletScores ? { bookletScores } : {}) });
     }
   }
 
   // Strip sourceExamId and metadata from response
-  const { sourceExamId: _, metadata: _meta, ...response } = paper;
+  const { sourceExamId: _, metadata: paperMeta, ...response } = paper;
   const bookletScores = computeBookletScores(paper.metadata, paper.questions);
-  return NextResponse.json({ ...response, ...(bookletScores ? { bookletScores } : {}) });
+  const isRevision = !!(paperMeta as { revisionMode?: string } | null)?.revisionMode;
+  return NextResponse.json({ ...response, isRevision, ...(bookletScores ? { bookletScores } : {}) });
 }
 
 // POST /api/exam/[id]/mark

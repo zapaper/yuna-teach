@@ -58,6 +58,7 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
           syllabusTopic: true,
           marksAwarded: true,
           marksAvailable: true,
+          sourceQuestionId: true,
         },
       },
     },
@@ -79,6 +80,15 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
   const contributingPapers: Record<SubjectKey, Set<string>> = {
     math: new Set(), science: new Set(), english: new Set(),
   };
+  // Dedupe by sourceQuestionId so the summary count matches what
+  // fetchMistakeQuestions / orderMistakesForRevision will actually
+  // produce on compile. Without dedupe the summary said e.g.
+  // 'science: 56 mistakes' but the compiled review only had 13
+  // distinct questions because the same source had been answered
+  // wrong on multiple clones.
+  const seenSourceIds: Record<SubjectKey, Set<string>> = {
+    math: new Set(), science: new Set(), english: new Set(),
+  };
 
   for (const p of papers) {
     const subj = classifySubject(p.subject);
@@ -87,6 +97,13 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
     for (const q of p.questions) {
       if (q.marksAwarded == null || q.marksAvailable == null) continue;
       if (q.marksAwarded >= q.marksAvailable) continue;
+      // Skip questions without a sourceQuestionId — fetchMistakes
+      // also skips them (can't clone a question with no stable
+      // source), so excluding them from the count keeps both paths
+      // honest.
+      if (!q.sourceQuestionId) continue;
+      if (seenSourceIds[subj].has(q.sourceQuestionId)) continue;
+      seenSourceIds[subj].add(q.sourceQuestionId);
       bySubject[subj].mistakeCount++;
       paperContributed = true;
       const topic = q.syllabusTopic?.trim();
