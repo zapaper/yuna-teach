@@ -28,7 +28,11 @@ export async function GET(request: NextRequest) {
 
   const studentIds = arenaStudents.map(s => s.id);
 
-  // Get this week's completed papers for all arena students
+  // Get this week's completed papers for all arena students.
+  // Compiled "revise work" papers are a curated set of past
+  // mistakes — they shouldn't count towards arena points (would
+  // double-count work the student already did, plus the score is
+  // null on them anyway).
   const papers = await prisma.examPaper.findMany({
     where: {
       assignedToId: { in: studentIds },
@@ -38,6 +42,7 @@ export async function GET(request: NextRequest) {
       assignedToId: true,
       score: true,
       totalMarks: true,
+      metadata: true,
     },
   });
 
@@ -48,6 +53,10 @@ export async function GET(request: NextRequest) {
   }
   for (const p of papers) {
     if (!p.assignedToId || !stats[p.assignedToId]) continue;
+    // Skip compiled-revision papers — they're a recap of past
+    // mistakes, not a fresh attempt.
+    const meta = p.metadata as { revisionMode?: string } | null;
+    if (meta?.revisionMode) continue;
     const score = p.score ?? 0;
     const total = p.totalMarks ? parseFloat(p.totalMarks) : 0;
     stats[p.assignedToId].points += score;

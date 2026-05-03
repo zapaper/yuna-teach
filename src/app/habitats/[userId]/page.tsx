@@ -577,11 +577,16 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
       setPurchasedHabitats(Array.isArray(settings.purchasedHabitats) ? (settings.purchasedHabitats as string[]) : []);
 
       const papers = examRes?.papers ?? [];
-      const pts = papers
+      // Compiled-revision papers (admin "Revise Work" tool) are
+      // recap of past mistakes — filter them out of points + crystal
+      // calcs so the student isn't double-rewarded for work they
+      // already did.
+      const realPapers = papers.filter((p: { isRevision?: boolean }) => !p.isRevision);
+      const pts = realPapers
         .filter((p: { completedAt?: string | null }) => p.completedAt)
         .reduce((s: number, p: { score?: number | null }) => s + (p.score ?? 0), 0) + bonusPts;
       setTotalPoints(pts);
-      const earnedCrystals = papers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length;
+      const earnedCrystals = realPapers.filter((p: { markingStatus?: string | null }) => p.markingStatus === "released").length;
       // Clamp at 0 — if a quiz is un-released or admin reduces bonusCrystals
       // below what was already spent, the raw subtraction can go negative.
       setCrystals(Math.max(0, earnedCrystals + bonusCrystals - spentCrystals));
