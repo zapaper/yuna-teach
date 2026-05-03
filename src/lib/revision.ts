@@ -134,6 +134,12 @@ export type MistakeQuestion = {
   // this mistake came from. Stored on the new revision paper as
   // sourceQuestionId so cross-paper links survive.
   sourceQuestionId: string;
+  // The clone paper + clone question this came from. Needed so the
+  // revision paper can copy the student's actual canvas image
+  // (which lives under submissions/<cloneExamPaperId>/page_N.jpg)
+  // into its own submissions directory.
+  cloneQuestionId: string;
+  cloneExamPaperId: string;
   syllabusTopic: string | null;
   isMcq: boolean;
   isCompOeq: boolean;
@@ -236,6 +242,8 @@ export async function fetchMistakeQuestions(
       seen.add(q.sourceQuestionId);
       out.push({
         sourceQuestionId: q.sourceQuestionId,
+        cloneQuestionId: q.id,
+        cloneExamPaperId: p.id,
         syllabusTopic: q.syllabusTopic,
         isMcq: isMcqQuestion(q.transcribedOptions, q.transcribedOptionImages, q.answer),
         isCompOeq: isCompOeq(q.syllabusTopic),

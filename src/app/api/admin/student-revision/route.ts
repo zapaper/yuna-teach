@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { promises as fs } from "fs";
+import path from "path";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
 import { fetchMistakeQuestions, orderMistakesForRevision, type SubjectKey } from "@/lib/revision";
+
+const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
+const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
+
+function isMcqByContent(opts: unknown, optImgs: unknown, answer: string | null): boolean {
+  if (Array.isArray(opts) && opts.length === 4) return true;
+  if (Array.isArray(optImgs) && optImgs.some((o) => !!o)) return true;
+  const a = (answer ?? "").trim().replace(/[().]/g, "");
+  return a === "1" || a === "2" || a === "3" || a === "4";
+}
 
 // POST /api/admin/student-revision
 //
@@ -156,6 +168,109 @@ export async function POST(request: NextRequest) {
   // scored badly on a fresh quiz, when it's actually a curated set
   // of past errors. scorePct() returns null when score is null and
   // the card just hides the percentage chip.
+
+  // ── OEQ canvas image carry-over ─────────────────────────────────
+  // The review page reads the student's handwritten canvas from
+  // submissions/<paperId>/page_<oeqIdx>.jpg (and per-subpart files).
+  // Without copies under the new revision paper's directory the
+  // review just shows blank canvases. For each OEQ mistake question
+  // we (a) compute its position among OEQs in the new paper, (b)
+  // look up the source clone's oeqPageMap to find where the
+  // original images live, (c) copy the JPEG / ink-PNG / per-subpart
+  // files across, and (d) record the mapping on the new paper's
+  // metadata.oeqPageMap so the review page can find them again.
+  if (mode === "review") {
+    try {
+      // Pull the new questions back so we have stable IDs paired up
+      // with their orderIndex (which matches `ordered`'s order).
+      const newQuestions = await prisma.examQuestion.findMany({
+        where: { examPaperId: paper.id },
+        orderBy: { orderIndex: "asc" },
+        select: { id: true, transcribedOptions: true, transcribedOptionImages: true, answer: true, transcribedSubparts: true },
+      });
+      // Source clone metadata for oeqPageMap lookups, batched.
+      const cloneIds = [...new Set(ordered.map((m) => m.cloneExamPaperId))];
+      const clones = await prisma.examPaper.findMany({
+        where: { id: { in: cloneIds } },
+        select: { id: true, metadata: true },
+      });
+      const cloneOeqMapById = new Map<string, Record<string, number> | null>();
+      for (const c of clones) {
+        const m = (c.metadata as { oeqPageMap?: Record<string, number> } | null) ?? null;
+        cloneOeqMapById.set(c.id, m?.oeqPageMap ?? null);
+      }
+
+      const newSubDir = path.join(SUBMISSIONS_DIR, paper.id);
+      await fs.mkdir(newSubDir, { recursive: true });
+      const newOeqPageMap: Record<string, number> = {};
+      let newOeqIdx = 0;
+
+      for (let idx = 0; idx < ordered.length && idx < newQuestions.length; idx++) {
+        const m = ordered[idx];
+        const newQ = newQuestions[idx];
+        const isMcq = isMcqByContent(newQ.transcribedOptions, newQ.transcribedOptionImages, newQ.answer);
+        if (isMcq) continue; // OEQ only — MCQs have no canvas
+
+        const srcOeqMap = cloneOeqMapById.get(m.cloneExamPaperId);
+        const srcOeqIdx = srcOeqMap?.[m.cloneQuestionId];
+        if (srcOeqIdx == null) {
+          // Old clone might pre-date oeqPageMap. Skip — review will
+          // just show no canvas for this question, same as the
+          // original quiz's behaviour for that paper.
+          newOeqIdx++;
+          continue;
+        }
+
+        newOeqPageMap[newQ.id] = newOeqIdx;
+        const srcDir = path.join(SUBMISSIONS_DIR, m.cloneExamPaperId);
+
+        // Files to copy: composite JPEG + ink PNG + per-subpart copies.
+        const filenames: string[] = [
+          `page_${srcOeqIdx}.jpg`,
+          `page_${srcOeqIdx}_ink.png`,
+        ];
+        const subs = (newQ.transcribedSubparts as { label: string }[] | null) ?? [];
+        for (const sp of subs) {
+          if (sp.label.startsWith("_")) continue;
+          filenames.push(`page_${srcOeqIdx}_${sp.label}.jpg`);
+          filenames.push(`page_${srcOeqIdx}_${sp.label}_ink.png`);
+        }
+
+        for (const fname of filenames) {
+          const srcPath = path.join(srcDir, fname);
+          const dstName = fname.replace(`page_${srcOeqIdx}`, `page_${newOeqIdx}`);
+          const dstPath = path.join(newSubDir, dstName);
+          try {
+            await fs.copyFile(srcPath, dstPath);
+          } catch {
+            // Per-subpart files may not exist if the student left
+            // that subpart blank. Composite + ink should usually
+            // exist; their absence is non-fatal too.
+          }
+        }
+        newOeqIdx++;
+      }
+
+      if (Object.keys(newOeqPageMap).length > 0) {
+        // Merge into the existing metadata so we don't clobber
+        // revisionMode / compiledAt / etc.
+        await prisma.examPaper.update({
+          where: { id: paper.id },
+          data: {
+            metadata: {
+              revisionMode: mode,
+              revisionSubject: subject,
+              compiledAt: new Date().toISOString(),
+              compiledBy: adminId,
+              oeqPageMap: newOeqPageMap,
+            },
+          },
+        });
+      }
+    } catch (err) {
+      console.warn(`[student-revision] OEQ carry-over failed for ${paper.id}:`, err);
+    }
+  }
 
   const redirectUrl = mode === "review"
     ? `/exam/${paper.id}/review`
