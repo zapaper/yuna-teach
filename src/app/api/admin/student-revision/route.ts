@@ -134,6 +134,46 @@ export async function POST(request: NextRequest) {
   const levelLabel = student.level ? `P${student.level} ` : "";
   const title = `${levelLabel}${SUBJECT_LABEL[subject]} Revision ${dateLabel}`;
 
+  // For English revision papers, reconstruct englishSections in
+  // metadata so the review UI shows the cloze passage above its
+  // blanks (and Comp-OEQ above its prompts). One section per
+  // distinct source-section key in the ordered question list, with
+  // start/end indices into the new question list.
+  type SectionMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
+  const englishSectionsMeta: SectionMeta[] = [];
+  if (subject === "english") {
+    let curKey: string | undefined;
+    let curSection: SectionMeta | undefined;
+    for (let i = 0; i < ordered.length; i++) {
+      const m = ordered[i];
+      const key = m.sourceSectionKey;
+      // Skip questions with no source-section info — they'll just
+      // render without a passage, which is fine for non-cloze
+      // English types.
+      if (!key || !m.englishSection) {
+        if (curSection) {
+          englishSectionsMeta.push(curSection);
+          curSection = undefined;
+          curKey = undefined;
+        }
+        continue;
+      }
+      if (key !== curKey) {
+        if (curSection) englishSectionsMeta.push(curSection);
+        curKey = key;
+        curSection = {
+          label: m.englishSection.label,
+          startIndex: i,
+          endIndex: i,
+          ...(m.englishSection.passage ? { passage: m.englishSection.passage } : {}),
+        };
+      } else {
+        curSection!.endIndex = i;
+      }
+    }
+    if (curSection) englishSectionsMeta.push(curSection);
+  }
+
   const paper = await prisma.examPaper.create({
     data: {
       title,
@@ -156,6 +196,7 @@ export async function POST(request: NextRequest) {
         revisionSubject: subject,
         compiledAt: new Date().toISOString(),
         compiledBy: adminId,
+        ...(englishSectionsMeta.length > 0 ? { englishSections: englishSectionsMeta } : {}),
       },
       questions: { create: questionCreates },
     },

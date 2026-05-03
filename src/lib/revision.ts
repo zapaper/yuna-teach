@@ -146,6 +146,11 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
 // from the source can lose populated fields (e.g. transcribedStem set
 // on the clone from a clean-extract pass after the master was
 // uploaded).
+export type EnglishSectionInfo = {
+  label: string;
+  passage?: string;
+};
+
 export type MistakeQuestion = {
   // Source-question pointer for traceability — what master question
   // this mistake came from. Stored on the new revision paper as
@@ -178,6 +183,16 @@ export type MistakeQuestion = {
   transcribedSubparts: unknown;
   diagramImageData: string | null;
   diagramBounds: unknown;
+  // For English questions: the passage + section label this question
+  // sat under in the source clone. Used by the revision-paper
+  // builder to reconstruct englishSections in the new paper's
+  // metadata so the review UI can render the cloze passage above
+  // its blanks (and Comp OEQ above its prompts).
+  // sourceSectionKey groups questions that came from the same
+  // section of the same source clone — they share a passage and
+  // should sit in one section of the revision paper.
+  englishSection?: EnglishSectionInfo;
+  sourceSectionKey?: string;
 };
 
 function isMcqQuestion(opts: unknown, optImgs: unknown, answer: string | null): boolean {
@@ -214,10 +229,16 @@ export async function fetchMistakeQuestions(
     select: {
       id: true,
       completedAt: true,
+      // englishSections lives in metadata. We pull it for English
+      // queries so the per-mistake englishSection field can be
+      // populated and the revision paper can reconstruct cloze /
+      // comp-oeq passages.
+      metadata: true,
       questions: {
         select: {
           id: true,
           questionNum: true,
+          orderIndex: true,
           marksAwarded: true,
           marksAvailable: true,
           studentAnswer: true,
@@ -248,6 +269,12 @@ export async function fetchMistakeQuestions(
   // (it's the freshest signal of what the student actually did).
   const seen = new Set<string>();
   for (const p of papers) {
+    // For English, pre-extract the clone's englishSections so we can
+    // attach a passage to each mistake question.
+    type RawSection = { label: string; startIndex: number; endIndex: number; passage?: string };
+    const englishSections: RawSection[] = subject === "english"
+      ? ((p.metadata as { englishSections?: RawSection[] } | null)?.englishSections ?? [])
+      : [];
     for (const q of p.questions) {
       if (q.marksAwarded == null || q.marksAvailable == null) continue;
       if (q.marksAwarded >= q.marksAvailable) continue;
@@ -257,6 +284,27 @@ export async function fetchMistakeQuestions(
       if (!q.sourceQuestionId) continue;
       if (seen.has(q.sourceQuestionId)) continue;
       seen.add(q.sourceQuestionId);
+
+      // Match this question to its source-clone englishSection (if
+      // any) using its orderIndex against the section's
+      // [startIndex, endIndex] range. The same orderIndex space is
+      // what the source clone used at quiz-creation time.
+      let englishSection: EnglishSectionInfo | undefined;
+      let sourceSectionKey: string | undefined;
+      if (englishSections.length > 0) {
+        const idx = q.orderIndex;
+        const sectionPos = englishSections.findIndex(s => idx >= s.startIndex && idx <= s.endIndex);
+        if (sectionPos >= 0) {
+          const sec = englishSections[sectionPos];
+          englishSection = { label: sec.label, ...(sec.passage ? { passage: sec.passage } : {}) };
+          // Group key: same source clone + same section index = one
+          // section in the new revision paper. Different clones
+          // even with the same label get separate sections (their
+          // passages differ).
+          sourceSectionKey = `${p.id}::${sectionPos}`;
+        }
+      }
+
       out.push({
         sourceQuestionId: q.sourceQuestionId,
         cloneQuestionId: q.id,
@@ -278,6 +326,8 @@ export async function fetchMistakeQuestions(
         transcribedSubparts: q.transcribedSubparts,
         diagramImageData: q.diagramImageData,
         diagramBounds: q.diagramBounds,
+        englishSection,
+        sourceSectionKey,
       });
     }
   }
@@ -300,22 +350,21 @@ export function orderMistakesForRevision(
     const oeq = qs.filter((q) => !q.isMcq);
     return [...mcq, ...oeq];
   }
-  // English: group by topic, comp-OEQ last.
+  // English: group by sourceSectionKey when available so questions
+  // from the same source clone-section stay together (they share a
+  // passage). Comp-OEQ groups go last. Sections without a source key
+  // fall back to syllabusTopic grouping.
   const groups = new Map<string, MistakeQuestion[]>();
-  const compOeqGroup: MistakeQuestion[] = [];
+  const compOeqGroups = new Map<string, MistakeQuestion[]>();
   for (const q of qs) {
-    if (q.isCompOeq) {
-      compOeqGroup.push(q);
-      continue;
-    }
-    const key = q.syllabusTopic ?? "(untagged)";
-    const arr = groups.get(key);
+    const key = q.sourceSectionKey ?? `topic::${q.syllabusTopic ?? "(untagged)"}`;
+    const target = q.isCompOeq ? compOeqGroups : groups;
+    const arr = target.get(key);
     if (arr) arr.push(q);
-    else groups.set(key, [q]);
+    else target.set(key, [q]);
   }
   const out: MistakeQuestion[] = [];
-  // Iterate insertion order (= recency-by-first-occurrence).
   for (const arr of groups.values()) out.push(...arr);
-  out.push(...compOeqGroup);
+  for (const arr of compOeqGroups.values()) out.push(...arr);
   return out;
 }
