@@ -41,17 +41,21 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
   // Latest completed papers assigned to the student. We pull paper-
   // level metadata + per-question marking results so we can detect
   // mistakes (marksAwarded < marksAvailable) without a second query.
-  const papers = await prisma.examPaper.findMany({
+  // Revision papers are filtered out in JS — Prisma's JSON-path NOT
+  // would also drop every row with null metadata. See the longer
+  // comment in fetchMistakeQuestions.
+  const rawPapers = await prisma.examPaper.findMany({
     where: {
       assignedToId: studentId,
       completedAt: { not: null },
     },
     orderBy: { completedAt: "desc" },
-    take: RECENT_PAPER_LIMIT,
+    take: RECENT_PAPER_LIMIT * 2,
     select: {
       id: true,
       subject: true,
       completedAt: true,
+      metadata: true,
       questions: {
         select: {
           id: true,
@@ -63,6 +67,12 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
       },
     },
   });
+
+  // Filter out revision papers (synthetic mash-ups of past mistakes).
+  const papers = rawPapers.filter((p) => {
+    const meta = p.metadata as { revisionMode?: string } | null;
+    return meta?.revisionMode !== "review" && meta?.revisionMode !== "practice";
+  }).slice(0, RECENT_PAPER_LIMIT);
 
   const init = (): SubjectSummary => ({
     mistakeCount: 0,
@@ -228,16 +238,28 @@ export async function fetchMistakeQuestions(
 ): Promise<MistakeQuestion[]> {
   // Pull each clone question (with marking artefacts) and the source
   // question it points at. We restrict to the requested subject and to
-  // papers the student has actually finished.
+  // papers the student has actually finished. Revision papers are
+  // filtered out below in JS — Prisma's JSON-path filter excludes
+  // every row where metadata is null, even with NOT, so we can't
+  // express "metadata.revisionMode is unset OR not 'review'/'practice'"
+  // at the SQL layer without losing every real clone.
+  //
+  // Why the exclusion matters: revision papers are synthetic
+  // mash-ups of past mistakes — counting them would (a) double-count
+  // whatever mistakes are in them, and (b) feed fetchPassageCompanions
+  // a fake "section" that has no real passage neighbours, leaving
+  // cloze blanks unfilled and misaligning the renderer.
   const subjectMatch = subject === "math" ? "math" : subject === "science" ? "science" : "english";
-  const papers = await prisma.examPaper.findMany({
+  // Pull a generous extra slice (×2) so even after JS-filtering
+  // out revision papers we still hit RECENT_PAPER_LIMIT real clones.
+  const rawPapers = await prisma.examPaper.findMany({
     where: {
       assignedToId: studentId,
       completedAt: { not: null },
       subject: { contains: subjectMatch, mode: "insensitive" },
     },
     orderBy: { completedAt: "desc" },
-    take: RECENT_PAPER_LIMIT,
+    take: RECENT_PAPER_LIMIT * 2,
     select: {
       id: true,
       completedAt: true,
@@ -273,6 +295,12 @@ export async function fetchMistakeQuestions(
       },
     },
   });
+
+  // JS-side revision-paper filter (see comment on rawPapers above).
+  const papers = rawPapers.filter((p) => {
+    const meta = p.metadata as { revisionMode?: string } | null;
+    return meta?.revisionMode !== "review" && meta?.revisionMode !== "practice";
+  }).slice(0, RECENT_PAPER_LIMIT);
 
   const out: MistakeQuestion[] = [];
   // Dedupe by sourceQuestionId so the parent doesn't see the same
