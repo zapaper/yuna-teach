@@ -170,8 +170,11 @@ export type MistakeQuestion = {
   isMcq: boolean;
   isCompOeq: boolean;
   cloneCompletedAt: Date;
-  // Marking artefacts the review-mode paper needs.
-  marksAwarded: number;
+  // Marking artefacts the review-mode paper needs. marksAwarded
+  // is nullable because passage-companion questions may include
+  // skipped neighbours (null marks) that we still need to fill
+  // their passage marker slot.
+  marksAwarded: number | null;
   marksAvailable: number;
   studentAnswer: string | null;
   markingNotes: string | null;
@@ -467,15 +470,19 @@ export async function fetchPassageCompanions(
     if (!sec) continue;
 
     for (const q of clone.questions) {
-      // Companion = same source-clone-section, not already in
-      // mistakes, and the student got it right (full marks). Skip
-      // questions without a sourceQuestionId so the create path
-      // doesn't choke on the missing pointer.
+      // Companion = any question in the same source-clone-section
+      // that isn't already in `chosen` (the mistakes the parent
+      // picked). We deliberately include partial-marks and skipped
+      // questions too: cloze passages render position-based, so if
+      // a section has 5 markers and we only put 4 questions in
+      // (because Q3 was skipped), markers shift and answers
+      // misalign. Including every neighbour keeps the positions
+      // honest — the renderer paints green/red from the actual
+      // marksAwarded value. Skip only on missing sourceQuestionId
+      // (the create path needs a stable pointer).
       if (q.orderIndex < sec.startIndex || q.orderIndex > sec.endIndex) continue;
       if (info.knownIds.has(q.id)) continue;
       if (!q.sourceQuestionId) continue;
-      if (q.marksAwarded == null || q.marksAvailable == null) continue;
-      if (q.marksAwarded < q.marksAvailable) continue;
 
       out.push({
         sourceQuestionId: q.sourceQuestionId,
@@ -487,7 +494,10 @@ export async function fetchPassageCompanions(
         isCompOeq: isCompOeq(q.syllabusTopic),
         cloneCompletedAt: clone.completedAt!,
         marksAwarded: q.marksAwarded,
-        marksAvailable: q.marksAvailable,
+        // Default missing marksAvailable to 1 — without it the
+        // route's totalMarks reduce treats it as 0 and the
+        // section-header chip shows "0/N" wrong.
+        marksAvailable: q.marksAvailable ?? 1,
         studentAnswer: q.studentAnswer,
         markingNotes: q.markingNotes,
         imageData: q.imageData,

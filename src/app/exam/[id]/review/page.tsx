@@ -1496,7 +1496,15 @@ function ExamReviewContent({ id }: { id: string }) {
                               const correctAns = (q?.answer ?? "").trim();
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
                               const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
-                              const isMatch = !isBlank && norm(studentAns) === norm(correctAns);
+                              // Trust the AI marker: full marks earned means
+                              // green even if the student's spelling differs
+                              // slightly from the answer key (an accepted
+                              // variant). Otherwise fall back to a string
+                              // comparison so legacy / unmarked rows still
+                              // pick up obvious matches.
+                              const earned = q?.marksAwarded ?? 0;
+                              const available = q?.marksAvailable ?? 1;
+                              const isMatch = !isBlank && (earned >= available || norm(studentAns) === norm(correctAns));
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
@@ -1590,7 +1598,11 @@ function ExamReviewContent({ id }: { id: string }) {
                               const studentWord = wordBank.get(studentLetter) ?? "";
                               const correctWord = wordBank.get(correctLetter) ?? correctLetter;
                               const isBlank = !studentLetter || studentLetter === "__SKIPPED__";
-                              const isCorrect = !isBlank && studentLetter === correctLetter;
+                              // Trust the marker first (full marks ⇒ green),
+                              // fall back to letter comparison.
+                              const earned = q?.marksAwarded ?? 0;
+                              const available = q?.marksAvailable ?? 1;
+                              const isCorrect = !isBlank && (earned >= available || studentLetter === correctLetter);
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
