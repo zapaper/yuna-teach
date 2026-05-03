@@ -4,10 +4,27 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
 
+// Allow up to 5min on Vercel Pro — sequential Gemini calls run
+// ~5-10s each, so a batch of 3 still fits in 60s comfortably while
+// a batch of 10 risks the default function timeout.
+export const maxDuration = 300;
+
 let _ai: GoogleGenAI | null = null;
 function getAI() {
   if (!_ai) _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
   return _ai;
+}
+
+// Sentinel written to elaboration when a generation fails. Lets us
+// (a) exclude the row from future bulk batches via a starts-with
+// filter so the loop doesn't keep retrying the same broken rows
+// across page reloads, and (b) have the per-card elaborate route
+// recognise it and re-attempt on demand. Format is JSON so it
+// parses cleanly; the per-card route's parseCachedElaboration will
+// treat it as a cache miss because there's no `solution` field.
+const ELAB_ERROR_PREFIX = '{"__elabError"';
+function makeErrorSentinel(message: string): string {
+  return JSON.stringify({ __elabError: message.slice(0, 280), attemptedAt: new Date().toISOString() });
 }
 
 // Prompt mirrors the per-question /api/exam/[id]/elaborate prompt
@@ -86,13 +103,12 @@ function isMcqRow(opts: unknown, optImgs: unknown, answer: string | null): boole
   return a === "1" || a === "2" || a === "3" || a === "4";
 }
 
-// GET — counts: total MCQ in scope, already elaborated, pending,
-// per-level + per-subject breakdown for the progress card.
+// GET — counts: total MCQ in scope, real elaborations vs error
+// sentinels vs never-tried, per-level + per-subject breakdown.
+// Failed rows are reported separately so the admin sees the
+// breakdown rather than thinking the loop is stuck.
 export async function GET() {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  // Pull every candidate question (clean-extracted Math/Science P3-P6
-  // master) and count MCQ in JS. For ~150 papers / ~3000 questions this
-  // is a few hundred KB — fine for an admin-only endpoint.
   const qs = await prisma.examQuestion.findMany({
     where: { examPaper: MASTER_SCOPE },
     select: {
@@ -100,28 +116,33 @@ export async function GET() {
       examPaper: { select: { subject: true, level: true } },
     },
   });
-  let total = 0, elaborated = 0;
-  const byLevel: Record<string, { total: number; elaborated: number }> = {};
-  const bySubject: Record<string, { total: number; elaborated: number }> = {};
-  function bump(map: Record<string, { total: number; elaborated: number }>, key: string, hasElab: boolean) {
-    if (!map[key]) map[key] = { total: 0, elaborated: 0 };
+  let total = 0, elaborated = 0, failed = 0;
+  type Bucket = { total: number; elaborated: number; failed: number };
+  const byLevel: Record<string, Bucket> = {};
+  const bySubject: Record<string, Bucket> = {};
+  function bump(map: Record<string, Bucket>, key: string, kind: "elab" | "fail" | "none") {
+    if (!map[key]) map[key] = { total: 0, elaborated: 0, failed: 0 };
     map[key].total++;
-    if (hasElab) map[key].elaborated++;
+    if (kind === "elab") map[key].elaborated++;
+    else if (kind === "fail") map[key].failed++;
   }
   for (const q of qs) {
     if (!isMcqRow(q.transcribedOptions, q.transcribedOptionImages, q.answer)) continue;
     total++;
-    const elab = !!q.elaboration;
-    if (elab) elaborated++;
+    const isFail = !!q.elaboration && q.elaboration.startsWith(ELAB_ERROR_PREFIX);
+    const isElab = !!q.elaboration && !isFail;
+    if (isElab) elaborated++;
+    if (isFail) failed++;
     const lvl = (q.examPaper.level ?? "?").replace(/Primary /i, "P");
     const subj = (q.examPaper.subject ?? "?").trim();
-    bump(byLevel, lvl, elab);
-    bump(bySubject, subj, elab);
+    bump(byLevel, lvl, isElab ? "elab" : isFail ? "fail" : "none");
+    bump(bySubject, subj, isElab ? "elab" : isFail ? "fail" : "none");
   }
   return NextResponse.json({
     total,
     elaborated,
-    pending: total - elaborated,
+    failed,
+    pending: total - elaborated - failed,
     byLevel,
     bySubject,
   });
@@ -133,14 +154,18 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const body = await request.json().catch(() => ({} as Record<string, unknown>));
-  const limit = Math.max(1, Math.min(50, Number(body.limit ?? 10)));
+  // Default to 3 — sequential Gemini elaborate calls take ~5-10s
+  // each, so a batch of 3 fits in 60s comfortably while a batch
+  // of 10 risks the Vercel function timeout.
+  const limit = Math.max(1, Math.min(20, Number(body.limit ?? 3)));
   const excludeIds: string[] = Array.isArray(body.excludeIds)
     ? (body.excludeIds as unknown[]).filter((x): x is string => typeof x === "string")
     : [];
 
   // Pull a wider candidate pool than `limit` because the JS MCQ
-  // filter knocks out non-MCQ rows. Order by id for deterministic
-  // batches across calls.
+  // filter knocks out non-MCQ rows. Skip rows whose elaboration is
+  // an error sentinel — those have already failed once and the
+  // bulk loop should not retry them automatically.
   const candidatePool = Math.max(limit * 4, 40);
   const candidates = await prisma.examQuestion.findMany({
     where: {
@@ -219,6 +244,16 @@ ${COMMON_DIAGRAM_RULES}`,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      // Persist the failure so subsequent batches (and page
+      // reloads) skip this row instead of looping on it. Stored
+      // as a JSON sentinel so the per-card route can detect it
+      // and re-attempt on demand.
+      try {
+        await prisma.examQuestion.update({
+          where: { id: q.id },
+          data: { elaboration: makeErrorSentinel(msg) },
+        });
+      } catch { /* DB hiccup — worst case we retry next batch */ }
       results.push({
         id: q.id, questionNum: q.questionNum, paperId: q.examPaperId,
         paperTitle: q.examPaper.title, subject: q.examPaper.subject ?? "?", level: q.examPaper.level ?? "?",

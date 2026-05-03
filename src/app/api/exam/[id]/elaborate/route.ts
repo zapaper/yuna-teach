@@ -48,6 +48,19 @@ function parseCachedElaboration(cached: string): { elaboration: string; diagrams
   return { elaboration: cached, diagrams: [] };
 }
 
+// Detect the bulk-route's failure sentinel — a JSON object with
+// __elabError but no `solution` field. The per-card route treats
+// these as cache misses so a manual retry from the quiz player
+// re-attempts generation instead of returning the error string.
+function isErrorSentinel(cached: string | null | undefined): boolean {
+  if (!cached) return false;
+  if (!cached.startsWith('{"__elabError"')) return false;
+  try {
+    const parsed = JSON.parse(cached) as { __elabError?: unknown; solution?: unknown };
+    return typeof parsed.__elabError === "string" && typeof parsed.solution !== "string";
+  } catch { return false; }
+}
+
 // Extract {solution, diagrams} from Gemini's text response. Strips
 // markdown fences if present (the model sometimes wraps despite the
 // prompt asking for none).
@@ -127,23 +140,23 @@ export async function POST(
   // Return cached elaboration if available (except Comp Cloze).
   // Cached value may be the new JSON shape ({solution, diagrams}) or
   // the legacy plain-text shape — fall through to plain text on parse
-  // failure so old rows still render.
-  if (question.elaboration && !isCompClozeQuestion) {
+  // failure so old rows still render. The bulk route's error
+  // sentinel ({"__elabError":...}) is treated as a cache miss so a
+  // manual retry re-attempts generation.
+  if (question.elaboration && !isCompClozeQuestion && !isErrorSentinel(question.elaboration)) {
     return NextResponse.json(parseCachedElaboration(question.elaboration));
   }
 
   // For MCQ on a clone, fall back to the master's elaboration before
-  // hitting the model. If the master already has one, copy it onto
-  // the clone (so subsequent reads of this exact clone skip the
-  // master lookup) and return immediately.
+  // hitting the model. If the master already has one (and it's not
+  // a failure sentinel), copy it onto the clone so subsequent reads
+  // of this exact clone skip the master lookup, then return.
   if (isMcq && !isCompClozeQuestion && question.sourceQuestionId) {
     const master = await prisma.examQuestion.findUnique({
       where: { id: question.sourceQuestionId },
       select: { elaboration: true },
     });
-    if (master?.elaboration) {
-      // Backfill the clone so the next view of this same clone
-      // returns from the cheaper top-of-route check.
+    if (master?.elaboration && !isErrorSentinel(master.elaboration)) {
       await prisma.examQuestion.update({
         where: { id: questionId },
         data: { elaboration: master.elaboration },

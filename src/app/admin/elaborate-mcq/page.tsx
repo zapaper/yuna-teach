@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
 type ResultRow = { id: string; questionNum: string; paperId: string; paperTitle: string; subject: string; level: string; ok: boolean; error?: string };
-type Counts = { total: number; elaborated: number; pending: number; byLevel: Record<string, { total: number; elaborated: number }>; bySubject: Record<string, { total: number; elaborated: number }> };
+type Bucket = { total: number; elaborated: number; failed: number };
+type Counts = { total: number; elaborated: number; failed: number; pending: number; byLevel: Record<string, Bucket>; bySubject: Record<string, Bucket> };
 
 export default function ElaborateMcqPage() {
   return (
@@ -71,7 +72,7 @@ function Content() {
   function startContinuous() {
     continuousRef.current = true;
     setContinuous(true);
-    runBatch(10);
+    runBatch(3);
   }
   function stopContinuous() {
     continuousRef.current = false;
@@ -103,7 +104,9 @@ function Content() {
             <div className="bg-white rounded-2xl border border-slate-100 p-5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-bold text-slate-700">Progress</span>
-                <span className="text-xs font-bold text-slate-500">{counts.elaborated.toLocaleString()} / {counts.total.toLocaleString()} elaborated · {counts.pending.toLocaleString()} pending</span>
+                <span className="text-xs font-bold text-slate-500">
+                  {counts.elaborated.toLocaleString()} / {counts.total.toLocaleString()} elaborated · {counts.pending.toLocaleString()} pending{counts.failed > 0 && <> · <span className="text-red-600">{counts.failed.toLocaleString()} failed</span></>}
+                </span>
               </div>
               <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                 <div className="h-full bg-indigo-500 transition-all" style={{ width: `${pct}%` }} />
@@ -122,7 +125,7 @@ function Content() {
                     .map(([lvl, v]) => (
                     <div key={lvl} className="flex justify-between">
                       <span className="font-bold text-slate-700">{lvl}</span>
-                      <span className="text-slate-500 tabular-nums">{v.elaborated} / {v.total}  ({v.total - v.elaborated} pending)</span>
+                      <span className="text-slate-500 tabular-nums">{v.elaborated} / {v.total}  ({v.total - v.elaborated - v.failed} pending{v.failed > 0 && <>, <span className="text-red-600">{v.failed} failed</span></>})</span>
                     </div>
                   ))}
                 </div>
@@ -135,7 +138,7 @@ function Content() {
                     .map(([subj, v]) => (
                     <div key={subj} className="flex justify-between">
                       <span className="font-bold text-slate-700 truncate pr-2">{subj}</span>
-                      <span className="text-slate-500 tabular-nums">{v.elaborated} / {v.total}  ({v.total - v.elaborated} pending)</span>
+                      <span className="text-slate-500 tabular-nums">{v.elaborated} / {v.total}  ({v.total - v.elaborated - v.failed} pending{v.failed > 0 && <>, <span className="text-red-600">{v.failed} failed</span></>})</span>
                     </div>
                   ))}
                 </div>
@@ -146,13 +149,13 @@ function Content() {
           <div className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
             {!continuous ? (
               <div className="flex flex-col gap-2">
-                <button onClick={() => runBatch(10)} disabled={running}
+                <button onClick={() => runBatch(3)} disabled={running}
                   className="w-full py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm disabled:opacity-50">
-                  {running ? "Processing…" : "Test run (10 questions)"}
+                  {running ? "Processing…" : "Test run (3 questions)"}
                 </button>
                 <button onClick={startContinuous} disabled={running || (counts?.pending ?? 1) === 0}
                   className="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm disabled:opacity-50">
-                  Start continuous (10 per batch, until done)
+                  Start continuous (3 per batch, until done)
                 </button>
               </div>
             ) : (
