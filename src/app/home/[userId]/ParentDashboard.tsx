@@ -1695,19 +1695,19 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   const sideNavItems: { icon: string; label: string; onClick?: () => void; href?: string; active?: boolean }[] = [
     { icon: "insights", label: "Progress", onClick: () => setActiveView("progress"), active: activeView === "progress" },
+    { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
+    { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
+    { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
     // Admin-only for the first cut. The "Revise work" modal scans
     // the selected student's last 100 papers, surfaces per-subject
     // mistakes, and compiles a review or practice paper out of
-    // them. Mobile lives under Performance Analysis instead of the
-    // bottom bar (which is full).
+    // them. Sits after Set Papers in the side nav. Mobile lives
+    // under Performance Analysis instead of the bottom bar (full).
     ...(isAdminUser ? [{
       icon: "history_edu",
       label: "Revise Work",
       onClick: () => setShowReviseModal(true),
     }] : []),
-    { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
-    { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
-    { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
     { icon: "edit_note", label: "听写", href: `/spelling?userId=${userId}` },
     { icon: "auto_fix_high", label: "Solver", href: `/solver?userId=${userId}` },
   ];
