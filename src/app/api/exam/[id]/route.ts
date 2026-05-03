@@ -115,15 +115,25 @@ export async function PATCH(
     // see "no linked students" even though the parent's clearly
     // working with that student. upsert is idempotent so existing
     // links are no-ops.
+    //
+    // Skip when the assigning user is admin: admin assigns papers
+    // across many students for testing and shouldn't auto-grow link
+    // rows for all of them. Mirrors scripts/backfill-parent-links.ts.
     if (master.userId && master.userId !== studentId) {
-      try {
-        await prisma.parentStudent.upsert({
-          where: { parentId_studentId: { parentId: master.userId, studentId } },
-          update: {},
-          create: { parentId: master.userId, studentId },
-        });
-      } catch (err) {
-        console.warn(`[assign] couldn't auto-link parent=${master.userId} student=${studentId}:`, err);
+      const assigner = await prisma.user.findUnique({
+        where: { id: master.userId },
+        select: { name: true, settings: true },
+      });
+      if (!isAdmin(assigner)) {
+        try {
+          await prisma.parentStudent.upsert({
+            where: { parentId_studentId: { parentId: master.userId, studentId } },
+            update: {},
+            create: { parentId: master.userId, studentId },
+          });
+        } catch (err) {
+          console.warn(`[assign] couldn't auto-link parent=${master.userId} student=${studentId}:`, err);
+        }
       }
     }
 
