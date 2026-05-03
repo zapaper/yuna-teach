@@ -100,22 +100,49 @@ export async function POST(request: NextRequest) {
   // order, which is what the renderer expects).
   const ordered = orderMistakesForRevision(subject, [...chosen, ...companions]);
 
+  // Practice mode: prefer the master question's CURRENT answer key
+  // (and answer image) over the clone's stored copy — admins
+  // sometimes fix master answer keys after a clone has been
+  // generated, and a practice attempt should be graded against the
+  // up-to-date key. Falls back to clone's answer when the master
+  // has been deleted or its answer field is empty. Review mode
+  // keeps the clone's answer because its grading already happened
+  // against that key — re-rendering with a different one would
+  // make the marking notes contradict the displayed answer.
+  const masterAnswerById = new Map<string, { answer: string | null; answerImageData: string | null }>();
+  if (mode === "practice") {
+    const sourceIds = [...new Set(ordered.map((m) => m.sourceQuestionId))];
+    const masters = await prisma.examQuestion.findMany({
+      where: { id: { in: sourceIds } },
+      select: { id: true, answer: true, answerImageData: true },
+    });
+    for (const mq of masters) {
+      masterAnswerById.set(mq.id, { answer: mq.answer, answerImageData: mq.answerImageData });
+    }
+  }
+
   // Each MistakeQuestion already carries the clone's full content
   // (transcribedStem etc.) — that's what the student actually saw,
   // and pulling from the clone preserves any clean-extract that was
   // run after the master was first uploaded. Source content might
   // even be different from what the student saw, so we always
-  // prefer clone content.
+  // prefer clone content for everything except the answer key (see
+  // above).
   type QuestionCreate = Prisma.ExamQuestionCreateWithoutExamPaperInput;
   const questionCreates: QuestionCreate[] = [];
   let i = 0;
   for (const m of ordered) {
     const isReview = mode === "review";
+    const master = masterAnswerById.get(m.sourceQuestionId);
+    // Pull master's answer if it has one (truthy), else fall back
+    // to clone's. Empty-string master answers fall through to
+    // clone too — an empty master key is effectively no key.
+    const useMasterAnswer = !isReview && master && (master.answer || master.answerImageData);
     questionCreates.push({
       questionNum: String(i + 1),
       imageData: m.imageData ?? "",
-      answer: m.answer,
-      answerImageData: m.answerImageData,
+      answer: useMasterAnswer ? (master.answer ?? m.answer) : m.answer,
+      answerImageData: useMasterAnswer ? (master.answerImageData ?? m.answerImageData) : m.answerImageData,
       pageIndex: 0,
       orderIndex: i,
       marksAvailable: m.marksAvailable,
