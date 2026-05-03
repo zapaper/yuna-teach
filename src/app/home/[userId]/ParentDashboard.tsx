@@ -547,9 +547,19 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     e.stopPropagation();
     if (!confirm("Delete this quiz/practice?")) return;
     try {
-      await fetch(`/api/exam/${paperId}?userId=${userId}`, { method: "DELETE" });
+      const res = await fetch(`/api/exam/${paperId}?userId=${userId}`, { method: "DELETE" });
+      if (!res.ok) {
+        // Surface the failure instead of silently dropping the row —
+        // the previous catch-all hid 403s on revision papers etc and
+        // the parent had no idea why nothing changed.
+        const body = await res.text().catch(() => "");
+        alert(`Delete failed (HTTP ${res.status}): ${body || "no message"}`);
+        return;
+      }
       setExamPapers(prev => prev.filter(p => p.id !== paperId));
-    } catch { /* silent */ }
+    } catch (err) {
+      alert(`Delete failed: ${err instanceof Error ? err.message : "network error"}`);
+    }
   }
 
   async function handleRemarkPaper(e: React.MouseEvent, paperId: string) {
@@ -619,7 +629,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // ── Derived metrics ───────────────────────────────────────────────────────
 
   const studentPapers = examPapers.filter(p => p.assignedToId === selectedStudentId);
-  const completedPapers = studentPapers.filter(p => p.completedAt);
+  // Compiled "revise work" papers are a curated set of past mistakes,
+  // not a fresh attempt. Exclude them from completedPapers entirely
+  // so they don't inflate the count or pull on the average. They
+  // still appear elsewhere (recent activities, dedicated section)
+  // for the parent to navigate to.
+  const completedPapers = studentPapers.filter(p => p.completedAt && !p.isRevision);
   const pendingRelease = completedPapers.filter(p => p.markingStatus === "complete");
   const scoredPapers = completedPapers.filter(p => p.score !== null && p.totalMarks && parseFloat(p.totalMarks) > 0);
   const avgScore = scoredPapers.length > 0

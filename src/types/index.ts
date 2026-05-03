@@ -85,6 +85,10 @@ export interface ExamPaperSummary {
   visible: boolean;
   sourceExamId: string | null;
   timeSpentSeconds: number;
+  // True for compiled "revise work" papers (review or practice). Lets
+  // the dashboard exclude them from the completed-paper count and the
+  // average-score numerator.
+  isRevision?: boolean;
 }
 
 export interface ExamCloneSummary {

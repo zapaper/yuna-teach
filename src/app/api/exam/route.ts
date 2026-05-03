@@ -137,6 +137,21 @@ export async function GET(request: NextRequest) {
     },
   });
 
+  // Surface metadata.revisionMode as a top-level boolean — the
+  // dashboard uses this to exclude compiled-revision papers from the
+  // "X completed papers" count and the average-score numerator (a
+  // revision paper IS a curated set of past mistakes; counting it as
+  // a fresh attempt would mislead the parent).
+  const papersWithMeta = await prisma.examPaper.findMany({
+    where: { id: { in: papers.map((p) => p.id) } },
+    select: { id: true, metadata: true },
+  });
+  const revisionFlagById = new Map<string, boolean>();
+  for (const r of papersWithMeta) {
+    const m = r.metadata as { revisionMode?: string } | null;
+    revisionFlagById.set(r.id, !!m?.revisionMode);
+  }
+
   return NextResponse.json({
     papers: papers.map((p) => ({
       id: p.id,
@@ -179,6 +194,7 @@ export async function GET(request: NextRequest) {
       instantFeedback: p.instantFeedback,
       visible: p.visible,
       timeSpentSeconds: p.timeSpentSeconds,
+      isRevision: revisionFlagById.get(p.id) ?? false,
     })),
   });
 }
