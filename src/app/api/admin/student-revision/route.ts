@@ -278,9 +278,14 @@ export async function POST(request: NextRequest) {
   // content (which is why earlier compile-and-set-paper output
   // looked like raw stems — the exam viewer falls back to imageData
   // even when the question carries a clean transcribedStem).
+  //
+  // ?userId=<adminId> is required by the review page's back-link
+  // logic — without it backPath computes to /home/null?... and the
+  // back button errors. The compiler is always the admin, so we use
+  // adminId here.
   const redirectUrl = mode === "review"
-    ? `/exam/${paper.id}/review`
-    : `/quiz/${paper.id}`;
+    ? `/exam/${paper.id}/review?userId=${adminId}`
+    : `/quiz/${paper.id}?userId=${adminId}`;
 
   return NextResponse.json({
     paperId: paper.id,
