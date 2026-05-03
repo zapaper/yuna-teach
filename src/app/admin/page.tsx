@@ -119,6 +119,13 @@ function AdminContent() {
       href: `/admin/answer-steps?userId=${userId}`,
       color: "bg-amber-50 text-amber-600",
     },
+    {
+      icon: "tips_and_updates",
+      label: "Generate Explanation for MCQ",
+      description: "P3–P6 Math + Science MCQ on master papers. Once a master is elaborated, every clone inherits the explanation. Test of 10, then continuous.",
+      href: `/admin/elaborate-mcq?userId=${userId}`,
+      color: "bg-indigo-50 text-indigo-600",
+    },
   ];
 
   return (
