@@ -7,6 +7,7 @@ import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
 import { isAdmin as adminCheck } from "@/lib/admin";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import DocumentScanner from "@/components/DocumentScanner";
+import ReviseWorkModal from "@/components/ReviseWorkModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -241,6 +242,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // modal opens or the student changes (see effect below).
   const [revisionMode, setRevisionMode] = useState(false);
   useEffect(() => { setRevisionMode(false); }, [showQuiz, quizStudentId]);
+  // Revise-Work modal (admin-only). Drives the per-subject mistake
+  // summary + compile flow.
+  const [showReviseModal, setShowReviseModal] = useState(false);
   const [activityLimit, setActivityLimit] = useState(20);
   const [focusedTopic, setFocusedTopic] = useState("");
   const [customTopic, setCustomTopic] = useState("");
@@ -1674,8 +1678,18 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   // ── Desktop nav items ──────────────────────────────────────────────────────
 
-  const sideNavItems = [
+  const sideNavItems: { icon: string; label: string; onClick?: () => void; href?: string; active?: boolean }[] = [
     { icon: "insights", label: "Progress", onClick: () => setActiveView("progress"), active: activeView === "progress" },
+    // Admin-only for the first cut. The "Revise work" modal scans
+    // the selected student's last 100 papers, surfaces per-subject
+    // mistakes, and compiles a review or practice paper out of
+    // them. Mobile lives under Performance Analysis instead of the
+    // bottom bar (which is full).
+    ...(isAdminUser ? [{
+      icon: "history_edu",
+      label: "Revise Work",
+      onClick: () => setShowReviseModal(true),
+    }] : []),
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
@@ -2494,13 +2508,27 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <section>
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="font-headline font-bold text-lg text-[#001e40]">Performance Analysis</h3>
-                  <button
-                    onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
-                    className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-base">bar_chart</span>
-                    Full Report
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Mobile: bottom bar is full so the "Revise Work"
+                        entry lives here, beside Full Report. Admin
+                        only — same gating as the desktop side nav. */}
+                    {isAdminUser && (
+                      <button
+                        onClick={() => setShowReviseModal(true)}
+                        className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-base">history_edu</span>
+                        Revise
+                      </button>
+                    )}
+                    <button
+                      onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
+                      className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">bar_chart</span>
+                      Full Report
+                    </button>
+                  </div>
                 </div>
                 <PerformanceCards />
               </section>
@@ -3523,6 +3551,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           studentName={scannerTarget.studentName}
           paperTitle={scannerTarget.paperTitle}
           onClose={() => { setScannerTarget(null); refreshPapers(); }}
+        />
+      )}
+
+      {/* Revise-Work modal (admin only — gated at the buttons that
+          open it). Auto-targets the currently selected student. */}
+      {showReviseModal && selectedStudent && (
+        <ReviseWorkModal
+          studentId={selectedStudent.id}
+          studentName={selectedStudent.displayName ?? selectedStudent.name}
+          onClose={() => { setShowReviseModal(false); refreshPapers(); }}
         />
       )}
     </div>
