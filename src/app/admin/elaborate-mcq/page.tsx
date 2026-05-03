@@ -185,6 +185,15 @@ function Content() {
                       >
                         Q{r.questionNum} · {r.paperTitle}
                       </a>
+                      <a
+                        href={`/exam/${r.paperId}/edit?userId=${userId}#q-${r.id}`}
+                        target="_blank"
+                        rel="noopener"
+                        className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold hover:bg-slate-200 hover:text-slate-800 shrink-0"
+                        title="Open the raw Edit Q&A view for this question"
+                      >
+                        Edit Q&amp;A
+                      </a>
                       {r.ok
                         ? <span className="text-emerald-600 font-bold">✓</span>
                         : <span className="text-red-600 font-bold">✗ {r.error}</span>}
