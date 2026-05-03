@@ -180,7 +180,7 @@ function Content() {
                         }`}>Lv {r.difficulty}</span>
                       )}
                       <a
-                        href={`/exam/${r.paperId}/edit?userId=${userId}#q-${r.id}`}
+                        href={`/exam/${r.paperId}/transcribe-edit?userId=${userId}#q-${r.id}`}
                         target="_blank"
                         rel="noopener"
                         className="text-slate-500 truncate flex-1 hover:text-slate-800 underline decoration-dotted underline-offset-2"

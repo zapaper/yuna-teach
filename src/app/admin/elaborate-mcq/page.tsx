@@ -177,7 +177,7 @@ function Content() {
                     <div className="flex items-center gap-2">
                       <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold">{r.level}</span>
                       <a
-                        href={`/exam/${r.paperId}/edit?userId=${userId}#q-${r.id}`}
+                        href={`/exam/${r.paperId}/transcribe-edit?userId=${userId}#q-${r.id}`}
                         target="_blank"
                         rel="noopener"
                         className="text-slate-500 truncate flex-1 hover:text-slate-800 underline decoration-dotted underline-offset-2"
