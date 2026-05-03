@@ -94,6 +94,7 @@ export async function POST(
       elaboration: true,
       transcribedStem: true,
       transcribedOptions: true,
+      transcribedOptionImages: true,
       transcribedSubparts: true,
       syllabusTopic: true,
       sourceQuestionId: true,
@@ -109,12 +110,46 @@ export async function POST(
   const isCompClozeQuestion = (question.syllabusTopic ?? "").toLowerCase().includes("comprehension") &&
     (question.syllabusTopic ?? "").toLowerCase().includes("cloze");
 
+  // MCQ detection — same rules as elsewhere in the codebase. The
+  // master question is the canonical home for an MCQ explanation:
+  // every clone of the same master MCQ has the identical question
+  // text, options, and answer key, so the explanation can be
+  // shared. We always check the master first and only call the
+  // model on a true cache miss.
+  const opts = question.transcribedOptions as unknown[] | null;
+  const optImgs = question.transcribedOptionImages as unknown[] | null;
+  const ansLetter = (question.answer ?? "").trim().replace(/[().]/g, "");
+  const isMcq =
+    (Array.isArray(opts) && opts.length === 4) ||
+    (Array.isArray(optImgs) && optImgs.some((o) => !!o)) ||
+    ansLetter === "1" || ansLetter === "2" || ansLetter === "3" || ansLetter === "4";
+
   // Return cached elaboration if available (except Comp Cloze).
   // Cached value may be the new JSON shape ({solution, diagrams}) or
   // the legacy plain-text shape — fall through to plain text on parse
   // failure so old rows still render.
   if (question.elaboration && !isCompClozeQuestion) {
     return NextResponse.json(parseCachedElaboration(question.elaboration));
+  }
+
+  // For MCQ on a clone, fall back to the master's elaboration before
+  // hitting the model. If the master already has one, copy it onto
+  // the clone (so subsequent reads of this exact clone skip the
+  // master lookup) and return immediately.
+  if (isMcq && !isCompClozeQuestion && question.sourceQuestionId) {
+    const master = await prisma.examQuestion.findUnique({
+      where: { id: question.sourceQuestionId },
+      select: { elaboration: true },
+    });
+    if (master?.elaboration) {
+      // Backfill the clone so the next view of this same clone
+      // returns from the cheaper top-of-route check.
+      await prisma.examQuestion.update({
+        where: { id: questionId },
+        data: { elaboration: master.elaboration },
+      });
+      return NextResponse.json(parseCachedElaboration(master.elaboration));
+    }
   }
 
   const isQuiz = question.examPaper?.paperType === "quiz" || question.examPaper?.paperType === "focused";
@@ -302,6 +337,20 @@ If the question image is provided, reference the actual question content.`,
         where: { id: questionId },
         data: { elaboration: cached },
       });
+      // For MCQ on a clone, also write to the master so every other
+      // clone of the same source MCQ inherits the explanation
+      // without re-paying the model. Best-effort — the clone copy
+      // is still authoritative for this request.
+      if (isMcq && question.sourceQuestionId) {
+        try {
+          await prisma.examQuestion.update({
+            where: { id: question.sourceQuestionId },
+            data: { elaboration: cached },
+          });
+        } catch (e) {
+          console.warn(`[elaborate] master backfill failed for ${question.sourceQuestionId}:`, e);
+        }
+      }
     }
 
     return NextResponse.json({ elaboration, diagrams });
