@@ -150,15 +150,12 @@ export async function POST(request: NextRequest) {
     select: { id: true },
   });
 
-  // Compute the dashboard score so the review-mode card shows the
-  // right percentage immediately. Only meaningful for review mode.
-  if (mode === "review") {
-    const awarded = questionCreates.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
-    await prisma.examPaper.update({
-      where: { id: paper.id },
-      data: { score: Math.round((awarded / Math.max(1, totalMarks)) * 100) / 1 },
-    });
-  }
+  // Deliberately leave paper.score null even for review mode. The
+  // revision paper is a compilation of mistakes — showing "0%" or a
+  // very low score on the dashboard makes it look like the student
+  // scored badly on a fresh quiz, when it's actually a curated set
+  // of past errors. scorePct() returns null when score is null and
+  // the card just hides the percentage chip.
 
   const redirectUrl = mode === "review"
     ? `/exam/${paper.id}/review`
