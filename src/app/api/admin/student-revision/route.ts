@@ -73,60 +73,35 @@ export async function POST(request: NextRequest) {
   }
   const ordered = orderMistakesForRevision(subject, mistakes).slice(0, count);
 
-  // Hydrate the source questions — we need the full content (stems,
-  // options, subparts, images, answer keys, marks) to populate the
-  // new paper's question rows.
-  const sourceIds = ordered.map((m) => m.sourceQuestionId);
-  const sources = await prisma.examQuestion.findMany({
-    where: { id: { in: sourceIds } },
-    select: {
-      id: true,
-      questionNum: true,
-      imageData: true,
-      answer: true,
-      answerImageData: true,
-      pageIndex: true,
-      orderIndex: true,
-      yStartPct: true,
-      yEndPct: true,
-      marksAvailable: true,
-      syllabusTopic: true,
-      transcribedStem: true,
-      transcribedOptions: true,
-      transcribedOptionImages: true,
-      transcribedSubparts: true,
-      diagramImageData: true,
-      diagramBounds: true,
-    },
-  });
-  const byId = new Map(sources.map((s) => [s.id, s]));
-
-  // Assemble the question-create payload preserving the ordered list.
+  // Each MistakeQuestion already carries the clone's full content
+  // (transcribedStem etc.) — that's what the student actually saw,
+  // and pulling from the clone preserves any clean-extract that was
+  // run after the master was first uploaded. Source content might
+  // even be different from what the student saw, so we always
+  // prefer clone content.
   type QuestionCreate = Prisma.ExamQuestionCreateWithoutExamPaperInput;
   const questionCreates: QuestionCreate[] = [];
   let i = 0;
   for (const m of ordered) {
-    const src = byId.get(m.sourceQuestionId);
-    if (!src) continue;
     const isReview = mode === "review";
     questionCreates.push({
       questionNum: String(i + 1),
-      imageData: src.imageData,
-      answer: src.answer,
-      answerImageData: src.answerImageData,
+      imageData: m.imageData ?? "",
+      answer: m.answer,
+      answerImageData: m.answerImageData,
       pageIndex: 0,
       orderIndex: i,
-      yStartPct: src.yStartPct,
-      yEndPct: src.yEndPct,
-      marksAvailable: src.marksAvailable ?? m.marksAvailable,
-      syllabusTopic: src.syllabusTopic,
-      transcribedStem: src.transcribedStem,
-      transcribedOptions: (src.transcribedOptions ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-      transcribedOptionImages: (src.transcribedOptionImages ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-      transcribedSubparts: (src.transcribedSubparts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-      diagramImageData: src.diagramImageData,
-      diagramBounds: (src.diagramBounds ?? Prisma.JsonNull) as Prisma.InputJsonValue,
-      sourceQuestionId: src.id,
+      marksAvailable: m.marksAvailable,
+      syllabusTopic: m.syllabusTopic,
+      transcribedStem: m.transcribedStem,
+      transcribedOptions: (m.transcribedOptions ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      transcribedOptionImages: (m.transcribedOptionImages ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      transcribedSubparts: (m.transcribedSubparts ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      diagramImageData: m.diagramImageData,
+      diagramBounds: (m.diagramBounds ?? Prisma.JsonNull) as Prisma.InputJsonValue,
+      // sourceQuestionId points at the master so future re-marking /
+      // cross-paper analytics still trace back correctly.
+      sourceQuestionId: m.sourceQuestionId,
       // Review mode: re-attach the student's prior marking artefacts
       // so the review page renders exactly what the parent saw at
       // grading time.

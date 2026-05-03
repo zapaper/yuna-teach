@@ -122,19 +122,39 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
 // Pull mistake question IDs in the order the revision paper should
 // present them. Used by the create-paper endpoint, separate from the
 // summary path so we don't pay the cost on the first modal render.
+//
+// We carry the CLONE's content (the question the student actually
+// saw, with its clean transcribed text) rather than re-resolving via
+// the source — the clone is what was answered and graded, and copying
+// from the source can lose populated fields (e.g. transcribedStem set
+// on the clone from a clean-extract pass after the master was
+// uploaded).
 export type MistakeQuestion = {
-  // Original (master/clone) question id — the source of the mistake.
+  // Source-question pointer for traceability — what master question
+  // this mistake came from. Stored on the new revision paper as
+  // sourceQuestionId so cross-paper links survive.
   sourceQuestionId: string;
   syllabusTopic: string | null;
   isMcq: boolean;
   isCompOeq: boolean;
-  // The clone-paper this came from, for ordering by recency.
   cloneCompletedAt: Date;
   // Marking artefacts the review-mode paper needs.
   marksAwarded: number;
   marksAvailable: number;
   studentAnswer: string | null;
   markingNotes: string | null;
+  // Question content as the student saw it. transcribedStem can be
+  // null for raw exam-paper-uploaded questions; in that case the
+  // review page falls back to imageData.
+  imageData: string | null;
+  answer: string | null;
+  answerImageData: string | null;
+  transcribedStem: string | null;
+  transcribedOptions: unknown;
+  transcribedOptionImages: unknown;
+  transcribedSubparts: unknown;
+  diagramImageData: string | null;
+  diagramBounds: unknown;
 };
 
 function isMcqQuestion(opts: unknown, optImgs: unknown, answer: string | null): boolean {
@@ -181,9 +201,18 @@ export async function fetchMistakeQuestions(
           markingNotes: true,
           syllabusTopic: true,
           sourceQuestionId: true,
+          // Pull the full content the student saw — this gets copied
+          // straight onto the revision paper so the review render
+          // matches the original quiz/practice render.
+          imageData: true,
+          answer: true,
+          answerImageData: true,
+          transcribedStem: true,
           transcribedOptions: true,
           transcribedOptionImages: true,
-          answer: true,
+          transcribedSubparts: true,
+          diagramImageData: true,
+          diagramBounds: true,
         },
       },
     },
@@ -215,6 +244,15 @@ export async function fetchMistakeQuestions(
         marksAvailable: q.marksAvailable,
         studentAnswer: q.studentAnswer,
         markingNotes: q.markingNotes,
+        imageData: q.imageData,
+        answer: q.answer,
+        answerImageData: q.answerImageData,
+        transcribedStem: q.transcribedStem,
+        transcribedOptions: q.transcribedOptions,
+        transcribedOptionImages: q.transcribedOptionImages,
+        transcribedSubparts: q.transcribedSubparts,
+        diagramImageData: q.diagramImageData,
+        diagramBounds: q.diagramBounds,
       });
     }
   }

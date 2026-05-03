@@ -2506,27 +2506,31 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <AiInsightCard />
 
               <section>
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="font-headline font-bold text-lg text-[#001e40]">Performance Analysis</h3>
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-5">
+                  <h3 className="font-headline font-bold text-lg text-[#001e40] shrink-0">Performance Analysis</h3>
+                  <div className="flex items-center gap-2 shrink-0">
                     {/* Mobile: bottom bar is full so the "Revise Work"
                         entry lives here, beside Full Report. Admin
-                        only — same gating as the desktop side nav. */}
+                        only — same gating as the desktop side nav.
+                        Icon-only on the narrowest phones so both
+                        chips fit on one row beside the heading. */}
                     {isAdminUser && (
                       <button
                         onClick={() => setShowReviseModal(true)}
-                        className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                        title="Revise work — compile recent mistakes"
+                        className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-3 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
                       >
                         <span className="material-symbols-outlined text-base">history_edu</span>
-                        Revise
+                        <span>Revise</span>
                       </button>
                     )}
                     <button
                       onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
-                      className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-4 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                      title="Full performance report"
+                      className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-3 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
                     >
                       <span className="material-symbols-outlined text-base">bar_chart</span>
-                      Full Report
+                      <span>Report</span>
                     </button>
                   </div>
                 </div>
