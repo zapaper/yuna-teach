@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { markExamPaper, markFocusedTest } from "@/lib/marking";
+import { bumpUserActivity } from "@/lib/track-activity";
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -90,6 +91,12 @@ export async function POST(
 
   const formData = await request.formData();
   const action = formData.get("action") as string;
+
+  // Bump the assigned student's "last active" stamp — submission is
+  // the strongest signal a student is currently using the app.
+  prisma.examPaper.findUnique({ where: { id }, select: { assignedToId: true } })
+    .then((p) => bumpUserActivity(p?.assignedToId ?? null))
+    .catch(() => { /* non-fatal */ });
 
   const dir = submissionDir(id);
   await ensureDir(dir);
