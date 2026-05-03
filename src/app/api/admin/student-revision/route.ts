@@ -4,7 +4,7 @@ import path from "path";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
-import { fetchMistakeQuestions, orderMistakesForRevision, type SubjectKey } from "@/lib/revision";
+import { fetchMistakeQuestions, orderMistakesForRevision, fetchPassageCompanions, type SubjectKey } from "@/lib/revision";
 
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
@@ -83,7 +83,22 @@ export async function POST(request: NextRequest) {
   if (mistakes.length === 0) {
     return NextResponse.json({ error: "no mistakes found for this subject" }, { status: 404 });
   }
-  const ordered = orderMistakesForRevision(subject, mistakes).slice(0, count);
+  // Pick the N mistakes the parent asked for, then (English review
+  // only) pad each implicated passage section with the
+  // right-answered companions so the cloze renderer fills every
+  // blank — wrong ones in red, companions in green using the
+  // student's own correct answer. Companions don't count against
+  // the slider. Practice mode skips this — it should give the
+  // student a clean re-attempt of just the mistakes, not a
+  // mixture they've already aced.
+  const chosen = orderMistakesForRevision(subject, mistakes).slice(0, count);
+  const companions = (subject === "english" && mode === "review")
+    ? await fetchPassageCompanions(chosen)
+    : [];
+  // Re-order so each section group stays contiguous and sorted by
+  // source orderIndex (mistakes + companions interleaved in passage
+  // order, which is what the renderer expects).
+  const ordered = orderMistakesForRevision(subject, [...chosen, ...companions]);
 
   // Each MistakeQuestion already carries the clone's full content
   // (transcribedStem etc.) — that's what the student actually saw,
@@ -294,7 +309,10 @@ export async function POST(request: NextRequest) {
 
       if (Object.keys(newOeqPageMap).length > 0) {
         // Merge into the existing metadata so we don't clobber
-        // revisionMode / compiledAt / etc.
+        // revisionMode / compiledAt / englishSections / etc. The
+        // create above already wrote englishSections for English
+        // papers; this update preserves it by re-applying the
+        // same value rather than re-deriving.
         await prisma.examPaper.update({
           where: { id: paper.id },
           data: {
@@ -304,6 +322,7 @@ export async function POST(request: NextRequest) {
               compiledAt: new Date().toISOString(),
               compiledBy: adminId,
               oeqPageMap: newOeqPageMap,
+              ...(englishSectionsMeta.length > 0 ? { englishSections: englishSectionsMeta } : {}),
             },
           },
         });

@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
         },
         select: {
           subject: true,
+          metadata: true,
           questions: { select: { syllabusTopic: true, marksAwarded: true, marksAvailable: true } },
         },
       }),
@@ -83,6 +84,10 @@ export async function GET(req: NextRequest) {
 
     const topicPerf: Record<string, Record<string, { earned: number; available: number }>> = {};
     for (const paper of markedPapers) {
+      // Skip revision papers (curated past mistakes) — counting them
+      // would double-count those mistakes and skew weak-topic gaps.
+      const meta = paper.metadata as { revisionMode?: string } | null;
+      if (meta?.revisionMode) continue;
       const subj = paper.subject ?? "Unknown";
       if (!topicPerf[subj]) topicPerf[subj] = {};
       for (const q of paper.questions) {

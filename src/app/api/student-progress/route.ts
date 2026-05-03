@@ -22,8 +22,12 @@ export async function GET(request: NextRequest) {
     select: { id: true, name: true },
   });
 
-  // Get all marked papers for this student (clones + focused tests)
-  const papers = await prisma.examPaper.findMany({
+  // Get all marked papers for this student (clones + focused tests).
+  // Revision papers (metadata.revisionMode set) are filtered out
+  // below — they're a curated set of the student's past mistakes,
+  // so counting them here would double-count those mistakes and
+  // make weak-topic averages drop artificially.
+  const allPapers = await prisma.examPaper.findMany({
     where: {
       assignedToId: studentId,
       markingStatus: { in: ["complete", "released"] },
@@ -35,6 +39,7 @@ export async function GET(request: NextRequest) {
       subject: true,
       sourceExamId: true,
       completedAt: true,
+      metadata: true,
       questions: {
         select: {
           questionNum: true,
@@ -44,6 +49,10 @@ export async function GET(request: NextRequest) {
         },
       },
     },
+  });
+  const papers = allPapers.filter((p) => {
+    const meta = p.metadata as { revisionMode?: string } | null;
+    return !meta?.revisionMode;
   });
 
   // Collect all source exam IDs so we can look up master question tags

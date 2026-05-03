@@ -162,6 +162,10 @@ export type MistakeQuestion = {
   // into its own submissions directory.
   cloneQuestionId: string;
   cloneExamPaperId: string;
+  // Position of this question within the source clone. Used to keep
+  // companions (right-answered passage neighbours) and mistakes in
+  // passage-marker order when a revision-paper section is rendered.
+  sourceOrderIndex: number;
   syllabusTopic: string | null;
   isMcq: boolean;
   isCompOeq: boolean;
@@ -193,6 +197,11 @@ export type MistakeQuestion = {
   // should sit in one section of the revision paper.
   englishSection?: EnglishSectionInfo;
   sourceSectionKey?: string;
+  // Companion questions are right-answered passage neighbours we
+  // pull in alongside the mistakes so the cloze renderer can fill
+  // every blank (mistakes in red, companions in green). They count
+  // for rendering only — not for the slider count.
+  isCompanion?: boolean;
 };
 
 function isMcqQuestion(opts: unknown, optImgs: unknown, answer: string | null): boolean {
@@ -309,6 +318,7 @@ export async function fetchMistakeQuestions(
         sourceQuestionId: q.sourceQuestionId,
         cloneQuestionId: q.id,
         cloneExamPaperId: p.id,
+        sourceOrderIndex: q.orderIndex,
         syllabusTopic: q.syllabusTopic,
         isMcq: isMcqQuestion(q.transcribedOptions, q.transcribedOptionImages, q.answer),
         isCompOeq: isCompOeq(q.syllabusTopic),
@@ -353,7 +363,9 @@ export function orderMistakesForRevision(
   // English: group by sourceSectionKey when available so questions
   // from the same source clone-section stay together (they share a
   // passage). Comp-OEQ groups go last. Sections without a source key
-  // fall back to syllabusTopic grouping.
+  // fall back to syllabusTopic grouping. Within each group sort by
+  // sourceOrderIndex so passage markers (1), (2), (3)… line up with
+  // the question rows the renderer maps to them.
   const groups = new Map<string, MistakeQuestion[]>();
   const compOeqGroups = new Map<string, MistakeQuestion[]>();
   for (const q of qs) {
@@ -363,8 +375,135 @@ export function orderMistakesForRevision(
     if (arr) arr.push(q);
     else target.set(key, [q]);
   }
+  const sortBySrc = (arr: MistakeQuestion[]) =>
+    arr.sort((a, b) => a.sourceOrderIndex - b.sourceOrderIndex);
   const out: MistakeQuestion[] = [];
-  for (const arr of groups.values()) out.push(...arr);
-  for (const arr of compOeqGroups.values()) out.push(...arr);
+  for (const arr of groups.values()) out.push(...sortBySrc(arr));
+  for (const arr of compOeqGroups.values()) out.push(...sortBySrc(arr));
+  return out;
+}
+
+// For each English passage section already represented in `chosen`,
+// pull in the right-answered neighbour questions so the cloze
+// renderer can paint every blank — mistakes in red, companions in
+// green using the student's own (correct) answer. Without these the
+// review fills the green-blank slots with whichever wrong answer
+// happens to be next in the section, because the renderer uses
+// position-based marker→question mapping.
+//
+// Companions only ride along — the slider's `count` controls how
+// many MISTAKES the parent wants. The total question count on the
+// resulting paper is mistakes + companions.
+export async function fetchPassageCompanions(
+  chosen: MistakeQuestion[],
+): Promise<MistakeQuestion[]> {
+  // Group chosen mistakes by source-clone-section. Only sections
+  // that have a passage attached benefit from the companion fill;
+  // non-passage sections render question-by-question so right
+  // answers from elsewhere in the paper would just be noise.
+  type SectionKeyInfo = {
+    cloneId: string;
+    sectionPos: number;
+    knownIds: Set<string>;
+    sample: MistakeQuestion;
+  };
+  const bySection = new Map<string, SectionKeyInfo>();
+  for (const q of chosen) {
+    if (!q.sourceSectionKey || !q.englishSection?.passage) continue;
+    const [cloneId, sectionPosStr] = q.sourceSectionKey.split("::");
+    const sectionPos = parseInt(sectionPosStr, 10);
+    if (Number.isNaN(sectionPos)) continue;
+    let info = bySection.get(q.sourceSectionKey);
+    if (!info) {
+      info = { cloneId, sectionPos, knownIds: new Set(), sample: q };
+      bySection.set(q.sourceSectionKey, info);
+    }
+    info.knownIds.add(q.cloneQuestionId);
+  }
+  if (bySection.size === 0) return [];
+
+  // Pull each implicated source clone with its full question list +
+  // englishSections metadata so we can pick the [start..end] range
+  // of each section.
+  const cloneIds = [...new Set([...bySection.values()].map((s) => s.cloneId))];
+  const clones = await prisma.examPaper.findMany({
+    where: { id: { in: cloneIds } },
+    select: {
+      id: true,
+      completedAt: true,
+      metadata: true,
+      questions: {
+        select: {
+          id: true,
+          orderIndex: true,
+          marksAwarded: true,
+          marksAvailable: true,
+          studentAnswer: true,
+          markingNotes: true,
+          syllabusTopic: true,
+          sourceQuestionId: true,
+          imageData: true,
+          answer: true,
+          answerImageData: true,
+          transcribedStem: true,
+          transcribedOptions: true,
+          transcribedOptionImages: true,
+          transcribedSubparts: true,
+          diagramImageData: true,
+          diagramBounds: true,
+        },
+      },
+    },
+  });
+
+  type RawSection = { label: string; startIndex: number; endIndex: number; passage?: string };
+  const out: MistakeQuestion[] = [];
+  for (const info of bySection.values()) {
+    const clone = clones.find((c) => c.id === info.cloneId);
+    if (!clone) continue;
+    const englishSections: RawSection[] =
+      ((clone.metadata as { englishSections?: RawSection[] } | null)?.englishSections ?? []);
+    const sec = englishSections[info.sectionPos];
+    if (!sec) continue;
+
+    for (const q of clone.questions) {
+      // Companion = same source-clone-section, not already in
+      // mistakes, and the student got it right (full marks). Skip
+      // questions without a sourceQuestionId so the create path
+      // doesn't choke on the missing pointer.
+      if (q.orderIndex < sec.startIndex || q.orderIndex > sec.endIndex) continue;
+      if (info.knownIds.has(q.id)) continue;
+      if (!q.sourceQuestionId) continue;
+      if (q.marksAwarded == null || q.marksAvailable == null) continue;
+      if (q.marksAwarded < q.marksAvailable) continue;
+
+      out.push({
+        sourceQuestionId: q.sourceQuestionId,
+        cloneQuestionId: q.id,
+        cloneExamPaperId: clone.id,
+        sourceOrderIndex: q.orderIndex,
+        syllabusTopic: q.syllabusTopic,
+        isMcq: isMcqQuestion(q.transcribedOptions, q.transcribedOptionImages, q.answer),
+        isCompOeq: isCompOeq(q.syllabusTopic),
+        cloneCompletedAt: clone.completedAt!,
+        marksAwarded: q.marksAwarded,
+        marksAvailable: q.marksAvailable,
+        studentAnswer: q.studentAnswer,
+        markingNotes: q.markingNotes,
+        imageData: q.imageData,
+        answer: q.answer,
+        answerImageData: q.answerImageData,
+        transcribedStem: q.transcribedStem,
+        transcribedOptions: q.transcribedOptions,
+        transcribedOptionImages: q.transcribedOptionImages,
+        transcribedSubparts: q.transcribedSubparts,
+        diagramImageData: q.diagramImageData,
+        diagramBounds: q.diagramBounds,
+        englishSection: { label: sec.label, ...(sec.passage ? { passage: sec.passage } : {}) },
+        sourceSectionKey: `${clone.id}::${info.sectionPos}`,
+        isCompanion: true,
+      });
+    }
+  }
   return out;
 }
