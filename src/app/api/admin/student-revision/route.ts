@@ -272,9 +272,15 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Both modes are paperType='quiz', so the practice flow goes to
+  // the quiz player (/quiz/[id]) — the /exam/[id] route is the
+  // printable-paper PDF viewer and doesn't know how to render quiz
+  // content (which is why earlier compile-and-set-paper output
+  // looked like raw stems — the exam viewer falls back to imageData
+  // even when the question carries a clean transcribedStem).
   const redirectUrl = mode === "review"
     ? `/exam/${paper.id}/review`
-    : `/exam/${paper.id}`;
+    : `/quiz/${paper.id}`;
 
   return NextResponse.json({
     paperId: paper.id,
