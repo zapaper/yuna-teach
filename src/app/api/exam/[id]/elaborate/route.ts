@@ -276,13 +276,15 @@ export async function POST(
               ? " Reference the visual text content to explain why the answer is correct."
               : "";
 
+    const hasDiagramHere = !!question.diagramImageData;
+    const answerAnchor = `**The answer is ${question.answer ?? "Not provided"} — this is the official answer key and is authoritative.**${hasDiagramHere ? " The question contains a diagram which may be hard to read precisely from the image alone — when in doubt, trust the answer key over your reading of the diagram and work backwards to justify it." : ""} Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine and explain how the official answer is reached.`;
     parts.push({
       text: `You are a helpful tutor for a primary/secondary school student.
 
 Here is the question:
 ${questionText}
 ${visualTextNote}${passageNote}
-Correct answer: ${question.answer ?? "Not provided"}${studentAnswerNote}
+${answerAnchor}${studentAnswerNote}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${sectionHint}
 
@@ -298,13 +300,14 @@ ${COMMON_DIAGRAM_RULES}`,
       const match = question.imageData.match(/^data:(image\/\w+);base64,(.+)$/);
       if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
     }
+    const answerAnchor2 = `**The answer is ${question.answer ?? "Not provided"} — this is the official answer key and is authoritative.** The image you're shown may include diagrams that are hard to read precisely — when in doubt, trust the answer key over your reading of the image and work backwards to justify it. Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine and explain how the official answer is reached.`;
     parts.push({
       text: `You are a helpful tutor for a primary/secondary school student.
 
 Here is an exam question the student needs help with.
 
 Question number: ${question.questionNum}
-Correct answer: ${question.answer ?? "Not provided"}
+${answerAnchor2}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 

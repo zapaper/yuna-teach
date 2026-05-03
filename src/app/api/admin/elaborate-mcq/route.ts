@@ -179,13 +179,16 @@ export async function POST(request: NextRequest) {
       const match = q.diagramImageData.match(/^data:(image\/\w+);base64,(.+)$/);
       if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
     }
+    const hasDiagram = !!q.diagramImageData;
+    const answerAnchor = `**The answer is ${q.answer ?? "Not provided"} — this is the official answer key and is authoritative.**${hasDiagram ? " The question contains a diagram which may be hard to read precisely from the image alone — when in doubt, trust the answer key over your reading of the diagram and work backwards to justify it." : ""} Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine the question text and answer key, then explain how the official answer is reached.`;
+
     parts.push({
       text: `You are a helpful tutor for a primary school student.
 
 Here is the question:
 ${questionText}
 
-Correct answer: ${q.answer ?? "Not provided"}
+${answerAnchor}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
