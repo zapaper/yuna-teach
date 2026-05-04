@@ -2264,17 +2264,31 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const partStatusMap: Record<string, PartStatus> = {};
                                 const sectionRe = /(?:^|\s|\|)\(?([a-z])\)\s*:?/gi;
                                 const sectionMatches = [...notes.matchAll(sectionRe)].filter(m => spLabels.includes(m[1].toLowerCase()));
+                                // Same letter (e.g. "(a)") may appear multiple
+                                // times in the notes (Detected echo, Final
+                                // answer echo, Part (a): grading section).
+                                // Only the grading section actually carries
+                                // the marks; the others are working text.
+                                // Each pattern below decides for THAT slice
+                                // and the LATEST decisive pattern wins.
                                 for (let i = 0; i < sectionMatches.length; i++) {
                                   const m = sectionMatches[i];
                                   const label = m[1].toLowerCase();
                                   const start = m.index! + m[0].length;
                                   const end = i + 1 < sectionMatches.length ? sectionMatches[i + 1].index! : notes.length;
                                   const section = notes.slice(start, end);
-                                  // Pattern A: "X out of Y" / "X/Y marks" — most reliable
-                                  const outOfMatch = section.match(/(\d+(?:\.\d+)?)\s*(?:\/|\bout of\b|\bof\b)\s*(\d+(?:\.\d+)?)/i);
+                                  // Pattern A: explicit mark indicator —
+                                  //   "X/Y marks", "X out of Y marks", "X marks out of Y".
+                                  // Tight: "marks?" must appear next to the
+                                  // X/Y so we don't latch onto unrelated
+                                  // ratios like "2 of 3 answers" or fractions
+                                  // like "2/3 of the area" in working text.
+                                  const outOfMatch = section.match(
+                                    /(\d+(?:\.\d+)?)\s*marks?\s+out of\s+(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*(?:\/|\s+out of\s+)\s*(\d+(?:\.\d+)?)\s*marks?\b/i,
+                                  );
                                   if (outOfMatch) {
-                                    const awarded = parseFloat(outOfMatch[1]);
-                                    const available = parseFloat(outOfMatch[2]);
+                                    const awarded = parseFloat(outOfMatch[1] ?? outOfMatch[3]);
+                                    const available = parseFloat(outOfMatch[2] ?? outOfMatch[4]);
                                     partStatusMap[label] = awarded === 0 ? "none" : awarded >= available ? "full" : "partial";
                                     continue;
                                   }
@@ -2283,9 +2297,14 @@ function ExamReviewContent({ id }: { id: string }) {
                                     partStatusMap[label] = "partial";
                                     continue;
                                   }
-                                  // Pattern C: "Awarded N marks" — compare to the
-                                  // per-subpart available marks if we have them.
-                                  // A fractional awarded (e.g. 1.5) is partial too.
+                                  // Pattern C: "Awarded N marks" — compare to
+                                  // the per-subpart available marks if we
+                                  // have them. A fractional awarded (e.g.
+                                  // 1.5) is partial too. No avail → "full"
+                                  // on positive marks (matches the old
+                                  // behaviour, so a missing [N] suffix on
+                                  // the subpart text doesn't downgrade
+                                  // genuinely-correct answers to red).
                                   const marksMatch = section.match(/(\d+(?:\.\d+)?)\s*marks?\b/i);
                                   if (marksMatch) {
                                     const awarded = parseFloat(marksMatch[1]);
@@ -2295,12 +2314,16 @@ function ExamReviewContent({ id }: { id: string }) {
                                     if (avail != null) {
                                       partStatusMap[label] = awarded >= avail ? "full" : "partial";
                                     } else {
-                                      // No per-subpart available — fall back to "full" on positive marks.
                                       partStatusMap[label] = "full";
                                     }
                                     continue;
                                   }
-                                  // Fall back to keyword detection
+                                  // Keyword fallbacks — only run when neither
+                                  // an "X/Y marks" nor an "Awarded N marks"
+                                  // pattern matched, so a grading section
+                                  // that mentions "incorrect calculations"
+                                  // alongside "Awarded 2 marks" still wins
+                                  // via Pattern C.
                                   if (/\b(no answer|blank|not provided|no written|did not|missing)\b/i.test(section)) {
                                     partStatusMap[label] = "none";
                                     continue;
