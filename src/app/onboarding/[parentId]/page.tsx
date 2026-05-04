@@ -388,9 +388,14 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
           <div style={{ animation: "popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>
             <p className="text-sm font-bold text-[#003366] mb-3 uppercase tracking-wider">Last step</p>
             <h2 className="font-headline font-extrabold text-2xl text-[#001e40] leading-snug mb-3">Set up your child&apos;s login</h2>
-            <p className="text-sm text-[#43474f] leading-relaxed mb-6">
+            <p className="text-sm text-[#43474f] leading-relaxed mb-3">
               Pick a username and password your child will use to log in to MarkForYou.
             </p>
+            <div className="mb-6 px-4 py-3 rounded-2xl bg-[#fff8e1] border-2 border-[#ffb952]/40">
+              <p className="text-sm text-[#001e40] leading-relaxed">
+                <span className="font-extrabold">Your child gets their own account, separate from yours.</span> They&apos;ll log in with the username and password you set below — please don&apos;t share your parent login with them.
+              </p>
+            </div>
             <form onSubmit={submitStudent} className="flex flex-col gap-4" autoComplete="off">
               <div>
                 <label className="text-xs font-semibold text-[#001e40] mb-1.5 block ml-1">Child&apos;s username</label>
@@ -560,6 +565,14 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             >
               Or, you can email a scanned recent test for our AI to diagnose. <span className="underline font-semibold">Tap for details.</span>
             </button>
+            {/* Final reminder: parent vs student accounts are
+                deliberately separate. Reinforces the note shown on
+                the student-creation step so it sticks. */}
+            <div className="mt-6 px-4 py-3 rounded-2xl bg-[#eff4ff] border-2 border-[#dce9ff]">
+              <p className="text-xs text-[#001e40] leading-relaxed">
+                <span className="font-extrabold">Reminder:</span> your child has their own student login (the username and password you just set). It&apos;s separate from yours so progress, scores, and rewards are tracked just for them — and so they don&apos;t accidentally see your dashboard. Always sign in with each account&apos;s own credentials.
+              </p>
+            </div>
           </div>
         ) : done ? (
           <div className="text-center" style={{ animation: "popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both" }}>

@@ -259,6 +259,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [badgeToast, setBadgeToast] = useState(false);
   const [adminNotifs, setAdminNotifs] = useState<Array<{ questionId: string; questionNum: string; adminReply: string; paperTitle: string }>>([]);
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
+  // First-visit reminder: students often share an account with their
+  // parent and don't realise theirs is separate. Show a one-time
+  // popup making the split explicit. Tracked per-user in
+  // localStorage so it doesn't reappear on every reload.
+  const [showAccountInfo, setShowAccountInfo] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkTab, setLinkTab] = useState<"share" | "enter">("share");
   const [myCode, setMyCode] = useState<string | null>(null);
@@ -462,6 +467,18 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         if (data.length > 0) { setAdminNotifs(data); setShowAdminNotifs(true); }
       })
       .catch(() => {});
+  }, [userId]);
+
+  // First-visit account-info popup. Show once per student. We
+  // delay slightly so it doesn't clash with an admin-reply popup
+  // landing in the same tick.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seenKey = `mfy_studentAccountInfoSeen_${userId}`;
+    const alreadySeen = window.localStorage.getItem(seenKey) === "1";
+    if (alreadySeen) return;
+    const t = setTimeout(() => setShowAccountInfo(true), 600);
+    return () => clearTimeout(t);
   }, [userId]);
 
   // `name` is the immutable login username; `displayName` is the
@@ -963,6 +980,38 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {savingAvatar ? "Saving..." : "Confirm"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* First-visit reminder: parent vs student accounts are separate */}
+      {showAccountInfo && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#003366] flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-lg">info</span>
+              </div>
+              <h3 className="font-headline font-extrabold text-[#001e40]">Welcome, {displayName.split(" ")[0]}!</h3>
+            </div>
+            <div className="space-y-3">
+              <p className="text-sm text-[#0b1c30] leading-relaxed">
+                <span className="font-extrabold">This is your own account — separate from your parent&apos;s.</span> The papers and quizzes here are just for you, and your scores stay private to you and your parent.
+              </p>
+              <p className="text-sm text-[#43474f] leading-relaxed">
+                Your parent has their own login to assign work and track your progress. Always log in with <span className="font-bold text-[#001e40]">your</span> username and password — not your parent&apos;s.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setShowAccountInfo(false);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(`mfy_studentAccountInfoSeen_${userId}`, "1");
+                }
+              }}
+              className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold">
+              Got it
+            </button>
           </div>
         </div>
       )}
