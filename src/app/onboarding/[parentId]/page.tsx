@@ -537,6 +537,9 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
                     {pickerSubject === "english" ? "MCQ + Cloze" : "MCQ + written"}
                   </button>
                 </div>
+                {pickerType === "mcq-oeq" && pickerSubject !== "english" && (
+                  <p className="text-[11px] text-[#43474f] mt-1.5 ml-1">Stylus recommended</p>
+                )}
               </div>
             </div>
             <button
@@ -565,12 +568,11 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
             >
               Or, you can email a scanned recent test for our AI to diagnose. <span className="underline font-semibold">Tap for details.</span>
             </button>
-            {/* Final reminder: parent vs student accounts are
-                deliberately separate. Reinforces the note shown on
-                the student-creation step so it sticks. */}
+            {/* Final reminder — short by design; the longer explanation
+                lives on the student-creation step. */}
             <div className="mt-6 px-4 py-3 rounded-2xl bg-[#eff4ff] border-2 border-[#dce9ff]">
               <p className="text-xs text-[#001e40] leading-relaxed">
-                <span className="font-extrabold">Reminder:</span> your child has their own student login (the username and password you just set). It&apos;s separate from yours so progress, scores, and rewards are tracked just for them — and so they don&apos;t accidentally see your dashboard. Always sign in with each account&apos;s own credentials.
+                <span className="font-extrabold">Reminder:</span> your child has their own student login you just set.
               </p>
             </div>
           </div>
