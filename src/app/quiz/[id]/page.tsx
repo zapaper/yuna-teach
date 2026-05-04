@@ -362,6 +362,21 @@ function QuizContent({ id }: { id: string }) {
 
   function selectMcqAnswer(questionId: string, option: string) {
     setMcqAnswers(prev => ({ ...prev, [questionId]: option }));
+    // Persist to server on every click so a tab close, refresh, or
+    // submit-time state loss can't drop the answer. We saw a real
+    // case where 5 MCQ landed in the DB with studentAnswer=null
+    // even though the student clicked — likely an in-memory state
+    // wipe between click and submit. Fire-and-forget; the UI
+    // already shows the selection from local state.
+    const q = paper?.questions.find(qq => qq.id === questionId);
+    if (!q) return;
+    const correctLetter = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
+    const marksAwarded = option === correctLetter ? (q.marksAvailable ?? 1) : 0;
+    fetch(`/api/exam/questions/${questionId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ studentAnswer: option, marksAwarded }),
+    }).catch(err => console.warn("[quiz] MCQ persist failed:", err));
   }
 
   async function handleSaveProgress() {
@@ -476,16 +491,27 @@ function QuizContent({ id }: { id: string }) {
       }
       setMcqScore({ correct, total: unskippedMcq.length, marksEarned, marksTotal });
 
-      // Save MCQ answers to DB via PATCH
+      // Save MCQ answers to DB via PATCH. Each click already persists
+      // to the server (see selectMcqAnswer), so we only PATCH here
+      // when the in-memory state actually has the answer — if state
+      // got wiped between clicks and submit, we DON'T overwrite the
+      // server's already-saved value with null.
       await Promise.all(
         mcqQuestions.map(q => {
           const isSkipped = skippedIds.has(q.id);
+          const stateAnswer = mcqAnswers[q.id];
+          if (!isSkipped && !stateAnswer) {
+            // No state — server already has the per-click value,
+            // leave it alone. This is the safety net for the
+            // "clicked but lost-state-on-submit" case.
+            return Promise.resolve();
+          }
           return fetch(`/api/exam/questions/${q.id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              studentAnswer: isSkipped ? "__SKIPPED__" : (mcqAnswers[q.id] || null),
-              marksAwarded: isSkipped ? null : (mcqAnswers[q.id] === (q.answer ?? "").trim().replace(/[().]/g, "").trim() ? (q.marksAvailable ?? 1) : 0),
+              studentAnswer: isSkipped ? "__SKIPPED__" : stateAnswer,
+              marksAwarded: isSkipped ? null : (stateAnswer === (q.answer ?? "").trim().replace(/[().]/g, "").trim() ? (q.marksAvailable ?? 1) : 0),
             }),
           });
         })

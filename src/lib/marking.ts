@@ -5,6 +5,34 @@ import { GoogleGenAI } from "@google/genai";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 
+// Re-run a marker on transient failure (Gemini timeout / 504 /
+// rate limit / network blip). Each marker has its own try/catch
+// that writes markingStatus="failed" and exits — this wrapper
+// polls that status after each attempt and re-runs if needed,
+// without touching the marker body. Each retry: the marker sets
+// "in_progress" at its start (overwrites the previous "failed")
+// and re-fetches the paper, so there's no half-saved state to
+// reconcile.
+const MAX_MARK_ATTEMPTS = 3;
+const MARK_RETRY_DELAYS_MS = [30_000, 60_000]; // before attempt 2, then before attempt 3
+async function withMarkRetry(label: string, paperId: string, fn: () => Promise<void>): Promise<void> {
+  for (let attempt = 1; attempt <= MAX_MARK_ATTEMPTS; attempt++) {
+    await fn();
+    const after = await prisma.examPaper.findUnique({
+      where: { id: paperId },
+      select: { markingStatus: true },
+    });
+    if (after?.markingStatus !== "failed") return; // success or in-progress (other writer)
+    if (attempt >= MAX_MARK_ATTEMPTS) {
+      console.error(`[${label}] ${paperId} still failed after ${attempt} attempts — giving up`);
+      return;
+    }
+    const delay = MARK_RETRY_DELAYS_MS[attempt - 1] ?? 60_000;
+    console.warn(`[${label}] ${paperId} attempt ${attempt}/${MAX_MARK_ATTEMPTS} failed, retrying in ${delay}ms`);
+    await new Promise((r) => setTimeout(r, delay));
+  }
+}
+
 /**
  * Isolate blue ink and thicken strokes using Sharp + raw pixel manipulation.
  * Used for MCQ answer "1" which is a thin vertical stroke easily missed by AI.
@@ -948,6 +976,10 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
 }
 
 export async function markExamPaper(paperId: string): Promise<void> {
+  return withMarkRetry("marking", paperId, () => _markExamPaperOnce(paperId));
+}
+
+async function _markExamPaperOnce(paperId: string): Promise<void> {
   console.log(`[marking] Starting markExamPaper for paper ${paperId}`);
   await prisma.examPaper.update({
     where: { id: paperId },
@@ -2085,6 +2117,10 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
  * OEQ questions are marked via AI using their submission drawings.
  */
 export async function markQuizPaper(paperId: string): Promise<void> {
+  return withMarkRetry("quiz-marking", paperId, () => _markQuizPaperOnce(paperId));
+}
+
+async function _markQuizPaperOnce(paperId: string): Promise<void> {
   console.log(`[quiz-marking] Starting for ${paperId}`);
 
   try {
