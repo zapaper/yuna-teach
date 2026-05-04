@@ -42,28 +42,50 @@ function Content() {
   const runBatch = useCallback(async (limit: number) => {
     setRunning(true);
     setError(null);
+    console.log(`[elaborate-mcq] POST /api/admin/elaborate-mcq limit=${limit} excludeIds=${failedIdsRef.current.size}`);
     try {
       const res = await fetch("/api/admin/elaborate-mcq", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ limit, excludeIds: [...failedIdsRef.current] }),
       });
-      const data = await res.json();
+      console.log(`[elaborate-mcq] HTTP ${res.status}`);
+      // Read body as text first so we can show the actual response
+      // when the server sends an HTML error page (Vercel timeout /
+      // 502 / etc.) instead of JSON. Parsing JSON on those throws
+      // silently and the button just resets without any visible
+      // explanation.
+      const raw = await res.text();
+      let data: { error?: string; results?: ResultRow[]; updated?: number; totalRemaining?: number } = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        const snippet = raw.slice(0, 200).replace(/\s+/g, " ").trim();
+        setError(`HTTP ${res.status} — server returned non-JSON: ${snippet || "(empty body)"}`);
+        console.error("[elaborate-mcq] non-JSON response:", raw);
+        return;
+      }
       if (!res.ok) {
-        setError(data.error ?? "Batch failed");
+        setError(data.error ?? `HTTP ${res.status}`);
         return;
       }
       for (const r of (data.results ?? []) as ResultRow[]) {
         if (!r.ok) failedIdsRef.current.add(r.id);
       }
-      setResults((prev) => [...data.results, ...prev].slice(0, 300));
+      setResults((prev) => [...(data.results ?? []), ...prev].slice(0, 300));
       setCounts((c) => c ? { ...c, elaborated: c.elaborated + (data.updated ?? 0), pending: Math.max(0, c.pending - (data.updated ?? 0)) } : c);
-      const queueDrained = data.totalRemaining <= failedIdsRef.current.size;
+      const queueDrained = (data.totalRemaining ?? 0) <= failedIdsRef.current.size;
       if (continuousRef.current && !queueDrained) {
         setTimeout(() => runBatch(limit), 800);
       } else {
         loadCounts();
       }
+    } catch (err) {
+      // Network failure / abort / unexpected exception. Without
+      // this handler the button just stops spinning silently.
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[elaborate-mcq] fetch failed:", err);
+      setError(`Request failed: ${msg}`);
     } finally {
       setRunning(false);
     }
@@ -72,7 +94,7 @@ function Content() {
   function startContinuous() {
     continuousRef.current = true;
     setContinuous(true);
-    runBatch(3);
+    runBatch(5);
   }
   function stopContinuous() {
     continuousRef.current = false;
@@ -151,11 +173,11 @@ function Content() {
               <div className="flex flex-col gap-2">
                 <button onClick={() => runBatch(3)} disabled={running}
                   className="w-full py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm disabled:opacity-50">
-                  {running ? "Processing…" : "Test run (3 questions)"}
+                  {running ? "Processing… (~30-60s for 3 calls)" : "Test run (3 questions)"}
                 </button>
                 <button onClick={startContinuous} disabled={running || (counts?.pending ?? 1) === 0}
                   className="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm disabled:opacity-50">
-                  Start continuous (3 per batch, until done)
+                  Start continuous (5 per batch, until done)
                 </button>
               </div>
             ) : (
