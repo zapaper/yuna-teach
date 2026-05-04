@@ -2147,18 +2147,40 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
       });
       const sourceMap = new Map(sourceQuestions.map(sq => [sq.id, sq]));
 
-      // For each unique (examPaperId, baseNum), fetch all siblings once
+      // For each unique (examPaperId, baseNum), fetch all siblings once.
+      //
+      // "Sibling" = a master row that is part of the SAME logical
+      // question as the source row, i.e. its questionNum is either
+      // exactly the base number OR the base followed by only letters
+      // (e.g. base "4" matches "4", "4abc", "4d", "4d(i)"). This
+      // lets us merge split rows like Q4abc + Q4d into one combined
+      // answer/subparts payload for the clone.
+      //
+      // Anchored exact-match in JS: a previous Prisma `startsWith: base`
+      // query was matching numeric prefixes too — for base "1" it
+      // pulled Q1 PLUS Q10, Q11, Q12, Q13, Q14a, Q14b, Q15, Q16, Q17,
+      // Q18, and the rebuild loop merged all their (a)/(b)/(c) part
+      // answers into the clone Q1 row (cross-contamination).
       type Sib = { questionNum: string; answer: string | null; answerImageData: string | null; transcribedSubparts: Prisma.JsonValue; transcribedStem: string | null };
       const siblingCache = new Map<string, Array<Sib>>();
-      const baseNumOf = (n: string) => n.replace(/[a-zA-Z]+$/, "");
+      const baseNumOf = (n: string) => n.replace(/[a-zA-Z()]+$/, "");
+      const isSiblingNum = (qn: string, base: string) => {
+        if (!qn.startsWith(base)) return false;
+        const tail = qn.slice(base.length);
+        // Tail must be empty, OR letters-only, OR letters+parenthesised
+        // suffix like "d(i)". No leading digit — that's a different
+        // question entirely.
+        return /^[a-zA-Z()]*$/.test(tail);
+      };
       const uniqueKeys = new Set<string>();
       for (const sq of sourceQuestions) uniqueKeys.add(`${sq.examPaperId}::${baseNumOf(sq.questionNum)}`);
       for (const key of uniqueKeys) {
         const [examPaperId, base] = key.split("::");
-        const sibs = await prisma.examQuestion.findMany({
+        const candidates = await prisma.examQuestion.findMany({
           where: { examPaperId, questionNum: { startsWith: base } },
           select: { questionNum: true, answer: true, answerImageData: true, transcribedSubparts: true, transcribedStem: true },
         });
+        const sibs = candidates.filter((c) => isSiblingNum(c.questionNum, base));
         siblingCache.set(key, sibs);
       }
 
