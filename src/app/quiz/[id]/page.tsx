@@ -27,6 +27,7 @@ interface QuizQuestion {
 interface QuizPaper {
   id: string;
   title: string;
+  subject: string | null;
   metadata: {
     quizType: "mcq" | "mcq-oeq";
     sourceLabels?: Record<string, string | null>;
@@ -1195,6 +1196,7 @@ function QuizContent({ id }: { id: string }) {
                 <OeqQuestionCard
                   key={q.id}
                   question={q}
+                  subject={paper?.subject ?? null}
                   index={mcqQuestions.length + idx}
                   tool={tool}
                   onCanvasRef={(handle) => { oeqCanvasHandles.current[q.id] = handle; }}
@@ -1871,6 +1873,7 @@ function ScratchOverlay({ tool }: { tool: DrawTool }) {
 
 function OeqQuestionCard({
   question,
+  subject,
   index,
   tool,
   onCanvasRef,
@@ -1887,6 +1890,7 @@ function OeqQuestionCard({
   onSkip,
 }: {
   question: QuizQuestion;
+  subject?: string | null;
   index: number;
   tool: DrawTool;
   onCanvasRef: (handle: AnswerCanvasHandle | null) => void;
@@ -1902,6 +1906,14 @@ function OeqQuestionCard({
   skipped?: boolean;
   onSkip?: () => void;
 }) {
+  // Math papers want a printed-paper-style "Ans: ___" placeholder
+  // in the canvas footer (students are used to it from worksheets).
+  // Science answers are usually full sentences / paragraphs, so the
+  // overlay just clutters the writing area. Default = show, so any
+  // unknown subject (e.g. legacy clones with null subject) keeps
+  // current behaviour.
+  const isScience = (subject ?? "").toLowerCase().includes("science");
+  const showAnsOverlay = !isScience;
   const allSubparts = question.transcribedSubparts as { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null }[] | null;
   // Strip "{questionNum}(a)" / "{questionNum} (a)" prefix from stem + subpart text so we display "(a) ..." consistently.
   const stripQnPrefix = (t: string) => {
@@ -2087,6 +2099,7 @@ function OeqQuestionCard({
                     canvasId={`${question.id}_${sp.label}`}
                     savedHeight={savedHeights?.[`${question.id}_${sp.label}`]}
                     onHeightChange={onHeightChange}
+                    showAnsOverlay={showAnsOverlay}
                   />
                 </div>
               );
@@ -2104,6 +2117,7 @@ function OeqQuestionCard({
               canvasId={question.id}
               savedHeight={savedHeights?.[question.id]}
               onHeightChange={onHeightChange}
+              showAnsOverlay={showAnsOverlay}
             />
             </>
           )}
@@ -2159,8 +2173,8 @@ interface AnswerCanvasHandle {
 
 const ResizableCanvas = forwardRef<
   AnswerCanvasHandle,
-  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void }
->(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, savedHeight, onHeightChange }, ref) {
+  { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void; showAnsOverlay?: boolean }
+>(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, savedHeight, onHeightChange, showAnsOverlay = true }, ref) {
   const maxCanvasHeight = 600;
   const [visibleHeight, setVisibleHeight] = useState(savedHeight ?? defaultHeight);
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
@@ -2191,10 +2205,15 @@ const ResizableCanvas = forwardRef<
           backgroundImage={backgroundImage}
           savedInkUrl={savedInkUrl}
         />
-        {/* Ans: overlay at bottom right */}
-        <div className="absolute bottom-3 right-4 pointer-events-none select-none">
-          <span className="text-sm font-bold text-slate-300">Ans: ___________</span>
-        </div>
+        {/* Ans: overlay at bottom right — Math only. Science answers
+            are sentences/paragraphs so the placeholder just clutters
+            the canvas. Caller defaults to true so unknown subjects
+            keep the existing behaviour. */}
+        {showAnsOverlay && (
+          <div className="absolute bottom-3 right-4 pointer-events-none select-none">
+            <span className="text-sm font-bold text-slate-300">Ans: ___________</span>
+          </div>
+        )}
       </div>
       {/* Drag handle */}
       <div
