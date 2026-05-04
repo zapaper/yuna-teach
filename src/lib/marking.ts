@@ -2960,21 +2960,42 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
           detectedAnswer = "(drawing — see images)";
           console.log(`[quiz-marking] Q${q.questionNum}: math drawable — skipping Phase-1 text detection.`);
         } else {
-          try {
-            const detectResponse = await withTimeout(
-              ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: [{ role: "user", parts: detectParts }],
-                config: { temperature: 0.1 },
-              }),
-              GEMINI_TIMEOUT_MS,
-              `quiz-detect-q${q.questionNum}`
-            );
-            detectedAnswer = detectResponse.text?.trim() ?? "";
-            console.log(`[quiz-marking] Q${q.questionNum} detected: "${detectedAnswer.substring(0, 100)}"`);
-          } catch (err) {
-            console.error(`[quiz-marking] Q${q.questionNum} detection failed:`, err);
+          // Drawable questions (food web with multiple arrows, plot a
+          // graph, shade regions) need vision quality flash can't
+          // reliably deliver — observed case: a P6 Science food-web
+          // OEQ where flash mis-read several arrow directions.
+          // Upgrade those to 3.1-pro-preview with a 2.5-pro then
+          // flash fallback in case the preview tier is rate-limited.
+          // Plain handwritten paragraphs stay on flash — cheaper and
+          // accurate enough at handwriting OCR.
+          const detectModels = isDrawableAny
+            ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
+            : ["gemini-2.5-flash"];
+          let detectErr: unknown = null;
+          for (let i = 0; i < detectModels.length; i++) {
+            try {
+              const detectResponse = await withTimeout(
+                ai.models.generateContent({
+                  model: detectModels[i],
+                  contents: [{ role: "user", parts: detectParts }],
+                  config: { temperature: 0.1 },
+                }),
+                GEMINI_TIMEOUT_MS,
+                `quiz-detect-q${q.questionNum}`,
+              );
+              detectedAnswer = detectResponse.text?.trim() ?? "";
+              if (i > 0) console.log(`[quiz-marking] Q${q.questionNum} detect: fell back to ${detectModels[i]}`);
+              console.log(`[quiz-marking] Q${q.questionNum} detected (${detectModels[i]}): "${detectedAnswer.substring(0, 100)}"`);
+              detectErr = null;
+              break;
+            } catch (err) {
+              detectErr = err;
+              if (i < detectModels.length - 1) {
+                console.warn(`[quiz-marking] Q${q.questionNum} detect with ${detectModels[i]} failed, trying ${detectModels[i + 1]}:`, err instanceof Error ? err.message : err);
+              }
+            }
           }
+          if (detectErr) console.error(`[quiz-marking] Q${q.questionNum} detection failed across all models:`, detectErr);
         }
 
         // ── PHASE 2: Compare detected answer against the answer key ──
@@ -3208,10 +3229,15 @@ Return ONLY valid JSON:
         // of the preview pro tier. Fall back to 2.5-pro then flash if
         // 3.1 is rate-limited. Non-math drawable stays on 2.5-pro.
         const needsPro = isDrawableAny && !!q.answerImageData;
+        // Drawable + answer-image cases need the strongest vision model
+        // for both subjects — math gets 3.1-pro-preview already, and
+        // science (food webs, life cycle drawings, plot-on-grid) was
+        // observed mis-marking on 2.5-pro. Both now lead with 3.1
+        // and fall back to 2.5-pro / flash if the preview tier
+        // throttles. Non-drawable OEQ stays on flash — handwriting
+        // OCR + text marking doesn't justify pro pricing.
         const QUIZ_MODELS = needsPro
-          ? (isMath
-            ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
-            : ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash"])
+          ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
           : ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
         const JSON_ONLY_REMINDER = "IMPORTANT: Your previous response could not be parsed. Return ONLY the JSON object requested. No prose, no explanation, no markdown fences — just the raw JSON starting with { and ending with }.";
         let lastErr: unknown = null;
