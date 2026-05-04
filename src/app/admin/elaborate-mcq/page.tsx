@@ -69,6 +69,12 @@ function Content() {
         setError(data.error ?? `HTTP ${res.status}`);
         return;
       }
+      console.log(`[elaborate-mcq] response:`, {
+        processed: (data.results ?? []).length,
+        updated: data.updated,
+        totalRemaining: data.totalRemaining,
+        firstResult: data.results?.[0],
+      });
       for (const r of (data.results ?? []) as ResultRow[]) {
         if (!r.ok) failedIdsRef.current.add(r.id);
       }
