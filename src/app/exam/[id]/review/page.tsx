@@ -2246,13 +2246,22 @@ function ExamReviewContent({ id }: { id: string }) {
                                 const studentParts = parsePartAnswers(studentAnswerText, spLabels);
                                 const answerParts = parsePartAnswers(currentQ.answer, spLabels);
                                 const hasPartAnswers = Object.keys(studentParts).length > 0 || Object.keys(answerParts).length > 0;
+                                // Per-subpart marksAvailable comes from a "[N]" / "[N marks]"
+                                // suffix in the subpart text (filled in by the
+                                // /admin/subpart-marks tool). Used to detect
+                                // partial — if awarded < available, status is "partial".
+                                const partAvailableMap: Record<string, number> = {};
+                                for (const sp of realSubs) {
+                                  const m = String(sp.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
+                                  if (m) partAvailableMap[sp.label.toLowerCase()] = parseInt(m[1], 10);
+                                }
                                 // Parse marking notes for per-part correctness.
-                                // The AI's notes are typically structured like
-                                //   "Part (a): ... Awarded 2 marks. Part (b): ... 0 marks."
-                                // Split at "Part (X):" / "(X):" boundaries, then per section
-                                // check for "Awarded N mark" / "N marks" / explicit correct-wrong words.
+                                // Tristate: full | partial | none. Yellow box
+                                // for partial mirrors the section-header chip
+                                // palette (#fef3c7 / #633f00).
+                                type PartStatus = "full" | "partial" | "none";
                                 const notes = currentQ.markingNotes ?? "";
-                                const partCorrectMap: Record<string, boolean> = {};
+                                const partStatusMap: Record<string, PartStatus> = {};
                                 const sectionRe = /(?:^|\s|\|)\(?([a-z])\)\s*:?/gi;
                                 const sectionMatches = [...notes.matchAll(sectionRe)].filter(m => spLabels.includes(m[1].toLowerCase()));
                                 for (let i = 0; i < sectionMatches.length; i++) {
@@ -2261,23 +2270,47 @@ function ExamReviewContent({ id }: { id: string }) {
                                   const start = m.index! + m[0].length;
                                   const end = i + 1 < sectionMatches.length ? sectionMatches[i + 1].index! : notes.length;
                                   const section = notes.slice(start, end);
-                                  // Explicit marks number — "Awarded 2 marks" / "2 marks awarded" / "0 marks"
+                                  // Pattern A: "X out of Y" / "X/Y marks" — most reliable
+                                  const outOfMatch = section.match(/(\d+(?:\.\d+)?)\s*(?:\/|\bout of\b|\bof\b)\s*(\d+(?:\.\d+)?)/i);
+                                  if (outOfMatch) {
+                                    const awarded = parseFloat(outOfMatch[1]);
+                                    const available = parseFloat(outOfMatch[2]);
+                                    partStatusMap[label] = awarded === 0 ? "none" : awarded >= available ? "full" : "partial";
+                                    continue;
+                                  }
+                                  // Pattern B: explicit "partial" keyword
+                                  if (/\bpartial(ly)?\b/i.test(section)) {
+                                    partStatusMap[label] = "partial";
+                                    continue;
+                                  }
+                                  // Pattern C: "Awarded N marks" — compare to the
+                                  // per-subpart available marks if we have them.
+                                  // A fractional awarded (e.g. 1.5) is partial too.
                                   const marksMatch = section.match(/(\d+(?:\.\d+)?)\s*marks?\b/i);
                                   if (marksMatch) {
-                                    partCorrectMap[label] = parseFloat(marksMatch[1]) > 0;
+                                    const awarded = parseFloat(marksMatch[1]);
+                                    if (awarded === 0) { partStatusMap[label] = "none"; continue; }
+                                    if (!Number.isInteger(awarded)) { partStatusMap[label] = "partial"; continue; }
+                                    const avail = partAvailableMap[label];
+                                    if (avail != null) {
+                                      partStatusMap[label] = awarded >= avail ? "full" : "partial";
+                                    } else {
+                                      // No per-subpart available — fall back to "full" on positive marks.
+                                      partStatusMap[label] = "full";
+                                    }
                                     continue;
                                   }
                                   // Fall back to keyword detection
                                   if (/\b(no answer|blank|not provided|no written|did not|missing)\b/i.test(section)) {
-                                    partCorrectMap[label] = false;
+                                    partStatusMap[label] = "none";
                                     continue;
                                   }
                                   if (/\b(incorrect|wrong)\b/i.test(section)) {
-                                    partCorrectMap[label] = false;
+                                    partStatusMap[label] = "none";
                                     continue;
                                   }
                                   if (/\b(correct|matches|accepted|full marks)\b/i.test(section)) {
-                                    partCorrectMap[label] = true;
+                                    partStatusMap[label] = "full";
                                     continue;
                                   }
                                 }
@@ -2301,9 +2334,13 @@ function ExamReviewContent({ id }: { id: string }) {
                                           : null;
                                       const partStudent = studentParts[sp.label.toLowerCase()];
                                       const partAnswer = answerParts[sp.label.toLowerCase()];
-                                      const partIsCorrect = sp.label.toLowerCase() in partCorrectMap
-                                        ? partCorrectMap[sp.label.toLowerCase()]
-                                        : (partAnswer && partStudent ? partStudent.toLowerCase().replace(/\s/g, "") === partAnswer.toLowerCase().replace(/\s/g, "") : isCorrect);
+                                      // Tristate: parsed from notes when possible,
+                                      // else fall back to a string-equality check.
+                                      const partStatus: PartStatus = sp.label.toLowerCase() in partStatusMap
+                                        ? partStatusMap[sp.label.toLowerCase()]
+                                        : (partAnswer && partStudent
+                                            ? (partStudent.toLowerCase().replace(/\s/g, "") === partAnswer.toLowerCase().replace(/\s/g, "") ? "full" : "none")
+                                            : (isCorrect ? "full" : "none"));
                                       return (
                                         <div key={sp.label} className="space-y-2">
                                           <p className="text-sm text-[#0b1c30]">
@@ -2372,7 +2409,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const cleaned = detected.replace(/^\s*working\s*:?\s*/i, "").trim() || detected;
                                             return (
                                               <div className={`text-sm leading-relaxed rounded-xl p-3 ${
-                                                partIsCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
+                                                partStatus === "full"
+                                                  ? "bg-[#6cf8bb]/20 text-[#006c49]"
+                                                  : partStatus === "partial"
+                                                    ? "bg-[#fef3c7] text-[#633f00]"
+                                                    : "bg-[#ffdad6] text-[#93000a]"
                                               }`}>
                                                 <span className="text-[9px] font-bold uppercase tracking-wider opacity-60 block mb-0.5">Detected Answer</span>
                                                 {cleaned}
