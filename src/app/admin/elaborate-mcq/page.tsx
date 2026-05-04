@@ -100,7 +100,7 @@ function Content() {
   function startContinuous() {
     continuousRef.current = true;
     setContinuous(true);
-    runBatch(5);
+    runBatch(10);
   }
   function stopContinuous() {
     continuousRef.current = false;
@@ -177,13 +177,13 @@ function Content() {
           <div className="bg-white rounded-2xl border border-slate-100 p-5 space-y-3">
             {!continuous ? (
               <div className="flex flex-col gap-2">
-                <button onClick={() => runBatch(3)} disabled={running}
+                <button onClick={() => runBatch(10)} disabled={running}
                   className="w-full py-3 rounded-xl border border-slate-300 text-slate-700 font-bold text-sm disabled:opacity-50">
-                  {running ? "Processing… (~30-60s for 3 calls)" : "Test run (3 questions)"}
+                  {running ? "Processing… (~60-120s for 10 calls)" : "Test run (10 questions)"}
                 </button>
                 <button onClick={startContinuous} disabled={running || (counts?.pending ?? 1) === 0}
                   className="w-full py-3 rounded-xl bg-indigo-600 text-white font-bold text-sm disabled:opacity-50">
-                  Start continuous (5 per batch, until done)
+                  Start continuous (10 per batch, until done)
                 </button>
               </div>
             ) : (
