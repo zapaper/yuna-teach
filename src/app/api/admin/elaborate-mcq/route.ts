@@ -162,17 +162,34 @@ export async function POST(request: NextRequest) {
     ? (body.excludeIds as unknown[]).filter((x): x is string => typeof x === "string")
     : [];
 
-  // Pull a wider candidate pool than `limit` because the JS MCQ
-  // filter knocks out non-MCQ rows. Skip rows whose elaboration is
-  // an error sentinel — those have already failed once and the
-  // bulk loop should not retry them automatically.
-  const candidatePool = Math.max(limit * 4, 40);
-  const candidates = await prisma.examQuestion.findMany({
+  // Two-phase query so we don't over-fetch:
+  //
+  // Phase A — slim scan over EVERY pending row in scope to find the
+  // next `limit` MCQ ids. Only the MCQ-detection fields plus id, no
+  // diagramImageData (which can be large). The pool used to be a
+  // capped `take: limit*4` ordered by id, but in practice the first
+  // 40 pending rows are mostly OEQ — the MCQ are scattered later in
+  // the master ordering — so MCQ filter came out empty and the batch
+  // returned `processed: 0` despite 1300+ pending. Removing the cap
+  // means we scan everything but the row size is tiny.
+  //
+  // Phase B — full-content fetch for just those MCQ ids, with the
+  // diagramImageData and other fields the prompt needs.
+  const slim = await prisma.examQuestion.findMany({
     where: {
       elaboration: null,
       examPaper: MASTER_SCOPE,
       ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
     },
+    select: { id: true, transcribedOptions: true, transcribedOptionImages: true, answer: true },
+    orderBy: { id: "asc" },
+  });
+  const mcqIds = slim
+    .filter((q) => isMcqRow(q.transcribedOptions, q.transcribedOptionImages, q.answer))
+    .slice(0, limit)
+    .map((q) => q.id);
+  const mcq = mcqIds.length === 0 ? [] : await prisma.examQuestion.findMany({
+    where: { id: { in: mcqIds } },
     select: {
       id: true, questionNum: true, examPaperId: true,
       transcribedStem: true, transcribedOptions: true, transcribedOptionImages: true,
@@ -180,10 +197,7 @@ export async function POST(request: NextRequest) {
       syllabusTopic: true,
       examPaper: { select: { title: true, subject: true, level: true } },
     },
-    orderBy: { id: "asc" },
-    take: candidatePool,
   });
-  const mcq = candidates.filter((q) => isMcqRow(q.transcribedOptions, q.transcribedOptionImages, q.answer)).slice(0, limit);
 
   type ResultRow = { id: string; questionNum: string; paperId: string; paperTitle: string; subject: string; level: string; ok: boolean; error?: string };
   const results: ResultRow[] = [];
