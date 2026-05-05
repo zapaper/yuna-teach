@@ -4,7 +4,7 @@ import path from "path";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin, getSessionUserId } from "@/lib/session";
-import { fetchMistakeQuestions, orderMistakesForRevision, fetchPassageCompanions, type SubjectKey } from "@/lib/revision";
+import { fetchMistakeQuestions, orderMistakesForRevision, fetchPassageCompanions, sectionTypeOf, PASSAGE_BOUND_SECTION_TYPES, SECTION_TYPE_LABEL, type SubjectKey } from "@/lib/revision";
 
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
@@ -187,42 +187,51 @@ export async function POST(request: NextRequest) {
 
   // For English revision papers, reconstruct englishSections in
   // metadata so the review UI shows the cloze passage above its
-  // blanks (and Comp-OEQ above its prompts). One section per
-  // distinct source-section key in the ordered question list, with
-  // start/end indices into the new question list.
+  // blanks (and Comp-OEQ above its prompts).
+  //
+  // Two grouping rules:
+  //   - Non-passage section types (Grammar/Vocab MCQ, Synthesis):
+  //     ONE englishSections entry per type covering every contiguous
+  //     same-type question, regardless of which source clone they
+  //     came from. The review page renders one header for the lot
+  //     instead of repeating it per question.
+  //   - Passage-bound types (Grammar Cloze, Editing, Comp Cloze,
+  //     Comp OEQ, Visual Text): one entry per source-clone-section
+  //     so each passage stays glued to its own blanks. orderMistakes
+  //     For Revision keeps these clusters contiguous within the
+  //     section type, so the indices line up cleanly.
   type SectionMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
   const englishSectionsMeta: SectionMeta[] = [];
   if (subject === "english") {
-    let curKey: string | undefined;
-    let curSection: SectionMeta | undefined;
+    let cur: SectionMeta | undefined;
+    let curGroupKey: string | undefined;
     for (let i = 0; i < ordered.length; i++) {
       const m = ordered[i];
-      const key = m.sourceSectionKey;
-      // Skip questions with no source-section info — they'll just
-      // render without a passage, which is fine for non-cloze
-      // English types.
-      if (!key || !m.englishSection) {
-        if (curSection) {
-          englishSectionsMeta.push(curSection);
-          curSection = undefined;
-          curKey = undefined;
-        }
-        continue;
-      }
-      if (key !== curKey) {
-        if (curSection) englishSectionsMeta.push(curSection);
-        curKey = key;
-        curSection = {
-          label: m.englishSection.label,
+      const t = sectionTypeOf(m);
+      const isPassageBound = PASSAGE_BOUND_SECTION_TYPES.has(t);
+      // Group key: passage-bound rows split per source clone-
+      // section (each gets its own passage); non-passage rows
+      // collapse to a single bucket per section type.
+      const groupKey = isPassageBound
+        ? `passage::${m.sourceSectionKey ?? `${i}`}`
+        : `type::${t}`;
+      if (groupKey !== curGroupKey) {
+        if (cur) englishSectionsMeta.push(cur);
+        curGroupKey = groupKey;
+        const fallbackLabel = SECTION_TYPE_LABEL[t];
+        cur = {
+          label: m.englishSection?.label ?? fallbackLabel,
           startIndex: i,
           endIndex: i,
-          ...(m.englishSection.passage ? { passage: m.englishSection.passage } : {}),
+          ...(isPassageBound && m.englishSection?.passage
+            ? { passage: m.englishSection.passage }
+            : {}),
         };
       } else {
-        curSection!.endIndex = i;
+        cur!.endIndex = i;
       }
     }
-    if (curSection) englishSectionsMeta.push(curSection);
+    if (cur) englishSectionsMeta.push(cur);
   }
 
   const paper = await prisma.examPaper.create({

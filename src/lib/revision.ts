@@ -391,28 +391,105 @@ export function orderMistakesForRevision(
     const oeq = qs.filter((q) => !q.isMcq);
     return [...mcq, ...oeq];
   }
-  // English: group by sourceSectionKey when available so questions
-  // from the same source clone-section stay together (they share a
-  // passage). Comp-OEQ groups go last. Sections without a source key
-  // fall back to syllabusTopic grouping. Within each group sort by
-  // sourceOrderIndex so passage markers (1), (2), (3)… line up with
-  // the question rows the renderer maps to them.
-  const groups = new Map<string, MistakeQuestion[]>();
-  const compOeqGroups = new Map<string, MistakeQuestion[]>();
+  // English: order by canonical section-type (Grammar/Vocab MCQ →
+  // Visual Text → Grammar Cloze → Editing → Comprehension Cloze →
+  // Synthesis → Comp OEQ). Within each section type, group by
+  // sourceSectionKey so questions from the same source clone-section
+  // stay together (they share a passage); within each group, sort
+  // by sourceOrderIndex so passage markers line up.
+  //
+  // Renaming the buckets: standalone-MCQ section types (Grammar
+  // MCQ, Vocab MCQ, Vocab Cloze MCQ) collapse into a single
+  // "grammar-vocab-mcq" block so the review page shows one header
+  // ("Section A: Grammar and Vocab MCQ") instead of one per
+  // question. Passage-bound types stay split per source clone-
+  // section so each passage gets rendered above its own blanks.
+  const byType = new Map<SectionType, Map<string, MistakeQuestion[]>>();
   for (const q of qs) {
+    const t = sectionTypeOf(q);
+    let groupsForType = byType.get(t);
+    if (!groupsForType) { groupsForType = new Map(); byType.set(t, groupsForType); }
     const key = q.sourceSectionKey ?? `topic::${q.syllabusTopic ?? "(untagged)"}`;
-    const target = q.isCompOeq ? compOeqGroups : groups;
-    const arr = target.get(key);
+    const arr = groupsForType.get(key);
     if (arr) arr.push(q);
-    else target.set(key, [q]);
+    else groupsForType.set(key, [q]);
   }
   const sortBySrc = (arr: MistakeQuestion[]) =>
     arr.sort((a, b) => a.sourceOrderIndex - b.sourceOrderIndex);
   const out: MistakeQuestion[] = [];
-  for (const arr of groups.values()) out.push(...sortBySrc(arr));
-  for (const arr of compOeqGroups.values()) out.push(...sortBySrc(arr));
+  for (const t of SECTION_TYPE_ORDER) {
+    const groupsForType = byType.get(t);
+    if (!groupsForType) continue;
+    for (const arr of groupsForType.values()) out.push(...sortBySrc(arr));
+  }
   return out;
 }
+
+// Canonical English-paper section types and their display ordering.
+// The grammar-vocab-mcq bucket collapses several syllabus topics
+// (Grammar MCQ, Vocabulary MCQ, Vocabulary Cloze MCQ) into a
+// single block — the review page renders one header for the lot
+// instead of repeating it per question.
+export type SectionType =
+  | "grammar-vocab-mcq"
+  | "visual-text"
+  | "grammar-cloze"
+  | "editing"
+  | "comprehension-cloze"
+  | "synthesis"
+  | "comprehension-oeq"
+  | "other";
+
+export const SECTION_TYPE_ORDER: SectionType[] = [
+  "grammar-vocab-mcq",
+  "visual-text",
+  "grammar-cloze",
+  "editing",
+  "comprehension-cloze",
+  "synthesis",
+  "comprehension-oeq",
+  "other",
+];
+
+// Section types that have a passage above the questions. The
+// route emits one englishSections metadata entry per source
+// clone-section for these (so each passage renders above its
+// own blanks). Non-passage types (grammar-vocab-mcq, synthesis)
+// are merged into a single section entry.
+export const PASSAGE_BOUND_SECTION_TYPES: ReadonlySet<SectionType> = new Set([
+  "visual-text",
+  "grammar-cloze",
+  "editing",
+  "comprehension-cloze",
+  "comprehension-oeq",
+]);
+
+export function sectionTypeOf(q: { syllabusTopic: string | null; englishSection?: { label: string } }): SectionType {
+  const fromTopic = (q.syllabusTopic ?? "").toLowerCase();
+  const fromLabel = (q.englishSection?.label ?? "").toLowerCase();
+  const t = `${fromTopic} ${fromLabel}`;
+  if (t.includes("visual") && t.includes("text")) return "visual-text";
+  if (t.includes("grammar") && t.includes("cloze")) return "grammar-cloze";
+  if (t.includes("editing")) return "editing";
+  if (t.includes("comprehension") && (t.includes("open") || t.includes("oeq"))) return "comprehension-oeq";
+  if (t.includes("comprehension") && t.includes("cloze")) return "comprehension-cloze";
+  if (t.includes("synthesis")) return "synthesis";
+  if (t.includes("grammar") || t.includes("vocab")) return "grammar-vocab-mcq";
+  return "other";
+}
+
+// Friendly label per section type — used when collapsing all
+// standalone-MCQ rows into a single englishSections entry.
+export const SECTION_TYPE_LABEL: Record<SectionType, string> = {
+  "grammar-vocab-mcq": "Section A: Grammar and Vocab MCQ",
+  "visual-text": "Section B: Visual Text",
+  "grammar-cloze": "Section A: Grammar Cloze",
+  "editing": "Section A: Editing",
+  "comprehension-cloze": "Section B: Comprehension Cloze",
+  "synthesis": "Section C: Synthesis",
+  "comprehension-oeq": "Section C: Comprehension OEQ",
+  "other": "Other",
+};
 
 // For each English passage section already represented in `chosen`,
 // pull in the right-answered neighbour questions so the cloze
