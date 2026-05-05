@@ -2326,22 +2326,36 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
       }
     }
 
-    // Re-score MCQ questions (in case answer keys changed)
+    // Re-score MCQ questions (in case answer keys changed). Always
+    // writes back to the DB even when computed marks happen to
+    // match the stored value — the markingNotes line is the
+    // forensic trail. We saw a paper land in the DB with
+    // markingStatus="complete" + null markingNotes + wrong marks,
+    // which the previous "skip if marks unchanged" guard couldn't
+    // self-heal because the student's answer happened to match
+    // the answer key as it stood at re-score time. Always-write
+    // makes the marks tabulation deterministic on every run, and
+    // auditors can grep for any MCQ row missing markingNotes to
+    // find papers that never went through this path.
+    const rescoreUpdates: ReturnType<typeof prisma.examQuestion.update>[] = [];
     for (const q of paper.questions.filter(q2 => hasOpts(q2))) {
       const studentAns = (q.studentAnswer ?? "").trim().replace(/[().]/g, "").trim();
       const correctAns = (q.answer ?? "").trim().replace(/[().]/g, "").trim();
-      // Support "X or Y" answers — student is correct if their answer matches any option
       const acceptableAnswers = correctAns.split(/\s+or\s+/).map(p => p.trim());
       const isCorrect = studentAns !== "" && acceptableAnswers.includes(studentAns);
       const marks = isCorrect ? (q.marksAvailable ?? 1) : 0;
-      if (q.marksAwarded !== marks) {
-        await prisma.examQuestion.update({
-          where: { id: q.id },
-          data: { marksAwarded: marks, markingNotes: isCorrect ? "Correct" : `Student: (${studentAns}), Correct: (${correctAns})` },
-        });
-        q.marksAwarded = marks;
-      }
+      const notes = q.studentAnswer == null || q.studentAnswer === "__SKIPPED__"
+        ? "Skipped"
+        : isCorrect
+          ? "Correct"
+          : `Student: (${studentAns}), Correct: (${correctAns})`;
+      rescoreUpdates.push(prisma.examQuestion.update({
+        where: { id: q.id },
+        data: { marksAwarded: marks, markingNotes: notes },
+      }));
+      q.marksAwarded = marks;
     }
+    if (rescoreUpdates.length > 0) await prisma.$transaction(rescoreUpdates);
 
     // Score typed section questions (always re-score on re-mark, in case answer keys changed)
     const ai = getAI();
