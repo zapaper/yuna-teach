@@ -3032,6 +3032,41 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
             }
           }
           if (detectErr) console.error(`[quiz-marking] Q${q.questionNum} detection failed across all models:`, detectErr);
+
+          // Blank-but-ink-present retry: if flash returned "blank" but
+          // the pixel check already confirmed ink is present on at
+          // least one subpart (or the whole canvas for non-subpart
+          // questions), the model couldn't read the writing — retry
+          // once with the stronger pro model. Observed case: P6
+          // Focused Q7 with three subparts where the student wrote
+          // legible answers in pen but flash reported all three
+          // blank. Skip when flash didn't run (math drawable) or
+          // already used the pro chain.
+          const usedFlashOnly = detectModels.length === 1 && detectModels[0] === "gemini-2.5-flash";
+          const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
+          const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
+          const looksAllBlank = inkPresentOverall && /\bblank\b/i.test(detectedAnswer) && !/(working|final answer|drew|step\s*\d|=\s*\d|\d+\s*(?:cm|m|kg|g|ml|°|%))/i.test(detectedAnswer);
+          if (usedFlashOnly && looksAllBlank) {
+            console.log(`[quiz-marking] Q${q.questionNum}: flash said blank with ink present — retrying with gemini-3.1-pro-preview`);
+            try {
+              const retry = await withTimeout(
+                ai.models.generateContent({
+                  model: "gemini-3.1-pro-preview",
+                  contents: [{ role: "user", parts: detectParts }],
+                  config: { temperature: 0.1 },
+                }),
+                GEMINI_TIMEOUT_MS,
+                `quiz-detect-q${q.questionNum}-retry`,
+              );
+              const retryAns = retry.text?.trim() ?? "";
+              if (retryAns) {
+                console.log(`[quiz-marking] Q${q.questionNum} pro re-detect: "${retryAns.substring(0, 100)}"`);
+                detectedAnswer = retryAns;
+              }
+            } catch (err) {
+              console.warn(`[quiz-marking] Q${q.questionNum} pro retry failed:`, err instanceof Error ? err.message : err);
+            }
+          }
         }
 
         // ── PHASE 2: Compare detected answer against the answer key ──
