@@ -3207,11 +3207,38 @@ In the notes field, wrap every key scientific term or phrase from the expected a
 - Only bold actual key terms/phrases — do not bold ordinary connector words.
 ` : "";
 
+        // Anti-hallucination guard: when Phase 1 detection (which has
+        // already retried with pro if pixel-confirmed ink looked like
+        // it might be misread) reports the student's answer as blank,
+        // we've seen the marker "find" the expected answer in the
+        // image and award full marks — pure false positive. Tell the
+        // marker explicitly: detection is the ground truth on what
+        // the student wrote. The image is for cross-checking
+        // handwriting interpretation, NOT for re-discovering content
+        // detection said wasn't there.
+        const detectedSaysAllBlank = /^\s*(\(?\w+\)?\s*[:.]?\s*)?(ans\s*[:=]?\s*)?blank\s*$/i.test(detectedAnswer.trim())
+          || /^(?:[(\w)\s:.]*\bblank\s*\n?)+$/i.test(detectedAnswer.trim());
+        const partsBlankSet = new Set<string>();
+        // Per-part "blank" detection — e.g. "(a) blank", "Part (b): blank",
+        // "(c) Ans: blank". Adds the label to partsBlankSet for the prompt.
+        for (const m of detectedAnswer.matchAll(/(?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)?\s*[:.]?\s*(?:Ans\s*[:=]?\s*)?blank\b/gi)) {
+          partsBlankSet.add(m[1].toLowerCase());
+        }
+        const blankAntiHallucinationClause = (detectedSaysAllBlank || partsBlankSet.size > 0) ? `
+
+DETECTION SAID BLANK — CRITICAL ANTI-HALLUCINATION RULE:
+${detectedSaysAllBlank
+  ? `Phase 1 detection (which already retried with the strongest model) reports the student's answer is **entirely blank**. Treat the detected answer as ground truth: the student wrote nothing usable. Award 0 marks.`
+  : `Phase 1 detection (which already retried with the strongest model) reports the following parts are blank: ${[...partsBlankSet].map(l => `(${l})`).join(", ")}. Treat those parts as ground truth blank. For each blank part, award 0 marks.`}
+You are FORBIDDEN from "finding" the expected answer in the image when detection says blank. If the detection text says "(a) blank" or "Ans: blank", the student wrote nothing — do not claim to see "15" in the working / "Saturday" in the answer area / any other content the detection didn't pick up. The image is for cross-checking handwriting interpretation, NOT for re-discovering content detection said wasn't there.
+` : "";
+
         const markPrompt = `You are marking a primary school student's answer. Be concise. Use British English throughout.
 
 Question: ${q.transcribedStem ?? "See image"}
 Student's answer (detected from their handwriting): "${detectedAnswer}"
 Expected answer: "${expectedAnswer}"
+${blankAntiHallucinationClause}
 ${answerImageNote}${answerImageUsageNote}
 Marks available: ${marksAvailable}
 
