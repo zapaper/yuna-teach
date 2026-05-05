@@ -1698,16 +1698,16 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     { icon: "quiz", label: "Quiz", onClick: () => { setAssignMode("quiz"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "psychology", label: "Focus Practice", onClick: () => { setAssignMode("focused"); setQuizStudentId(selectedStudentId); setQuizTargetDay(null); setShowQuiz(true); } },
     { icon: "description", label: "Set Papers", onClick: () => setActiveView(v => v === "papers" ? "progress" : "papers"), active: activeView === "papers" },
-    // Admin-only for the first cut. The "Revise work" modal scans
-    // the selected student's last 100 papers, surfaces per-subject
-    // mistakes, and compiles a review or practice paper out of
-    // them. Sits after Set Papers in the side nav. Mobile lives
-    // under Performance Analysis instead of the bottom bar (full).
-    ...(isAdminUser ? [{
+    // The "Revise work" modal scans the selected student's last 100
+    // papers, surfaces per-subject mistakes, and compiles a review
+    // or practice paper out of them. Sits after Set Papers in the
+    // side nav. Mobile lives under Performance Analysis instead of
+    // the bottom bar (full).
+    {
       icon: "history_edu",
       label: "Revise Work",
       onClick: () => setShowReviseModal(true),
-    }] : []),
+    },
     { icon: "edit_note", label: "听写", href: `/spelling?userId=${userId}` },
     { icon: "auto_fix_high", label: "Solver", href: `/solver?userId=${userId}` },
   ];
@@ -2525,20 +2525,17 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   <h3 className="font-headline font-bold text-lg text-[#001e40] shrink-0">Performance Analysis</h3>
                   <div className="flex items-center gap-2 shrink-0">
                     {/* Mobile: bottom bar is full so the "Revise Work"
-                        entry lives here, beside Full Report. Admin
-                        only — same gating as the desktop side nav.
-                        Icon-only on the narrowest phones so both
-                        chips fit on one row beside the heading. */}
-                    {isAdminUser && (
-                      <button
-                        onClick={() => setShowReviseModal(true)}
-                        title="Revise work — compile recent mistakes"
-                        className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-3 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-base">history_edu</span>
-                        <span>Revise</span>
-                      </button>
-                    )}
+                        entry lives here, beside Full Report. Icon-only
+                        on the narrowest phones so both chips fit on
+                        one row beside the heading. */}
+                    <button
+                      onClick={() => setShowReviseModal(true)}
+                      title="Revise work — compile recent mistakes"
+                      className="flex items-center gap-1.5 text-sm font-bold text-[#003366] bg-[#eff4ff] px-3 py-2 rounded-xl hover:bg-[#dce9ff] transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">history_edu</span>
+                      <span>Revise</span>
+                    </button>
                     <button
                       onClick={() => router.push(`/progress/${selectedStudentId}?parentId=${userId}`)}
                       title="Full performance report"

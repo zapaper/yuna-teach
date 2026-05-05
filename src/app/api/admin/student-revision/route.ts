@@ -42,11 +42,8 @@ const SUBJECT_FULL: Record<SubjectKey, string> = {
 };
 
 export async function POST(request: NextRequest) {
-  if (!(await isSessionAdmin())) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  const adminId = await getSessionUserId();
-  if (!adminId) return NextResponse.json({ error: "no session" }, { status: 401 });
+  const callerId = await getSessionUserId();
+  if (!callerId) return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
 
   let body: { studentId?: string; subject?: SubjectKey; count?: number; mode?: "review" | "practice" };
   try {
@@ -57,6 +54,18 @@ export async function POST(request: NextRequest) {
   const { studentId, subject, count, mode } = body;
   if (!studentId || !subject || !count || !mode) {
     return NextResponse.json({ error: "studentId, subject, count, mode required" }, { status: 400 });
+  }
+
+  // Authorisation: admin, the student themselves, or a linked
+  // parent. Anyone else gets a 403 so a student id can't be
+  // passed by an unrelated user to mine someone else's mistakes.
+  const callerIsAdmin = await isSessionAdmin();
+  if (!callerIsAdmin && callerId !== studentId) {
+    const link = await prisma.parentStudent.findUnique({
+      where: { parentId_studentId: { parentId: callerId, studentId } },
+      select: { id: true },
+    });
+    if (!link) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (subject !== "math" && subject !== "science" && subject !== "english") {
     return NextResponse.json({ error: "invalid subject" }, { status: 400 });
@@ -221,7 +230,7 @@ export async function POST(request: NextRequest) {
       title,
       subject: SUBJECT_FULL[subject],
       level: student.level ? `Primary ${student.level}` : null,
-      userId: adminId,
+      userId: callerId,
       assignedToId: studentId,
       paperType: "quiz",
       instantFeedback: true,
@@ -237,7 +246,7 @@ export async function POST(request: NextRequest) {
         revisionMode: mode,
         revisionSubject: subject,
         compiledAt: new Date().toISOString(),
-        compiledBy: adminId,
+        compiledBy: callerId,
         ...(englishSectionsMeta.length > 0 ? { englishSections: englishSectionsMeta } : {}),
       },
       questions: { create: questionCreates },
@@ -347,7 +356,7 @@ export async function POST(request: NextRequest) {
               revisionMode: mode,
               revisionSubject: subject,
               compiledAt: new Date().toISOString(),
-              compiledBy: adminId,
+              compiledBy: callerId,
               oeqPageMap: newOeqPageMap,
               ...(englishSectionsMeta.length > 0 ? { englishSections: englishSectionsMeta } : {}),
             },
@@ -366,13 +375,13 @@ export async function POST(request: NextRequest) {
   // looked like raw stems — the exam viewer falls back to imageData
   // even when the question carries a clean transcribedStem).
   //
-  // ?userId=<adminId> is required by the review page's back-link
+  // ?userId=<callerId> is required by the review page's back-link
   // logic — without it backPath computes to /home/null?... and the
   // back button errors. The compiler is always the admin, so we use
-  // adminId here.
+  // callerId here.
   const redirectUrl = mode === "review"
-    ? `/exam/${paper.id}/review?userId=${adminId}`
-    : `/quiz/${paper.id}?userId=${adminId}`;
+    ? `/exam/${paper.id}/review?userId=${callerId}`
+    : `/quiz/${paper.id}?userId=${callerId}`;
 
   return NextResponse.json({
     paperId: paper.id,
