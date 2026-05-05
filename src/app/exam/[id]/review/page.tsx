@@ -1045,8 +1045,16 @@ function ExamReviewContent({ id }: { id: string }) {
                 <span className="material-symbols-outlined">quiz</span>
               </div>
               <div>
-                <p className="text-[10px] text-[#43474f] uppercase tracking-wider font-bold">Questions</p>
-                <p className="font-headline text-xl font-bold text-[#001e40]">{writtenQuestions.length}</p>
+                <p className="text-[10px] text-[#43474f] uppercase tracking-wider font-bold">{data.isRevision ? "Mistakes" : "Questions"}</p>
+                {/* Revision papers pad passage sections with right-
+                    answered companions so the cloze renderer can
+                    fill every blank — the parent doesn't care that
+                    we added 270 extra rows behind the scenes; the
+                    meaningful number is the original mistake count
+                    (= incorrect questions in the compiled paper).
+                    Showing 328 / 100 was confusing because both
+                    over-counted what the parent actually asked for. */}
+                <p className="font-headline text-xl font-bold text-[#001e40]">{data.isRevision ? incorrectQuestions.length : writtenQuestions.length}</p>
               </div>
             </div>
             <div className="bg-white rounded-3xl p-5 flex items-center gap-4 shadow-sm flex-1">
