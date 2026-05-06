@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
 
@@ -19,6 +19,7 @@ export const maxDuration = 120;
 
 type ChildSummary = {
   name: string;
+  homepageUrl: string;
   weaknessTopic: string | null;
   avg7dPct: number | null;
   recent: Array<{ title: string; pct: number | null }>;
@@ -27,6 +28,7 @@ type ChildSummary = {
 type ParentRow = {
   parentName: string;
   parentEmail: string;
+  parentHomepageUrl: string;
   // Total quizzes "set" — parent-assigned + each linked student's
   // self-assigned/uploaded papers (matches the paperCount shown on
   // /admin/users so the two views agree).
@@ -36,10 +38,17 @@ type ParentRow = {
   children: ChildSummary[];
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   if (!(await isSessionAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+  // Build absolute homepage URLs from the request origin. Forwarded
+  // headers come from Vercel's proxy in production; local dev uses
+  // request.nextUrl.origin as a fallback.
+  const proto = request.headers.get("x-forwarded-proto") ?? "https";
+  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const origin = host ? `${proto}://${host}` : request.nextUrl.origin;
+  const homepageUrl = (id: string) => `${origin}/home/${id}`;
 
   const parents = await prisma.user.findMany({
     where: { role: "PARENT", email: { not: null } },
@@ -190,6 +199,7 @@ export async function GET() {
 
       children.push({
         name: studentName,
+        homepageUrl: homepageUrl(studentId),
         weaknessTopic,
         avg7dPct,
         recent,
@@ -199,6 +209,7 @@ export async function GET() {
     rows.push({
       parentName: p.displayName?.trim() || p.name,
       parentEmail: p.email!,
+      parentHomepageUrl: homepageUrl(p.id),
       quizzesSet,
       quizzesCompleted,
       children,
