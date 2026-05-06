@@ -275,6 +275,15 @@ function UserSection({
                 <span className="font-semibold">{r.linksLabel}:</span> {r.links}
               </p>
             </div>
+            <a
+              href={`/home/${r.id}?userId=${r.id}`}
+              target="_blank"
+              rel="noopener"
+              title={`Open ${r.role === "PARENT" ? "parent" : "student"} home page in a new tab`}
+              className="shrink-0 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50"
+            >
+              <span className="material-symbols-outlined text-base align-middle">open_in_new</span>
+            </a>
             <button
               onClick={() => onDelete(r.id, r.primary, r.role)}
               disabled={deleting === r.id}
