@@ -38,8 +38,16 @@ function greeting() {
 }
 
 function scorePct(paper: ExamPaperSummary): number | null {
-  if (paper.score === null || !paper.totalMarks || parseFloat(paper.totalMarks) === 0) return null;
-  return Math.round((paper.score / parseFloat(paper.totalMarks)) * 100);
+  if (paper.score === null || !paper.totalMarks) return null;
+  // Match the review-page formula: subtract skipped marks from the
+  // denominator so a student isn't penalised for questions they
+  // chose not to attempt. `paper.skippedMarks` is sum of
+  // marksAvailable for questions marked __SKIPPED__. Falls back to
+  // 0 when the API didn't surface it.
+  const totalRaw = parseFloat(paper.totalMarks);
+  const denom = Math.max(0, totalRaw - (paper.skippedMarks ?? 0));
+  if (denom === 0) return null;
+  return Math.round((paper.score / denom) * 100);
 }
 
 // ─── Bar model diagram (Singapore model method) ───────────────────────────────

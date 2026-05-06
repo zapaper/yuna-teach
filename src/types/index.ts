@@ -74,6 +74,11 @@ export interface ExamPaperSummary {
   lastAssignedByStudent?: Record<string, string>;
   score: number | null;
   totalMarks: string | null;
+  // Sum of marksAvailable for questions the student marked
+  // __SKIPPED__. Subtracted from totalMarks when computing the
+  // displayed pct so a student isn't penalised for skipped
+  // questions — matches the review page's effective denominator.
+  skippedMarks?: number;
   paperType: string | null;
   examType: string | null;
   syllabusTagged: boolean;

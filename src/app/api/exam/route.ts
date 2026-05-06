@@ -152,6 +152,21 @@ export async function GET(request: NextRequest) {
     revisionFlagById.set(r.id, !!m?.revisionMode);
   }
 
+  // Skipped-marks lookup. The review page shows pct =
+  // score / (totalMarks − skippedMarks) so a student isn't penalised
+  // for questions they skipped — the homepage cards should match
+  // that. One aggregate query for all completed papers in scope;
+  // sum on the JS side.
+  const completedPaperIds = papers.filter((p) => p.completedAt).map((p) => p.id);
+  const skippedRows = completedPaperIds.length === 0 ? [] : await prisma.examQuestion.findMany({
+    where: { examPaperId: { in: completedPaperIds }, studentAnswer: "__SKIPPED__" },
+    select: { examPaperId: true, marksAvailable: true },
+  });
+  const skippedMarksById = new Map<string, number>();
+  for (const r of skippedRows) {
+    skippedMarksById.set(r.examPaperId, (skippedMarksById.get(r.examPaperId) ?? 0) + (r.marksAvailable ?? 0));
+  }
+
   return NextResponse.json({
     papers: papers.map((p) => ({
       id: p.id,
@@ -183,6 +198,7 @@ export async function GET(request: NextRequest) {
       ),
       score: p.score ?? null,
       totalMarks: p.totalMarks ?? null,
+      skippedMarks: skippedMarksById.get(p.id) ?? 0,
       paperType: p.paperType ?? null,
       examType: p.examType ?? null,
       sourceExamId: p.sourceExamId ?? null,
