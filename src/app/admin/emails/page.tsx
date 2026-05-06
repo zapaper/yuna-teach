@@ -70,6 +70,26 @@ function Content() {
     URL.revokeObjectURL(url);
   }
 
+  // Quick one-click export of just parent emails — ignores the
+  // "Only parents" / "Only verified" toggles so the admin can grab
+  // every parent email regardless of what's currently filtered on
+  // screen. Header-only column so the file imports cleanly into
+  // mailers (Mailchimp, Brevo, Loops) that expect a single email
+  // column.
+  function downloadParentEmailsCsv() {
+    const parentEmails = [...new Set(
+      users.filter(u => u.role === "PARENT" && u.email).map(u => u.email!),
+    )];
+    const csv = ["email", ...parentEmails].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `parent-emails-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (allowed === null) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" /></div>;
   }
@@ -99,14 +119,18 @@ function Content() {
               </label>
               <span className="ml-auto text-xs font-bold text-slate-500">{emails.length} unique emails</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button onClick={copyEmails} disabled={emails.length === 0}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-bold disabled:opacity-50">
+                className="flex-1 min-w-[10rem] py-2.5 rounded-xl bg-slate-800 text-white text-sm font-bold disabled:opacity-50">
                 {copied ? "Copied!" : "Copy comma-separated"}
               </button>
               <button onClick={downloadCsv} disabled={filtered.length === 0}
-                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-bold disabled:opacity-50">
-                Download CSV
+                className="flex-1 min-w-[10rem] py-2.5 rounded-xl border border-slate-300 text-slate-700 text-sm font-bold disabled:opacity-50">
+                Download CSV (filtered)
+              </button>
+              <button onClick={downloadParentEmailsCsv}
+                className="flex-1 min-w-[10rem] py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold disabled:opacity-50">
+                Export parent emails (CSV)
               </button>
             </div>
           </div>
