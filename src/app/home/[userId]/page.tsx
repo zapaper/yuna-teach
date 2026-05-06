@@ -1313,7 +1313,7 @@ export default function HomePage({
                   </div>
                   <div className="flex gap-3 items-start">
                     <span className="text-lg shrink-0 mt-0.5">&#x1F469;&#x200D;&#x1F3EB;</span>
-                    <p className="text-sm text-slate-600">We encourage you to <strong>go through the mistakes with your child</strong>. Use &ldquo;Explanation&rdquo; if you would like a more detailed explanation of the solution.</p>
+                    <p className="text-sm text-slate-600">We encourage you to <strong>go through the mistakes with your child</strong>. Use &ldquo;AI explanation&rdquo; if you would like a more detailed explanation of the solution.</p>
                   </div>
                 </div>
               </>

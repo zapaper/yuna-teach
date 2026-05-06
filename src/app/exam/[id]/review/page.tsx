@@ -137,6 +137,7 @@ function ExamReviewContent({ id }: { id: string }) {
   const [data, setData] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [paperTitle, setPaperTitle] = useState("");
+  const [paperSubject, setPaperSubject] = useState<string | null>(null);
   const [totalMarks, setTotalMarks] = useState<string | null>(null);
   const [assignedToId, setAssignedToId] = useState<string | null>(null);
   const [answerPages, setAnswerPages] = useState<number[]>([]);
@@ -261,6 +262,7 @@ function ExamReviewContent({ id }: { id: string }) {
           const paper = await paperRes.json();
           paperReviewAnnotations = (paper.reviewAnnotations as Record<string, string> | null) ?? null;
           setPaperTitle(paper.title ?? "");
+          setPaperSubject(paper.subject ?? null);
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
           setInstantFeedback(paper.instantFeedback === true);
@@ -631,6 +633,15 @@ function ExamReviewContent({ id }: { id: string }) {
   // Prefer stored oeqPageMap (set at submission time) to avoid mismatches when
   // MCQ/OEQ classification logic changes between quiz-taking and review.
   const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o));
+  // Math/Science MCQ get the plain "Explanation" label (the elaboration
+  // is admin-curated and lives on the master paper). Everything else
+  // (English, OEQ on any subject) keeps "AI explanation" since those
+  // explanations are generated on demand by the AI.
+  const isMathOrScience = (() => {
+    const s = (paperSubject ?? "").toLowerCase();
+    return s.includes("math") || s.includes("science");
+  })();
+  const isMathSciMcq = (q: ReviewQuestion) => isMathOrScience && hasOpts(q);
   const allOeqQuestions = data.questions.filter(q => !hasOpts(q));
   const currentQOeqIndex = currentQ ? allOeqQuestions.findIndex(q => q.id === currentQ.id) : -1;
   // Use stored page map when available (set at submission time, immune to code changes).
@@ -2033,7 +2044,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                 className="flex items-center gap-1 text-xs font-bold text-[#003366] hover:underline disabled:opacity-50"
                               >
                                 <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                                {elaborating === q.id ? "Generating..." : "Explain"}
+                                {elaborating === q.id ? "Generating..." : (isMathSciMcq(q) ? "Explain" : "AI Explain")}
                               </button>
                             )}
                           </div>
@@ -2726,7 +2737,7 @@ function ExamReviewContent({ id }: { id: string }) {
                 <div className="mt-4">
                   {elaborations[currentQ.id] ? (
                     <div className="bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff] space-y-4">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Explanation</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">{isMathSciMcq(currentQ) ? "Explanation" : "AI Explanation"}</p>
                       {elabDiagrams[currentQ.id]?.map((d, i) => (
                         <div key={i}>
                           {d.title && <p className="text-xs font-semibold text-[#003366] mb-1">{d.title}</p>}
