@@ -90,6 +90,93 @@ function Content() {
     URL.revokeObjectURL(url);
   }
 
+  // Rich parent-progress export. One row per parent with up to 2 linked
+  // children; each child contributes weakness topic, 7-day avg, and the
+  // 3 most recent paper titles + scores. Server does the aggregation
+  // (heavy DB work) and returns JSON; we shape the CSV here.
+  const [exportingProgress, setExportingProgress] = useState(false);
+  async function downloadParentProgressCsv() {
+    setExportingProgress(true);
+    try {
+      const res = await fetch("/api/admin/parent-progress");
+      if (!res.ok) {
+        alert(`Export failed: ${res.status}`);
+        return;
+      }
+      const { rows } = (await res.json()) as {
+        rows: Array<{
+          parentName: string;
+          parentEmail: string;
+          children: Array<{
+            name: string;
+            weaknessTopic: string | null;
+            avg7dPct: number | null;
+            recent: Array<{ title: string; pct: number | null }>;
+          }>;
+        }>;
+      };
+      const headers = [
+        "parent_name",
+        "parent_email",
+        "child_1_name",
+        "child_1_weakness_topic",
+        "child_1_avg_score_last_7_days",
+        "child_1_last_quiz_title",
+        "child_1_last_quiz_score",
+        "child_1_2nd_last_quiz_title",
+        "child_1_2nd_last_quiz_score",
+        "child_1_3rd_last_quiz_title",
+        "child_1_3rd_last_quiz_score",
+        "child_2_name",
+        "child_2_weakness_topic",
+        "child_2_avg_score_last_7_days",
+        "child_2_last_quiz_title",
+        "child_2_last_quiz_score",
+        "child_2_2nd_last_quiz_title",
+        "child_2_2nd_last_quiz_score",
+        "child_2_3rd_last_quiz_title",
+        "child_2_3rd_last_quiz_score",
+      ];
+      const fmtPct = (n: number | null) => (n == null ? "" : `${n}%`);
+      const childCols = (c: { name: string; weaknessTopic: string | null; avg7dPct: number | null; recent: Array<{ title: string; pct: number | null }> } | undefined) => {
+        if (!c) return ["", "", "", "", "", "", "", "", ""];
+        return [
+          c.name,
+          c.weaknessTopic ?? "",
+          fmtPct(c.avg7dPct),
+          c.recent[0]?.title ?? "",
+          fmtPct(c.recent[0]?.pct ?? null),
+          c.recent[1]?.title ?? "",
+          fmtPct(c.recent[1]?.pct ?? null),
+          c.recent[2]?.title ?? "",
+          fmtPct(c.recent[2]?.pct ?? null),
+        ];
+      };
+      const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+      const lines = [
+        headers.join(","),
+        ...rows.map(r => [
+          r.parentName,
+          r.parentEmail,
+          ...childCols(r.children[0]),
+          ...childCols(r.children[1]),
+        ].map(v => escape(String(v ?? ""))).join(",")),
+      ];
+      const csv = lines.join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `parent-progress-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setExportingProgress(false);
+    }
+  }
+
   if (allowed === null) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" /></div>;
   }
@@ -131,6 +218,10 @@ function Content() {
               <button onClick={downloadParentEmailsCsv}
                 className="flex-1 min-w-[10rem] py-2.5 rounded-xl bg-blue-600 text-white text-sm font-bold disabled:opacity-50">
                 Export parent emails (CSV)
+              </button>
+              <button onClick={downloadParentProgressCsv} disabled={exportingProgress}
+                className="flex-1 min-w-[10rem] py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold disabled:opacity-50">
+                {exportingProgress ? "Building…" : "Export parent progress (CSV)"}
               </button>
             </div>
           </div>
