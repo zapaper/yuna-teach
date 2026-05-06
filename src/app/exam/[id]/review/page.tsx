@@ -2033,7 +2033,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                 className="flex items-center gap-1 text-xs font-bold text-[#003366] hover:underline disabled:opacity-50"
                               >
                                 <span className="material-symbols-outlined text-sm">auto_awesome</span>
-                                {elaborating === q.id ? "Generating..." : "AI Explain"}
+                                {elaborating === q.id ? "Generating..." : "Explain"}
                               </button>
                             )}
                           </div>
@@ -2726,7 +2726,7 @@ function ExamReviewContent({ id }: { id: string }) {
                 <div className="mt-4">
                   {elaborations[currentQ.id] ? (
                     <div className="bg-[#eff4ff]/40 rounded-3xl p-5 lg:p-8 border border-[#e5eeff] space-y-4">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">AI Explanation</p>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Explanation</p>
                       {elabDiagrams[currentQ.id]?.map((d, i) => (
                         <div key={i}>
                           {d.title && <p className="text-xs font-semibold text-[#003366] mb-1">{d.title}</p>}
