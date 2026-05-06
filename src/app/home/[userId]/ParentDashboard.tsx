@@ -3204,10 +3204,34 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         // with lg:hidden. Both depend on knowing which student the
         // scheduler is currently filtered to (selectedStudentId).
         const popup = schedulerPopup;
+        const isStudentTakeable = !popup.completed && (popup.paperType === "quiz" || popup.paperType === "focused");
         return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{popup.title}</p>
+            {/* Quiz / focused practice: parents kept clicking the
+                assigned card expecting it to start the quiz, but
+                only the student account can actually take it. Show
+                an explicit prompt + new-tab handoff so first-time
+                parents understand the two-account setup. */}
+            {isStudentTakeable && selectedStudentId && (
+              <>
+                <p className="text-xs text-[#43474f] mb-3 leading-relaxed">
+                  Open this assignment in your child&apos;s page (new tab) to begin the quiz?
+                </p>
+                <button
+                  onClick={() => {
+                    setSchedulerPopup(null);
+                    const url = `/quiz/${popup.id}?userId=${selectedStudentId}`;
+                    window.open(url, "_blank", "noopener");
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] transition-colors flex items-center justify-center gap-1.5 mb-3"
+                >
+                  <span className="material-symbols-outlined text-base">open_in_new</span>
+                  Open in child&apos;s tab
+                </button>
+              </>
+            )}
             {!popup.completed && selectedStudentId && popup.paperType !== "quiz" && popup.paperType !== "focused" && (
               <div className="flex gap-2 mb-3">
                 <button
