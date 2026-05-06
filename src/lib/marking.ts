@@ -3155,6 +3155,7 @@ CRITICAL rules:
 MATH MARKING — ANSWER-FIRST RULE (IMPORTANT):
 For math questions, working is secondary to the final answer:
 - If the student's final answer (the value on or near the "Ans:" / "Answer:" line, or the clearly-stated final value) matches the expected answer → award FULL MARKS immediately. Do NOT deduct for missing, incomplete, or unclear working. Working is not required when the answer is right.
+- The expected answer key may include AUXILIARY identifications such as "x = ∠BDC" or "let y be …" or "this angle is alternate to …". These are reasoning hints, NOT required parts of the student's answer. If the student's final NUMERICAL/value answer matches the key, award FULL MARKS even if they omit these labels or angle identifications. Example: question is "find ∠x", key is "180 − 105 − 32 = 43° | x = ∠BDC", student wrote "43°" → FULL MARKS.
 - ONLY when the final answer is WRONG or absent: scan the working steps for partial credit. Award partial marks proportional to marksAvailable if some steps or methods are correct.
 - If wrong with no correct working → ZERO.
 - Equivalent-form answers are equivalent answers: 1/2 = 0.5 = 50%; 3 1/2 = 7/2 = 3.5; 25 cm = 0.25 m if units accepted. Accept all standard equivalences unless the question asks for a specific form.
