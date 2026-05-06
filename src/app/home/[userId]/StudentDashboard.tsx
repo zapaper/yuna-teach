@@ -215,6 +215,25 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const parentAllowedAvatar = user.settings?.avatar === true;
   const avatarType = (user.settings as Record<string, unknown> | null)?.avatarType as string | undefined ?? "bunny";
   const whitetigerUnlocked = (user.settings as Record<string, unknown> | null)?.whitetiger === true;
+  // One-time celebration popup. Set settings.whitetigerCelebrate=true
+  // (admin grant or future automatic trigger) and the student sees a
+  // congratulatory modal once; dismissal PATCHes the flag back to
+  // false so it doesn't repeat.
+  const [showWhitetigerCelebrate, setShowWhitetigerCelebrate] = useState(
+    () => (user.settings as Record<string, unknown> | null)?.whitetigerCelebrate === true,
+  );
+  async function dismissWhitetigerCelebrate() {
+    setShowWhitetigerCelebrate(false);
+    try {
+      await fetch("/api/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, settings: { whitetigerCelebrate: false } }),
+      });
+    } catch {
+      // Best-effort — if the PATCH fails the popup just shows again next visit.
+    }
+  }
   const [avatarSrc, setAvatarSrc] = useState(() => `/avatars/${avatarType}${Math.floor(Math.random() * 4) + 1}.mp4`);
   const [nextAvatarSrc, setNextAvatarSrc] = useState<string | null>(null);
   // Mobile avatar uses `loop` and picks a single clip on mount. Keeping it on
@@ -1788,6 +1807,32 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           </button>
         )}
       </nav>
+
+      {/* White Tiger Celebration — one-time popup. Triggered by
+          settings.whitetigerCelebrate=true. Dismissal PATCHes the
+          flag back so it doesn't repeat. */}
+      {showWhitetigerCelebrate && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={dismissWhitetigerCelebrate}>
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl text-center" onClick={e => e.stopPropagation()}>
+            <video
+              src="/avatars/whitetiger_smile.webm"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-40 h-40 mx-auto rounded-2xl bg-slate-100 object-cover mb-4"
+            />
+            <h3 className="font-headline font-extrabold text-xl text-[#001e40] mb-2">Congratulations!</h3>
+            <p className="text-sm text-[#43474f] mb-5">You&apos;ve unlocked the <strong className="text-[#001e40]">White Tiger</strong>. He&apos;s ready to join your habitat — head over and pick him as your avatar.</p>
+            <button
+              onClick={dismissWhitetigerCelebrate}
+              className="w-full py-3 rounded-xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145]"
+            >
+              Awesome!
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Rename Modal */}
       {showRename && (

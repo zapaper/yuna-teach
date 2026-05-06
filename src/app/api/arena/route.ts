@@ -46,10 +46,15 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // Aggregate per student
+  // Aggregate per student. Seed each student's points with any
+  // settings.arenaBonusPoints — a sticky admin grant that adds to the
+  // weekly tally so we can credit a student for activity that didn't
+  // get captured automatically.
   const stats: Record<string, { name: string; points: number; totalMarks: number; earned: number }> = {};
   for (const s of arenaStudents) {
-    stats[s.id] = { name: s.name, points: 0, totalMarks: 0, earned: 0 };
+    const settings = s.settings as Record<string, unknown> | null;
+    const bonus = typeof settings?.arenaBonusPoints === "number" ? settings.arenaBonusPoints : 0;
+    stats[s.id] = { name: s.name, points: bonus, totalMarks: 0, earned: 0 };
   }
   for (const p of papers) {
     if (!p.assignedToId || !stats[p.assignedToId]) continue;
