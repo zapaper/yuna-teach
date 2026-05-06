@@ -274,7 +274,7 @@ export default function HomePage() {
               <span className="inline-block font-headline text-base md:text-lg font-extrabold text-tertiary tracking-[0.2em] mb-3">05 &middot; PARENTS SAY</span>
               <h2 className="font-headline text-3xl lg:text-4xl font-extrabold text-primary">What parents tell us</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               <figure className="relative bg-white p-8 lg:p-10 rounded-3xl shadow-sm border border-surface-container-high">
                 <span className="absolute top-4 left-6 font-headline text-6xl lg:text-7xl font-extrabold text-tertiary leading-none select-none" aria-hidden="true">&ldquo;</span>
                 <blockquote className="relative pt-6">
@@ -294,6 +294,17 @@ export default function HomePage() {
                   </p>
                   <figcaption className="text-sm font-bold text-primary">
                     — Melissa, <span className="text-on-surface-variant font-semibold">P6 Mum, Kovan</span>
+                  </figcaption>
+                </blockquote>
+              </figure>
+              <figure className="relative bg-white p-8 lg:p-10 rounded-3xl shadow-sm border border-surface-container-high">
+                <span className="absolute top-4 left-6 font-headline text-6xl lg:text-7xl font-extrabold text-tertiary leading-none select-none" aria-hidden="true">&ldquo;</span>
+                <blockquote className="relative pt-6">
+                  <p className="text-base lg:text-lg text-on-surface leading-relaxed mb-6">
+                    I absolutely love the revision function. The AI compiles my child&apos;s mistakes in a single platform; I no longer have to amass stacks of torn-out pages, or worry about losing them!
+                  </p>
+                  <figcaption className="text-sm font-bold text-primary">
+                    — Jessica, <span className="text-on-surface-variant font-semibold">P5 Mum, Newton</span>
                   </figcaption>
                 </blockquote>
               </figure>
