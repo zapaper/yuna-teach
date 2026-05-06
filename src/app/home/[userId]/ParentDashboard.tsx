@@ -2340,7 +2340,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     <p className="text-xs font-extrabold uppercase tracking-widest text-[#43474f] mb-1 mt-2">Assigned — Not Started</p>
                   )}
                   {unstartedPapers.map(paper => (
-                    <div key={paper.id} className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3">
+                    <div
+                      key={paper.id}
+                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType })}
+                      className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
+                    >
                       <div className="w-11 h-11 rounded-2xl bg-[#ffddb4]/40 flex items-center justify-center text-[#d58d00] shrink-0">
                         <span className="material-symbols-outlined text-lg">assignment</span>
                       </div>
