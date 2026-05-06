@@ -26,7 +26,17 @@ export async function GET() {
         lastLoginAt: true,
         settings: true,
         parentLinks: {
-          select: { student: { select: { id: true, name: true, displayName: true, level: true } } },
+          select: {
+            student: {
+              select: {
+                id: true,
+                name: true,
+                displayName: true,
+                level: true,
+                _count: { select: { examPapers: true } },
+              },
+            },
+          },
         },
         _count: { select: { examPapers: true } },
       },
@@ -59,8 +69,20 @@ export async function GET() {
       createdAt: p.createdAt.toISOString(),
       lastLoginAt: p.lastLoginAt?.toISOString() ?? null,
       isAdmin: ((p.settings as { admin?: unknown } | null)?.admin === true) || p.name?.toLowerCase() === "admin",
-      paperCount: p._count.examPapers,
-      students: p.parentLinks.map(l => l.student),
+      // Total papers in this family: parent-assigned (parent.examPapers,
+      // owned by parent) + each linked student's self-assigned/uploaded
+      // papers (student.examPapers, owned by the student). Disjoint
+      // sets — a parent-assigned paper has userId=parent, a self-
+      // assigned one has userId=student — so summing is safe.
+      paperCount:
+        p._count.examPapers +
+        p.parentLinks.reduce((sum, l) => sum + l.student._count.examPapers, 0),
+      students: p.parentLinks.map(l => ({
+        id: l.student.id,
+        name: l.student.name,
+        displayName: l.student.displayName,
+        level: l.student.level,
+      })),
     })),
     students: students.map(s => ({
       id: s.id,
