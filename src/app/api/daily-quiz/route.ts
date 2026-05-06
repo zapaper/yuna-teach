@@ -525,6 +525,34 @@ export async function POST(request: NextRequest) {
       if (!vocabClozePaperGroups.has(key)) vocabClozePaperGroups.set(key, []);
       vocabClozePaperGroups.get(key)!.push(q);
     }
+
+    // Backfill each paper's vocab-cloze chunk with any sibling
+    // questions from the master that didn't survive the allPool
+    // filters (level / freshness / etc.). Passage-bound sections
+    // are all-or-nothing — a 5-marker passage with only 4
+    // questions in the pool would otherwise render the wrong
+    // marker against the wrong word.
+    for (const [paperId, qs] of [...vocabClozePaperGroups.entries()]) {
+      const haveIds = new Set(qs.map(q => q.id));
+      const masterSiblings = await prisma.examQuestion.findMany({
+        where: {
+          examPaperId: paperId,
+          answer: { not: null },
+          syllabusTopic: { contains: "vocabulary", mode: "insensitive" },
+          id: { notIn: [...haveIds] },
+        },
+        select: questionSelectLight,
+      });
+      const filtered = masterSiblings.filter((q) => {
+        const t = (q.syllabusTopic ?? "").toLowerCase();
+        return t.includes("vocabulary") && t.includes("cloze") && isMcq(q.answer);
+      });
+      if (filtered.length > 0) {
+        console.log(`[English Quiz] vocab-cloze backfill for ${paperId}: +${filtered.length} sibling(s)`);
+        vocabClozePaperGroups.set(paperId, [...qs, ...filtered]);
+      }
+    }
+
     const vocabClozePapers = new Map<string, typeof allPool>();
     let vocabClozeSplitIdx = 0;
     for (const [paperId, qs] of vocabClozePaperGroups.entries()) {
@@ -670,6 +698,29 @@ export async function POST(request: NextRequest) {
         if (!papersMap.has(q.examPaperId)) papersMap.set(q.examPaperId, []);
         papersMap.get(q.examPaperId)!.push(q);
       }
+
+      // Backfill each paper's section chunk from master so every
+      // passage-bound section renders with all its questions
+      // present, even if individual questions failed the allPool
+      // freshness / level filters. Same reasoning as the
+      // vocab-cloze backfill above.
+      for (const [paperId, qs] of [...papersMap.entries()]) {
+        const haveIds = new Set(qs.map(q => q.id));
+        const siblings = await prisma.examQuestion.findMany({
+          where: {
+            examPaperId: paperId,
+            answer: { not: null },
+            id: { notIn: [...haveIds] },
+          },
+          select: questionSelectLight,
+        });
+        const missing = siblings.filter((q) => matcher((q.syllabusTopic ?? "").toLowerCase()));
+        if (missing.length > 0) {
+          console.log(`[English Quiz] ${section} backfill for ${paperId}: +${missing.length} sibling(s)`);
+          papersMap.set(paperId, [...qs, ...missing]);
+        }
+      }
+
       const paperSets = sortByFreshness([...papersMap.values()]);
       if (paperSets.length === 0) continue;
       if (isFocusedEnglish && DOUBLABLE_PASSAGE_SECTIONS.has(section) && paperSets.length >= 2) {
