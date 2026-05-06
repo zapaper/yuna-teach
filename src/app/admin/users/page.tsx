@@ -63,6 +63,7 @@ function AdminUsersContent() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string; role: "PARENT" | "STUDENT" } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [exportingProgress, setExportingProgress] = useState(false);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -70,6 +71,92 @@ function AdminUsersContent() {
       .then(r => setAllowed(r.ok))
       .catch(() => setAllowed(false));
   }, [userId]);
+
+  // Rich parent-progress export. One row per parent with up to 2 linked
+  // children; each child contributes weakness topic, 7-day avg, and the
+  // 3 most recent paper titles + scores. Server does the heavy DB
+  // aggregation; we shape the CSV here.
+  async function downloadParentProgressCsv() {
+    setExportingProgress(true);
+    try {
+      const res = await fetch("/api/admin/parent-progress");
+      if (!res.ok) {
+        alert(`Export failed: ${res.status}`);
+        return;
+      }
+      const { rows } = (await res.json()) as {
+        rows: Array<{
+          parentName: string;
+          parentEmail: string;
+          children: Array<{
+            name: string;
+            weaknessTopic: string | null;
+            avg7dPct: number | null;
+            recent: Array<{ title: string; pct: number | null }>;
+          }>;
+        }>;
+      };
+      const headers = [
+        "parent_name",
+        "parent_email",
+        "child_1_name",
+        "child_1_weakness_topic",
+        "child_1_avg_score_last_7_days",
+        "child_1_last_quiz_title",
+        "child_1_last_quiz_score",
+        "child_1_2nd_last_quiz_title",
+        "child_1_2nd_last_quiz_score",
+        "child_1_3rd_last_quiz_title",
+        "child_1_3rd_last_quiz_score",
+        "child_2_name",
+        "child_2_weakness_topic",
+        "child_2_avg_score_last_7_days",
+        "child_2_last_quiz_title",
+        "child_2_last_quiz_score",
+        "child_2_2nd_last_quiz_title",
+        "child_2_2nd_last_quiz_score",
+        "child_2_3rd_last_quiz_title",
+        "child_2_3rd_last_quiz_score",
+      ];
+      const fmtPct = (n: number | null) => (n == null ? "" : `${n}%`);
+      const childCols = (c: { name: string; weaknessTopic: string | null; avg7dPct: number | null; recent: Array<{ title: string; pct: number | null }> } | undefined) => {
+        if (!c) return ["", "", "", "", "", "", "", "", ""];
+        return [
+          c.name,
+          c.weaknessTopic ?? "",
+          fmtPct(c.avg7dPct),
+          c.recent[0]?.title ?? "",
+          fmtPct(c.recent[0]?.pct ?? null),
+          c.recent[1]?.title ?? "",
+          fmtPct(c.recent[1]?.pct ?? null),
+          c.recent[2]?.title ?? "",
+          fmtPct(c.recent[2]?.pct ?? null),
+        ];
+      };
+      const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+      const lines = [
+        headers.join(","),
+        ...rows.map(r => [
+          r.parentName,
+          r.parentEmail,
+          ...childCols(r.children[0]),
+          ...childCols(r.children[1]),
+        ].map(v => escape(String(v ?? ""))).join(",")),
+      ];
+      const csv = lines.join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `parent-progress-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert(`Export failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setExportingProgress(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -134,9 +221,18 @@ function AdminUsersContent() {
     <div className="min-h-screen bg-slate-50">
       <AdminNav userId={userId} />
       <div className="lg:ml-56 pb-24 lg:pb-0">
-        <div className="bg-white border-b border-slate-200 px-4 py-3">
-          <h1 className="text-lg font-bold text-slate-800">Manage Users</h1>
-          <p className="text-xs text-slate-400">{parents.length} parents · {students.length} students</p>
+        <div className="bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-lg font-bold text-slate-800">Manage Users</h1>
+            <p className="text-xs text-slate-400">{parents.length} parents · {students.length} students</p>
+          </div>
+          <button
+            onClick={downloadParentProgressCsv}
+            disabled={exportingProgress}
+            className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold disabled:opacity-50 hover:bg-emerald-700 transition-colors"
+          >
+            {exportingProgress ? "Building…" : "Export parent progress (CSV)"}
+          </button>
         </div>
 
         {error && (
