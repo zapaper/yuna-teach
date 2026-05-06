@@ -2548,6 +2548,25 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           return out;
         };
 
+        // Per-part marks cap: parse "[N marks]" / "[N]" suffix from
+        // each subpart's text. Used to tell the marker the maximum
+        // marks per part, and to clamp the AI's per-part awards
+        // downstream so a 3-mark subpart can't be awarded 4.
+        const partMaxMarks = new Map<string, number>();
+        let partMaxTotal = 0;
+        for (const sp of realSubsForAns) {
+          const m = String(sp.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
+          if (m) {
+            const n = parseInt(m[1], 10);
+            if (Number.isFinite(n) && n > 0) {
+              partMaxMarks.set(sp.label.toLowerCase(), n);
+              partMaxTotal += n;
+            }
+          }
+        }
+        const hasFullPartMaxes = partMaxMarks.size === realSubsForAns.length && realSubsForAns.length > 0;
+        const partMaxNote = hasFullPartMaxes ? `\n\nMARKS PER PART (HARD CAPS):\n${realSubsForAns.map(sp => `Part (${sp.label}): max ${partMaxMarks.get(sp.label.toLowerCase())} mark(s)`).join("\n")}\nDo NOT award more than the cap for any part. The total of all parts must not exceed the marks available for the question.` : "";
+
         let expectedAnswer: string;
         if (hasPerPartAnswers) {
           expectedAnswer = realSubsForAns
@@ -3240,7 +3259,7 @@ Student's answer (detected from their handwriting): "${detectedAnswer}"
 Expected answer: "${expectedAnswer}"
 ${blankAntiHallucinationClause}
 ${answerImageNote}${answerImageUsageNote}
-Marks available: ${marksAvailable}
+Marks available: ${marksAvailable}${partMaxNote}
 
 ╔══════════════════════════════════════════════════════════════════════╗
 ║  ABSOLUTE RULE — READ CAREFULLY                                       ║
@@ -3390,6 +3409,49 @@ Return ONLY valid JSON:
                   if (sumClamp < awarded) {
                     console.log(`[quiz-marking] Q${q.questionNum} per-part clamp: ${partMatches.length} parts sum=${partSum} → ${sumClamp}/${marksAvailable} (was ${awarded})`);
                     awarded = sumClamp;
+                  }
+                }
+              }
+
+              // Per-part HARD CAP: if the subpart text carries an
+              // explicit "[N marks]" cap (parsed into partMaxMarks),
+              // the AI's awarded mark for that part can't exceed
+              // it. Reported case: a P5 Math Q5 with (a)=2 marks +
+              // (b)=3 marks where flash awarded part (b) 4 marks
+              // (above its 3-mark cap), giving 4/5 instead of the
+              // clamped 3/5. Parses per-part awards from the notes
+              // field (the marker is already prompted to write
+              // them), clamps each to its cap, and re-sums.
+              if (parsed.notes && hasFullPartMaxes && awarded > 0) {
+                const notesStr = String(parsed.notes);
+                // Match "Part (a): … Awarded N mark(s)" or "(a) … Awarded N mark(s)"
+                // — split notes into per-part chunks first, then read each chunk's
+                // last "awarded N marks" hit. Multi-line. Case-insensitive.
+                const partRe = /(?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)\s*:?\s*([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
+                let cappedSum = 0;
+                let appliedCap = false;
+                let usedAnyChunk = false;
+                for (const m of notesStr.matchAll(partRe)) {
+                  const label = m[1].toLowerCase();
+                  const chunk = m[2];
+                  const awardMatches = [...chunk.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
+                  if (awardMatches.length === 0) continue;
+                  const partAwarded = parseFloat(awardMatches[awardMatches.length - 1][1]);
+                  const cap = partMaxMarks.get(label);
+                  if (cap == null) { cappedSum += partAwarded; usedAnyChunk = true; continue; }
+                  const clamped = Math.min(cap, Math.max(0, partAwarded));
+                  if (clamped < partAwarded) {
+                    appliedCap = true;
+                    console.log(`[quiz-marking] Q${q.questionNum} part (${label}) cap: AI awarded ${partAwarded} > max ${cap} → ${clamped}`);
+                  }
+                  cappedSum += clamped;
+                  usedAnyChunk = true;
+                }
+                if (usedAnyChunk && appliedCap) {
+                  const newAwarded = Math.min(marksAvailable, Math.max(0, cappedSum));
+                  if (newAwarded < awarded) {
+                    console.log(`[quiz-marking] Q${q.questionNum} per-part hard-cap clamp: ${awarded} → ${newAwarded}/${marksAvailable}`);
+                    awarded = newAwarded;
                   }
                 }
               }
