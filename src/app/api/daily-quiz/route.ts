@@ -910,12 +910,43 @@ export async function POST(request: NextRequest) {
           allMarkers.push({ num: parseInt(mm[1]), fullMatch: mm[0], index: mm.index });
         }
         if (allMarkers.length > qCount) {
-          // Passage has too many markers — truncate the passage to the first qCount markers
-          const lastKept = allMarkers[qCount - 1];
-          const cutPoint = lastKept.index + lastKept.fullMatch.length;
-          const nextNewline = passage.indexOf("\n", cutPoint);
-          passage = passage.slice(0, nextNewline >= 0 ? nextNewline : cutPoint).trimEnd();
-          console.log(`[English Quiz] ${group.label}: truncated passage to ${qCount} markers (was ${allMarkers.length})`);
+          // Passage has more markers than selected questions. The
+          // *which* matters: when the daily-quiz selection drops a
+          // master question from the middle of a section (e.g.
+          // master Q18 of a 5-question vocab cloze isn't sampled),
+          // truncating to the first N markers is wrong — it keeps
+          // the dropped marker AND drops the kept-tail one. The
+          // observed bug: master Qs 16-20 selected as 16/17/19/20,
+          // truncate-to-first-4 kept markers 16/17/18/19 and
+          // dropped 20 (the "indigenous" sentence).
+          //
+          // Surgical fix: identify markers that DON'T correspond
+          // to a selected question and splice them out, leaving
+          // only the ones that match. Renumbering below then maps
+          // those to (1)..(N) in selection order. Falls back to
+          // the original truncate-to-first-N behaviour if we
+          // can't match selected master questionNums to markers.
+          const selectedNums = new Set(group.questions.map(q => parseInt(q.questionNum)).filter(n => !isNaN(n)));
+          const matchableMarkers = allMarkers.filter(m => selectedNums.has(m.num));
+          if (selectedNums.size === qCount && matchableMarkers.length === qCount) {
+            // Iterate in reverse so earlier indices stay valid as
+            // we splice. Removing a marker also has to drop the
+            // bold-emphasis closing **, which is part of fullMatch.
+            let removed = 0;
+            for (let i = allMarkers.length - 1; i >= 0; i--) {
+              const m = allMarkers[i];
+              if (selectedNums.has(m.num)) continue;
+              passage = passage.slice(0, m.index) + passage.slice(m.index + m.fullMatch.length);
+              removed++;
+            }
+            console.log(`[English Quiz] ${group.label}: surgically removed ${removed} unselected markers (kept ${matchableMarkers.length})`);
+          } else {
+            const lastKept = allMarkers[qCount - 1];
+            const cutPoint = lastKept.index + lastKept.fullMatch.length;
+            const nextNewline = passage.indexOf("\n", cutPoint);
+            passage = passage.slice(0, nextNewline >= 0 ? nextNewline : cutPoint).trimEnd();
+            console.log(`[English Quiz] ${group.label}: truncated passage to ${qCount} markers (was ${allMarkers.length})`);
+          }
         } else if (usesInlineMarkersHere && allMarkers.length > 0 && allMarkers.length < qCount) {
           // Passage has too few markers — trim the questions to match so we don't end
           // up rendering 10 questions next to a passage with only 5 blanks.
