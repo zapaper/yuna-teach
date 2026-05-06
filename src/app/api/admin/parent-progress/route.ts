@@ -27,6 +27,12 @@ type ChildSummary = {
 type ParentRow = {
   parentName: string;
   parentEmail: string;
+  // Total quizzes "set" — parent-assigned + each linked student's
+  // self-assigned/uploaded papers (matches the paperCount shown on
+  // /admin/users so the two views agree).
+  quizzesSet: number;
+  // Total papers across linked students with completedAt != null.
+  quizzesCompleted: number;
   children: ChildSummary[];
 };
 
@@ -42,9 +48,17 @@ export async function GET() {
       name: true,
       displayName: true,
       email: true,
+      _count: { select: { examPapers: true } },
       parentLinks: {
         select: {
-          student: { select: { id: true, name: true, displayName: true } },
+          student: {
+            select: {
+              id: true,
+              name: true,
+              displayName: true,
+              _count: { select: { examPapers: true } },
+            },
+          },
         },
       },
     },
@@ -56,6 +70,14 @@ export async function GET() {
 
   for (const p of parents) {
     const children: ChildSummary[] = [];
+    // Total "set" = parent's own examPapers + each linked student's
+    // self-assigned/uploaded papers. Matches the paperCount on
+    // /admin/users.
+    const quizzesSet =
+      p._count.examPapers +
+      p.parentLinks.reduce((sum, l) => sum + l.student._count.examPapers, 0);
+    let quizzesCompleted = 0;
+
     for (const link of p.parentLinks) {
       const studentId = link.student.id;
       const studentName =
@@ -162,6 +184,10 @@ export async function GET() {
         pct: p.pct,
       }));
 
+      // Each completed paper for this student counts toward the
+      // "quizzes all students completed" total.
+      quizzesCompleted += papers.length;
+
       children.push({
         name: studentName,
         weaknessTopic,
@@ -173,6 +199,8 @@ export async function GET() {
     rows.push({
       parentName: p.displayName?.trim() || p.name,
       parentEmail: p.email!,
+      quizzesSet,
+      quizzesCompleted,
       children,
     });
   }

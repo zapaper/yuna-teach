@@ -107,6 +107,8 @@ function Content() {
         rows: Array<{
           parentName: string;
           parentEmail: string;
+          quizzesSet: number;
+          quizzesCompleted: number;
           children: Array<{
             name: string;
             weaknessTopic: string | null;
@@ -118,6 +120,8 @@ function Content() {
       const headers = [
         "parent_name",
         "parent_email",
+        "quizzes_set",
+        "quizzes_completed_by_students",
         "child_1_name",
         "child_1_weakness_topic",
         "child_1_avg_score_last_7_days",
@@ -158,6 +162,8 @@ function Content() {
         ...rows.map(r => [
           r.parentName,
           r.parentEmail,
+          r.quizzesSet,
+          r.quizzesCompleted,
           ...childCols(r.children[0]),
           ...childCols(r.children[1]),
         ].map(v => escape(String(v ?? ""))).join(",")),
