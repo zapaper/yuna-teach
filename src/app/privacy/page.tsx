@@ -79,7 +79,7 @@ export default function PrivacyPage() {
           <li><strong>Vercel</strong> — front-end hosting and CDN.</li>
           <li><strong>Stripe</strong> — payment processing (web subscriptions).</li>
           <li><strong>Apple App Store / RevenueCat</strong> — payment processing (iOS subscriptions).</li>
-          <li><strong>Google Gemini</strong> — AI marking. We send the relevant question and student answer; nothing is retained by Google for training.</li>
+          <li><strong>Various AI models</strong> — AI marking and explanation. We use a variety of models and workflows, including finetuning, to ensure quality marking and explanation. Nothing is retained by external providers.</li>
           <li><strong>SendGrid</strong> — sending email and receiving scanned-paper attachments.</li>
         </ul>
 
