@@ -148,11 +148,16 @@ export async function POST(
     return NextResponse.json(parseCachedElaboration(question.elaboration));
   }
 
-  // For MCQ on a clone, fall back to the master's elaboration before
-  // hitting the model. If the master already has one (and it's not
-  // a failure sentinel), copy it onto the clone so subsequent reads
-  // of this exact clone skip the master lookup, then return.
-  if (isMcq && !isCompClozeQuestion && question.sourceQuestionId) {
+  // For MCQ — and for Math/Science OEQ — the explanation is a fresh
+  // step-by-step solution that doesn't depend on the student's
+  // specific answer (marking notes already cover what they got
+  // wrong). So clones can share the master's cached elaboration. We
+  // exclude English OEQ because synthesis/comp/cloze explanations
+  // often quote the student's answer back, which differs per clone.
+  const subjectLower = (question.examPaper?.subject ?? "").toLowerCase();
+  const isMathOrScience = subjectLower.includes("math") || subjectLower.includes("science");
+  const canShareMasterElab = (isMcq || isMathOrScience) && !isCompClozeQuestion;
+  if (canShareMasterElab && question.sourceQuestionId) {
     const master = await prisma.examQuestion.findUnique({
       where: { id: question.sourceQuestionId },
       select: { elaboration: true },
@@ -356,11 +361,12 @@ If the question image is provided, reference the actual question content.`,
         where: { id: questionId },
         data: { elaboration: cached },
       });
-      // For MCQ on a clone, also write to the master so every other
-      // clone of the same source MCQ inherits the explanation
-      // without re-paying the model. Best-effort — the clone copy
+      // For MCQ — and for Math/Science OEQ — also write to the master
+      // so every other clone of the same source question inherits the
+      // explanation without re-paying the model. Mirrors the read-side
+      // canShareMasterElab gate above. Best-effort — the clone copy
       // is still authoritative for this request.
-      if (isMcq && question.sourceQuestionId) {
+      if (canShareMasterElab && question.sourceQuestionId) {
         try {
           await prisma.examQuestion.update({
             where: { id: question.sourceQuestionId },
