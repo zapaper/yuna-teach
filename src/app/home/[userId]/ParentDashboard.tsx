@@ -1994,7 +1994,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 {initials(displayName)}
               </button>
               {showProfileMenu && (
-                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
+                <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-44 z-50">
                   {isAdminUser && (
                     <button
                       onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
@@ -2004,6 +2004,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       Admin Panel
                     </button>
                   )}
+                  <button
+                    onClick={() => { setShowProfileMenu(false); router.push(`/account/${userId}`); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">manage_accounts</span>
+                    Account
+                  </button>
                   <button
                     onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} router.push("/"); }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
@@ -2053,7 +2060,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               {initials(displayName)}
             </button>
             {showProfileMenu && (
-              <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-40 z-50">
+              <div className="absolute right-0 top-10 bg-white rounded-xl shadow-lg border border-slate-100 py-1 w-44 z-50">
                 {hasAvatar && (
                   <button
                     onClick={() => { setShowProfileMenu(false); router.push(`/admin?userId=${userId}`); }}
@@ -2063,6 +2070,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     Admin Panel
                   </button>
                 )}
+                <button
+                  onClick={() => { setShowProfileMenu(false); router.push(`/account/${userId}`); }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">manage_accounts</span>
+                  Account
+                </button>
                 <button
                   onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} router.push("/"); }}
                   className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
