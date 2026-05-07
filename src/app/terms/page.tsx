@@ -74,7 +74,8 @@ export default function TermsPage() {
         <ul className="list-disc pl-6 space-y-2 mb-4 leading-relaxed">
           <li>Upload content that is illegal, infringing, harassing, or harmful to children.</li>
           <li>Attempt to access other users&rsquo; accounts, scrape, or reverse-engineer the Service.</li>
-          <li>Use the Service to build a competing AI marking product.</li>
+          <li>Use the Service to build a competing AI product.</li>
+          <li>Use the Service beyond the intended parent-and-child(ren) household context — e.g., as a tutoring service across unrelated students, a school-wide tool, or any commercial reuse.</li>
           <li>Resell or sublicense access to the Service.</li>
         </ul>
 
