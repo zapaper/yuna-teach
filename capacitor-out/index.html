@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MarkForYou</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      background: #001e40;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .splash {
+      text-align: center;
+    }
+    .splash h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .splash p {
+      opacity: 0.7;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="splash">
+    <h1>MarkForYou</h1>
+    <p>Loading…</p>
+  </div>
+  <script>
+    // Capacitor's native side replaces this with server.url at boot.
+    // If for any reason the redirect doesn't fire (offline, etc.),
+    // try the live URL directly.
+    setTimeout(() => {
+      if (location.hostname !== "www.markforyou.com") {
+        location.href = "https://www.markforyou.com/";
+      }
+    }, 1500);
+  </script>
+</body>
+</html>
