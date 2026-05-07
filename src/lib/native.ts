@@ -81,15 +81,17 @@ export async function configurePurchases(userId: string): Promise<void> {
   purchasesConfigured = true;
 }
 
-export async function startMonthlyPurchase(userId: string): Promise<{ ok: true } | { ok: false; reason: string }> {
+export type RcPackageId = "monthly" | "annual";
+
+export async function startPurchase(userId: string, packageId: RcPackageId): Promise<{ ok: true } | { ok: false; reason: string }> {
   if (!isNative()) return { ok: false, reason: "not_native" };
   await configurePurchases(userId);
   const { Purchases } = await import("@revenuecat/purchases-capacitor");
   try {
     const offerings = await Purchases.getOfferings();
-    const monthly = offerings.current?.monthly;
-    if (!monthly) return { ok: false, reason: "no_monthly_offering" };
-    await Purchases.purchasePackage({ aPackage: monthly });
+    const target = packageId === "annual" ? offerings.current?.annual : offerings.current?.monthly;
+    if (!target) return { ok: false, reason: `no_${packageId}_offering` };
+    await Purchases.purchasePackage({ aPackage: target });
   } catch (err) {
     const code = (err as { code?: string }).code;
     if (code === "PURCHASE_CANCELLED" || code === "1") return { ok: false, reason: "cancelled" };
