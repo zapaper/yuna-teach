@@ -77,7 +77,23 @@ export async function POST() {
   }
   log.push(`source: ${emily.name} (${emily.id}) P${emily.level}`);
 
-  // 2. Upsert parent.
+  // 2. Upsert parent. Also pre-activate an annual subscription so the
+  //    Apple reviewer sees the unlocked dashboard immediately without
+  //    having to drive a sandbox purchase. Marked as Apple-paid +
+  //    Sandbox so the "Manage subscription" link points to the App
+  //    Store deeplink (matches what a real iOS subscriber would see).
+  const oneYearFromNow = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+  const subFields = {
+    subscriptionStatus: "active",
+    paymentSource: "apple",
+    appleProductId: "com.markforyou.annual",
+    appleEnvironment: "Sandbox",
+    appleExpiresAt: oneYearFromNow,
+    // appleOriginalTransactionId stays null — we don't have a real
+    // Apple receipt, and the @unique index would otherwise reject a
+    // re-run if we synthesized a value. Status + product + expiry are
+    // enough for the gating logic in usage.ts and the pricing UI.
+  };
   let parent = await prisma.user.findUnique({ where: { email: PARENT_EMAIL } });
   if (!parent) {
     parent = await prisma.user.create({
@@ -88,15 +104,21 @@ export async function POST() {
         password: PARENT_PASSWORD,
         role: "PARENT",
         emailVerified: true,
+        ...subFields,
       },
     });
-    log.push(`created parent ${parent.id}`);
+    log.push(`created parent ${parent.id} with annual sub active`);
   } else {
     parent = await prisma.user.update({
       where: { id: parent.id },
-      data: { password: PARENT_PASSWORD, emailVerified: true, role: "PARENT" },
+      data: {
+        password: PARENT_PASSWORD,
+        emailVerified: true,
+        role: "PARENT",
+        ...subFields,
+      },
     });
-    log.push(`reused parent ${parent.id}`);
+    log.push(`reused parent ${parent.id}; annual sub re-activated`);
   }
 
   // 3. Upsert student.
@@ -234,7 +256,16 @@ export async function POST() {
 
   return NextResponse.json({
     ok: true,
-    parent: { id: parent.id, email: PARENT_EMAIL, password: PARENT_PASSWORD },
+    parent: {
+      id: parent.id,
+      email: PARENT_EMAIL,
+      password: PARENT_PASSWORD,
+      subscription: {
+        status: "active",
+        product: "com.markforyou.annual",
+        expiresAt: oneYearFromNow.toISOString(),
+      },
+    },
     student: { id: student.id, name: STUDENT_USERNAME, password: STUDENT_PASSWORD },
     log,
   });
