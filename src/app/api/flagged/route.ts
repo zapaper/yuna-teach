@@ -19,6 +19,8 @@ export async function GET(_request: NextRequest) {
       transcribedStem: true,
       syllabusTopic: true,
       sourceQuestionId: true,
+      flagText: true,
+      flagVoiceNote: true,
       examPaper: {
         select: {
           id: true,
@@ -125,6 +127,9 @@ export async function GET(_request: NextRequest) {
       sourcePaperId: src?.paperId ?? null,
       sourceQuestionId: q.sourceQuestionId ?? null,
       sourceQuestionNum: src?.questionNum ?? null,
+      // Flag notes left by whoever raised the flag.
+      flagText: q.flagText,
+      flagVoiceNote: q.flagVoiceNote,
     };
   });
 

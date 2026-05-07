@@ -158,6 +158,9 @@ model ExamQuestion {
   // question, saved on disk under VOLUME_PATH/flag-voices/<paperId>/.
   // Null when the flag was raised without a recording.
   flagVoiceNote   String?
+  // Optional typed message left when raising a flag — alternative to
+  // voice notes for users who'd rather type. Both can coexist.
+  flagText        String?
   adminReply      String?
   adminRepliedAt  DateTime?
   adminReplyRead  Boolean  @default(false)

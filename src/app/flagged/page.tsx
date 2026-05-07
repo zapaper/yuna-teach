@@ -13,6 +13,8 @@ interface FlaggedItem {
   marksAvailable: number | null;
   markingNotes: string | null;
   studentAnswer: string | null;
+  flagText: string | null;
+  flagVoiceNote: string | null;
   flaggedAt: string | null;
   paperCreatedAt: string | null;
   paperCompletedAt: string | null;
@@ -248,6 +250,26 @@ function FlaggedContent() {
                   <div className="text-xs">
                     <span className="text-slate-400">Notes: </span>
                     <span className="text-slate-500">{item.markingNotes.length > 100 ? item.markingNotes.slice(0, 100) + "..." : item.markingNotes}</span>
+                  </div>
+                )}
+
+                {/* Flag notes from the user — typed message + voice
+                    note. Left blank if neither was provided. */}
+                {item.flagText && (
+                  <div className="text-xs bg-amber-50 border-l-2 border-amber-300 pl-2 py-1.5 rounded-r-md">
+                    <span className="font-bold text-amber-700">Flag note: </span>
+                    <span className="text-slate-700">{item.flagText}</span>
+                  </div>
+                )}
+                {item.flagVoiceNote && (
+                  <div className="text-xs">
+                    <audio
+                      controls
+                      preload="none"
+                      src={`/api/exam/${item.cloneId ?? item.paperId}/flag/voice/${encodeURIComponent(item.flagVoiceNote)}`}
+                      className="h-8 w-full max-w-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    />
                   </div>
                 )}
 

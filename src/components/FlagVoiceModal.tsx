@@ -22,6 +22,7 @@ export function FlagVoiceModal({
   open,
   onClose,
   onJustFlag,
+  onTextFlagged,
   onVoiceFlagged,
 }: {
   paperId: string;
@@ -32,11 +33,17 @@ export function FlagVoiceModal({
   // Called when the user picks "No, just flag it" or cancels mid-record.
   // Caller does the normal toggle-flag round trip.
   onJustFlag: () => void;
+  // Called when the user submits a typed note. Caller passes the text
+  // through to the basic /flag endpoint along with the toggle. Mirrors
+  // onVoiceFlagged in that the flag itself is raised through this
+  // single round-trip.
+  onTextFlagged?: (text: string) => void;
   // Called after a successful voice upload — the API has already raised
   // the flag, so the caller usually just updates local UI state.
   onVoiceFlagged: () => void;
 }) {
-  const [stage, setStage] = useState<"choice" | "recording" | "uploading">("choice");
+  const [stage, setStage] = useState<"choice" | "typing" | "recording" | "uploading">("choice");
+  const [textNote, setTextNote] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -57,6 +64,7 @@ export function FlagVoiceModal({
       setStage("choice");
       setElapsed(0);
       setError(null);
+      setTextNote("");
       chunksRef.current = [];
     }
   }, [open]);
@@ -121,6 +129,20 @@ export function FlagVoiceModal({
     onClose();
   }
 
+  function submitTextNote() {
+    const trimmed = textNote.trim();
+    if (trimmed.length === 0) {
+      setError("Please type something or pick a different option.");
+      return;
+    }
+    if (trimmed.length > 800) {
+      setError("Message is too long (max 800 characters).");
+      return;
+    }
+    onTextFlagged?.(trimmed);
+    onClose();
+  }
+
   if (!open) return null;
 
   const mm = Math.floor(elapsed / 60);
@@ -132,7 +154,7 @@ export function FlagVoiceModal({
         {stage === "choice" && (
           <>
             <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">Flag this question</h3>
-            <p className="text-sm text-[#43474f] mb-5">Would you like to leave a quick voice note about what's wrong? Otherwise we'll just flag it.</p>
+            <p className="text-sm text-[#43474f] mb-5">Tell us what&apos;s wrong — leave a voice note or type a short message. Or just flag it.</p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={startRecording}
@@ -142,6 +164,13 @@ export function FlagVoiceModal({
                 Record voice note
               </button>
               <button
+                onClick={() => { setError(null); setStage("typing"); }}
+                className="w-full py-3 rounded-2xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145] flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">edit_note</span>
+                Type a message
+              </button>
+              <button
                 onClick={() => { onJustFlag(); onClose(); }}
                 className="w-full py-3 rounded-2xl bg-slate-100 text-[#001e40] text-sm font-bold hover:bg-slate-200"
               >
@@ -149,6 +178,35 @@ export function FlagVoiceModal({
               </button>
             </div>
             {error && <p className="text-xs text-[#ba1a1a] mt-3">{error}</p>}
+          </>
+        )}
+
+        {stage === "typing" && (
+          <>
+            <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">Tell us what&apos;s wrong</h3>
+            <p className="text-sm text-[#43474f] mb-3">Quick note — the admin team will see this when reviewing the flag.</p>
+            <textarea
+              value={textNote}
+              onChange={e => { setTextNote(e.target.value); setError(null); }}
+              placeholder="e.g. Working is right but final answer was misread."
+              maxLength={800}
+              rows={4}
+              autoFocus
+              className="w-full px-3 py-2 rounded-xl border-2 border-slate-200 focus:border-[#003366] outline-none text-sm text-[#001e40] resize-none"
+            />
+            <p className="text-[10px] text-[#737780] mt-1 text-right">{textNote.trim().length} / 800</p>
+            {error && <p className="text-xs text-[#ba1a1a] mt-2">{error}</p>}
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => setStage("choice")}
+                className="flex-1 py-3 rounded-2xl bg-slate-100 text-[#001e40] text-sm font-bold hover:bg-slate-200"
+              >Back</button>
+              <button
+                onClick={submitTextNote}
+                disabled={textNote.trim().length === 0}
+                className="flex-1 py-3 rounded-2xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145] disabled:opacity-50"
+              >Submit</button>
+            </div>
           </>
         )}
 

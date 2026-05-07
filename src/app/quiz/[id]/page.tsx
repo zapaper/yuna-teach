@@ -190,7 +190,7 @@ function QuizContent({ id }: { id: string }) {
     }
   }
 
-  function plainToggleFlag(qId: string, nowFlagged: boolean) {
+  function plainToggleFlag(qId: string, nowFlagged: boolean, text?: string) {
     setFlaggedIds(prev => {
       const next = new Set(prev);
       if (nowFlagged) next.add(qId); else next.delete(qId);
@@ -199,7 +199,7 @@ function QuizContent({ id }: { id: string }) {
     fetch(`/api/exam/${id}/flag`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ questionId: qId, userId }),
+      body: JSON.stringify({ questionId: qId, userId, text }),
     }).catch(() => {});
   }
 
@@ -1228,6 +1228,9 @@ function QuizContent({ id }: { id: string }) {
         onClose={() => setFlagVoiceTarget(null)}
         onJustFlag={() => {
           if (flagVoiceTarget) plainToggleFlag(flagVoiceTarget, true);
+        }}
+        onTextFlagged={(text) => {
+          if (flagVoiceTarget) plainToggleFlag(flagVoiceTarget, true, text);
         }}
         onVoiceFlagged={() => {
           if (flagVoiceTarget) {
