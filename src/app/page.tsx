@@ -370,6 +370,8 @@ export default function HomePage() {
                 <li><Link className="hover:text-tertiary transition-colors" href="/about">About Us</Link></li>
                 <li><Link className="hover:text-tertiary transition-colors" href="/faq">FAQ</Link></li>
                 <li><a className="hover:text-tertiary transition-colors" href="mailto:hello@markforyou.com">Contact Us</a></li>
+                <li><Link className="hover:text-tertiary transition-colors" href="/privacy">Privacy</Link></li>
+                <li><Link className="hover:text-tertiary transition-colors" href="/terms">Terms</Link></li>
               </ul>
             </div>
           </div>
@@ -396,6 +398,13 @@ export default function HomePage() {
             <ul className="space-y-4 text-sm text-on-surface-variant">
               <li><Link className="hover:text-tertiary transition-colors" href="/about">About Us</Link></li>
               <li><a className="hover:text-tertiary transition-colors" href="mailto:hello@markforyou.com">Contact Us</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-bold text-primary mb-6">Legal</h4>
+            <ul className="space-y-4 text-sm text-on-surface-variant">
+              <li><Link className="hover:text-tertiary transition-colors" href="/privacy">Privacy Policy</Link></li>
+              <li><Link className="hover:text-tertiary transition-colors" href="/terms">Terms of Use</Link></li>
             </ul>
           </div>
         </div>
