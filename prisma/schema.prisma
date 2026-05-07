@@ -30,7 +30,18 @@ model User {
   emailVerified         Boolean  @default(false)
   stripeCustomerId      String?  @unique
   stripeSubscriptionId  String?
-  subscriptionStatus    String?  // "active" | "canceled" | "past_due" | null (free)
+  subscriptionStatus    String?  // "active" | "canceled" | "past_due" | "expired" | null (free)
+  // Apple In-App Purchase identity. All nullable — populated only for
+  // users who paid via the iOS app. The reconciler upserts these
+  // when /api/iap/verify or /api/iap/asn-webhook fires.
+  appleOriginalTransactionId String?  @unique
+  appleProductId             String?       // e.g. "com.markforyou.monthly"
+  appleEnvironment           String?       // "Production" | "Sandbox"
+  appleExpiresAt             DateTime?
+  // "stripe" | "apple" — convenience flag (derivable from above but
+  // cleaner to query). Drives "manage in App Store" vs "manage on
+  // website" copy in the cancel/upgrade UI.
+  paymentSource              String?
 
   tests              SpellingTest[]
   examPapers         ExamPaper[]    @relation("UploadedPapers")
