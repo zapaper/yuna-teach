@@ -125,7 +125,7 @@ Steps:
 ${hint ? `Additional context from the user: ${hint}\n` : ""}Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
 - Do NOT invent or paraphrase topic names.
-- **Fractions MUST be written as inline LaTeX delimited by single dollar signs**, e.g. \`$\\frac{3}{5}$\` (NOT \`3/5\`); mixed numbers as \`$2\\frac{1}{4}$\`. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers. The only LaTeX command allowed is \\frac — no \\sqrt, \\pi, \\angle, etc. Currency stays plain ("$24" not LaTeX).
+- **Fractions MUST be written as inline LaTeX delimited by single dollar signs**. CRITICAL — your output is JSON, so backslashes inside string values MUST be DOUBLED: write \`$\\\\frac{3}{5}$\` (TWO backslashes) inside the "solution" string, not \`$\\frac{3}{5}$\`. The JSON parser will turn the doubled backslash back into one. Same for mixed numbers: \`$2\\\\frac{1}{4}$\`. If you forget to double the backslash, JSON parsing will eat \`\\f\` as a form-feed. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers. The only LaTeX command allowed is \\\\frac. Currency stays plain ("$24" not LaTeX).
 - Use **double asterisks** to bold: step labels (e.g. **Step 1:**), the answer label (**Answer:**), and key subject terms (e.g. **numerator**, **photosynthesis**, **ratio**). No other markdown.
 - Always end the solution with a blank line followed by a final line that starts exactly with "Answer: " and gives the concise final answer (e.g. "Answer: The total cost is $24." or "Answer: x = 5").
 - For circle problems: use π = 22/7 unless the question specifies otherwise. Circumference = 2 x 22/7 x r. Area = 22/7 x r x r. Diameter = 2 x radius. Always state which value (radius or diameter) you are using.

@@ -22,6 +22,22 @@ import "katex/dist/katex.min.css";
 // so the regex skips it and the dollar signs render as plain
 // characters.
 const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/g;
+
+// Repair common LaTeX escape losses caused by the AI emitting
+// "$\frac{...}$" inside JSON string values without doubling the
+// backslash. The JSON parser interprets `\f` as a form-feed char
+// (U+000C); sometimes the form-feed survives into the rendered
+// string, sometimes it gets stripped before reaching us. Two passes:
+//   1. Form-feed survived → replace U+000C with the two-char "\f".
+//   2. Form-feed stripped → "$rac{" or "$3rac{" — re-prepend the \f.
+// Mixed-number variant runs first so the leading digit is preserved.
+function repairLatex(text: string): string {
+  return text
+    .replace(//g, "\\f")
+    .replace(/\$(\d+)rac\{/g, "$$$1\\frac{")
+    .replace(/\$rac\{/g, "$\\frac{");
+}
+
 // Inline decoration: **bold** and __underline__ in the same pass so
 // either / both can appear inside a sentence.
 const DECOR_RE = /\*\*([^*\n]+)\*\*|__([^_\n]+)__/g;
@@ -51,27 +67,30 @@ function renderTextDecorations(text: string, keyBase: string): React.ReactNode[]
 
 export default function MathText({ text, className }: { text: string; className?: string }) {
   if (!text) return null;
+  // Run the repair pass before any other check — fixes \frac that the
+  // JSON parser ate, so the math-segment regex can match it.
+  const repaired = repairLatex(text);
   // Cheap pre-check: only enter the math-segment branch when the
   // string plausibly contains a LaTeX command. A bare `$` without
   // any `\command` is almost certainly currency and should fall
   // through to plain text + decoration rendering.
-  if (!text.includes("$") || !/\\[a-zA-Z]/.test(text)) {
-    return <span className={className}>{renderTextDecorations(text, "0")}</span>;
+  if (!repaired.includes("$") || !/\\[a-zA-Z]/.test(repaired)) {
+    return <span className={className}>{renderTextDecorations(repaired, "0")}</span>;
   }
 
   const parts: React.ReactNode[] = [];
   let lastIdx = 0;
   let m: RegExpExecArray | null;
   MATH_SEGMENT_RE.lastIndex = 0;
-  while ((m = MATH_SEGMENT_RE.exec(text)) !== null) {
+  while ((m = MATH_SEGMENT_RE.exec(repaired)) !== null) {
     if (m.index > lastIdx) {
-      parts.push(...renderTextDecorations(text.slice(lastIdx, m.index), `t${m.index}`));
+      parts.push(...renderTextDecorations(repaired.slice(lastIdx, m.index), `t${m.index}`));
     }
     parts.push(<InlineMath key={`m${m.index}`} math={m[1]} />);
     lastIdx = m.index + m[0].length;
   }
-  if (lastIdx < text.length) {
-    parts.push(...renderTextDecorations(text.slice(lastIdx), `tEnd`));
+  if (lastIdx < repaired.length) {
+    parts.push(...renderTextDecorations(repaired.slice(lastIdx), `tEnd`));
   }
   return <span className={className}>{parts}</span>;
 }
