@@ -99,11 +99,17 @@ export async function GET(request: NextRequest) {
     topics: Record<string, { earned: number; available: number; count: number }>;
   }> = {};
 
-  // Timeline: per subject → array of { title, date, topics: { [topic]: pct } }
+  // Timeline: per subject → array of per-paper entries. Each entry now
+  // carries both the per-paper pct (back-compat for any consumer reading
+  // numbers directly) AND the underlying earned/available so the chart
+  // can aggregate mark-weighted across grouped papers — matching the
+  // formula used everywhere else (parent dashboard's Skill Profile
+  // Analysis, progress page per-topic detail, generateSubjectSummary).
   const timeline: Record<string, Array<{
     title: string;
     date: string;
     topics: Record<string, number>;
+    topicTotals: Record<string, { earned: number; available: number }>;
   }>> = {};
 
   for (const paper of papers) {
@@ -136,9 +142,11 @@ export async function GET(request: NextRequest) {
 
     // Convert to percentages for timeline
     const topicPcts: Record<string, number> = {};
+    const topicTotals: Record<string, { earned: number; available: number }> = {};
     for (const [topic, td] of Object.entries(examTopics)) {
       if (topic === "Untagged") continue;
       topicPcts[topic] = td.available > 0 ? Math.round((td.earned / td.available) * 100) : 0;
+      topicTotals[topic] = { earned: td.earned, available: td.available };
     }
 
     if (Object.keys(topicPcts).length > 0) {
@@ -147,6 +155,7 @@ export async function GET(request: NextRequest) {
         title: paper.title,
         date: paper.completedAt?.toISOString() ?? "",
         topics: topicPcts,
+        topicTotals,
       });
     }
   }

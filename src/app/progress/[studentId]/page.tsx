@@ -15,7 +15,18 @@ export default function ProgressPage({ params }: { params: Promise<{ studentId: 
 
 interface TopicData { earned: number; available: number; count: number; }
 interface SubjectData { examCount: number; topics: Record<string, TopicData>; }
-interface TimelineEntry { title: string; date: string; topics: Record<string, number>; }
+interface TimelineEntry {
+  title: string;
+  date: string;
+  topics: Record<string, number>;
+  // earned/available per topic for THIS paper. Lets the chart
+  // aggregate mark-weighted across grouped papers — same formula as
+  // the parent dashboard's Skill Profile Analysis and the per-topic
+  // detail card on this page. Without this we had to fall back to
+  // averaging per-paper pcts, which diverged when topic question
+  // counts differed across papers.
+  topicTotals?: Record<string, { earned: number; available: number }>;
+}
 interface ProgressData {
   student: { id: string; name: string } | null;
   subjects: Record<string, SubjectData>;
@@ -525,53 +536,77 @@ function TimelineChart({ entries }: { entries: TimelineEntry[] }) {
     );
   }
 
-  // Aggregate entries into groups of 3 (average) for robustness
+  // Aggregate entries into groups of 3 for robustness — but use
+  // mark-weighted averaging (sum earned / sum available) so the chart
+  // points and rankings line up with the per-topic detail card and the
+  // parent dashboard's Skill Profile Analysis. Falls back to simple-
+  // average over pct if topicTotals isn't present (older API responses).
   const GROUP_SIZE = 3;
   const aggregated: TimelineEntry[] = [];
-  if (entries.length < GROUP_SIZE) {
-    // Not enough for a single group — show as one averaged point
-    const mergedTopics: Record<string, { sum: number; count: number }> = {};
-    for (const e of entries) {
-      for (const [topic, pct] of Object.entries(e.topics)) {
-        if (!mergedTopics[topic]) mergedTopics[topic] = { sum: 0, count: 0 };
-        mergedTopics[topic].sum += pct;
-        mergedTopics[topic].count++;
+  const mergeChunk = (chunk: TimelineEntry[]): TimelineEntry => {
+    const merged: Record<string, { earned: number; available: number; sum: number; count: number }> = {};
+    for (const e of chunk) {
+      for (const topic of Object.keys(e.topics)) {
+        if (!merged[topic]) merged[topic] = { earned: 0, available: 0, sum: 0, count: 0 };
+        const tt = e.topicTotals?.[topic];
+        if (tt) {
+          merged[topic].earned += tt.earned;
+          merged[topic].available += tt.available;
+        }
+        merged[topic].sum += e.topics[topic];
+        merged[topic].count++;
       }
     }
-    const avgTopics: Record<string, number> = {};
-    for (const [topic, { sum, count }] of Object.entries(mergedTopics)) {
-      avgTopics[topic] = Math.round(sum / count);
+    const topics: Record<string, number> = {};
+    const topicTotals: Record<string, { earned: number; available: number }> = {};
+    for (const [topic, m] of Object.entries(merged)) {
+      // Prefer mark-weighted; fall back to per-paper average if the
+      // earned/available data isn't there for any reason.
+      topics[topic] = m.available > 0
+        ? Math.round((m.earned / m.available) * 100)
+        : Math.round(m.sum / m.count);
+      topicTotals[topic] = { earned: m.earned, available: m.available };
     }
-    aggregated.push({ title: `Avg of ${entries.length}`, date: entries[entries.length - 1].date, topics: avgTopics });
+    return {
+      title: `Avg of ${chunk.length}`,
+      date: chunk[chunk.length - 1].date,
+      topics,
+      topicTotals,
+    };
+  };
+
+  if (entries.length < GROUP_SIZE) {
+    aggregated.push(mergeChunk(entries));
   } else {
-    // Group into chunks of 3, take last N*3 entries
     const usable = entries.slice(-(Math.floor(entries.length / GROUP_SIZE) * GROUP_SIZE));
     for (let i = 0; i < usable.length; i += GROUP_SIZE) {
-      const chunk = usable.slice(i, i + GROUP_SIZE);
-      const mergedTopics: Record<string, { sum: number; count: number }> = {};
-      for (const e of chunk) {
-        for (const [topic, pct] of Object.entries(e.topics)) {
-          if (!mergedTopics[topic]) mergedTopics[topic] = { sum: 0, count: 0 };
-          mergedTopics[topic].sum += pct;
-          mergedTopics[topic].count++;
-        }
-      }
-      const avgTopics: Record<string, number> = {};
-      for (const [topic, { sum, count }] of Object.entries(mergedTopics)) {
-        avgTopics[topic] = Math.round(sum / count);
-      }
-      aggregated.push({ title: `Avg of ${chunk.length}`, date: chunk[chunk.length - 1].date, topics: avgTopics });
+      aggregated.push(mergeChunk(usable.slice(i, i + GROUP_SIZE)));
     }
   }
 
   const allTopics = Array.from(new Set(aggregated.flatMap(e => Object.keys(e.topics)))).sort();
-  // Rank topics by average pct across the aggregated points — weakest first.
-  // The 5 weakest get the palette colours; in "Weak Only" mode everything
-  // else is a faint grey line so the weak ones pop.
+  // Rank topics by mark-weighted overall pct across all aggregated
+  // points (sum of all earned / sum of all available for the topic).
+  // This matches the dashboard's "weakest topic" ranking exactly so
+  // the chart highlights the same topics the dashboard flags.
   const topicAvg: Record<string, number> = {};
   for (const t of allTopics) {
-    const vals = aggregated.map(e => e.topics[t]).filter((v): v is number => typeof v === "number");
-    topicAvg[t] = vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : 100;
+    let earnedSum = 0;
+    let availableSum = 0;
+    for (const e of aggregated) {
+      const tt = e.topicTotals?.[t];
+      if (tt) {
+        earnedSum += tt.earned;
+        availableSum += tt.available;
+      }
+    }
+    if (availableSum > 0) {
+      topicAvg[t] = (earnedSum / availableSum) * 100;
+    } else {
+      // Fallback: simple per-paper average.
+      const vals = aggregated.map(e => e.topics[t]).filter((v): v is number => typeof v === "number");
+      topicAvg[t] = vals.length > 0 ? vals.reduce((s, v) => s + v, 0) / vals.length : 100;
+    }
   }
   const weakestFirst = [...allTopics].sort((a, b) => topicAvg[a] - topicAvg[b]);
   const highlightedTopics = new Set(weakestFirst.slice(0, 5));
