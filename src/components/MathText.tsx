@@ -5,92 +5,106 @@ import { InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
 // Renders a string that may contain LaTeX-delimited math segments
-// (`$…$` inline) and/or `__underline__` text markup, interleaved with
-// plain text. Plain text segments render as-is, math segments via
-// KaTeX, underline segments wrapped in a styled span.
+// (`$…$` inline), `**bold**` and `__underline__` markup interleaved
+// with plain text. Bold and underline can themselves contain math.
 //
-// Example: "What is $4\\frac{5}{6} - \\frac{1}{2}$?"
-//   → "What is " + (KaTeX-rendered mixed fraction) + "?"
-//
-// If the input contains no `$` and no `__`, falls through to a plain
-// string render so existing OCR-only stems aren't affected.
+// Implementation: recursive scan. At each level we find the FIRST
+// occurrence of any pattern (math, bold, underline), render that
+// match (recursively rendering its content where applicable), and
+// recurse on the text before and after. This handles arbitrary
+// nesting like "**The fraction $\frac{1}{2}$ is half**" where the
+// bold spans the math.
 
-// Match `$...$` ONLY when the content contains a backslash command
-// (e.g. `\frac`, `\pi`, `\angle`). This avoids accidentally rendering
-// currency like "$55 more than ... had $27" as math — the text
-// between the two real-currency dollar signs has no LaTeX command,
-// so the regex skips it and the dollar signs render as plain
-// characters.
-const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/g;
+// Math segment: `$...$` containing at least one `\command` so plain
+// currency ("$5", "$27") is left alone.
+const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/;
+// Bold and underline — non-greedy, content cannot contain newlines.
+const BOLD_RE = /\*\*([^\n]+?)\*\*/;
+const UNDER_RE = /__([^\n]+?)__/;
 
 // Repair common LaTeX escape losses caused by the AI emitting
 // "$\frac{...}$" inside JSON string values without doubling the
 // backslash. The JSON parser interprets `\f` as a form-feed char
 // (U+000C); sometimes the form-feed survives into the rendered
-// string, sometimes it gets stripped before reaching us. Two passes:
+// string, sometimes it gets stripped before reaching us.
 //   1. Form-feed survived → replace U+000C with the two-char "\f".
 //   2. Form-feed stripped → "$rac{" or "$3rac{" — re-prepend the \f.
-// Mixed-number variant runs first so the leading digit is preserved.
 function repairLatex(text: string): string {
   return text
-    .replace(//g, "\\f")
+    .replace(/\x0c/g, "\\f")
     .replace(/\$(\d+)rac\{/g, "$$$1\\frac{")
     .replace(/\$rac\{/g, "$\\frac{");
 }
 
-// Inline decoration: **bold** and __underline__ in the same pass so
-// either / both can appear inside a sentence.
-const DECOR_RE = /\*\*([^*\n]+)\*\*|__([^_\n]+)__/g;
+type MatchResult = {
+  index: number;
+  end: number;
+  kind: "math" | "bold" | "underline";
+  content: string;
+};
 
-function renderTextDecorations(text: string, keyBase: string): React.ReactNode[] {
-  if (!text.includes("**") && !text.includes("__")) return [text];
+// Find the earliest of the three patterns in `text`. Returns null
+// if no pattern matches at all.
+function firstMatch(text: string): MatchResult | null {
+  const candidates: Array<{ kind: MatchResult["kind"]; m: RegExpExecArray | null }> = [
+    { kind: "math", m: MATH_SEGMENT_RE.exec(text) },
+    { kind: "bold", m: BOLD_RE.exec(text) },
+    { kind: "underline", m: UNDER_RE.exec(text) },
+  ];
+  let best: MatchResult | null = null;
+  for (const c of candidates) {
+    if (!c.m) continue;
+    const idx = c.m.index;
+    if (best === null || idx < best.index) {
+      best = {
+        index: idx,
+        end: idx + c.m[0].length,
+        kind: c.kind,
+        content: c.m[1],
+      };
+    }
+  }
+  return best;
+}
+
+function renderInline(text: string, keyBase: string): React.ReactNode[] {
   const out: React.ReactNode[] = [];
-  let lastIdx = 0;
-  let m: RegExpExecArray | null;
-  DECOR_RE.lastIndex = 0;
-  while ((m = DECOR_RE.exec(text)) !== null) {
-    if (m.index > lastIdx) out.push(text.slice(lastIdx, m.index));
-    if (m[1] !== undefined) {
-      out.push(<strong key={`${keyBase}b${m.index}`}>{m[1]}</strong>);
-    } else if (m[2] !== undefined) {
+  let cursor = 0;
+  let i = 0;
+  while (cursor < text.length) {
+    const slice = text.slice(cursor);
+    const match = firstMatch(slice);
+    if (!match) {
+      out.push(text.slice(cursor));
+      break;
+    }
+    if (match.index > 0) {
+      out.push(text.slice(cursor, cursor + match.index));
+    }
+    const k = `${keyBase}-${i++}-${match.kind}`;
+    if (match.kind === "math") {
+      out.push(<InlineMath key={k} math={match.content} />);
+    } else if (match.kind === "bold") {
+      // Recurse so bold can contain math or underline.
+      out.push(<strong key={k}>{renderInline(match.content, k)}</strong>);
+    } else {
       out.push(
-        <span key={`${keyBase}u${m.index}`} className="underline decoration-2">
-          {m[2]}
-        </span>
+        <span key={k} className="underline decoration-2">
+          {renderInline(match.content, k)}
+        </span>,
       );
     }
-    lastIdx = m.index + m[0].length;
+    cursor += match.end;
   }
-  if (lastIdx < text.length) out.push(text.slice(lastIdx));
   return out;
 }
 
 export default function MathText({ text, className }: { text: string; className?: string }) {
   if (!text) return null;
-  // Run the repair pass before any other check — fixes \frac that the
-  // JSON parser ate, so the math-segment regex can match it.
   const repaired = repairLatex(text);
-  // Cheap pre-check: only enter the math-segment branch when the
-  // string plausibly contains a LaTeX command. A bare `$` without
-  // any `\command` is almost certainly currency and should fall
-  // through to plain text + decoration rendering.
-  if (!repaired.includes("$") || !/\\[a-zA-Z]/.test(repaired)) {
-    return <span className={className}>{renderTextDecorations(repaired, "0")}</span>;
+  // Cheap fast-path: no special markers → render as plain string.
+  if (!repaired.includes("$") && !repaired.includes("**") && !repaired.includes("__")) {
+    return <span className={className}>{repaired}</span>;
   }
-
-  const parts: React.ReactNode[] = [];
-  let lastIdx = 0;
-  let m: RegExpExecArray | null;
-  MATH_SEGMENT_RE.lastIndex = 0;
-  while ((m = MATH_SEGMENT_RE.exec(repaired)) !== null) {
-    if (m.index > lastIdx) {
-      parts.push(...renderTextDecorations(repaired.slice(lastIdx, m.index), `t${m.index}`));
-    }
-    parts.push(<InlineMath key={`m${m.index}`} math={m[1]} />);
-    lastIdx = m.index + m[0].length;
-  }
-  if (lastIdx < repaired.length) {
-    parts.push(...renderTextDecorations(repaired.slice(lastIdx), `tEnd`));
-  }
-  return <span className={className}>{parts}</span>;
+  return <span className={className}>{renderInline(repaired, "0")}</span>;
 }
