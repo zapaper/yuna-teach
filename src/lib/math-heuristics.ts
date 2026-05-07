@@ -15,7 +15,15 @@ export function mathHeuristicsBlock(subject?: string | null): string {
   }
   return `
 
-SINGAPORE MATH HEURISTICS — these are only relevant for **word problems** that match the patterns below. **Most math questions (computation drills, area/perimeter, time, simple fractions, geometry, MCQ on definitions) DO NOT use these heuristics — for those, just teach the direct method.** Only invoke a heuristic when the question genuinely fits one of these patterns, then lead the step with the technique name in bold (e.g. "**Bar Modeling**:") so the student learns to recognise the pattern.
+SINGAPORE MATH HEURISTICS — these are only relevant for **word problems** that match the patterns below. **Most math questions (computation drills, area/perimeter, time, simple fractions, geometry, MCQ on definitions) DO NOT use these heuristics — for those, just teach the direct method.** Only invoke a heuristic when the question genuinely fits one of these patterns.
+
+When you use a heuristic, the FIRST line of the solution must be a header on its own line announcing the technique:
+- "**Using Bar Modeling**"
+- "**Before-and-After Method**"
+- "**Working Backwards**"
+- "**Supposition (Guess-and-Check)**"
+
+Then a blank line, then the step-by-step working. Don't repeat the technique name inside step labels — the header is enough.
 
 1. **Bar Modeling** (part-whole or comparison) — use when the question is about parts of a total, comparing two quantities, or distributing items in known ratios. Describe bars with **labelled units** in writing ("Cathy: |==|==|==|, Dan: |==|==|"), then identify "1 unit = …" and read off the answer.
 
