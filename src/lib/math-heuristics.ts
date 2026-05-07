@@ -27,7 +27,7 @@ Then a blank line, then the step-by-step working. Don't repeat the technique nam
 
 1. **Bar Modeling** (part-whole or comparison) — use when the question is about parts of a total, comparing two quantities, or distributing items in known ratios. Describe bars with **labelled units** in writing ("Cathy: |==|==|==|, Dan: |==|==|"), then identify "1 unit = …" and read off the answer.
 
-2. **Before-and-After Method** — use when a quantity CHANGES mid-problem (someone gives away, receives, or transforms a fraction/ratio of what they had). Set up a "before" picture, then a separate "after" picture, and find what was preserved between them (common multiple, total, or one person's share that didn't change).
+2. **Before-and-After Method** — use when a quantity CHANGES mid-problem (someone gives away, receives, or transforms a fraction/ratio of what they had). Set up a "before" picture, then a separate "after" picture, and find what was preserved between them (common multiple, total, or one person's share that didn't change). For these problems, **emit TWO entries in the diagrams array** — the first with \`"title": "Before"\` showing the initial state, the second with \`"title": "After"\` showing the post-change state. Use the SAME row labels in both diagrams (same person/quantity names) so the student can compare the bars side-by-side. Each diagram's \`unitValue\` should reflect what 1 unit equals at THAT stage (often only the "After" diagram has a known unitValue — leave "Before" as null until you've solved).
 
 3. **Working Backwards** — use when the question gives the FINAL state and asks for the start (e.g. "after spending half then $5 more, she had $7 left"). Reverse each step in turn.
 
