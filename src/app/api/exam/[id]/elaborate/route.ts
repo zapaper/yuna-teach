@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
+import { mathHeuristicsBlock } from "@/lib/math-heuristics";
 
 let _ai: GoogleGenAI | null = null;
 function getAI() {
@@ -111,7 +112,7 @@ export async function POST(
       transcribedSubparts: true,
       syllabusTopic: true,
       sourceQuestionId: true,
-      examPaper: { select: { paperType: true, metadata: true } },
+      examPaper: { select: { paperType: true, metadata: true, subject: true } },
     },
   });
 
@@ -304,6 +305,7 @@ Go straight into the correct answer and provide a clear step-by-step explanation
 Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
 For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, then express each part of the question in those units. Convert one known quantity into "1 unit = …" then read off the answer. This mirrors the answer-key format teachers use.
+${mathHeuristicsBlock(question.examPaper?.subject)}
 
 ${COMMON_DIAGRAM_RULES}`,
     });
@@ -327,6 +329,7 @@ Go straight into the correct answer and provide a clear step-by-step explanation
 Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
 For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder*, prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, express each part in those units, then convert via "1 unit = …" to read off the answer.
+${mathHeuristicsBlock(question.examPaper?.subject)}
 
 ${COMMON_DIAGRAM_RULES}
 

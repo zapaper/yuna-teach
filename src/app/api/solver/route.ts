@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { readFileSync } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
+import { mathHeuristicsBlock } from "@/lib/math-heuristics";
 
 export const maxDuration = 180;
 
@@ -130,6 +131,7 @@ ${hint ? `Additional context from the user: ${hint}\n` : ""}Rules:
 - For circle problems: use π = 22/7 unless the question specifies otherwise. Circumference = 2 x 22/7 x r. Area = 22/7 x r x r. Diameter = 2 x radius. Always state which value (radius or diameter) you are using.
 - For composite area/circumference problems: first break the figure into simpler parts using imaginary lines (e.g. split into a semicircle + rectangle, or subtract a circle from a square). Calculate each part separately, then combine. Show each part as its own numbered step.
 - For geometry: identify the shape clearly, state all given measurements, then apply the correct formula step by step.
+${mathHeuristicsBlock()}
 
 Respond with ONLY valid JSON (no markdown fences):
 {

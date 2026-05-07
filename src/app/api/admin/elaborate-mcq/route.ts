@@ -3,6 +3,7 @@ import { GoogleGenAI } from "@google/genai";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
+import { mathHeuristicsBlock } from "@/lib/math-heuristics";
 
 // Allow up to 5min on Vercel Pro — sequential Gemini calls run
 // ~5-10s each, so a batch of 3 still fits in 60s comfortably while
@@ -234,6 +235,7 @@ Go straight into the correct answer and provide a clear step-by-step explanation
 Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
 For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, then express each part of the question in those units. Convert one known quantity into "1 unit = …" then read off the answer. This mirrors the answer-key format teachers use.
+${mathHeuristicsBlock(q.examPaper.subject)}
 
 ${COMMON_DIAGRAM_RULES}`,
     });
