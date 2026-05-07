@@ -302,7 +302,7 @@ ${answerAnchor}${studentAnswerNote}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.${sectionHint}
 
-Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
+Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. **Fractions MUST be written as inline LaTeX delimited by single dollar signs**, e.g. \`$\\frac{3}{7}$\` (NOT \`3/7\`); mixed numbers as \`$3\\frac{1}{2}$\`. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers, = for equals. No other LaTeX commands beyond \\frac. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
 For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder* (e.g. "1/4 of total were X", "2/5 of the remaining were Y"), prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, then express each part of the question in those units. Convert one known quantity into "1 unit = …" then read off the answer. This mirrors the answer-key format teachers use.
 ${mathHeuristicsBlock(question.examPaper?.subject)}
@@ -326,7 +326,7 @@ ${answerAnchor2}
 
 Go straight into the correct answer and provide a clear step-by-step explanation of how to solve it. Do NOT discuss what the student did wrong or why they lost marks — just teach the correct approach.
 
-Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. Write all math in plain text (e.g. "3/7" not "\\frac{3}{7}", "x^2" not "x²" in LaTeX). No LaTeX. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
+Keep the "solution" tight: aim for 120 words, hard cap at 150. Age-appropriate, encouraging, simple language. **Fractions MUST be written as inline LaTeX delimited by single dollar signs**, e.g. \`$\\frac{3}{7}$\` (NOT \`3/7\`); mixed numbers as \`$3\\frac{1}{2}$\`. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers, = for equals. No other LaTeX commands beyond \\frac. Use **double asterisks** to bold step labels (**Step 1:**, **Answer:**) and key words inside each step (the operation, the value being computed, "**1 unit**", subject terms). No other markdown.
 
 For Singapore-primary fraction or ratio word problems where the question gives one fraction of one quantity and another fraction of a *remainder*, prefer the **units / model method** rather than algebra: pick a **common number of units** that makes both fractions whole, express each part in those units, then convert via "1 unit = …" to read off the answer.
 ${mathHeuristicsBlock(question.examPaper?.subject)}
