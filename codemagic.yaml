@@ -62,6 +62,25 @@ workflows:
           cd ios/App
           agvtool new-version -all $BUILD_NUMBER
 
+      - name: DIAGNOSTIC — what does the API key see?
+        # Prints the resources visible to the App Store Connect API
+        # key, so we can tell whether the bundle ID, certificates, or
+        # profiles are missing on Apple's side. If this step logs
+        # "No bundle IDs", the API key is on a different team than
+        # where com.markforyou.app lives.
+        script: |
+          echo "=== Bundle IDs visible to API key ==="
+          app-store-connect bundle-ids list || echo "(failed to list bundle IDs)"
+          echo ""
+          echo "=== Distribution certificates ==="
+          app-store-connect certificates list --type IOS_DISTRIBUTION || echo "(failed to list certs)"
+          echo ""
+          echo "=== App Store provisioning profiles ==="
+          app-store-connect profiles list --type IOS_APP_STORE || echo "(failed to list profiles)"
+          echo ""
+          echo "=== Apps visible to API key ==="
+          app-store-connect apps list || echo "(failed to list apps)"
+
       - name: Fetch (or create) signing certificate + App Store profile
         # Codemagic's `app-store-connect fetch-signing-files` uses the
         # API key from the integration to:
@@ -70,15 +89,18 @@ workflows:
         #      OR create one if missing.
         # The --create flag is critical for first-time setups. After
         # the first successful run, Apple has the cert + profile cached
-        # and subsequent runs skip the create step.
+        # and subsequent runs skip the create step. --verbose surfaces
+        # the actual API calls and Apple's responses so we can see
+        # exactly what failed.
         script: |
           keychain initialize
           app-store-connect fetch-signing-files \
             "com.markforyou.app" \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --verbose
           keychain add-certificates
-          xcode-project use-profiles
+          xcode-project use-profiles --verbose
 
       - name: Build .ipa archive
         script: |
