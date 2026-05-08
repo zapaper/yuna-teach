@@ -23,6 +23,23 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  // Off-load avatar assets to Cloudflare R2 so they don't ship with
+  // every Railway deploy (333 MB → 0 in the build context). Any
+  // request to /avatars/X here gets a 308 to R2; the browser caches
+  // the redirect so subsequent visits hit R2 directly. Set
+  // NEXT_PUBLIC_AVATAR_BASE_URL on Railway to your R2 public URL
+  // (e.g. https://pub-xxxxx.r2.dev or https://cdn.markforyou.com).
+  async redirects() {
+    const avatarBase = process.env.NEXT_PUBLIC_AVATAR_BASE_URL;
+    if (!avatarBase) return [];
+    return [
+      {
+        source: "/avatars/:path*",
+        destination: `${avatarBase}/avatars/:path*`,
+        permanent: true,
+      },
+    ];
+  },
   // Long-lived immutable caching for static assets (pet clips, landscape
   // images, stickers, sound effects). These files are named per pet/action so
   // a change means a new filename anyway — safe to set a 1-year max-age.

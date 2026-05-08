@@ -44,6 +44,12 @@ yarn-error.log*
 # IS source code — only the auto-copied runtime gets ignored.
 /public/vendor/opencv.js
 
+# Avatar videos/images live on Cloudflare R2 and are served via the
+# /avatars/* redirect in next.config.ts. Were previously committed
+# (~333 MB) and shipped on every Railway deploy — moved off-host to
+# slim the build context.
+/public/avatars
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
