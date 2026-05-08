@@ -141,6 +141,14 @@ function SpellingPageContent() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-6 pb-32">
+        {/* How-it-works blurb */}
+        <div className="mb-5 rounded-2xl bg-white border border-[#e5eeff] p-4 text-sm text-[#43474f] leading-relaxed">
+          Take a picture of your spelling list. We will generate the list (with pronunciation, meaning and example). There is a self-test function as well.
+          <p className="mt-2 text-xs text-[#737780]">
+            Supports English, Chinese, Malay, Tamil, Japanese and Korean.
+          </p>
+        </div>
+
         {/* Scan New button */}
         <button
           onClick={() => router.push(`/scan?userId=${userId}`)}
