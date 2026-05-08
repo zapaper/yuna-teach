@@ -61,8 +61,22 @@ workflows:
           cd ios/App
           agvtool new-version -all $BUILD_NUMBER
 
-      - name: Use App Store profile for signing
+      - name: Fetch (or create) signing certificate + App Store profile
+        # Codemagic's `app-store-connect fetch-signing-files` uses the
+        # API key from the integration to:
+        #   1. Find a Distribution certificate, OR create one if missing.
+        #   2. Find an App Store provisioning profile for the bundle ID,
+        #      OR create one if missing.
+        # The --create flag is critical for first-time setups. After
+        # the first successful run, Apple has the cert + profile cached
+        # and subsequent runs skip the create step.
         script: |
+          keychain initialize
+          app-store-connect fetch-signing-files \
+            "com.markforyou.app" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
           xcode-project use-profiles
 
       - name: Build .ipa archive
