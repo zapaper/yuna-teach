@@ -146,6 +146,7 @@ function ScanPageContent() {
           text: w.text,
           orderIndex: idx + 1,
           enabled: true,
+          pairedText: (w as { pairedText?: string }).pairedText,
         }));
 
         if (words.length === 0) continue;

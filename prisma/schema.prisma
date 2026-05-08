@@ -76,6 +76,11 @@ model Word {
   orderIndex     Int
   enabled        Boolean @default(true)
   spellingTestId String
+  // For two-column spelling sheets (e.g. English ↔ Malay or
+  // English ↔ Tamil vocab lists), this holds the paired translation
+  // from the OTHER column. Used to disambiguate polysemous words
+  // when generating meaning + example via the AI.
+  pairedText     String?
 
   spellingTest SpellingTest @relation(fields: [spellingTestId], references: [id], onDelete: Cascade)
 

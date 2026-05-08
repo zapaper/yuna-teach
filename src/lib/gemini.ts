@@ -1098,6 +1098,11 @@ Your task:
    - Teacher marks, ticks, circles, or other annotations
    - Page numbers or other non-word text
 4. Clean each word: remove any stray marks, punctuation artifacts, or OCR errors adjacent to the actual word
+5. PAIRED VOCABULARY LISTS (very important for Malay / Tamil / Chinese vocab tests):
+   If the sheet has TWO columns where each row pairs an English word with its translation in another language (e.g. "head — kepala", "school — sekolah", or "1. school 2. sekolah"), populate the "pairedText" field on EACH word entry with the partner from the OTHER column. The "text" field is the word being tested (the non-English one); "pairedText" is the English partner used as context for meaning lookup.
+   - Detect this case by looking for a consistent two-column layout where one side is English and the other is the test language.
+   - If the sheet is single-column (just one language), leave "pairedText" out (omit the field; do not set "" or null inconsistently).
+   - The test language is the language of the words being tested (the non-English column when paired).
 
 Return a JSON object with this exact structure:
 {
@@ -1113,6 +1118,12 @@ Return a JSON object with this exact structure:
     }
   ]
 }
+
+For a paired vocab list (English ↔ Malay), the words array would look like:
+"words": [
+  { "text": "kepala", "orderIndex": 1, "pairedText": "head" },
+  { "text": "sekolah", "orderIndex": 2, "pairedText": "school" }
+]
 
 OCR Text:
 """
@@ -1147,7 +1158,12 @@ Your task:
    - Teacher marks, ticks, circles, or other annotations
    - Page numbers or other non-word text
 4. Clean each word: remove any stray marks or punctuation artifacts
-5. SPECIAL CASE — 默写 (mò xiě / passage dictation):
+5. PAIRED VOCABULARY LISTS (very important for Malay / Tamil / Chinese vocab sheets):
+   If the sheet has TWO columns where each row pairs an English word with its translation in another language (e.g. "head — kepala", "school — sekolah", or "1. school 2. sekolah"), populate the "pairedText" field on EACH word entry with the partner from the OTHER column. The "text" field is the word being tested (the non-English one); "pairedText" is the English partner used as context for meaning lookup.
+   - Detect this case by the two-column layout (or paired numbering side-by-side).
+   - If the sheet is single-column (just one language), omit the "pairedText" field entirely.
+   - The test language is the language of the words being tested (the non-English column).
+6. SPECIAL CASE — 默写 (mò xiě / passage dictation):
    If the title contains "默写", this is a PASSAGE DICTATION, not a word list.
    The content is typically one paragraph or a few sentences joined together
    that the student must write from memory. In this case, extract the ENTIRE
@@ -1207,7 +1223,7 @@ export async function extractWords(ocrText: string, guidance?: string) {
       title: string;
       subtitle: string;
       language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
-      words: Array<{ text: string; orderIndex: number }>;
+      words: Array<{ text: string; orderIndex: number; pairedText?: string }>;
     }>;
   };
 }
@@ -4284,13 +4300,17 @@ const wordInfoCache = new Map<string, WordInfo>();
 
 export async function generateWordInfo(
   word: string,
-  language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL"
+  language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL",
+  pairedText?: string | null,
 ): Promise<WordInfo> {
-  const cacheKey = `${language}:${word}`;
+  // Cache key includes pairedText so the same Malay/Tamil word with
+  // different English partners ("kepala/head" vs "kepala/leader")
+  // doesn't collide.
+  const cacheKey = `${language}:${word}:${pairedText ?? ""}`;
   const cached = wordInfoCache.get(cacheKey);
   if (cached) return cached;
 
-  const prompt =
+  let prompt =
     language === "CHINESE"
       ? MEANING_PROMPT_ZH.replace("{word}", word)
       : language === "JAPANESE"
@@ -4300,6 +4320,14 @@ export async function generateWordInfo(
       : language === "TAMIL"
       ? MEANING_PROMPT_TA.replace("{word}", word)
       : MEANING_PROMPT_EN.replace("{word}", word);
+
+  // Disambiguation: when the source spelling list paired this word
+  // with an English partner, lock the meaning to that sense. Polysemous
+  // words like Malay "kepala" (head/leader) or Tamil terms with
+  // multiple Indic-Sanskrit senses get resolved to the partner's sense.
+  if (pairedText) {
+    prompt += `\n\nIMPORTANT — The student's source list pairs "${word}" with the English word "${pairedText}". Use the meaning that matches "${pairedText}" specifically, not any alternative sense the word might have.`;
+  }
 
   const response = await generateContentWithRetry({
     model: "gemini-2.5-flash",

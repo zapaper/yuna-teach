@@ -5,7 +5,7 @@ import { generateWordInfo } from "@/lib/gemini";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, language, type, expandPunct, voice } = body;
+    const { text, language, type, expandPunct, voice, pairedText } = body;
 
     if (!text || !language) {
       return NextResponse.json(
@@ -16,13 +16,13 @@ export async function POST(request: NextRequest) {
 
     // Return word info (pinyin, meaning, example) as JSON without TTS
     if (type === "wordinfo") {
-      const info = await generateWordInfo(text, language);
+      const info = await generateWordInfo(text, language, pairedText);
       return NextResponse.json(info);
     }
 
     // Generate TTS for the meaning sentence
     if (type === "meaning") {
-      const info = await generateWordInfo(text, language);
+      const info = await generateWordInfo(text, language, pairedText);
       // Chinese + Japanese use the full-width period; Latin-script
       // languages (English, Malay) use ".", Tamil uses Latin "."
       // because Tamil punctuation is mostly Latin in modern usage.

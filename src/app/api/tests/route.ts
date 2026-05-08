@@ -44,10 +44,11 @@ export async function POST(request: NextRequest) {
       userId,
       words: {
         create: words.map(
-          (w: { text: string; orderIndex: number; enabled?: boolean }) => ({
+          (w: { text: string; orderIndex: number; enabled?: boolean; pairedText?: string }) => ({
             text: w.text,
             orderIndex: w.orderIndex,
             enabled: w.enabled !== false,
+            pairedText: w.pairedText ?? null,
           })
         ),
       },

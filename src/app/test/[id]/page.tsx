@@ -91,6 +91,11 @@ function TestPageContent({ id }: { id: string }) {
   const playWord = useCallback(
     async (wordText: string) => {
       if (!test) return;
+      // Look up the paired English partner from the source list (set
+      // by the scan extraction for two-column vocab sheets) so the
+      // wordInfo prompt picks the right sense for polysemous words.
+      const pairedText =
+        (test.words.find((w) => w.text === wordText) as { pairedText?: string | null } | undefined)?.pairedText ?? null;
 
       if (abortRef.current) abortRef.current.abort();
       if (sourceRef.current) {
@@ -128,6 +133,7 @@ function TestPageContent({ id }: { id: string }) {
               text: wordText,
               language: test.language,
               type: "wordinfo",
+              pairedText,
             }),
           }).then((r) => (r.ok ? r.json() : null)),
         ]);
