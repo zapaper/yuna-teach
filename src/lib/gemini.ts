@@ -1305,10 +1305,13 @@ Return ONLY valid JSON: {"meaning": "...", "englishMeaning": "...", "example": "
 const MEANING_PROMPT_KO = `You are a Korean language teacher for beginners.
 For the Korean word or phrase "{word}", provide:
 1. romanization: the Revised Romanization (e.g. "hakgyo" for 학교).
-2. meaning: a brief meaning in English, under 8 words (e.g. "school, place where children learn").
-3. example: a simple example sentence in Korean that a beginner would understand, under 12 words (e.g. "저는 학교에 갑니다.").
+2. meaning: a brief kid-friendly definition IN KOREAN, under 10 words (e.g. for 학교: "어린이들이 공부하는 곳이에요").
+3. englishMeaning: a brief meaning in English, under 8 words (e.g. "school, place where children learn").
+4. example: a simple example sentence in Korean that a beginner would understand, under 12 words (e.g. "저는 학교에 갑니다.").
 
-Return ONLY valid JSON: {"romanization": "...", "meaning": "...", "example": "..."}`;
+CRITICAL: "meaning" and "example" MUST be written in Korean Hangul. They will be read aloud by a Korean text-to-speech voice — English words there sound broken.
+
+Return ONLY valid JSON: {"romanization": "...", "meaning": "...", "englishMeaning": "...", "example": "..."}`;
 
 export interface WordInfo {
   pinyin?: string;
