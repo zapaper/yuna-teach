@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { isAuthorizedForStudent, redirectToLogin } from "@/lib/access";
 
+export const dynamic = "force-dynamic";
+
 // Gate /test/[id] (spelling) — only the test owner, their linked
 // parent(s), or an admin can view + take it. Anyone else with the
 // link is bounced to /login.

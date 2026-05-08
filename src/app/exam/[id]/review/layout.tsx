@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { isAuthorizedForUsers, redirectToLogin } from "@/lib/access";
 
+export const dynamic = "force-dynamic";
+
 // Gate /exam/[id]/review — only the parent who owns the paper
 // (userId), the assigned student (assignedToId), or an admin can
 // view marks + AI feedback. Anyone else is bounced to /login.

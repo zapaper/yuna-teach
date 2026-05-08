@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db";
 import { isAuthorizedForUsers, redirectToLogin } from "@/lib/access";
 
+export const dynamic = "force-dynamic";
+
 // Gate /quiz/[id] — only the assigned student, the parent who set
 // the quiz (paper.userId), or an admin can open it. Anyone else
 // (including a parent for a different family) is bounced to /login.

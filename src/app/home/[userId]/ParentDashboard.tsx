@@ -2012,7 +2012,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     Account
                   </button>
                   <button
-                    onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} router.push("/"); }}
+                    onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} /* hard reload so the rendered React tree is discarded — router.push leaves stale state mounted */ window.location.href = "/"; }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
                   >
                     <span className="material-symbols-outlined text-base">logout</span>

@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 import { getSessionUserId } from "@/lib/session";
 
+// force-dynamic — never cache the layout response. The session
+// cookie read should already opt this layout out of static
+// rendering, but being explicit prevents any edge-cache layer from
+// serving a previous "allow" decision after the user has signed out.
+export const dynamic = "force-dynamic";
+
 // Server-side gate for /home/[userId] routes.
 //
 // Previously the home page trusted the URL's userId blindly — anyone
