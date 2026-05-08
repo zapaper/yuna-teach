@@ -139,6 +139,11 @@ function QuizContent({ id }: { id: string }) {
   const [markingDone, setMarkingDone] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
   const [progressSaved, setProgressSaved] = useState(false);
+  // "Go to homepage" confirmation modal — surfaced when the student
+  // (or a parent who clicked through by accident) wants to leave a
+  // quiz mid-way. Asks whether to save first.
+  const [showHomeConfirm, setShowHomeConfirm] = useState(false);
+  const [savingForExit, setSavingForExit] = useState(false);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   // Tracks which English comp/visual-text sections the student has
   // explicitly entered. Once entered, the section renders side-by-side
@@ -456,6 +461,23 @@ function QuizContent({ id }: { id: string }) {
     } finally {
       setSavingProgress(false);
     }
+  }
+
+  // "Go to homepage" — used by the homepage button in the toolbar.
+  // Save + leave runs through handleSaveProgress first; discard +
+  // leave just routes. Both close the confirmation modal.
+  async function goHomeAfterSave() {
+    setSavingForExit(true);
+    try {
+      await handleSaveProgress();
+    } finally {
+      setShowHomeConfirm(false);
+      router.push(`/home/${userId}`);
+    }
+  }
+  function goHomeWithoutSave() {
+    setShowHomeConfirm(false);
+    router.push(`/home/${userId}`);
   }
 
   async function handleSubmit() {
@@ -830,6 +852,13 @@ function QuizContent({ id }: { id: string }) {
       <header className="lg:hidden fixed top-0 w-full z-50 px-6 py-4 flex justify-center bg-[#f8f9ff]/80 backdrop-blur-md">
         <div className="bg-white/90 backdrop-blur-xl rounded-full px-2 py-1.5 flex items-center gap-0.5 shadow-lg border border-white/30">
           <button
+            onClick={() => setShowHomeConfirm(true)}
+            title="Back to homepage"
+            className="p-3 rounded-full text-[#737780] hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl">home</span>
+          </button>
+          <button
             onClick={() => setTool("pen")}
             className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
           >
@@ -882,6 +911,15 @@ function QuizContent({ id }: { id: string }) {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          {/* Back to homepage — opens the save-or-discard confirm modal. */}
+          <button
+            onClick={() => setShowHomeConfirm(true)}
+            title="Back to homepage"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[#737780] hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors font-headline text-[10px] uppercase tracking-wider font-bold border border-[#c3c6d1]/30"
+          >
+            <span className="material-symbols-outlined text-xl">home</span>
+            Home
+          </button>
           {/* Drawing tools */}
           <div className="flex items-center bg-[#eff4ff] rounded-lg p-1 border border-[#c3c6d1]/10">
             <button
@@ -1238,6 +1276,45 @@ function QuizContent({ id }: { id: string }) {
           }
         }}
       />
+
+      {/* Back-to-homepage confirmation. The Home button in the
+          toolbar opens this; the student / parent then chooses
+          whether to save first. Backdrop click cancels. */}
+      {showHomeConfirm && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 p-4"
+          onClick={() => !savingForExit && setShowHomeConfirm(false)}
+        >
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-headline font-extrabold text-lg text-[#001e40] mb-1">Going to homepage</h3>
+            <p className="text-sm text-[#43474f] mb-5">Save your progress first so you can pick up where you left off?</p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={goHomeAfterSave}
+                disabled={savingForExit}
+                className="w-full py-3 rounded-2xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145] disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">save</span>
+                {savingForExit ? "Saving…" : "Save & go home"}
+              </button>
+              <button
+                onClick={goHomeWithoutSave}
+                disabled={savingForExit}
+                className="w-full py-3 rounded-2xl bg-slate-100 text-[#001e40] text-sm font-bold hover:bg-slate-200 disabled:opacity-60"
+              >
+                Go home without saving
+              </button>
+              <button
+                onClick={() => setShowHomeConfirm(false)}
+                disabled={savingForExit}
+                className="w-full py-2 text-xs font-bold text-[#43474f] hover:text-[#001e40] disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
