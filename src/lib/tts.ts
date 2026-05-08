@@ -59,7 +59,17 @@ const PUNCTUATION_MAP_TA: Record<string, string> = {
   ";": " அரைப்புள்ளி",
 };
 
-export type TtsLanguage = "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
+// Korean punctuation — Latin period/comma/etc. spoken in Korean.
+const PUNCTUATION_MAP_KO: Record<string, string> = {
+  ".": " 마침표",
+  ",": " 쉼표",
+  "?": " 물음표",
+  "!": " 느낌표",
+  ":": " 쌍점",
+  ";": " 쌍반점",
+};
+
+export type TtsLanguage = "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL" | "KOREAN";
 
 function expandPunctuation(text: string, language: TtsLanguage): string {
   const map =
@@ -67,6 +77,7 @@ function expandPunctuation(text: string, language: TtsLanguage): string {
     language === "JAPANESE" ? PUNCTUATION_MAP_JA :
     language === "MALAY" ? PUNCTUATION_MAP_MS :
     language === "TAMIL" ? PUNCTUATION_MAP_TA :
+    language === "KOREAN" ? PUNCTUATION_MAP_KO :
     PUNCTUATION_MAP_EN;
   let result = text;
   // Sort by length descending so multi-char punctuation matches first (e.g. …… before …)
@@ -100,11 +111,18 @@ const MALAY_VOICE_MAP: Record<string, { name: string; ssmlGender: string }> = {
   male:   { name: "ms-MY-Standard-B", ssmlGender: "MALE" },
 };
 
-// Google Cloud TTS — used for Chinese, Japanese, Malay, and Tamil.
+// Korean — Wavenet voices available, quality is excellent. A/B = main
+// female/male; C/D are alternatives if we ever expose voice picker.
+const KOREAN_VOICE_MAP: Record<string, { name: string; ssmlGender: string }> = {
+  female: { name: "ko-KR-Wavenet-A", ssmlGender: "FEMALE" },
+  male:   { name: "ko-KR-Wavenet-C", ssmlGender: "MALE" },
+};
+
+// Google Cloud TTS — used for Chinese, Japanese, Malay, Tamil, Korean.
 async function synthesizeSpeechGoogle(
   text: string,
   speed: number,
-  language: "CHINESE" | "JAPANESE" | "MALAY" | "TAMIL" = "CHINESE",
+  language: "CHINESE" | "JAPANESE" | "MALAY" | "TAMIL" | "KOREAN" = "CHINESE",
   voice: string = "female"
 ): Promise<ArrayBuffer> {
   const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
@@ -124,6 +142,9 @@ async function synthesizeSpeechGoogle(
   } else if (language === "TAMIL") {
     const t = TAMIL_VOICE_MAP[voice] ?? TAMIL_VOICE_MAP.female;
     voiceConfig = { languageCode: "ta-IN", name: t.name, ssmlGender: t.ssmlGender };
+  } else if (language === "KOREAN") {
+    const k = KOREAN_VOICE_MAP[voice] ?? KOREAN_VOICE_MAP.female;
+    voiceConfig = { languageCode: "ko-KR", name: k.name, ssmlGender: k.ssmlGender };
   } else {
     const mapped = CHINESE_VOICE_MAP[voice];
     const ssmlGender = mapped?.ssmlGender ?? (voice === "male" ? "MALE" : "FEMALE");
@@ -236,6 +257,9 @@ export async function synthesizeSpeech(
   }
   if (language === "TAMIL") {
     return synthesizeSpeechGoogle(speechText, speed, "TAMIL", voice);
+  }
+  if (language === "KOREAN") {
+    return synthesizeSpeechGoogle(speechText, speed, "KOREAN", voice);
   }
 
   // English: Fish Audio

@@ -8,6 +8,7 @@ import BeginTestMode from "@/components/BeginTestMode";
 interface WordInfo {
   pinyin?: string;
   reading?: string;
+  romanization?: string;
   meaning: string;
   englishMeaning?: string;
   example: string;
@@ -156,7 +157,7 @@ function TestPageContent({ id }: { id: string }) {
 
         if (info) {
           const speechText =
-            test.language === "CHINESE" || test.language === "JAPANESE"
+            test.language === "CHINESE" || test.language === "JAPANESE" || test.language === "KOREAN"
               ? `${info.meaning}。${info.example}`
               : `${info.meaning}. ${info.example}`;
 
@@ -237,7 +238,7 @@ function TestPageContent({ id }: { id: string }) {
     return (
       <BeginTestMode
         words={test.words}
-        language={test.language as "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL"}
+        language={test.language as "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL" | "KOREAN"}
         delaySeconds={delaySeconds}
         voice={voice}
         onStop={() => setTestMode(false)}
@@ -392,9 +393,9 @@ function TestPageContent({ id }: { id: string }) {
                 </span>
                 <div className="h-10 w-px bg-[#c3c6d1] hidden sm:block" />
                 <div>
-                  {(currentWordInfo.info.pinyin || currentWordInfo.info.reading) && (
+                  {(currentWordInfo.info.pinyin || currentWordInfo.info.reading || currentWordInfo.info.romanization) && (
                     <p className="text-xl lg:text-2xl font-medium text-[#43474f] italic">
-                      {currentWordInfo.info.pinyin || currentWordInfo.info.reading}
+                      {currentWordInfo.info.pinyin || currentWordInfo.info.reading || currentWordInfo.info.romanization}
                     </p>
                   )}
                   <button

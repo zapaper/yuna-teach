@@ -256,12 +256,15 @@ function ScanPageContent() {
                         ? "bg-emerald-100 text-emerald-700"
                         : test.language === "TAMIL"
                         ? "bg-amber-100 text-amber-700"
+                        : test.language === "KOREAN"
+                        ? "bg-violet-100 text-violet-700"
                         : "bg-blue-100 text-blue-700"
                     }`}>
                       {test.language === "CHINESE" ? "中文"
                         : test.language === "JAPANESE" ? "日本語"
                         : test.language === "MALAY" ? "Bahasa Melayu"
                         : test.language === "TAMIL" ? "தமிழ்"
+                        : test.language === "KOREAN" ? "한국어"
                         : "English"}
                     </span>
                   </div>

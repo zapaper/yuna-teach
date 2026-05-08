@@ -1089,6 +1089,7 @@ Your task:
      * "CHINESE" — words are Chinese characters (e.g. 种族, 华人).
      * "JAPANESE" — words contain hiragana/katakana, OR are Japanese vocabulary even when written with shared kanji (look for kana mixed in or Japanese-style formatting).
      * "TAMIL" — words use the Tamil script (அஆஇஈ…ஐஒஓ etc.). Easiest to spot — unique Unicode block.
+     * "KOREAN" — words use Hangul (한국어, 학교, 안녕). Unique character block, easy to detect.
      * "MALAY" — Latin alphabet but distinctly Malay vocabulary (rumah, makan, pergi, saya, bahasa, buku, tidur, sekolah). Common Malay suffixes -kan, -an, -lah are reliable signals. If the list is mostly Malay words even one or two English-looking words don't change the answer.
      * "ENGLISH" — Latin alphabet, common English words. Default for Latin-script lists when no Malay-specific markers appear.
    - All the test words/phrases in order
@@ -1149,6 +1150,7 @@ Your task:
      * "CHINESE" — words are Chinese characters (e.g. 种族, 华人).
      * "JAPANESE" — words contain hiragana/katakana, OR are Japanese vocabulary even when written with shared kanji.
      * "TAMIL" — words use the Tamil script (அஆஇஈ…ஐஒஓ etc.).
+     * "KOREAN" — words use Hangul (한국어, 학교, 안녕).
      * "MALAY" — Latin alphabet but distinctly Malay vocabulary (rumah, makan, pergi, saya, bahasa, buku, tidur, sekolah). Common Malay suffixes -kan, -an, -lah are reliable signals.
      * "ENGLISH" — Latin alphabet, common English words. Default for Latin-script lists when no Malay-specific markers appear.
    - All the test words/phrases in order
@@ -1222,7 +1224,7 @@ export async function extractWords(ocrText: string, guidance?: string) {
     tests: Array<{
       title: string;
       subtitle: string;
-      language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
+      language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL" | "KOREAN";
       words: Array<{ text: string; orderIndex: number; pairedText?: string }>;
     }>;
   };
@@ -1232,7 +1234,7 @@ type ExtractWordsResult = {
   tests: Array<{
     title: string;
     subtitle: string;
-    language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
+    language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL" | "KOREAN";
     words: Array<{ text: string; orderIndex: number }>;
   }>;
 };
@@ -1300,9 +1302,18 @@ For the Tamil word or phrase "{word}", provide:
 
 Return ONLY valid JSON: {"meaning": "...", "englishMeaning": "...", "example": "..."}`;
 
+const MEANING_PROMPT_KO = `You are a Korean language teacher for beginners.
+For the Korean word or phrase "{word}", provide:
+1. romanization: the Revised Romanization (e.g. "hakgyo" for 학교).
+2. meaning: a brief meaning in English, under 8 words (e.g. "school, place where children learn").
+3. example: a simple example sentence in Korean that a beginner would understand, under 12 words (e.g. "저는 학교에 갑니다.").
+
+Return ONLY valid JSON: {"romanization": "...", "meaning": "...", "example": "..."}`;
+
 export interface WordInfo {
   pinyin?: string;
   reading?: string;
+  romanization?: string;  // Korean Revised Romanization
   meaning: string;
   englishMeaning?: string;
   example: string;
@@ -4300,7 +4311,7 @@ const wordInfoCache = new Map<string, WordInfo>();
 
 export async function generateWordInfo(
   word: string,
-  language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL",
+  language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL" | "KOREAN",
   pairedText?: string | null,
 ): Promise<WordInfo> {
   // Cache key includes pairedText so the same Malay/Tamil word with
@@ -4319,6 +4330,8 @@ export async function generateWordInfo(
       ? MEANING_PROMPT_MS.replace("{word}", word)
       : language === "TAMIL"
       ? MEANING_PROMPT_TA.replace("{word}", word)
+      : language === "KOREAN"
+      ? MEANING_PROMPT_KO.replace("{word}", word)
       : MEANING_PROMPT_EN.replace("{word}", word);
 
   // Disambiguation: when the source spelling list paired this word

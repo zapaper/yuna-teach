@@ -98,6 +98,7 @@ function SpellingPageContent() {
       : lang === "JAPANESE" ? "日本語"
       : lang === "MALAY" ? "Bahasa Melayu"
       : lang === "TAMIL" ? "தமிழ்"
+      : lang === "KOREAN" ? "한국어"
       : "English";
 
   const languageColor = (lang: string) =>
@@ -109,6 +110,8 @@ function SpellingPageContent() {
       ? "bg-emerald-100 text-emerald-700"
       : lang === "TAMIL"
       ? "bg-orange-100 text-orange-700"
+      : lang === "KOREAN"
+      ? "bg-violet-100 text-violet-700"
       : "bg-blue-100 text-blue-700";
 
   const formatDate = (iso: string) => {

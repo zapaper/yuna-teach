@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       // languages (English, Malay) use ".", Tamil uses Latin "."
       // because Tamil punctuation is mostly Latin in modern usage.
       const speechText =
-        language === "CHINESE" || language === "JAPANESE"
+        language === "CHINESE" || language === "JAPANESE" || language === "KOREAN"
           ? `${info.meaning}。${info.example}`
           : `${info.meaning}. ${info.example}`;
 
