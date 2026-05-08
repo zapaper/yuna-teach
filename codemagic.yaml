@@ -1,0 +1,90 @@
+workflows:
+  ios-testflight:
+    name: iOS — TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      # Connects to your App Store Connect API key. Configure in
+      # Codemagic dashboard → Teams → Integrations → Apple Developer
+      # Portal. Use the SAME .p8 you uploaded to RevenueCat.
+      app_store_connect: codemagic
+
+    environment:
+      ios_signing:
+        # Codemagic auto-fetches a Distribution certificate + App
+        # Store provisioning profile from the App Store Connect API
+        # key. No manual cert upload needed.
+        distribution_type: app_store
+        bundle_identifier: com.markforyou.app
+      vars:
+        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        XCODE_SCHEME: "App"
+      node: 20
+      xcode: latest
+      cocoapods: default
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: master
+          include: true
+      cancel_previous_builds: true
+
+    cache:
+      cache_paths:
+        - $CM_BUILD_DIR/node_modules
+        - $HOME/Library/Caches/CocoaPods
+        - ios/App/Pods
+
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          npm ci
+
+      - name: Sync Capacitor (pulls plugin updates into ios/)
+        script: |
+          npx cap sync ios
+
+      - name: CocoaPods install
+        script: |
+          cd ios/App
+          pod install
+
+      - name: Set build number to Codemagic build counter
+        # Each Codemagic build auto-increments BUILD_NUMBER.
+        # CFBundleVersion is set to the same value so App Store
+        # Connect always sees a higher build number than the previous
+        # upload — Apple rejects duplicates.
+        script: |
+          cd ios/App
+          agvtool new-version -all $BUILD_NUMBER
+
+      - name: Use App Store profile for signing
+        script: |
+          xcode-project use-profiles
+
+      - name: Build .ipa archive
+        script: |
+          xcode-project build-ipa \
+            --workspace "$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        # Authenticated via the App Store Connect integration above.
+        auth: integration
+        # Uploads to TestFlight automatically. Apple's "Beta App
+        # Review" runs for external testers (~24h) but internal
+        # testers (you, your team) get the build immediately.
+        submit_to_testflight: true
+        # Optional: auto-add to a TestFlight group on every successful
+        # build. Uncomment + add the group name once you've created
+        # one in App Store Connect.
+        # beta_groups:
+        #   - "Internal Beta"
