@@ -496,17 +496,20 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
       .catch(() => {});
   }, [userId]);
 
-  // First-visit account-info popup. Show once per student. We
-  // delay slightly so it doesn't clash with an admin-reply popup
-  // landing in the same tick.
+  // First-visit account-info popup. Persisted on user.settings so
+  // dismissal sticks across devices / browsers / Capacitor WebView.
+  // Falls back to localStorage if the settings flag isn't set yet
+  // (legacy users who dismissed before this change shipped).
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const settings = (user.settings as Record<string, unknown> | null) ?? {};
+    const dbSeen = settings.studentAccountInfoSeen === true;
     const seenKey = `mfy_studentAccountInfoSeen_${userId}`;
-    const alreadySeen = window.localStorage.getItem(seenKey) === "1";
-    if (alreadySeen) return;
+    const localSeen = window.localStorage.getItem(seenKey) === "1";
+    if (dbSeen || localSeen) return;
     const t = setTimeout(() => setShowAccountInfo(true), 600);
     return () => clearTimeout(t);
-  }, [userId]);
+  }, [userId, user.settings]);
 
   // `name` is the immutable login username; `displayName` is the
   // mutable greeting label. Falls back to the username when not set.
@@ -1030,10 +1033,22 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
               </p>
             </div>
             <button
-              onClick={() => {
+              onClick={async () => {
                 setShowAccountInfo(false);
+                // Persist on the user row so the popup never shows again,
+                // regardless of device or browser. localStorage is also
+                // set as a belt-and-braces fast-path.
                 if (typeof window !== "undefined") {
                   window.localStorage.setItem(`mfy_studentAccountInfoSeen_${userId}`, "1");
+                }
+                try {
+                  await fetch("/api/users", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId, settings: { studentAccountInfoSeen: true } }),
+                  });
+                } catch {
+                  // Non-fatal — localStorage covers this device.
                 }
               }}
               className="w-full py-3 rounded-xl bg-[#003366] text-white font-bold">
