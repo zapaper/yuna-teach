@@ -246,13 +246,6 @@ function TestPageContent({ id }: { id: string }) {
 
   const selectedWord = currentWordInfo?.word ?? null;
 
-  const wordLabel =
-    test.language === "CHINESE" ? "成语" :
-    test.language === "JAPANESE" ? "単語" :
-    test.language === "MALAY" ? "Perkataan" :
-    test.language === "TAMIL" ? "சொல்" :
-    "Word";
-
   return (
     <div className="min-h-screen bg-[#f8f9ff] font-body text-[#0b1c30] antialiased">
 
@@ -364,11 +357,13 @@ function TestPageContent({ id }: { id: string }) {
                   <span className="material-symbols-outlined text-[#001e40] text-base">edit</span>
                 </div>
                 <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#001e40] mb-1 break-all leading-tight">{word.text}</p>
-                <p className={`text-[10px] font-bold tracking-widest uppercase ${
-                  isPlaying ? "text-[#006c49]" : isSelected ? "text-[#003366]" : "text-[#737780]"
-                }`}>
-                  {isPlaying ? "Playing…" : isSelected ? "Selected" : wordLabel}
-                </p>
+                {(isPlaying || isSelected) && (
+                  <p className={`text-[10px] font-bold tracking-widest uppercase ${
+                    isPlaying ? "text-[#006c49]" : "text-[#003366]"
+                  }`}>
+                    {isPlaying ? "Playing…" : "Selected"}
+                  </p>
+                )}
               </button>
             );
           })}
