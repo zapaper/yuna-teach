@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { Suspense, useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -15,7 +15,19 @@ function safeNext(raw: string | null, fallback: string): string {
   return raw;
 }
 
+// Next.js 16 requires useSearchParams to be inside a Suspense
+// boundary so the page can prerender. Wrap the actual login UI in a
+// child component and render it inside Suspense from the route's
+// default export.
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50" />}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextParam = searchParams.get("next");
