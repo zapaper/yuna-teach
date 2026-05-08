@@ -37,8 +37,37 @@ const PUNCTUATION_MAP_JA: Record<string, string> = {
   "」": " かぎかっことじ",
 };
 
-function expandPunctuation(text: string, language: "CHINESE" | "ENGLISH" | "JAPANESE"): string {
-  const map = language === "CHINESE" ? PUNCTUATION_MAP_ZH : language === "JAPANESE" ? PUNCTUATION_MAP_JA : PUNCTUATION_MAP_EN;
+// Malay shares Latin punctuation with English — reuse those names but
+// localised in Bahasa so the TTS pronounces them naturally.
+const PUNCTUATION_MAP_MS: Record<string, string> = {
+  ".": " noktah",
+  ",": " koma",
+  "?": " tanda soal",
+  "!": " tanda seru",
+  ":": " titik bertindih",
+  ";": " koma bertitik",
+};
+
+// Tamil punctuation — mostly Latin marks. Keep names in Tamil so the
+// Tamil TTS voice doesn't switch to English for the punctuation word.
+const PUNCTUATION_MAP_TA: Record<string, string> = {
+  ".": " முற்றுப்புள்ளி",
+  ",": " காற்புள்ளி",
+  "?": " வினாக்குறி",
+  "!": " ஆச்சரியக்குறி",
+  ":": " குறி",
+  ";": " அரைப்புள்ளி",
+};
+
+export type TtsLanguage = "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
+
+function expandPunctuation(text: string, language: TtsLanguage): string {
+  const map =
+    language === "CHINESE" ? PUNCTUATION_MAP_ZH :
+    language === "JAPANESE" ? PUNCTUATION_MAP_JA :
+    language === "MALAY" ? PUNCTUATION_MAP_MS :
+    language === "TAMIL" ? PUNCTUATION_MAP_TA :
+    PUNCTUATION_MAP_EN;
   let result = text;
   // Sort by length descending so multi-char punctuation matches first (e.g. …… before …)
   const sorted = Object.entries(map).sort((a, b) => b[0].length - a[0].length);
@@ -56,21 +85,54 @@ const CHINESE_VOICE_MAP: Record<string, { name: string; ssmlGender: string }> = 
   male2:   { name: "cmn-CN-Wavenet-B",  ssmlGender: "MALE" },
 };
 
-// Google Cloud TTS — used for Chinese and Japanese
+// Tamil — Wavenet voices sound noticeably better than Standard, so
+// they're the default. C/D variants are alternative pitches if we
+// ever expose them in the picker.
+const TAMIL_VOICE_MAP: Record<string, { name: string; ssmlGender: string }> = {
+  female: { name: "ta-IN-Wavenet-A", ssmlGender: "FEMALE" },
+  male:   { name: "ta-IN-Wavenet-B", ssmlGender: "MALE" },
+};
+
+// Malay — only Standard voices available from Google as of 2025.
+// Quality is plainer than Tamil/Chinese Wavenet but intelligible.
+const MALAY_VOICE_MAP: Record<string, { name: string; ssmlGender: string }> = {
+  female: { name: "ms-MY-Standard-A", ssmlGender: "FEMALE" },
+  male:   { name: "ms-MY-Standard-B", ssmlGender: "MALE" },
+};
+
+// Google Cloud TTS — used for Chinese, Japanese, Malay, and Tamil.
 async function synthesizeSpeechGoogle(
   text: string,
   speed: number,
-  language: "CHINESE" | "JAPANESE" = "CHINESE",
+  language: "CHINESE" | "JAPANESE" | "MALAY" | "TAMIL" = "CHINESE",
   voice: string = "female"
 ): Promise<ArrayBuffer> {
   const apiKey = process.env.GOOGLE_CLOUD_API_KEY;
   if (!apiKey) throw new Error("GOOGLE_CLOUD_API_KEY is not set");
 
-  const mapped = CHINESE_VOICE_MAP[voice];
-  const ssmlGender = mapped?.ssmlGender ?? (voice === "male" ? "MALE" : "FEMALE");
-  const voiceConfig = language === "JAPANESE"
-    ? { languageCode: "ja-JP", name: voice === "male" ? "ja-JP-Standard-C" : "ja-JP-Standard-B", ssmlGender }
-    : { languageCode: "cmn-CN", name: mapped?.name ?? "cmn-CN-Standard-A", ssmlGender };
+  let voiceConfig: { languageCode: string; name: string; ssmlGender: string };
+  if (language === "JAPANESE") {
+    const ssmlGender = voice === "male" ? "MALE" : "FEMALE";
+    voiceConfig = {
+      languageCode: "ja-JP",
+      name: voice === "male" ? "ja-JP-Standard-C" : "ja-JP-Standard-B",
+      ssmlGender,
+    };
+  } else if (language === "MALAY") {
+    const m = MALAY_VOICE_MAP[voice] ?? MALAY_VOICE_MAP.female;
+    voiceConfig = { languageCode: "ms-MY", name: m.name, ssmlGender: m.ssmlGender };
+  } else if (language === "TAMIL") {
+    const t = TAMIL_VOICE_MAP[voice] ?? TAMIL_VOICE_MAP.female;
+    voiceConfig = { languageCode: "ta-IN", name: t.name, ssmlGender: t.ssmlGender };
+  } else {
+    const mapped = CHINESE_VOICE_MAP[voice];
+    const ssmlGender = mapped?.ssmlGender ?? (voice === "male" ? "MALE" : "FEMALE");
+    voiceConfig = {
+      languageCode: "cmn-CN",
+      name: mapped?.name ?? "cmn-CN-Standard-A",
+      ssmlGender,
+    };
+  }
   // Only log on error, not every call
 
   const response = await fetch(
@@ -140,14 +202,17 @@ async function synthesizeSpeechFish(
 
 export async function synthesizeSpeech(
   text: string,
-  language: "CHINESE" | "ENGLISH" | "JAPANESE",
+  language: TtsLanguage,
   options?: { expandPunct?: boolean; speed?: number; voice?: string }
 ): Promise<ArrayBuffer> {
   const speed = options?.speed ?? 0.9;
   const voice = options?.voice ?? "female";
   const speechText = options?.expandPunct ? expandPunctuation(text, language) : text;
 
-  // Chinese: Google Cloud Neural2, with Fish Audio fallback
+  // Chinese / Japanese / Malay / Tamil all go through Google Cloud
+  // TTS. Chinese + Japanese fall back to Fish Audio if Google fails;
+  // Malay + Tamil have no Fish fallback (no comparable voices), so an
+  // outage propagates the error to the caller.
   if (language === "CHINESE") {
     try {
       return await synthesizeSpeechGoogle(speechText, speed, "CHINESE", voice);
@@ -157,7 +222,6 @@ export async function synthesizeSpeech(
     }
   }
 
-  // Japanese: Google Cloud Neural2, with Fish Audio fallback
   if (language === "JAPANESE") {
     try {
       return await synthesizeSpeechGoogle(speechText, speed, "JAPANESE", voice);
@@ -165,6 +229,13 @@ export async function synthesizeSpeech(
       console.warn("Google TTS failed for Japanese, falling back to Fish Audio:", err instanceof Error ? err.message : err);
       return synthesizeSpeechFish(speechText, language, speed);
     }
+  }
+
+  if (language === "MALAY") {
+    return synthesizeSpeechGoogle(speechText, speed, "MALAY", voice);
+  }
+  if (language === "TAMIL") {
+    return synthesizeSpeechGoogle(speechText, speed, "TAMIL", voice);
   }
 
   // English: Fish Audio

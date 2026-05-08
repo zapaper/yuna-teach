@@ -94,13 +94,21 @@ function SpellingPageContent() {
   }
 
   const languageLabel = (lang: string) =>
-    lang === "CHINESE" ? "中文" : lang === "JAPANESE" ? "日本語" : "English";
+    lang === "CHINESE" ? "中文"
+      : lang === "JAPANESE" ? "日本語"
+      : lang === "MALAY" ? "Bahasa Melayu"
+      : lang === "TAMIL" ? "தமிழ்"
+      : "English";
 
   const languageColor = (lang: string) =>
     lang === "CHINESE"
       ? "bg-amber-100 text-amber-700"
       : lang === "JAPANESE"
       ? "bg-pink-100 text-pink-700"
+      : lang === "MALAY"
+      ? "bg-emerald-100 text-emerald-700"
+      : lang === "TAMIL"
+      ? "bg-orange-100 text-orange-700"
       : "bg-blue-100 text-blue-700";
 
   const formatDate = (iso: string) => {

@@ -267,6 +267,8 @@ enum Language {
   CHINESE
   ENGLISH
   JAPANESE
+  MALAY
+  TAMIL
 }
 
 // Transient store for AI-solver results. Client generates a UUID per solve

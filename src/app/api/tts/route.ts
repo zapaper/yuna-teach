@@ -23,6 +23,9 @@ export async function POST(request: NextRequest) {
     // Generate TTS for the meaning sentence
     if (type === "meaning") {
       const info = await generateWordInfo(text, language);
+      // Chinese + Japanese use the full-width period; Latin-script
+      // languages (English, Malay) use ".", Tamil uses Latin "."
+      // because Tamil punctuation is mostly Latin in modern usage.
       const speechText =
         language === "CHINESE" || language === "JAPANESE"
           ? `${info.meaning}。${info.example}`

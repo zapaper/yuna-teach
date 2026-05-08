@@ -1,4 +1,4 @@
-export type Language = "CHINESE" | "ENGLISH" | "JAPANESE";
+export type Language = "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
 export type Role = "STUDENT" | "PARENT";
 
 export interface User {

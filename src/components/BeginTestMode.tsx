@@ -6,7 +6,7 @@ import { WordItem } from "@/types";
 
 interface BeginTestModeProps {
   words: WordItem[];
-  language: "CHINESE" | "ENGLISH" | "JAPANESE";
+  language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
   delaySeconds: number;
   voice?: string;
   onStop: () => void;

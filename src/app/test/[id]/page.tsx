@@ -231,7 +231,7 @@ function TestPageContent({ id }: { id: string }) {
     return (
       <BeginTestMode
         words={test.words}
-        language={test.language as "CHINESE" | "ENGLISH" | "JAPANESE"}
+        language={test.language as "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL"}
         delaySeconds={delaySeconds}
         voice={voice}
         onStop={() => setTestMode(false)}
@@ -248,7 +248,10 @@ function TestPageContent({ id }: { id: string }) {
 
   const wordLabel =
     test.language === "CHINESE" ? "成语" :
-    test.language === "JAPANESE" ? "単語" : "Word";
+    test.language === "JAPANESE" ? "単語" :
+    test.language === "MALAY" ? "Perkataan" :
+    test.language === "TAMIL" ? "சொல்" :
+    "Word";
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] font-body text-[#0b1c30] antialiased">

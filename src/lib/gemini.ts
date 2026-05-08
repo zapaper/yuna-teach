@@ -1085,7 +1085,12 @@ Your task:
 2. For each test, extract:
    - The title/header (e.g. "听写(五)")
    - The subtitle/date if present (empty string if none)
-   - The language: "CHINESE" if the test words are Chinese characters, "ENGLISH" if English words, "JAPANESE" if the words contain Japanese hiragana/katakana or are Japanese vocabulary (even if they use kanji shared with Chinese, look for kana mixed in or Japanese-style formatting)
+   - The language — one of: "CHINESE" / "ENGLISH" / "JAPANESE" / "MALAY" / "TAMIL". Detection guide:
+     * "CHINESE" — words are Chinese characters (e.g. 种族, 华人).
+     * "JAPANESE" — words contain hiragana/katakana, OR are Japanese vocabulary even when written with shared kanji (look for kana mixed in or Japanese-style formatting).
+     * "TAMIL" — words use the Tamil script (அஆஇஈ…ஐஒஓ etc.). Easiest to spot — unique Unicode block.
+     * "MALAY" — Latin alphabet but distinctly Malay vocabulary (rumah, makan, pergi, saya, bahasa, buku, tidur, sekolah). Common Malay suffixes -kan, -an, -lah are reliable signals. If the list is mostly Malay words even one or two English-looking words don't change the answer.
+     * "ENGLISH" — Latin alphabet, common English words. Default for Latin-script lists when no Malay-specific markers appear.
    - All the test words/phrases in order
 3. IMPORTANT: Only extract actual test words. Do NOT include:
    - Headers, titles, dates as words
@@ -1129,7 +1134,12 @@ Your task:
 2. For each test, extract:
    - The title/header (e.g. "听写(五)")
    - The subtitle/date if present (empty string if none)
-   - The language: "CHINESE" if the test words are Chinese characters, "ENGLISH" if English words, "JAPANESE" if the words contain Japanese hiragana/katakana or are Japanese vocabulary
+   - The language — one of: "CHINESE" / "ENGLISH" / "JAPANESE" / "MALAY" / "TAMIL". Detection guide:
+     * "CHINESE" — words are Chinese characters (e.g. 种族, 华人).
+     * "JAPANESE" — words contain hiragana/katakana, OR are Japanese vocabulary even when written with shared kanji.
+     * "TAMIL" — words use the Tamil script (அஆஇஈ…ஐஒஓ etc.).
+     * "MALAY" — Latin alphabet but distinctly Malay vocabulary (rumah, makan, pergi, saya, bahasa, buku, tidur, sekolah). Common Malay suffixes -kan, -an, -lah are reliable signals.
+     * "ENGLISH" — Latin alphabet, common English words. Default for Latin-script lists when no Malay-specific markers appear.
    - All the test words/phrases in order
 3. IMPORTANT: Only extract actual test words. Do NOT include:
    - Headers, titles, dates as words
@@ -1196,7 +1206,7 @@ export async function extractWords(ocrText: string, guidance?: string) {
     tests: Array<{
       title: string;
       subtitle: string;
-      language: "CHINESE" | "ENGLISH" | "JAPANESE";
+      language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
       words: Array<{ text: string; orderIndex: number }>;
     }>;
   };
@@ -1206,7 +1216,7 @@ type ExtractWordsResult = {
   tests: Array<{
     title: string;
     subtitle: string;
-    language: "CHINESE" | "ENGLISH" | "JAPANESE";
+    language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL";
     words: Array<{ text: string; orderIndex: number }>;
   }>;
 };
@@ -1257,6 +1267,22 @@ For the Japanese word or phrase "{word}", provide:
 3. example: a simple example sentence in Japanese that a beginner would understand, under 20 characters (e.g. "学校に行きます。")
 
 Return ONLY valid JSON: {"reading": "...", "meaning": "...", "example": "..."}`;
+
+const MEANING_PROMPT_MS = `You are a Singapore primary school Bahasa Melayu teacher.
+For the Malay word or phrase "{word}", provide:
+1. meaning: a brief kid-friendly definition in Malay, under 10 words (e.g. "tempat belajar dan bermain")
+2. englishMeaning: a brief meaning in English, under 8 words (e.g. "school where children learn")
+3. example: a simple example sentence in Malay that a primary school student would understand, under 12 words (e.g. "Saya pergi ke sekolah setiap hari.")
+
+Return ONLY valid JSON: {"meaning": "...", "englishMeaning": "...", "example": "..."}`;
+
+const MEANING_PROMPT_TA = `You are a Singapore primary school Tamil teacher.
+For the Tamil word or phrase "{word}", provide:
+1. meaning: a brief kid-friendly definition in Tamil, under 10 words.
+2. englishMeaning: a brief meaning in English, under 8 words.
+3. example: a simple example sentence in Tamil that a primary school student would understand, under 12 words.
+
+Return ONLY valid JSON: {"meaning": "...", "englishMeaning": "...", "example": "..."}`;
 
 export interface WordInfo {
   pinyin?: string;
@@ -4258,7 +4284,7 @@ const wordInfoCache = new Map<string, WordInfo>();
 
 export async function generateWordInfo(
   word: string,
-  language: "CHINESE" | "ENGLISH" | "JAPANESE"
+  language: "CHINESE" | "ENGLISH" | "JAPANESE" | "MALAY" | "TAMIL"
 ): Promise<WordInfo> {
   const cacheKey = `${language}:${word}`;
   const cached = wordInfoCache.get(cacheKey);
@@ -4269,6 +4295,10 @@ export async function generateWordInfo(
       ? MEANING_PROMPT_ZH.replace("{word}", word)
       : language === "JAPANESE"
       ? MEANING_PROMPT_JA.replace("{word}", word)
+      : language === "MALAY"
+      ? MEANING_PROMPT_MS.replace("{word}", word)
+      : language === "TAMIL"
+      ? MEANING_PROMPT_TA.replace("{word}", word)
       : MEANING_PROMPT_EN.replace("{word}", word);
 
   const response = await generateContentWithRetry({
