@@ -144,6 +144,16 @@ function QuizContent({ id }: { id: string }) {
   // quiz mid-way. Asks whether to save first.
   const [showHomeConfirm, setShowHomeConfirm] = useState(false);
   const [savingForExit, setSavingForExit] = useState(false);
+  // When the home-confirm modal opens, prefetch the student dashboard
+  // so the eventual router.push lands almost instantly. Cuts the
+  // perceived "stuck" feeling on slow connections — the home page
+  // does ~5 API round-trips on first paint, which take 1-3s without
+  // prefetch.
+  useEffect(() => {
+    if (showHomeConfirm && userId) {
+      router.prefetch(`/home/${userId}`);
+    }
+  }, [showHomeConfirm, userId, router]);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
   // Tracks which English comp/visual-text sections the student has
   // explicitly entered. Once entered, the section renders side-by-side
