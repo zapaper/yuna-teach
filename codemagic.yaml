@@ -5,10 +5,11 @@ workflows:
     max_build_duration: 60
 
     integrations:
-      # Connects to your App Store Connect API key. Configure in
-      # Codemagic dashboard → Teams → Integrations → Apple Developer
-      # Portal. Use the SAME .p8 you uploaded to RevenueCat.
-      app_store_connect: codemagic
+      # Connects to your App Store Connect API key. The value here
+      # MUST match the integration NAME you set in Codemagic dashboard
+      # → Teams → Integrations → Apple Developer Portal. Currently
+      # named "MarkForYou" — change here if you rename it later.
+      app_store_connect: MarkForYou
 
     environment:
       ios_signing:
