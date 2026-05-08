@@ -4,23 +4,22 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
 
-    integrations:
-      # Connects to your App Store Connect API key. The value here
-      # MUST match the integration NAME you set in Codemagic dashboard
-      # → Teams → Integrations → Apple Developer Portal. Currently
-      # named "MarkForYou" — change here if you rename it later.
-      app_store_connect: MarkForYou
-
     environment:
-      ios_signing:
-        # Codemagic auto-fetches a Distribution certificate + App
-        # Store provisioning profile from the App Store Connect API
-        # key. No manual cert upload needed.
-        distribution_type: app_store
-        bundle_identifier: com.markforyou.app
+      # API key info passed via Codemagic Environment Variable Group
+      # named "appstore_credentials". Create the group in Codemagic
+      # dashboard → user avatar → Environment variables, with these
+      # three vars (the .p8 PRIVATE_KEY var should be marked Secure):
+      #   APP_STORE_CONNECT_ISSUER_ID         — UUID from App Store Connect
+      #   APP_STORE_CONNECT_KEY_IDENTIFIER    — 10-char Key ID
+      #   APP_STORE_CONNECT_PRIVATE_KEY       — paste the entire .p8 file
+      #                                         contents (including BEGIN/END
+      #                                         lines)
+      groups:
+        - appstore_credentials
       vars:
         XCODE_WORKSPACE: "ios/App/App.xcworkspace"
         XCODE_SCHEME: "App"
+        BUNDLE_ID: "com.markforyou.app"
       node: 20
       xcode: latest
       cocoapods: default
@@ -63,42 +62,50 @@ workflows:
           agvtool new-version -all $BUILD_NUMBER
 
       - name: DIAGNOSTIC — what does the API key see?
-        # Prints the resources visible to the App Store Connect API
-        # key, so we can tell whether the bundle ID, certificates, or
-        # profiles are missing on Apple's side. If this step logs
-        # "No bundle IDs", the API key is on a different team than
-        # where com.markforyou.app lives.
+        # Uses explicit --issuer-id / --key-id / --private-key args so
+        # we don't depend on the integrations system. Prints what
+        # resources the API key has access to.
         script: |
+          echo "=== API key auth target ==="
+          echo "Issuer ID:    $APP_STORE_CONNECT_ISSUER_ID"
+          echo "Key ID:       $APP_STORE_CONNECT_KEY_IDENTIFIER"
+          echo "Private key:  ${#APP_STORE_CONNECT_PRIVATE_KEY} chars"
+          echo ""
           echo "=== Bundle IDs visible to API key ==="
-          app-store-connect bundle-ids list || echo "(failed to list bundle IDs)"
+          app-store-connect bundle-ids list \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            || echo "(failed to list bundle IDs)"
           echo ""
           echo "=== Distribution certificates ==="
-          app-store-connect certificates list --type IOS_DISTRIBUTION || echo "(failed to list certs)"
+          app-store-connect certificates list \
+            --type IOS_DISTRIBUTION \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            || echo "(failed to list certs)"
           echo ""
           echo "=== App Store provisioning profiles ==="
-          app-store-connect profiles list --type IOS_APP_STORE || echo "(failed to list profiles)"
-          echo ""
-          echo "=== Apps visible to API key ==="
-          app-store-connect apps list || echo "(failed to list apps)"
+          app-store-connect profiles list \
+            --type IOS_APP_STORE \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            || echo "(failed to list profiles)"
 
       - name: Fetch (or create) signing certificate + App Store profile
-        # Codemagic's `app-store-connect fetch-signing-files` uses the
-        # API key from the integration to:
-        #   1. Find a Distribution certificate, OR create one if missing.
-        #   2. Find an App Store provisioning profile for the bundle ID,
-        #      OR create one if missing.
-        # The --create flag is critical for first-time setups. After
-        # the first successful run, Apple has the cert + profile cached
-        # and subsequent runs skip the create step. --verbose surfaces
-        # the actual API calls and Apple's responses so we can see
-        # exactly what failed.
+        # Explicit auth args — bypasses the integrations layer.
         script: |
           keychain initialize
           app-store-connect fetch-signing-files \
-            "com.markforyou.app" \
+            "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create \
-            --verbose
+            --verbose \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
           keychain add-certificates
           xcode-project use-profiles --verbose
 
@@ -114,14 +121,11 @@ workflows:
 
     publishing:
       app_store_connect:
-        # Authenticated via the App Store Connect integration above.
-        auth: integration
+        # Auth via the env-var group instead of the integrations layer.
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         # Uploads to TestFlight automatically. Apple's "Beta App
         # Review" runs for external testers (~24h) but internal
         # testers (you, your team) get the build immediately.
         submit_to_testflight: true
-        # Optional: auto-add to a TestFlight group on every successful
-        # build. Uncomment + add the group name once you've created
-        # one in App Store Connect.
-        # beta_groups:
-        #   - "Internal Beta"
