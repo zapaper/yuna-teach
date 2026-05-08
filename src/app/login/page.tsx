@@ -1,11 +1,24 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+
+// Sanitises a `next=` query string so it can only redirect to a
+// path within the same site. Anything that looks like a full URL
+// (starts with http://, //, or a non-/ char) is rejected to prevent
+// open-redirect attacks.
+function safeNext(raw: string | null, fallback: string): string {
+  if (!raw) return fallback;
+  // Must start with a single slash AND not be a protocol-relative URL.
+  if (!raw.startsWith("/") || raw.startsWith("//")) return fallback;
+  return raw;
+}
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextParam = searchParams.get("next");
 
   // ── Login state ──
   const [loginIdentity, setLoginIdentity] = useState("");
@@ -94,7 +107,11 @@ export default function LoginPage() {
         return;
       }
       const user = await res.json();
-      router.push(`/home/${user.id}`);
+      // If the user was bounced here from a gated page (e.g.
+      // /home/<their-id>), `next` carries the intended destination.
+      // Fallback is the user's own home if nothing was provided or
+      // the param looks unsafe.
+      router.push(safeNext(nextParam, `/home/${user.id}`));
     } catch {
       setLoginError("Something went wrong. Please try again.");
     } finally {
