@@ -1281,10 +1281,13 @@ Return ONLY valid JSON: {"meaning": "...", "example": "..."}`;
 const MEANING_PROMPT_JA = `You are a Japanese language teacher.
 For the Japanese word or phrase "{word}", provide:
 1. reading: the hiragana reading (e.g. "がっこう")
-2. meaning: a brief meaning in English, under 10 words (e.g. "school")
-3. example: a simple example sentence in Japanese that a beginner would understand, under 20 characters (e.g. "学校に行きます。")
+2. meaning: a brief kid-friendly definition IN JAPANESE, under 15 characters (e.g. for 学校: "勉強する場所")
+3. englishMeaning: a brief meaning in English, under 8 words (e.g. "school, place where children learn")
+4. example: a simple example sentence in Japanese that a beginner would understand, under 20 characters (e.g. "学校に行きます。")
 
-Return ONLY valid JSON: {"reading": "...", "meaning": "...", "example": "..."}`;
+CRITICAL: "meaning" and "example" MUST be written in Japanese (kanji + kana). They will be read aloud by a Japanese text-to-speech voice — English words there sound broken.
+
+Return ONLY valid JSON: {"reading": "...", "meaning": "...", "englishMeaning": "...", "example": "..."}`;
 
 const MEANING_PROMPT_MS = `You are a Singapore primary school Bahasa Melayu teacher.
 For the Malay word or phrase "{word}", provide:
