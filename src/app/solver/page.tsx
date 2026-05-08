@@ -243,12 +243,37 @@ function SolverContent() {
           let line = "";
           for (const word of words) {
             const test = line ? `${line} ${word}` : word;
-            if (ctx.measureText(test).width > maxW) { if (line) result.push(line); line = word; }
+            // Measure without ** markers — they're decoration, not glyphs.
+            const measure = test.replace(/\*\*/g, "");
+            if (ctx.measureText(measure).width > maxW) { if (line) result.push(line); line = word; }
             else { line = test; }
           }
           if (line) result.push(line);
         }
         return result;
+      }
+
+      // Draws a line of text honouring **bold** markers. Tracks bold
+      // state across calls (boldStateRef.current) so a bold span that
+      // wraps across lines stays bold on the continuation line.
+      function drawLineWithBold(
+        ctx: CanvasRenderingContext2D,
+        line: string,
+        x: number,
+        y: number,
+        fontSize: number,
+        boldStateRef: { current: boolean },
+      ) {
+        const segments = line.split("**");
+        let cx = x;
+        segments.forEach((seg, idx) => {
+          if (idx > 0) boldStateRef.current = !boldStateRef.current;
+          ctx.font = `${boldStateRef.current ? "bold " : ""}${fontSize}px ${FONT}`;
+          if (seg) {
+            ctx.fillText(seg, cx, y);
+            cx += ctx.measureText(seg).width;
+          }
+        });
       }
 
       function splitCanvasLabel(label: string): [string, string | null] {
@@ -429,7 +454,12 @@ function SolverContent() {
       ctx.fillStyle = "#1e293b";
       ctx.font = `${fontSize}px ${FONT}`;
       const textStartY = curY + LABEL_H + 32;
-      lines.forEach((line, i) => { ctx.fillText(line, PADDING, textStartY + i * LINE_H); });
+      // Track bold state across all solution lines so **bold** that
+      // wraps onto a continuation line stays bold.
+      const boldState = { current: false };
+      lines.forEach((line, i) => {
+        drawLineWithBold(ctx, line, PADDING, textStartY + i * LINE_H, fontSize, boldState);
+      });
 
       // Logo bar
       const logoY = H - LOGO_H;
