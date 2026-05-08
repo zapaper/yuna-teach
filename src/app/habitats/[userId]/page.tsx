@@ -849,9 +849,15 @@ export default function HabitatsPage({ params }: { params: Promise<{ userId: str
             <p className="text-sm text-[#43474f] mt-1">
               Spend <span className="font-extrabold text-[#001e40]">{purchase.cost}</span> crystals
             </p>
-            <p className="text-xs text-[#737780] mt-1">
-              Balance: {crystals} · After: {crystals - purchase.cost}
-            </p>
+            {crystals >= purchase.cost ? (
+              <p className="text-xs text-[#737780] mt-1">
+                Balance: {crystals} · After: {crystals - purchase.cost}
+              </p>
+            ) : (
+              <p className="text-xs text-[#ba1a1a] font-bold mt-1">
+                Not enough crystals · Balance: {crystals} (need {purchase.cost})
+              </p>
+            )}
             {purchaseError && (
               <p className="text-sm text-red-600 font-bold mt-3">{purchaseError}</p>
             )}
