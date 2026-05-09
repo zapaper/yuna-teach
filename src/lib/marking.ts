@@ -2915,14 +2915,23 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           );
           return;
         }
-        // Fallback: try combined image
+        // Fallback: try combined image. Track that we fell back so
+        // the detect-prompt below doesn't tell the AI to "report
+        // each part separately" — there are no per-part images, just
+        // one canvas with everything on it. The old prompt made the
+        // AI default to "(a) blank (b) blank" when parts weren't
+        // visually separated, even though writing was clearly there.
+        let usedCombinedFallback = false;
         if (!hasSubmission) {
           try {
             const pagePath = path.join(subDir, `page_${i}.jpg`);
             const pageBuffer = await fs.readFile(pagePath);
-            parts.push({ text: "Student's handwritten answer:" });
+            parts.push({ text: realSubs.length > 0
+              ? "Student's handwritten answer (single combined canvas covering all sub-parts — they share one writing area, not separate per-part images):"
+              : "Student's handwritten answer:" });
             parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
             hasSubmission = true;
+            usedCombinedFallback = realSubs.length > 0;
           } catch {
             // No submission image
           }
@@ -3000,7 +3009,13 @@ If the student drew a diagram (e.g. bar model, number line, shapes, arrows), des
 
 SMALL / SHORT ANSWERS: Single digits (e.g. "4", "7") or single letters (e.g. "A") may be small and easy to miss. Scan the ENTIRE answer area carefully — especially near "Ans:" lines and in the top-right corner of sub-part regions. A thin blue stroke that resembles a digit IS the student's answer. Do NOT default to "blank" if there is any blue ink mark present.
 
-If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".
+${usedCombinedFallback ? `MULTI-PART ON ONE CANVAS — CRITICAL:
+The image is ONE combined canvas the student used for all sub-parts. There are NO separate per-part images. Sub-parts may not be labelled or visually separated by the student.
+- Do NOT default to "blank" just because parts aren't labelled — read all the writing and attempt to map it to (a), (b), (c) etc. in the order it appears.
+- If multiple distinct calculations / answers are visible, assume each one corresponds to the next sub-part in order.
+- If only one block of working is visible and all sub-parts share it (e.g. shared fraction work yielding two answers on a "Final answer:" line), copy that working under EACH part with the appropriate final answer.
+- Only report a part as "blank" if you genuinely see nothing that could correspond to it after exhausting the above.
+` : `If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".`}
 Report EXACTLY what the student wrote, including any unit symbols. Return ONLY the detected text, nothing else.` });
 
         let detectedAnswer = "";
