@@ -96,6 +96,11 @@ workflows:
 
       - name: Fetch (or create) signing certificate + App Store profile
         # Explicit auth args — bypasses the integrations layer.
+        # `use-profiles` walks the cwd for .xcodeproj/.xcworkspace
+        # and patches DEVELOPMENT_TEAM + PROVISIONING_PROFILE_SPECIFIER
+        # using profiles installed under ~/Library/MobileDevice/.
+        # --warnings-as-errors makes silent "no matching profile"
+        # situations fail loudly here instead of at archive time.
         script: |
           keychain initialize
           app-store-connect fetch-signing-files \
@@ -107,7 +112,15 @@ workflows:
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
             --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
           keychain add-certificates
-          xcode-project use-profiles --verbose
+          echo "=== Installed provisioning profiles ==="
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || echo "(none)"
+          echo ""
+          echo "=== Patching Xcode project with profiles ==="
+          xcode-project use-profiles --warnings-as-errors --verbose
+          echo ""
+          echo "=== Signing config in pbxproj after patch ==="
+          grep -E "DEVELOPMENT_TEAM|CODE_SIGN_STYLE|PROVISIONING_PROFILE|PRODUCT_BUNDLE_IDENTIFIER" \
+            "$XCODE_PROJECT/project.pbxproj" || true
 
       - name: Build .ipa archive
         script: |
