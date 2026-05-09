@@ -1131,7 +1131,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 {adminNotifs.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#ba1a1a] rounded-full" />}
               </button>
               {/* Quiz badge icon removed for now */}
-              <button onClick={() => router.push("/login")} className="text-[#43474f] hover:text-[#ba1a1a] transition-colors" title="Log out">
+              <button onClick={async () => { try { await fetch("/api/auth", { method: "DELETE" }); } catch {} window.location.href = "/"; }} className="text-[#43474f] hover:text-[#ba1a1a] transition-colors" title="Log out">
                 <span className="material-symbols-outlined">logout</span>
               </button>
             </div>
@@ -1435,7 +1435,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           <div className="flex items-center gap-2"><img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" /><img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" /></div>
           <div className="flex items-center gap-2">
             <button onClick={() => openLinkModal("share")} className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full">{hasParent ? "+" : "Link"}</button>
-            <button onClick={() => router.push("/login")} className="text-[#43474f] hover:text-[#ba1a1a] transition-colors" title="Log out">
+            <button onClick={async () => { try { await fetch("/api/auth", { method: "DELETE" }); } catch {} window.location.href = "/"; }} className="text-[#43474f] hover:text-[#ba1a1a] transition-colors" title="Log out">
               <span className="material-symbols-outlined text-xl">logout</span>
             </button>
           </div>

@@ -7,11 +7,19 @@ import Link from "next/link";
 // Sanitises a `next=` query string so it can only redirect to a
 // path within the same site. Anything that looks like a full URL
 // (starts with http://, //, or a non-/ char) is rejected to prevent
-// open-redirect attacks.
-function safeNext(raw: string | null, fallback: string): string {
+// open-redirect attacks. ALSO falls back when the next URL is
+// /home/<someone-else>'s-id, to avoid a redirect loop with the
+// home layout's "session.userId === params.userId" check.
+function safeNext(raw: string | null, fallback: string, justLoggedInUserId?: string): string {
   if (!raw) return fallback;
-  // Must start with a single slash AND not be a protocol-relative URL.
   if (!raw.startsWith("/") || raw.startsWith("//")) return fallback;
+  // /home/<X>: only honor if X is the user we just logged in as.
+  // Otherwise the home layout will bounce them back to /login and
+  // they'll appear stuck on the login page.
+  if (justLoggedInUserId) {
+    const homeMatch = raw.match(/^\/home\/([^/?#]+)/);
+    if (homeMatch && homeMatch[1] !== justLoggedInUserId) return fallback;
+  }
   return raw;
 }
 
@@ -121,9 +129,10 @@ function LoginContent() {
       const user = await res.json();
       // If the user was bounced here from a gated page (e.g.
       // /home/<their-id>), `next` carries the intended destination.
-      // Fallback is the user's own home if nothing was provided or
-      // the param looks unsafe.
-      router.push(safeNext(nextParam, `/home/${user.id}`));
+      // Fallback is the user's own home if nothing was provided, the
+      // param looks unsafe, or it points at a /home/<someone-else>
+      // that would just bounce them right back here.
+      router.push(safeNext(nextParam, `/home/${user.id}`, user.id));
     } catch {
       setLoginError("Something went wrong. Please try again.");
     } finally {
