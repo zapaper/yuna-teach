@@ -17,7 +17,9 @@ workflows:
       groups:
         - appstore_credentials
       vars:
-        XCODE_WORKSPACE: "ios/App/App.xcworkspace"
+        # Capacitor 8 ships with Swift Package Manager — no .xcworkspace
+        # and no Podfile. We point the build at the .xcodeproj directly.
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.markforyou.app"
       node: 20
@@ -35,8 +37,9 @@ workflows:
     cache:
       cache_paths:
         - $CM_BUILD_DIR/node_modules
-        - $HOME/Library/Caches/CocoaPods
-        - ios/App/Pods
+        # SPM derived data — Capacitor 8 uses Swift Package Manager,
+        # so this replaces the old CocoaPods cache.
+        - $HOME/Library/Developer/Xcode/DerivedData
 
     scripts:
       - name: Install npm dependencies
@@ -44,13 +47,10 @@ workflows:
           npm ci
 
       - name: Sync Capacitor (pulls plugin updates into ios/)
+        # Capacitor 8 uses SPM, so `cap sync` regenerates Package.swift
+        # rather than running pod install. No separate pod step needed.
         script: |
           npx cap sync ios
-
-      - name: CocoaPods install
-        script: |
-          cd ios/App
-          pod install
 
       - name: Set build number to Codemagic build counter
         # Each Codemagic build auto-increments BUILD_NUMBER.
@@ -112,7 +112,7 @@ workflows:
       - name: Build .ipa archive
         script: |
           xcode-project build-ipa \
-            --workspace "$XCODE_WORKSPACE" \
+            --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
 
     artifacts:

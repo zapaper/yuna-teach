@@ -55,3 +55,13 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# iOS — Xcode user-specific state and SPM/derived caches that
+# should never be committed. The rest of ios/ is the Capacitor
+# scaffold and IS committed.
+ios/App/App/public/
+ios/**/xcuserdata/
+ios/**/*.xcuserstate
+ios/**/.DS_Store
+ios/App/Pods/
+ios/DerivedData/
