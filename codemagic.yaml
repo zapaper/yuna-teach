@@ -40,6 +40,14 @@ workflows:
         # SPM derived data — Capacitor 8 uses Swift Package Manager,
         # so this replaces the old CocoaPods cache.
         - $HOME/Library/Developer/Xcode/DerivedData
+        # Distribution-cert private key. Apple stores only the public
+        # half of an iOS Distribution certificate, so without a local
+        # private key fetch-signing-files thinks every build needs a
+        # NEW certificate. Apple caps distribution certs at 2 per
+        # account, so by the third build we'd be locked out. Caching
+        # the key here means subsequent builds reuse the cert created
+        # on the first build instead of registering fresh ones.
+        - $HOME/codemagic-signing
 
     scripts:
       - name: Install npm dependencies
@@ -97,23 +105,29 @@ workflows:
       - name: Fetch (or create) signing certificate + App Store profile
         # Explicit auth args — bypasses the integrations layer.
         #
-        # Generate a fresh RSA private key locally and hand it to
-        # fetch-signing-files. Apple's API only returns the public
-        # part of an existing distribution cert, so without a local
-        # private key the tool can't build the .p12 it needs to
-        # install in the keychain — that's why the previous attempt
-        # failed with "Cannot save Signing Certificates without
-        # certificate private key". With --create + --certificate-key
-        # the tool creates a NEW distribution cert paired with this
-        # key.
+        # Hand fetch-signing-files a stable RSA key from the cached
+        # ~/codemagic-signing/ dir. Apple only returns the public
+        # half of an existing distribution cert, so without a local
+        # private key the tool would treat every build as needing a
+        # fresh cert and burn through Apple's 2-per-account cap by
+        # build #3. Generating once and caching means build #2+
+        # match the cert registered on build #1 instead of creating
+        # new ones.
         #
-        # Apple caps distribution certs at 2 per account — if both
-        # slots are used, revoke one in App Store Connect before
-        # the next build.
+        # If the cache is ever evicted (rare) we'll regenerate and
+        # the next build will register a new cert — at that point
+        # revoke the orphaned cert in App Store Connect before
+        # re-running.
         script: |
           keychain initialize
-          DIST_KEY=/tmp/distribution_key.pem
-          openssl genrsa -out "$DIST_KEY" 2048
+          mkdir -p "$HOME/codemagic-signing"
+          DIST_KEY="$HOME/codemagic-signing/distribution_key.pem"
+          if [ ! -f "$DIST_KEY" ]; then
+            echo "No cached distribution key — generating a fresh one."
+            openssl genrsa -out "$DIST_KEY" 2048
+          else
+            echo "Reusing cached distribution key from previous build."
+          fi
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
