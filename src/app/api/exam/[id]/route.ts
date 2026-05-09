@@ -8,6 +8,7 @@ import { extractExamPaperBackground } from "@/lib/extraction";
 import { tagSyllabusTopics } from "@/lib/gemini";
 import { bumpUserActivity } from "@/lib/track-activity";
 import { markQuizPaper, markFocusedTest } from "@/lib/marking";
+import { guardCanAssign } from "@/lib/subscription";
 
 // Detect MCQ rows whose stored marksAwarded disagrees with what a
 // fresh comparison says. Used by the GET handler below to lazily
@@ -153,6 +154,14 @@ export async function PATCH(
     // Track the parent's activity for the admin "Last active" stamp.
     const masterForBump = await prisma.examPaper.findUnique({ where: { id }, select: { userId: true } });
     bumpUserActivity(masterForBump?.userId ?? null);
+    // Trial / subscription gate. The assigner is the master paper's
+    // owner (parent); admin-owned masters bypass the gate via
+    // guardCanAssign returning null for users without subscription
+    // but with admin role — admins are allowed to assign across
+    // accounts for support. (canAssign relies on isAdmin; nothing
+    // extra to add here.)
+    const blocked = await guardCanAssign(masterForBump?.userId);
+    if (blocked) return blocked;
     const instantFeedback = body.instantFeedback === true;
 
     // Check if an incomplete clone already exists for this student + master

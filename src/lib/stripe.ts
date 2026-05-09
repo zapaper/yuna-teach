@@ -11,5 +11,18 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-/** The Stripe Price ID for the S$5/month subscription */
-export const MONTHLY_PRICE_ID = process.env.STRIPE_PRICE_ID!;
+// Stripe Price IDs for the two web plans. STRIPE_PRICE_ID is kept as
+// the legacy alias for the monthly tier so older code keeps working;
+// new code should reference MONTHLY_PRICE_ID / ANNUAL_PRICE_ID.
+export const MONTHLY_PRICE_ID = process.env.STRIPE_MONTHLY_PRICE_ID || process.env.STRIPE_PRICE_ID!;
+export const ANNUAL_PRICE_ID = process.env.STRIPE_ANNUAL_PRICE_ID || "";
+
+export type PlanId = "monthly" | "annual";
+
+export function priceIdForPlan(plan: PlanId): string {
+  if (plan === "annual") {
+    if (!ANNUAL_PRICE_ID) throw new Error("STRIPE_ANNUAL_PRICE_ID not configured");
+    return ANNUAL_PRICE_ID;
+  }
+  return MONTHLY_PRICE_ID;
+}

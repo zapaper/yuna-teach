@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SpellingTestSummary, ExamPaperSummary, User } from "@/types";
 import { playClick, playExp } from "@/lib/sfx";
+import TrialReminder from "@/components/TrialReminder";
 
 // Experience bar: 100 points per level. 435 pts → Lvl 4, 35% into Lvl 5.
 const POINTS_PER_LEVEL = 100;
@@ -779,6 +780,11 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   return (
     <div className="bg-[#f8f9ff] font-body text-[#0b1c30] antialiased min-h-screen overflow-x-hidden">
+      <TrialReminder
+        userId={userId}
+        subscriptionStatus={user.subscriptionStatus}
+        trialEndsAtIso={user.trialEndsAt}
+      />
       {/* Habitat unlock popup at 200 points */}
       {showHabitatUnlock && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[120] p-4" onClick={() => setShowHabitatUnlock(false)}>

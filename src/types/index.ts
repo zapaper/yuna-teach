@@ -14,7 +14,14 @@ export interface User {
   settings?: { avatar?: boolean; avatarType?: string; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; bonusPoints?: number; bonusCrystals?: number; spentCrystals?: number; purchasedPets?: string[]; purchasedHabitats?: string[]; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard" } | null;
   createdAt: string;
   emailVerified?: boolean;
-  subscriptionStatus?: string; // "free" | "active" | "canceled" | "past_due"
+  // "trialing" — within free trial window (trialEndsAt > now)
+  // "trial_expired" — trial ended without conversion (read-only mode)
+  // "active" — paid subscriber (Stripe or Apple)
+  // "canceled" / "past_due" / "expired" — paid then lapsed
+  // null/"free" — legacy signups before trial system
+  subscriptionStatus?: string;
+  trialEndsAt?: string | null; // ISO; null after conversion to paid
+  paymentSource?: string | null; // "stripe" | "apple" | null
   linkedStudents: { id: string; name: string; displayName: string | null; level?: number | null; settings?: { avatar?: boolean; pvp?: boolean; crystalCurrency?: boolean; skipReviewPerfect?: boolean; printableFocusedPractice?: boolean; firstAssignDone?: boolean; studentQuizMode?: string; habitats?: boolean; habitatOverride?: boolean; questionDifficulty?: "easier" | "adaptive" | "standard" | "hard"; includeAiQuestions?: boolean; allowRevision?: boolean } | null }[];
   linkedParents: { id: string; name: string; displayName: string | null }[];
 }

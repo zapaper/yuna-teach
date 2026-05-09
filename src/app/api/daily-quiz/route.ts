@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
+import { guardCanAssign } from "@/lib/subscription";
 
 /** MCQ = question has transcribed options (text or images).
  *  An array of 4 entries (even empty) means MCQ — the extraction created option slots. */
@@ -35,6 +36,13 @@ export async function POST(request: NextRequest) {
     // exam types if the year-end pool is too thin.
     revisionLevel?: number;
   };
+  // Trial / subscription gate. studentId (if present) is the user
+  // initiating; otherwise userId is. For student-initiated quizzes
+  // the guard also checks linked parents' subscription, so a paying
+  // parent's children keep working after the kid's own trial ends.
+  const blocked = await guardCanAssign(studentId || userId);
+  if (blocked) return blocked;
+
   const scheduledForDate = scheduledFor ? new Date(scheduledFor) : undefined;
   const isFocusedEnglish = !!focused && subject === "english";
 

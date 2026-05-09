@@ -8,6 +8,7 @@ import { isAdmin as adminCheck } from "@/lib/admin";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import DocumentScanner from "@/components/DocumentScanner";
 import ReviseWorkModal from "@/components/ReviseWorkModal";
+import TrialReminder from "@/components/TrialReminder";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1718,6 +1719,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
+      <TrialReminder
+        userId={userId}
+        subscriptionStatus={user.subscriptionStatus}
+        trialEndsAtIso={user.trialEndsAt}
+      />
       {/* Assign toast */}
       {assignToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] bg-[#001e40] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-fade-in">

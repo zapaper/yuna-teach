@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
+import { guardCanAssign } from "@/lib/subscription";
 
 /** MCQ = question has transcribed options (4-element array) or image options. */
 function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
@@ -32,6 +33,9 @@ export async function POST(request: NextRequest) {
   if (!parentId || !subject || !topic) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
+
+  const blocked = await guardCanAssign(parentId);
+  if (blocked) return blocked;
 
   const student = await prisma.user.findUnique({
     where: { id: studentId },

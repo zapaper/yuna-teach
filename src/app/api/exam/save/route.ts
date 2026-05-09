@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { normalizeLevel, normalizeSubject } from "@/lib/extraction";
+import { guardCanAssign } from "@/lib/subscription";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,6 +34,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const blocked = await guardCanAssign(userId);
+    if (blocked) return blocked;
 
     const paper = await prisma.examPaper.create({
       data: {

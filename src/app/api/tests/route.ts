@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { guardCanAssign } from "@/lib/subscription";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -34,6 +35,9 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
+
+  const blocked = await guardCanAssign(userId);
+  if (blocked) return blocked;
 
   const test = await prisma.spellingTest.create({
     data: {

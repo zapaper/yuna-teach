@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
-import { getStripe, MONTHLY_PRICE_ID } from "@/lib/stripe";
+import { getStripe, priceIdForPlan, type PlanId } from "@/lib/stripe";
 
-/** POST: Create a Stripe Checkout session for S$5/month subscription */
+/**
+ * POST: Create a Stripe Checkout session.
+ * Body: { userId, plan: "monthly" | "annual", promoCode?: string }
+ * - plan defaults to "monthly" for back-compat with the existing UI.
+ * - promoCode, if provided, must be a PromoCode of kind="stripe_coupon"
+ *   in our DB; the stored value is the Stripe Coupon ID we forward.
+ *   Trial-extending codes are redeemed at signup, not here.
+ */
 export async function POST(request: NextRequest) {
-  const { userId } = await request.json();
+  const body = await request.json();
+  const { userId, plan = "monthly", promoCode } = body as {
+    userId?: string; plan?: PlanId; promoCode?: string;
+  };
   if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+  if (plan !== "monthly" && plan !== "annual") {
+    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -21,7 +35,6 @@ export async function POST(request: NextRequest) {
 
   const stripe = getStripe();
 
-  // Create or retrieve Stripe customer
   let customerId = user.stripeCustomerId;
   if (!customerId) {
     const customer = await stripe.customers.create({
@@ -35,16 +48,31 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Create Checkout session
+  // Resolve a stripe_coupon promo code to a Stripe coupon id. We look
+  // up the code in our DB rather than passing the user input through,
+  // so admins control which Stripe coupons are user-facing and we can
+  // enforce maxRedemptions / expiry consistently with trial-day codes.
+  let discounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined;
+  if (promoCode && typeof promoCode === "string" && promoCode.trim()) {
+    const code = promoCode.trim().toUpperCase();
+    const promo = await prisma.promoCode.findUnique({ where: { code } });
+    if (promo && promo.active && promo.kind === "stripe_coupon" &&
+        (!promo.expiresAt || promo.expiresAt > new Date()) &&
+        (promo.maxRedemptions === null || promo.redeemedCount < promo.maxRedemptions)) {
+      discounts = [{ coupon: promo.value }];
+    }
+  }
+
   const origin = request.headers.get("origin") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: "subscription",
     payment_method_types: ["card"],
-    line_items: [{ price: MONTHLY_PRICE_ID, quantity: 1 }],
+    line_items: [{ price: priceIdForPlan(plan), quantity: 1 }],
     success_url: `${origin}/home/${userId}?subscribed=1`,
     cancel_url: `${origin}/home/${userId}?canceled=1`,
-    metadata: { userId },
+    metadata: { userId, plan, promoCode: promoCode ?? "" },
+    ...(discounts ? { discounts } : { allow_promotion_codes: true }),
   });
 
   return NextResponse.json({ url: session.url });

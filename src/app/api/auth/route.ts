@@ -54,6 +54,8 @@ export async function POST(request: NextRequest) {
     createdAt: user.createdAt.toISOString(),
     emailVerified: user.emailVerified,
     subscriptionStatus: user.subscriptionStatus || "free",
+    trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
+    paymentSource: user.paymentSource,
     linkedStudents: user.parentLinks.map((l) => l.student),
     linkedParents: user.studentLinks.map((l) => l.parent),
   });

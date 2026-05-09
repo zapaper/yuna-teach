@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { DEFAULT_TRIAL_DAYS } from "@/lib/subscription";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -27,6 +28,9 @@ export async function GET(request: NextRequest) {
         level: u.level,
         settings: u.settings,
         createdAt: u.createdAt.toISOString(),
+        subscriptionStatus: u.subscriptionStatus,
+        trialEndsAt: u.trialEndsAt?.toISOString() ?? null,
+        paymentSource: u.paymentSource,
         linkedStudents: u.parentLinks.map((l) => ({ ...l.student, settings: l.student.settings as Record<string, boolean> | null })),
         linkedParents: u.studentLinks.map((l) => l.parent),
       },
@@ -59,9 +63,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, displayName, role, level, email, password, parentId } = body as {
+  const { name, displayName, role, level, email, password, parentId, promoCode } = body as {
     name?: string; displayName?: string | null; role?: string; level?: number;
-    email?: string; password?: string; parentId?: string;
+    email?: string; password?: string; parentId?: string; promoCode?: string;
   };
 
   if (!name || !role || !password) {
@@ -113,6 +117,28 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // ── Free-trial setup ───────────────────────────────────────────
+  // Every signup gets DEFAULT_TRIAL_DAYS of full access. A valid
+  // "trial_days" promo code extends this; "stripe_coupon" codes do
+  // nothing here — they're forwarded at checkout instead. We still
+  // record the redemption on the user record so admins can trace it.
+  let trialDays = DEFAULT_TRIAL_DAYS;
+  let redeemedPromo: { id: string; kind: string } | null = null;
+  if (promoCode && typeof promoCode === "string" && promoCode.trim()) {
+    const code = promoCode.trim().toUpperCase();
+    const promo = await prisma.promoCode.findUnique({ where: { code } });
+    if (promo && promo.active &&
+        (!promo.expiresAt || promo.expiresAt > new Date()) &&
+        (promo.maxRedemptions === null || promo.redeemedCount < promo.maxRedemptions)) {
+      redeemedPromo = { id: promo.id, kind: promo.kind };
+      if (promo.kind === "trial_days") {
+        const extra = parseInt(promo.value, 10);
+        if (Number.isFinite(extra) && extra > 0) trialDays += extra;
+      }
+    }
+  }
+  const trialEndsAt = new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000);
+
   const user = await prisma.user.create({
     data: {
       name,
@@ -121,8 +147,18 @@ export async function POST(request: NextRequest) {
       password,
       email: role === "PARENT" ? (email ?? null) : null,
       level: role === "STUDENT" ? (level ?? 1) : null,
+      subscriptionStatus: "trialing",
+      trialEndsAt,
+      promoCodeId: redeemedPromo?.id ?? null,
     },
   });
+
+  if (redeemedPromo) {
+    await prisma.promoCode.update({
+      where: { id: redeemedPromo.id },
+      data: { redeemedCount: { increment: 1 } },
+    }).catch(() => { /* non-fatal — best-effort counter */ });
+  }
 
   // Auto-link student to parent if parentId provided
   if (role === "STUDENT" && parentId) {
@@ -152,6 +188,8 @@ export async function POST(request: NextRequest) {
       role: user.role,
       level: user.level,
       createdAt: user.createdAt.toISOString(),
+      subscriptionStatus: user.subscriptionStatus,
+      trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
       linkedStudents: [],
       linkedParents: [],
     },

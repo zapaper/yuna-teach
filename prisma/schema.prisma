@@ -30,7 +30,18 @@ model User {
   emailVerified         Boolean  @default(false)
   stripeCustomerId      String?  @unique
   stripeSubscriptionId  String?
-  subscriptionStatus    String?  // "active" | "canceled" | "past_due" | "expired" | null (free)
+  subscriptionStatus    String?  // "active" | "canceled" | "past_due" | "expired" | "trialing" | "trial_expired" | null (free)
+  // Trial: every new account gets 30 days from signup. While
+  // (now <= trialEndsAt) AND no active subscription, user is in
+  // "trialing" status — full feature access. After expiry without
+  // conversion, user is "trial_expired" — keeps progress/data but
+  // cannot create new assignments / quizzes (see canAssign in
+  // src/lib/subscription.ts).
+  trialEndsAt           DateTime?
+  // Bumped in /api/users when a trial-extending promo code is
+  // redeemed at signup (e.g. "FRIENDS90" = 90 days instead of 30).
+  promoCodeId           String?
+  redeemedPromoCode     PromoCode? @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
   // Apple In-App Purchase identity. All nullable — populated only for
   // users who paid via the iOS app. The reconciler upserts these
   // when /api/iap/verify or /api/iap/asn-webhook fires.
@@ -292,4 +303,31 @@ model SolverJob {
 
   @@index([createdAt])
   @@map("solver_jobs")
+}
+
+// Promo codes. Two flavours:
+//   - kind="trial_days": redeemed at signup, extends trialEndsAt
+//     by `value` days (so value=60 → trial = 30+60 = 90 days total).
+//   - kind="stripe_coupon": redeemed at Stripe checkout, the
+//     `value` is the Stripe Coupon ID (we forward it on session.create).
+//     Apple/IAP doesn't support our promo codes — only web flows.
+// Codes are admin-created; no self-serve generation. Each row tracks
+// usage counts so single-use codes are enforceable.
+model PromoCode {
+  id           String   @id @default(cuid())
+  code         String   @unique  // user-typed string, case-insensitive
+  kind         String                // "trial_days" | "stripe_coupon"
+  value        String                // days as a string, OR Stripe coupon id
+  description  String?               // admin-only label
+  // null = unlimited; otherwise hard cap on total redemptions.
+  maxRedemptions Int?
+  redeemedCount  Int      @default(0)
+  expiresAt    DateTime?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  redeemers    User[]
+
+  @@index([code])
+  @@map("promo_codes")
 }

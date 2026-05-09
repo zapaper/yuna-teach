@@ -8,12 +8,14 @@ import {
   restorePurchases,
 } from "@/lib/native";
 
-// Web-only fallback prices, used when the user is on the web (Stripe
-// path). On native iOS we read these dynamically from the RevenueCat
-// offering instead — see fetchOfferingForPlatform() below.
+// Web prices are display-only — the real charge comes from the
+// Stripe Price IDs configured server-side (STRIPE_MONTHLY_PRICE_ID /
+// STRIPE_ANNUAL_PRICE_ID). On native iOS we read prices from the
+// RevenueCat offering instead. Edit display only when also editing
+// the Stripe Price.
 const WEB_PRICES = {
-  monthlyDisplay: "S$5.00 / month",
-  monthlyAmount: 5,
+  monthly: { display: "US$10 / month", note: "Billed monthly. Cancel anytime." },
+  annual:  { display: "US$100 / year", note: "Two months free vs monthly. Cancel anytime." },
 };
 
 type UserShape = {
@@ -39,8 +41,9 @@ export default function PricingClient({ user }: { user: UserShape }) {
   const [native, setNative] = useState(false);
   const [packages, setPackages] = useState<NativePackage[]>([]);
   const [loadingOffering, setLoadingOffering] = useState(false);
-  const [submitting, setSubmitting] = useState<"monthly" | "annual" | "restore" | "stripe" | null>(null);
+  const [submitting, setSubmitting] = useState<"monthly" | "annual" | "restore" | "stripe-monthly" | "stripe-annual" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState("");
 
   // Detect platform once, then on iOS fetch the live RC offering. The
   // dynamic import keeps the SDK out of the web bundle.
@@ -143,18 +146,22 @@ export default function PricingClient({ user }: { user: UserShape }) {
     }
   }
 
-  async function onSubscribeWeb() {
+  async function onSubscribeWeb(plan: "monthly" | "annual") {
     if (!user.email || !user.emailVerified) {
       setError("Please verify your email before subscribing.");
       return;
     }
     setError(null);
-    setSubmitting("stripe");
+    setSubmitting(plan === "monthly" ? "stripe-monthly" : "stripe-annual");
     try {
       const r = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
+        body: JSON.stringify({
+          userId: user.id,
+          plan,
+          promoCode: promoCode.trim() || undefined,
+        }),
       });
       const data = await r.json();
       if (!r.ok || !data.url) {
@@ -175,7 +182,7 @@ export default function PricingClient({ user }: { user: UserShape }) {
       return;
     }
     // Stripe: hit the existing GET /api/subscribe to fetch the portal URL.
-    setSubmitting("stripe");
+    setSubmitting("stripe-monthly");
     try {
       const r = await fetch(`/api/subscribe?userId=${user.id}`);
       const data = await r.json();
@@ -288,19 +295,52 @@ export default function PricingClient({ user }: { user: UserShape }) {
           <>
             <div className="bg-white rounded-2xl border border-[#e5eeff] p-5 mb-3 shadow-sm">
               <h2 className="text-lg font-bold text-[#001e40] mb-1">Monthly</h2>
-              <p className="text-sm font-bold text-[#001e40] mb-1">{WEB_PRICES.monthlyDisplay}</p>
-              <p className="text-xs text-[#43474f] mb-4">Cancel anytime via the customer portal.</p>
+              <p className="text-sm font-bold text-[#001e40] mb-1">{WEB_PRICES.monthly.display}</p>
+              <p className="text-xs text-[#43474f] mb-4">{WEB_PRICES.monthly.note}</p>
               <button
-                onClick={onSubscribeWeb}
+                onClick={() => onSubscribeWeb("monthly")}
                 disabled={submitting !== null}
                 className="w-full py-3 rounded-xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145] disabled:opacity-50"
               >
-                {submitting === "stripe" ? "Loading…" : "Subscribe"}
+                {submitting === "stripe-monthly" ? "Loading…" : "Subscribe monthly"}
               </button>
             </div>
+
+            <div className="bg-white rounded-2xl border-2 border-[#a7c8ff] p-5 mb-3 shadow-sm relative">
+              <span className="absolute -top-2 right-4 text-[10px] font-extrabold uppercase tracking-widest bg-[#fff7e6] text-[#a06900] px-2 py-0.5 rounded-full border border-[#a06900]/20">
+                Save US$20
+              </span>
+              <h2 className="text-lg font-bold text-[#001e40] mb-1">Annual</h2>
+              <p className="text-sm font-bold text-[#001e40] mb-1">{WEB_PRICES.annual.display}</p>
+              <p className="text-xs text-[#43474f] mb-4">{WEB_PRICES.annual.note}</p>
+              <button
+                onClick={() => onSubscribeWeb("annual")}
+                disabled={submitting !== null}
+                className="w-full py-3 rounded-xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145] disabled:opacity-50"
+              >
+                {submitting === "stripe-annual" ? "Loading…" : "Subscribe annually"}
+              </button>
+            </div>
+
+            <details className="mb-3">
+              <summary className="text-xs font-bold text-[#003366] cursor-pointer hover:underline">
+                Have a promo code?
+              </summary>
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                placeholder="Enter code"
+                className="mt-2 w-full px-3 py-2 rounded-xl border border-[#c3c6d1] text-sm uppercase tracking-wide focus:outline-none focus:border-[#003366]"
+              />
+              <p className="text-[11px] text-[#737780] mt-1">
+                Discount applies at checkout. Trial-extension codes are redeemed at signup, not here.
+              </p>
+            </details>
+
             <p className="text-[11px] text-[#737780] leading-relaxed mt-4">
-              You will be redirected to Stripe to complete payment. Subscription renews
-              monthly unless cancelled.{" "}
+              You will be redirected to Stripe to complete payment. Subscriptions renew
+              automatically unless cancelled.{" "}
               <a href="/privacy" className="underline">Privacy Policy</a>
               {" · "}
               <a href="/terms" className="underline">Terms of Use</a>.
