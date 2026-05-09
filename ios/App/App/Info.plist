@@ -47,5 +47,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>MarkForYou uses the camera to scan completed exam papers so they can be marked.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>MarkForYou needs photo library access to upload photos of completed exam papers for marking.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>MarkForYou saves marked exam papers to your photos so you can review them later.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MarkForYou does not record audio. This permission is required by the camera library.</string>
 </dict>
 </plist>
