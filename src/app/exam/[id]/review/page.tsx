@@ -325,6 +325,55 @@ function ExamReviewContent({ id }: { id: string }) {
           if (Object.keys(cached).length > 0) setElaborations(cached);
           if (Object.keys(cachedDiagrams).length > 0) setElabDiagrams(cachedDiagrams);
           if (flagged.size > 0) setFlaggedIds(flagged);
+
+          // ── Auto-solve catch-all ─────────────────────────────────
+          // For each question with sub-parts whose answer text
+          // doesn't mention every sub-part label, fire the
+          // auto-solve endpoint in the background. The endpoint is
+          // idempotent (server runs the same check again) and
+          // writes the labelled output back to the answer field,
+          // so the renderer picks up (a)/(b)/(c) etc. without us
+          // having to parse here.
+          //
+          // Loose check on purpose: a false positive just costs one
+          // extra AI call.
+          const needsSolve = (markData.questions ?? []).filter((q: ReviewQuestion) => {
+            if (!q.transcribedSubparts) return false;
+            const labels = q.transcribedSubparts
+              .filter((s) => !s.label.startsWith("_"))
+              .map((s) => s.label.toLowerCase());
+            if (labels.length === 0) return false;
+            const ans = (q.answer ?? "").toLowerCase();
+            // True if at least one label is NOT mentioned anywhere
+            // in the answer text. Catches cases like our (a)+(b)
+            // shared-block extraction miss.
+            return labels.some((l) => !ans.includes(`(${l})`));
+          });
+          // Fire-and-forget — limit concurrency a little so we don't
+          // hammer Gemini if a parent opens a paper with 20 missing
+          // questions at once. 3 in flight is plenty.
+          (async () => {
+            const queue = [...needsSolve];
+            const workers = Array.from({ length: 3 }, async () => {
+              while (queue.length > 0) {
+                const q = queue.shift();
+                if (!q) break;
+                try {
+                  const r = await fetch(`/api/exam/question/${q.id}/auto-solve`, { method: "POST" });
+                  if (!r.ok) continue;
+                  const data = (await r.json()) as { answer?: string };
+                  if (!data.answer) continue;
+                  setData((prev) => prev ? {
+                    ...prev,
+                    questions: prev.questions?.map((qq) => qq.id === q.id ? { ...qq, answer: data.answer ?? qq.answer } : qq),
+                  } : prev);
+                } catch {
+                  /* ignore */
+                }
+              }
+            });
+            await Promise.all(workers);
+          })();
         }
       } finally {
         setLoading(false);

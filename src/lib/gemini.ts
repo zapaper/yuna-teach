@@ -2297,6 +2297,32 @@ You are given ONLY the answer key pages. Each image is labeled with its original
   - Sub-parts: "(a) 24 cm² | (b) 15 cm"
   - IMPORTANT: Do NOT use literal newlines — use " | " as separator
 
+### Shared working blocks for multi-part questions:
+Many primary-school answer keys solve sub-parts (a), (b), (c)... in
+ONE shared step-by-step block, with the per-part answers only
+appearing on the final line as "Final answer: (a) 324 (b) 18".
+The steps themselves carry no part labels.
+
+When you see this pattern:
+- DUPLICATE the entire shared block once per part it answers,
+  prefixed with that part's label.
+- Each duplicate must include the full Final-answer line so each
+  student-facing "(a)" or "(b)" rendering shows the complete
+  reasoning + the right final answer.
+
+Example — answer-key text reads:
+  Steps: Step 1: 1 - 4/9 - 1/2 = 1/18 | Step 2: 1 unit → 36 | Step 3: 9 × 36 = 324 | Step 4: 30 × 12 = 360 | Step 5: 360 - 324 = 36 | Step 6: 36 ÷ 2 = 18 | Final answer: (a) 324 (b) 18
+
+Output value should be:
+  "(a) Steps: Step 1: 1 - 4/9 - 1/2 = 1/18 | Step 2: 1 unit → 36 | Step 3: 9 × 36 = 324 | Step 4: 30 × 12 = 360 | Step 5: 360 - 324 = 36 | Step 6: 36 ÷ 2 = 18 | Final answer: (a) 324 (b) 18 | (b) Steps: Step 1: 1 - 4/9 - 1/2 = 1/18 | Step 2: 1 unit → 36 | Step 3: 9 × 36 = 324 | Step 4: 30 × 12 = 360 | Step 5: 360 - 324 = 36 | Step 6: 36 ÷ 2 = 18 | Final answer: (a) 324 (b) 18"
+
+This duplication is INTENTIONAL — the renderer parses by part label.
+Without it, the student sees no expected answer for (a) or (b).
+If a part has its OWN clearly-labelled block ("(c) Steps: ..."),
+keep that block separate as before — only duplicate the unlabelled
+shared block across the parts whose answers appear in its
+"Final answer:" line.
+
 ### CRITICAL — Read the PRINTED question number for each answer:
 - Every answer on the answer key has a PRINTED question number next to it (e.g. "1", "Q1", "1.", "1)")
 - You MUST read this printed number and use it as the JSON key — do NOT infer question numbers from position or row order

@@ -126,6 +126,13 @@ function AdminContent() {
       href: `/admin/elaborate-mcq?userId=${userId}`,
       color: "bg-indigo-50 text-indigo-600",
     },
+    {
+      icon: "rule",
+      label: "Scan for Unclear Part-Answer Keys",
+      description: "Master questions with sub-parts whose `answer` doesn't mention every (a)/(b)/(c) label — usually means the extractor missed a shared-block answer or the master answer is short. Batch of 30.",
+      href: `/admin/answer-key-gaps?userId=${userId}`,
+      color: "bg-rose-50 text-rose-600",
+    },
   ];
 
   return (
