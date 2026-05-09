@@ -14,8 +14,8 @@ import {
 // RevenueCat offering instead. Edit display only when also editing
 // the Stripe Price.
 const WEB_PRICES = {
-  monthly: { display: "US$10 / month", note: "Billed monthly. Cancel anytime." },
-  annual:  { display: "US$100 / year", note: "Two months free vs monthly. Cancel anytime." },
+  monthly: { display: "S$10 / month", note: "Billed monthly. Cancel anytime." },
+  annual:  { display: "S$100 / year", note: "Two months free vs monthly. Cancel anytime." },
 };
 
 type UserShape = {
@@ -308,7 +308,7 @@ export default function PricingClient({ user }: { user: UserShape }) {
 
             <div className="bg-white rounded-2xl border-2 border-[#a7c8ff] p-5 mb-3 shadow-sm relative">
               <span className="absolute -top-2 right-4 text-[10px] font-extrabold uppercase tracking-widest bg-[#fff7e6] text-[#a06900] px-2 py-0.5 rounded-full border border-[#a06900]/20">
-                Save US$20
+                Save S$20
               </span>
               <h2 className="text-lg font-bold text-[#001e40] mb-1">Annual</h2>
               <p className="text-sm font-bold text-[#001e40] mb-1">{WEB_PRICES.annual.display}</p>

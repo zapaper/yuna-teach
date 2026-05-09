@@ -29,6 +29,11 @@ export default function TrialReminder({
   const [variant, setVariant] = useState<"last-day" | "expired" | null>(null);
 
   useEffect(() => {
+    // Beta kill-switch — match the server-side guard. While
+    // NEXT_PUBLIC_BILLING_ENFORCED is unset, the app is fully
+    // free; never nag users about a trial that isn't being
+    // enforced.
+    if (process.env.NEXT_PUBLIC_BILLING_ENFORCED !== "true") return;
     // Subscribed users — never show.
     if (subscriptionStatus === "active") return;
     if (!trialEndsAtIso) return;

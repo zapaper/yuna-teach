@@ -71,6 +71,25 @@ export function canAssign(
 export const DEFAULT_TRIAL_DAYS = 30;
 
 /**
+ * Master kill-switch for the billing system. Default OFF — while
+ * we're in beta, the trial fields are populated on signup but
+ * nothing is *enforced*: gates are no-ops, the trial-reminder
+ * pop-up doesn't fire. Flip NEXT_PUBLIC_BILLING_ENFORCED=true on
+ * Railway when we're ready to start charging.
+ *
+ * The NEXT_PUBLIC_ prefix lets the client-side TrialReminder read
+ * the same flag without a separate server round-trip.
+ *
+ * Why a flag instead of a code branch removed later: trialEndsAt
+ * is being written on every signup right now, so when the day
+ * comes we just flip the flag and existing accounts already have
+ * trial windows set — no surprise lockouts, no rollback fire-drill.
+ */
+export function isBillingEnforced(): boolean {
+  return process.env.NEXT_PUBLIC_BILLING_ENFORCED === "true";
+}
+
+/**
  * Server-side gate. Loads the user (and their linked parents if the
  * user is a STUDENT) and returns a NextResponse if blocked, or null
  * if allowed. Use at the top of POST handlers that create new
@@ -91,6 +110,8 @@ export const DEFAULT_TRIAL_DAYS = 30;
 export async function guardCanAssign(
   userId: string | null | undefined,
 ): Promise<Response | null> {
+  // Beta kill-switch — flag is OFF by default, all calls allowed.
+  if (!isBillingEnforced()) return null;
   if (!userId) return null; // caller validates separately
   const { prisma } = await import("./db");
   const { NextResponse } = await import("next/server");
