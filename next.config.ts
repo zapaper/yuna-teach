@@ -45,6 +45,37 @@ const nextConfig: NextConfig = {
   // a change means a new filename anyway — safe to set a 1-year max-age.
   async headers() {
     return [
+      // Gated pages: never cache. The server-side layout checks the
+      // session cookie and redirects to /login on mismatch — but
+      // browser BFCache (back/forward cache) was serving the
+      // previously-rendered page from memory without re-asking the
+      // server, leaving signed-out users still on the page they
+      // shouldn't see. no-store forces a server round-trip every
+      // navigation so the gate runs every time.
+      {
+        source: "/home/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
+        source: "/quiz/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
+        source: "/exam/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
+        source: "/test/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
+        source: "/progress/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
+      {
+        source: "/account/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
+      },
       {
         source: "/avatars/:path*",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
