@@ -24,8 +24,20 @@ export async function setSession(userId: string): Promise<void> {
 }
 
 export async function clearSession(): Promise<void> {
+  // Explicit deletion: set the cookie to an empty value with maxAge 0
+  // and a past Expires date. cookies().delete() sometimes doesn't
+  // emit the right Set-Cookie header for the browser to actually
+  // clear the cookie, depending on Next.js version. Explicit set
+  // is reliable.
   const c = await cookies();
-  c.delete(COOKIE_NAME);
+  c.set(COOKIE_NAME, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
 }
 
 /**

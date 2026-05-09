@@ -59,8 +59,22 @@ export async function POST(request: NextRequest) {
   });
 }
 
-// DELETE /api/auth — log out, clear session cookie
+// DELETE /api/auth — log out, clear session cookie.
+// Sets the Set-Cookie header DIRECTLY on the response object instead
+// of going through cookies().delete() / clearSession(). The latter
+// path turned out unreliable across Next.js versions — sometimes the
+// mutation didn't propagate to the response, leaving the cookie in
+// the browser. Explicit response.cookies.set("", maxAge=0) always
+// emits the right Set-Cookie header.
 export async function DELETE() {
-  await clearSession();
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set("yuna_session", "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  return res;
 }
