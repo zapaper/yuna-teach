@@ -9,6 +9,27 @@ import ExamPaperCard from "@/components/ExamPaperCard";
 import DocumentScanner from "@/components/DocumentScanner";
 import ReviseWorkModal from "@/components/ReviseWorkModal";
 import TrialReminder from "@/components/TrialReminder";
+import ChangePasswordModal from "@/components/ChangePasswordModal";
+import { isNative } from "@/lib/native";
+
+// On native iOS the WebView can't open a new tab, so any
+// "switch to child account" flow has to log out the parent and
+// redirect to the login screen instead. The parent re-authenticates
+// as the child (they set the child's password at signup, so they
+// have it). Web keeps the multi-tab flow because it's friendlier.
+async function switchToStudentAccount(studentId: string, nextSearch = "") {
+  if (!isNative()) {
+    window.open(`/home/${studentId}${nextSearch}`, "_blank");
+    return;
+  }
+  try {
+    await fetch("/api/auth", { method: "DELETE" });
+  } catch {
+    /* non-fatal — login page will overwrite cookie anyway */
+  }
+  const next = encodeURIComponent(`/home/${studentId}${nextSearch}`);
+  window.location.href = `/login?next=${next}`;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -384,6 +405,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showAdminNotifs, setShowAdminNotifs] = useState(false);
   const [showPendingReview, setShowPendingReview] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   // Rename modal — click on user.name in the header opens this. Submitting
   // hits PATCH /api/users with { displayName }. The login username
   // (`name`) is immutable post-signup; only the display label changes.
@@ -1409,12 +1431,37 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const StudentDropdown = () => (
     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#c3c6d1]/30 z-30 overflow-hidden">
       {user.linkedStudents.map(s => (
-        <button key={s.id} onClick={() => { setSelectedStudentId(s.id); setShowStudentMenu(false); }}
-          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-[#eff4ff] transition-colors ${s.id === selectedStudentId ? "bg-[#eff4ff]" : ""}`}>
-          <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold shrink-0">{initials(s.name)}</div>
-          <span className="font-medium text-[#001e40]">{s.name}</span>
-          {s.id === selectedStudentId && <span className="material-symbols-outlined text-[#006c49] text-base ml-auto">check</span>}
-        </button>
+        <div key={s.id} className={`flex items-stretch group hover:bg-[#eff4ff] transition-colors ${s.id === selectedStudentId ? "bg-[#eff4ff]" : ""}`}>
+          <button
+            onClick={() => { setSelectedStudentId(s.id); setShowStudentMenu(false); }}
+            className="flex-1 flex items-center gap-3 px-4 py-3 text-left"
+          >
+            <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold shrink-0">{initials(s.name)}</div>
+            <span className="font-medium text-[#001e40]">{s.name}</span>
+            {s.id === selectedStudentId && <span className="material-symbols-outlined text-[#006c49] text-base ml-auto">check</span>}
+          </button>
+          <button
+            onClick={async (e) => {
+              e.stopPropagation();
+              if (!confirm(`Remove ${s.name}? They'll be unlinked from your account but their progress is kept.`)) return;
+              try {
+                const r = await fetch(`/api/link?parentId=${userId}&studentId=${s.id}`, { method: "DELETE" });
+                if (r.ok) {
+                  // Hard reload — linkedStudents lives on the server-rendered
+                  // user object that's threaded through this whole component;
+                  // a full reload is the simplest way to drop it.
+                  window.location.reload();
+                }
+              } catch {
+                /* ignore */
+              }
+            }}
+            title={`Remove ${s.name}`}
+            className="px-3 text-[#ba1a1a]/60 hover:text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors"
+          >
+            <span className="material-symbols-outlined text-base">person_remove</span>
+          </button>
+        </div>
       ))}
       <button onClick={() => { setShowStudentMenu(false); window.open(`/register/student?parentId=${userId}`, "_blank"); }}
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#eff4ff] border-t border-[#c3c6d1]/30">
@@ -1724,6 +1771,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         subscriptionStatus={user.subscriptionStatus}
         trialEndsAtIso={user.trialEndsAt}
       />
+      <ChangePasswordModal
+        open={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+      />
       {/* Assign toast */}
       {assignToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] bg-[#001e40] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-fade-in">
@@ -2018,6 +2069,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     Account
                   </button>
                   <button
+                    onClick={() => { setShowProfileMenu(false); setShowChangePassword(true); }}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-base">lock_reset</span>
+                    Change password
+                  </button>
+                  <button
                     onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} /* hard reload so the rendered React tree is discarded — router.push leaves stale state mounted */ window.location.href = "/"; }}
                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#ba1a1a] hover:bg-slate-50 transition-colors"
                   >
@@ -2082,6 +2140,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 >
                   <span className="material-symbols-outlined text-base">manage_accounts</span>
                   Account
+                </button>
+                <button
+                  onClick={() => { setShowProfileMenu(false); setShowChangePassword(true); }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-[#001e40] hover:bg-slate-50 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">lock_reset</span>
+                  Change password
                 </button>
                 <button
                   onClick={async () => { setShowProfileMenu(false); try { await fetch("/api/auth", { method: "DELETE" }); } catch {} router.push("/"); }}
@@ -3241,18 +3306,34 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             {isStudentTakeable && selectedStudentId && (
               <>
                 <p className="text-xs text-[#43474f] mb-3 leading-relaxed">
-                  Open this assignment in your child&apos;s page (new tab) to begin the quiz?
+                  {isNative()
+                    ? "Log in as your child on this device to take the quiz."
+                    : "Open this assignment in your child's page (new tab) to begin the quiz?"}
                 </p>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setSchedulerPopup(null);
+                    if (isNative()) {
+                      // Native: log out parent, then redirect to login
+                      // with `next` pointing straight at the quiz, so
+                      // after the child re-authenticates they land on
+                      // the assignment without an extra hop.
+                      try {
+                        await fetch("/api/auth", { method: "DELETE" });
+                      } catch {
+                        /* non-fatal */
+                      }
+                      const next = encodeURIComponent(`/quiz/${popup.id}`);
+                      window.location.href = `/login?next=${next}`;
+                      return;
+                    }
                     const url = `/quiz/${popup.id}?userId=${selectedStudentId}`;
                     window.open(url, "_blank", "noopener");
                   }}
                   className="w-full py-2.5 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] transition-colors flex items-center justify-center gap-1.5 mb-3"
                 >
-                  <span className="material-symbols-outlined text-base">open_in_new</span>
-                  Open in child&apos;s tab
+                  <span className="material-symbols-outlined text-base">{isNative() ? "login" : "open_in_new"}</span>
+                  {isNative() ? "Log in as student" : "Open in child's tab"}
                 </button>
               </>
             )}
@@ -3375,7 +3456,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </div>
               <h3 className="font-headline text-lg font-extrabold text-[#0b1c30] mb-2">First assignment sent! 🎉</h3>
               <p className="text-sm text-[#43474f] leading-relaxed">
-                Do you want to open <strong className="text-[#001e40]">{firstAssignPrompt.studentName}</strong>&apos;s homepage in a new tab? Your child can work on the quiz on this page.
+                {isNative()
+                  ? <>Log in as <strong className="text-[#001e40]">{firstAssignPrompt.studentName}</strong> on this device to start the quiz.</>
+                  : <>Open <strong className="text-[#001e40]">{firstAssignPrompt.studentName}</strong>&apos;s homepage in a new tab so they can start the quiz.</>}
               </p>
             </div>
             <div className="px-6 pt-4 pb-6 flex flex-col gap-2">
@@ -3383,11 +3466,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 onClick={() => {
                   const sid = firstAssignPrompt.studentId;
                   setFirstAssignPrompt(null);
-                  window.open(`/home/${sid}?firstQuiz=1`, "_blank");
+                  void switchToStudentAccount(sid, "?firstQuiz=1");
                 }}
                 className="w-full py-3 rounded-2xl bg-[#001e40] text-white font-bold hover:bg-[#003366] transition-colors"
               >
-                Open in new tab
+                {isNative() ? "Log in as student" : "Open in new tab"}
               </button>
               <button
                 onClick={() => setFirstAssignPrompt(null)}
