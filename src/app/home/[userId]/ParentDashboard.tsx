@@ -1443,7 +1443,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
           <button
             onClick={async (e) => {
               e.stopPropagation();
-              if (!confirm(`Remove ${s.name}? They'll be unlinked from your account but their progress is kept.`)) return;
+              if (!confirm(`Unlink ${s.name}? They'll be removed from your dashboard, but their account and progress are kept — you can re-link any time with an invite code.`)) return;
               try {
                 const r = await fetch(`/api/link?parentId=${userId}&studentId=${s.id}`, { method: "DELETE" });
                 if (r.ok) {
@@ -1456,10 +1456,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 /* ignore */
               }
             }}
-            title={`Remove ${s.name}`}
+            title={`Unlink ${s.name}`}
             className="px-3 text-[#ba1a1a]/60 hover:text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors"
           >
-            <span className="material-symbols-outlined text-base">person_remove</span>
+            <span className="material-symbols-outlined text-base">link_off</span>
           </button>
         </div>
       ))}
