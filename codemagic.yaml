@@ -22,9 +22,9 @@ workflows:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
         BUNDLE_ID: "com.markforyou.app"
-      node: 20
+      # Capacitor 8 CLI requires Node >=22.
+      node: 22
       xcode: latest
-      cocoapods: default
 
     triggering:
       events:
