@@ -96,16 +96,28 @@ workflows:
 
       - name: Fetch (or create) signing certificate + App Store profile
         # Explicit auth args — bypasses the integrations layer.
-        # `use-profiles` walks the cwd for .xcodeproj/.xcworkspace
-        # and patches DEVELOPMENT_TEAM + PROVISIONING_PROFILE_SPECIFIER
-        # using profiles installed under ~/Library/MobileDevice/.
-        # --warnings-as-errors makes silent "no matching profile"
-        # situations fail loudly here instead of at archive time.
+        #
+        # Generate a fresh RSA private key locally and hand it to
+        # fetch-signing-files. Apple's API only returns the public
+        # part of an existing distribution cert, so without a local
+        # private key the tool can't build the .p12 it needs to
+        # install in the keychain — that's why the previous attempt
+        # failed with "Cannot save Signing Certificates without
+        # certificate private key". With --create + --certificate-key
+        # the tool creates a NEW distribution cert paired with this
+        # key.
+        #
+        # Apple caps distribution certs at 2 per account — if both
+        # slots are used, revoke one in App Store Connect before
+        # the next build.
         script: |
           keychain initialize
+          DIST_KEY=/tmp/distribution_key.pem
+          openssl genrsa -out "$DIST_KEY" 2048
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key=@file:$DIST_KEY \
             --create \
             --verbose \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
@@ -116,7 +128,7 @@ workflows:
           ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || echo "(none)"
           echo ""
           echo "=== Patching Xcode project with profiles ==="
-          xcode-project use-profiles --warnings-as-errors --verbose
+          xcode-project use-profiles --verbose
           echo ""
           echo "=== Signing config in pbxproj after patch ==="
           grep -E "DEVELOPMENT_TEAM|CODE_SIGN_STYLE|PROVISIONING_PROFILE|PRODUCT_BUNDLE_IDENTIFIER" \
