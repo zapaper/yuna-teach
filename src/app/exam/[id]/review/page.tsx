@@ -387,6 +387,30 @@ function ExamReviewContent({ id }: { id: string }) {
     fetchData();
   }, [id]);
 
+  // Auto-refresh while marking is still in progress. Native iOS has
+  // no pull-to-refresh, so without this the page sits on
+  // "marking…" forever even after the server has finished. Poll
+  // every 5 s, stop as soon as we see complete/released or any
+  // error state.
+  useEffect(() => {
+    const status = data?.markingStatus;
+    if (!status || status === "complete" || status === "released") return;
+    const tick = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/exam/${id}/mark`);
+        if (!r.ok) return;
+        const fresh = await r.json();
+        if (fresh?.markingStatus === "complete" || fresh?.markingStatus === "released") {
+          // Marking just finished — full reload picks up fresh
+          // questions, marks, marking notes, elaboration cache,
+          // etc. without us having to merge field-by-field.
+          window.location.reload();
+        }
+      } catch { /* ignore — try again next tick */ }
+    }, 5000);
+    return () => clearInterval(tick);
+  }, [id, data?.markingStatus]);
+
   // Reset the passage pen state when navigating between items (sections
   // or questions) so each new view starts with the pen off. Placed
   // before early returns to keep the hook order stable across renders.
@@ -594,11 +618,17 @@ function ExamReviewContent({ id }: { id: string }) {
   // student dashboard will replay the animation only once per paper (guarded
   // by localStorage), then strip the params.
   const canCelebrateBack = isStudent && isQuiz && (data?.markingStatus === "complete" || data?.markingStatus === "released") && (data?.score ?? 0) > 0;
-  const backPath = assignedToId && !isStudent
-    ? `/home/${userId}?view=progress&student=${assignedToId}`
-    : canCelebrateBack
-      ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
-      : `/home/${userId}?view=progress`;
+  // Defensive fallback: if `userId` got dropped (e.g. iOS login flow
+  // landed here without it), bounce to /login rather than build a
+  // /home/ URL with an empty id, which 404s. The login page reads
+  // the session cookie and redirects to the right home automatically.
+  const backPath = !userId
+    ? "/login"
+    : assignedToId && !isStudent
+      ? `/home/${userId}?view=progress&student=${assignedToId}`
+      : canCelebrateBack
+        ? `/home/${userId}?view=progress&newPoints=${data!.score}&fromPaper=${id}`
+        : `/home/${userId}?view=progress`;
 
   if (loading) {
     return (

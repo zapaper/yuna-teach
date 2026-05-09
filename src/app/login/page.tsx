@@ -10,15 +10,25 @@ import Link from "next/link";
 // open-redirect attacks. ALSO falls back when the next URL is
 // /home/<someone-else>'s-id, to avoid a redirect loop with the
 // home layout's "session.userId === params.userId" check.
+//
+// When justLoggedInUserId is provided AND the next URL is missing a
+// userId query param (the iOS account-switch flow uses
+// `/login?next=/quiz/<id>`), inject it so quiz/exam pages — which
+// still read userId from the URL — work end-to-end. Without this,
+// the post-quiz back-navigation lands on `/home/?…` and 404s.
 function safeNext(raw: string | null, fallback: string, justLoggedInUserId?: string): string {
   if (!raw) return fallback;
   if (!raw.startsWith("/") || raw.startsWith("//")) return fallback;
-  // /home/<X>: only honor if X is the user we just logged in as.
-  // Otherwise the home layout will bounce them back to /login and
-  // they'll appear stuck on the login page.
   if (justLoggedInUserId) {
     const homeMatch = raw.match(/^\/home\/([^/?#]+)/);
     if (homeMatch && homeMatch[1] !== justLoggedInUserId) return fallback;
+    // Inject userId into next-paths that pass it as a query param
+    // (quiz, exam, test, progress) when it's missing.
+    const needsUserId = /^\/(quiz|exam|test|progress|account)\b/.test(raw);
+    if (needsUserId && !/[?&]userId=/.test(raw)) {
+      const sep = raw.includes("?") ? "&" : "?";
+      return `${raw}${sep}userId=${justLoggedInUserId}`;
+    }
   }
   return raw;
 }

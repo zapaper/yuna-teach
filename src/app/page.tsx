@@ -12,18 +12,22 @@ export default function HomePage() {
             <img alt="MarkForYou Logo" className="h-8 w-8 lg:h-10 lg:w-10 object-contain rounded-lg" src="/logo_t.png" />
             <span className="text-lg lg:text-xl font-bold text-primary tracking-tight font-headline">MarkForYou.com</span>
           </div>
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-8 font-medium text-sm">
-            <a className="text-on-surface-variant hover:text-tertiary transition-colors" href="#demo-video">How it Works</a>
-            <Link className="text-on-surface-variant hover:text-tertiary transition-colors" href="/login">Login</Link>
-            <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-sm">
+          {/* Desktop nav — bumped sizes; Login was a tiny text link
+              against bold "Try Free" pill, easy to miss. Now it's a
+              bordered pill the same size as Try Free. */}
+          <div className="hidden md:flex items-center gap-3 font-medium text-base">
+            <a className="px-5 py-2.5 rounded-full text-on-surface-variant hover:text-tertiary hover:bg-tertiary-container/50 transition-colors font-semibold" href="#demo-video">How it Works</a>
+            <Link className="px-5 py-2.5 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors" href="/login">Login</Link>
+            <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all">
               Try Free
             </Link>
           </div>
-          {/* Mobile nav */}
-          <div className="md:hidden flex items-center gap-3">
-            <Link href="/login" className="text-xs text-on-surface-variant hover:text-tertiary transition-colors font-medium">Login</Link>
-            <Link href="/signup" className="px-4 py-2 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all text-xs">
+          {/* Mobile nav — Login bumped from 12px text-only to a
+              proper button so a parent can actually find and tap
+              it (was getting lost next to the Try Free pill). */}
+          <div className="md:hidden flex items-center gap-2">
+            <Link href="/login" className="px-4 py-2 rounded-full border-2 border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-colors">Login</Link>
+            <Link href="/signup" className="px-4 py-2 rounded-full bg-secondary text-white font-bold text-sm hover:shadow-lg transition-all">
               Try Free
             </Link>
           </div>

@@ -88,13 +88,17 @@ export default function HomePage({
     };
   }, [userId, refreshKey]);
 
-  // Poll for extraction status updates
+  // Poll for extraction OR marking status updates. The native iOS
+  // app has no pull-to-refresh, so without polling, papers stay
+  // visually stuck on "Marking…" indefinitely even after the
+  // server has finished. 5 s is responsive enough without
+  // hammering the API.
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
-    const anyProcessing = examPapers.some(
-      (p) => p.extractionStatus === "processing"
-    );
-    if (!anyProcessing) {
+    const anyExtractionPending = examPapers.some((p) => p.extractionStatus === "processing");
+    const anyMarkingPending = examPapers.some((p) => p.markingStatus === "in_progress");
+    const anyPending = anyExtractionPending || anyMarkingPending;
+    if (!anyPending) {
       if (pollRef.current) {
         clearInterval(pollRef.current);
         pollRef.current = null;

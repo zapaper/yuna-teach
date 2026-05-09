@@ -406,6 +406,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showPendingReview, setShowPendingReview] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showUnlinkPicker, setShowUnlinkPicker] = useState(false);
   // Rename modal — click on user.name in the header opens this. Submitting
   // hits PATCH /api/users with { displayName }. The login username
   // (`name`) is immutable post-signup; only the display label changes.
@@ -1431,37 +1432,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const StudentDropdown = () => (
     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-[#c3c6d1]/30 z-30 overflow-hidden">
       {user.linkedStudents.map(s => (
-        <div key={s.id} className={`flex items-stretch group hover:bg-[#eff4ff] transition-colors ${s.id === selectedStudentId ? "bg-[#eff4ff]" : ""}`}>
-          <button
-            onClick={() => { setSelectedStudentId(s.id); setShowStudentMenu(false); }}
-            className="flex-1 flex items-center gap-3 px-4 py-3 text-left"
-          >
-            <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold shrink-0">{initials(s.name)}</div>
-            <span className="font-medium text-[#001e40]">{s.name}</span>
-            {s.id === selectedStudentId && <span className="material-symbols-outlined text-[#006c49] text-base ml-auto">check</span>}
-          </button>
-          <button
-            onClick={async (e) => {
-              e.stopPropagation();
-              if (!confirm(`Unlink ${s.name}? They'll be removed from your dashboard, but their account and progress are kept — you can re-link any time with an invite code.`)) return;
-              try {
-                const r = await fetch(`/api/link?parentId=${userId}&studentId=${s.id}`, { method: "DELETE" });
-                if (r.ok) {
-                  // Hard reload — linkedStudents lives on the server-rendered
-                  // user object that's threaded through this whole component;
-                  // a full reload is the simplest way to drop it.
-                  window.location.reload();
-                }
-              } catch {
-                /* ignore */
-              }
-            }}
-            title={`Unlink ${s.name}`}
-            className="px-3 text-[#ba1a1a]/60 hover:text-[#ba1a1a] hover:bg-[#ffdad6] transition-colors"
-          >
-            <span className="material-symbols-outlined text-base">link_off</span>
-          </button>
-        </div>
+        <button
+          key={s.id}
+          onClick={() => { setSelectedStudentId(s.id); setShowStudentMenu(false); }}
+          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-[#eff4ff] transition-colors ${s.id === selectedStudentId ? "bg-[#eff4ff]" : ""}`}
+        >
+          <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold shrink-0">{initials(s.name)}</div>
+          <span className="font-medium text-[#001e40]">{s.name}</span>
+          {s.id === selectedStudentId && <span className="material-symbols-outlined text-[#006c49] text-base ml-auto">check</span>}
+        </button>
       ))}
       <button onClick={() => { setShowStudentMenu(false); window.open(`/register/student?parentId=${userId}`, "_blank"); }}
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#eff4ff] border-t border-[#c3c6d1]/30">
@@ -1477,6 +1456,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         </div>
         <span className="text-sm font-medium text-[#001e40]">Link Student</span>
       </button>
+      {user.linkedStudents.length > 0 && (
+        <button onClick={() => { setShowStudentMenu(false); setShowUnlinkPicker(true); }}
+          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#ffdad6]/40 border-t border-[#c3c6d1]/30 text-[#ba1a1a]">
+          <div className="w-8 h-8 rounded-full bg-[#ffdad6]/40 flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[#ba1a1a] text-base">link_off</span>
+          </div>
+          <span className="text-sm font-medium">Unlink Student</span>
+        </button>
+      )}
     </div>
   );
 
@@ -1775,6 +1763,44 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         open={showChangePassword}
         onClose={() => setShowChangePassword(false)}
       />
+      {showUnlinkPicker && (
+        <div
+          className="fixed inset-0 z-[110] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm"
+          onClick={() => setShowUnlinkPicker(false)}
+        >
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-extrabold text-[#001e40] mb-1">Unlink a student</h2>
+            <p className="text-xs text-[#43474f] mb-4 leading-relaxed">
+              Pick which student to remove from your dashboard. Their account and progress are kept — you can re-link any time with an invite code.
+            </p>
+            <div className="flex flex-col gap-2 mb-4">
+              {user.linkedStudents.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={async () => {
+                    if (!confirm(`Unlink ${s.name}?`)) return;
+                    try {
+                      const r = await fetch(`/api/link?parentId=${userId}&studentId=${s.id}`, { method: "DELETE" });
+                      if (r.ok) window.location.reload();
+                    } catch { /* ignore */ }
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl border border-[#c3c6d1] hover:border-[#ba1a1a] hover:bg-[#ffdad6]/30 transition-colors text-left"
+                >
+                  <div className="w-8 h-8 rounded-full bg-[#003366] flex items-center justify-center text-white text-xs font-bold shrink-0">{initials(s.name)}</div>
+                  <span className="font-medium text-[#001e40] flex-1">{s.name}</span>
+                  <span className="material-symbols-outlined text-[#ba1a1a]/70 text-base">link_off</span>
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowUnlinkPicker(false)}
+              className="w-full py-3 rounded-xl bg-[#003366] text-white text-sm font-bold hover:bg-[#002145]"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       {/* Assign toast */}
       {assignToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] bg-[#001e40] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 animate-fade-in">

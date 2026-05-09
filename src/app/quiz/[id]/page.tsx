@@ -858,49 +858,58 @@ function QuizContent({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] pb-24 select-none" style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
-      {/* ── Mobile Top Bar (floating pill) ── */}
-      <header className="lg:hidden fixed top-0 w-full z-50 px-6 py-4 flex justify-center bg-[#f8f9ff]/80 backdrop-blur-md">
-        <div className="bg-white/90 backdrop-blur-xl rounded-full px-2 py-1.5 flex items-center gap-0.5 shadow-lg border border-white/30">
+      {/* ── Mobile Top Bar (split pills) ──
+          Single pill used to overflow off-screen on narrow phones —
+          the Submit button got half-clipped on the right edge.
+          Now: tools pill on the left, action pill on the right,
+          gap-2 between. Each pill content fits in its half of
+          the viewport. */}
+      <header className="lg:hidden fixed top-0 w-full z-50 px-3 py-3 flex justify-between items-center gap-2 bg-[#f8f9ff]/80 backdrop-blur-md">
+        <div className="bg-white/90 backdrop-blur-xl rounded-full px-1 py-1 flex items-center gap-0.5 shadow-lg border border-white/30">
           <button
             onClick={() => setShowHomeConfirm(true)}
             title="Back to homepage"
-            className="p-3 rounded-full text-[#737780] hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors"
+            className="p-2.5 rounded-full text-[#737780] hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors"
           >
             <span className="material-symbols-outlined text-xl">home</span>
           </button>
           <button
             onClick={() => setTool("pen")}
-            className={`flex items-center gap-1.5 px-3 py-2.5 rounded-full transition-all font-headline font-bold text-sm ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
+            className={`p-2.5 rounded-full transition-all ${tool === "pen" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#43474f]"}`}
+            title="Draw"
           >
             <span className="material-symbols-outlined text-xl">edit</span>
-            <span>Draw</span>
           </button>
           <button
             onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "eraser" : "eraser")}
-            className={`p-3 rounded-full transition-colors ${tool === "eraser" || tool === "eraser-large" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
+            className={`p-2.5 rounded-full transition-colors ${tool === "eraser" || tool === "eraser-large" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
+            title="Erase"
           >
-            <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-3xl" : "text-xl"}`}>ink_eraser</span>
+            <span className={`material-symbols-outlined ${tool === "eraser-large" ? "text-2xl" : "text-xl"}`}>ink_eraser</span>
           </button>
           <button
             onClick={undoLastStroke}
-            className="p-3 rounded-full text-[#737780] hover:text-[#001e40] transition-colors"
+            className="p-2.5 rounded-full text-[#737780] hover:text-[#001e40] transition-colors"
+            title="Undo"
           >
             <span className="material-symbols-outlined text-xl">undo</span>
           </button>
+        </div>
+        <div className="bg-white/90 backdrop-blur-xl rounded-full px-1 py-1 flex items-center gap-1 shadow-lg border border-white/30">
           <button
             onClick={handleSaveProgress}
             disabled={savingProgress}
-            className="flex items-center gap-1.5 bg-white text-[#003366] border border-[#003366]/20 rounded-full px-4 py-3 font-headline font-bold text-sm hover:bg-[#eff4ff] transition-colors disabled:opacity-50"
+            className="flex items-center gap-1 bg-white text-[#003366] border border-[#003366]/20 rounded-full px-3 py-2 font-headline font-bold text-xs hover:bg-[#eff4ff] transition-colors disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-lg">save</span>
-            {savingProgress ? "…" : progressSaved ? "✓ Saved" : "Save"}
+            <span className="material-symbols-outlined text-base">save</span>
+            {savingProgress ? "…" : progressSaved ? "✓" : "Save"}
           </button>
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="flex items-center gap-1.5 bg-[#003366] text-white rounded-full px-5 py-3 ml-1 font-headline font-bold text-sm hover:scale-105 transition-transform disabled:opacity-50"
+            className="flex items-center gap-1 bg-[#003366] text-white rounded-full px-3.5 py-2 font-headline font-bold text-xs hover:scale-105 transition-transform disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <span className="material-symbols-outlined text-base" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
             {submitting ? "…" : "Submit"}
           </button>
         </div>
