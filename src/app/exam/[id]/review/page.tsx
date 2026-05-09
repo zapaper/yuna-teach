@@ -7,6 +7,7 @@ import { VisualTextImages } from "@/components/EnglishQuizSection";
 import { ReviewPenOverlay } from "@/components/ReviewPenOverlay";
 import MathText from "@/components/MathText";
 import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
+import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playClick } from "@/lib/sfx";
 import React from "react";
 
@@ -151,6 +152,10 @@ function ExamReviewContent({ id }: { id: string }) {
   const [elabDiagrams, setElabDiagrams] = useState<Record<string, DiagramStep[]>>({});
   const [elaborating, setElaborating] = useState<string | null>(null);
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
+  // Flag-with-note flow: clicking the flag button on a NOT-yet-flagged
+  // question opens FlagVoiceModal first (record / type / just-flag).
+  // Clicking it on an already-flagged question unflags directly.
+  const [flagModalQuestionId, setFlagModalQuestionId] = useState<string | null>(null);
   const [flagging, setFlagging] = useState<string | null>(null);
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
@@ -531,13 +536,13 @@ function ExamReviewContent({ id }: { id: string }) {
     }
   }
 
-  async function toggleFlag(questionId: string) {
+  async function toggleFlag(questionId: string, text?: string) {
     setFlagging(questionId);
     try {
       const res = await fetch(`/api/exam/${id}/flag`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionId, userId }),
+        body: JSON.stringify({ questionId, userId, text }),
       });
       if (res.ok) {
         const { flagged } = await res.json();
@@ -552,6 +557,17 @@ function ExamReviewContent({ id }: { id: string }) {
       // ignore
     } finally {
       setFlagging(null);
+    }
+  }
+
+  // Click handler for the flag button. If the question is currently
+  // unflagged, prompt for an optional note via FlagVoiceModal first;
+  // if it's already flagged, just unflag directly.
+  function onFlagClick(questionId: string) {
+    if (flaggedIds.has(questionId)) {
+      void toggleFlag(questionId);
+    } else {
+      setFlagModalQuestionId(questionId);
     }
   }
 
@@ -1772,8 +1788,8 @@ function ExamReviewContent({ id }: { id: string }) {
                               <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
                                 qCorrect ? "bg-[#006c49] text-white" : isPartialQ ? "bg-[#633f00] text-white" : "bg-[#ba1a1a] text-white"
                               }`}>{displayNum}</span>
-                              <button onClick={() => toggleFlag(q.id)} disabled={flagging === q.id}
-                                title={flaggedIds.has(q.id) ? "Flagged" : "Flag this question"}
+                              <button onClick={() => onFlagClick(q.id)} disabled={flagging === q.id}
+                                title={flaggedIds.has(q.id) ? "Flagged — click to unflag" : "Flag this question"}
                                 className={`transition-colors disabled:opacity-50 ${flaggedIds.has(q.id) ? "text-[#ba1a1a]" : "text-[#737780] hover:text-[#ba1a1a]"}`}>
                                 <span className="material-symbols-outlined text-base" style={flaggedIds.has(q.id) ? { fontVariationSettings: "'FILL' 1" } : {}}>flag</span>
                               </button>
@@ -2753,7 +2769,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     {/* Flag toggle — bottom center */}
                     <div className="mt-6 pt-5 border-t border-[#e5eeff] flex justify-center">
                       <button
-                        onClick={() => toggleFlag(currentQ.id)}
+                        onClick={() => onFlagClick(currentQ.id)}
                         disabled={flagging === currentQ.id}
                         className={`flex flex-col items-center gap-1 transition-all disabled:opacity-50 group ${
                           flaggedIds.has(currentQ.id) ? "text-[#ba1a1a]" : "text-[#43474f] opacity-60 hover:opacity-100 hover:text-[#001e40]"
@@ -2846,6 +2862,31 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         </div>
       )}
+
+      {/* Flag-with-note popup. Mounts only while a question is awaiting
+          flag — onJustFlag / onTextFlagged finalise the toggle, then
+          we close the modal by clearing the question id. */}
+      <FlagVoiceModal
+        paperId={id}
+        questionId={flagModalQuestionId ?? ""}
+        userId={userId}
+        open={flagModalQuestionId !== null}
+        onClose={() => setFlagModalQuestionId(null)}
+        onJustFlag={() => {
+          if (flagModalQuestionId) void toggleFlag(flagModalQuestionId);
+        }}
+        onTextFlagged={(text) => {
+          if (flagModalQuestionId) void toggleFlag(flagModalQuestionId, text);
+        }}
+        onVoiceFlagged={() => {
+          // The /api/exam/[id]/flag/voice endpoint sets flagged=true
+          // server-side, so just sync local state.
+          if (flagModalQuestionId) {
+            const qid = flagModalQuestionId;
+            setFlaggedIds((prev) => new Set(prev).add(qid));
+          }
+        }}
+      />
     </div>
   );
 }
