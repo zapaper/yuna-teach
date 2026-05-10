@@ -55,10 +55,27 @@ const appleClientSecret = await buildAppleClientSecret();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true, // we serve under www.markforyou.com behind proxies
-  // Don't issue NextAuth's own session cookie — we set yuna_session
-  // manually in the signIn callback. JWT mode keeps the lib happy
-  // without persisting Sessions in the DB.
+  // Don't issue NextAuth's own session cookie as a long-lived
+  // identity — we set yuna_session manually in /post-login. JWT
+  // mode keeps the lib happy without persisting Sessions in the DB.
   session: { strategy: "jwt", maxAge: 60 * 60 }, // short — only used during the OAuth handshake
+
+  // Apple's OAuth callback comes back as a cross-site POST
+  // (response_mode=form_post). SameSite=Lax cookies — the default —
+  // are NOT sent on cross-site POSTs, so without this override
+  // NextAuth loses the callbackUrl / pkceCodeVerifier / state
+  // cookies on the way back from Apple. Result: signIn succeeds
+  // (state is encoded inside the OAuth state param too), but the
+  // post-callback redirect falls back to baseUrl because the
+  // callbackUrl cookie is gone — landing the user on the marketing
+  // homepage instead of /post-login. SameSite=None + Secure makes
+  // the cookies survive the round-trip.
+  cookies: {
+    callbackUrl: { options: { sameSite: "none", secure: true } },
+    pkceCodeVerifier: { options: { sameSite: "none", secure: true } },
+    state: { options: { sameSite: "none", secure: true } },
+    nonce: { options: { sameSite: "none", secure: true } },
+  },
 
   providers: [
     Google({
