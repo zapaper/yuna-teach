@@ -4,8 +4,12 @@ import { getSessionUserId } from "./session";
 import { isAdmin } from "./admin";
 
 // Returns true when the signed-in user is allowed to view content
-// owned by `ownerIds`. Admins always pass. Anyone whose session userId
-// equals one of the ownerIds passes. Everyone else fails.
+// owned by `ownerIds`. Admins always pass. Anyone whose session
+// userId equals one of the ownerIds passes. AND a parent linked to
+// any student in the owners list also passes — so a parent can
+// review work on a paper that admin assigned to their child
+// (paper.userId = admin, paper.assignedToId = student → neither
+// matches the parent directly, but the parent-student link does).
 //
 // "Owner" is intentionally a list — for an exam clone it's both the
 // parent who assigned the paper (paper.userId) and the student
@@ -24,9 +28,19 @@ export async function isAuthorizedForUsers(ownerIds: Array<string | null | undef
   });
   if (isAdmin(sessionUser)) return { ok: true, sessionId };
 
-  // Owner check.
+  // Direct-owner check.
   const owners = ownerIds.filter((id): id is string => !!id);
   if (owners.includes(sessionId)) return { ok: true, sessionId };
+
+  // Parent-link check: session user is a parent linked to one of
+  // the owner ids. Cheap query — single table lookup.
+  if (owners.length > 0) {
+    const link = await prisma.parentStudent.findFirst({
+      where: { parentId: sessionId, studentId: { in: owners } },
+      select: { id: true },
+    });
+    if (link) return { ok: true, sessionId };
+  }
 
   return { ok: false, sessionId };
 }
