@@ -2537,12 +2537,19 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     .map(paper => {
                       const pct = scorePct(paper);
                       const isMarking = paper.markingStatus === "in_progress";
+                      // iOS WebView has been unreliable with
+                      // <div onClick> as a tap target — parents
+                      // reported having to press many times to open a
+                      // completed paper. role="button" + a native
+                      // active state (tap-highlight + touch-action)
+                      // makes the outer card a proper interactive
+                      // element so iOS treats it as a primary tap
+                      // target instead of a passive container.
                       return (
-                        <div key={paper.id} onClick={() => {
-                            // Block clicks while the AI marker is still
-                            // running — the review page would 404 / show
-                            // partial data and the parent ends up
-                            // refreshing in confusion.
+                        <div key={paper.id}
+                          role="button"
+                          tabIndex={isMarking ? -1 : 0}
+                          onClick={() => {
                             if (isMarking) return;
                             const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
                             if (isQuizOrFocused || paper.completedAt) {
@@ -2552,7 +2559,20 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
                             }
                           }}
-                          className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow ${isMarking ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-md"}`}>
+                          onKeyDown={(e) => {
+                            if (isMarking) return;
+                            if (e.key !== "Enter" && e.key !== " ") return;
+                            e.preventDefault();
+                            const isQuizOrFocused = paper.paperType === "quiz" || paper.paperType === "focused";
+                            if (isQuizOrFocused || paper.completedAt) {
+                              router.push(`/exam/${paper.id}/review?userId=${userId}`);
+                            } else {
+                              const masterId = paper.sourceExamId ?? paper.id;
+                              router.push(`/exam/${masterId}/overview?userId=${userId}&openClone=${paper.id}`);
+                            }
+                          }}
+                          style={{ WebkitTapHighlightColor: "rgba(11,28,48,0.08)", touchAction: "manipulation" }}
+                          className={`bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 transition-shadow select-none ${isMarking ? "opacity-60 cursor-not-allowed" : "cursor-pointer hover:shadow-md active:bg-slate-50 active:scale-[0.99]"}`}>
                           <div className="w-11 h-11 rounded-2xl bg-[#e5eeff] flex items-center justify-center text-[#001e40] shrink-0">
                             <span className="material-symbols-outlined text-lg">{activityIcon(paper)}</span>
                           </div>

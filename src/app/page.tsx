@@ -7,27 +7,34 @@ export default function HomePage() {
       {/* ── TopNavBar ── */}
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-surface-container">
         <div className="flex justify-between items-center h-16 lg:h-20 px-6 max-w-7xl mx-auto">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 lg:gap-3 min-w-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="MarkForYou Logo" className="h-8 w-8 lg:h-10 lg:w-10 object-contain rounded-lg" src="/logo_t.png" />
-            <span className="text-lg lg:text-xl font-bold text-primary tracking-tight font-headline">MarkForYou.com</span>
+            <img alt="MarkForYou Logo" className="h-8 w-8 lg:h-10 lg:w-10 object-contain rounded-lg shrink-0" src="/logo_t.png" />
+            {/* On narrow phones the ".com" pushed the brand into the
+                Login pill. Drop it on mobile, keep on desktop. */}
+            <span className="text-base sm:text-lg lg:text-xl font-bold text-primary tracking-tight font-headline truncate">
+              MarkForYou<span className="hidden sm:inline">.com</span>
+            </span>
           </div>
           {/* Desktop nav — bumped sizes; Login was a tiny text link
               against bold "Try Free" pill, easy to miss. Now it's a
-              bordered pill the same size as Try Free. */}
-          <div className="hidden md:flex items-center gap-3 font-medium text-base">
-            <a className="px-5 py-2.5 rounded-full text-on-surface-variant hover:text-tertiary hover:bg-tertiary-container/50 transition-colors font-semibold" href="#demo-video">How it Works</a>
-            <Link className="px-5 py-2.5 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors" href="/login">Login</Link>
-            <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all">
+              bordered pill the same size as Try Free. whitespace-nowrap
+              keeps each pill on one line if a slightly-narrower
+              desktop viewport tries to wrap "Try Free" or "How it
+              Works". */}
+          <div className="hidden md:flex items-center gap-3 font-medium text-base shrink-0">
+            <a className="px-5 py-2.5 rounded-full text-on-surface-variant hover:text-tertiary hover:bg-tertiary-container/50 transition-colors font-semibold whitespace-nowrap" href="#demo-video">How it Works</a>
+            <Link className="px-5 py-2.5 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-colors whitespace-nowrap" href="/login">Login</Link>
+            <Link href="/signup" className="px-6 py-2.5 rounded-full bg-secondary text-white font-bold hover:shadow-lg transition-all whitespace-nowrap">
               Try Free
             </Link>
           </div>
           {/* Mobile nav — Login bumped from 12px text-only to a
               proper button so a parent can actually find and tap
               it (was getting lost next to the Try Free pill). */}
-          <div className="md:hidden flex items-center gap-2">
-            <Link href="/login" className="px-4 py-2 rounded-full border-2 border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-colors">Login</Link>
-            <Link href="/signup" className="px-4 py-2 rounded-full bg-secondary text-white font-bold text-sm hover:shadow-lg transition-all">
+          <div className="md:hidden flex items-center gap-2 shrink-0">
+            <Link href="/login" className="px-3 py-2 rounded-full border-2 border-primary text-primary font-bold text-sm hover:bg-primary hover:text-white transition-colors whitespace-nowrap">Login</Link>
+            <Link href="/signup" className="px-3 py-2 rounded-full bg-secondary text-white font-bold text-sm hover:shadow-lg transition-all whitespace-nowrap">
               Try Free
             </Link>
           </div>
@@ -54,10 +61,10 @@ export default function HomePage() {
                 Primary 4-6. Math, Science and English. More coming.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="/signup" className="w-full sm:w-auto text-center px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg">
+                <Link href="/signup" className="w-full sm:w-auto text-center px-8 lg:px-10 py-4 bg-tertiary text-white font-bold rounded-full soft-glow hover:scale-105 transition-transform text-lg whitespace-nowrap">
                   Try now free
                 </Link>
-                <a href="#demo-video" className="w-full sm:w-auto text-center px-10 py-4 bg-white text-tertiary font-bold rounded-full border-2 border-tertiary hover:bg-tertiary hover:text-white transition-colors text-lg">
+                <a href="#demo-video" className="w-full sm:w-auto text-center px-8 lg:px-10 py-4 bg-white text-tertiary font-bold rounded-full border-2 border-tertiary hover:bg-tertiary hover:text-white transition-colors text-lg whitespace-nowrap">
                   Watch a 30-second demo
                 </a>
               </div>
