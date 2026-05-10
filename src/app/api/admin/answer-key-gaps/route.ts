@@ -50,10 +50,18 @@ Rules:
 - Use " | " as the separator between steps AND between sub-part blocks. Never use literal newlines inside the JSON string value.
 - If a sub-part can't be solved from the available info (missing diagram etc.), output "(LABEL) Steps: Unable to solve from available info — needs admin attention. | Final answer: ?" for that label.
 
+LaTeX math (CRITICAL):
+- Wrap fractions, mixed numbers, exponents, and roots in single dollar signs so the renderer stacks them properly:
+    proper fraction:   $\\frac{7}{27}$    (NOT 7/27)
+    mixed number:      $4\\frac{5}{6}$    (NOT 4 5/6)
+    exponent:          $5^2$              (NOT 5^2 or 5²)
+    square root:       $\\sqrt{16}$        (NOT √16)
+- Plain integers, decimals, percentages, currency, units stay as-is.
+
 Return ONLY valid JSON: { "answer": "(a) Steps: ... Final answer: ... | (b) Steps: ... Final answer: ..." }
 
 Example for a question where parts (a) and (b) share the same working:
-  "answer": "(a) Steps: Step 1: 1 - 4/9 - 1/2 = 1/18 | Step 2: 1 unit → 36 eggs | Step 3: 9 × 36 = 324 | Final answer: 324 | (b) Steps: Step 1: 1 - 4/9 - 1/2 = 1/18 | Step 2: 1 unit → 36 eggs | Step 3: 9 × 36 = 324 | Step 4: 30 × 12 = 360 | Step 5: 360 - 324 = 36 | Step 6: 36 ÷ 2 = 18 | Final answer: 18"`;
+  "answer": "(a) Steps: Step 1: $1 - \\frac{4}{9} - \\frac{1}{2} = \\frac{1}{18}$ | Step 2: 1 unit → 36 eggs | Step 3: 9 × 36 = 324 | Final answer: 324 | (b) Steps: Step 1: $1 - \\frac{4}{9} - \\frac{1}{2} = \\frac{1}{18}$ | Step 2: 1 unit → 36 eggs | Step 3: 9 × 36 = 324 | Step 4: 30 × 12 = 360 | Step 5: 360 - 324 = 36 | Step 6: 36 ÷ 2 = 18 | Final answer: 18"`;
 
 type Subpart = { label: string; text: string };
 

@@ -45,6 +45,17 @@ Output rules:
     (a) Steps: ... Final answer: ... | (b) Steps: ... Final answer: ... | (c) Steps: ... Final answer: ...
 - If the question has NO sub-parts, label it "(a)" anyway.
 
+LaTeX math (CRITICAL):
+- Wrap fractions, mixed numbers, exponents, square roots, and any
+  layout-dependent math in single dollar signs so the renderer
+  stacks them properly. Examples:
+    proper fraction:   $\\frac{7}{27}$    (NOT 7/27)
+    mixed number:      $4\\frac{5}{6}$    (NOT 4 5/6)
+    exponent:          $5^2$              (NOT 5^2 or 5²)
+    square root:       $\\sqrt{16}$        (NOT √16)
+- Plain integers, decimals, percentages, currency, and units stay
+  as-is — no need to wrap "324" or "$4.20" or "12 cm" in LaTeX.
+
 Return ONLY valid JSON:
 { "answer": "(a) Steps: ... | (b) Steps: ..." }`;
 
