@@ -210,35 +210,68 @@ export async function GET(request: NextRequest) {
     })
     .slice(0, limit);
 
-  // Run both AI passes in parallel per candidate, then in
-  // parallel across all candidates. Gemini handles ~10 concurrent
-  // requests fine.
-  const items = await Promise.all(
-    withGap.map(async (r) => {
-      const questionImageBase64 = r.q.imageData
-        ? r.q.imageData.replace(/^data:image\/\w+;base64,/, "")
-        : null;
-      const diag = await shrinkImage(r.q.diagramImageData);
-      const labels = r.subs.map((s) => s.label);
+  // Run AI passes per candidate. Two calls per candidate
+  // (extractSubpartMarks + generateAnswer) in parallel inside the
+  // row, but cap concurrency ACROSS rows so we don't fire 20
+  // simultaneous Gemini calls — that hit rate limits and the
+  // whole batch stalled. CONCURRENCY=3 keeps the active call
+  // count at 6 max, well under Gemini's free-tier ceiling.
+  const CONCURRENCY = 3;
+  const queue = [...withGap];
+  const results: Array<typeof withGap[number] & {
+    proposedMarks: Record<string, number>;
+    proposedAnswer: string;
+    aiError: string | null;
+    diag: string | null;
+  }> = [];
+  async function worker() {
+    while (queue.length > 0) {
+      const r = queue.shift();
+      if (!r) break;
+      try {
+        const questionImageBase64 = r.q.imageData
+          ? r.q.imageData.replace(/^data:image\/\w+;base64,/, "")
+          : null;
+        const diag = await shrinkImage(r.q.diagramImageData);
+        const labels = r.subs.map((s) => s.label);
+        const [marksResult, answerResult] = await Promise.all([
+          r.marksGap && questionImageBase64
+            ? extractSubpartMarks(questionImageBase64, labels).catch(() => ({} as Record<string, number>))
+            : Promise.resolve({} as Record<string, number>),
+          r.answerGap
+            ? generateAnswer({
+                stem: r.q.transcribedStem ?? "",
+                subparts: r.subs,
+                options: r.q.transcribedOptions,
+                diagramBase64: diag,
+                existingAnswer: r.q.answer,
+              })
+            : Promise.resolve({ answer: "" }),
+        ]);
+        const proposedMarks = (marksResult as Record<string, number>) ?? {};
+        const proposedAnswer = "answer" in answerResult ? answerResult.answer : "";
+        const aiError = "error" in answerResult ? answerResult.error : null;
+        results.push({ ...r, proposedMarks, proposedAnswer, aiError, diag });
+      } catch (e) {
+        results.push({
+          ...r,
+          proposedMarks: {},
+          proposedAnswer: "",
+          aiError: e instanceof Error ? e.message : "AI failed",
+          diag: null,
+        });
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  // Restore original order — workers pop off the queue in
+  // arbitrary timing order otherwise.
+  results.sort((a, b) => withGap.findIndex((x) => x.q.id === a.q.id) - withGap.findIndex((x) => x.q.id === b.q.id));
 
-      const [marksResult, answerResult] = await Promise.all([
-        r.marksGap && questionImageBase64
-          ? extractSubpartMarks(questionImageBase64, labels).catch(() => ({}))
-          : Promise.resolve({}),
-        r.answerGap
-          ? generateAnswer({
-              stem: r.q.transcribedStem ?? "",
-              subparts: r.subs,
-              options: r.q.transcribedOptions,
-              diagramBase64: diag,
-              existingAnswer: r.q.answer,
-            })
-          : Promise.resolve({ answer: "" }),
-      ]);
-
-      const proposedMarks: Record<string, number> = (marksResult as Record<string, number>) ?? {};
-      const proposedAnswer = "answer" in answerResult ? answerResult.answer : "";
-      const aiError = "error" in answerResult ? answerResult.error : null;
+  const items = results.map((r) => {
+      const proposedMarks: Record<string, number> = { ...r.proposedMarks };
+      const proposedAnswer = r.proposedAnswer;
+      const aiError = r.aiError;
 
       // Even-split fallback: when the AI couldn't read any [N]
       // markers off the question image but we know the total
@@ -291,8 +324,7 @@ export async function GET(request: NextRequest) {
         proposedAnswer,
         aiError,
       };
-    }),
-  );
+    });
 
   return NextResponse.json({
     items,
