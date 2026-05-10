@@ -157,16 +157,28 @@ async function generateAnswerOnce(q: {
 // leading "(a)" leaks the whole answer under part (a) only. The
 // admin used to fix this manually with the Re-run AI button; we
 // now do it automatically up front.
+//
+// If retry ALSO fails, programmatically prepend "(a) " when the
+// payload looks like it has later labels ("(b)", etc.) but is
+// missing the leading one. Better to risk a misattributed
+// section than serve up a literally-unparsable answer.
 async function generateAnswer(q: Parameters<typeof generateAnswerOnce>[0]): Promise<{ answer: string } | { error: string }> {
   const first = await generateAnswerOnce(q);
   if ("error" in first) return first;
   if (looksWellFormed(first.answer)) return first;
   console.log(`[answer-key-gaps] first attempt malformed (no leading "(a)"), retrying once`);
   const second = await generateAnswerOnce(q);
-  // If retry also fails, return whatever we have so the admin can
-  // either edit by hand or click Re-run AI again.
-  if ("error" in second) return first;
-  return looksWellFormed(second.answer) ? second : first;
+  // If retry also returned an error, fall back to first.
+  const candidate = "error" in second ? first.answer : (looksWellFormed(second.answer) ? second.answer : first.answer);
+  if (looksWellFormed(candidate)) return { answer: candidate };
+  // Last-resort fixup: if there's a "(b)" or "(c)" later in the
+  // string, the AI gave us per-part working but forgot to label
+  // the first block. Prepend "(a) ".
+  if (/\(([b-f])\)/i.test(candidate)) {
+    console.log(`[answer-key-gaps] prepending missing "(a) " label after both retries`);
+    return { answer: `(a) ${candidate.trim()}` };
+  }
+  return { answer: candidate };
 }
 
 // GET — surface up to 30 candidates with both gap types + AI
