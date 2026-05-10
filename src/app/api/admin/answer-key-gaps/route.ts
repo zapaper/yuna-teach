@@ -31,26 +31,65 @@ const ai = new GoogleGenAI({
   httpOptions: { timeout: 90_000 },
 });
 
-const SOLVE_PROMPT = `You are a Singapore primary-school maths/science teacher writing answer keys.
+const SOLVE_PROMPT = `You are writing a per-part answer key for a Singapore primary-school maths/science question.
 
-Solve the question. The output MUST be organised by sub-part. Each sub-part gets its own labelled block with its own steps and its own final answer. NEVER produce one shared block of steps with the per-part answers tagged at the end.
+═══════════════════════════════════════════════════════════════
+THE ONE NON-NEGOTIABLE RULE
+═══════════════════════════════════════════════════════════════
 
-REQUIRED format (this is non-negotiable):
-  "(a) Steps: <step 1> | <step 2> | ... | Final answer: <answer for a> | (b) Steps: <step 1> | <step 2> | ... | Final answer: <answer for b> | (c) Steps: ... | Final answer: ..."
+Your answer string MUST start with the literal characters "(a) ".
+First character is "(". Second is "a". Third is ")". Fourth is " ".
+NO OTHER STARTING IS ACCEPTABLE.
 
-WRONG format (do NOT produce this):
-  "Steps: <step 1> | <step 2> | ... | Final answer: (a) X (b) Y"
-  This is the format the source material often uses. Your job is to RE-ORGANISE it into the per-part format above.
+If your output starts with "Steps:" or "Step 1:" or anything else
+other than "(a) ", you have FAILED the task. Re-write before
+returning.
 
-Rules:
-- The (a) block STARTS with "(a) Steps: Step 1:" and ENDS with its own "Final answer: <a's answer>". The very first clause inside Steps MUST be labelled "Step 1:" — do not skip the label.
-- Then a " | " separator.
-- Then the (b) block STARTS with "(b) Steps: Step 1:" and ENDS with its own "Final answer: <b's answer>". (b)'s steps re-start at "Step 1:" — they do NOT continue numbering from (a)'s last step.
-- If the working for (a) and (b) is genuinely the same shared computation, REPEAT the working steps word-for-word inside each block (re-numbered Step 1..N for each block). Repetition is intentional — the renderer slices the answer string by label and shows each block to the student under their respective sub-part.
-- Each step is ONE short sentence (≤ 20 words) with the actual calculation.
-- 2–6 steps per sub-part is typical.
-- Use " | " as the separator. Never use literal newlines inside the JSON string value.
-- If a sub-part can't be solved from the available info, output "(LABEL) Steps: Step 1: Unable to solve from available info — needs admin attention. | Final answer: ?".
+═══════════════════════════════════════════════════════════════
+REQUIRED OUTPUT SHAPE
+═══════════════════════════════════════════════════════════════
+
+Two-part question:
+  "(a) Steps: Step 1: ... | Step 2: ... | Final answer: <a's answer> | (b) Steps: Step 1: ... | Step 2: ... | Final answer: <b's answer>"
+
+Three-part question:
+  "(a) Steps: Step 1: ... | ... | Final answer: <a's answer> | (b) Steps: Step 1: ... | ... | Final answer: <b's answer> | (c) Steps: Step 1: ... | ... | Final answer: <c's answer>"
+
+Single-part question (rare for this tool, but be safe):
+  "(a) Steps: Step 1: ... | ... | Final answer: <a's answer>"
+
+═══════════════════════════════════════════════════════════════
+RULES
+═══════════════════════════════════════════════════════════════
+
+1. Each sub-part block opens with its label, e.g. "(a) Steps:".
+2. Each sub-part block has its own numbered steps starting at "Step 1:" — (b)'s steps do NOT continue (a)'s numbering.
+3. Each sub-part block ends with its own "Final answer: ..." line.
+4. Blocks are joined by " | " (space pipe space).
+5. If (a) and (b) genuinely share the same working, REPEAT the working verbatim under each label. Repetition is INTENTIONAL — the renderer slices on labels and shows the working to the student under that part.
+6. Each step is ONE short sentence (≤ 20 words) with the actual calculation.
+7. 2–6 steps per sub-part is typical.
+8. Use " | " as the only separator. Never use literal newlines inside the JSON string value.
+9. If a sub-part is unsolvable, output "(LABEL) Steps: Step 1: Unable to solve from available info — needs admin attention. | Final answer: ?".
+
+═══════════════════════════════════════════════════════════════
+CRITICAL ANTI-PATTERN — REJECT THIS
+═══════════════════════════════════════════════════════════════
+
+Source materials OFTEN look like:
+  "Steps: Step 1: ... | Step 2: ... | ... | Final answer: (a) 324 (b) 18"
+
+This is the SOURCE. Your job is to RE-ORGANISE it into per-part blocks above. NEVER pass this format through unchanged. NEVER omit the leading "(a)".
+
+═══════════════════════════════════════════════════════════════
+FINAL CHECK BEFORE RETURNING
+═══════════════════════════════════════════════════════════════
+
+Before you produce JSON output, verify:
+  □ Does my answer string start with "(a) "?
+  □ Does each sub-part block end with its own "Final answer: ..."?
+  □ Does each block have its own "Step 1:" (steps re-start, not continue)?
+If any answer is NO, re-write before returning.
 
 LaTeX math (CRITICAL):
 - Wrap fractions, mixed numbers, exponents, and roots in single dollar signs so the renderer stacks them properly:
