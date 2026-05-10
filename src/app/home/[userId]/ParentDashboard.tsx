@@ -2118,7 +2118,11 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       {/* MOBILE TOP BAR                                                      */}
       {/* ════════════════════════════════════════════════════════════════════ */}
-      <header className="lg:hidden fixed top-0 w-full z-50 bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
+      {/* Top bar is intentionally NOT sticky/floating on the iOS
+          app — only the bottom nav stays fixed. Sticky logo bar
+          ate too much vertical space in the WebView; scrolling
+          with the content is cleaner. */}
+      <header className="lg:hidden w-full bg-[#f8f9ff] flex justify-between items-center px-5 h-16">
         <div className="flex items-center gap-2.5">
           {hasAvatar ? (
             <div className="w-12 h-12 rounded-full border-2 border-[#a7c8ff] overflow-hidden flex items-center justify-center bg-white shrink-0 relative"

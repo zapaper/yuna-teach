@@ -1437,7 +1437,9 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
       {/* ══ MOBILE LAYOUT ══ */}
       <div className="lg:hidden pb-24">
-        <header className="sticky top-0 z-40 bg-[#f8f9ff]/90 backdrop-blur-md px-5 py-4 flex items-center justify-between">
+        {/* Top bar scrolls with content — keeps the iOS WebView
+            viewport clean. Only the bottom nav is sticky. */}
+        <header className="bg-[#f8f9ff]/90 backdrop-blur-md px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2"><img src="/logo_t.png" alt="Owl" className="w-7 h-7 object-contain" /><img src="/markforyou2_t.png" alt="Markforyou" className="h-5 object-contain" /></div>
           <div className="flex items-center gap-2">
             <button onClick={() => openLinkModal("share")} className="text-xs font-bold text-[#003366] bg-[#eff4ff] px-3 py-1.5 rounded-full">{hasParent ? "+" : "Link"}</button>
