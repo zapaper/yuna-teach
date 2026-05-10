@@ -98,13 +98,56 @@ export async function GET(
   const fontSize = 9;
   const textWidth = font.widthOfTextAtSize(code, fontSize);
   const { width, height } = page.getSize();
-  // Pad 16 pt from edges; draw a faint white box behind so the code
-  // remains readable even over busy headers.
+  // Pad from page edges.
   const padX = 16;
   const padY = 16;
   const boxPad = 3;
+
+  // ── Top-centre instructions banner ────────────────────────────
+  // White-filled, blue-bordered box stamped at the top of page 1
+  // so the parent sees the scan + ink instructions before they
+  // print. Drawn FIRST so the print code below can clear it.
+  const noticeLines = [
+    "Use the App's scan function to submit (mobile only). Scan every page",
+    "Please write all answers in blue ink.",
+  ];
+  const noticeSize = 11;
+  const noticeLineH = noticeSize + 4;
+  const noticeInnerPadY = 9;
+  const noticeBoxH = noticeLines.length * noticeLineH + noticeInnerPadY * 2;
+  const noticeBoxX = padX;
+  const noticeBoxW = width - padX * 2;
+  const noticeBoxY = height - padY - noticeBoxH;
+  // White fill so the box stays readable on busy paper headers,
+  // brand-blue border so it stands out.
+  page.drawRectangle({
+    x: noticeBoxX,
+    y: noticeBoxY,
+    width: noticeBoxW,
+    height: noticeBoxH,
+    color: rgb(1, 1, 1),
+    opacity: 0.95,
+    borderColor: rgb(0, 0.12, 0.25),
+    borderWidth: 1.2,
+  });
+  let nty = noticeBoxY + noticeBoxH - noticeInnerPadY - noticeSize;
+  for (const line of noticeLines) {
+    const lw = font.widthOfTextAtSize(line, noticeSize);
+    page.drawText(line, {
+      x: (width - lw) / 2,
+      y: nty,
+      size: noticeSize,
+      font,
+      color: rgb(0, 0.12, 0.25),
+    });
+    nty -= noticeLineH;
+  }
+
+  // Print code: tucked top-right just below the notice box so the
+  // OCR-based scan matcher (inbound-email + scan-submit) still
+  // finds it, without colliding with the banner above.
   const x = width - textWidth - padX;
-  const y = height - fontSize - padY;
+  const y = noticeBoxY - boxPad - fontSize - 4;
   page.drawRectangle({
     x: x - boxPad,
     y: y - boxPad,
