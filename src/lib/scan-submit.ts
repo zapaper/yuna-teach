@@ -3,7 +3,7 @@ import path from "path";
 import sharp from "sharp";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { markExamPaper } from "@/lib/marking";
+import { markExamPaper, markQuizPaper, markFocusedTest } from "@/lib/marking";
 import { maskBottomRightCorner } from "@/lib/watermark";
 import { isAdmin } from "@/lib/admin";
 
@@ -70,16 +70,20 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
 
   let cloneId: string;
 
-  if (target.sourceExamId) {
-    // In-app flow: the parent tapped Scan on an already-assigned card.
-    // The clone is `target`. Sanity-check the assignment matches.
-    if (target.assignedToId && target.assignedToId !== studentId) {
+  if (target.assignedToId) {
+    // The paper is already assigned to a student — reuse it as the
+    // submission row instead of cloning. Covers three cases:
+    //   - Clone of a regular master (sourceExamId set, paperType=null)
+    //   - Quiz paper (paperType="quiz", no sourceExamId)
+    //   - Focused-test paper (paperType="focused", no sourceExamId)
+    // For all three the "paper" the parent sees on their dashboard
+    // IS the student's working copy; we just attach photos and mark.
+    if (target.assignedToId !== studentId) {
       throw new Error("paper assigned to a different student");
     }
     await prisma.examPaper.update({
       where: { id: target.id },
       data: {
-        assignedToId: studentId,
         completedAt: new Date(),
         markingStatus: "in_progress",
         // Always instant-feedback for in-app scans — same rationale
@@ -182,8 +186,16 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
   }
   console.log(`[scan-submit] saved ${saved} page JPGs for clone=${cloneId} student=${studentId} mode=${target.sourceExamId ? "update" : "create"}`);
 
-  markExamPaper(cloneId).catch((err) => {
-    console.error(`[scan-submit] markExamPaper failed for ${cloneId}:`, err);
+  // Dispatch marker by paperType: quiz/focused use markQuizPaper /
+  // markFocusedTest (different prompts, per-subpart canvas reading,
+  // etc.); regular paper clones use markExamPaper.
+  const markFn = target.paperType === "quiz"
+    ? markQuizPaper
+    : target.paperType === "focused"
+      ? markFocusedTest
+      : markExamPaper;
+  markFn(cloneId).catch((err) => {
+    console.error(`[scan-submit] mark (${target.paperType ?? "regular"}) failed for ${cloneId}:`, err);
   });
 
   return { cloneId, pageCount: saved };

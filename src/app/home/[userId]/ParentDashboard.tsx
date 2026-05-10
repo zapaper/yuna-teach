@@ -3386,60 +3386,25 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         // with lg:hidden. Both depend on knowing which student the
         // scheduler is currently filtered to (selectedStudentId).
         const popup = schedulerPopup;
-        const isStudentTakeable = !popup.completed && (popup.paperType === "quiz" || popup.paperType === "focused");
         return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{popup.title}</p>
-            {/* Quiz / focused practice: parents kept clicking the
-                assigned card expecting it to start the quiz, but
-                only the student account can actually take it. Show
-                an explicit prompt + new-tab handoff so first-time
-                parents understand the two-account setup. */}
-            {isStudentTakeable && selectedStudentId && (
-              <>
-                <p className="text-xs text-[#43474f] mb-3 leading-relaxed">
-                  {isNative()
-                    ? "Log in as your child on this device to take the quiz."
-                    : "Open this assignment in your child's page (new tab) to begin the quiz?"}
-                </p>
-                <button
-                  onClick={async () => {
-                    setSchedulerPopup(null);
-                    if (isNative()) {
-                      // Native: log out parent, then redirect to login
-                      // with `next` pointing straight at the quiz, so
-                      // after the child re-authenticates they land on
-                      // the assignment without an extra hop.
-                      try {
-                        await fetch("/api/auth", { method: "DELETE" });
-                      } catch {
-                        /* non-fatal */
-                      }
-                      const next = encodeURIComponent(`/quiz/${popup.id}`);
-                      window.location.href = `/login?next=${next}`;
-                      return;
-                    }
-                    const url = `/quiz/${popup.id}?userId=${selectedStudentId}`;
-                    window.open(url, "_blank", "noopener");
-                  }}
-                  className="w-full py-2.5 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] transition-colors flex items-center justify-center gap-1.5 mb-3"
-                >
-                  <span className="material-symbols-outlined text-base">{isNative() ? "login" : "open_in_new"}</span>
-                  {isNative() ? "Log in as student" : "Open in child's tab"}
-                </button>
-              </>
-            )}
-            {!popup.completed && selectedStudentId && popup.paperType !== "quiz" && popup.paperType !== "focused" && (
+            {!popup.completed && selectedStudentId && (
               <div className="flex flex-col gap-2 mb-3">
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
                       setSchedulerPopup(null);
-                      window.open(
-                        `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`,
-                        "_blank",
-                      );
+                      // Quiz / focused use the focused-test printable
+                      // route (which works for any paper id with
+                      // clean-extracted questions); regular papers use
+                      // the original print route that stamps a
+                      // student-specific code for the email-scan path.
+                      const printUrl = popup.paperType === "quiz" || popup.paperType === "focused"
+                        ? `/api/focused-test/${popup.id}/printable?studentId=${selectedStudentId}&userId=${userId}`
+                        : `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
+                      window.open(printUrl, "_blank");
                     }}
                     className="flex-1 py-2.5 rounded-xl border-2 border-[#001e40]/20 text-[#001e40] text-sm font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-1.5"
                   >
@@ -3462,22 +3427,22 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     Scan
                   </button>
                 </div>
-                {/* Open in child's tab — same flow as quiz/focused
-                    above. On native iOS we log out the parent and
-                    redirect to /login with `next` pointing at the
-                    paper's page, since iOS WebView has no concept
-                    of separate tabs. */}
+                {/* Open in child's tab — quiz/focused take place at
+                    /quiz/<id> (canvas workspace), regular papers
+                    open the /exam/<id> overview/review. iOS branch
+                    logs the parent out and bounces to /login because
+                    WebView can't open a new tab. */}
                 <button
                   onClick={async () => {
                     setSchedulerPopup(null);
+                    const isQuizOrFocused = popup.paperType === "quiz" || popup.paperType === "focused";
+                    const childPath = isQuizOrFocused ? `/quiz/${popup.id}` : `/exam/${popup.id}`;
                     if (isNative()) {
                       try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
-                      const next = encodeURIComponent(`/exam/${popup.id}`);
-                      window.location.href = `/login?next=${next}`;
+                      window.location.href = `/login?next=${encodeURIComponent(childPath)}`;
                       return;
                     }
-                    const url = `/exam/${popup.id}?userId=${selectedStudentId}`;
-                    window.open(url, "_blank", "noopener");
+                    window.open(`${childPath}?userId=${selectedStudentId}`, "_blank", "noopener");
                   }}
                   className="py-2.5 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] transition-colors flex items-center justify-center gap-1.5"
                 >
