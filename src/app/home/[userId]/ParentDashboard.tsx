@@ -2468,14 +2468,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {/* Scan-only quick action (mobile/tablet).
-                            For quiz/focused the printable rendering
-                            is still raw-image-based and not yet
-                            ready for non-admin parents — admin-only
-                            until the clean-extract refactor lands.
-                            Regular papers (paperType=null) keep the
-                            scan affordance for everyone. */}
-                        {paper.assignedToId && (paper.paperType !== "quiz" && paper.paperType !== "focused" || isAdminUser) && (
+                        {/* Scan-only quick action (mobile/tablet)
+                            for every assigned paper regardless of
+                            type. Now that the printable renders
+                            clean-extract content with bounds, the
+                            scan-back marking flow works uniformly
+                            for regular / quiz / focused. */}
+                        {paper.assignedToId && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -3367,10 +3366,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{popup.title}</p>
             {!popup.completed && selectedStudentId && (
               <div className="flex flex-col gap-2 mb-3">
-                {/* Quiz/focused printables still emit raw question
-                    images — admin-only until the clean-extract
-                    rebuild ships. Regular papers stay open to all. */}
-                {(popup.paperType !== "quiz" && popup.paperType !== "focused" || isAdminUser) && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
@@ -3406,7 +3401,6 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     Scan
                   </button>
                 </div>
-                )}
                 {/* Open in child's tab — quiz/focused take place at
                     /quiz/<id> (canvas workspace), regular papers
                     open the /exam/<id> overview/review. iOS branch

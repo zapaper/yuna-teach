@@ -170,6 +170,17 @@ model ExamQuestion {
   orderIndex      Int
   yStartPct       Float?
   yEndPct         Float?
+  // Printable-PDF writing-area bounds. Populated when a quiz /
+  // focused-test paper is rendered to a clean-extract printable
+  // PDF — the marker uses these to crop the student's answer
+  // region from each scanned page after submission.
+  // Shape: { pageIndex, yStartPct, yEndPct, subparts?: {
+  //   [label]: { pageIndex, yStartPct, yEndPct }
+  // } }
+  // Differs from yStartPct / yEndPct above because those track
+  // the original paper's coordinates; printableBounds tracks
+  // OUR generated PDF's coordinates.
+  printableBounds Json?
   examPaperId     String
   marksAwarded    Float?
   marksAvailable  Float?

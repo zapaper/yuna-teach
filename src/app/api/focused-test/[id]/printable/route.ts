@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { isAdmin as isAdminUser } from "@/lib/admin";
 
@@ -97,6 +98,7 @@ export async function GET(
           select: {
             id: true, questionNum: true, imageData: true, answer: true,
             marksAvailable: true, transcribedOptions: true, transcribedStem: true,
+            transcribedSubparts: true, diagramImageData: true,
           },
         },
       },
@@ -136,129 +138,229 @@ export async function GET(
   drawCoverPage(page, helvBold, helv, paper.title ?? "Focused Practice", student.name, paper.subject ?? "", paper.level ?? "", paper.questions.length, code);
 
   // ── Question pages ────────────────────────────────────────────
-  // We start a new page for the first question — keeps the cover
-  // self-contained and gives the student a clean writing surface.
+  // Clean-extract render only — never embed q.imageData (raw scan
+  // crop). Stem text comes from transcribedStem, sub-parts from
+  // transcribedSubparts, MCQ options from transcribedOptions, and
+  // diagrams from diagramImageData. Each question / sub-part's
+  // writing-area Y bounds are captured in printableBounds and
+  // persisted at the end so the marker can crop the right region
+  // off scanned-back pages.
   let yCursor = A4_H - MARGIN;
+  let pageIndex = 0;
   page = doc.addPage([A4_W, A4_H]);
   drawPrintCode(page, helvBold, code);
-  yCursor = A4_H - MARGIN - 18; // print code height
+  yCursor = A4_H - MARGIN - 18;
+
+  function newPage() {
+    page = doc.addPage([A4_W, A4_H]);
+    drawPrintCode(page, helvBold, code);
+    yCursor = A4_H - MARGIN - 18;
+    pageIndex++;
+  }
+  function pctFromY(y: number): number {
+    // pdf-lib's coordinate origin is bottom-left. Convert to a
+    // top-down percentage so the marking pipeline (which reads
+    // images top-down) can use it directly.
+    return ((A4_H - y) / A4_H) * 100;
+  }
+
+  type SubpartBounds = { pageIndex: number; yStartPct: number; yEndPct: number };
+  type QuestionBounds = SubpartBounds & { subparts?: Record<string, SubpartBounds> };
+  const boundsByQ = new Map<string, QuestionBounds>();
 
   for (let qi = 0; qi < paper.questions.length; qi++) {
     const q = paper.questions[qi];
     const isMcq = isMcqQuestion(q);
     const marks = q.marksAvailable ?? 1;
 
-    // For MCQ we prefer a CLEAN render from the transcribed stem +
-    // options instead of the scanned crop — keeps the printable crisp
-    // and free of original-paper artefacts. Falls back to the scanned
-    // image if transcription is missing. OEQ keeps the scanned image
-    // because drawable diagrams / graphs / tables aren't transcribable.
+    // Sub-parts (real ones — drop sentinels like _drawable / _subref).
+    type Subpart = { label: string; text: string; diagramBase64?: string | null; refImageBase64?: string | null };
+    const allSubs = Array.isArray(q.transcribedSubparts)
+      ? (q.transcribedSubparts as Subpart[])
+      : [];
+    const realSubs = allSubs.filter((s) => s && typeof s.label === "string" && !s.label.startsWith("_"));
+    const drawableDiagram = allSubs.find((s) => s.label === "_drawable")?.diagramBase64 ?? null;
     const cleanOpts = isMcq && Array.isArray(q.transcribedOptions)
       ? (q.transcribedOptions as unknown[]).filter((x): x is string => typeof x === "string")
       : [];
-    const useCleanMcq = isMcq && !!q.transcribedStem && cleanOpts.length >= 2;
-
-    let imgH = 0;
-    let imgEmbed: Awaited<ReturnType<typeof doc.embedJpg>> | Awaited<ReturnType<typeof doc.embedPng>> | null = null;
-    let cleanStemLines: string[] = [];
-    let cleanOptLines: string[][] = [];
-    let cleanH = 0;
-
-    if (useCleanMcq) {
-      cleanStemLines = wrapLines(q.transcribedStem ?? "", helv, 11, CONTENT_W);
-      for (const opt of cleanOpts) {
-        cleanOptLines.push(wrapLines(opt, helv, 11, CONTENT_W - 24));
-      }
-      const optTotalLines = cleanOptLines.reduce((s, l) => s + l.length, 0);
-      cleanH = cleanStemLines.length * LINE_PT + 6 + optTotalLines * LINE_PT;
-    } else if (q.imageData) {
-      try {
-        const { embed, height } = await embedDataUrlScaled(doc, q.imageData, CONTENT_W);
-        imgEmbed = embed;
-        imgH = height;
-      } catch (err) {
-        console.warn(`[printable] image embed failed for Q${q.questionNum}:`, err);
-      }
-    }
-
-    // Compute working area height needed. MCQ rows have no answer
-    // line — the student marks the printed question directly (circles
-    // the option / writes the digit next to it), so no extra space.
-    const workingH = isMcq
-      ? 0
-      : isMath
-        ? Math.max(LINE_PT * 4, marks * A4_H * 0.10)
-        : isScience
-          ? Math.max(LINE_PT * 2, marks * 2 * LINE_PT)
-          : LINE_PT * 2 * marks; // fallback similar to science
-
-    const labelH = LINE_PT * 1.5; // 'Q12 (2 marks)' header
-    const stemH = useCleanMcq ? cleanH : imgH;
-    const totalNeeded = labelH + stemH + 8 + workingH + 12; // + spacing
-
-    // Page-break if not enough room. Always push to new page if first
-    // question on the page wouldn't fit either (shouldn't happen at
-    // sensible sizes, but keeps us safe).
-    const spaceLeft = yCursor - MARGIN;
-    if (totalNeeded > spaceLeft) {
-      page = doc.addPage([A4_W, A4_H]);
-      drawPrintCode(page, helvBold, code);
-      yCursor = A4_H - MARGIN - 18;
-    }
 
     // Question label
     const label = sanitizeForWinAnsi(`Q${q.questionNum}${marks > 1 ? `   (${marks} marks)` : marks === 1 ? `   (1 mark)` : ""}`);
+    const labelH = LINE_PT * 1.5;
+    if (yCursor - labelH < MARGIN) newPage();
     page.drawText(label, { x: MARGIN, y: yCursor - 11, size: 11, font: helvBold, color: rgb(0, 0, 0) });
     yCursor -= labelH;
 
-    // Question image / clean MCQ text
-    if (useCleanMcq) {
-      for (const line of cleanStemLines) {
+    const qWriteStartY = yCursor;
+    const qStartPage = pageIndex;
+
+    // Stem text (always render, even alongside subparts — the stem
+    // sets up context that subparts depend on).
+    if (q.transcribedStem) {
+      const lines = wrapLines(q.transcribedStem, helv, 11, CONTENT_W);
+      for (const line of lines) {
+        if (yCursor - LINE_PT < MARGIN) newPage();
         page.drawText(line, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
         yCursor -= LINE_PT;
       }
-      yCursor -= 6;
-      for (let oi = 0; oi < cleanOptLines.length; oi++) {
-        const lines = cleanOptLines[oi];
-        for (let li = 0; li < lines.length; li++) {
-          const text = li === 0 ? `(${oi + 1})  ${lines[li]}` : lines[li];
+      yCursor -= 4;
+    }
+
+    // Question-level diagram (the question's own picture if any —
+    // not a per-subpart one).
+    if (q.diagramImageData) {
+      try {
+        const { embed, height } = await embedDataUrlScaled(doc, q.diagramImageData, Math.min(CONTENT_W, A4_W * 0.6));
+        if (yCursor - height < MARGIN) newPage();
+        page.drawImage(embed, { x: MARGIN, y: yCursor - height, width: Math.min(CONTENT_W, A4_W * 0.6), height });
+        yCursor -= height + 6;
+      } catch (err) {
+        console.warn(`[printable] diagram embed failed for Q${q.questionNum}:`, err);
+      }
+    }
+
+    if (isMcq) {
+      // MCQ options + answer line. No sub-parts loop here even if
+      // transcribedSubparts is set — MCQ is single-answer.
+      for (let oi = 0; oi < cleanOpts.length; oi++) {
+        const optLines = wrapLines(cleanOpts[oi], helv, 11, CONTENT_W - 24);
+        for (let li = 0; li < optLines.length; li++) {
+          if (yCursor - LINE_PT < MARGIN) newPage();
+          const text = li === 0 ? `(${oi + 1})  ${optLines[li]}` : optLines[li];
           const x = MARGIN + (li === 0 ? 0 : 24);
           page.drawText(text, { x, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
           yCursor -= LINE_PT;
         }
       }
-    } else if (imgEmbed && imgH > 0) {
-      page.drawImage(imgEmbed, { x: MARGIN, y: yCursor - imgH, width: CONTENT_W, height: imgH });
-      yCursor -= imgH + 6;
-    } else if (q.transcribedStem) {
-      const lines = wrapLines(q.transcribedStem, helv, 11, CONTENT_W);
-      for (const line of lines) {
-        page.drawText(line, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
-        yCursor -= LINE_PT;
+      // Single short answer line for MCQ
+      yCursor -= 6;
+      const ansY = yCursor - 11;
+      const ansBoxStartY = yCursor;
+      page.drawText("Answer:", { x: MARGIN, y: ansY, size: 11, font: helvBold, color: rgb(0, 0, 0) });
+      page.drawLine({ start: { x: MARGIN + 60, y: ansY - 2 }, end: { x: MARGIN + 180, y: ansY - 2 }, thickness: 0.7, color: rgb(0.6, 0.6, 0.6) });
+      yCursor -= LINE_PT;
+      const ansBoxEndY = yCursor;
+      boundsByQ.set(q.id, {
+        pageIndex: qStartPage,
+        yStartPct: pctFromY(ansBoxStartY),
+        yEndPct: pctFromY(ansBoxEndY),
+      });
+    } else if (realSubs.length > 0) {
+      // Multi-part OEQ. Each sub-part gets a labelled header, its
+      // text, optional per-subpart diagram, and a writing area
+      // sized by per-subpart marks (read from "[N]" in the text)
+      // or proportional fallback.
+      const subBounds: Record<string, SubpartBounds> = {};
+      const totalSubMarks = realSubs.reduce((sum, sp) => {
+        const m = String(sp.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
+        return sum + (m ? parseInt(m[1], 10) : 0);
+      }, 0);
+      for (const sp of realSubs) {
+        const m = String(sp.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
+        const subMarks = m ? parseInt(m[1], 10) : (totalSubMarks > 0 ? marks * (1 / realSubs.length) : marks / realSubs.length);
+        const subText = sanitizeForWinAnsi(`(${sp.label}) ${sp.text}`);
+        const subTextLines = wrapLines(subText, helv, 11, CONTENT_W);
+        for (const line of subTextLines) {
+          if (yCursor - LINE_PT < MARGIN) newPage();
+          page.drawText(line, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+          yCursor -= LINE_PT;
+        }
+        // Per-subpart diagram
+        const spDiagram = sp.diagramBase64 ?? sp.refImageBase64 ?? null;
+        if (spDiagram) {
+          try {
+            const { embed, height } = await embedDataUrlScaled(doc, spDiagram, Math.min(CONTENT_W, A4_W * 0.5));
+            if (yCursor - height < MARGIN) newPage();
+            page.drawImage(embed, { x: MARGIN, y: yCursor - height, width: Math.min(CONTENT_W, A4_W * 0.5), height });
+            yCursor -= height + 4;
+          } catch { /* skip on failure */ }
+        }
+        // Writing area sized by per-subpart marks
+        const writeH = isMath
+          ? Math.max(LINE_PT * 3, subMarks * A4_H * 0.085)
+          : isScience
+            ? Math.max(LINE_PT * 2, subMarks * 2 * LINE_PT)
+            : Math.max(LINE_PT * 2, subMarks * 2 * LINE_PT);
+        if (yCursor - writeH < MARGIN) newPage();
+        const writeStartY = yCursor;
+        const writeStartPage = pageIndex;
+        if (isMath) {
+          page.drawRectangle({ x: MARGIN, y: yCursor - writeH, width: CONTENT_W, height: writeH, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 0.6 });
+        } else {
+          const linesN = Math.max(2, Math.round(subMarks * 2));
+          for (let i = 0; i < linesN; i++) {
+            const yLine = yCursor - (i + 1) * LINE_PT;
+            page.drawLine({ start: { x: MARGIN, y: yLine }, end: { x: MARGIN + CONTENT_W, y: yLine }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
+          }
+        }
+        yCursor -= writeH;
+        const writeEndY = yCursor;
+        subBounds[sp.label] = {
+          pageIndex: writeStartPage,
+          yStartPct: pctFromY(writeStartY),
+          yEndPct: pctFromY(writeEndY),
+        };
+        yCursor -= 6;
       }
-    }
-
-    // Working area
-    if (isMcq) {
-      // No answer line — student marks the printed question directly.
-    } else if (isMath) {
-      // Plain working space — no lines, just a box outline so the
-      // student knows where to write. ~10% page height per mark.
-      const h = workingH;
-      page.drawRectangle({ x: MARGIN, y: yCursor - h, width: CONTENT_W, height: h, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 0.6 });
-      yCursor -= h;
+      const qEndY = yCursor;
+      boundsByQ.set(q.id, {
+        pageIndex: qStartPage,
+        yStartPct: pctFromY(qWriteStartY),
+        yEndPct: pctFromY(qEndY),
+        subparts: subBounds,
+      });
     } else {
-      // Science (or fallback): 2 lines per mark.
-      const lines = Math.max(2, Math.round(marks * 2));
-      for (let i = 0; i < lines; i++) {
-        const yLine = yCursor - (i + 1) * LINE_PT;
-        page.drawLine({ start: { x: MARGIN, y: yLine }, end: { x: MARGIN + CONTENT_W, y: yLine }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
+      // Single-part OEQ. One writing area sized by total marks.
+      // Drawable-diagram subpart (if any) goes inside the writing
+      // box as a background.
+      const writeH = isMath
+        ? Math.max(LINE_PT * 4, marks * A4_H * 0.10)
+        : isScience
+          ? Math.max(LINE_PT * 2, marks * 2 * LINE_PT)
+          : Math.max(LINE_PT * 2, marks * 2 * LINE_PT);
+      if (yCursor - writeH < MARGIN) newPage();
+      const writeStartY = yCursor;
+      const writeStartPage = pageIndex;
+      if (drawableDiagram) {
+        try {
+          const { embed, height } = await embedDataUrlScaled(doc, drawableDiagram, CONTENT_W);
+          page.drawImage(embed, { x: MARGIN, y: yCursor - height, width: CONTENT_W, height });
+        } catch { /* skip */ }
       }
-      yCursor -= lines * LINE_PT;
+      if (isMath) {
+        page.drawRectangle({ x: MARGIN, y: yCursor - writeH, width: CONTENT_W, height: writeH, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 0.6 });
+      } else {
+        const linesN = Math.max(2, Math.round(marks * 2));
+        for (let i = 0; i < linesN; i++) {
+          const yLine = yCursor - (i + 1) * LINE_PT;
+          page.drawLine({ start: { x: MARGIN, y: yLine }, end: { x: MARGIN + CONTENT_W, y: yLine }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
+        }
+      }
+      yCursor -= writeH;
+      const writeEndY = yCursor;
+      boundsByQ.set(q.id, {
+        pageIndex: writeStartPage,
+        yStartPct: pctFromY(writeStartY),
+        yEndPct: pctFromY(writeEndY),
+      });
     }
 
-    yCursor -= 12; // gap to next question
+    yCursor -= 12;
   }
+
+  // Persist the captured bounds so the marker can crop scanned
+  // pages by question/sub-part. Best-effort — if the write fails
+  // we still serve the PDF (parent can re-print to retry).
+  await Promise.all(
+    Array.from(boundsByQ.entries()).map(([qid, b]) =>
+      prisma.examQuestion.update({
+        where: { id: qid },
+        data: { printableBounds: b as unknown as Prisma.InputJsonValue },
+      }).catch((err) => {
+        console.warn(`[printable] failed to persist bounds for q=${qid}:`, err);
+      }),
+    ),
+  );
 
   const bytes = await doc.save();
   const safeTitle = (paper.title ?? "Focused Practice").replace(/[^a-zA-Z0-9-_ ]/g, "").trim().slice(0, 80) || "Focused Practice";
