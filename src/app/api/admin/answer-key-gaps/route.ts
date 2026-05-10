@@ -43,14 +43,14 @@ WRONG format (do NOT produce this):
   This is the format the source material often uses. Your job is to RE-ORGANISE it into the per-part format above.
 
 Rules:
-- The (a) block STARTS with "(a) Steps:" and ENDS with its own "Final answer: <a's answer>".
+- The (a) block STARTS with "(a) Steps: Step 1:" and ENDS with its own "Final answer: <a's answer>". The very first clause inside Steps MUST be labelled "Step 1:" — do not skip the label.
 - Then a " | " separator.
-- Then the (b) block STARTS with "(b) Steps:" and ENDS with its own "Final answer: <b's answer>".
-- If the working for (a) and (b) is genuinely the same shared computation, REPEAT the working steps word-for-word inside each block. Repetition is intentional — the renderer slices the answer string by label and shows each block to the student under their respective sub-part.
+- Then the (b) block STARTS with "(b) Steps: Step 1:" and ENDS with its own "Final answer: <b's answer>". (b)'s steps re-start at "Step 1:" — they do NOT continue numbering from (a)'s last step.
+- If the working for (a) and (b) is genuinely the same shared computation, REPEAT the working steps word-for-word inside each block (re-numbered Step 1..N for each block). Repetition is intentional — the renderer slices the answer string by label and shows each block to the student under their respective sub-part.
 - Each step is ONE short sentence (≤ 20 words) with the actual calculation.
 - 2–6 steps per sub-part is typical.
 - Use " | " as the separator. Never use literal newlines inside the JSON string value.
-- If a sub-part can't be solved from the available info, output "(LABEL) Steps: Unable to solve from available info — needs admin attention. | Final answer: ?".
+- If a sub-part can't be solved from the available info, output "(LABEL) Steps: Step 1: Unable to solve from available info — needs admin attention. | Final answer: ?".
 
 LaTeX math (CRITICAL):
 - Wrap fractions, mixed numbers, exponents, and roots in single dollar signs so the renderer stacks them properly:

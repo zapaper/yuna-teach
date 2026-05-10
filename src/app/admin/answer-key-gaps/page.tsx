@@ -3,6 +3,7 @@
 import { Fragment, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
+import MathText from "@/components/MathText";
 
 // Unified review for clean-extract Math/Science OEQs with sub-parts
 // that are missing per-part marks AND/OR per-part answer keys.
@@ -439,6 +440,21 @@ function Content() {
                         rows={8}
                         className="w-full px-3 py-2 rounded-lg border border-rose-300 bg-rose-50/30 text-xs font-mono focus:outline-none focus:border-rose-500"
                       />
+                      {/* Live preview — same MathText renderer the
+                          parent's review page uses, so what we see
+                          here matches exactly what they'll see. Lets
+                          us catch broken $\\frac{a}{b}$ payloads
+                          before saving. */}
+                      <div className="mt-2 p-3 rounded-lg border border-slate-200 bg-white text-sm text-slate-700">
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Preview (rendered)</p>
+                        {(editAnswer[it.id] ?? "").trim() ? (
+                          <div className="space-y-1 whitespace-pre-line leading-relaxed">
+                            <MathText text={(editAnswer[it.id] ?? "").replace(/\s*\|\s*/g, "\n")} />
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic">(empty)</p>
+                        )}
+                      </div>
                     </label>
                   </div>
 
