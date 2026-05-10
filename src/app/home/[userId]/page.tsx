@@ -88,24 +88,23 @@ export default function HomePage({
     };
   }, [userId, refreshKey]);
 
-  // Poll for extraction OR marking status updates. The native iOS
-  // app has no pull-to-refresh, so without polling, papers stay
-  // visually stuck on "Marking…" indefinitely even after the
-  // server has finished. 5 s is responsive enough without
-  // hammering the API.
+  // Poll papers periodically. Two reasons:
+  //   1. Pending extraction / marking — fast 5 s tick so the
+  //      "Marking…" indicator clears as soon as the server finishes.
+  //   2. New papers appearing — slow 30 s tick to pick up
+  //      self-initiated student quizzes that the parent didn't
+  //      kick off (and so didn't trigger their own refetch).
+  //      Native iOS has no pull-to-refresh, so without this the
+  //      parent has to log out / back in to see new activity.
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     const anyExtractionPending = examPapers.some((p) => p.extractionStatus === "processing");
     const anyMarkingPending = examPapers.some((p) => p.markingStatus === "in_progress");
-    const anyPending = anyExtractionPending || anyMarkingPending;
-    if (!anyPending) {
-      if (pollRef.current) {
-        clearInterval(pollRef.current);
-        pollRef.current = null;
-      }
-      return;
+    const fast = anyExtractionPending || anyMarkingPending;
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
     }
-    if (pollRef.current) return; // already polling
     pollRef.current = setInterval(async () => {
       try {
         const role = user?.role || "STUDENT";
@@ -117,7 +116,7 @@ export default function HomePage({
       } catch {
         /* ignore */
       }
-    }, 5000);
+    }, fast ? 5000 : 30000);
     return () => {
       if (pollRef.current) {
         clearInterval(pollRef.current);

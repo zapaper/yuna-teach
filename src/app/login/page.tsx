@@ -134,6 +134,12 @@ function LoginContent() {
       if (!res.ok) {
         const data = await res.json();
         setLoginError(data.error || "Login failed");
+        // Clear the password so the next attempt isn't autofilled
+        // back to the same wrong value. iOS WebView in particular
+        // would re-fill it from the input cache on retry, making
+        // it look like multiple attempts were "all failing" when
+        // really the same password was being resent.
+        setLoginPassword("");
         return;
       }
       const user = await res.json();
@@ -255,7 +261,20 @@ function LoginContent() {
             </div>
 
             {loginError && (
-              <p className="text-sm text-error font-medium">{loginError}</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm text-error font-medium">{loginError}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginIdentity("");
+                    setLoginPassword("");
+                    setLoginError("");
+                  }}
+                  className="text-xs font-bold text-primary hover:underline whitespace-nowrap"
+                >
+                  Clear &amp; retry
+                </button>
+              </div>
             )}
 
             {/* Forgot password inline panel */}

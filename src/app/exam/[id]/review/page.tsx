@@ -1209,9 +1209,13 @@ function ExamReviewContent({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Remark button — parents, or anyone for English quizzes */}
+        {/* Remark button — parents, or anyone for English quizzes.
+            flex-wrap + min-w-0 so on narrow phones (iOS) the buttons
+            stack instead of overflowing off the left edge —
+            previously "Mark as Reviewed" got pushed past the screen
+            boundary on small viewports. */}
         {(!isStudent || englishSections) && (
-          <div className="mb-4 flex justify-end gap-2">
+          <div className="mb-4 flex flex-wrap justify-end items-center gap-2 min-w-0">
             {!isStudent && !released && (
               <>
                 <button
