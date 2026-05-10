@@ -150,12 +150,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     /**
      * Where to send the user after a successful sign-in. The signIn
      * callback above already set our `yuna_session` cookie, but
-     * NextAuth's default redirect to "/" doesn't know which home
-     * page belongs to which user. Bouncing through /post-login lets
-     * a server route read the cookie and redirect to /home/<id>.
-     * Honour an explicit callbackUrl when it's a same-site path.
+     * NextAuth's default redirect to "/" / baseUrl just lands the
+     * user on the marketing homepage. Bouncing through /post-login
+     * lets a server route read the cookie and redirect to
+     * /home/<id>. Honour an explicit same-site path when one is
+     * passed (e.g. parent-deeplinks landing here via `next=`).
      */
     async redirect({ url, baseUrl }) {
+      // Bare baseUrl / "/" → our dispatcher.
+      if (url === "/" || url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/post-login`;
+      }
       if (url.startsWith("/") && !url.startsWith("//")) return `${baseUrl}${url}`;
       if (url.startsWith(baseUrl)) return url;
       return `${baseUrl}/post-login`;
