@@ -3384,34 +3384,58 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               </>
             )}
             {!popup.completed && selectedStudentId && popup.paperType !== "quiz" && popup.paperType !== "focused" && (
-              <div className="flex gap-2 mb-3">
+              <div className="flex flex-col gap-2 mb-3">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSchedulerPopup(null);
+                      window.open(
+                        `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`,
+                        "_blank",
+                      );
+                    }}
+                    className="flex-1 py-2.5 rounded-xl border-2 border-[#001e40]/20 text-[#001e40] text-sm font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-base">print</span>
+                    Print
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSchedulerPopup(null);
+                      setScannerTarget({
+                        masterPaperId: popup.id,
+                        studentId: selectedStudentId,
+                        studentName: selectedStudent?.name ?? null,
+                        paperTitle: popup.title,
+                      });
+                    }}
+                    className="lg:hidden flex-1 py-2.5 rounded-xl border-2 border-[#006c49]/30 text-[#006c49] text-sm font-bold hover:bg-[#e8fff3] transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-base">photo_camera</span>
+                    Scan
+                  </button>
+                </div>
+                {/* Open in child's tab — same flow as quiz/focused
+                    above. On native iOS we log out the parent and
+                    redirect to /login with `next` pointing at the
+                    paper's page, since iOS WebView has no concept
+                    of separate tabs. */}
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setSchedulerPopup(null);
-                    window.open(
-                      `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`,
-                      "_blank",
-                    );
+                    if (isNative()) {
+                      try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
+                      const next = encodeURIComponent(`/exam/${popup.id}`);
+                      window.location.href = `/login?next=${next}`;
+                      return;
+                    }
+                    const url = `/exam/${popup.id}?userId=${selectedStudentId}`;
+                    window.open(url, "_blank", "noopener");
                   }}
-                  className="flex-1 py-2.5 rounded-xl border-2 border-[#001e40]/20 text-[#001e40] text-sm font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-1.5"
+                  className="py-2.5 rounded-xl bg-[#001e40] text-white text-sm font-bold hover:bg-[#003366] transition-colors flex items-center justify-center gap-1.5"
                 >
-                  <span className="material-symbols-outlined text-base">print</span>
-                  Print
-                </button>
-                <button
-                  onClick={() => {
-                    setSchedulerPopup(null);
-                    setScannerTarget({
-                      masterPaperId: popup.id,
-                      studentId: selectedStudentId,
-                      studentName: selectedStudent?.name ?? null,
-                      paperTitle: popup.title,
-                    });
-                  }}
-                  className="lg:hidden flex-1 py-2.5 rounded-xl border-2 border-[#006c49]/30 text-[#006c49] text-sm font-bold hover:bg-[#e8fff3] transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-base">photo_camera</span>
-                  Scan
+                  <span className="material-symbols-outlined text-base">{isNative() ? "login" : "open_in_new"}</span>
+                  {isNative() ? "Log in as student" : "Open in child's tab"}
                 </button>
               </div>
             )}
