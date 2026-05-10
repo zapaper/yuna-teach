@@ -95,6 +95,48 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
+/**
+ * Crop a scanned-page JPEG buffer to a question's writing-area
+ * region using printableBounds. Bounds carry pageIndex +
+ * yStartPct + yEndPct (top-down percentages). If the question
+ * has subpart bounds, returns a record { [label]: buffer } —
+ * each subpart cropped to its own slice. Otherwise returns the
+ * cropped page as a single buffer.
+ *
+ * Falls back to the original buffer when bounds are missing,
+ * malformed, or we're looking at a different page than the one
+ * the bounds describe. The marker pipeline can then proceed with
+ * the whole page (legacy behaviour) without changing call shape.
+ */
+type Bounds = { pageIndex: number; yStartPct: number; yEndPct: number };
+type PrintableBounds = Bounds & { subparts?: Record<string, Bounds> };
+
+async function cropPageByBounds(
+  pageBuffer: Buffer,
+  bounds: PrintableBounds | null | undefined,
+  submissionPage: number,
+): Promise<Buffer> {
+  if (!bounds) return pageBuffer;
+  if (bounds.pageIndex !== submissionPage) return pageBuffer;
+  if (!Number.isFinite(bounds.yStartPct) || !Number.isFinite(bounds.yEndPct)) return pageBuffer;
+  if (bounds.yEndPct <= bounds.yStartPct) return pageBuffer;
+  try {
+    const sharp = (await import("sharp")).default;
+    const meta = await sharp(pageBuffer).metadata();
+    if (!meta.height || !meta.width) return pageBuffer;
+    const top = Math.max(0, Math.floor(meta.height * (bounds.yStartPct / 100)));
+    const bottom = Math.min(meta.height, Math.ceil(meta.height * (bounds.yEndPct / 100)));
+    const height = Math.max(1, bottom - top);
+    return await sharp(pageBuffer)
+      .extract({ left: 0, top, width: meta.width, height })
+      .jpeg({ quality: 88 })
+      .toBuffer();
+  } catch (err) {
+    console.warn(`[crop] failed for page ${submissionPage}:`, err);
+    return pageBuffer;
+  }
+}
+
 /** Check if a PNG buffer has any non-transparent pixels (alpha > 0).
  *  Parses raw IDAT chunks without a full image library. */
 function hasOpaquePixels(pngBuffer: Buffer): boolean {
@@ -2898,7 +2940,21 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: spBuffer.toString("base64") } });
               hasSubmission = true;
             } catch {
-              // Individual subpart file not found
+              // No per-subpart canvas file. Try cropping the
+              // composite page using printableBounds.subparts —
+              // this is how scanned-back printables (no per-part
+              // canvas) still get per-part images for the marker.
+              const subBounds = (q.printableBounds as PrintableBounds | null | undefined)?.subparts?.[sp.label];
+              if (subBounds) {
+                try {
+                  const pagePath = path.join(subDir, `page_${subBounds.pageIndex}.jpg`);
+                  const pageBuffer = await fs.readFile(pagePath);
+                  const cropped = await cropPageByBounds(pageBuffer, { ...subBounds }, subBounds.pageIndex);
+                  parts.push({ text: `Student's handwritten answer for part (${sp.label}):` });
+                  parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: cropped.toString("base64") } });
+                  hasSubmission = true;
+                } catch { /* page missing too — fall through */ }
+              }
             }
           }
         }
@@ -2926,10 +2982,17 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           try {
             const pagePath = path.join(subDir, `page_${i}.jpg`);
             const pageBuffer = await fs.readFile(pagePath);
+            // Crop to the question's writing area when we have
+            // printableBounds (set during clean-extract printable
+            // PDF generation). Falls back to the whole page when
+            // bounds are missing, so legacy in-app canvas papers
+            // (no printable cycle) still mark the same as before.
+            const bounds = (q.printableBounds as PrintableBounds | null | undefined) ?? null;
+            const cropped = await cropPageByBounds(pageBuffer, bounds, i);
             parts.push({ text: realSubs.length > 0
               ? "Student's handwritten answer (single combined canvas covering all sub-parts — they share one writing area, not separate per-part images):"
               : "Student's handwritten answer:" });
-            parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: pageBuffer.toString("base64") } });
+            parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: cropped.toString("base64") } });
             hasSubmission = true;
             usedCombinedFallback = realSubs.length > 0;
           } catch {
