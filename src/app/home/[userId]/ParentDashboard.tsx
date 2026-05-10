@@ -2655,6 +2655,30 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               <MetricsGrid />
               <AiInsightCard />
 
+              {/* Big green "open child's homepage" button — sits
+                  directly below the smart-insights card so parents
+                  can hand the device over to the child in one tap.
+                  Hidden when no student is selected. */}
+              {selectedStudent && (
+                <button
+                  onClick={async () => {
+                    if (isNative()) {
+                      try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
+                      const next = encodeURIComponent(`/home/${selectedStudent.id}`);
+                      window.location.href = `/login?next=${next}`;
+                      return;
+                    }
+                    window.open(`/home/${selectedStudent.id}`, "_blank", "noopener");
+                  }}
+                  className="w-full mt-2 py-4 rounded-2xl bg-gradient-to-r from-[#006c49] to-[#4edea3] text-white font-headline font-bold text-base shadow-lg hover:shadow-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined">{isNative() ? "login" : "open_in_new"}</span>
+                  {isNative()
+                    ? `Log in as ${selectedStudent.name}`
+                    : `Open ${selectedStudent.name}'s homepage in new tab`}
+                </button>
+              )}
+
               <section>
                 <div className="flex flex-wrap justify-between items-center gap-2 mb-5">
                   <h3 className="font-headline font-bold text-lg text-[#001e40] shrink-0">Performance Analysis</h3>
@@ -3072,6 +3096,29 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   })}
                 </div>
               </div>
+
+              {/* Big green "open child's homepage" CTA — same as
+                  the mobile placement, sits below the hero grid
+                  so parents can hand the device over in one click. */}
+              {selectedStudent && (
+                <button
+                  onClick={async () => {
+                    if (isNative()) {
+                      try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
+                      const next = encodeURIComponent(`/home/${selectedStudent.id}`);
+                      window.location.href = `/login?next=${next}`;
+                      return;
+                    }
+                    window.open(`/home/${selectedStudent.id}`, "_blank", "noopener");
+                  }}
+                  className="w-full mb-10 py-5 rounded-2xl bg-gradient-to-r from-[#006c49] to-[#4edea3] text-white font-headline font-bold text-lg shadow-lg hover:shadow-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-2xl">{isNative() ? "login" : "open_in_new"}</span>
+                  {isNative()
+                    ? `Log in as ${selectedStudent.name}`
+                    : `Open ${selectedStudent.name}'s homepage in new tab`}
+                </button>
+              )}
 
               {/* Bento grid */}
               <div className="space-y-8">
