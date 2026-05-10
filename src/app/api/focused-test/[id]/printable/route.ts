@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, PDFFont, PDFPage, PDFImage } from "pdf-lib";
 import { Prisma } from "@prisma/client";
+import { promises as fs } from "fs";
+import path from "path";
 import { prisma } from "@/lib/db";
 import { isAdmin as isAdminUser } from "@/lib/admin";
 
@@ -129,13 +131,40 @@ export async function GET(
   const helv = await doc.embedFont(StandardFonts.Helvetica);
   const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
 
+  // Embed the MarkForYou brand assets so the cover page can use
+  // them. Best-effort — if either file is missing, the cover
+  // gracefully falls back to text-only.
+  let owlLogo: PDFImage | null = null;
+  let wordmark: PDFImage | null = null;
+  try {
+    const buf = await fs.readFile(path.join(process.cwd(), "public", "logo_t.png"));
+    owlLogo = await doc.embedPng(buf);
+  } catch { /* missing in some environments */ }
+  try {
+    const buf = await fs.readFile(path.join(process.cwd(), "public", "markforyou2_t.png"));
+    wordmark = await doc.embedPng(buf);
+  } catch { /* missing — fall back to drawn text */ }
+
+  // What kind of paper are we printing? Drives the heading on
+  // the cover ("Quiz" vs "Focused Practice" vs "Practice").
+  const paperKind = paper.paperType === "quiz" ? "Quiz"
+    : paper.paperType === "focused" ? "Focused Practice"
+    : "Practice";
+
   // ── Cover page ────────────────────────────────────────────────
-  // Email-banner removed — in-app camera-scan + scheduler-popup Scan
-  // are the primary submission paths now. Parents stopped using the
-  // diagnose@... email flow once the in-app scanner shipped.
   let page = doc.addPage([A4_W, A4_H]);
   drawPrintCode(page, helvBold, code);
-  drawCoverPage(page, helvBold, helv, paper.title ?? "Focused Practice", student.name, paper.subject ?? "", paper.level ?? "", paper.questions.length, code);
+  drawCoverPage(page, helvBold, helv, {
+    owlLogo,
+    wordmark,
+    paperKind,
+    topic: paper.title ?? paperKind,
+    studentName: student.name,
+    subject: paper.subject ?? "",
+    level: paper.level ?? "",
+    questionCount: paper.questions.length,
+    code,
+  });
 
   // ── Question pages ────────────────────────────────────────────
   // Clean-extract render only — never embed q.imageData (raw scan
@@ -420,35 +449,99 @@ function drawPrintCode(page: PDFPage, font: PDFFont, code: string) {
   page.drawText(code, { x, y, size: fontSize, font, color: rgb(0, 0, 0) });
 }
 
-function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, title: string, studentName: string, subject: string, level: string, qCount: number, code: string) {
-  // Big title
-  let y = A4_H - 200;
-  page.drawText("Focused Practice", { x: MARGIN, y, size: 28, font: bold, color: rgb(0, 0.12, 0.25) });
-  y -= 36;
-  // Subtitle line: subject · level · question count. Note the "·"
-  // is in the ASCII_MAP so the sanitizer drops it to ".".
-  const sub = sanitizeForWinAnsi([subject, level ? `Primary ${level}` : "", `${qCount} questions`].filter(Boolean).join("  ·  "));
-  page.drawText(sub, { x: MARGIN, y, size: 14, font: regular, color: rgb(0.3, 0.3, 0.3) });
-  y -= 50;
-  // Student name (large) — name field is user-controlled, may
-  // include emoji or non-Latin characters that Helvetica can't
-  // encode. Sanitize before drawing.
-  page.drawText("Student", { x: MARGIN, y, size: 11, font: regular, color: rgb(0.4, 0.4, 0.4) });
-  y -= 18;
-  page.drawText(sanitizeForWinAnsi(studentName), { x: MARGIN, y, size: 22, font: bold, color: rgb(0, 0.12, 0.25) });
-  y -= 50;
-  // Topic
-  if (title) {
-    page.drawText("Topic", { x: MARGIN, y, size: 11, font: regular, color: rgb(0.4, 0.4, 0.4) });
-    y -= 18;
-    const lines = wrapLines(title, bold, 16, CONTENT_W);
-    for (const line of lines) {
-      page.drawText(line, { x: MARGIN, y, size: 16, font: bold, color: rgb(0, 0.12, 0.25) });
-      y -= 22;
-    }
+type CoverArgs = {
+  owlLogo: PDFImage | null;
+  wordmark: PDFImage | null;
+  paperKind: string;          // "Quiz" / "Focused Practice"
+  topic: string;              // paper title — usually the topic
+  studentName: string;
+  subject: string;
+  level: string;
+  questionCount: number;
+  code: string;
+};
+function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, args: CoverArgs) {
+  const { owlLogo, wordmark, paperKind, topic, studentName, subject, level, questionCount } = args;
+
+  // ── Brand block: owl logo + wordmark, centred ─────────────────
+  // Logo sized so the owl + wordmark together feel "front and
+  // centre" but don't crowd out the title underneath.
+  const logoSize = 110;
+  const wordmarkH = 36;
+  // Total block height (logo + gap + wordmark) used to centre.
+  let y = A4_H - 110; // anchor for the logo top
+  if (owlLogo) {
+    page.drawImage(owlLogo, {
+      x: (A4_W - logoSize) / 2,
+      y: y - logoSize,
+      width: logoSize,
+      height: logoSize,
+    });
+    y -= logoSize + 8;
+  } else {
+    y -= 20;
+  }
+  if (wordmark) {
+    const aspect = wordmark.width / wordmark.height;
+    const w = wordmarkH * aspect;
+    page.drawImage(wordmark, {
+      x: (A4_W - w) / 2,
+      y: y - wordmarkH,
+      width: w,
+      height: wordmarkH,
+    });
+    y -= wordmarkH + 28;
+  } else {
+    // Fallback: draw the brand name as text
+    const txt = "MarkForYou";
+    const size = 28;
+    const w = bold.widthOfTextAtSize(txt, size);
+    page.drawText(txt, { x: (A4_W - w) / 2, y: y - size, size, font: bold, color: rgb(0, 0.12, 0.25) });
+    y -= size + 28;
   }
 
-  // Instructions block at bottom
+  // ── Title: paper kind ("Quiz" / "Focused Practice"), centred ──
+  const kindSize = 22;
+  const kindW = bold.widthOfTextAtSize(paperKind, kindSize);
+  page.drawText(paperKind, { x: (A4_W - kindW) / 2, y: y - kindSize, size: kindSize, font: bold, color: rgb(0.2, 0.2, 0.2) });
+  y -= kindSize + 32;
+
+  // ── "for STUDENT", centred ────────────────────────────────────
+  const forLine = sanitizeForWinAnsi(`for ${studentName}`);
+  const forSize = 16;
+  const forW = regular.widthOfTextAtSize(forLine, forSize);
+  page.drawText(forLine, { x: (A4_W - forW) / 2, y: y - forSize, size: forSize, font: regular, color: rgb(0.3, 0.3, 0.3) });
+  y -= forSize + 36;
+
+  // ── Topic line, centred ───────────────────────────────────────
+  if (topic) {
+    const topicLines = wrapLines(`Topic: ${topic}`, bold, 14, CONTENT_W);
+    for (const line of topicLines) {
+      const w = bold.widthOfTextAtSize(line, 14);
+      page.drawText(line, { x: (A4_W - w) / 2, y: y - 14, size: 14, font: bold, color: rgb(0, 0.12, 0.25) });
+      y -= 20;
+    }
+    y -= 4;
+  }
+
+  // ── Date line, centred ────────────────────────────────────────
+  const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  const dateLine = `Printed: ${today}`;
+  const dateW = regular.widthOfTextAtSize(dateLine, 11);
+  page.drawText(dateLine, { x: (A4_W - dateW) / 2, y: y - 11, size: 11, font: regular, color: rgb(0.45, 0.45, 0.45) });
+  y -= 14;
+
+  // ── Meta strip: subject · level · question count ──────────────
+  const metaParts: string[] = [];
+  if (subject) metaParts.push(subject);
+  if (level) metaParts.push(`Primary ${level}`);
+  metaParts.push(`${questionCount} question${questionCount === 1 ? "" : "s"}`);
+  const meta = sanitizeForWinAnsi(metaParts.join("  ·  "));
+  const metaW = regular.widthOfTextAtSize(meta, 11);
+  page.drawText(meta, { x: (A4_W - metaW) / 2, y: y - 11, size: 11, font: regular, color: rgb(0.55, 0.55, 0.55) });
+  y -= 30;
+
+  // ── Instructions block at bottom ──────────────────────────────
   const instructions = [
     "1. Write your name and date below.",
     "2. Answer every question.",
@@ -456,7 +549,7 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, title: st
     "4. When completed, please scan with scanner button on your mobile/tablet.",
     "5. The code in the top-right of each page tells us which paper this is — please don't cover or cut it off.",
   ];
-  let iy = 240;
+  let iy = 220;
   page.drawText("Instructions", { x: MARGIN, y: iy, size: 12, font: bold, color: rgb(0, 0.12, 0.25) });
   iy -= 20;
   for (const line of instructions) {
@@ -474,7 +567,7 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, title: st
   page.drawText("Date:", { x: MARGIN + 280, y: ny, size: 11, font: bold });
   page.drawLine({ start: { x: MARGIN + 320, y: ny - 2 }, end: { x: A4_W - MARGIN, y: ny - 2 }, thickness: 0.6 });
   ny -= 30;
-  page.drawText(`Code: ${code}`, { x: MARGIN, y: ny, size: 9, font: regular, color: rgb(0.4, 0.4, 0.4) });
+  page.drawText(`Code: ${args.code}`, { x: MARGIN, y: ny, size: 9, font: regular, color: rgb(0.4, 0.4, 0.4) });
 }
 
 async function embedDataUrlScaled(doc: PDFDocument, dataUrl: string, targetWidth: number): Promise<{ embed: Awaited<ReturnType<typeof doc.embedJpg>>; height: number }> {
