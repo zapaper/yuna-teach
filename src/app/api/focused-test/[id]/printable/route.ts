@@ -71,13 +71,22 @@ const ASCII_MAP: Record<string, string> = {
 // readable form before WinAnsi sanitation strips the unicode further.
 function flattenLatex(s: string): string {
   if (!s) return "";
+  // For \frac{a}{b} and \sqrt{a}: skip the parens when `a` is a
+  // single atomic token (digits, a single variable, decimal, optional
+  // sign) so "1/4" doesn't become the ugly "(1)/(4)". Wrap only when
+  // the contents have spaces or operators that need disambiguation.
+  const atomic = (x: string) => x.trim();
+  const wrapAtomic = (x: string) => {
+    const t = atomic(x);
+    return /^-?[\w.]+$/.test(t) ? t : `(${t})`;
+  };
   return s
     // Strip surrounding $...$ and $$...$$ math delimiters but keep inner content
     .replace(/\$\$([^$]+)\$\$/g, "$1")
     .replace(/\$([^$]+)\$/g, "$1")
     // Fractions: nested-safe enough for the simple cases we see
-    .replace(/\\d?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)")
-    .replace(/\\sqrt\s*\{([^{}]+)\}/g, "√($1)")
+    .replace(/\\d?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, (_, a, b) => `${wrapAtomic(a)}/${wrapAtomic(b)}`)
+    .replace(/\\sqrt\s*\{([^{}]+)\}/g, (_, a) => `√${wrapAtomic(a)}`)
     // Common math operators / symbols
     .replace(/\\times/g, "×")
     .replace(/\\div/g, "÷")
