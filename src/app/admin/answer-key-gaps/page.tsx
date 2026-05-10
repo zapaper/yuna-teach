@@ -226,6 +226,8 @@ function Content() {
     setError(null);
     const toApply = items.filter((it) => (editAnswer[it.id] ?? "").trim().length > 0);
     setSaving(new Set(toApply.map((it) => it.id)));
+    let successCount = 0;
+    let lastError: string | null = null;
     try {
       // Sequential to keep DB writes ordered + show progress in the
       // UI as items disappear one by one. 10 rows = ~3 s total.
@@ -234,22 +236,40 @@ function Content() {
           .replace(/\r?\n+/g, " | ")
           .replace(/\s*\|\s*/g, " | ")
           .trim();
-        const r = await fetch("/api/admin/answer-key-gaps", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "apply",
-            id: it.id,
-            newAnswer: flat,
-            subpartMarks: editMarks[it.id],
-          }),
-        });
-        if (!r.ok) {
-          const data = await r.json().catch(() => ({}));
-          setError(`Stopped at Q${it.questionNum}: ${data.error ?? "save failed"}`);
-          break;
+        try {
+          const r = await fetch("/api/admin/answer-key-gaps", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "apply",
+              id: it.id,
+              newAnswer: flat,
+              subpartMarks: editMarks[it.id],
+            }),
+          });
+          if (!r.ok) {
+            const text = await r.text().catch(() => "");
+            lastError = `Q${it.questionNum} (HTTP ${r.status}): ${text.slice(0, 200)}`;
+            console.error(`[answer-key-gaps] apply failed:`, lastError);
+            // Don't break — keep trying the rest, surface the
+            // error at the end so partial saves still progress.
+            continue;
+          }
+          const body = await r.json().catch(() => ({}));
+          if (!body?.ok) {
+            lastError = `Q${it.questionNum}: server returned no ok flag`;
+            console.error(`[answer-key-gaps] apply unexpected body:`, body);
+            continue;
+          }
+          successCount++;
+          setItems((prev) => prev.filter((x) => x.id !== it.id));
+        } catch (e) {
+          lastError = `Q${it.questionNum}: ${e instanceof Error ? e.message : "network error"}`;
+          console.error(`[answer-key-gaps] apply threw:`, e);
         }
-        setItems((prev) => prev.filter((x) => x.id !== it.id));
+      }
+      if (lastError) {
+        setError(`Saved ${successCount} of ${toApply.length}. Last error: ${lastError}`);
       }
     } finally {
       setSaving(new Set());
