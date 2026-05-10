@@ -106,7 +106,16 @@ async function shrinkImage(base64: string | null | undefined): Promise<string | 
   }
 }
 
-async function generateAnswer(q: {
+// Tolerant check: does the answer string LOOK like the per-part
+// format we asked for? Must begin with "(a)" (allowing leading
+// whitespace) so the renderer's parsePartAnswers slices cleanly.
+// Sometimes the AI emits "Steps: ..." with the (a) label dropped
+// or "14a) Steps: ..." which doesn't slice the same way.
+function looksWellFormed(answer: string): boolean {
+  return /^\s*\(a\)/i.test(answer.trim());
+}
+
+async function generateAnswerOnce(q: {
   stem: string;
   subparts: Subpart[];
   options: unknown;
@@ -140,6 +149,24 @@ async function generateAnswer(q: {
   } catch (e) {
     return { error: e instanceof Error ? e.message : "AI call failed" };
   }
+}
+
+// generateAnswer wraps the single-call helper with one auto-retry
+// when the first attempt's payload doesn't start with "(a)" — the
+// renderer's parsePartAnswers slices on labels, and a missing
+// leading "(a)" leaks the whole answer under part (a) only. The
+// admin used to fix this manually with the Re-run AI button; we
+// now do it automatically up front.
+async function generateAnswer(q: Parameters<typeof generateAnswerOnce>[0]): Promise<{ answer: string } | { error: string }> {
+  const first = await generateAnswerOnce(q);
+  if ("error" in first) return first;
+  if (looksWellFormed(first.answer)) return first;
+  console.log(`[answer-key-gaps] first attempt malformed (no leading "(a)"), retrying once`);
+  const second = await generateAnswerOnce(q);
+  // If retry also fails, return whatever we have so the admin can
+  // either edit by hand or click Re-run AI again.
+  if ("error" in second) return first;
+  return looksWellFormed(second.answer) ? second : first;
 }
 
 // GET — surface up to 30 candidates with both gap types + AI
