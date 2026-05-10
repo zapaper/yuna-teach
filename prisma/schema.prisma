@@ -54,6 +54,16 @@ model User {
   // website" copy in the cancel/upgrade UI.
   paymentSource              String?
 
+  // OAuth provider identifiers. Populated when a user signs in via
+  // Google or Apple Sign In. Stored alongside (not replacing) the
+  // existing username + password — a single User can have any
+  // combination of: local password, googleId, appleId. Lookup at
+  // sign-in time matches by email first (so an existing local
+  // account auto-links on first SSO), falling back to provider id.
+  // Both fields are unique-but-nullable.
+  googleId String? @unique
+  appleId  String? @unique
+
   tests              SpellingTest[]
   examPapers         ExamPaper[]    @relation("UploadedPapers")
   assignedExamPapers ExamPaper[]    @relation("AssignedPapers")

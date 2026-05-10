@@ -29,6 +29,7 @@
     "jspdf": "^4.2.0",
     "katex": "^0.16.45",
     "next": "16.1.6",
+    "next-auth": "^5.0.0-beta.31",
     "nodemailer": "^8.0.5",
     "openai": "^6.33.0",
     "pdf-lib": "^1.17.1",
