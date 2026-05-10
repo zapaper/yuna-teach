@@ -930,6 +930,27 @@ function ExamReviewContent({ id }: { id: string }) {
     ));
   }
 
+  // Strip the AI's "Working: …" / "blank" scaffolding from a
+  // detected-answer string so the parent doesn't see the literal
+  // word "blank" leaking into the rendered Detected Answer card.
+  // Handles:
+  //   "Working: blank\nFinal answer: 24" → "Final answer: 24"
+  //   "blank | Final answer: 24"         → "Final answer: 24"
+  //   "blank"                             → "(no answer detected)"
+  //   leading "Working: …" alone         → strip the prefix
+  function cleanDetectedAnswer(raw: string): string {
+    let s = raw.trim();
+    // Drop a leading "Working:" / "Working" label (with or without colon).
+    s = s.replace(/^\s*working\s*:?\s*/i, "");
+    // Drop a "blank" or "(blank)" line (or pipe-separated chunk) anywhere.
+    s = s
+      .split(/\r?\n|\s*\|\s*/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0 && !/^\(?blank\)?$/i.test(line) && !/^no\s+answer$/i.test(line))
+      .join("\n");
+    return s.trim() || "(no answer detected)";
+  }
+
   // Renders marking notes: bolds verdict labels and **keyword**
   // markers, and runs plain-text segments through MathText so
   // inline LaTeX (e.g. "$\frac{7}{27}$") renders as a proper
@@ -2562,10 +2583,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                           {(() => {
                                             const detected = partStudent || (!hasPartAnswers && realSubs.length === 1 && studentAnswerText) || null;
                                             if (!detected) return null;
-                                            // Strip the "Working:" label the AI prepends per the detect prompt's
-                                            // "Working: ... Final answer: X" format. The label is scaffolding,
-                                            // not part of the student's answer.
-                                            const cleaned = detected.replace(/^\s*working\s*:?\s*/i, "").trim() || detected;
+                                            const cleaned = cleanDetectedAnswer(detected);
                                             return (
                                               <div className={`text-sm leading-relaxed rounded-xl p-3 ${
                                                 partStatus === "full"
@@ -2695,7 +2713,7 @@ function ExamReviewContent({ id }: { id: string }) {
                             <div className={`text-sm leading-relaxed rounded-2xl p-4 whitespace-pre-wrap ${
                               isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
-                              {studentAnswerText.replace(/^\s*working\s*:?\s*/i, "").trim() || studentAnswerText}
+                              {cleanDetectedAnswer(studentAnswerText)}
                             </div>
                           </div>
                         )}
@@ -2777,10 +2795,10 @@ function ExamReviewContent({ id }: { id: string }) {
                         {studentAnswerText && !currentQ.transcribedOptions && (
                           <div>
                             <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#43474f] mb-2">Detected Answer</p>
-                            <div className={`text-sm leading-relaxed rounded-2xl p-4 ${
+                            <div className={`text-sm leading-relaxed rounded-2xl p-4 whitespace-pre-wrap ${
                               isCorrect ? "bg-[#6cf8bb]/20 text-[#006c49]" : "bg-[#ffdad6] text-[#93000a]"
                             }`}>
-                              {studentAnswerText}
+                              {cleanDetectedAnswer(studentAnswerText)}
                             </div>
                           </div>
                         )}
