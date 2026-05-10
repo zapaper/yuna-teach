@@ -61,6 +61,9 @@ function Content() {
   const [editAnswer, setEditAnswer] = useState<Record<string, string>>({});
   const [editMarks, setEditMarks] = useState<Record<string, Record<string, number>>>({});
   const [saving, setSaving] = useState<Set<string>>(new Set());
+  // Lightbox state — admin clicks a thumbnail to view the image
+  // full-screen for closer inspection of question / answer.
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   async function scan(reset = false) {
     setLoading(true);
@@ -289,13 +292,15 @@ function Content() {
                     </p>
                   </div>
 
-                  {/* Question + answer images for visual reference */}
+                  {/* Question + answer images for visual reference.
+                      Click to enlarge in a full-screen lightbox. */}
                   <div className="flex gap-2 mb-3 overflow-x-auto">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={`/api/exam/question/${it.id}/image`}
                       alt="Question"
-                      className="h-32 rounded border border-slate-200"
+                      onClick={() => setLightboxSrc(`/api/exam/question/${it.id}/image`)}
+                      className="h-32 rounded border border-slate-200 cursor-zoom-in hover:border-rose-400 transition-colors"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                     />
                     {it.hasAnswerImage && (
@@ -303,7 +308,8 @@ function Content() {
                       <img
                         src={`/api/exam/question/${it.id}/answer-image`}
                         alt="Answer"
-                        className="h-32 rounded border border-emerald-200"
+                        onClick={() => setLightboxSrc(`/api/exam/question/${it.id}/answer-image`)}
+                        className="h-32 rounded border border-emerald-200 cursor-zoom-in hover:border-emerald-400 transition-colors"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                       />
                     )}
@@ -360,6 +366,29 @@ function Content() {
           </div>
         </div>
       </div>
+
+      {/* Image lightbox — full-screen overlay; click anywhere to close. */}
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-6 cursor-zoom-out"
+          onClick={() => setLightboxSrc(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightboxSrc}
+            alt="Enlarged"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setLightboxSrc(null)}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center"
+            aria-label="Close"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

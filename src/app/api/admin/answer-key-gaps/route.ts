@@ -33,18 +33,27 @@ const ai = new GoogleGenAI({
 
 const SOLVE_PROMPT = `You are a Singapore primary-school maths/science teacher writing answer keys.
 
-Solve the question below. Output a labelled block per sub-part:
-  (LABEL) Steps: Step 1: ... | Step 2: ... | ... | Final answer: ...
+Solve the question. Output ONE labelled block per sub-part. Each block must be self-contained — repeat any shared working inside the block — so the renderer can show students the working that leads to THAT specific part's answer.
+
+Format (mandatory):
+  (a) Steps: Step 1: ... | Step 2: ... | Final answer: <a's answer>
+  followed by " | "
+  (b) Steps: Step 1: ... | Step 2: ... | Final answer: <b's answer>
+  followed by " | "
+  (c) ... etc.
 
 Rules:
-- Each step on its own clause separated by " | " (NOT a literal newline).
-- Each step is ONE short sentence including the calculation.
-- Total steps usually 2-6 per sub-part.
-- "Final answer:" line gives the numeric/short answer with units.
-- Concatenate all sub-part blocks separated by " | ".
-- If a sub-part is unanswerable from the available info (missing diagram, etc.), output "(LABEL) Unable to solve from available info — needs admin attention." for that label.
+- DO NOT output a single shared "Steps: ..." block followed by a combined "Final answer: (a) X (b) Y" line. The (a) block must end with its OWN "Final answer: …" line, and the (b) block must start fresh with its label and its own steps + final answer. If the working for (a) and (b) is genuinely identical, duplicate it word-for-word under each label.
+- Each step is ONE short sentence (≤ 20 words) with the actual calculation.
+- 2–6 steps per sub-part is typical.
+- "Final answer:" line carries the numeric/short answer with units.
+- Use " | " as the separator between steps AND between sub-part blocks. Never use literal newlines inside the JSON string value.
+- If a sub-part can't be solved from the available info (missing diagram etc.), output "(LABEL) Steps: Unable to solve from available info — needs admin attention. | Final answer: ?" for that label.
 
-Return ONLY valid JSON: { "answer": "(a) Steps: ... | (b) Steps: ..." }`;
+Return ONLY valid JSON: { "answer": "(a) Steps: ... Final answer: ... | (b) Steps: ... Final answer: ..." }
+
+Example for a question where parts (a) and (b) share the same working:
+  "answer": "(a) Steps: Step 1: 1 - 4/9 - 1/2 = 1/18 | Step 2: 1 unit → 36 eggs | Step 3: 9 × 36 = 324 | Final answer: 324 | (b) Steps: Step 1: 1 - 4/9 - 1/2 = 1/18 | Step 2: 1 unit → 36 eggs | Step 3: 9 × 36 = 324 | Step 4: 30 × 12 = 360 | Step 5: 360 - 324 = 36 | Step 6: 36 ÷ 2 = 18 | Final answer: 18"`;
 
 type Subpart = { label: string; text: string };
 
