@@ -16,7 +16,6 @@ import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
 import { SignJWT, importPKCS8 } from "jose";
 import { prisma } from "./db";
-import { setSession } from "./session";
 import { DEFAULT_TRIAL_DAYS } from "./subscription";
 
 // Apple Sign In: the OAuth "client secret" is actually a JWT
@@ -150,12 +149,46 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
       }
 
-      // Set our session cookie. signIn callback runs server-side in
-      // the OAuth callback route, so cookies().set() works here.
-      await setSession(dbUser.id);
+      // NOTE: deliberately NOT calling setSession() here. Auth.js v5
+      // doesn't reliably propagate cookies written inside the
+      // signIn callback to the final OAuth-callback response — the
+      // browser would receive the redirect without the cookie and
+      // /post-login would think no one was signed in. Instead we
+      // stash the user id on the NextAuth JWT (see jwt callback
+      // below) and let /post-login read it through auth() and set
+      // yuna_session there. NextAuth's own session cookie carries
+      // the JWT to the next request reliably.
       console.log(`[oauth] signIn ok: ${provider} → user=${dbUser.id} (${dbUser.email})`);
 
       return true;
+    },
+
+    /** Stamp our internal user id onto the NextAuth JWT so the
+     *  post-login dispatcher can read it without another DB
+     *  lookup. */
+    async jwt({ token, user, account }) {
+      // First time through after a successful signIn — `user` and
+      // `account` are populated. Re-read our user by provider id
+      // so we get the upserted DB row.
+      if (account && user?.email) {
+        const idColumn = account.provider === "google" ? "googleId" : account.provider === "apple" ? "appleId" : null;
+        if (idColumn) {
+          const dbUser = await prisma.user.findFirst({
+            where: { [idColumn]: account.providerAccountId },
+            select: { id: true },
+          });
+          if (dbUser) (token as { uid?: string }).uid = dbUser.id;
+        }
+      }
+      return token;
+    },
+
+    /** Copy the JWT-stamped uid into the session object so
+     *  /post-login can read it via auth(). */
+    async session({ session, token }) {
+      const t = token as { uid?: string };
+      if (t.uid) (session as unknown as { uid?: string }).uid = t.uid;
+      return session;
     },
 
     /**
