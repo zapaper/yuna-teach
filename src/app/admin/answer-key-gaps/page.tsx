@@ -137,6 +137,39 @@ function Content() {
     }
   }
 
+  // Batch-apply every surfaced item. Skips rows where the proposed
+  // answer is empty (AI couldn't solve), letting the admin handle
+  // those manually after the batch.
+  async function applyAll() {
+    setError(null);
+    const toApply = items.filter((it) => (editAnswer[it.id] ?? "").trim().length > 0);
+    setSaving(new Set(toApply.map((it) => it.id)));
+    try {
+      // Sequential to keep DB writes ordered + show progress in the
+      // UI as items disappear one by one. 10 rows = ~3 s total.
+      for (const it of toApply) {
+        const r = await fetch("/api/admin/answer-key-gaps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "apply",
+            id: it.id,
+            newAnswer: editAnswer[it.id],
+            subpartMarks: editMarks[it.id],
+          }),
+        });
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          setError(`Stopped at Q${it.questionNum}: ${data.error ?? "save failed"}`);
+          break;
+        }
+        setItems((prev) => prev.filter((x) => x.id !== it.id));
+      }
+    } finally {
+      setSaving(new Set());
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <AdminNav userId={userId} />
@@ -165,6 +198,15 @@ function Content() {
             >
               Reset scan
             </button>
+            {items.length > 0 && (
+              <button
+                onClick={applyAll}
+                disabled={loading || saving.size > 0}
+                className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {saving.size > 0 ? `Applying ${saving.size}…` : `Apply all ${items.length}`}
+              </button>
+            )}
             <div className="flex items-center gap-1 bg-white rounded-lg border border-slate-200 p-1">
               {(["math", "science", "all"] as const).map((s) => (
                 <button
