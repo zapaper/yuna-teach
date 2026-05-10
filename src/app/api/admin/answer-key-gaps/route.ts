@@ -373,15 +373,23 @@ export async function POST(request: NextRequest) {
     const labelsWithMarks = Object.keys(subpartMarks).filter((l) => Number.isFinite(subpartMarks[l]));
     if (labelsWithMarks.length > 0 && existing.length > 0) {
       // Update text for each subpart we have marks for; keep
-      // sentinel labels (_drawable, _subref-*) untouched.
+      // sentinel labels (_drawable, _subref-*) untouched. If the
+      // text ALREADY has a [N] marker we REPLACE it with the
+      // admin's edited value — previously we no-op'd, which made
+      // the admin's correction look like it had saved when the
+      // existing wrong-mark stayed in place.
       type RawSubpart = { label: string; text: string; [k: string]: unknown };
       const all = q.transcribedSubparts as unknown as RawSubpart[];
+      const markRe = /\[\s*\d+\s*(?:m(?:ark)?s?)?\s*\]/i;
       const updated = all.map((sp) => {
         if (sp.label.startsWith("_")) return sp;
         const m = subpartMarks[sp.label];
-        if (!m || !Number.isFinite(m)) return sp;
-        if (/\[\s*\d+\s*(?:m(?:ark)?s?)?\s*\]/i.test(String(sp.text ?? ""))) return sp;
-        return { ...sp, text: `${String(sp.text ?? "").trim()} [${m}]`.trim() };
+        if (!Number.isFinite(m)) return sp;
+        const text = String(sp.text ?? "");
+        const newText = markRe.test(text)
+          ? text.replace(markRe, `[${m}]`)
+          : `${text.trim()} [${m}]`;
+        return { ...sp, text: newText.trim() };
       });
       data.transcribedSubparts = updated as unknown as Prisma.InputJsonValue;
     }
