@@ -220,6 +220,30 @@ function SolverContent() {
       const LABEL_SIZE = 28;
       const LABEL_H = LABEL_SIZE + 16;
 
+      // Canvas 2D's fillText can't render LaTeX (no \frac stacking,
+      // no √ overhead bar). KaTeX renders to HTML/CSS but we're
+      // drawing to a raster canvas, so we substitute LaTeX commands
+      // with the closest plain-text equivalents so the shared
+      // picture is at least readable instead of leaking
+      // "$\frac{1}{18}$" gibberish. Lossy — fractions render as
+      // "1/18", roots as "√16" etc. — but legible.
+      const flattenLatex = (s: string): string => s
+        .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "$1/$2")
+        .replace(/\\sqrt\s*\{([^{}]+)\}/g, "√$1")
+        .replace(/\\times/g, "×")
+        .replace(/\\div/g, "÷")
+        .replace(/\\cdot/g, "·")
+        .replace(/\\pi/g, "π")
+        .replace(/\\degree/g, "°")
+        .replace(/\\le(?![a-z])/gi, "≤")
+        .replace(/\\ge(?![a-z])/gi, "≥")
+        .replace(/\\ne(?![a-z])/gi, "≠")
+        .replace(/\^\{([^{}]+)\}/g, "^$1")
+        .replace(/_\{([^{}]+)\}/g, "_$1")
+        .replace(/\$([^$]+)\$/g, "$1")
+        .replace(/\\([a-zA-Z]+)/g, "$1");
+      const flatSolution = flattenLatex(solution);
+
       const img = new Image();
       img.src = imageDataUrl;
       await new Promise<void>(resolve => { img.onload = () => resolve(); });
@@ -297,7 +321,7 @@ function SolverContent() {
       const measureCanvas = document.createElement("canvas");
       measureCanvas.width = W;
       const mCtx = measureCanvas.getContext("2d")!;
-      const solutionLines = wrapText(mCtx, solution, W - PADDING * 2, MIN_FONT);
+      const solutionLines = wrapText(mCtx, flatSolution, W - PADDING * 2, MIN_FONT);
       const solutionLineH = Math.round(MIN_FONT * 1.55);
       const diagramStepsH = diagrams.length > 0
         ? D_SECTION_LABEL_H + diagrams.reduce((s, d, i) =>
@@ -445,7 +469,7 @@ function SolverContent() {
       let fontSize = 32;
       let lines: string[] = [];
       while (fontSize >= 18) {
-        lines = wrapText(ctx, solution, W - PADDING * 2, fontSize);
+        lines = wrapText(ctx, flatSolution, W - PADDING * 2, fontSize);
         const lineH = Math.round(fontSize * 1.55);
         if (lines.length * lineH <= textAreaH) break;
         fontSize -= 1;
