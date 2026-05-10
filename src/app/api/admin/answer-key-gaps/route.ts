@@ -230,6 +230,25 @@ export async function GET(request: NextRequest) {
       const proposedAnswer = "answer" in answerResult ? answerResult.answer : "";
       const aiError = "error" in answerResult ? answerResult.error : null;
 
+      // Even-split fallback: when the AI couldn't read any [N]
+      // markers off the question image but we know the total
+      // marks AND the parts divide evenly into it (e.g. 2 marks
+      // across 2 parts → 1 each, 6 across 3 parts → 2 each), seed
+      // the proposed marks with the obvious split. Admin can still
+      // override before applying.
+      const labelsList = r.subs.map((s) => s.label);
+      const total = r.q.marksAvailable;
+      if (
+        Object.keys(proposedMarks).length === 0 &&
+        typeof total === "number" &&
+        total > 0 &&
+        labelsList.length > 0 &&
+        total % labelsList.length === 0
+      ) {
+        const each = total / labelsList.length;
+        for (const lbl of labelsList) proposedMarks[lbl] = each;
+      }
+
       // Pre-existing per-part marks scraped from the subpart text
       // (the [N] markers we already write). Lets the page show
       // "before" — current per-part marks — alongside "after".
