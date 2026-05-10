@@ -64,6 +64,35 @@ function Content() {
   // Lightbox state — admin clicks a thumbnail to view the image
   // full-screen for closer inspection of question / answer.
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  // Per-row "regenerating" state for the re-run AI button.
+  const [regenerating, setRegenerating] = useState<Set<string>>(new Set());
+
+  async function regenerate(id: string) {
+    setError(null);
+    setRegenerating((s) => new Set(s).add(id));
+    try {
+      const r = await fetch("/api/admin/answer-key-gaps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "regenerate", id }),
+      });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        setError(data.error ?? "Re-run failed");
+        return;
+      }
+      const data = (await r.json()) as { proposedAnswer?: string };
+      if (data.proposedAnswer) {
+        setEditAnswer((prev) => ({ ...prev, [id]: data.proposedAnswer ?? "" }));
+      }
+    } finally {
+      setRegenerating((s) => {
+        const next = new Set(s);
+        next.delete(id);
+        return next;
+      });
+    }
+  }
 
   async function scan(reset = false) {
     setLoading(true);
@@ -363,12 +392,22 @@ function Content() {
                       <pre className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono whitespace-pre-wrap break-words text-slate-600 max-h-48 overflow-y-auto">{it.currentAnswer || "(empty)"}</pre>
                     </div>
                     <label className="block">
-                      <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">After — proposed (editable)</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">After — proposed (editable)</span>
+                        <button
+                          onClick={() => regenerate(it.id)}
+                          disabled={regenerating.has(it.id) || saving.has(it.id)}
+                          className="flex items-center gap-1 text-[10px] font-bold text-rose-600 hover:text-rose-800 disabled:opacity-50"
+                        >
+                          <span className="material-symbols-outlined text-xs">refresh</span>
+                          {regenerating.has(it.id) ? "Re-running…" : "Re-run AI"}
+                        </button>
+                      </div>
                       <textarea
                         value={editAnswer[it.id] ?? ""}
                         onChange={(e) => setEditAnswer((prev) => ({ ...prev, [it.id]: e.target.value }))}
                         rows={8}
-                        className="mt-1 w-full px-3 py-2 rounded-lg border border-rose-300 bg-rose-50/30 text-xs font-mono focus:outline-none focus:border-rose-500"
+                        className="w-full px-3 py-2 rounded-lg border border-rose-300 bg-rose-50/30 text-xs font-mono focus:outline-none focus:border-rose-500"
                       />
                     </label>
                   </div>

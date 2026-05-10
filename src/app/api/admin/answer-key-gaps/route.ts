@@ -33,22 +33,24 @@ const ai = new GoogleGenAI({
 
 const SOLVE_PROMPT = `You are a Singapore primary-school maths/science teacher writing answer keys.
 
-Solve the question. Output ONE labelled block per sub-part. Each block must be self-contained — repeat any shared working inside the block — so the renderer can show students the working that leads to THAT specific part's answer.
+Solve the question. The output MUST be organised by sub-part. Each sub-part gets its own labelled block with its own steps and its own final answer. NEVER produce one shared block of steps with the per-part answers tagged at the end.
 
-Format (mandatory):
-  (a) Steps: Step 1: ... | Step 2: ... | Final answer: <a's answer>
-  followed by " | "
-  (b) Steps: Step 1: ... | Step 2: ... | Final answer: <b's answer>
-  followed by " | "
-  (c) ... etc.
+REQUIRED format (this is non-negotiable):
+  "(a) Steps: <step 1> | <step 2> | ... | Final answer: <answer for a> | (b) Steps: <step 1> | <step 2> | ... | Final answer: <answer for b> | (c) Steps: ... | Final answer: ..."
+
+WRONG format (do NOT produce this):
+  "Steps: <step 1> | <step 2> | ... | Final answer: (a) X (b) Y"
+  This is the format the source material often uses. Your job is to RE-ORGANISE it into the per-part format above.
 
 Rules:
-- DO NOT output a single shared "Steps: ..." block followed by a combined "Final answer: (a) X (b) Y" line. The (a) block must end with its OWN "Final answer: …" line, and the (b) block must start fresh with its label and its own steps + final answer. If the working for (a) and (b) is genuinely identical, duplicate it word-for-word under each label.
+- The (a) block STARTS with "(a) Steps:" and ENDS with its own "Final answer: <a's answer>".
+- Then a " | " separator.
+- Then the (b) block STARTS with "(b) Steps:" and ENDS with its own "Final answer: <b's answer>".
+- If the working for (a) and (b) is genuinely the same shared computation, REPEAT the working steps word-for-word inside each block. Repetition is intentional — the renderer slices the answer string by label and shows each block to the student under their respective sub-part.
 - Each step is ONE short sentence (≤ 20 words) with the actual calculation.
 - 2–6 steps per sub-part is typical.
-- "Final answer:" line carries the numeric/short answer with units.
-- Use " | " as the separator between steps AND between sub-part blocks. Never use literal newlines inside the JSON string value.
-- If a sub-part can't be solved from the available info (missing diagram etc.), output "(LABEL) Steps: Unable to solve from available info — needs admin attention. | Final answer: ?" for that label.
+- Use " | " as the separator. Never use literal newlines inside the JSON string value.
+- If a sub-part can't be solved from the available info, output "(LABEL) Steps: Unable to solve from available info — needs admin attention. | Final answer: ?".
 
 LaTeX math (CRITICAL):
 - Wrap fractions, mixed numbers, exponents, and roots in single dollar signs so the renderer stacks them properly:
@@ -299,11 +301,18 @@ export async function GET(request: NextRequest) {
   });
 }
 
-// POST — apply admin's accepted proposals.
+// POST — two actions:
 //   { action: "apply", id, newAnswer?, subpartMarks? }
-// subpartMarks is { label: number } — appended as [N] to each
-// matching sub-part text (only if the text doesn't already have
-// a [N] marker). newAnswer overwrites the answer field verbatim.
+//     Apply admin's accepted proposals. subpartMarks is
+//     { label: number } — appended as [N] to each matching
+//     sub-part text (only if the text doesn't already have a [N]
+//     marker). newAnswer overwrites the answer field verbatim.
+//   { action: "regenerate", id }
+//     Re-run the AI solver for one row WITHOUT saving — admin
+//     uses this when the first proposal was poorly formatted
+//     (e.g. shared-block instead of per-part) and wants Gemini
+//     to try again. Returns the same shape as a single GET item
+//     so the page can reseed editAnswer for that row.
 export async function POST(request: NextRequest) {
   if (!(await isSessionAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -315,6 +324,32 @@ export async function POST(request: NextRequest) {
     newAnswer?: string;
     subpartMarks?: Record<string, number>;
   };
+  if (action === "regenerate" && id) {
+    const q = await prisma.examQuestion.findUnique({
+      where: { id },
+      select: {
+        transcribedStem: true,
+        transcribedSubparts: true,
+        transcribedOptions: true,
+        diagramImageData: true,
+        answer: true,
+      },
+    });
+    if (!q) return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    const subs = realSubparts(q.transcribedSubparts);
+    const diag = await shrinkImage(q.diagramImageData);
+    const result = await generateAnswer({
+      stem: q.transcribedStem ?? "",
+      subparts: subs,
+      options: q.transcribedOptions,
+      diagramBase64: diag,
+      existingAnswer: q.answer,
+    });
+    if ("error" in result) {
+      return NextResponse.json({ error: result.error }, { status: 502 });
+    }
+    return NextResponse.json({ proposedAnswer: result.answer });
+  }
   if (action !== "apply" || !id) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
