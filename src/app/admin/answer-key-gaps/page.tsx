@@ -58,6 +58,10 @@ function Content() {
   // avoiding a re-scan on every "Load next 10".
   const [backlog, setBacklog] = useState<string[]>([]);
   const [backlogIndex, setBacklogIndex] = useState(0);
+  // Independent of the fetch cursor — tracks rows the admin has
+  // actually applied. The counter shows this so progress reflects
+  // real saves, not just rows we've shown.
+  const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<"math" | "science" | "all">("math");
@@ -130,6 +134,7 @@ function Content() {
       setBacklog(data.ids);
       setTotalPending(data.totalPending);
       setBacklogIndex(0);
+      setSavedCount(0);
       setItems([]);
       setEditAnswer({});
       setEditMarks({});
@@ -208,6 +213,7 @@ function Content() {
           setError(data.error ?? "Save failed");
           return;
         }
+        setSavedCount((c) => c + 1);
       }
       setItems((prev) => prev.filter((it) => it.id !== id));
     } finally {
@@ -262,6 +268,7 @@ function Content() {
             continue;
           }
           successCount++;
+          setSavedCount((c) => c + 1);
           setItems((prev) => prev.filter((x) => x.id !== it.id));
         } catch (e) {
           lastError = `Q${it.questionNum}: ${e instanceof Error ? e.message : "network error"}`;
@@ -336,7 +343,7 @@ function Content() {
             </div>
             <span className="text-xs text-slate-500 ml-2">
               {totalPending !== null && backlog.length > 0
-                ? `${Math.min(backlogIndex, backlog.length)} of ${backlog.length} processed in ${subjectFilter}`
+                ? `${savedCount} saved · ${Math.min(backlogIndex, backlog.length)} of ${backlog.length} reviewed in ${subjectFilter}`
                 : `${items.length} surfaced`}
             </span>
           </div>
