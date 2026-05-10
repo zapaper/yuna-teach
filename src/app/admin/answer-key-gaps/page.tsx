@@ -52,6 +52,7 @@ function Content() {
   const userId = searchParams.get("userId") ?? "";
   const [items, setItems] = useState<GapItem[]>([]);
   const [scanned, setScanned] = useState(0);
+  const [totalPending, setTotalPending] = useState<number | null>(null);
   const [excludeIds, setExcludeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +84,13 @@ function Content() {
       }
       const data = (await r.json()) as { proposedAnswer?: string };
       if (data.proposedAnswer) {
-        setEditAnswer((prev) => ({ ...prev, [id]: data.proposedAnswer ?? "" }));
+        // Apply the same display-format pass we use on initial scan
+        // so re-runs land in the textarea with clean (a)/(b) labels
+        // and one-block-per-line.
+        const norm = data.proposedAnswer
+          .replace(/(^|\s\|\s|\n)\s*\d*([a-f])\s*[):]\s*/gi, "$1($2) ")
+          .replace(/\s*\|\s*\(([a-z])\)/gi, "\n($1)");
+        setEditAnswer((prev) => ({ ...prev, [id]: norm }));
       }
     } finally {
       setRegenerating((s) => {
@@ -106,12 +113,23 @@ function Content() {
         setError(data.error ?? `Scan failed (${r.status})`);
         return;
       }
-      const data = (await r.json()) as { items: GapItem[]; scanned: number };
+      const data = (await r.json()) as { items: GapItem[]; scanned: number; totalPending?: number };
+      if (typeof data.totalPending === "number") setTotalPending(data.totalPending);
       // Seed per-row edit state from AI proposals
+      // Make the proposed answer easier to scan: each "(b)", "(c)",
+      // etc. block starts on a new line. Also normalise scrappy
+      // label forms the AI sometimes emits ("14a)", "a)", "a:")
+      // to the canonical "(a)" so the renderer's parsePartAnswers
+      // slices cleanly. Save path keeps the single-line " | "
+      // form so the renderer keeps working as before.
+      const normaliseLabels = (s: string) =>
+        s.replace(/(^|\s\|\s|\n)\s*\d*([a-f])\s*[):]\s*/gi, "$1($2) ");
+      const splitParts = (s: string) =>
+        normaliseLabels(s).replace(/\s*\|\s*\(([a-z])\)/gi, "\n($1)");
       const seedAnswer: Record<string, string> = {};
       const seedMarks: Record<string, Record<string, number>> = {};
       for (const it of data.items) {
-        seedAnswer[it.id] = it.proposedAnswer || it.currentAnswer;
+        seedAnswer[it.id] = splitParts(it.proposedAnswer || it.currentAnswer);
         seedMarks[it.id] = { ...it.proposedMarks };
       }
       if (reset) {
@@ -140,13 +158,19 @@ function Content() {
     setSaving((s) => new Set(s).add(id));
     try {
       if (action === "save") {
+        // Collapse the display-only newlines back into the
+        // canonical " | " separator the renderer expects.
+        const flat = (editAnswer[id] ?? "")
+          .replace(/\r?\n+/g, " | ")
+          .replace(/\s*\|\s*/g, " | ")
+          .trim();
         const r = await fetch("/api/admin/answer-key-gaps", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "apply",
             id,
-            newAnswer: editAnswer[id],
+            newAnswer: flat,
             subpartMarks: editMarks[id],
           }),
         });
@@ -177,13 +201,17 @@ function Content() {
       // Sequential to keep DB writes ordered + show progress in the
       // UI as items disappear one by one. 10 rows = ~3 s total.
       for (const it of toApply) {
+        const flat = (editAnswer[it.id] ?? "")
+          .replace(/\r?\n+/g, " | ")
+          .replace(/\s*\|\s*/g, " | ")
+          .trim();
         const r = await fetch("/api/admin/answer-key-gaps", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "apply",
             id: it.id,
-            newAnswer: editAnswer[it.id],
+            newAnswer: flat,
             subpartMarks: editMarks[it.id],
           }),
         });
@@ -250,7 +278,9 @@ function Content() {
               ))}
             </div>
             <span className="text-xs text-slate-500 ml-2">
-              {items.length} surfaced · {scanned} scanned in last batch
+              {items.length} surfaced
+              {totalPending !== null && ` · ${totalPending} pending across ${subjectFilter}`}
+              {" · "}{scanned} scanned in last batch
             </span>
           </div>
 

@@ -91,7 +91,8 @@ For EACH subpart in the question (e.g. "(a)", "(b)", "(c)") — or, if there are
      - "Wrong: 24 ÷ 3 = 9 / Should be: 24 ÷ 3 = 8 / Final answer = 8 cm"
      - "Missed unit conversion / 250 cm = 2.5 m / Total = 5.5 m"
      - "Used wrong formula / Area of triangle = ½ × b × h / = ½ × 6 × 4 = 12 cm²"
-   Cap at ~25 words across all lines.` : `
+   Cap at ~25 words across all lines.
+   PLAIN TEXT ONLY — never use LaTeX. Write fractions as "7/27", mixed numbers as "4 5/6", exponents as "5²" or "5^2", roots as "√16" or "sqrt(16)". The PDF renderer cannot interpret \\frac, \\sqrt, $...$ — those would render as literal source text.` : `
 
    For Science / English / other subjects, write a single-line comment (use a space or ' — ' to join clauses, NOT ' / '). Style:
    - Start with a capital letter.
@@ -164,6 +165,28 @@ function fallbackStatus(q: { marksAwarded: number | null; marksAvailable: number
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
+}
+
+// Strip LaTeX delimiters/commands so a teacher's note like
+// "$\\frac{1}{18}$" renders as "1/18" in the PDF instead of as
+// the literal source string. Handles the cases the AI tends to
+// emit; not a full parser.
+function stripLatex(s: string): string {
+  return s
+    // \frac{a}{b} → a/b
+    .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "$1/$2")
+    // \sqrt{x} → √x
+    .replace(/\\sqrt\s*\{([^{}]+)\}/g, "√$1")
+    // \times → ×, \div → ÷
+    .replace(/\\times/g, "×")
+    .replace(/\\div/g, "÷")
+    // ^{n} → ^n
+    .replace(/\^\{([^{}]+)\}/g, "^$1")
+    // strip surrounding $...$ delimiters
+    .replace(/\$([^$]+)\$/g, "$1")
+    // collapse stray backslashes
+    .replace(/\\([a-zA-Z]+)/g, "$1")
+    .trim();
 }
 
 function formatMarks(n: number): string {
@@ -441,8 +464,13 @@ async function handle(
         // break so step-by-step calculations stack vertically; other
         // subjects pass through as a single line.
         if (m.note) {
+          // Safety net: even with the prompt forbidding LaTeX, the
+          // model still occasionally emits "$\\frac{a}{b}$". pdf-lib
+          // renders that literally — convert to plain "a/b" before
+          // drawing.
+          const stripped = stripLatex(m.note);
           const maxW = pageW * 0.32;
-          const rawLines = m.note.split(" / ").map(s => s.trim()).filter(Boolean);
+          const rawLines = stripped.split(" / ").map(s => s.trim()).filter(Boolean);
           const wrapped: string[] = [];
           for (const line of rawLines) {
             for (const w of wrapText(line, handFont, noteSize, maxW)) wrapped.push(w);

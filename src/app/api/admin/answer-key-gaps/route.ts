@@ -196,19 +196,28 @@ export async function GET(request: NextRequest) {
     take: 500,
   });
 
-  const withGap = candidates
+  // For Science, the user only wants per-part mark allocation
+  // fixed — the answer-key generation step is skipped because the
+  // existing science answer keys are usually descriptive sentences
+  // we don't want to overwrite. So a science row counts as a "gap"
+  // ONLY if it has a marks gap. Math rows surface for either gap.
+  const allWithGap = candidates
     .map((q) => {
       const subs = realSubparts(q.transcribedSubparts);
       return { q, subs, marksGap: hasMarksGap(subs), answerGap: hasAnswerGap(q.answer, subs) };
     })
     .filter((r) => {
       if (r.subs.length < 2) return false;
-      if (!(r.marksGap || r.answerGap)) return false;
       const subj = (r.q.examPaper.subject ?? "").toLowerCase();
-      if (subjectFilter) return subj.includes(subjectFilter);
-      return isMathOrScience(r.q.examPaper.subject);
-    })
-    .slice(0, limit);
+      if (subjectFilter && !subj.includes(subjectFilter)) return false;
+      if (!subjectFilter && !isMathOrScience(r.q.examPaper.subject)) return false;
+      const isScience = subj.includes("science");
+      if (isScience) return r.marksGap;
+      // Math (and "all" with non-science fall-through)
+      return r.marksGap || r.answerGap;
+    });
+  const total = allWithGap.length;
+  const withGap = allWithGap.slice(0, limit);
 
   // Run AI passes per candidate. Two calls per candidate
   // (extractSubpartMarks + generateAnswer) in parallel inside the
@@ -238,7 +247,7 @@ export async function GET(request: NextRequest) {
           r.marksGap && questionImageBase64
             ? extractSubpartMarks(questionImageBase64, labels).catch(() => ({} as Record<string, number>))
             : Promise.resolve({} as Record<string, number>),
-          r.answerGap
+          r.answerGap && !((r.q.examPaper.subject ?? "").toLowerCase().includes("science"))
             ? generateAnswer({
                 stem: r.q.transcribedStem ?? "",
                 subparts: r.subs,
@@ -330,6 +339,7 @@ export async function GET(request: NextRequest) {
     items,
     counted: items.length,
     scanned: candidates.length,
+    totalPending: total,
   });
 }
 
