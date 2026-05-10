@@ -133,19 +133,26 @@ export async function GET(request: NextRequest) {
   const excludeRaw = request.nextUrl.searchParams.get("excludeIds");
   const excludeIds = excludeRaw ? excludeRaw.split(",").filter(Boolean) : [];
   const limit = Math.min(30, Math.max(1, Number(request.nextUrl.searchParams.get("limit") ?? 10)));
+  // Subject filter — defaults to "math" since the user wants to
+  // burn through math OEQs first, then move on to science.
+  const subjectParam = (request.nextUrl.searchParams.get("subject") ?? "math").toLowerCase();
+  const subjectFilter = subjectParam === "all" ? null : subjectParam;
 
   // Pre-filter at DB level. Re-narrow in JS because gap checks need
   // JSON parsing.
+  const subjectClause = subjectFilter
+    ? [{ subject: { contains: subjectFilter, mode: "insensitive" as const } }]
+    : [
+        { subject: { contains: "math", mode: "insensitive" as const } },
+        { subject: { contains: "science", mode: "insensitive" as const } },
+      ];
   const candidates = await prisma.examQuestion.findMany({
     where: {
       examPaper: {
         sourceExamId: null,
         paperType: null,
         visible: true,
-        OR: [
-          { subject: { contains: "math", mode: "insensitive" } },
-          { subject: { contains: "science", mode: "insensitive" } },
-        ],
+        OR: subjectClause,
         NOT: [{ examType: "Synthetic" }, { title: { startsWith: "[Synthetic Bank]" } }],
       },
       transcribedSubparts: { not: Prisma.AnyNull },
@@ -175,7 +182,13 @@ export async function GET(request: NextRequest) {
       const subs = realSubparts(q.transcribedSubparts);
       return { q, subs, marksGap: hasMarksGap(subs), answerGap: hasAnswerGap(q.answer, subs) };
     })
-    .filter((r) => r.subs.length >= 2 && (r.marksGap || r.answerGap) && isMathOrScience(r.q.examPaper.subject))
+    .filter((r) => {
+      if (r.subs.length < 2) return false;
+      if (!(r.marksGap || r.answerGap)) return false;
+      const subj = (r.q.examPaper.subject ?? "").toLowerCase();
+      if (subjectFilter) return subj.includes(subjectFilter);
+      return isMathOrScience(r.q.examPaper.subject);
+    })
     .slice(0, limit);
 
   // Run both AI passes in parallel per candidate, then in
@@ -208,6 +221,15 @@ export async function GET(request: NextRequest) {
       const proposedAnswer = "answer" in answerResult ? answerResult.answer : "";
       const aiError = "error" in answerResult ? answerResult.error : null;
 
+      // Pre-existing per-part marks scraped from the subpart text
+      // (the [N] markers we already write). Lets the page show
+      // "before" — current per-part marks — alongside "after".
+      const currentMarks: Record<string, number> = {};
+      for (const s of r.subs) {
+        const m = String(s.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
+        if (m) currentMarks[s.label] = parseInt(m[1], 10);
+      }
+
       return {
         id: r.q.id,
         questionNum: r.q.questionNum,
@@ -218,6 +240,7 @@ export async function GET(request: NextRequest) {
         stem: r.q.transcribedStem ?? "",
         subparts: r.subs,
         currentAnswer: r.q.answer ?? "",
+        currentMarks,
         currentMarksAvailable: r.q.marksAvailable,
         // Show whether a diagram / answer image exists; the page
         // can fetch /api/exam/.../question/<id>/image for the

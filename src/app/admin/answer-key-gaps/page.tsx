@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Fragment, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
@@ -28,6 +28,7 @@ type GapItem = {
   stem: string;
   subparts: Subpart[];
   currentAnswer: string;
+  currentMarks: Record<string, number>;
   currentMarksAvailable: number | null;
   hasDiagram: boolean;
   hasAnswerImage: boolean;
@@ -54,6 +55,7 @@ function Content() {
   const [excludeIds, setExcludeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [subjectFilter, setSubjectFilter] = useState<"math" | "science" | "all">("math");
   // Per-row edits — keyed by question id. answer is the textarea
   // value, marks is { label: number }.
   const [editAnswer, setEditAnswer] = useState<Record<string, string>>({});
@@ -65,7 +67,7 @@ function Content() {
     setError(null);
     try {
       const ids = reset ? [] : excludeIds;
-      const url = `/api/admin/answer-key-gaps?limit=10${ids.length > 0 ? `&excludeIds=${ids.join(",")}` : ""}`;
+      const url = `/api/admin/answer-key-gaps?limit=10&subject=${subjectFilter}${ids.length > 0 ? `&excludeIds=${ids.join(",")}` : ""}`;
       const r = await fetch(url);
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));
@@ -145,7 +147,7 @@ function Content() {
         </div>
 
         <div className="p-4 max-w-4xl">
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-4 flex-wrap">
             <button
               onClick={() => scan(false)}
               disabled={loading}
@@ -160,6 +162,19 @@ function Content() {
             >
               Reset scan
             </button>
+            <div className="flex items-center gap-1 bg-white rounded-lg border border-slate-200 p-1">
+              {(["math", "science", "all"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setSubjectFilter(s); setItems([]); setExcludeIds([]); setEditAnswer({}); setEditMarks({}); }}
+                  className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                    subjectFilter === s ? "bg-rose-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </button>
+              ))}
+            </div>
             <span className="text-xs text-slate-500 ml-2">
               {items.length} surfaced · {scanned} scanned in last batch
             </span>
@@ -223,37 +238,55 @@ function Content() {
                     <p className="text-sm text-slate-800 mb-2 whitespace-pre-wrap">{it.stem}</p>
                   )}
 
-                  <div className="bg-slate-50 rounded-lg p-3 mb-3 text-xs space-y-1">
-                    {it.subparts.map((s) => (
-                      <div key={s.label} className="flex items-start gap-2">
-                        <span className="font-bold text-slate-700 shrink-0">({s.label})</span>
-                        <span className="text-slate-600 flex-1">{s.text}</span>
-                        {it.marksGap && (
-                          <input
-                            type="number"
-                            min={0}
-                            max={20}
-                            value={editMarks[it.id]?.[s.label] ?? ""}
-                            onChange={(e) => {
-                              const v = parseInt(e.target.value, 10);
-                              setEditMarks((prev) => ({
-                                ...prev,
-                                [it.id]: { ...(prev[it.id] ?? {}), [s.label]: Number.isFinite(v) ? v : 0 },
-                              }));
-                            }}
-                            placeholder="?"
-                            className="w-12 px-1.5 py-0.5 text-xs border border-slate-300 rounded text-center"
-                          />
-                        )}
-                      </div>
-                    ))}
-                    {it.marksGap && (
-                      <p className={`text-[11px] mt-2 ${totalMatchesAvailable ? "text-emerald-700" : "text-amber-700"}`}>
-                        Sum: {proposedMarksTotal}
-                        {it.currentMarksAvailable !== null && ` / ${it.currentMarksAvailable} expected`}
-                        {totalMatchesAvailable ? " ✓" : ""}
-                      </p>
-                    )}
+                  <div className="bg-slate-50 rounded-lg p-3 mb-3 text-xs space-y-2">
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 gap-y-1.5 items-center">
+                      <div className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Sub-part</div>
+                      <div className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500 text-center w-16">Before</div>
+                      <div className="text-[10px] font-extrabold uppercase tracking-widest text-rose-600 text-center w-16">After</div>
+                      {it.subparts.map((s) => {
+                        const before = it.currentMarks[s.label];
+                        const after = editMarks[it.id]?.[s.label];
+                        return (
+                          <Fragment key={s.label}>
+                            <div className="flex items-start gap-2 min-w-0">
+                              <span className="font-bold text-slate-700 shrink-0">({s.label})</span>
+                              <span className="text-slate-600 truncate" title={s.text}>{s.text}</span>
+                            </div>
+                            <div className="text-center text-xs text-slate-500 w-16">
+                              {before !== undefined ? (
+                                <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700">[{before}]</span>
+                              ) : (
+                                <span className="text-slate-400">—</span>
+                              )}
+                            </div>
+                            <input
+                              type="number"
+                              min={0}
+                              max={20}
+                              value={after ?? ""}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value, 10);
+                                setEditMarks((prev) => ({
+                                  ...prev,
+                                  [it.id]: { ...(prev[it.id] ?? {}), [s.label]: Number.isFinite(v) ? v : 0 },
+                                }));
+                              }}
+                              placeholder="?"
+                              className={`w-16 px-1.5 py-0.5 text-xs border rounded text-center ${
+                                after !== undefined && after !== before
+                                  ? "border-rose-400 bg-rose-50 text-rose-700 font-bold"
+                                  : "border-slate-300"
+                              }`}
+                            />
+                          </Fragment>
+                        );
+                      })}
+                    </div>
+                    <p className={`text-[11px] ${totalMatchesAvailable ? "text-emerald-700" : "text-amber-700"}`}>
+                      Proposed sum: {proposedMarksTotal}
+                      {it.currentMarksAvailable !== null && ` / ${it.currentMarksAvailable} expected`}
+                      {totalMatchesAvailable ? " ✓" : ""}
+                    </p>
                   </div>
 
                   {/* Question + answer images for visual reference */}
@@ -276,15 +309,21 @@ function Content() {
                     )}
                   </div>
 
-                  <label className="block mb-2">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Answer key (editable)</span>
-                    <textarea
-                      value={editAnswer[it.id] ?? ""}
-                      onChange={(e) => setEditAnswer((prev) => ({ ...prev, [it.id]: e.target.value }))}
-                      rows={6}
-                      className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono focus:outline-none focus:border-rose-500"
-                    />
-                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
+                    <div>
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Before — current answer</span>
+                      <pre className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-xs font-mono whitespace-pre-wrap break-words text-slate-600 max-h-48 overflow-y-auto">{it.currentAnswer || "(empty)"}</pre>
+                    </div>
+                    <label className="block">
+                      <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">After — proposed (editable)</span>
+                      <textarea
+                        value={editAnswer[it.id] ?? ""}
+                        onChange={(e) => setEditAnswer((prev) => ({ ...prev, [it.id]: e.target.value }))}
+                        rows={8}
+                        className="mt-1 w-full px-3 py-2 rounded-lg border border-rose-300 bg-rose-50/30 text-xs font-mono focus:outline-none focus:border-rose-500"
+                      />
+                    </label>
+                  </div>
 
                   {it.aiError && (
                     <p className="text-xs text-rose-600 mb-2">AI: {it.aiError}</p>
