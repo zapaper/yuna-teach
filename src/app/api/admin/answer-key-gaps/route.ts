@@ -1,66 +1,156 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { GoogleGenAI } from "@google/genai";
+import sharp from "sharp";
 import { prisma } from "@/lib/db";
 import { isSessionAdmin } from "@/lib/session";
+import { extractSubpartMarks } from "@/lib/gemini";
 
-// Find MASTER (paperType=null, sourceExamId=null) questions whose
-// `answer` field doesn't include every sub-part label that the
-// question declares. The classic miss is shared-block answer keys
-// — one Steps:... block solving (a) and (b) together, with the
-// part labels appearing only on the "Final answer:" line.
+// Unified admin tool for clean-extract Math/Science OEQs with
+// sub-parts. Surfaces two kinds of gap on the same row and
+// proposes AI fixes for both:
 //
-// Cheap pre-filter at the DB level (transcribedSubparts is JSON;
-// row-level "subparts non-empty" filter is the best we can do
-// here), then narrow in JS by parsing the JSON and matching
-// labels against the answer text.
+//   (a) Per-part mark allocation — `[2]` markers in the question
+//       text that the extractor missed for older papers. We use
+//       extractSubpartMarks (existing helper) to read them off the
+//       question image.
+//
+//   (b) Per-part answer key — when the stored `answer` field
+//       doesn't mention every (a)/(b)/(c) label, the renderer has
+//       nothing to show for the missing parts. We ask Gemini to
+//       solve all sub-parts and return a labelled block.
+//
+// Both passes run in parallel for each candidate. The page lets
+// the admin review proposals, edit if needed, and apply (or skip).
+// First batch of 10, then continuous after manual approval.
 
-const SOLVE_NOTE_PREFIX = "[solve on demand]";
+export const maxDuration = 300;
 
-function isMasterPaper(): Prisma.ExamPaperWhereInput {
-  return {
-    sourceExamId: null,
-    paperType: null,
-    NOT: [
-      { examType: "Synthetic" },
-      { title: { startsWith: "[Synthetic Bank]" } },
-    ],
-  };
-}
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY ?? "",
+  httpOptions: { timeout: 90_000 },
+});
+
+const SOLVE_PROMPT = `You are a Singapore primary-school maths/science teacher writing answer keys.
+
+Solve the question below. Output a labelled block per sub-part:
+  (LABEL) Steps: Step 1: ... | Step 2: ... | ... | Final answer: ...
+
+Rules:
+- Each step on its own clause separated by " | " (NOT a literal newline).
+- Each step is ONE short sentence including the calculation.
+- Total steps usually 2-6 per sub-part.
+- "Final answer:" line gives the numeric/short answer with units.
+- Concatenate all sub-part blocks separated by " | ".
+- If a sub-part is unanswerable from the available info (missing diagram, etc.), output "(LABEL) Unable to solve from available info — needs admin attention." for that label.
+
+Return ONLY valid JSON: { "answer": "(a) Steps: ... | (b) Steps: ..." }`;
 
 type Subpart = { label: string; text: string };
 
-// True if `answer` doesn't mention every non-internal sub-part
-// label as "(a)", "(b)", etc. Internal labels ("_drawable",
-// "_subref-a") are filtered out.
-function hasGap(answer: string | null, subparts: unknown): boolean {
-  const subs: Subpart[] = Array.isArray(subparts)
-    ? (subparts as Subpart[]).filter(
-        (s) => s && typeof s.label === "string" && !s.label.startsWith("_") && typeof s.text === "string",
-      )
-    : [];
-  if (subs.length === 0) return false;
-  const ans = (answer ?? "").toLowerCase();
-  return subs.some((s) => !ans.includes(`(${s.label.toLowerCase()})`));
+function realSubparts(subparts: unknown): Subpart[] {
+  if (!Array.isArray(subparts)) return [];
+  return (subparts as Subpart[]).filter(
+    (s) => s && typeof s.label === "string" && !s.label.startsWith("_") && typeof s.text === "string",
+  );
 }
 
-// GET — return up to 30 master questions whose answer has a gap.
-// Optional ?excludeIds=id1,id2 lets the admin skip rows already
-// reviewed in this session without persisting state.
+function hasMarksGap(subparts: Subpart[]): boolean {
+  if (subparts.length < 2) return false;
+  // Gap exists when at least one sub-part text doesn't have a [N] marker
+  return subparts.some((s) => !/\[\s*\d+\s*(?:m(?:ark)?s?)?\s*\]/i.test(s.text));
+}
+
+function hasAnswerGap(answer: string | null, subparts: Subpart[]): boolean {
+  if (subparts.length < 2) return false;
+  const ans = (answer ?? "").toLowerCase();
+  return subparts.some((s) => !ans.includes(`(${s.label.toLowerCase()})`));
+}
+
+function isMathOrScience(s: string | null | undefined): boolean {
+  const v = (s ?? "").toLowerCase();
+  return v.includes("math") || v.includes("science");
+}
+
+async function shrinkImage(base64: string | null | undefined): Promise<string | null> {
+  if (!base64) return null;
+  try {
+    const clean = base64.replace(/^data:image\/\w+;base64,/, "");
+    const buf = Buffer.from(clean, "base64");
+    const out = await sharp(buf)
+      .resize({ width: 720, height: 1200, fit: "inside", withoutEnlargement: true })
+      .jpeg({ quality: 70 })
+      .toBuffer();
+    return out.toString("base64");
+  } catch {
+    return null;
+  }
+}
+
+async function generateAnswer(q: {
+  stem: string;
+  subparts: Subpart[];
+  options: unknown;
+  diagramBase64: string | null;
+  existingAnswer: string | null;
+}): Promise<{ answer: string } | { error: string }> {
+  const optList = Array.isArray(q.options)
+    ? (q.options as unknown[]).filter((o): o is string => typeof o === "string" && o.trim().length > 0)
+    : [];
+  const lines = [
+    SOLVE_PROMPT,
+    "",
+    `Question: ${q.stem || "(stem missing — solve from the diagram)"}`,
+    ...q.subparts.map((s) => `(${s.label}) ${s.text}`),
+    ...optList.map((o, i) => `Option (${i + 1}): ${o}`),
+    `Existing partial answer key: ${q.existingAnswer ?? "(none)"}`,
+  ];
+  type Part = { text: string } | { inlineData: { mimeType: "image/jpeg"; data: string } };
+  const parts: Part[] = [{ text: lines.join("\n") }];
+  if (q.diagramBase64) parts.push({ inlineData: { mimeType: "image/jpeg", data: q.diagramBase64 } });
+  try {
+    const resp = await ai.models.generateContent({
+      model: "gemini-2.5-pro",
+      contents: [{ role: "user", parts }],
+      config: { responseMimeType: "application/json", temperature: 0.1 },
+    });
+    const text = (resp.text ?? "").replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+    const parsed = JSON.parse(text) as { answer?: string };
+    if (!parsed.answer) return { error: "AI returned no answer" };
+    return { answer: parsed.answer };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "AI call failed" };
+  }
+}
+
+// GET — surface up to 30 candidates with both gap types + AI
+// proposals. Excludes ids the admin already reviewed in this
+// session.
 export async function GET(request: NextRequest) {
   if (!(await isSessionAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
   const excludeRaw = request.nextUrl.searchParams.get("excludeIds");
   const excludeIds = excludeRaw ? excludeRaw.split(",").filter(Boolean) : [];
+  const limit = Math.min(30, Math.max(1, Number(request.nextUrl.searchParams.get("limit") ?? 10)));
 
-  // Pull a generous window of candidates (need to re-filter in JS
-  // because the gap check requires JSON parsing). Limit by a
-  // reasonable cap to keep memory bounded.
+  // Pre-filter at DB level. Re-narrow in JS because gap checks need
+  // JSON parsing.
   const candidates = await prisma.examQuestion.findMany({
     where: {
-      examPaper: isMasterPaper(),
+      examPaper: {
+        sourceExamId: null,
+        paperType: null,
+        visible: true,
+        OR: [
+          { subject: { contains: "math", mode: "insensitive" } },
+          { subject: { contains: "science", mode: "insensitive" } },
+        ],
+        NOT: [{ examType: "Synthetic" }, { title: { startsWith: "[Synthetic Bank]" } }],
+      },
       transcribedSubparts: { not: Prisma.AnyNull },
+      transcribedStem: { not: null },
+      imageData: { not: "" },
       ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
     },
     select: {
@@ -68,50 +158,113 @@ export async function GET(request: NextRequest) {
       questionNum: true,
       transcribedStem: true,
       transcribedSubparts: true,
+      transcribedOptions: true,
       answer: true,
-      flagged: true,
-      markingNotes: true,
+      answerImageData: true,
+      imageData: true,
+      diagramImageData: true,
+      marksAvailable: true,
       examPaper: { select: { id: true, title: true, level: true, subject: true } },
     },
     orderBy: { id: "asc" },
     take: 500,
   });
 
-  const withGap = candidates.filter((q) => hasGap(q.answer, q.transcribedSubparts)).slice(0, 30);
+  const withGap = candidates
+    .map((q) => {
+      const subs = realSubparts(q.transcribedSubparts);
+      return { q, subs, marksGap: hasMarksGap(subs), answerGap: hasAnswerGap(q.answer, subs) };
+    })
+    .filter((r) => r.subs.length >= 2 && (r.marksGap || r.answerGap) && isMathOrScience(r.q.examPaper.subject))
+    .slice(0, limit);
+
+  // Run both AI passes in parallel per candidate, then in
+  // parallel across all candidates. Gemini handles ~10 concurrent
+  // requests fine.
+  const items = await Promise.all(
+    withGap.map(async (r) => {
+      const questionImageBase64 = r.q.imageData
+        ? r.q.imageData.replace(/^data:image\/\w+;base64,/, "")
+        : null;
+      const diag = await shrinkImage(r.q.diagramImageData);
+      const labels = r.subs.map((s) => s.label);
+
+      const [marksResult, answerResult] = await Promise.all([
+        r.marksGap && questionImageBase64
+          ? extractSubpartMarks(questionImageBase64, labels).catch(() => ({}))
+          : Promise.resolve({}),
+        r.answerGap
+          ? generateAnswer({
+              stem: r.q.transcribedStem ?? "",
+              subparts: r.subs,
+              options: r.q.transcribedOptions,
+              diagramBase64: diag,
+              existingAnswer: r.q.answer,
+            })
+          : Promise.resolve({ answer: "" }),
+      ]);
+
+      const proposedMarks: Record<string, number> = (marksResult as Record<string, number>) ?? {};
+      const proposedAnswer = "answer" in answerResult ? answerResult.answer : "";
+      const aiError = "error" in answerResult ? answerResult.error : null;
+
+      return {
+        id: r.q.id,
+        questionNum: r.q.questionNum,
+        paperId: r.q.examPaper.id,
+        paperTitle: r.q.examPaper.title,
+        level: r.q.examPaper.level,
+        subject: r.q.examPaper.subject,
+        stem: r.q.transcribedStem ?? "",
+        subparts: r.subs,
+        currentAnswer: r.q.answer ?? "",
+        currentMarksAvailable: r.q.marksAvailable,
+        // Show whether a diagram / answer image exists; the page
+        // can fetch /api/exam/.../question/<id>/image for the
+        // raw bytes if it wants to display them.
+        hasDiagram: !!r.q.diagramImageData,
+        hasAnswerImage: !!r.q.answerImageData,
+        marksGap: r.marksGap,
+        answerGap: r.answerGap,
+        proposedMarks,
+        proposedAnswer,
+        aiError,
+      };
+    }),
+  );
 
   return NextResponse.json({
-    items: withGap.map((q) => ({
-      id: q.id,
-      questionNum: q.questionNum,
-      paperId: q.examPaper.id,
-      paperTitle: q.examPaper.title,
-      level: q.examPaper.level,
-      subject: q.examPaper.subject,
-      stem: q.transcribedStem ?? "",
-      subparts: Array.isArray(q.transcribedSubparts) ? q.transcribedSubparts : null,
-      answer: q.answer ?? "",
-      flagged: q.flagged,
-      alreadyMarked: (q.markingNotes ?? "").startsWith(SOLVE_NOTE_PREFIX),
-    })),
-    counted: withGap.length,
+    items,
+    counted: items.length,
     scanned: candidates.length,
   });
 }
 
-// POST — { action: "mark-handled", id, newAnswer? } persist the
-// admin's fix. If newAnswer is provided, write it. Either way clear
-// the [solve on demand] flag (since it's now resolved).
+// POST — apply admin's accepted proposals.
+//   { action: "apply", id, newAnswer?, subpartMarks? }
+// subpartMarks is { label: number } — appended as [N] to each
+// matching sub-part text (only if the text doesn't already have
+// a [N] marker). newAnswer overwrites the answer field verbatim.
 export async function POST(request: NextRequest) {
   if (!(await isSessionAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   const body = await request.json().catch(() => ({}));
-  const { action, id, newAnswer } = body as {
-    action?: string; id?: string; newAnswer?: string;
+  const { action, id, newAnswer, subpartMarks } = body as {
+    action?: string;
+    id?: string;
+    newAnswer?: string;
+    subpartMarks?: Record<string, number>;
   };
-  if (action !== "mark-handled" || !id) {
+  if (action !== "apply" || !id) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
+
+  const q = await prisma.examQuestion.findUnique({
+    where: { id },
+    select: { transcribedSubparts: true },
+  });
+  if (!q) return NextResponse.json({ error: "Question not found" }, { status: 404 });
 
   const data: Prisma.ExamQuestionUpdateInput = {
     flagged: false,
@@ -120,6 +273,24 @@ export async function POST(request: NextRequest) {
   };
   if (typeof newAnswer === "string" && newAnswer.trim()) {
     data.answer = newAnswer.trim();
+  }
+  if (subpartMarks && typeof subpartMarks === "object") {
+    const existing = realSubparts(q.transcribedSubparts);
+    const labelsWithMarks = Object.keys(subpartMarks).filter((l) => Number.isFinite(subpartMarks[l]));
+    if (labelsWithMarks.length > 0 && existing.length > 0) {
+      // Update text for each subpart we have marks for; keep
+      // sentinel labels (_drawable, _subref-*) untouched.
+      type RawSubpart = { label: string; text: string; [k: string]: unknown };
+      const all = q.transcribedSubparts as unknown as RawSubpart[];
+      const updated = all.map((sp) => {
+        if (sp.label.startsWith("_")) return sp;
+        const m = subpartMarks[sp.label];
+        if (!m || !Number.isFinite(m)) return sp;
+        if (/\[\s*\d+\s*(?:m(?:ark)?s?)?\s*\]/i.test(String(sp.text ?? ""))) return sp;
+        return { ...sp, text: `${String(sp.text ?? "").trim()} [${m}]`.trim() };
+      });
+      data.transcribedSubparts = updated as unknown as Prisma.InputJsonValue;
+    }
   }
   await prisma.examQuestion.update({ where: { id }, data });
   return NextResponse.json({ ok: true });

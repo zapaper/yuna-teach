@@ -4,6 +4,19 @@ import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AdminNav from "@/components/AdminNav";
 
+// Unified review for clean-extract Math/Science OEQs with sub-parts
+// that are missing per-part marks AND/OR per-part answer keys.
+// First batch of 10 with AI proposals shown side-by-side. After
+// the admin reviews and applies, "Load next 10" loads more.
+//
+// Per row the page shows:
+//   - Question stem + sub-parts (with current text incl. any [N])
+//   - Marks gap: AI's proposed [N] per part with the option to
+//     edit before applying.
+//   - Answer gap: AI's proposed labelled answer block, editable
+//     in a textarea before applying.
+//   - Apply, Skip, or open paper editor.
+
 type Subpart = { label: string; text: string };
 type GapItem = {
   id: string;
@@ -13,10 +26,16 @@ type GapItem = {
   level: number | null;
   subject: string | null;
   stem: string;
-  subparts: Subpart[] | null;
-  answer: string;
-  flagged: boolean;
-  alreadyMarked: boolean;
+  subparts: Subpart[];
+  currentAnswer: string;
+  currentMarksAvailable: number | null;
+  hasDiagram: boolean;
+  hasAnswerImage: boolean;
+  marksGap: boolean;
+  answerGap: boolean;
+  proposedMarks: Record<string, number>;
+  proposedAnswer: string;
+  aiError: string | null;
 };
 
 export default function AnswerKeyGapsPage() {
@@ -35,8 +54,10 @@ function Content() {
   const [excludeIds, setExcludeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Per-row inline edit state — keyed by question id.
-  const [edits, setEdits] = useState<Record<string, string>>({});
+  // Per-row edits — keyed by question id. answer is the textarea
+  // value, marks is { label: number }.
+  const [editAnswer, setEditAnswer] = useState<Record<string, string>>({});
+  const [editMarks, setEditMarks] = useState<Record<string, Record<string, number>>>({});
   const [saving, setSaving] = useState<Set<string>>(new Set());
 
   async function scan(reset = false) {
@@ -44,7 +65,7 @@ function Content() {
     setError(null);
     try {
       const ids = reset ? [] : excludeIds;
-      const url = `/api/admin/answer-key-gaps${ids.length > 0 ? `?excludeIds=${ids.join(",")}` : ""}`;
+      const url = `/api/admin/answer-key-gaps?limit=10${ids.length > 0 ? `&excludeIds=${ids.join(",")}` : ""}`;
       const r = await fetch(url);
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));
@@ -52,12 +73,23 @@ function Content() {
         return;
       }
       const data = (await r.json()) as { items: GapItem[]; scanned: number };
+      // Seed per-row edit state from AI proposals
+      const seedAnswer: Record<string, string> = {};
+      const seedMarks: Record<string, Record<string, number>> = {};
+      for (const it of data.items) {
+        seedAnswer[it.id] = it.proposedAnswer || it.currentAnswer;
+        seedMarks[it.id] = { ...it.proposedMarks };
+      }
       if (reset) {
         setItems(data.items);
         setExcludeIds(data.items.map((it) => it.id));
+        setEditAnswer(seedAnswer);
+        setEditMarks(seedMarks);
       } else {
         setItems((prev) => [...prev, ...data.items]);
         setExcludeIds((prev) => [...prev, ...data.items.map((it) => it.id)]);
+        setEditAnswer((prev) => ({ ...prev, ...seedAnswer }));
+        setEditMarks((prev) => ({ ...prev, ...seedMarks }));
       }
       setScanned(data.scanned);
     } finally {
@@ -70,25 +102,27 @@ function Content() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function markHandled(id: string, newAnswer?: string) {
+  async function apply(id: string, action: "save" | "skip") {
     setSaving((s) => new Set(s).add(id));
     try {
-      const r = await fetch("/api/admin/answer-key-gaps", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "mark-handled", id, newAnswer }),
-      });
-      if (!r.ok) {
-        const data = await r.json().catch(() => ({}));
-        setError(data.error ?? "Save failed");
-        return;
+      if (action === "save") {
+        const r = await fetch("/api/admin/answer-key-gaps", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "apply",
+            id,
+            newAnswer: editAnswer[id],
+            subpartMarks: editMarks[id],
+          }),
+        });
+        if (!r.ok) {
+          const data = await r.json().catch(() => ({}));
+          setError(data.error ?? "Save failed");
+          return;
+        }
       }
       setItems((prev) => prev.filter((it) => it.id !== id));
-      setEdits((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
     } finally {
       setSaving((s) => {
         const next = new Set(s);
@@ -103,10 +137,10 @@ function Content() {
       <AdminNav userId={userId} />
       <div className="lg:ml-56 pb-24 lg:pb-0">
         <div className="bg-white border-b border-slate-200 px-4 py-3">
-          <h1 className="text-lg font-bold text-slate-800">Scan for Unclear Part-Answer Keys</h1>
+          <h1 className="text-lg font-bold text-slate-800">Fix OEQ sub-part keys</h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Master questions whose stored <code>answer</code> doesn&apos;t mention every sub-part label —
-            usually a missed shared-block extraction. Edit + save fixes the master in place.
+            Clean-extract Math/Science OEQs with sub-parts missing per-part marks or per-part answer keys.
+            AI proposes both fixes; review + apply.
           </p>
         </div>
 
@@ -117,10 +151,10 @@ function Content() {
               disabled={loading}
               className="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-bold hover:bg-rose-700 disabled:opacity-50"
             >
-              {loading ? "Scanning…" : items.length === 0 ? "Scan first 30" : "Load next 30"}
+              {loading ? "Scanning…" : items.length === 0 ? "Scan first 10" : "Load next 10"}
             </button>
             <button
-              onClick={() => { setItems([]); setExcludeIds([]); scan(true); }}
+              onClick={() => { setItems([]); setExcludeIds([]); setEditAnswer({}); setEditMarks({}); scan(true); }}
               disabled={loading}
               className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
             >
@@ -143,64 +177,135 @@ function Content() {
             </p>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {items.map((it) => {
-              const labels = (it.subparts ?? []).filter(s => !s.label.startsWith("_")).map(s => s.label.toLowerCase());
-              const ans = it.answer.toLowerCase();
-              const missing = labels.filter(l => !ans.includes(`(${l})`));
-              const editing = edits[it.id] ?? it.answer;
+              const labels = it.subparts.map((s) => s.label);
+              const proposedMarksTotal = Object.values(editMarks[it.id] ?? {}).reduce((a, b) => a + (Number(b) || 0), 0);
+              const totalMatchesAvailable = it.currentMarksAvailable !== null && proposedMarksTotal === it.currentMarksAvailable;
               return (
                 <div key={it.id} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                  <div className="flex items-start justify-between mb-2 gap-3">
-                    <div className="text-xs text-slate-500">
+                  <div className="flex items-start justify-between mb-2 gap-3 flex-wrap">
+                    <div className="text-xs text-slate-500 min-w-0">
                       <span className="font-bold text-slate-700">Q{it.questionNum}</span>
                       {" · "}
                       <span>{it.paperTitle}</span>
                       {it.level && <span> · P{it.level}</span>}
                       {it.subject && <span> · {it.subject}</span>}
+                      {it.currentMarksAvailable !== null && (
+                        <span> · total {it.currentMarksAvailable} marks</span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] font-extrabold uppercase tracking-widest bg-rose-100 text-rose-700 rounded-full px-2 py-0.5">
-                        Missing: {missing.map(l => `(${l})`).join(", ")}
-                      </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {it.marksGap && (
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
+                          marks gap
+                        </span>
+                      )}
+                      {it.answerGap && (
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest bg-rose-100 text-rose-700 rounded-full px-2 py-0.5">
+                          key gap
+                        </span>
+                      )}
+                      {it.hasDiagram && (
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">
+                          diagram
+                        </span>
+                      )}
+                      {it.hasAnswerImage && (
+                        <span className="text-[10px] font-extrabold uppercase tracking-widest bg-emerald-100 text-emerald-700 rounded-full px-2 py-0.5">
+                          answer image
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {it.stem && (
                     <p className="text-sm text-slate-800 mb-2 whitespace-pre-wrap">{it.stem}</p>
                   )}
-                  <div className="text-xs text-slate-600 mb-3 space-y-0.5">
-                    {(it.subparts ?? []).filter(s => !s.label.startsWith("_")).map(s => (
-                      <div key={s.label}><strong>({s.label})</strong> {s.text}</div>
+
+                  <div className="bg-slate-50 rounded-lg p-3 mb-3 text-xs space-y-1">
+                    {it.subparts.map((s) => (
+                      <div key={s.label} className="flex items-start gap-2">
+                        <span className="font-bold text-slate-700 shrink-0">({s.label})</span>
+                        <span className="text-slate-600 flex-1">{s.text}</span>
+                        {it.marksGap && (
+                          <input
+                            type="number"
+                            min={0}
+                            max={20}
+                            value={editMarks[it.id]?.[s.label] ?? ""}
+                            onChange={(e) => {
+                              const v = parseInt(e.target.value, 10);
+                              setEditMarks((prev) => ({
+                                ...prev,
+                                [it.id]: { ...(prev[it.id] ?? {}), [s.label]: Number.isFinite(v) ? v : 0 },
+                              }));
+                            }}
+                            placeholder="?"
+                            className="w-12 px-1.5 py-0.5 text-xs border border-slate-300 rounded text-center"
+                          />
+                        )}
+                      </div>
                     ))}
+                    {it.marksGap && (
+                      <p className={`text-[11px] mt-2 ${totalMatchesAvailable ? "text-emerald-700" : "text-amber-700"}`}>
+                        Sum: {proposedMarksTotal}
+                        {it.currentMarksAvailable !== null && ` / ${it.currentMarksAvailable} expected`}
+                        {totalMatchesAvailable ? " ✓" : ""}
+                      </p>
+                    )}
                   </div>
 
-                  <label className="block">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Answer field</span>
+                  {/* Question + answer images for visual reference */}
+                  <div className="flex gap-2 mb-3 overflow-x-auto">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/exam/question/${it.id}/image`}
+                      alt="Question"
+                      className="h-32 rounded border border-slate-200"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                    {it.hasAnswerImage && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`/api/exam/question/${it.id}/answer-image`}
+                        alt="Answer"
+                        className="h-32 rounded border border-emerald-200"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    )}
+                  </div>
+
+                  <label className="block mb-2">
+                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Answer key (editable)</span>
                     <textarea
-                      value={editing}
-                      onChange={(e) => setEdits(prev => ({ ...prev, [it.id]: e.target.value }))}
+                      value={editAnswer[it.id] ?? ""}
+                      onChange={(e) => setEditAnswer((prev) => ({ ...prev, [it.id]: e.target.value }))}
                       rows={6}
                       className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono focus:outline-none focus:border-rose-500"
                     />
                   </label>
 
-                  <div className="flex items-center gap-2 mt-3">
+                  {it.aiError && (
+                    <p className="text-xs text-rose-600 mb-2">AI: {it.aiError}</p>
+                  )}
+
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button
-                      onClick={() => markHandled(it.id, edits[it.id] ?? it.answer)}
+                      onClick={() => apply(it.id, "save")}
                       disabled={saving.has(it.id)}
                       className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      {saving.has(it.id) ? "Saving…" : "Save & mark handled"}
+                      {saving.has(it.id) ? "Saving…" : "Apply changes"}
                     </button>
                     <button
-                      onClick={() => markHandled(it.id /* no answer change */)}
+                      onClick={() => apply(it.id, "skip")}
                       disabled={saving.has(it.id)}
                       className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-100 disabled:opacity-50"
-                      title="Clear the [solve on demand] flag without changing the answer"
                     >
-                      Mark handled (no edit)
+                      Skip
                     </button>
+                    <span className="text-[11px] text-slate-400 ml-2">{labels.length} sub-parts</span>
                     <a
                       href={`/exam/${it.paperId}/edit?userId=${userId}`}
                       target="_blank"

@@ -14,9 +14,45 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
+import { SignJWT, importPKCS8 } from "jose";
 import { prisma } from "./db";
 import { setSession } from "./session";
 import { DEFAULT_TRIAL_DAYS } from "./subscription";
+
+// Apple Sign In: the OAuth "client secret" is actually a JWT
+// signed with the .p8 key downloaded from Apple Developer.
+// Auth.js v4 used to mint this for us; v5 does NOT — we have to
+// generate the JWT ourselves and hand it to the provider as a
+// plain string. We precompute via top-level await at module
+// load — the JWT is valid for up to 6 months, and module load
+// runs once per process. Long-running deploys redeploy via env
+// var rotation when needed.
+async function buildAppleClientSecret(): Promise<string> {
+  const teamId = process.env.APPLE_TEAM_ID;
+  const keyId = process.env.APPLE_KEY_ID;
+  const clientId = process.env.APPLE_CLIENT_ID;
+  // Railway / Vercel single-line env vars often arrive with literal
+  // \n instead of real newlines — normalize.
+  const privateKeyPem = (process.env.APPLE_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
+  if (!teamId || !keyId || !clientId || !privateKeyPem) {
+    // Don't throw — let the build succeed when Apple env vars are
+    // unset (e.g. local dev). The provider will fail at sign-in
+    // time with a clearer error than crashing the whole module.
+    return "";
+  }
+  const privateKey = await importPKCS8(privateKeyPem, "ES256");
+  const exp = Math.floor(Date.now() / 1000) + 180 * 24 * 60 * 60; // 180d
+  return await new SignJWT({})
+    .setProtectedHeader({ alg: "ES256", kid: keyId })
+    .setIssuer(teamId)
+    .setIssuedAt()
+    .setExpirationTime(exp)
+    .setAudience("https://appleid.apple.com")
+    .setSubject(clientId)
+    .sign(privateKey);
+}
+
+const appleClientSecret = await buildAppleClientSecret();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true, // we serve under www.markforyou.com behind proxies
@@ -35,13 +71,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
     Apple({
       clientId: process.env.APPLE_CLIENT_ID,
-      // The "client secret" for Apple is a JWT signed with the .p8
-      // key from Apple Developer. Auth.js generates it for us when
-      // given the components below. Set these in env vars:
-      //   APPLE_TEAM_ID       — 10-char team id from Apple Developer
-      //   APPLE_KEY_ID        — 10-char key id of the .p8
-      //   APPLE_PRIVATE_KEY   — full .p8 contents (BEGIN/END lines)
-      clientSecret: undefined, // Auth.js builds it from the env triple
+      // Pre-built JWT — see buildAppleClientSecret() above.
+      clientSecret: appleClientSecret,
     }),
   ],
 

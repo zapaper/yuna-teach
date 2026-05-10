@@ -26,6 +26,7 @@
     "canvas-confetti": "^1.9.4",
     "dotenv": "^17.3.1",
     "html2canvas": "^1.4.1",
+    "jose": "^6.2.3",
     "jspdf": "^4.2.0",
     "katex": "^0.16.45",
     "next": "16.1.6",
