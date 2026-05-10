@@ -149,10 +149,17 @@ export default function OnboardingPage({ params }: { params: Promise<{ parentId:
     }, 280);
   }
 
-  // First-mount slide-in.
-  if (phase === "in" && step === 0) {
-    requestAnimationFrame(() => requestAnimationFrame(() => setPhase("idle")));
-  }
+  // First-mount slide-in. Run inside useEffect so the rAF call
+  // doesn't fire during SSR — `requestAnimationFrame` is a
+  // browser-only API and crashed the server render with
+  // "ReferenceError: requestAnimationFrame is not defined" when
+  // it ran from the component body.
+  useEffect(() => {
+    if (phase === "in" && step === 0) {
+      requestAnimationFrame(() => requestAnimationFrame(() => setPhase("idle")));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function finish(allAnswers: Answers) {
     // Persist parent preferences. Best-effort — failures here shouldn't
