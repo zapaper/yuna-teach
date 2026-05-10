@@ -572,7 +572,7 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, args: Cov
   // scan-back marker can distinguish their writing from the
   // printed text. Centred, full-width box at the page top.
   const noticeParagraphs = [
-    "Use the App's scan function to submit (mobile only). Scan every page",
+    "Use the App's scan function to submit (mobile only). Scan every page.",
     "Please write all answers in blue ink.",
   ];
   const noticeSize = 11;

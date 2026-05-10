@@ -108,7 +108,7 @@ export async function GET(
   // so the parent sees the scan + ink instructions before they
   // print. Drawn FIRST so the print code below can clear it.
   const noticeLines = [
-    "Use the App's scan function to submit (mobile only). Scan every page",
+    "Use the App's scan function to submit (mobile only). Scan every page.",
     "Please write all answers in blue ink.",
   ];
   const noticeSize = 11;
