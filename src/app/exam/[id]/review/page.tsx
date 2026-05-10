@@ -886,7 +886,18 @@ function ExamReviewContent({ id }: { id: string }) {
 
     for (let i = 0; i < found.length; i++) {
       const end = i + 1 < found.length ? found[i + 1].matchStart : text.length;
-      parts[found[i].label] = text.slice(found[i].start, end).trim();
+      let segment = text.slice(found[i].start, end).trim();
+      // The slice runs up to the position of the NEXT label, but
+      // the AI often writes a prelude like "Working for (b): ..." or
+      // "Steps for (b): ..." right before the label. That prelude
+      // belongs to the NEXT part, not this one — trim it off so
+      // part (a)'s detected/correct answer doesn't appear cut off
+      // at "Working for" (which is the start of part (b)'s header).
+      segment = segment
+        .replace(/[\s.,;|—-]*(?:working|steps?|solution|reasoning)\s*(?:for|:)?\s*$/i, "")
+        .replace(/[\s.,;|—-]+$/g, "")
+        .trim();
+      parts[found[i].label] = segment;
     }
 
     // Text AFTER the last found label may contain answers for missing later labels.
@@ -919,7 +930,10 @@ function ExamReviewContent({ id }: { id: string }) {
     ));
   }
 
-  // Renders marking notes: bolds verdict labels and **keyword** markers
+  // Renders marking notes: bolds verdict labels and **keyword**
+  // markers, and runs plain-text segments through MathText so
+  // inline LaTeX (e.g. "$\frac{7}{27}$") renders as a proper
+  // stacked fraction instead of leaking the dollar-sign syntax.
   function renderMarkingNotes(text: string) {
     // Drop the 'Detected: …' segment — the student's detected answer
     // already gets its own 'Detected Answer' card above the marking
@@ -934,16 +948,20 @@ function ExamReviewContent({ id }: { id: string }) {
       let last = 0;
       let m: RegExpExecArray | null;
       while ((m = boldRe.exec(trimmed)) !== null) {
-        if (m.index > last) segments.push(trimmed.slice(last, m.index));
+        if (m.index > last) {
+          segments.push(<MathText key={`t-${last}`} text={trimmed.slice(last, m.index)} />);
+        }
         const raw = m[1];
         const label = raw.startsWith("**") ? raw.slice(2, -2) : raw;
-        segments.push(<strong key={m.index}>{label}</strong>);
+        segments.push(<strong key={`b-${m.index}`}>{label}</strong>);
         last = m.index + raw.length;
       }
-      if (last < trimmed.length) segments.push(trimmed.slice(last));
+      if (last < trimmed.length) {
+        segments.push(<MathText key={`t-${last}`} text={trimmed.slice(last)} />);
+      }
       return (
         <span key={i}>
-          {segments.length > 0 ? segments : trimmed}
+          {segments.length > 0 ? segments : <MathText text={trimmed} />}
           {i < arr.length - 1 ? <br /> : null}
         </span>
       );

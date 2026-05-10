@@ -87,9 +87,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
      * Returning false aborts the sign-in. We always return true.
      */
     async signIn({ user, account, profile }) {
-      if (!account) return false;
-      const provider = account.provider; // "google" | "apple"
-      const providerAccountId = account.providerAccountId;
+      const provider = account?.provider; // "google" | "apple"
+      const providerAccountId = account?.providerAccountId;
+      console.log(`[oauth] signIn provider=${provider} accountId=${providerAccountId} userEmail=${user?.email ?? "none"} profileEmail=${(profile as { email?: string } | undefined)?.email ?? "none"}`);
+      if (!account) {
+        console.warn("[oauth] no account on signIn callback — aborting");
+        return false;
+      }
       // Apple only sends name on the very first sign-in for a user.
       // Google sends it every time. Both come through `user.name`
       // when present — fall back to email-derived for Apple repeats.
@@ -97,12 +101,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         (profile as { email?: string } | undefined)?.email ??
         user.email ??
         null;
-      if (!email) return false;
+      if (!email) {
+        console.warn(`[oauth] no email from ${provider} — aborting`);
+        return false;
+      }
       const name = user.name ?? email.split("@")[0];
 
       // Step 1: provider-id match (fastest path for repeat users)
       const idColumn = provider === "google" ? "googleId" : provider === "apple" ? "appleId" : null;
-      if (!idColumn) return false;
+      if (!idColumn) {
+        console.warn(`[oauth] unknown provider ${provider}`);
+        return false;
+      }
 
       let dbUser = await prisma.user.findFirst({
         where: { [idColumn]: providerAccountId },
@@ -143,6 +153,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Set our session cookie. signIn callback runs server-side in
       // the OAuth callback route, so cookies().set() works here.
       await setSession(dbUser.id);
+      console.log(`[oauth] signIn ok: ${provider} → user=${dbUser.id} (${dbUser.email})`);
 
       return true;
     },
@@ -157,6 +168,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
      * passed (e.g. parent-deeplinks landing here via `next=`).
      */
     async redirect({ url, baseUrl }) {
+      console.log(`[oauth] redirect callback url=${url} baseUrl=${baseUrl}`);
       // Bare baseUrl / "/" → our dispatcher.
       if (url === "/" || url === baseUrl || url === `${baseUrl}/`) {
         return `${baseUrl}/post-login`;
