@@ -183,6 +183,14 @@ export async function GET(request: NextRequest) {
   // burn through math OEQs first, then move on to science.
   const subjectParam = (request.nextUrl.searchParams.get("subject") ?? "math").toLowerCase();
   const subjectFilter = subjectParam === "all" ? null : subjectParam;
+  // listOnly=1 → return the full universe of matching IDs as a
+  // fast (no AI) preflight. The page calls this once on mount to
+  // establish the total backlog, then makes per-batch AI calls
+  // by passing ?ids=a,b,c on subsequent requests. Avoids the
+  // re-scan-every-batch behaviour.
+  const listOnly = request.nextUrl.searchParams.get("listOnly") === "1";
+  const idsParam = request.nextUrl.searchParams.get("ids");
+  const onlyIds = idsParam ? idsParam.split(",").filter(Boolean) : null;
 
   // Pre-filter at DB level. Re-narrow in JS because gap checks need
   // JSON parsing.
@@ -244,7 +252,23 @@ export async function GET(request: NextRequest) {
       return r.marksGap || r.answerGap;
     });
   const total = allWithGap.length;
-  const withGap = allWithGap.slice(0, limit);
+
+  // Fast preflight: page asked for just the universe of IDs so it
+  // can stop re-scanning the DB on every batch. No AI work here.
+  if (listOnly) {
+    return NextResponse.json({
+      ids: allWithGap.map((r) => r.q.id),
+      totalPending: total,
+    });
+  }
+
+  // Batched AI fill: when a list of specific IDs is provided,
+  // process exactly those. Otherwise default to the first `limit`
+  // matching candidates (legacy behaviour kept for first scan
+  // before the page started passing ?ids=).
+  const withGap = onlyIds && onlyIds.length > 0
+    ? allWithGap.filter((r) => onlyIds.includes(r.q.id))
+    : allWithGap.slice(0, limit);
 
   // Run AI passes per candidate. Two calls per candidate
   // (extractSubpartMarks + generateAnswer) in parallel inside the

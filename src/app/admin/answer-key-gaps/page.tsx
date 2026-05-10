@@ -52,9 +52,12 @@ function Content() {
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId") ?? "";
   const [items, setItems] = useState<GapItem[]>([]);
-  const [scanned, setScanned] = useState(0);
   const [totalPending, setTotalPending] = useState<number | null>(null);
-  const [excludeIds, setExcludeIds] = useState<string[]>([]);
+  // backlog: full list of IDs from the one-time preflight scan.
+  // The page slices this in chunks of 10 for AI processing,
+  // avoiding a re-scan on every "Load next 10".
+  const [backlog, setBacklog] = useState<string[]>([]);
+  const [backlogIndex, setBacklogIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<"math" | "science" | "all">("math");
@@ -102,58 +105,83 @@ function Content() {
     }
   }
 
-  async function scan(reset = false) {
+  // Display normalisations applied to each AI proposal before
+  // seeding the textarea. Save path collapses the newlines back
+  // to " | " so the renderer keeps working unchanged.
+  const normaliseLabels = (s: string) =>
+    s.replace(/(^|\s\|\s|\n)\s*\d*([a-f])\s*[):]\s*/gi, "$1($2) ");
+  const splitParts = (s: string) =>
+    normaliseLabels(s).replace(/\s*\|\s*\(([a-z])\)/gi, "\n($1)");
+
+  // Step 1: one-time fast scan to build the backlog of all
+  // matching IDs. No AI calls. Cheap to re-run; called on mount
+  // and whenever the subject filter flips.
+  async function loadBacklog() {
     setLoading(true);
     setError(null);
     try {
-      const ids = reset ? [] : excludeIds;
-      const url = `/api/admin/answer-key-gaps?limit=10&subject=${subjectFilter}${ids.length > 0 ? `&excludeIds=${ids.join(",")}` : ""}`;
-      const r = await fetch(url);
+      const r = await fetch(`/api/admin/answer-key-gaps?listOnly=1&subject=${subjectFilter}`);
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));
         setError(data.error ?? `Scan failed (${r.status})`);
         return;
       }
-      const data = (await r.json()) as { items: GapItem[]; scanned: number; totalPending?: number };
-      if (typeof data.totalPending === "number") setTotalPending(data.totalPending);
-      // Seed per-row edit state from AI proposals
-      // Make the proposed answer easier to scan: each "(b)", "(c)",
-      // etc. block starts on a new line. Also normalise scrappy
-      // label forms the AI sometimes emits ("14a)", "a)", "a:")
-      // to the canonical "(a)" so the renderer's parsePartAnswers
-      // slices cleanly. Save path keeps the single-line " | "
-      // form so the renderer keeps working as before.
-      const normaliseLabels = (s: string) =>
-        s.replace(/(^|\s\|\s|\n)\s*\d*([a-f])\s*[):]\s*/gi, "$1($2) ");
-      const splitParts = (s: string) =>
-        normaliseLabels(s).replace(/\s*\|\s*\(([a-z])\)/gi, "\n($1)");
+      const data = (await r.json()) as { ids: string[]; totalPending: number };
+      setBacklog(data.ids);
+      setTotalPending(data.totalPending);
+      setBacklogIndex(0);
+      setItems([]);
+      setEditAnswer({});
+      setEditMarks({});
+      // Auto-load the first batch right after the preflight so the
+      // admin doesn't have to click again.
+      const firstBatch = data.ids.slice(0, 10);
+      if (firstBatch.length > 0) await fillBatch(firstBatch, 0);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Step 2: AI-process a specific batch of IDs. Replaces (not
+  // appends) the displayed items so the admin only sees the
+  // current chunk — applied / skipped rows from prior chunks
+  // are gone from view.
+  async function fillBatch(ids: string[], indexBefore: number) {
+    if (ids.length === 0) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await fetch(`/api/admin/answer-key-gaps?subject=${subjectFilter}&ids=${ids.join(",")}`);
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        setError(data.error ?? `Batch failed (${r.status})`);
+        return;
+      }
+      const data = (await r.json()) as { items: GapItem[] };
       const seedAnswer: Record<string, string> = {};
       const seedMarks: Record<string, Record<string, number>> = {};
       for (const it of data.items) {
         seedAnswer[it.id] = splitParts(it.proposedAnswer || it.currentAnswer);
         seedMarks[it.id] = { ...it.proposedMarks };
       }
-      if (reset) {
-        setItems(data.items);
-        setExcludeIds(data.items.map((it) => it.id));
-        setEditAnswer(seedAnswer);
-        setEditMarks(seedMarks);
-      } else {
-        setItems((prev) => [...prev, ...data.items]);
-        setExcludeIds((prev) => [...prev, ...data.items.map((it) => it.id)]);
-        setEditAnswer((prev) => ({ ...prev, ...seedAnswer }));
-        setEditMarks((prev) => ({ ...prev, ...seedMarks }));
-      }
-      setScanned(data.scanned);
+      setItems(data.items);
+      setEditAnswer(seedAnswer);
+      setEditMarks(seedMarks);
+      setBacklogIndex(indexBefore + ids.length);
     } finally {
       setLoading(false);
     }
   }
 
+  function loadNext() {
+    const next = backlog.slice(backlogIndex, backlogIndex + 10);
+    void fillBatch(next, backlogIndex);
+  }
+
   useEffect(() => {
-    scan(true);
+    void loadBacklog();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [subjectFilter]);
 
   async function apply(id: string, action: "save" | "skip") {
     setSaving((s) => new Set(s).add(id));
@@ -243,18 +271,23 @@ function Content() {
         <div className="p-4 max-w-4xl">
           <div className="flex items-center gap-3 mb-4 flex-wrap">
             <button
-              onClick={() => scan(false)}
-              disabled={loading}
+              onClick={loadNext}
+              disabled={loading || backlogIndex >= backlog.length}
               className="px-4 py-2 rounded-lg bg-rose-600 text-white text-sm font-bold hover:bg-rose-700 disabled:opacity-50"
             >
-              {loading ? "Scanning…" : items.length === 0 ? "Scan first 10" : "Load next 10"}
+              {loading
+                ? "Loading…"
+                : backlogIndex >= backlog.length
+                  ? "All done"
+                  : `Load next 10 (${Math.min(10, backlog.length - backlogIndex)})`}
             </button>
             <button
-              onClick={() => { setItems([]); setExcludeIds([]); setEditAnswer({}); setEditMarks({}); scan(true); }}
+              onClick={loadBacklog}
               disabled={loading}
+              title="Re-query DB for fresh backlog (e.g. after admin edited masters elsewhere)"
               className="px-3 py-2 rounded-lg bg-white border border-slate-300 text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
             >
-              Reset scan
+              Refresh backlog
             </button>
             {items.length > 0 && (
               <button
@@ -269,7 +302,10 @@ function Content() {
               {(["math", "science", "all"] as const).map((s) => (
                 <button
                   key={s}
-                  onClick={() => { setSubjectFilter(s); setItems([]); setExcludeIds([]); setEditAnswer({}); setEditMarks({}); }}
+                  onClick={() => {
+                    if (subjectFilter === s) return;
+                    setSubjectFilter(s);
+                  }}
                   className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
                     subjectFilter === s ? "bg-rose-600 text-white" : "text-slate-600 hover:bg-slate-100"
                   }`}
@@ -279,9 +315,9 @@ function Content() {
               ))}
             </div>
             <span className="text-xs text-slate-500 ml-2">
-              {items.length} surfaced
-              {totalPending !== null && ` · ${totalPending} pending across ${subjectFilter}`}
-              {" · "}{scanned} scanned in last batch
+              {totalPending !== null && backlog.length > 0
+                ? `${Math.min(backlogIndex, backlog.length)} of ${backlog.length} processed in ${subjectFilter}`
+                : `${items.length} surfaced`}
             </span>
           </div>
 
@@ -293,7 +329,11 @@ function Content() {
 
           {!loading && items.length === 0 && (
             <p className="text-sm text-slate-500 py-8 text-center">
-              No gaps surfaced. {excludeIds.length > 0 ? "All scanned candidates resolved or excluded." : "Try Scan again."}
+              {backlog.length === 0
+                ? `No gaps in ${subjectFilter}. Switch subject or try Refresh backlog.`
+                : backlogIndex >= backlog.length
+                  ? "All done — every backlog row processed."
+                  : "Click Load next 10 to fetch the next batch."}
             </p>
           )}
 
