@@ -74,9 +74,11 @@ export async function GET(
   const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
 
   // ── Cover page ────────────────────────────────────────────────
+  // Email-banner removed — in-app camera-scan + scheduler-popup Scan
+  // are the primary submission paths now. Parents stopped using the
+  // diagnose@... email flow once the in-app scanner shipped.
   let page = doc.addPage([A4_W, A4_H]);
   drawPrintCode(page, helvBold, code);
-  drawEmailBanner(page, helvBold);
   drawCoverPage(page, helvBold, helv, paper.title ?? "Focused Practice", student.name, paper.subject ?? "", paper.level ?? "", paper.questions.length, code);
 
   // ── Question pages ────────────────────────────────────────────
@@ -292,7 +294,7 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, title: st
     "1. Write your name and date below.",
     "2. Answer every question.",
     "3. Show your working for math questions.",
-    "4. When done, ask your parent to scan the pages and email the scan to diagnose@inbound.markforyou.com.",
+    "4. When completed, please scan with scanner button on your mobile/tablet.",
     "5. The code in the top-right of each page tells us which paper this is — please don't cover or cut it off.",
   ];
   let iy = 240;

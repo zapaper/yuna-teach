@@ -2468,55 +2468,12 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {/* Print only for printable exam papers — quizzes
-                            and focused practices live in-app, there's
-                            nothing meaningful to print. Same gate as the
-                            Scan button below. */}
-                        {paper.paperType !== "quiz" && paper.paperType !== "focused" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Same server route the existing print flow
-                              // already uses — stamps the print code that
-                              // SendGrid Inbound Parse looks for.
-                              window.open(
-                                `/api/exam/${paper.id}/print?studentId=${paper.assignedToId ?? ""}&userId=${userId}`,
-                                "_blank",
-                              );
-                            }}
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#001e40] hover:bg-[#eff4ff] transition-colors"
-                            title="Print exam paper"
-                          >
-                            <span className="material-symbols-outlined text-lg">print</span>
-                          </button>
-                        )}
-                        {/* Scan only makes sense for printable exam
-                            papers (paperType=null). Quiz / focused
-                            are answered in-app. For a clone we still
-                            want to fire the scan flow against the
-                            master paper, which is reachable via
-                            sourceExamId. */}
-                        {paper.assignedToId && paper.paperType !== "quiz" && paper.paperType !== "focused" && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Always pass the row the parent is
-                              // looking at (the assigned clone). The
-                              // backend updates that row in place
-                              // instead of creating a duplicate.
-                              setScannerTarget({
-                                masterPaperId: paper.id,
-                                studentId: paper.assignedToId!,
-                                studentName: paper.assignedToName ?? null,
-                                paperTitle: paper.title,
-                              });
-                            }}
-                            className="lg:hidden w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#006c49] hover:bg-[#e8fff3] transition-colors"
-                            title="Scan completed paper"
-                          >
-                            <span className="material-symbols-outlined text-lg">photo_camera</span>
-                          </button>
-                        )}
+                        {/* Print + Scan now live in the scheduler popup
+                            that opens on card click — keeps every
+                            paper-card row consistent regardless of
+                            paperType. (The popup is shared between
+                            assigned-card click and weekly-schedule
+                            click; both routes get the same buttons.) */}
                         <button onClick={(e) => handleDeletePaper(e, paper.id)}
                           className="w-8 h-8 rounded-full flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"
                           title="Delete quiz"
