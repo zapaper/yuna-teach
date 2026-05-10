@@ -22,6 +22,60 @@ const MARGIN = 40;
 const CONTENT_W = A4_W - MARGIN * 2;
 const LINE_PT = 16;
 
+// pdf-lib's Helvetica uses WinAnsi encoding — common Unicode math
+// symbols like π, ×, ÷, ² etc. throw "WinAnsi cannot encode …" at
+// drawText time. Map the symbols we actually see in question
+// content to ASCII or escape the rest as a "?" so the PDF builds
+// instead of 500-erroring. Lossy but the alternative is shipping
+// a Unicode font (~hundreds of KB) embedded in every print job.
+const ASCII_MAP: Record<string, string> = {
+  "π": "pi",
+  "×": "x",
+  "÷": "/",
+  "·": ".",
+  "−": "-",
+  "–": "-",
+  "—": "-",
+  "≤": "<=",
+  "≥": ">=",
+  "≠": "!=",
+  "≈": "~=",
+  "→": "->",
+  "←": "<-",
+  "↑": "^",
+  "↓": "v",
+  "²": "^2",
+  "³": "^3",
+  "°": " deg",
+  "√": "sqrt",
+  "¼": "1/4",
+  "½": "1/2",
+  "¾": "3/4",
+  "‘": "'",
+  "’": "'",
+  "“": "\"",
+  "”": "\"",
+  " ": " ", // nbsp
+};
+function sanitizeForWinAnsi(text: string): string {
+  if (!text) return "";
+  let out = "";
+  for (const ch of text) {
+    if (ch in ASCII_MAP) {
+      out += ASCII_MAP[ch];
+      continue;
+    }
+    const code = ch.charCodeAt(0);
+    // WinAnsi covers basic Latin (0x20-0x7E) + a chunk of high-bytes;
+    // anything outside U+0000 - U+00FF risks erroring. Drop chars
+    // outside that range to "?" so the rest of the line still
+    // prints.
+    if (code > 0xff) out += "?";
+    else out += ch;
+  }
+  return out;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -153,7 +207,7 @@ export async function GET(
     }
 
     // Question label
-    const label = `Q${q.questionNum}${marks > 1 ? `   (${marks} marks)` : marks === 1 ? `   (1 mark)` : ""}`;
+    const label = sanitizeForWinAnsi(`Q${q.questionNum}${marks > 1 ? `   (${marks} marks)` : marks === 1 ? `   (1 mark)` : ""}`);
     page.drawText(label, { x: MARGIN, y: yCursor - 11, size: 11, font: helvBold, color: rgb(0, 0, 0) });
     yCursor -= labelH;
 
@@ -269,14 +323,17 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, title: st
   let y = A4_H - 200;
   page.drawText("Focused Practice", { x: MARGIN, y, size: 28, font: bold, color: rgb(0, 0.12, 0.25) });
   y -= 36;
-  // Subtitle line: subject · level · question count
-  const sub = [subject, level ? `Primary ${level}` : "", `${qCount} questions`].filter(Boolean).join("  ·  ");
+  // Subtitle line: subject · level · question count. Note the "·"
+  // is in the ASCII_MAP so the sanitizer drops it to ".".
+  const sub = sanitizeForWinAnsi([subject, level ? `Primary ${level}` : "", `${qCount} questions`].filter(Boolean).join("  ·  "));
   page.drawText(sub, { x: MARGIN, y, size: 14, font: regular, color: rgb(0.3, 0.3, 0.3) });
   y -= 50;
-  // Student name (large)
+  // Student name (large) — name field is user-controlled, may
+  // include emoji or non-Latin characters that Helvetica can't
+  // encode. Sanitize before drawing.
   page.drawText("Student", { x: MARGIN, y, size: 11, font: regular, color: rgb(0.4, 0.4, 0.4) });
   y -= 18;
-  page.drawText(studentName, { x: MARGIN, y, size: 22, font: bold, color: rgb(0, 0.12, 0.25) });
+  page.drawText(sanitizeForWinAnsi(studentName), { x: MARGIN, y, size: 22, font: bold, color: rgb(0, 0.12, 0.25) });
   y -= 50;
   // Topic
   if (title) {
@@ -328,7 +385,11 @@ async function embedDataUrlScaled(doc: PDFDocument, dataUrl: string, targetWidth
 }
 
 function wrapLines(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const words = text.split(/\s+/);
+  // Sanitize FIRST so width calculations match what's actually
+  // drawn — π in text but drawn as "pi" would be 0 width here vs.
+  // 2 chars worth at draw-time, breaking layout.
+  const safe = sanitizeForWinAnsi(text);
+  const words = safe.split(/\s+/);
   const out: string[] = [];
   let current = "";
   for (const w of words) {
