@@ -1270,12 +1270,39 @@ function ExamReviewContent({ id }: { id: string }) {
                     onClick={async () => {
                       setReleasing(true);
                       try {
+                        // 1) Mark current paper as released.
                         await fetch(`/api/exam/${id}`, {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({ markingStatus: "released" }),
                         });
-                        router.push(`/exam/${pendingReviewIds[0]}/review?userId=${userId}`);
+                        // 2) Re-fetch the pending list. Cached
+                        //    pendingReviewIds was built on mount —
+                        //    other tabs / earlier reviews may have
+                        //    released some, leaving stale entries.
+                        //    Picking the first stale id sent the
+                        //    parent to an already-reviewed paper.
+                        let nextId: string | null = null;
+                        try {
+                          const r = await fetch(`/api/exam?userId=${userId}`);
+                          if (r.ok) {
+                            const d = (await r.json()) as { papers: Array<{ id: string; assignedToId: string; completedAt: string | null; markingStatus: string | null }> };
+                            const fresh = (d.papers ?? [])
+                              .filter((p) => p.assignedToId === assignedToId && p.completedAt && p.markingStatus === "complete")
+                              .map((p) => p.id)
+                              .filter((pid) => pid !== id);
+                            nextId = fresh[0] ?? null;
+                          }
+                        } catch { /* fall through to cached */ }
+                        // Final fallback: use the originally-cached
+                        // first id only if we couldn't refetch.
+                        const target = nextId ?? pendingReviewIds[0];
+                        if (target) {
+                          router.push(`/exam/${target}/review?userId=${userId}`);
+                        } else {
+                          // No pending left — go home.
+                          router.push(`/home/${userId}?view=progress&student=${assignedToId}`);
+                        }
                       } catch {
                         setReleasing(false);
                       }
