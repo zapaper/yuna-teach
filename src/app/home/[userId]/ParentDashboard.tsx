@@ -108,7 +108,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
-  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null } | null>(null);
+  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null; subject: string | null } | null>(null);
   const [quizTargetDay, setQuizTargetDay] = useState<Date | null>(null);
 
   async function reschedulePaper(paperId: string, newDay: Date) {
@@ -2457,7 +2457,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   {unstartedPapers.map(paper => (
                     <div
                       key={paper.id}
-                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType })}
+                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType, subject: paper.subject ?? null })}
                       className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
                     >
                       <div className="w-11 h-11 rounded-2xl bg-[#ffddb4]/40 flex items-center justify-center text-[#d58d00] shrink-0">
@@ -2478,7 +2478,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             clean-extract content with bounds, the
                             scan-back marking flow works uniformly
                             for regular / quiz / focused. */}
-                        {paper.assignedToId && (
+                        {paper.assignedToId && !(paper.subject ?? "").toLowerCase().includes("english") && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -2715,7 +2715,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null });
                               }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "9px" }}>check_circle</span>
@@ -3048,7 +3048,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null });
                               }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined text-[10px] shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "10px" }}>check_circle</span>
@@ -3364,12 +3364,17 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         // with lg:hidden. Both depend on knowing which student the
         // scheduler is currently filtered to (selectedStudentId).
         const popup = schedulerPopup;
+        // English printable is disabled for now (the writing-comprehension
+        // layout doesn't translate cleanly to lined/boxed A4) — hide
+        // both Print and Scan in the popup for English papers.
+        const isEnglishPopup = (popup.subject ?? "").toLowerCase().includes("english");
         return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{popup.title}</p>
             {!popup.completed && selectedStudentId && (
               <div className="flex flex-col gap-2 mb-3">
+                {!isEnglishPopup && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
@@ -3405,6 +3410,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     Scan
                   </button>
                 </div>
+                )}
                 {/* Open in child's tab — quiz/focused take place at
                     /quiz/<id> (canvas workspace), regular papers
                     open the /exam/<id> overview/review. iOS branch

@@ -24,6 +24,9 @@ const A4_H = 841.89;
 const MARGIN = 40;
 const CONTENT_W = A4_W - MARGIN * 2;
 const LINE_PT = 16;
+// Science OEQ writing lines sit 25% further apart than body text so
+// students have more vertical room to write between rules.
+const SCI_LINE_GAP = LINE_PT * 1.25;
 
 // pdf-lib's Helvetica uses WinAnsi encoding — common Unicode math
 // symbols like π, ×, ÷, ² etc. throw "WinAnsi cannot encode …" at
@@ -60,8 +63,54 @@ const ASCII_MAP: Record<string, string> = {
   "”": "\"",
   " ": " ", // nbsp
 };
+// Transcribed text often contains LaTeX (\frac{1}{2}, \sqrt{16}, $x^2$,
+// \times, \pi, ...) because the question rendering uses MathText/KaTeX
+// elsewhere. pdf-lib's drawText is a plain raster draw — same constraint
+// as canvas fillText — so anything left as raw LaTeX prints as literal
+// backslash-gibberish. Map the common commands to their nearest
+// readable form before WinAnsi sanitation strips the unicode further.
+function flattenLatex(s: string): string {
+  if (!s) return "";
+  return s
+    // Strip surrounding $...$ and $$...$$ math delimiters but keep inner content
+    .replace(/\$\$([^$]+)\$\$/g, "$1")
+    .replace(/\$([^$]+)\$/g, "$1")
+    // Fractions: nested-safe enough for the simple cases we see
+    .replace(/\\d?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "($1)/($2)")
+    .replace(/\\sqrt\s*\{([^{}]+)\}/g, "√($1)")
+    // Common math operators / symbols
+    .replace(/\\times/g, "×")
+    .replace(/\\div/g, "÷")
+    .replace(/\\cdot/g, "·")
+    .replace(/\\pm/g, "±")
+    .replace(/\\pi/g, "π")
+    .replace(/\\degree|\\circ/g, "°")
+    .replace(/\\le(?![a-z])/gi, "≤")
+    .replace(/\\ge(?![a-z])/gi, "≥")
+    .replace(/\\ne(?![a-z])/gi, "≠")
+    .replace(/\\approx/g, "≈")
+    .replace(/\\rightarrow|\\to(?![a-z])/g, "→")
+    .replace(/\\leftarrow/g, "←")
+    .replace(/\\infty/g, "∞")
+    // Super/subscript with braces collapse
+    .replace(/\^\{([^{}]+)\}/g, "^$1")
+    .replace(/_\{([^{}]+)\}/g, "_$1")
+    // Text wrappers — keep the inner text
+    .replace(/\\(?:text|mathrm|mathit|mathbf|operatorname)\s*\{([^{}]+)\}/g, "$1")
+    // Spacing macros
+    .replace(/\\[,;:!]/g, " ")
+    .replace(/\\quad|\\qquad/g, "  ")
+    // Strip remaining lone braces around plain chars
+    .replace(/\{([^{}]*)\}/g, "$1")
+    // Whatever's left of \command — drop the backslash, keep the word
+    .replace(/\\([a-zA-Z]+)/g, "$1");
+}
+
 function sanitizeForWinAnsi(text: string): string {
   if (!text) return "";
+  // Flatten LaTeX first so any unicode it emits (×, √, π, °, ...) is
+  // then mapped to ASCII by the WinAnsi pass below.
+  text = flattenLatex(text);
   let out = "";
   for (const ch of text) {
     if (ch in ASCII_MAP) {
@@ -125,6 +174,12 @@ export async function GET(
 
   const isMath = (paper.subject ?? "").toLowerCase().includes("math");
   const isScience = (paper.subject ?? "").toLowerCase().includes("sci");
+  const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
+  // English printable disabled for now — writing-comprehension layout
+  // doesn't translate cleanly to lined / boxed A4 yet.
+  if (isEnglish) {
+    return NextResponse.json({ error: "Printable not available for English yet" }, { status: 400 });
+  }
   const code = `MFY-${paper.id.slice(0, 8)}-${student.id.slice(0, 8)}`;
 
   const doc = await PDFDocument.create();
@@ -216,6 +271,45 @@ export async function GET(
     // Question label
     const label = sanitizeForWinAnsi(`Q${q.questionNum}${marks > 1 ? `   (${marks} marks)` : marks === 1 ? `   (1 mark)` : ""}`);
     const labelH = LINE_PT * 1.5;
+
+    // Keep-together: estimate the height of "stem + first writing
+    // area" so the question text doesn't land on page N with the
+    // answer box orphaned on page N+1. If the current page can't
+    // fit that block but a fresh one could, start a new page now.
+    // Note: per-subpart diagrams are NOT measured (they're data
+    // URLs and embedding twice is expensive) — we use a small
+    // allowance instead. The flow-break logic later still handles
+    // overruns for very tall questions.
+    const stemLineCount = q.transcribedStem
+      ? wrapLines(q.transcribedStem, helv, 11, CONTENT_W).length
+      : 0;
+    const diagramAllowance = q.diagramImageData ? 80 : 0;
+    let firstAnswerBoxH = 0;
+    if (isMcq) {
+      const optLineCount = cleanOpts.reduce(
+        (n, opt) => n + wrapLines(opt, helv, 11, CONTENT_W - 24).length,
+        0,
+      );
+      firstAnswerBoxH = optLineCount * LINE_PT + 6 + LINE_PT;
+    } else if (realSubs.length > 0) {
+      const sp0 = realSubs[0];
+      const m0 = String(sp0.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
+      const sp0Marks = m0 ? parseInt(m0[1], 10) : marks / realSubs.length;
+      const sp0TextH = wrapLines(`(${sp0.label}) ${sp0.text}`, helv, 11, CONTENT_W).length * LINE_PT;
+      const sp0LineGap = isScience ? SCI_LINE_GAP : LINE_PT;
+      const sp0WriteH = isMath
+        ? Math.max(LINE_PT * 3, sp0Marks * A4_H * 0.085)
+        : Math.max(sp0LineGap * 2, sp0Marks * 2 * sp0LineGap);
+      firstAnswerBoxH = sp0TextH + sp0WriteH;
+    } else {
+      const singleLineGap = isScience ? SCI_LINE_GAP : LINE_PT;
+      firstAnswerBoxH = isMath
+        ? Math.max(LINE_PT * 4, marks * A4_H * 0.10)
+        : Math.max(singleLineGap * 2, marks * 2 * singleLineGap);
+    }
+    const keepTogetherH = labelH + stemLineCount * LINE_PT + diagramAllowance + firstAnswerBoxH + 12;
+    const atTopOfPage = yCursor >= A4_H - MARGIN - 18 - 1;
+    if (!atTopOfPage && yCursor - keepTogetherH < MARGIN) newPage();
     if (yCursor - labelH < MARGIN) newPage();
     page.drawText(label, { x: MARGIN, y: yCursor - 11, size: 11, font: helvBold, color: rgb(0, 0, 0) });
     yCursor -= labelH;
@@ -261,12 +355,22 @@ export async function GET(
           yCursor -= LINE_PT;
         }
       }
-      // Single short answer line for MCQ
+      // Single short answer line for MCQ, aligned to the bottom-right
+      // of the question's right margin so the line sits where a
+      // student naturally writes a single-letter / single-digit
+      // answer.
       yCursor -= 6;
       const ansY = yCursor - 11;
       const ansBoxStartY = yCursor;
-      page.drawText("Answer:", { x: MARGIN, y: ansY, size: 11, font: helvBold, color: rgb(0, 0, 0) });
-      page.drawLine({ start: { x: MARGIN + 60, y: ansY - 2 }, end: { x: MARGIN + 180, y: ansY - 2 }, thickness: 0.7, color: rgb(0.6, 0.6, 0.6) });
+      const ansLabel = "Answer:";
+      const ansLabelW = helvBold.widthOfTextAtSize(ansLabel, 11);
+      const ansLineW = 120;
+      const ansGap = 8;
+      const ansLineEndX = MARGIN + CONTENT_W;
+      const ansLineStartX = ansLineEndX - ansLineW;
+      const ansLabelX = ansLineStartX - ansGap - ansLabelW;
+      page.drawText(ansLabel, { x: ansLabelX, y: ansY, size: 11, font: helvBold, color: rgb(0, 0, 0) });
+      page.drawLine({ start: { x: ansLineStartX, y: ansY - 2 }, end: { x: ansLineEndX, y: ansY - 2 }, thickness: 0.7, color: rgb(0.6, 0.6, 0.6) });
       yCursor -= LINE_PT;
       const ansBoxEndY = yCursor;
       boundsByQ.set(q.id, {
@@ -305,11 +409,10 @@ export async function GET(
           } catch { /* skip on failure */ }
         }
         // Writing area sized by per-subpart marks
+        const lineGap = isScience ? SCI_LINE_GAP : LINE_PT;
         const writeH = isMath
           ? Math.max(LINE_PT * 3, subMarks * A4_H * 0.085)
-          : isScience
-            ? Math.max(LINE_PT * 2, subMarks * 2 * LINE_PT)
-            : Math.max(LINE_PT * 2, subMarks * 2 * LINE_PT);
+          : Math.max(lineGap * 2, subMarks * 2 * lineGap);
         if (yCursor - writeH < MARGIN) newPage();
         const writeStartY = yCursor;
         const writeStartPage = pageIndex;
@@ -318,7 +421,7 @@ export async function GET(
         } else {
           const linesN = Math.max(2, Math.round(subMarks * 2));
           for (let i = 0; i < linesN; i++) {
-            const yLine = yCursor - (i + 1) * LINE_PT;
+            const yLine = yCursor - (i + 1) * lineGap;
             page.drawLine({ start: { x: MARGIN, y: yLine }, end: { x: MARGIN + CONTENT_W, y: yLine }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
           }
         }
@@ -342,11 +445,10 @@ export async function GET(
       // Single-part OEQ. One writing area sized by total marks.
       // Drawable-diagram subpart (if any) goes inside the writing
       // box as a background.
+      const lineGap = isScience ? SCI_LINE_GAP : LINE_PT;
       const writeH = isMath
         ? Math.max(LINE_PT * 4, marks * A4_H * 0.10)
-        : isScience
-          ? Math.max(LINE_PT * 2, marks * 2 * LINE_PT)
-          : Math.max(LINE_PT * 2, marks * 2 * LINE_PT);
+        : Math.max(lineGap * 2, marks * 2 * lineGap);
       if (yCursor - writeH < MARGIN) newPage();
       const writeStartY = yCursor;
       const writeStartPage = pageIndex;
@@ -361,7 +463,7 @@ export async function GET(
       } else {
         const linesN = Math.max(2, Math.round(marks * 2));
         for (let i = 0; i < linesN; i++) {
-          const yLine = yCursor - (i + 1) * LINE_PT;
+          const yLine = yCursor - (i + 1) * lineGap;
           page.drawLine({ start: { x: MARGIN, y: yLine }, end: { x: MARGIN + CONTENT_W, y: yLine }, thickness: 0.5, color: rgb(0.7, 0.7, 0.7) });
         }
       }
@@ -374,7 +476,8 @@ export async function GET(
       });
     }
 
-    yCursor -= 12;
+    // Two blank lines between questions for breathing room.
+    yCursor -= LINE_PT * 2;
   }
 
   // Persist the captured bounds so the marker can crop scanned
@@ -463,13 +566,44 @@ type CoverArgs = {
 function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, args: CoverArgs) {
   const { owlLogo, wordmark, paperKind, topic, studentName, subject, level, questionCount } = args;
 
+  // ── Submit-via-app banner: bold boxed notice at the very top ──
+  // Tells parents to scan + submit inside the app rather than
+  // emailing, and reminds students to write in blue ink so the
+  // scan-back marker can distinguish their writing from the
+  // printed text. Centred, full-width box at the page top.
+  const noticeParagraphs = [
+    "Use the App's scan function to submit (mobile only). Scan every page",
+    "Please write all answers in blue ink.",
+  ];
+  const noticeSize = 11;
+  const noticeLines = noticeParagraphs.flatMap(p => wrapLines(p, bold, noticeSize, CONTENT_W - 24));
+  const noticeLineH = noticeSize + 4;
+  const noticePadY = 9;
+  const noticeBoxH = noticeLines.length * noticeLineH + noticePadY * 2;
+  const noticeBoxY = A4_H - MARGIN - noticeBoxH;
+  page.drawRectangle({
+    x: MARGIN,
+    y: noticeBoxY,
+    width: CONTENT_W,
+    height: noticeBoxH,
+    color: rgb(1, 0.95, 0.78),
+    borderColor: rgb(0, 0.12, 0.25),
+    borderWidth: 1.2,
+  });
+  let ny0 = noticeBoxY + noticeBoxH - noticePadY - noticeSize;
+  for (const line of noticeLines) {
+    const lw = bold.widthOfTextAtSize(line, noticeSize);
+    page.drawText(line, { x: (A4_W - lw) / 2, y: ny0, size: noticeSize, font: bold, color: rgb(0, 0.12, 0.25) });
+    ny0 -= noticeLineH;
+  }
+
   // ── Brand block: owl logo + wordmark, centred ─────────────────
   // Logo sized so the owl + wordmark together feel "front and
   // centre" but don't crowd out the title underneath.
   const logoSize = 110;
   const wordmarkH = 36;
-  // Total block height (logo + gap + wordmark) used to centre.
-  let y = A4_H - 110; // anchor for the logo top
+  // Anchor moved down to clear the new top notice.
+  let y = noticeBoxY - 20;
   if (owlLogo) {
     page.drawImage(owlLogo, {
       x: (A4_W - logoSize) / 2,
