@@ -1398,18 +1398,26 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       }
       parts.push({ text: prompt });
 
-      // Science exam-paper marking uses gemini-3-flash-preview.
-      // Flash 2.5 silently skipped the phrase-by-phrase rule; the
-      // 3-flash-preview tier follows the structured A→E process
-      // far more reliably while keeping per-question cost ~3× of
-      // 2.5 instead of the 10× pro tier. If user reports it's
-      // still too lenient after a real re-mark, the obvious next
-      // step is gemini-3.1-pro-preview.
-      // Math + English unchanged — their rules are mechanical
-      // (exact match or proportional working-steps) and flash 2.5
-      // handles them fine.
+      // Science exam-paper marking on gemini-3.1-pro-preview.
+      // Both flash-2.5 and 3-flash-preview visibly skipped the
+      // phrase-by-phrase rule and defaulted to "answer is on-topic
+      // → full marks", even with the explicit override clause +
+      // structured A→E process + worked examples in the prompt.
+      // Pro-tier instruction-following is required to actually
+      // segment a science answer key into phrases and deduct per
+      // missing phrase. Confirmed by user after testing both flash
+      // levels.
+      //
+      // Math + English unchanged on flash-2.5 — their rules are
+      // mechanical (exact match or proportional working-steps)
+      // and don't need pro reasoning.
+      //
+      // Cost impact: ~10× per science OEQ question on the exam
+      // path (roughly $0.03 → $0.30 per 20-OEQ science paper).
+      // Worth it for phrase-level accuracy parity with a human
+      // marker.
       const isScience = (paper?.subject ?? "").toLowerCase().includes("science");
-      const defaultModel = isScience ? "gemini-3-flash-preview" : "gemini-2.5-flash";
+      const defaultModel = isScience ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
       const model = modelOverride ?? defaultModel;
       try {
         const response = await withTimeout(
