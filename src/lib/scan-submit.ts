@@ -186,6 +186,47 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
   }
   console.log(`[scan-submit] saved ${saved} page JPGs for clone=${cloneId} student=${studentId} mode=${target.sourceExamId ? "update" : "create"}`);
 
+  // Build oeqPageMap from each question's printableBounds so the
+  // review page knows which scan file to show for each question.
+  // Without this map the review page falls back to the OEQ array
+  // index, which only works for in-app canvas papers (where every
+  // question owns its own page_<i>.jpg). Scanned-back printables
+  // have many questions per scan page → the wrong image shows.
+  //
+  // Map shape: { [questionId]: scanFileIndex }, matching the
+  // existing in-app metadata.oeqPageMap shape that the review page
+  // already reads. scanFileIndex = printableBounds.pageIndex + 1
+  // (cover offset).
+  try {
+    const cloneQuestions = await prisma.examQuestion.findMany({
+      where: { examPaperId: cloneId },
+      select: { id: true, printableBounds: true },
+    });
+    const pageMap: Record<string, number> = {};
+    for (const q of cloneQuestions) {
+      const b = q.printableBounds as { pageIndex?: number } | null | undefined;
+      if (b && typeof b.pageIndex === "number" && Number.isFinite(b.pageIndex)) {
+        pageMap[q.id] = b.pageIndex + 1;
+      }
+    }
+    if (Object.keys(pageMap).length > 0) {
+      const existing = await prisma.examPaper.findUnique({
+        where: { id: cloneId },
+        select: { metadata: true },
+      });
+      const meta = (existing?.metadata ?? {}) as Record<string, unknown>;
+      await prisma.examPaper.update({
+        where: { id: cloneId },
+        data: {
+          metadata: { ...meta, oeqPageMap: pageMap } as Prisma.InputJsonValue,
+        },
+      });
+      console.log(`[scan-submit] wrote oeqPageMap for ${Object.keys(pageMap).length} questions on clone=${cloneId}`);
+    }
+  } catch (err) {
+    console.warn(`[scan-submit] failed to build oeqPageMap for ${cloneId}:`, err);
+  }
+
   // Dispatch marker by paperType: quiz/focused use markQuizPaper /
   // markFocusedTest (different prompts, per-subpart canvas reading,
   // etc.); regular paper clones use markExamPaper.

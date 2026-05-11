@@ -391,6 +391,68 @@ Return ONLY valid JSON (no markdown fences):
   }
 }
 
+/**
+ * Detect a single MCQ answer from a TIGHTLY CROPPED image of the
+ * printable "Answer: ___" line (already cropped to ~the right
+ * half of the page, several pt above the underscore and a bit
+ * below). Different prompt from detectMcqAnswers because:
+ *   - the layout is fixed: the line is horizontal, label "Answer:"
+ *     on the left, blank underscore on the right
+ *   - there's no MCQ option text in the crop, so we don't have to
+ *     warn the AI to ignore "(1)/(2)/(3)/(4)" labels
+ *   - the answer is always touching the underscore line
+ * Returns the detected digit/letter (uppercase, no parens) or null.
+ */
+async function detectPrintableMcqAnswer(
+  imageBase64: string,
+  q: { id: string; questionNum: string },
+  label: string,
+): Promise<string | null> {
+  const prompt = `You are looking at a tightly-cropped strip from a printed MCQ exam paper.
+
+The crop shows the "Answer:" line for Question ${q.questionNum}. Layout:
+- The word "Answer:" is printed in BLACK ink on the left.
+- To the right of "Answer:" is a HORIZONTAL UNDERSCORE LINE — a thin grey line that's blank by default.
+- The student HANDWROTE their MCQ answer in BLUE INK directly on or just above that underscore line.
+
+Your job: report the single digit (1, 2, 3, or 4) or letter (A, B, C, or D) the student wrote.
+
+RULES:
+- ONLY blue handwriting on the underscore line counts. The printed "Answer:" label is black — IGNORE it.
+- If the underscore is completely blank (no blue ink), return null.
+- The answer is always exactly ONE of: 1, 2, 3, 4, A, B, C, D. Never multiple.
+- "1" looks like a thin vertical stroke (similar to "l" or "I") — still report as "1".
+- If the ink is faint or partial but still clearly forms a digit/letter, report it.
+- Do NOT guess. If you can't make out the character with reasonable confidence, return null.
+
+Return ONLY JSON (no markdown fences):
+{"detected": "1" | "2" | "3" | "4" | "A" | "B" | "C" | "D" | null, "confidence": "high" | "medium" | "low"}`;
+
+  try {
+    const response = await withTimeout(
+      getAI().models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [
+          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+          { text: prompt },
+        ]}],
+        config: { responseMimeType: "application/json", temperature: 0.1 },
+      }),
+      GEMINI_TIMEOUT_MS,
+      `printable MCQ detect ${label}`,
+    );
+    const text = response.text;
+    if (!text) return null;
+    const parsed = extractJson(text) as { detected: string | null; confidence?: string };
+    const val = parsed.confidence === "low" ? null : parsed.detected;
+    console.log(`[marking] PRINTABLE MCQ DETECT ${label}: detected="${parsed.detected}", confidence=${parsed.confidence ?? "?"}, using="${val}"`);
+    return val ?? null;
+  } catch (err) {
+    console.warn(`[marking] printable MCQ detect failed for ${label}:`, err);
+    return null;
+  }
+}
+
 /** Check if a question is MCQ based on its expected answer */
 function isMcqAnswer(answer: string | null): boolean {
   if (!answer) return false;
@@ -2566,22 +2628,34 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
         const pagePath = path.join(subDir, `page_${bounds.pageIndex + 1}.jpg`);
         try {
           const pageBuffer = await fs.readFile(pagePath);
-          // Slightly relax the crop top so the AI sees a little of
-          // the question label, helping it distinguish answer ink
-          // from rough working that may sit just above the Ans line.
+          // The saved MCQ bounds cover only the ~16pt "Answer:" line
+          // strip — too thin for reliable OCR. Pad several percent
+          // above so any digit that extends above the underscore is
+          // visible, plus a little below for descenders.
           const padded = {
             pageIndex: bounds.pageIndex,
-            yStartPct: Math.max(0, bounds.yStartPct - 1),
-            yEndPct: Math.min(100, bounds.yEndPct + 1),
+            yStartPct: Math.max(0, bounds.yStartPct - 3.5),
+            yEndPct: Math.min(100, bounds.yEndPct + 1.5),
           };
-          const cropped = await cropPageByBounds(pageBuffer, padded, padded.pageIndex);
+          const yCropped = await cropPageByBounds(pageBuffer, padded, padded.pageIndex);
+          // Also crop horizontally to the right ~45% of the page,
+          // where "Answer: ___" is anchored. Removes the leftmost
+          // half (options text, working) which the AI was misreading
+          // as the student answer when the "rightmost margin" prompt
+          // hint didn't reliably overpower the noise.
+          const sharp = (await import("sharp")).default;
+          const meta = await sharp(yCropped).metadata();
+          let cropped = yCropped;
+          if (meta.width && meta.height) {
+            const left = Math.floor(meta.width * 0.55);
+            cropped = await sharp(yCropped)
+              .extract({ left, top: 0, width: meta.width - left, height: meta.height })
+              .jpeg({ quality: 88 })
+              .toBuffer();
+          }
           const base64 = cropped.toString("base64");
-          const detected = await detectMcqAnswers(
-            base64,
-            [{ id: q.id, questionNum: q.questionNum, yStartPct: 0, yEndPct: 100 }],
-            `scan Q${q.questionNum}`,
-          );
-          const raw = detected.get(q.id) ?? null;
+          const detected = await detectPrintableMcqAnswer(base64, q, `scan Q${q.questionNum}`);
+          const raw = detected;
           const student = normalizeMcq(raw ?? "");
           const expected = normalizeMcq(q.answer ?? "");
           const match = !!student && !!expected && student === expected;
