@@ -923,18 +923,25 @@ async function embedDataUrlScaled(doc: PDFDocument, dataUrl: string, targetWidth
   // MIME — the quiz UI hardcodes "image/jpeg" for all option
   // images regardless of what the upstream API actually returned,
   // so the prefix can lie. PNG: 89 50 4E 47. JPEG: FF D8 FF.
-  // Anything else, try JPEG first then PNG.
   const isPng = bytes.length >= 4 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
   const isJpg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  let embed: Awaited<ReturnType<typeof doc.embedJpg>>;
-  if (isPng) {
-    embed = await doc.embedPng(bytes);
-  } else if (isJpg) {
-    embed = await doc.embedJpg(bytes);
-  } else {
-    // Unknown header — fall back to converting through sharp,
-    // which handles GIF/WEBP/BMP/SVG and outputs PNG that pdf-lib
-    // can embed. Cheaper than failing the print.
+  let embed: Awaited<ReturnType<typeof doc.embedJpg>> | null = null;
+  // First try pdf-lib's native embed for the sniffed format.
+  // pdf-lib is strict about JPEG structure (requires APP markers
+  // after SOI, valid SOF, etc.), so a "FF D8 FF ..." prefix isn't
+  // sufficient for embedJpg to succeed on a corrupt/odd JPEG.
+  try {
+    if (isPng) embed = await doc.embedPng(bytes);
+    else if (isJpg) embed = await doc.embedJpg(bytes);
+  } catch {
+    // Fall through to the sharp transcode below.
+    embed = null;
+  }
+  if (!embed) {
+    // Last resort: transcode through sharp. Handles unknown
+    // formats (GIF/WEBP/BMP/SVG) AND rescues JPEGs that pdf-lib
+    // rejects for structural quirks — sharp re-encodes them
+    // cleanly to PNG that pdf-lib will always accept.
     const sharp = (await import("sharp")).default;
     const png = await sharp(bytes).png().toBuffer();
     embed = await doc.embedPng(png);
