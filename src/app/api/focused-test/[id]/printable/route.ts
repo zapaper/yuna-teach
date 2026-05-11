@@ -350,13 +350,13 @@ export async function GET(
       );
       // When ANY option carries an image, the render loop switches
       // to a 2x2 grid — 2 rows for 4 options. Each row ≈ label
-      // (LINE_PT) + image (~95pt) + 6pt gap. So 2 rows ≈ 230pt
-      // for a typical 4-image MCQ. Text-only stays 1-up.
+      // (LINE_PT) + image (≤130pt cap) + 6pt gap. Text-only stays
+      // 1-up.
       const hasAnyImage = cleanOptImages.some(Boolean);
       const imageOptCount = cleanOptImages.filter(Boolean).length;
       const optionAreaH = hasAnyImage
-        ? Math.ceil(optionCount / 2) * (LINE_PT + 95 + 6)
-        : optLineCount * LINE_PT + imageOptCount * 95;
+        ? Math.ceil(optionCount / 2) * (LINE_PT + 130 + 6)
+        : optLineCount * LINE_PT + imageOptCount * 130;
       firstAnswerBoxH = optionAreaH + 6 + LINE_PT;
     } else if (realSubs.length > 0) {
       const sp0 = realSubs[0];
@@ -420,19 +420,38 @@ export async function GET(
       const hasAnyImage = cleanOptImages.some(Boolean);
       if (hasAnyImage) {
         // ── 2-column image-option grid ──
+        // Capped at ~40% of CONTENT_W per image (vs the old 45%)
+        // because (a) some math options have tall portrait diagrams
+        // whose scaled height pushed the row past the page bottom,
+        // dropping them silently, and (b) thumbnails this size are
+        // legible enough for a student to circle without dominating
+        // the question.
         const colGap = 16;
         const colW = (CONTENT_W - colGap) / 2;
+        const labelIndent = 16;
+        const imgTargetW = Math.min(colW - labelIndent, CONTENT_W * 0.40);
+        // Hard cap on rendered height — taller diagrams shrink
+        // uniformly so we never blow past the page in a row.
+        const imgMaxH = 130;
         // Pre-embed all images so we can lay them out with
-        // matching row heights. PDFImage + intrinsic height tracked
-        // alongside.
-        type EmbeddedOpt = { embed: PDFImage; height: number } | null;
+        // matching row heights. PDFImage + intrinsic embed
+        // dimensions tracked alongside; final rendered width /
+        // height are clamped at draw time.
+        type EmbeddedOpt = { embed: PDFImage; w: number; h: number } | null;
         const embeds: EmbeddedOpt[] = [];
         for (let oi = 0; oi < optionCount; oi++) {
           const optImg = cleanOptImages[oi] ?? null;
           if (!optImg) { embeds.push(null); continue; }
           try {
-            const r = await embedDataUrlScaled(doc, optImg, colW - 24);
-            embeds.push(r);
+            const r = await embedDataUrlScaled(doc, optImg, imgTargetW);
+            let w = imgTargetW;
+            let h = r.height;
+            if (h > imgMaxH) {
+              const ratio = imgMaxH / h;
+              w = w * ratio;
+              h = imgMaxH;
+            }
+            embeds.push({ embed: r.embed, w, h });
           } catch (err) {
             console.warn(`[printable] option image embed failed for Q${q.questionNum} opt ${oi + 1}:`, err);
             embeds.push(null);
@@ -446,8 +465,8 @@ export async function GET(
           const leftImg = embeds[leftIdx];
           const rightImg = embeds[rightIdx];
           // Row height = label + max(image, text-only-line)
-          const leftH = leftImg ? leftImg.height : (leftText ? LINE_PT : 0);
-          const rightH = rightImg ? rightImg.height : (rightText ? LINE_PT : 0);
+          const leftH = leftImg ? leftImg.h : (leftText ? LINE_PT : 0);
+          const rightH = rightImg ? rightImg.h : (rightText ? LINE_PT : 0);
           const rowH = LINE_PT + Math.max(leftH, rightH) + 6;
           if (yCursor - rowH < MARGIN) newPage();
           // Labels (and any text alongside) on a shared baseline.
@@ -460,14 +479,13 @@ export async function GET(
             page.drawText(labelLine, { x: MARGIN + colW + colGap, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
           }
           yCursor -= LINE_PT;
-          // Images on the row below — indent each by 24pt so they
-          // align with their wrapped-text counterpart for text+image
-          // mixed options.
+          // Images on the row below — indent so they align with
+          // their wrapped-text counterpart for mixed options.
           if (leftImg) {
-            page.drawImage(leftImg.embed, { x: MARGIN + 24, y: yCursor - leftImg.height, width: colW - 24, height: leftImg.height });
+            page.drawImage(leftImg.embed, { x: MARGIN + labelIndent, y: yCursor - leftImg.h, width: leftImg.w, height: leftImg.h });
           }
           if (rightImg) {
-            page.drawImage(rightImg.embed, { x: MARGIN + colW + colGap + 24, y: yCursor - rightImg.height, width: colW - 24, height: rightImg.height });
+            page.drawImage(rightImg.embed, { x: MARGIN + colW + colGap + labelIndent, y: yCursor - rightImg.h, width: rightImg.w, height: rightImg.h });
           }
           yCursor -= Math.max(leftH, rightH) + 6;
         }
