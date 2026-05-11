@@ -21,7 +21,11 @@ import { isAdmin as isAdminUser } from "@/lib/admin";
 
 const A4_W = 595.28;
 const A4_H = 841.89;
-const MARGIN = 40;
+// Margin set to ~6% (50pt of an 841pt A4) so home printers without
+// borderless support don't clip the top/bottom row of content. Same
+// value used for left/right — keeps the layout square and avoids
+// any text bleeding into a printer's typical 0.5cm hardware margin.
+const MARGIN = 50;
 const CONTENT_W = A4_W - MARGIN * 2;
 const LINE_PT = 16;
 // Science OEQ writing lines sit 25% further apart than body text so
@@ -224,8 +228,13 @@ export async function GET(
     : "Practice";
 
   // ── Cover page ────────────────────────────────────────────────
+  // Cover is PDF page 1 — when the parent scans they'll capture it
+  // as page_0.jpg, and the page number stamped at the bottom lets
+  // them sanity-check that the scan order matches the PDF order.
+  let pdfPageNum = 1;
   let page = doc.addPage([A4_W, A4_H]);
   drawPrintCode(page, helvBold, code);
+  drawPageNumber(page, helv, pdfPageNum);
   drawCoverPage(page, helvBold, helv, {
     owlLogo,
     wordmark,
@@ -237,6 +246,7 @@ export async function GET(
     questionCount: paper.questions.length,
     code,
   });
+  pdfPageNum++;
 
   // ── Question pages ────────────────────────────────────────────
   // Clean-extract render only — never embed q.imageData (raw scan
@@ -250,11 +260,15 @@ export async function GET(
   let pageIndex = 0;
   page = doc.addPage([A4_W, A4_H]);
   drawPrintCode(page, helvBold, code);
+  drawPageNumber(page, helv, pdfPageNum);
+  pdfPageNum++;
   yCursor = A4_H - MARGIN - 18;
 
   function newPage() {
     page = doc.addPage([A4_W, A4_H]);
     drawPrintCode(page, helvBold, code);
+    drawPageNumber(page, helv, pdfPageNum);
+    pdfPageNum++;
     yCursor = A4_H - MARGIN - 18;
     pageIndex++;
   }
@@ -583,6 +597,23 @@ function drawMathAnsLine(page: PDFPage, font: PDFFont, boxBottomY: number) {
     start: { x: lineStartX, y: y - 2 },
     end: { x: lineEndX, y: y - 2 },
     thickness: 0.6,
+    color: rgb(0.5, 0.5, 0.5),
+  });
+}
+
+// Bottom-centre page number. Cover prints as "1" so a parent can
+// flip through their scanned images and check that page_0.jpg
+// matches "1", page_1.jpg matches "2", etc. Pure visual aid for
+// the scan-back flow — the marker doesn't read this.
+function drawPageNumber(page: PDFPage, font: PDFFont, num: number) {
+  const text = String(num);
+  const size = 9;
+  const w = font.widthOfTextAtSize(text, size);
+  page.drawText(text, {
+    x: (A4_W - w) / 2,
+    y: 22,
+    size,
+    font,
     color: rgb(0.5, 0.5, 0.5),
   });
 }
