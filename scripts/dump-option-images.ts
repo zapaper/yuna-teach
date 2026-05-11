@@ -24,14 +24,30 @@ import { prisma } from "../src/lib/db";
     const optsDesc = Array.isArray(opts)
       ? `[${(opts as unknown[]).map(o => typeof o === "string" ? JSON.stringify(o.slice(0, 30)) : String(o)).join(", ")}]`
       : opts === null ? "null" : `(${typeof opts}: ${JSON.stringify(opts).slice(0, 50)})`;
+    const describeImg = (i: unknown): string => {
+      if (i === null || i === undefined) return "null";
+      if (typeof i !== "string") return `<${typeof i}>`;
+      if (i.length === 0) return '""';
+      const prefix = i.startsWith("data:image") ? "data-url" : "raw-b64";
+      // Decode first 12 base64 chars (= 9 bytes) and show as hex
+      // so we can spot the file signature without dumping 50KB.
+      const b64 = i.startsWith("data:image") ? i.replace(/^data:image\/\w+;base64,/, "") : i;
+      let header = "";
+      try {
+        const buf = Buffer.from(b64.slice(0, 12), "base64");
+        header = Array.from(buf.slice(0, 8)).map(b => b.toString(16).padStart(2, "0")).join(" ");
+      } catch { header = "decode-failed"; }
+      // Classify based on bytes (matches embedDataUrlScaled's sniff).
+      const sig = header.startsWith("89 50 4e 47") ? "PNG"
+        : header.startsWith("ff d8 ff") ? "JPEG"
+        : header.startsWith("47 49 46") ? "GIF"
+        : header.startsWith("52 49 46 46") ? "WEBP/RIFF"
+        : header.startsWith("3c") ? "SVG/XML?"
+        : "UNKNOWN";
+      return `${prefix}(${i.length}, ${sig}, header=${header})`;
+    };
     const imgsDesc = Array.isArray(imgs)
-      ? `[${(imgs as unknown[]).map(i => {
-          if (i === null || i === undefined) return "null";
-          if (typeof i !== "string") return `<${typeof i}>`;
-          if (i.length === 0) return '""';
-          const prefix = i.startsWith("data:image") ? "data-url" : "raw-b64";
-          return `${prefix}(${i.length})`;
-        }).join(", ")}]`
+      ? `[\n    ${(imgs as unknown[]).map(describeImg).join(",\n    ")}\n  ]`
       : imgs === null ? "null" : `(${typeof imgs}: ${JSON.stringify(imgs).slice(0, 50)})`;
     console.log(`Q${q.questionNum}  answer="${q.answer ?? ""}"`);
     console.log(`  options: ${optsDesc}`);
