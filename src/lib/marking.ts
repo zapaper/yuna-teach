@@ -712,12 +712,33 @@ function scienceStrictRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("science")) return "";
   return `
 
-SCIENCE PARTIAL-CREDIT RULE (IMPORTANT):
-Primary-school Science answers are concept-based, not word-for-word. Award partial marks whenever the student's answer contains some of the key scientific concepts or phrases from the expected answer, even if the wording differs or the answer is incomplete.
-- If the expected answer has N key concepts and the student captures K of them → award marks proportional to K/N of marksAvailable, rounded to the nearest 0.5.
-- Synonymous or equivalent everyday phrasings count as the correct concept (e.g. "stops light" ≈ "blocks light", "goes up" ≈ "increases", "moves" ≈ "travels").
-- Award 0 only when the answer is blank, fully off-topic, or misses every key concept.
-- In notes, list which concepts/phrases the student got right and which were missing. Wrap each MISSING concept in **double asterisks**.
+SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (IMPORTANT):
+Primary-school Science answers are marked against the SPECIFIC phrases in the answer key, not against a vague concept. The answer key has been written by a human marker and EVERY phrase in it is load-bearing — it tests a discrete piece of knowledge the student is expected to demonstrate.
+
+PROCESS:
+1. Break the answer key into its distinct marking-point phrases. Each phrase is one of:
+   (a) a named scientific term ("photosynthesis", "ovum", "chlorophyll"),
+   (b) a clause describing a process or mechanism ("water loses heat", "energy is released", "the bulb glows brighter"),
+   (c) a function or purpose statement ("the function is to absorb water", "to protect against predators"),
+   (d) a property statement ("poor conductor of heat", "good insulator", "soluble in water"),
+   (e) a relational link ("...thereby condensing", "...therefore the temperature rises").
+   Example: "Water loses heat to the surroundings, thereby condensing." → TWO phrases: ["water loses heat (to surroundings)", "thereby condensing / condenses"].
+   Example: "Energy is released in respiration." → TWO phrases: ["energy is released", "(in) respiration"].
+   Example: "The vacuum is a poor conductor of heat so heat cannot pass through it." → THREE phrases: ["vacuum / no medium", "poor conductor of heat", "heat cannot pass through"].
+
+2. Start at marksAvailable. Deduct 0.5 for each marking-point phrase MISSING from the student's answer (or only vaguely paraphrased without the key idea). Floor at 0.
+
+3. A paraphrase ONLY counts as present if it captures the same scientific meaning AND uses a recognised scientific equivalent for any named term in that phrase. Everyday paraphrase that loses the named term → MISSING.
+   - "joining of male and female cells" is NOT equivalent to "fertilisation" (named term missing).
+   - "the heat moves" IS equivalent to "heat is transferred" (interchangeable phrasing).
+   - "the gas was kept inside" IS NOT equivalent to "energy is released" (different concept entirely).
+
+4. If the student's answer captures NONE of the answer-key phrases (or is blank / fully off-topic), award 0 regardless of length.
+
+5. In notes:
+   - List each marking-point phrase from the answer key.
+   - For each, state PRESENT / MISSING and wrap each MISSING phrase in **double asterisks**.
+   - Show the running deduction: "Starting 2/2, missing **energy is released** → -0.5, missing **respiration** → -0.5. Awarded 1/2."
 
 KEY-TERM REQUIREMENT (IMPORTANT):
 When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
@@ -3565,12 +3586,33 @@ Only insist on the relationship word / qualifier when the question EXPLICITLY as
         const isScience = (paper.subject ?? "").toLowerCase().includes("science");
         const sciencePartialRule = isScience ? `
 
-SCIENCE PARTIAL-CREDIT RULE (IMPORTANT):
-Primary-school Science answers are concept-based, not word-for-word. Award partial marks whenever the student's answer contains some of the key scientific concepts or phrases from the expected answer, even if the wording differs or the answer is incomplete.
-- If the student captures ONE of multiple required concepts → award proportional partial marks (e.g. 1 of 2).
-- Synonymous or equivalent everyday phrasings count as the correct concept (e.g. "stops light" ≈ "blocks light", "goes up" ≈ "increases", "moves" ≈ "travels").
-- Award 0 only when the answer is blank, fully off-topic, or misses every key concept.
-- In notes, list which concepts/phrases the student got right and which were missing.
+SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (IMPORTANT):
+Primary-school Science answers are marked against the SPECIFIC phrases in the answer key, not against a vague concept. The answer key has been written by a human marker and EVERY phrase in it is load-bearing — it tests a discrete piece of knowledge the student is expected to demonstrate.
+
+PROCESS:
+1. Break the answer key into its distinct marking-point phrases. Each phrase is one of:
+   (a) a named scientific term ("photosynthesis", "ovum", "chlorophyll"),
+   (b) a clause describing a process or mechanism ("water loses heat", "energy is released", "the bulb glows brighter"),
+   (c) a function or purpose statement ("the function is to absorb water", "to protect against predators"),
+   (d) a property statement ("poor conductor of heat", "good insulator", "soluble in water"),
+   (e) a relational link ("...thereby condensing", "...therefore the temperature rises").
+   Example: "Water loses heat to the surroundings, thereby condensing." → TWO phrases.
+   Example: "Energy is released in respiration." → TWO phrases.
+   Example: "Vacuum is a poor conductor of heat so heat cannot pass through it." → THREE phrases.
+
+2. Start at marksAvailable. Deduct 0.5 for each marking-point phrase MISSING from the student's answer (or only vaguely paraphrased without the key idea). Floor at 0.
+
+3. A paraphrase ONLY counts as present if it captures the same scientific meaning AND uses a recognised scientific equivalent for any named term in that phrase. Everyday paraphrase that loses the named term → MISSING.
+   - "joining of male and female cells" is NOT equivalent to "fertilisation".
+   - "the heat moves" IS equivalent to "heat is transferred".
+   - "the gas was kept inside" IS NOT equivalent to "energy is released".
+
+4. If the student's answer captures NONE of the answer-key phrases (or is blank / fully off-topic), award 0.
+
+5. In notes:
+   - List each marking-point phrase from the answer key.
+   - For each, state PRESENT / MISSING and wrap each MISSING phrase in **double asterisks**.
+   - Show the running deduction: "Starting 2/2, missing **energy is released** → -0.5, missing **respiration** → -0.5. Awarded 1/2."
 
 KEY-TERM REQUIREMENT (IMPORTANT):
 When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
