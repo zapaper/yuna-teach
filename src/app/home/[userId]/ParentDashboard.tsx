@@ -7,6 +7,7 @@ import { ExamPaperSummary, SpellingTestSummary, User } from "@/types";
 import { isAdmin as adminCheck } from "@/lib/admin";
 import ExamPaperCard from "@/components/ExamPaperCard";
 import DocumentScanner from "@/components/DocumentScanner";
+import ScannerErrorBoundary from "@/components/ScannerErrorBoundary";
 import ReviseWorkModal from "@/components/ReviseWorkModal";
 import TrialReminder from "@/components/TrialReminder";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
@@ -3756,16 +3757,21 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         </div>
       )}
 
-      {/* In-app document scanner overlay (parent-only, mobile/tablet) */}
+      {/* In-app document scanner overlay (parent-only, mobile/tablet).
+          Wrapped in an error boundary so a single render crash inside
+          the scanner doesn't blow up the whole dashboard with the
+          generic Next.js "Application error" page. */}
       {scannerTarget && (
-        <DocumentScanner
-          parentId={userId}
-          masterPaperId={scannerTarget.masterPaperId}
-          studentId={scannerTarget.studentId}
-          studentName={scannerTarget.studentName}
-          paperTitle={scannerTarget.paperTitle}
-          onClose={() => { setScannerTarget(null); refreshPapers(); }}
-        />
+        <ScannerErrorBoundary onReset={() => { setScannerTarget(null); refreshPapers(); }}>
+          <DocumentScanner
+            parentId={userId}
+            masterPaperId={scannerTarget.masterPaperId}
+            studentId={scannerTarget.studentId}
+            studentName={scannerTarget.studentName}
+            paperTitle={scannerTarget.paperTitle}
+            onClose={() => { setScannerTarget(null); refreshPapers(); }}
+          />
+        </ScannerErrorBoundary>
       )}
 
       {/* Revise-Work modal (admin only — gated at the buttons that
