@@ -38,6 +38,26 @@ export async function GET(
 
   const dir = submissionDir(id);
 
+  // Debug crop viewer for scanned-back MCQ detection. The marker
+  // writes the exact crops it sent to Gemini to
+  // submissions/<cloneId>/mcq_q<questionNum>_pass1.jpg (and pass2
+  // on retry). Query:
+  //   ?mcq=5           → serves mcq_q5_pass1.jpg
+  //   ?mcq=5&pass=pass2 → serves the retry crop
+  const mcqQ = request.nextUrl.searchParams.get("mcq");
+  if (mcqQ !== null) {
+    const pass = request.nextUrl.searchParams.get("pass") || "pass1";
+    const filePath = path.join(dir, `mcq_q${mcqQ}_${pass}.jpg`);
+    try {
+      const buffer = await fs.readFile(filePath);
+      return new NextResponse(buffer, {
+        headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, no-cache" },
+      });
+    } catch {
+      return NextResponse.json({ error: "MCQ crop not found (run a re-mark to regenerate)" }, { status: 404 });
+    }
+  }
+
   if (pageStr !== null) {
     const n = parseInt(pageStr, 10);
     if (isNaN(n)) {

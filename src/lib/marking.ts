@@ -444,7 +444,12 @@ Return ONLY JSON (no markdown fences):
     const text = response.text;
     if (!text) return null;
     const parsed = extractJson(text) as { detected: string | null; confidence?: string };
-    const val = parsed.confidence === "low" ? null : parsed.detected;
+    // Keep low-confidence detections — for printable MCQs (where
+    // the answer is always one of a tiny known set) the model
+    // hedges far more than it should, and treating "low" as null
+    // was causing false misses. Only drop when detected is
+    // genuinely null/missing.
+    const val = parsed.detected;
     console.log(`[marking] PRINTABLE MCQ DETECT ${label}: detected="${parsed.detected}", confidence=${parsed.confidence ?? "?"}, using="${val}"`);
     return val ?? null;
   } catch (err) {
@@ -2628,35 +2633,47 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
         const pagePath = path.join(subDir, `page_${bounds.pageIndex + 1}.jpg`);
         try {
           const pageBuffer = await fs.readFile(pagePath);
-          // The saved MCQ bounds cover only the ~16pt "Answer:" line
-          // strip — too thin for reliable OCR. Pad generously above
-          // so any digit that extends well above the underscore (or
-          // is written between the options) is visible, plus a
-          // little below for descenders.
-          const padded = {
-            pageIndex: bounds.pageIndex,
-            yStartPct: Math.max(0, bounds.yStartPct - 6),
-            yEndPct: Math.min(100, bounds.yEndPct + 2),
-          };
-          const yCropped = await cropPageByBounds(pageBuffer, padded, padded.pageIndex);
-          // Also crop horizontally to the right ~45% of the page,
-          // where "Answer: ___" is anchored. Removes the leftmost
-          // half (options text, working) which the AI was misreading
-          // as the student answer when the "rightmost margin" prompt
-          // hint didn't reliably overpower the noise.
+          // Two-tier crop. Most digits fit in the tight crop; tall
+          // handwriting or digits drifting above the underscore need
+          // the wider second pass. We also persist each crop to
+          // disk so it can be inspected after a misdetection — see
+          // the printableMcqCrop branch in /api/exam/[id]/submission.
           const sharp = (await import("sharp")).default;
-          const meta = await sharp(yCropped).metadata();
-          let cropped = yCropped;
-          if (meta.width && meta.height) {
-            const left = Math.floor(meta.width * 0.55);
-            cropped = await sharp(yCropped)
-              .extract({ left, top: 0, width: meta.width - left, height: meta.height })
-              .jpeg({ quality: 88 })
-              .toBuffer();
+          async function cropMcqStrip(yAbove: number, yBelow: number, xFromRight: number, tag: string): Promise<{ base64: string; bytes: Buffer }> {
+            const padded = {
+              pageIndex: bounds.pageIndex,
+              yStartPct: Math.max(0, bounds.yStartPct - yAbove),
+              yEndPct: Math.min(100, bounds.yEndPct + yBelow),
+            };
+            const yCropped = await cropPageByBounds(pageBuffer, padded, padded.pageIndex);
+            const meta = await sharp(yCropped).metadata();
+            let bytes: Buffer = yCropped;
+            if (meta.width && meta.height) {
+              const left = Math.floor(meta.width * (1 - xFromRight));
+              bytes = await sharp(yCropped)
+                .extract({ left, top: 0, width: meta.width - left, height: meta.height })
+                .jpeg({ quality: 88 })
+                .toBuffer();
+            }
+            try {
+              await fs.writeFile(path.join(subDir, `mcq_q${q.questionNum}_${tag}.jpg`), bytes);
+            } catch { /* best-effort; debug file only */ }
+            return { base64: bytes.toString("base64"), bytes };
           }
-          const base64 = cropped.toString("base64");
-          const detected = await detectPrintableMcqAnswer(base64, q, `scan Q${q.questionNum}`);
-          const raw = detected;
+          // First pass: 10% above the Answer line, 3% below,
+          // rightmost 45% of page width. Catches the common case.
+          const pass1 = await cropMcqStrip(10, 3, 0.45, "pass1");
+          let raw = await detectPrintableMcqAnswer(pass1.base64, q, `scan Q${q.questionNum}`);
+          // Retry on null with a much wider crop — covers the case
+          // where the student wrote far above the underscore (e.g.
+          // wrote inside an option box that sits well above the
+          // Answer line). Adds an extra Gemini call only for the
+          // questions that need it.
+          if (!raw) {
+            console.log(`[quiz-marking] Scanned MCQ Q${q.questionNum}: first pass null — retrying with wider crop`);
+            const pass2 = await cropMcqStrip(18, 4, 0.55, "pass2");
+            raw = await detectPrintableMcqAnswer(pass2.base64, q, `scan Q${q.questionNum} retry`);
+          }
           const student = normalizeMcq(raw ?? "");
           const expected = normalizeMcq(q.answer ?? "");
           const match = !!student && !!expected && student === expected;
