@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
+import ChunkErrorReloader from "@/components/ChunkErrorReloader";
 
 // Self-hosted via Next so the body text doesn't render as Times New
 // Roman for ~150ms while Google Fonts loads. Both families end up as
@@ -52,6 +53,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
       </head>
       <body className="min-h-screen">
+        <ChunkErrorReloader />
         {children}
       </body>
     </html>
