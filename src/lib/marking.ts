@@ -746,6 +746,23 @@ STEP B: For each marking point, decide PRESENT or MISSING in the student's answe
   - "fruit grows" PRESENT for the "develops into a fruit" point.
   - "breathing" ≠ "respiration" (named term lost) → MISSING.
 
+EQUIVALENCE / IMPLICATION RULE (IMPORTANT — applies before deduction):
+Many answer keys split a single concept across two clauses where one CAUSES or IMPLIES the other. If the student writes either clause, treat BOTH as PRESENT. Do not double-count one concept just because the key wrote two clauses about it.
+
+Specifically, these pairs are EQUIVALENT — student writing either side counts for both:
+  - "switch is closed" ⇔ "(electric) current can flow / circuit is complete"
+  - "switch is open" ⇔ "current cannot flow / circuit is incomplete / current stops"
+  - "circuit is closed" ⇔ "current flows"
+  - "rod becomes an electromagnet" ⇔ "rod is magnetised / rod attracts magnetic materials"
+  - "bulb lights up" ⇔ "current flows through bulb / bulb is on"
+  - "bulb does not light up" ⇔ "no current through bulb / bulb is off"
+  - "water is heated" ⇔ "water gains heat / water's temperature rises"
+  - "object is opaque" ⇔ "light cannot pass through object / object blocks light"
+
+The general principle: if clause B is the direct mechanical / observational consequence of clause A and a P5–P6 student would treat them as one fact (one is implied by the other in the standard textbook chain), they are ONE marking point. Apply common sense — do not invent equivalences that aren't part of standard primary-school science reasoning.
+
+Apply this BEFORE deciding PRESENT / MISSING. The deduction count is over DISTINCT concepts, not raw "|" segments.
+
 STEP C: Compute the score:
   marksAwarded = max(0, marksAvailable - 0.5 × numberOfMissingPoints)
   Award 0 outright if NO marking points are PRESENT.
