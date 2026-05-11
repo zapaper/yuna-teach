@@ -431,6 +431,7 @@ export async function GET(
         const writeStartPage = pageIndex;
         if (isMath) {
           page.drawRectangle({ x: MARGIN, y: yCursor - writeH, width: CONTENT_W, height: writeH, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 0.6 });
+          drawMathAnsLine(page, helv, yCursor - writeH);
         } else {
           const linesN = Math.max(2, Math.round(subMarks * 2));
           for (let i = 0; i < linesN; i++) {
@@ -473,6 +474,7 @@ export async function GET(
       }
       if (isMath) {
         page.drawRectangle({ x: MARGIN, y: yCursor - writeH, width: CONTENT_W, height: writeH, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 0.6 });
+        drawMathAnsLine(page, helv, yCursor - writeH);
       } else {
         const linesN = Math.max(2, Math.round(marks * 2));
         for (let i = 0; i < linesN; i++) {
@@ -552,6 +554,32 @@ function drawEmailBanner(page: PDFPage, font: PDFFont) {
     size: fontSize,
     font,
     color: rgb(0, 0.12, 0.25),
+  });
+}
+
+// Stamp an "Ans: ___" line tucked into the bottom-right of an OEQ
+// math working box so students always have a single clear spot for
+// their final answer regardless of where their working ends up in
+// the box. `boxBottomY` is the box's bottom edge in pdf-lib
+// coordinates (origin bottom-left).
+function drawMathAnsLine(page: PDFPage, font: PDFFont, boxBottomY: number) {
+  const label = "Ans:";
+  const size = 10;
+  const labelW = font.widthOfTextAtSize(label, size);
+  const lineW = 100;
+  const gap = 6;
+  const insetX = 10; // pad from the box's right edge
+  const insetY = 10; // pad from the box's bottom edge
+  const y = boxBottomY + insetY;
+  const lineEndX = MARGIN + CONTENT_W - insetX;
+  const lineStartX = lineEndX - lineW;
+  const labelX = lineStartX - gap - labelW;
+  page.drawText(label, { x: labelX, y, size, font, color: rgb(0.35, 0.35, 0.35) });
+  page.drawLine({
+    start: { x: lineStartX, y: y - 2 },
+    end: { x: lineEndX, y: y - 2 },
+    thickness: 0.6,
+    color: rgb(0.5, 0.5, 0.5),
   });
 }
 
