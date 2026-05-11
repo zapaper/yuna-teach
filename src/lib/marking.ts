@@ -750,51 +750,31 @@ STEP C: Compute the score:
   marksAwarded = max(0, marksAvailable - 0.5 × numberOfMissingPoints)
   Award 0 outright if NO marking points are PRESENT.
 
-STEP D: Notes MUST list every marking point with its status. Mandatory format:
-  "Marking points (from key, parsed by '|' and clause):
-     (1) <point> — PRESENT / **MISSING**
-     (2) <point> — PRESENT / **MISSING**
-     ...
-   Score: starting X/X, -0.5 for each MISSING. Awarded Y/X."
+STEP D: Internally apply the per-phrase logic above, but in the notes field write plain feedback for a parent and child to read. Style guide:
+  - One short paragraph (1–2 sentences). No tables, no numbered point lists, no "PRESENT" / "MISSING" labels, no "Marking points: ..." scaffolding.
+  - Lead with what the student got right (briefly).
+  - Then say plainly what was missing or wrong, wrapping each missing key phrase / named term in **double asterisks**.
+  - End with the deduction reason, e.g. "−0.5 for not stating the function" or "−0.5 because **respiration** was not named".
+  - Do NOT write running arithmetic like "Starting 2/2, -0.5 for missing (2). Awarded 1.5/2." Just give the qualitative reason.
 
-WORKED EXAMPLES (FOLLOW EXACTLY — same paper patterns you will see):
+WORKED EXAMPLES (style your notes like these — internal scoring still uses the per-phrase rule):
 
-Example 1 — 2-mark, structure + function.
-  Answer key: "The stem contains water-carrying tubes (part). | These tubes transport water (function)."
-  Marking points: (1) "stem contains water-carrying tubes", (2) "tubes transport water" (the function).
-  Student: "water carrying tub"
-  (1) PRESENT — named the structure. (2) **MISSING** — no function statement.
-  Awarded: 2 - 0.5 = 1.5/2.
+Example 1 — 2-mark, structure + function. Student: "water carrying tub"
+  Awarded 1.5/2. Notes: "Correctly named the **water-carrying tubes** but did not state their function. −0.5 for missing **transport water**."
 
-Example 2 — 2-mark, multi-step process (typical Q30(b) shape).
-  Answer key: "After pollination | fertilisation can occur | for the flower to develop into a fruit."
-  Marking points: (1) "after pollination", (2) "fertilisation occurs", (3) "develops into a fruit".
-  Student: "fertilisation happens and fruit grows"
-  (1) **MISSING** — student didn't say what triggered it. (2) PRESENT. (3) PRESENT.
-  Awarded: 2 - 0.5 = 1.5/2.
+Example 2 — 2-mark, multi-step process. Answer key: "After pollination | fertilisation can occur | flower develops into a fruit." Student: "fertilisation happens and fruit grows"
+  Awarded 1.5/2. Notes: "Identified **fertilisation** and that a **fruit** develops, but did not link this to **pollination**. −0.5 for missing the pollination step."
 
-Example 3 — 2-mark, multi-step circulatory (typical Q31(a) shape).
-  Answer key: "Increase volume of blood transported to the muscles | so that more oxygen and digested food are supplied | to release more energy / rate of respiration increases."
-  Marking points: (1) "more blood to muscles", (2) "more oxygen + digested food supplied", (3) "more energy released / faster respiration".
-  Student: "more blood goes to the muscles so they can move faster"
-  (1) PRESENT. (2) **MISSING** — didn't mention oxygen or food. (3) **MISSING** — "move faster" is an outcome but doesn't name energy/respiration.
-  Awarded: 2 - 0.5 - 0.5 = 1/2.
+Example 3 — 2-mark, multi-step circulatory. Answer key: "More blood to the muscles | more oxygen and digested food supplied | more energy released / faster respiration." Student: "more blood goes to the muscles so they can move faster"
+  Awarded 1/2. Notes: "Correctly said more blood is delivered to the muscles, but didn't mention **oxygen** or **digested food**, and didn't name **respiration** or energy release. −1.0 across two missing points."
 
-Example 4 — 2-mark, vacuum flask property.
-  Answer key: "The vacuum is a poor conductor of heat | so heat cannot pass through it."
-  Marking points: (1) "vacuum", (2) "poor conductor of heat", (3) "heat cannot pass through".
-  Student: "vacuum keeps it warm"
-  (1) PRESENT. (2) **MISSING**. (3) **MISSING**.
-  Awarded: 2 - 0.5 - 0.5 = 1/2.
+Example 4 — 2-mark, vacuum flask. Answer key: "The vacuum is a poor conductor of heat | so heat cannot pass through it." Student: "vacuum keeps it warm"
+  Awarded 1/2. Notes: "Mentioned the **vacuum** but did not explain that it is a **poor conductor of heat** and that **heat cannot pass through** it. −1.0 across two missing points."
 
-Example 5 — 2-mark, condensation (typical Q36(a) shape).
-  Answer key: "Warmer water vapour comes into contact with the colder metal surface | loses heat | and condenses to form water droplets."
-  Marking points: (1) "water vapour contacts colder surface", (2) "loses heat / temperature decreases", (3) "condenses to form water droplets".
-  Student: "water vapour touches the cold metal and becomes water"
-  (1) PRESENT. (2) **MISSING** — "becomes" doesn't name the heat-loss mechanism. (3) PRESENT (becomes water = condensation outcome but missing the named process; partial credit but mark it MISSING if "condenses / condensation" was the required named term in the key).
-  Awarded: 2 - 0.5 - 0.5 = 1/2.
+Example 5 — 2-mark, condensation. Answer key: "Water vapour contacts colder surface | loses heat | condenses to form water droplets." Student: "water vapour touches the cold metal and becomes water"
+  Awarded 1.5/2. Notes: "Said the water vapour contacts the cold metal and forms water, but didn't state that it **loses heat** (or **condenses** by name). −0.5 for missing the heat-loss step."
 
-CRITICAL: Do NOT short-circuit. Even when the student's answer "looks right overall", you MUST step through every marking point individually. A 2-mark answer where the student captures the gist of one of three points scores at most 1/2, not full marks.
+CRITICAL: Do NOT short-circuit. You MUST internally step through every marking point and only award full marks when every point is present in the student's answer. The user-facing notes should be readable, not a table.
 
 KEY-TERM REQUIREMENT (IMPORTANT):
 When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
