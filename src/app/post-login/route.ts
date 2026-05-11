@@ -16,13 +16,20 @@ import { setSession, getSessionUserId } from "@/lib/session";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const base = new URL(request.url).origin;
+  // On Railway request.url is the internal pod address
+  // (https://0.0.0.0:8080/...) — using it for redirects sends users
+  // to 0.0.0.0:8080. Build the public base from the forwarded
+  // headers the proxy adds; fall back to request.url's host only as
+  // a last resort.
+  const fwdHost = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const fwdProto = request.headers.get("x-forwarded-proto") ?? "https";
+  const base = fwdHost ? `${fwdProto}://${fwdHost}` : new URL(request.url).origin;
 
   // Already signed in to our cookie? Honour it. This handles repeat
   // OAuth visits after the cookie's already been set.
   const existing = await getSessionUserId();
   if (existing) {
-    console.log(`[post-login] already-signed-in userId=${existing}`);
+    console.log(`[post-login] already-signed-in userId=${existing} base=${base}`);
     return NextResponse.redirect(new URL(`/home/${existing}`, base));
   }
 
@@ -31,10 +38,10 @@ export async function GET(request: Request) {
   const uid = (session as { uid?: string } | null)?.uid
     ?? (session?.user as { uid?: string } | undefined)?.uid;
   if (!uid) {
-    console.warn(`[post-login] no NextAuth session — bouncing to /login`);
+    console.warn(`[post-login] no NextAuth session — bouncing to /login (base=${base})`);
     return NextResponse.redirect(new URL("/login", base));
   }
   await setSession(uid);
-  console.log(`[post-login] bridged NextAuth JWT → yuna_session for userId=${uid}`);
+  console.log(`[post-login] bridged NextAuth JWT → yuna_session for userId=${uid} base=${base}`);
   return NextResponse.redirect(new URL(`/home/${uid}`, base));
 }
