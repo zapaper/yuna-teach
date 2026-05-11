@@ -712,33 +712,49 @@ function scienceStrictRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("science")) return "";
   return `
 
-SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (IMPORTANT):
-Primary-school Science answers are marked against the SPECIFIC phrases in the answer key, not against a vague concept. The answer key has been written by a human marker and EVERY phrase in it is load-bearing — it tests a discrete piece of knowledge the student is expected to demonstrate.
+SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (THIS OVERRIDES THE GENERIC STEP 5 PARTIAL-CREDIT RULE ABOVE):
+For Science questions, IGNORE the generic "proportional × marksAvailable" rule from STEP 5B. Use the phrase deduction process below instead. The answer key has been written by a human marker; EVERY phrase in it is a discrete marking point.
 
-PROCESS:
-1. Break the answer key into its distinct marking-point phrases. Each phrase is one of:
+MANDATORY PROCESS — DO NOT SKIP:
+
+STEP A: Break the answer key into distinct marking-point phrases. A "phrase" is any of:
    (a) a named scientific term ("photosynthesis", "ovum", "chlorophyll"),
-   (b) a clause describing a process or mechanism ("water loses heat", "energy is released", "the bulb glows brighter"),
+   (b) a process / mechanism clause ("water loses heat", "energy is released", "the bulb glows brighter"),
    (c) a function or purpose statement ("the function is to absorb water", "to protect against predators"),
    (d) a property statement ("poor conductor of heat", "good insulator", "soluble in water"),
    (e) a relational link ("...thereby condensing", "...therefore the temperature rises").
-   Example: "Water loses heat to the surroundings, thereby condensing." → TWO phrases: ["water loses heat (to surroundings)", "thereby condensing / condenses"].
-   Example: "Energy is released in respiration." → TWO phrases: ["energy is released", "(in) respiration"].
-   Example: "The vacuum is a poor conductor of heat so heat cannot pass through it." → THREE phrases: ["vacuum / no medium", "poor conductor of heat", "heat cannot pass through"].
 
-2. Start at marksAvailable. Deduct 0.5 for each marking-point phrase MISSING from the student's answer (or only vaguely paraphrased without the key idea). Floor at 0.
+STEP B: List every phrase you identified. NUMBER them.
 
-3. A paraphrase ONLY counts as present if it captures the same scientific meaning AND uses a recognised scientific equivalent for any named term in that phrase. Everyday paraphrase that loses the named term → MISSING.
-   - "joining of male and female cells" is NOT equivalent to "fertilisation" (named term missing).
-   - "the heat moves" IS equivalent to "heat is transferred" (interchangeable phrasing).
-   - "the gas was kept inside" IS NOT equivalent to "energy is released" (different concept entirely).
+STEP C: For each phrase, mark PRESENT or MISSING in the student's answer. A phrase is MISSING if either (i) it's not in the answer at all, or (ii) the student only vaguely paraphrased without the key idea / named term.
 
-4. If the student's answer captures NONE of the answer-key phrases (or is blank / fully off-topic), award 0 regardless of length.
+STEP D: Compute the score: start at marksAvailable, subtract 0.5 for each MISSING phrase, floor at 0. Award 0 if NO phrases are PRESENT.
 
-5. In notes:
-   - List each marking-point phrase from the answer key.
-   - For each, state PRESENT / MISSING and wrap each MISSING phrase in **double asterisks**.
-   - Show the running deduction: "Starting 2/2, missing **energy is released** → -0.5, missing **respiration** → -0.5. Awarded 1/2."
+STEP E: Notes MUST show the segmentation explicitly:
+  "Marking phrases: (1) <phrase>, (2) <phrase>, ... | Student got: (1) PRESENT, (2) **MISSING**, ... | Starting X/X, -0.5 for missing (2), Awarded Y/X."
+
+WORKED EXAMPLES (FOLLOW EXACTLY):
+
+Example 1 — 2-mark question about plant stem.
+  Answer key: "The stem contains water-carrying tubes. These tubes transport water."
+  Phrases: (1) "stem contains water-carrying tubes", (2) "tubes transport water" (the function).
+  Student answer: "water carrying tub"
+  Per-phrase: (1) PRESENT (named the structure), (2) **MISSING** (no function statement at all).
+  Score: 2 - 0.5 = 1.5/2. Notes: "Marking phrases: (1) stem contains water-carrying tubes, (2) tubes transport water | Student got: (1) PRESENT, (2) **MISSING** — student named the part but did not state its function. Starting 2/2, -0.5 for missing function. Awarded 1.5/2."
+
+Example 2 — 2-mark question about respiration.
+  Answer key: "Energy is released in respiration."
+  Phrases: (1) "energy is released", (2) "in respiration" (the process named).
+  Student answer: "energy comes from breathing"
+  Per-phrase: (1) PRESENT (release / "comes from" is an everyday equivalent), (2) **MISSING** ("breathing" ≠ "respiration" — named scientific term lost).
+  Score: 2 - 0.5 = 1.5/2.
+
+Example 3 — 2-mark question about a vacuum flask.
+  Answer key: "The vacuum is a poor conductor of heat so heat cannot pass through it."
+  Phrases: (1) "vacuum / no medium", (2) "poor conductor of heat", (3) "heat cannot pass through".
+  Student answer: "vacuum keeps it warm"
+  Per-phrase: (1) PRESENT, (2) **MISSING**, (3) **MISSING** (only one of three present).
+  Score: 2 - 0.5 - 0.5 = 1/2.
 
 KEY-TERM REQUIREMENT (IMPORTANT):
 When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
@@ -1382,10 +1398,19 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       }
       parts.push({ text: prompt });
 
+      // Science gets gemini-3-flash-preview by default — flash-2.5
+      // wasn't reliably following the phrase-by-phrase deduction
+      // rule (it kept defaulting to "matches overall → full marks"
+      // even when the answer key had two distinct phrases and the
+      // student only addressed one). Math + English stay on flash
+      // since the rule is simpler. Explicit override still wins.
+      const isScience = (paper?.subject ?? "").toLowerCase().includes("science");
+      const defaultModel = isScience ? "gemini-3-flash-preview" : "gemini-2.5-flash";
+      const model = modelOverride ?? defaultModel;
       try {
         const response = await withTimeout(
           getAI().models.generateContent({
-            model: modelOverride ?? "gemini-2.5-flash",
+            model,
             contents: [{ role: "user", parts }],
             config: { responseMimeType: "application/json", temperature: 0.1 },
           }),
@@ -1395,7 +1420,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         const text = response.text;
         if (!text) { console.warn(`[marking] Empty Gemini response for ${label}`); return []; }
         const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
-        console.log(`[marking] ${label} done — ${parsed.questions.length} results`);
+        console.log(`[marking] ${label} done (${model}) — ${parsed.questions.length} results`);
         return parsed.questions;
       } catch (err) {
         console.warn(`[marking] Failed for ${label}:`, err);
