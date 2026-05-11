@@ -202,12 +202,11 @@ export async function submitScannedPaper(args: SubmitScannedPaperArgs): Promise<
       where: { examPaperId: cloneId },
       select: { id: true, printableBounds: true },
     });
+    const { pickScanFileIndex } = await import("@/lib/page-map");
     const pageMap: Record<string, number> = {};
     for (const q of cloneQuestions) {
-      const b = q.printableBounds as { pageIndex?: number } | null | undefined;
-      if (b && typeof b.pageIndex === "number" && Number.isFinite(b.pageIndex)) {
-        pageMap[q.id] = b.pageIndex + 1;
-      }
+      const scanIdx = pickScanFileIndex(q.printableBounds as Parameters<typeof pickScanFileIndex>[0]);
+      if (scanIdx !== null) pageMap[q.id] = scanIdx;
     }
     if (Object.keys(pageMap).length > 0) {
       const existing = await prisma.examPaper.findUnique({

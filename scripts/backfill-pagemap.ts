@@ -7,6 +7,7 @@
 
 import { prisma } from "../src/lib/db";
 import { Prisma } from "@prisma/client";
+import { pickScanFileIndex } from "../src/lib/page-map";
 
 async function backfillOne(id: string) {
   const paper = await prisma.examPaper.findUnique({
@@ -24,9 +25,9 @@ async function backfillOne(id: string) {
   const pageMap: Record<string, number> = {};
   let withBounds = 0;
   for (const q of qs) {
-    const b = q.printableBounds as { pageIndex?: number } | null | undefined;
-    if (b && typeof b.pageIndex === "number" && Number.isFinite(b.pageIndex)) {
-      pageMap[q.id] = b.pageIndex + 1;
+    const scanIdx = pickScanFileIndex(q.printableBounds as Parameters<typeof pickScanFileIndex>[0]);
+    if (scanIdx !== null) {
+      pageMap[q.id] = scanIdx;
       withBounds++;
     }
   }

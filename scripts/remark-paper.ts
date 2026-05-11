@@ -1,6 +1,7 @@
 import { prisma } from "../src/lib/db";
 import { Prisma } from "@prisma/client";
 import { markQuizPaper, markExamPaper, markFocusedTest } from "../src/lib/marking";
+import { pickScanFileIndex } from "../src/lib/page-map";
 
 (async () => {
   const ID = process.argv[2];
@@ -21,10 +22,8 @@ import { markQuizPaper, markExamPaper, markFocusedTest } from "../src/lib/markin
   });
   const pageMap: Record<string, number> = {};
   for (const q of qs) {
-    const b = q.printableBounds as { pageIndex?: number } | null | undefined;
-    if (b && typeof b.pageIndex === "number" && Number.isFinite(b.pageIndex)) {
-      pageMap[q.id] = b.pageIndex + 1;
-    }
+    const scanIdx = pickScanFileIndex(q.printableBounds as Parameters<typeof pickScanFileIndex>[0]);
+    if (scanIdx !== null) pageMap[q.id] = scanIdx;
   }
   if (Object.keys(pageMap).length > 0) {
     const existing = await prisma.examPaper.findUnique({ where: { id: ID }, select: { metadata: true } });
