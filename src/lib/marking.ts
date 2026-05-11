@@ -683,6 +683,86 @@ function englishMarkingRules(subject: string | null | undefined): string {
   - In notes, state which key point was present or missing.`;
 }
 
+/**
+ * Strict-marking rules for science OEQ. Applied to BOTH the exam-
+ * paper marker (markBatch via SUBJECT_RULES) and the scanned-back
+ * quiz/focused marker so a science question scores the same on
+ * either path. Covers:
+ *
+ *   1. Partial-credit ladder for concept-based answers — captures
+ *      some concepts → proportional credit, captures none → 0.
+ *   2. Key-term requirement — named scientific terms in the answer
+ *      key must literally appear in the student's answer (or a
+ *      recognised scientific synonym, NOT vague paraphrase).
+ *   3. Discriminating terms — when two real scientific terms could
+ *      both fit the slot in the sentence (ovule vs ovum, mass vs
+ *      weight, evaporation vs condensation, voltage vs current,
+ *      respiration vs photosynthesis, transmit vs absorb,
+ *      transparent vs translucent), the student MUST use the exact
+ *      correct one. A swap to the near-neighbour term scores 0 for
+ *      that concept — partial credit does NOT apply.
+ *   4. Definition questions — even stricter, all-or-nothing per
+ *      discriminating component.
+ *
+ * The discriminating-terms rule is what makes "egg cell" vs "ovum"
+ * vs "ovule" actually score differently, instead of getting a
+ * lenient pass because they're all biological terms.
+ */
+function scienceStrictRules(subject: string | null | undefined): string {
+  if (!subject?.toLowerCase().includes("science")) return "";
+  return `
+
+SCIENCE PARTIAL-CREDIT RULE (IMPORTANT):
+Primary-school Science answers are concept-based, not word-for-word. Award partial marks whenever the student's answer contains some of the key scientific concepts or phrases from the expected answer, even if the wording differs or the answer is incomplete.
+- If the expected answer has N key concepts and the student captures K of them → award marks proportional to K/N of marksAvailable, rounded to the nearest 0.5.
+- Synonymous or equivalent everyday phrasings count as the correct concept (e.g. "stops light" ≈ "blocks light", "goes up" ≈ "increases", "moves" ≈ "travels").
+- Award 0 only when the answer is blank, fully off-topic, or misses every key concept.
+- In notes, list which concepts/phrases the student got right and which were missing. Wrap each MISSING concept in **double asterisks**.
+
+KEY-TERM REQUIREMENT (IMPORTANT):
+When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
+- 'fertilisation' must appear as 'fertilisation' / 'fertilization'. 'joining of male and female cells' is NOT a substitute — it describes the process but doesn't name it. Score 0 for that concept.
+- Synonyms allowed only when they are scientifically interchangeable (e.g. 'water vapour' ≈ 'gas form of water'). When in doubt, treat the missing term as missing.
+- This rule overrides the synonym leniency above for these named terms — be strict about terminology, lenient about prose around it.
+
+DISCRIMINATING TERMS (IMPORTANT — STRICTEST):
+Some scientific terms have close-but-different neighbours that often confuse students. When the answer key uses one term and the student writes a related-but-WRONG term, score it as WRONG for that concept — partial credit does NOT apply, even if the answer is otherwise on-topic.
+
+Examples (this list is not exhaustive — apply the principle to any pair of related terms):
+- ovum vs ovule (animal egg cell vs plant egg cell — different reproductive systems)
+- ovule vs ovary (the cell vs the structure containing it)
+- sperm vs pollen (animal vs plant male gamete)
+- mass vs weight (amount of matter vs gravitational force)
+- evaporation vs condensation vs boiling (different phase changes)
+- voltage vs current (potential difference vs flow rate)
+- respiration vs photosynthesis (gas exchange / energy release vs food-making)
+- transmit vs absorb vs reflect (light interactions — opposite phenomena)
+- transparent vs translucent vs opaque (different light transmission levels)
+- conductor vs insulator (opposite electrical / thermal properties)
+- predator vs prey (opposite roles in a food chain)
+- producer vs consumer vs decomposer (different trophic levels)
+- inhale vs exhale (opposite directions of breathing)
+- artery vs vein (different blood-vessel types)
+- germinate vs reproduce vs grow (different life-cycle stages)
+- dissolve vs melt (solute-in-solvent vs solid-to-liquid at temperature)
+
+Rule: if the answer key's discriminating term is X and the student writes a different-but-related Y from the same conceptual family, score that concept as 0 in the partial-credit calculation. State in notes which discriminating term was wrong, wrapped in **double asterisks** (e.g. "Student wrote **ovule** instead of the required **ovum**.").
+
+DEFINITION QUESTIONS (IMPORTANT — STRICT):
+When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. "What is a community?", "Define a population", "Explain what a habitat is", "What is photosynthesis?"), the marking is significantly STRICTER than for a regular reasoning question. Definition questions test exact knowledge of a textbook definition, not approximate understanding.
+
+PROCESS:
+1. The term being defined is in the QUESTION — the student does not need to repeat it.
+2. Read the expected answer and list its DISCRIMINATING COMPONENTS — the parts that distinguish this term from neighbouring concepts (e.g. "different populations" is what distinguishes a community from a population; "in the presence of sunlight" is what distinguishes photosynthesis from other plant processes).
+3. Award marks ONLY when the student's answer contains every discriminating component (or its scientifically interchangeable synonym). Vague paraphrase that "captures the gist" does NOT earn marks here.
+
+SCORING TABLE (apply strictly):
+- 1-mark definition question: all-or-nothing. Missing ANY discriminating component → 0. Don't award half a mark.
+- 2-mark definition question: full marks ONLY if every discriminating component is present. Missing one of two key components → 1. Missing both → 0. An answer that "broadly captures the idea" but no specific terms → 0.
+- 3+ mark definition question: deduct one mark per missing discriminating component, never below 0.
+`;
+}
+
 function scienceCommandWordRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("science")) return "";
   return `
@@ -1266,7 +1346,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + mathMarkingRules(paper?.subject) + englishMarkingRules(paper?.subject));
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + scienceStrictRules(paper?.subject) + mathMarkingRules(paper?.subject) + englishMarkingRules(paper?.subject));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -3493,10 +3573,33 @@ Primary-school Science answers are concept-based, not word-for-word. Award parti
 - In notes, list which concepts/phrases the student got right and which were missing.
 
 KEY-TERM REQUIREMENT (IMPORTANT):
-When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
+When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
 - 'fertilisation' must appear as 'fertilisation' / 'fertilization'. 'joining of male and female cells' is NOT a substitute — it describes the process but doesn't name it. Mark 0 for that concept.
 - Synonyms allowed only when they are scientifically interchangeable (e.g. 'water vapour' ≈ 'gas form of water'). When in doubt, treat the missing term as missing.
 - This rule overrides the synonym leniency above for these named terms — be strict about terminology, lenient about prose around it.
+
+DISCRIMINATING TERMS (IMPORTANT — STRICTEST):
+Some scientific terms have close-but-different neighbours that often confuse students. When the answer key uses one term and the student writes a related-but-WRONG term, score it as WRONG for that concept — partial credit does NOT apply, even if the answer is otherwise on-topic.
+
+Examples (not exhaustive — apply the same principle to any pair of related terms):
+- ovum vs ovule (animal egg cell vs plant egg cell)
+- ovule vs ovary (cell vs container)
+- sperm vs pollen (animal vs plant male gamete)
+- mass vs weight (matter vs gravitational force)
+- evaporation vs condensation vs boiling (different phase changes)
+- voltage vs current (potential difference vs flow rate)
+- respiration vs photosynthesis (gas exchange/energy release vs food-making)
+- transmit vs absorb vs reflect (opposite light interactions)
+- transparent vs translucent vs opaque (different transmission levels)
+- conductor vs insulator (opposite electrical/thermal properties)
+- predator vs prey (opposite food-chain roles)
+- producer vs consumer vs decomposer (different trophic levels)
+- inhale vs exhale (opposite breathing directions)
+- artery vs vein (different blood-vessel types)
+- germinate vs reproduce vs grow (different life-cycle stages)
+- dissolve vs melt (solute-in-solvent vs phase change)
+
+Rule: if the answer key's discriminating term is X and the student writes a different-but-related Y from the same conceptual family, score that concept as 0 in the partial-credit calculation. State in notes which discriminating term was wrong, wrapped in **double asterisks** (e.g. "Student wrote **ovule** instead of the required **ovum**.").
 
 DEFINITION QUESTIONS (IMPORTANT — STRICT):
 When the question asks the student to DEFINE or EXPLAIN what a term means (e.g. "What is a community?", "Define a population", "Explain what a habitat is", "What is photosynthesis?"), the marking is significantly STRICTER than for a regular reasoning question. Definition questions test exact knowledge of a textbook definition, not approximate understanding.
