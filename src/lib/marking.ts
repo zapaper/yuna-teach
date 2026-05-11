@@ -3078,9 +3078,20 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             // For scanned-back printables, crop to the question's
             // writing area before the blue-ink check — otherwise we
             // catch ink from neighbouring questions on the same page.
-            const bounds = (q.printableBounds as PrintableBounds | null | undefined) ?? null;
-            const checkBuf: Buffer = bounds && Number.isFinite(bounds.pageIndex)
-              ? await cropPageByBounds(pageBuffer, bounds, bounds.pageIndex)
+            // Pad ±5% so the check captures writing that overflows
+            // the printed box (last-line descenders, students who
+            // wrote a little outside the lines). Without this Q10
+            // and other bottom-page OEQs were getting marked
+            // "BLANK" even when the marker's later detect step
+            // would have found real working.
+            const boundsRaw = (q.printableBounds as PrintableBounds | null | undefined) ?? null;
+            const inkBounds = boundsRaw && Number.isFinite(boundsRaw.pageIndex) ? {
+              ...boundsRaw,
+              yStartPct: Math.max(0, boundsRaw.yStartPct - 5),
+              yEndPct: Math.min(100, boundsRaw.yEndPct + 5),
+            } : boundsRaw;
+            const checkBuf: Buffer = inkBounds && Number.isFinite(inkBounds.pageIndex)
+              ? await cropPageByBounds(pageBuffer, inkBounds, inkBounds.pageIndex)
               : pageBuffer;
             inkFound = await hasBlueInk(checkBuf.toString("base64"), `quiz-oeq-Q${q.questionNum}`, "image/jpeg");
           } catch {
@@ -3656,7 +3667,13 @@ Return ONLY valid JSON:
         // OCR + text marking doesn't justify pro pricing.
         const QUIZ_MODELS = needsPro
           ? ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"]
-          : ["gemini-2.5-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+          // Non-drawable OEQ: start cheap, escalate on each retry.
+          // The previous flash→flash→lite chain just hit the same
+          // JSON-malformation bug three times in a row when 2.5-flash
+          // got chatty mid-response. flash → 3-flash-preview →
+          // 3.1-pro-preview spends a little more on the rare retry
+          // path in exchange for actually getting JSON back.
+          : ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"];
         const JSON_ONLY_REMINDER = "IMPORTANT: Your previous response could not be parsed. Return ONLY the JSON object requested. No prose, no explanation, no markdown fences — just the raw JSON starting with { and ending with }.";
         let lastErr: unknown = null;
         let lastParseFailText: string | null = null;

@@ -24,6 +24,7 @@ import { pickScanFileIndex } from "../src/lib/page-map";
           id: true, questionNum: true, marksAvailable: true,
           marksAwarded: true, studentAnswer: true, markingNotes: true,
           printableBounds: true, transcribedSubparts: true,
+          answer: true, sourceQuestionId: true,
         },
       },
     },
