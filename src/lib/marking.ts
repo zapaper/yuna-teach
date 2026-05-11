@@ -1550,12 +1550,19 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
                   }] as QuestionMarkResult[];
                 }
 
-                // Step 2: Mark normally with cropped image
+                // Step 2: Mark normally with cropped image.
+                // Cloze + Editing force a specific lite model (strict
+                // letter checks); everything else lets markBatch pick
+                // its subject-aware default — science gets
+                // gemini-3.1-pro-preview, math/english get flash-2.5.
                 const isCloze = q.syllabusTopic === "Grammar Cloze" || q.syllabusTopic === "Comprehension Cloze";
                 const isEditing = q.syllabusTopic === "Editing (Spelling & Grammar)";
-                const batchModel = (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : "gemini-2.5-flash";
-                if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check (model: gemini-3.1-flash-lite-preview)`);
-                console.log(`[marking] Q${q.questionNum} using model: ${batchModel} (syllabusTopic="${q.syllabusTopic ?? "none"}")`);
+                const isSci = (paper?.subject ?? "").toLowerCase().includes("science");
+                const effectiveModel = (isCloze || isEditing)
+                  ? "gemini-3.1-flash-lite-preview"
+                  : isSci ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
+                if (isEditing) console.log(`[marking] Q${q.questionNum} is Editing (Spelling & Grammar) — applying strict letter-by-letter spell check`);
+                console.log(`[marking] Q${q.questionNum} using model: ${effectiveModel} (syllabusTopic="${q.syllabusTopic ?? "none"}", subject="${paper?.subject ?? "?"}")`);
                 return markBatch(croppedBase64, [q], `page ${pageIndex} Q${q.questionNum} (cropped)`, true, (isCloze || isEditing) ? "gemini-3.1-flash-lite-preview" : undefined);
               } catch (err) {
                 console.warn(`[marking] Crop failed for Q${q.questionNum}:`, err);
