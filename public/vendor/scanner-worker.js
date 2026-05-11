@@ -92,27 +92,64 @@ function detectQuad(cv, imageData) {
     cv.Canny(blur, edges, 75, 200);
     cv.findContours(edges, contours, hier, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
 
+    // Detection strategy: for every large convex-ish contour, take
+    // its minAreaRect (smallest rotated rectangle containing it).
+    //
+    // Why minAreaRect instead of approxPolyDP+4-vertex check:
+    // when a page corner is folded over, the visible outline has
+    // 5+ vertices (the fold creates an inward step). approxPolyDP
+    // at epsilon=0.02*perimeter collapses those extra vertices
+    // into ONE inward-pulled corner → trapezium → perspective
+    // warp skews the whole page. minAreaRect ignores that — its
+    // corners sit at the contour's extents, which are still
+    // defined by the unfolded edges (the corner of the rectangle
+    // along, say, the right edge is determined by the bottom-
+    // right unfolded corner, not by where the fold cuts in).
+    //
+    // Fill ratio guards against picking non-rectangular shapes:
+    // a real page fills ~95-100% of its bounding rect; a small
+    // fold drops fill ratio to ~0.92; an irregular blob is much
+    // lower. Threshold 0.85 keeps folded pages, rejects junk.
     const minArea = w * h * 0.15;
     let best = null;
     const total = contours.size();
     for (let i = 0; i < total; i++) {
       const c = contours.get(i);
-      const area = cv.contourArea(c);
-      if (area < minArea) { c.delete(); continue; }
-      const peri = cv.arcLength(c, true);
-      const approx = new cv.Mat();
-      cv.approxPolyDP(c, approx, 0.02 * peri, true);
       try {
-        const data = approx.data32S;
-        if (data.length === 8 && cv.isContourConvex(approx)) {
-          const pts = [
-            [data[0], data[1]], [data[2], data[3]],
-            [data[4], data[5]], [data[6], data[7]],
+        const cArea = cv.contourArea(c);
+        if (cArea < minArea) continue;
+        const rect = cv.minAreaRect(c);
+        const rw = rect.size.width;
+        const rh = rect.size.height;
+        const rectArea = rw * rh;
+        if (rectArea <= 0) continue;
+        if (cArea / rectArea < 0.85) continue;
+
+        // RotatedRect → 4 corners. cv.minAreaRect's angle field
+        // is in DEGREES. opencv.js doesn't reliably expose
+        // boxPoints/RotatedRect.points across builds, so compute
+        // by hand from center/size/angle.
+        const cx = rect.center.x;
+        const cy = rect.center.y;
+        const ang = rect.angle * Math.PI / 180;
+        const cos = Math.cos(ang);
+        const sin = Math.sin(ang);
+        const halfW = rw / 2;
+        const halfH = rh / 2;
+        const local = [
+          [-halfW, -halfH], [halfW, -halfH],
+          [halfW,  halfH], [-halfW,  halfH],
+        ];
+        const pts = local.map(function (p) {
+          return [
+            cx + p[0] * cos - p[1] * sin,
+            cy + p[0] * sin + p[1] * cos,
           ];
-          if (!best || area > best.area) best = { quad: orderQuad(pts), area: area };
+        });
+        if (!best || rectArea > best.area) {
+          best = { quad: orderQuad(pts), area: rectArea };
         }
       } finally {
-        approx.delete();
         c.delete();
       }
     }
