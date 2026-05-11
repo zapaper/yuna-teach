@@ -1398,18 +1398,18 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       }
       parts.push({ text: prompt });
 
-      // Science exam-paper marking goes straight to
-      // gemini-3.1-pro-preview. Both flash-2.5 and 3-flash-preview
-      // visibly skipped the phrase-by-phrase rule and defaulted to
-      // "answer is on-topic → full marks", even when the structured
-      // prompt explicitly told them to deduct per missing phrase.
-      // Pro is the smallest model that actually segments the answer
-      // key and applies the per-phrase deduction. Math + English
-      // stay on flash since their rules are mechanical (exact match
-      // or proportional working steps), don't need pro-level
-      // instruction-following.
+      // Science exam-paper marking uses gemini-3-flash-preview.
+      // Flash 2.5 silently skipped the phrase-by-phrase rule; the
+      // 3-flash-preview tier follows the structured A→E process
+      // far more reliably while keeping per-question cost ~3× of
+      // 2.5 instead of the 10× pro tier. If user reports it's
+      // still too lenient after a real re-mark, the obvious next
+      // step is gemini-3.1-pro-preview.
+      // Math + English unchanged — their rules are mechanical
+      // (exact match or proportional working-steps) and flash 2.5
+      // handles them fine.
       const isScience = (paper?.subject ?? "").toLowerCase().includes("science");
-      const defaultModel = isScience ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
+      const defaultModel = isScience ? "gemini-3-flash-preview" : "gemini-2.5-flash";
       const model = modelOverride ?? defaultModel;
       try {
         const response = await withTimeout(
