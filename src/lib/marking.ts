@@ -713,48 +713,88 @@ function scienceStrictRules(subject: string | null | undefined): string {
   return `
 
 SCIENCE MARKING — PHRASE-BY-PHRASE DEDUCTION (THIS OVERRIDES THE GENERIC STEP 5 PARTIAL-CREDIT RULE ABOVE):
-For Science questions, IGNORE the generic "proportional × marksAvailable" rule from STEP 5B. Use the phrase deduction process below instead. The answer key has been written by a human marker; EVERY phrase in it is a discrete marking point.
+For Science questions, IGNORE the generic "proportional × marksAvailable" rule from STEP 5B. Use the phrase deduction process below instead. The answer key has been written by a human marker; EVERY phrase in it is a discrete marking point. Vagueness, paraphrase that loses the key word, or skipping a phrase are ALL deduction-worthy.
 
-MANDATORY PROCESS — DO NOT SKIP:
+═══════════════════════════════════════════════════════════════
+ANSWER KEY NOTATION — READ THIS BEFORE ANYTHING ELSE:
+═══════════════════════════════════════════════════════════════
+The answer key uses two separators with VERY DIFFERENT meanings:
 
-STEP A: Break the answer key into distinct marking-point phrases. A "phrase" is any of:
-   (a) a named scientific term ("photosynthesis", "ovum", "chlorophyll"),
-   (b) a process / mechanism clause ("water loses heat", "energy is released", "the bulb glows brighter"),
-   (c) a function or purpose statement ("the function is to absorb water", "to protect against predators"),
-   (d) a property statement ("poor conductor of heat", "good insulator", "soluble in water"),
-   (e) a relational link ("...thereby condensing", "...therefore the temperature rises").
+  "|"  (pipe)  = separates DISTINCT marking points. ALL must be present in the student's answer. Each missing pipe-segment costs 0.5 marks.
+  "/"  (slash) = alternatives WITHIN a marking point. The student needs ANY ONE.
 
-STEP B: List every phrase you identified. NUMBER them.
+Example: "After pollination | fertilisation occurs | flower develops into a fruit"
+  = THREE distinct marking points, ALL required. Student who writes only "fertilisation" misses 2 out of 3 → -1.0 marks.
 
-STEP C: For each phrase, mark PRESENT or MISSING in the student's answer. A phrase is MISSING if either (i) it's not in the answer at all, or (ii) the student only vaguely paraphrased without the key idea / named term.
+Example: "Ovary / Ovaries"
+  = ONE marking point with two acceptable spellings. Student writes either → full credit for that point.
 
-STEP D: Compute the score: start at marksAvailable, subtract 0.5 for each MISSING phrase, floor at 0. Award 0 if NO phrases are PRESENT.
+Multi-part answers like "(a) ... (b) ... (c) ..." — treat each labelled part independently. Apply phrase segmentation WITHIN each part.
 
-STEP E: Notes MUST show the segmentation explicitly:
-  "Marking phrases: (1) <phrase>, (2) <phrase>, ... | Student got: (1) PRESENT, (2) **MISSING**, ... | Starting X/X, -0.5 for missing (2), Awarded Y/X."
+═══════════════════════════════════════════════════════════════
+MANDATORY PROCESS — DO NOT SKIP A SINGLE STEP:
+═══════════════════════════════════════════════════════════════
 
-WORKED EXAMPLES (FOLLOW EXACTLY):
+STEP A: List every marking point. A marking point is:
+  - any pipe-separated "|" segment from the key, OR
+  - any semantically discrete clause within a segment that names a distinct fact, named term, function, property, mechanism, or causal link.
 
-Example 1 — 2-mark question about plant stem.
-  Answer key: "The stem contains water-carrying tubes. These tubes transport water."
-  Phrases: (1) "stem contains water-carrying tubes", (2) "tubes transport water" (the function).
-  Student answer: "water carrying tub"
-  Per-phrase: (1) PRESENT (named the structure), (2) **MISSING** (no function statement at all).
-  Score: 2 - 0.5 = 1.5/2. Notes: "Marking phrases: (1) stem contains water-carrying tubes, (2) tubes transport water | Student got: (1) PRESENT, (2) **MISSING** — student named the part but did not state its function. Starting 2/2, -0.5 for missing function. Awarded 1.5/2."
+STEP B: For each marking point, decide PRESENT or MISSING in the student's answer.
+  - PRESENT only if the student's answer contains the actual concept AND any named scientific term in it (or a recognised scientific synonym, NOT a vague everyday paraphrase).
+  - "joining of male and female cells" ≠ "fertilisation" (named term lost) → MISSING for the fertilisation point.
+  - "water carrying tubes" PRESENT for the structure point but is NOT a function statement → the function point is MISSING.
+  - "fruit grows" PRESENT for the "develops into a fruit" point.
+  - "breathing" ≠ "respiration" (named term lost) → MISSING.
 
-Example 2 — 2-mark question about respiration.
-  Answer key: "Energy is released in respiration."
-  Phrases: (1) "energy is released", (2) "in respiration" (the process named).
-  Student answer: "energy comes from breathing"
-  Per-phrase: (1) PRESENT (release / "comes from" is an everyday equivalent), (2) **MISSING** ("breathing" ≠ "respiration" — named scientific term lost).
-  Score: 2 - 0.5 = 1.5/2.
+STEP C: Compute the score:
+  marksAwarded = max(0, marksAvailable - 0.5 × numberOfMissingPoints)
+  Award 0 outright if NO marking points are PRESENT.
 
-Example 3 — 2-mark question about a vacuum flask.
-  Answer key: "The vacuum is a poor conductor of heat so heat cannot pass through it."
-  Phrases: (1) "vacuum / no medium", (2) "poor conductor of heat", (3) "heat cannot pass through".
-  Student answer: "vacuum keeps it warm"
-  Per-phrase: (1) PRESENT, (2) **MISSING**, (3) **MISSING** (only one of three present).
-  Score: 2 - 0.5 - 0.5 = 1/2.
+STEP D: Notes MUST list every marking point with its status. Mandatory format:
+  "Marking points (from key, parsed by '|' and clause):
+     (1) <point> — PRESENT / **MISSING**
+     (2) <point> — PRESENT / **MISSING**
+     ...
+   Score: starting X/X, -0.5 for each MISSING. Awarded Y/X."
+
+WORKED EXAMPLES (FOLLOW EXACTLY — same paper patterns you will see):
+
+Example 1 — 2-mark, structure + function.
+  Answer key: "The stem contains water-carrying tubes (part). | These tubes transport water (function)."
+  Marking points: (1) "stem contains water-carrying tubes", (2) "tubes transport water" (the function).
+  Student: "water carrying tub"
+  (1) PRESENT — named the structure. (2) **MISSING** — no function statement.
+  Awarded: 2 - 0.5 = 1.5/2.
+
+Example 2 — 2-mark, multi-step process (typical Q30(b) shape).
+  Answer key: "After pollination | fertilisation can occur | for the flower to develop into a fruit."
+  Marking points: (1) "after pollination", (2) "fertilisation occurs", (3) "develops into a fruit".
+  Student: "fertilisation happens and fruit grows"
+  (1) **MISSING** — student didn't say what triggered it. (2) PRESENT. (3) PRESENT.
+  Awarded: 2 - 0.5 = 1.5/2.
+
+Example 3 — 2-mark, multi-step circulatory (typical Q31(a) shape).
+  Answer key: "Increase volume of blood transported to the muscles | so that more oxygen and digested food are supplied | to release more energy / rate of respiration increases."
+  Marking points: (1) "more blood to muscles", (2) "more oxygen + digested food supplied", (3) "more energy released / faster respiration".
+  Student: "more blood goes to the muscles so they can move faster"
+  (1) PRESENT. (2) **MISSING** — didn't mention oxygen or food. (3) **MISSING** — "move faster" is an outcome but doesn't name energy/respiration.
+  Awarded: 2 - 0.5 - 0.5 = 1/2.
+
+Example 4 — 2-mark, vacuum flask property.
+  Answer key: "The vacuum is a poor conductor of heat | so heat cannot pass through it."
+  Marking points: (1) "vacuum", (2) "poor conductor of heat", (3) "heat cannot pass through".
+  Student: "vacuum keeps it warm"
+  (1) PRESENT. (2) **MISSING**. (3) **MISSING**.
+  Awarded: 2 - 0.5 - 0.5 = 1/2.
+
+Example 5 — 2-mark, condensation (typical Q36(a) shape).
+  Answer key: "Warmer water vapour comes into contact with the colder metal surface | loses heat | and condenses to form water droplets."
+  Marking points: (1) "water vapour contacts colder surface", (2) "loses heat / temperature decreases", (3) "condenses to form water droplets".
+  Student: "water vapour touches the cold metal and becomes water"
+  (1) PRESENT. (2) **MISSING** — "becomes" doesn't name the heat-loss mechanism. (3) PRESENT (becomes water = condensation outcome but missing the named process; partial credit but mark it MISSING if "condenses / condensation" was the required named term in the key).
+  Awarded: 2 - 0.5 - 0.5 = 1/2.
+
+CRITICAL: Do NOT short-circuit. Even when the student's answer "looks right overall", you MUST step through every marking point individually. A 2-mark answer where the student captures the gist of one of three points scores at most 1/2, not full marks.
 
 KEY-TERM REQUIREMENT (IMPORTANT):
 When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
@@ -1431,9 +1471,24 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
         );
         const text = response.text;
         if (!text) { console.warn(`[marking] Empty Gemini response for ${label}`); return []; }
-        const parsed = extractJson(text) as { questions: QuestionMarkResult[] };
-        console.log(`[marking] ${label} done (${model}) — ${parsed.questions.length} results`);
-        return parsed.questions;
+        // Pro models sometimes return the single-question shape
+        // {questionId, marksAwarded, ...} directly instead of the
+        // {questions: [...]} wrapper that flash always uses. Handle
+        // both shapes so a perfectly-valid pro response doesn't
+        // crash the marker on `parsed.questions.length`.
+        const parsedAny = extractJson(text) as Record<string, unknown> | null;
+        let questions: QuestionMarkResult[] = [];
+        if (parsedAny && Array.isArray((parsedAny as { questions?: unknown }).questions)) {
+          questions = (parsedAny as { questions: QuestionMarkResult[] }).questions;
+        } else if (parsedAny && typeof (parsedAny as { questionId?: unknown }).questionId === "string") {
+          // Single-question shape — wrap in array.
+          questions = [parsedAny as unknown as QuestionMarkResult];
+        } else {
+          console.warn(`[marking] Unexpected response shape for ${label}: ${text.slice(0, 200)}`);
+          return [];
+        }
+        console.log(`[marking] ${label} done (${model}) — ${questions.length} results`);
+        return questions;
       } catch (err) {
         console.warn(`[marking] Failed for ${label}:`, err);
         return [];
