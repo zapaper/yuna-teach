@@ -1,11 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import sharp from "sharp";
+import crypto from "crypto";
 import { prisma } from "@/lib/db";
 import { isAdmin } from "@/lib/admin";
 import { renderPdfToJpegs } from "@/lib/pdf-server";
 import { handleDiagnostic } from "@/lib/diagnostic";
 import { submitScannedPaper } from "@/lib/scan-submit";
+
+// Basic-auth check for the SendGrid Inbound Parse webhook. SendGrid
+// lets the dashboard URL be set as https://user:secret@host/path and
+// arrives at the route as Authorization: Basic <base64>. We compare
+// the header against INBOUND_EMAIL_SECRET in constant time.
+//
+// Why: before this, anyone who knew the URL could POST a crafted
+// multipart payload with a spoofed From: address and trigger a
+// paper submission as that parent. Sender-email "auth" was just
+// part of the body — trivially forged.
+function verifyInboundAuth(authHeader: string | null): boolean {
+  const secret = process.env.INBOUND_EMAIL_SECRET ?? "";
+  if (!secret) {
+    console.warn("[inbound-email] INBOUND_EMAIL_SECRET not set — rejecting all calls");
+    return false;
+  }
+  if (!authHeader || !authHeader.startsWith("Basic ")) return false;
+  const expected = "Basic " + Buffer.from(`sendgrid:${secret}`).toString("base64");
+  if (authHeader.length !== expected.length) return false;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected));
+  } catch {
+    return false;
+  }
+}
 
 // SendGrid Inbound Parse webhook.
 // Parents scan their printed exam paper, email it to hello@markforyou.com.
@@ -89,6 +115,14 @@ async function extractCodeFromPage(jpegOrPdf: Buffer, isPdf: boolean): Promise<s
 }
 
 export async function POST(request: NextRequest) {
+  // Reject unauthenticated callers BEFORE parsing the body — saves
+  // CPU on a flood of unauth'd POSTs and prevents anyone from
+  // probing the route shape.
+  if (!verifyInboundAuth(request.headers.get("authorization"))) {
+    console.warn("[inbound-email] auth failed — rejecting");
+    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  }
+
   let form: FormData;
   try {
     form = await request.formData();
