@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { DEFAULT_TRIAL_DAYS } from "@/lib/subscription";
-import { requireSelfOrAdmin, requireAdmin } from "@/lib/auth-guard";
+import { requireSelfOrAdmin, requireAdmin, resolveActor } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -205,15 +205,25 @@ export async function POST(request: NextRequest) {
   );
 }
 
+// Keys inside `user.settings` JSON that NON-admin callers are
+// forbidden from setting via this endpoint. Most critically:
+// `admin: true` is the admin flag (see lib/admin.ts) — letting
+// any caller write that to their own row was a privilege-escalation
+// bug. Also block `role` so a STUDENT can't promote themselves.
+const PRIVILEGED_SETTINGS_KEYS = new Set(["admin", "role"]);
+
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
   // `name` is the immutable login username — set at signup, never
   // changes here. Renames write to `displayName`, which is mutable
   // and not unique.
-  const { userId, settings, displayName } = body as { userId?: string; settings?: Record<string, unknown>; displayName?: string | null };
-  if (!userId) {
-    return NextResponse.json({ error: "userId required" }, { status: 400 });
-  }
+  const { userId: bodyUserId, settings, displayName } = body as { userId?: string; settings?: Record<string, unknown>; displayName?: string | null };
+
+  // Caller from session; admin view-as via body userId.
+  const auth = await resolveActor(bodyUserId ?? null);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
+
   if (!settings && typeof displayName === "undefined") {
     return NextResponse.json({ error: "settings or displayName required" }, { status: 400 });
   }
@@ -223,7 +233,19 @@ export async function PATCH(request: NextRequest) {
 
   const data: import("@prisma/client").Prisma.UserUpdateInput = {};
   if (settings) {
-    const merged = { ...((user.settings as Record<string, unknown>) ?? {}), ...settings };
+    // Strip privileged keys from the incoming settings unless the
+    // caller is already an admin. Without this filter, any logged-in
+    // user could PATCH their own row with { settings: { admin: true } }
+    // and self-promote.
+    const filteredIncoming: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(settings)) {
+      if (PRIVILEGED_SETTINGS_KEYS.has(k) && !auth.isAdmin) {
+        console.warn(`[users] non-admin user=${userId} attempted to set privileged key "${k}" — ignored`);
+        continue;
+      }
+      filteredIncoming[k] = v;
+    }
+    const merged = { ...((user.settings as Record<string, unknown>) ?? {}), ...filteredIncoming };
     data.settings = merged as import("@prisma/client").Prisma.InputJsonValue;
   }
   if (typeof displayName !== "undefined") {
