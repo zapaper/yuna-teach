@@ -203,22 +203,23 @@ function warpAndClean(cv, imageData, quad) {
     const L = labChannels.get(0);
 
     // ── Shadow removal — flatten the lighting ──
-    // Estimate the illumination by blurring L with a very wide
-    // Gaussian (~5% of the long edge), then subtract that estimate
-    // from L and re-bias to ~mid-grey. The high-frequency content
-    // (ink, text edges) survives; the low-frequency content
-    // (uneven lighting, soft shadows) is gone. Coefficient 0.85 is
-    // tuned so paper whites still look white without over-blowing
-    // dark ink.
+    // Two-pass illumination flattening:
+    //   1. Wide-Gaussian blur of L estimates the illumination
+    //      field (low frequencies = shadows / lighting gradients).
+    //      Subtract 0.92× of that from L with a bright bias (220)
+    //      so paper whites end up actually white instead of grey.
+    //   2. CLAHE for local contrast so faint ink survives.
+    //   3. Final linear stretch (1.18×, -22) pushes near-white
+    //      backgrounds to true white while leaving ink clearly
+    //      dark — kills the residual grey tint from soft shadows.
     const sigma = Math.max(15, Math.round(Math.max(Wd, Hd) * 0.05));
     lBlur = new cv.Mat();
     cv.GaussianBlur(L, lBlur, new cv.Size(0, 0), sigma);
-    cv.addWeighted(L, 1.0, lBlur, -0.85, 200, L);
+    cv.addWeighted(L, 1.0, lBlur, -0.92, 220, L);
 
-    // CLAHE adds local contrast on top so faint pencil writing
-    // doesn't get washed out.
     clahe = new cv.CLAHE(2.5, new cv.Size(8, 8));
     clahe.apply(L, L);
+    L.convertTo(L, -1, 1.18, -22);
     cv.merge(labChannels, lab);
     cv.cvtColor(lab, rgb, cv.COLOR_Lab2RGB);
 
@@ -246,6 +247,33 @@ function warpAndClean(cv, imageData, quad) {
   }
 }
 
+// Variance-of-Laplacian focus score. Higher = sharper. Industry
+// rule of thumb: > ~100 is sharp for typical handheld document
+// shots; < ~50 is clearly blurry. Computed on the FULL-RES still
+// at capture time only (running this every live frame is too much
+// CPU on weaker phones).
+function focusScore(cv, imageData) {
+  let src = null, gray = null, lap = null, mean = null, stddev = null;
+  try {
+    src = cv.matFromImageData(imageData);
+    gray = new cv.Mat();
+    lap = new cv.Mat();
+    mean = new cv.Mat();
+    stddev = new cv.Mat();
+    cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+    cv.Laplacian(gray, lap, cv.CV_64F);
+    cv.meanStdDev(lap, mean, stddev);
+    const s = stddev.data64F[0];
+    return s * s;
+  } finally {
+    if (src) src.delete();
+    if (gray) gray.delete();
+    if (lap) lap.delete();
+    if (mean) mean.delete();
+    if (stddev) stddev.delete();
+  }
+}
+
 self.onmessage = function (e) {
   const msg = e.data || {};
   const id = msg.id;
@@ -257,6 +285,9 @@ self.onmessage = function (e) {
     if (msg.type === "detect") {
       const quad = detectQuad(self.cv, msg.imageData);
       self.postMessage({ id: id, type: "detected", quad: quad });
+    } else if (msg.type === "focus") {
+      const score = focusScore(self.cv, msg.imageData);
+      self.postMessage({ id: id, type: "focusScored", score: score });
     } else if (msg.type === "warp") {
       const out = warpAndClean(self.cv, msg.imageData, msg.quad);
       self.postMessage({ id: id, type: "warped", imageData: out }, [out.data.buffer]);

@@ -40,7 +40,15 @@ type WorkerMsg =
   | { type: "ready" }
   | { type: "error"; message: string; id?: string }
   | { id: string; type: "detected"; quad: [number, number][] | null }
+  | { id: string; type: "focusScored"; score: number }
   | { id: string; type: "warped"; imageData: ImageData };
+
+// Below this Laplacian-variance score the captured still is too
+// blurry for the marker to OCR reliably. ~75 is a moderate
+// threshold; raise for stricter capture, lower if false-positives
+// are annoying users. Tuned against typical phone cameras held a
+// hand's length above an A4 sheet.
+const FOCUS_THRESHOLD = 75;
 
 export default function DocumentScanner({
   parentId,
@@ -199,7 +207,7 @@ export default function DocumentScanner({
         }
         return;
       }
-      if (msg.type === "detected" || msg.type === "warped") {
+      if (msg.type === "detected" || msg.type === "warped" || msg.type === "focusScored") {
         const pending = pendingRef.current.get(msg.id);
         if (pending) {
           pending.resolve(msg);
@@ -271,6 +279,22 @@ export default function DocumentScanner({
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
   }, []);
+
+  // ── Re-attach the live stream when the <video> element remounts ──
+  // The review stage unmounts the capture stage's <video> (conditional
+  // render), so on retake the new <video> has no srcObject and shows
+  // black. The stream itself is still alive in streamRef. Re-attach
+  // every time stage becomes "capture".
+  useEffect(() => {
+    if (stage !== "capture") return;
+    const v = videoRef.current;
+    const s = streamRef.current;
+    if (!v || !s) return;
+    if (v.srcObject !== s) {
+      v.srcObject = s;
+      v.play().catch(() => { /* user-gesture restriction is unlikely here */ });
+    }
+  }, [stage]);
 
   // Scale used when downsampling for the live detect pass — kept in a
   // ref so the worker-response handler can rescale the quad back to
@@ -370,6 +394,28 @@ export default function DocumentScanner({
     sctx.drawImage(video, 0, 0, vw, vh);
 
     try {
+      // Focus check FIRST so we don't waste time perspective-warping
+      // a blurry frame. Worker computes variance of Laplacian; we
+      // reject anything under FOCUS_THRESHOLD and tell the user to
+      // hold steady. Buffer is transferred → grab a fresh ImageData
+      // for the detect call afterwards.
+      const focusImg = sctx.getImageData(0, 0, vw, vh);
+      const focusId = `foc-${Date.now()}`;
+      const focusResp = await new Promise<WorkerMsg>((resolve, reject) => {
+        pendingRef.current.set(focusId, { resolve, reject });
+        worker.postMessage(
+          { id: focusId, type: "focus", imageData: focusImg },
+          [focusImg.data.buffer],
+        );
+      });
+      const focusScore = focusResp.type === "focusScored" ? focusResp.score : 0;
+      console.log(`[scanner] focus score: ${focusScore.toFixed(1)} (threshold ${FOCUS_THRESHOLD})`);
+      if (focusScore < FOCUS_THRESHOLD) {
+        setErrorMsg("Image is blurry — hold the camera steady and tap again.");
+        setTimeout(() => setErrorMsg(""), 3500);
+        return;
+      }
+
       // Full-res detect via worker.
       const detectImg = sctx.getImageData(0, 0, vw, vh);
       const detectId = `det-${Date.now()}`;
