@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveActor } from "@/lib/auth-guard";
 
-// GET /api/notifications?userId=X
-// Returns unread admin replies for questions flagged by this user
+// GET /api/notifications[?userId=<target>]
+// Returns unread admin replies for questions flagged by the
+// caller. Non-admins always see their own; admins may pass
+// ?userId= to view another user's pending notifications.
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!userId) return NextResponse.json([]);
+  const target = request.nextUrl.searchParams.get("userId");
+  const auth = await resolveActor(target);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
   const questions = await prisma.examQuestion.findMany({
     where: {

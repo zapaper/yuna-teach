@@ -7,6 +7,7 @@ import fontkit from "@pdf-lib/fontkit";
 import { GoogleGenAI } from "@google/genai";
 import { prisma } from "@/lib/db";
 import { isAdmin as isAdminUser } from "@/lib/admin";
+import { requireAccessToPaper } from "@/lib/auth-guard";
 
 // GET /api/exam/[id]/export-marked?userId=<parent>
 //
@@ -263,8 +264,12 @@ async function handle(
   params: Promise<{ id: string }>,
 ) {
   const { id } = await params;
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+  // Caller from session. requireAccessToPaper also returns the
+  // paper's userId/assignedToId so we can short-circuit a 2nd
+  // lookup below, but the full paper select below needs more
+  // fields so we leave it as-is.
+  const auth = await requireAccessToPaper(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
@@ -295,16 +300,11 @@ async function handle(
     masterMeta = master?.metadata ?? null;
   }
 
-  const requester = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true, parentLinks: { select: { studentId: true } } } });
-  if (!requester) return NextResponse.json({ error: "User not found" }, { status: 404 });
-  const isAdmin = isAdminUser(requester);
-  const isOwner = paper.userId === userId;
-  const isLinkedParent = paper.assignedToId
-    ? requester.parentLinks.some(l => l.studentId === paper.assignedToId)
-    : false;
-  if (!isAdmin && !isOwner && !isLinkedParent) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  // Auth was already verified by requireAccessToPaper(id) at the
+  // top — caller is admin, paper.userId, paper.assignedToId, or
+  // a linked parent. Re-derive isAdmin from auth for the export
+  // logic below that gates on it.
+  const isAdmin = auth.isAdmin;
 
   const subDir = path.join(SUBMISSIONS_DIR, paper.id);
   // Discover what JPGs we actually have on disk (not all questions may

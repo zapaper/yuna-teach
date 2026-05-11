@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { prisma } from "@/lib/db";
 import { getStripe, priceIdForPlan, type PlanId } from "@/lib/stripe";
+import { requireSession, resolveActor } from "@/lib/auth-guard";
 
 /**
  * POST: Create a Stripe Checkout session.
@@ -12,11 +13,13 @@ import { getStripe, priceIdForPlan, type PlanId } from "@/lib/stripe";
  *   Trial-extending codes are redeemed at signup, not here.
  */
 export async function POST(request: NextRequest) {
+  const auth = await requireSession();
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
   const body = await request.json();
-  const { userId, plan = "monthly", promoCode } = body as {
-    userId?: string; plan?: PlanId; promoCode?: string;
+  const { plan = "monthly", promoCode } = body as {
+    plan?: PlanId; promoCode?: string;
   };
-  if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
   if (plan !== "monthly" && plan !== "annual") {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
   }
@@ -80,8 +83,10 @@ export async function POST(request: NextRequest) {
 
 /** GET: Get subscription status + Stripe portal URL for managing subscription */
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!userId) return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+  const target = request.nextUrl.searchParams.get("userId");
+  const auth = await resolveActor(target);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },

@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { DEFAULT_TRIAL_DAYS } from "@/lib/subscription";
+import { requireSelfOrAdmin, requireAdmin } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
 
-  // ?userId=<id> returns a single user under `user`. Callers that fetched
-  // this endpoint without the param (and expected the full users list under
-  // `users`) keep working since we only take this branch when the param is
-  // present.
+  // ?userId=<id> returns a single user under `user`. Caller must
+  // be the user themselves OR an admin — was previously open to
+  // anyone with an id, leaking email + subscription state + the
+  // full parent/student link graph.
   if (userId) {
+    const auth = await requireSelfOrAdmin(userId);
+    if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
     const u = await prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -37,6 +40,11 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // Listing every user is an admin-only operation — was previously
+  // open to any caller (and was used by the now-removed /admin
+  // routes anyway).
+  const adminGuard = await requireAdmin();
+  if (!adminGuard.ok) return NextResponse.json({ error: adminGuard.error }, { status: adminGuard.status });
   const users = await prisma.user.findMany({
     orderBy: { createdAt: "asc" },
     include: {

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { guardCanAssign } from "@/lib/subscription";
+import { resolveActor } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
+  const target = request.nextUrl.searchParams.get("userId");
+  const auth = await resolveActor(target);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
   const tests = await prisma.spellingTest.findMany({
-    where: userId ? { userId } : undefined,
+    where: { userId },
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { words: true } },

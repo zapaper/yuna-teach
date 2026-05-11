@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { GoogleGenAI } from "@google/genai";
+import { resolveActor } from "@/lib/auth-guard";
 
 let _ai: GoogleGenAI | null = null;
 function getAI() {
@@ -16,10 +17,16 @@ type Action =
   | { type: "daily-quiz"; students: { id: string; name: string; level: number | null }[] };
 
 export async function GET(req: NextRequest) {
-  const parentId = req.nextUrl.searchParams.get("parentId");
+  // Caller identity comes from the signed session cookie. The old
+  // ?parentId= param was spoofable; now admins may still pass it
+  // to act on another parent's behalf, but non-admins are forced
+  // to their own id.
+  const target = req.nextUrl.searchParams.get("parentId");
+  const auth = await resolveActor(target);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const parentId = auth.userId;
   const studentIdFilter = req.nextUrl.searchParams.get("studentId") ?? null;
   const clientHour = parseInt(req.nextUrl.searchParams.get("hour") ?? "-1", 10);
-  if (!parentId) return NextResponse.json({ greeting: "", actions: [] });
 
   const parent = await prisma.user.findUnique({
     where: { id: parentId },

@@ -1,24 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { submitScannedPaper } from "@/lib/scan-submit";
+import { requireSession } from "@/lib/auth-guard";
 
-// POST /api/exam/[id]/scan-submit?userId=<parentId>
+// POST /api/exam/[id]/scan-submit
 //
 // In-app camera-scan flow. Multipart form with:
 //   - studentId: id of the assigned student
 //   - page_0, page_1, ...: JPEG/PNG blobs in display order
 //
-// We hand the buffers to submitScannedPaper which clones the master,
-// saves the pages with watermark masking, and kicks off marking. Same
-// helper the SendGrid inbound webhook uses, so behaviour is identical
-// to the email path.
+// The acting parent is taken from the signed session cookie, not
+// a query param — previously anyone could submit a scan attributed
+// to any parent id.
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id: paperId } = await params;
-  const parentId = request.nextUrl.searchParams.get("userId");
-  if (!parentId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+  const auth = await requireSession();
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const parentId = auth.userId;
 
   let form: FormData;
   try {

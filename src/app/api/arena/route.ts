@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireAccessToStudent } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
   const studentId = request.nextUrl.searchParams.get("studentId");
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
+  // Caller must be the student themselves, a linked parent, or admin.
+  const auth = await requireAccessToStudent(studentId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   // Get current week's Monday 00:00
   const now = new Date();

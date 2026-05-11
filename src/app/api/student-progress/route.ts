@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireAccessToStudent } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
-  const parentId = request.nextUrl.searchParams.get("parentId");
   const studentId = request.nextUrl.searchParams.get("studentId");
-
-  if (!parentId || !studentId) {
-    return NextResponse.json({ error: "Missing parentId or studentId" }, { status: 400 });
+  if (!studentId) {
+    return NextResponse.json({ error: "Missing studentId" }, { status: 400 });
   }
 
-  // Verify parent-student link
-  const link = await prisma.parentStudent.findFirst({
-    where: { parentId, studentId },
-  });
-  if (!link) {
-    return NextResponse.json({ error: "Not linked" }, { status: 403 });
-  }
+  // Caller comes from the session cookie. requireAccessToStudent
+  // verifies the caller is the student, a parent linked to them,
+  // or an admin — so the old ?parentId= query param (spoofable)
+  // is no longer needed.
+  const auth = await requireAccessToStudent(studentId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const student = await prisma.user.findUnique({
     where: { id: studentId },

@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import crypto from "crypto";
+import { resolveActor } from "@/lib/auth-guard";
 
 function generateCode(): string {
   return crypto.randomBytes(3).toString("hex").toUpperCase(); // 6-char hex
 }
 
-// POST — generate a new invite code for a user
+// POST — generate a new invite code for the signed-in user (or
+// admin acting on another user's behalf via { userId } in the body).
 export async function POST(request: NextRequest) {
-  const { userId } = await request.json();
-  if (!userId) {
-    return NextResponse.json({ error: "userId required" }, { status: 400 });
-  }
+  const body = await request.json().catch(() => ({}));
+  const target = typeof body.userId === "string" ? body.userId : null;
+  const auth = await resolveActor(target);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
   // Delete any existing codes for this user
   await prisma.inviteCode.deleteMany({ where: { userId } });
@@ -26,12 +29,13 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ code, expiresAt: expiresAt.toISOString() });
 }
 
-// GET — get active invite code for a user
+// GET — get active invite code for the signed-in user (or admin
+// view-as via ?userId=).
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!userId) {
-    return NextResponse.json({ error: "userId required" }, { status: 400 });
-  }
+  const target = request.nextUrl.searchParams.get("userId");
+  const auth = await resolveActor(target);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
   const invite = await prisma.inviteCode.findFirst({
     where: { userId, expiresAt: { gt: new Date() } },

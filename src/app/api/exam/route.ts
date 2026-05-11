@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isAdmin } from "@/lib/admin";
 import { bumpUserActivity } from "@/lib/track-activity";
+import { resolveActor } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
+  // Caller from session. Admins may pass ?userId=<target> to view
+  // another user's papers (legacy admin "view as user"); non-admins
+  // ignoring the param means they cannot read another family's data.
+  const target = request.nextUrl.searchParams.get("userId");
+  const auth = await resolveActor(target);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
   // Touch lastLoginAt so the admin "Last active" stamp tracks
   // dashboard refreshes, not just sign-ins. Throttled to one DB
   // write per user per 5 min — see track-activity.ts.

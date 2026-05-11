@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { prisma } from "@/lib/db";
-import { isAdmin as isAdminUser } from "@/lib/admin";
+import { requireAccessToStudent } from "@/lib/auth-guard";
 
 // GET /api/exam/[id]/print?studentId=<id>&userId=<parent>
 //
@@ -23,7 +23,6 @@ export async function GET(
 ) {
   const { id } = await params;
   const studentId = request.nextUrl.searchParams.get("studentId");
-  const userId = request.nextUrl.searchParams.get("userId");
   // ?inline=1 → render the PDF inline so the client can embed it in
   // a hidden iframe and call iframe.contentWindow.print() to open
   // the system print dialog directly.
@@ -32,38 +31,19 @@ export async function GET(
   if (!studentId) {
     return NextResponse.json({ error: "studentId required" }, { status: 400 });
   }
-  if (!userId) {
-    return NextResponse.json({ error: "userId required" }, { status: 400 });
-  }
 
-  // Verify the requester is the parent (or an admin) and is linked to
-  // the named student. Anything that fails this check is rejected so
-  // we don't leak papers via the print URL.
-  const [paper, parent, link] = await Promise.all([
-    prisma.examPaper.findUnique({
-      where: { id },
-      select: { id: true, title: true, pdfPath: true, metadata: true },
-    }),
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, name: true, settings: true, role: true },
-    }),
-    prisma.parentStudent.findFirst({
-      where: { parentId: userId, studentId },
-      select: { id: true },
-    }),
-  ]);
+  // Caller from session; access via the student auth helper.
+  const auth = await requireAccessToStudent(studentId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
+  const paper = await prisma.examPaper.findUnique({
+    where: { id },
+    select: { id: true, title: true, pdfPath: true, metadata: true },
+  });
   if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
   if (!paper.pdfPath) {
     return NextResponse.json({ error: "No source PDF for this paper" }, { status: 400 });
-  }
-  if (!parent) return NextResponse.json({ error: "User not found" }, { status: 404 });
-  // Admins can print for any linked student; non-admins must have the
-  // parent-student link.
-  const isAdmin = isAdminUser(parent);
-  if (!isAdmin && !link) {
-    return NextResponse.json({ error: "Not linked to that student" }, { status: 403 });
   }
 
   // Resolve the PDF path. Stored as a relative path under VOLUME_PATH.

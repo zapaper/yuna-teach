@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
-import { isAdmin as isAdminUser } from "@/lib/admin";
+import { requireAccessToStudent } from "@/lib/auth-guard";
 
 // GET /api/focused-test/[id]/printable?studentId=<id>&userId=<parent>
 //
@@ -151,15 +151,17 @@ export async function GET(
 ) {
   const { id } = await params;
   const studentId = request.nextUrl.searchParams.get("studentId");
-  const userId = request.nextUrl.searchParams.get("userId");
   // ?inline=1 → render the PDF inline so the client can embed it in
   // a hidden iframe and trigger window.print() directly instead of
   // downloading to disk.
   const inline = request.nextUrl.searchParams.get("inline") === "1";
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
-  if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
 
-  const [paper, student, requester] = await Promise.all([
+  // Caller from session. Must have access to the named student.
+  const auth = await requireAccessToStudent(studentId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const [paper, student] = await Promise.all([
     prisma.examPaper.findUnique({
       where: { id },
       select: {
@@ -176,22 +178,10 @@ export async function GET(
       },
     }),
     prisma.user.findUnique({ where: { id: studentId }, select: { id: true, name: true, level: true } }),
-    prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, settings: true, parentLinks: { select: { studentId: true } } },
-    }),
   ]);
 
   if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
   if (!student) return NextResponse.json({ error: "Student not found" }, { status: 404 });
-  if (!requester) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
-  const isAdmin = isAdminUser(requester);
-  const isOwner = paper.userId === userId;
-  const isLinked = requester.parentLinks.some(l => l.studentId === studentId);
-  if (!isAdmin && !isOwner && !isLinked) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   const isMath = (paper.subject ?? "").toLowerCase().includes("math");
   const isScience = (paper.subject ?? "").toLowerCase().includes("sci");
