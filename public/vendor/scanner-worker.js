@@ -76,9 +76,17 @@ function orderQuad(pts) {
   return [tl, tr, br, bl];
 }
 
-function detectQuad(cv, imageData) {
+function detectQuad(cv, imageData, opts) {
   const w = imageData.width;
   const h = imageData.height;
+  // Adaptive thresholds passed from the main thread when the live
+  // loop hasn't found an edge for a while — see DocumentScanner's
+  // detect-preset rotation. Defaults stay at the original
+  // moderately-strict settings.
+  const cannyLow = (opts && typeof opts.cannyLow === "number") ? opts.cannyLow : 75;
+  const cannyHigh = (opts && typeof opts.cannyHigh === "number") ? opts.cannyHigh : 200;
+  const minAreaPct = (opts && typeof opts.minAreaPct === "number") ? opts.minAreaPct : 0.15;
+  const fillRatioMin = (opts && typeof opts.fillRatioMin === "number") ? opts.fillRatioMin : 0.85;
   let src = null, gray = null, blur = null, edges = null, contours = null, hier = null;
   try {
     src = cv.matFromImageData(imageData);
@@ -89,7 +97,7 @@ function detectQuad(cv, imageData) {
     hier = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
     cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0);
-    cv.Canny(blur, edges, 75, 200);
+    cv.Canny(blur, edges, cannyLow, cannyHigh);
     cv.findContours(edges, contours, hier, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
 
     // Detection strategy: for every large convex-ish contour, take
@@ -110,7 +118,7 @@ function detectQuad(cv, imageData) {
     // a real page fills ~95-100% of its bounding rect; a small
     // fold drops fill ratio to ~0.92; an irregular blob is much
     // lower. Threshold 0.85 keeps folded pages, rejects junk.
-    const minArea = w * h * 0.15;
+    const minArea = w * h * minAreaPct;
     let best = null;
     const total = contours.size();
     for (let i = 0; i < total; i++) {
@@ -123,7 +131,7 @@ function detectQuad(cv, imageData) {
         const rh = rect.size.height;
         const rectArea = rw * rh;
         if (rectArea <= 0) continue;
-        if (cArea / rectArea < 0.85) continue;
+        if (cArea / rectArea < fillRatioMin) continue;
 
         // RotatedRect → 4 corners. cv.minAreaRect's angle field
         // is in DEGREES. opencv.js doesn't reliably expose
@@ -286,7 +294,7 @@ self.onmessage = function (e) {
   }
   try {
     if (msg.type === "detect") {
-      const quad = detectQuad(self.cv, msg.imageData);
+      const quad = detectQuad(self.cv, msg.imageData, msg.opts);
       self.postMessage({ id: id, type: "detected", quad: quad });
     } else if (msg.type === "focus") {
       const score = focusScore(self.cv, msg.imageData);

@@ -180,6 +180,14 @@ export default function DocumentScanner({
             ) as [number, number][];
             lastQuadRef.current = q;
             lastQuadAtRef.current = performance.now();
+            // Detection succeeded — reset the adaptive preset clock
+            // and rewind to the strictest preset. Subsequent frames
+            // pick that up immediately.
+            lastDetectSuccessAtRef.current = performance.now();
+            if (detectPresetIdxRef.current !== 0) {
+              console.log(`[scanner] edge found — resetting preset to 0`);
+              detectPresetIdxRef.current = 0;
+            }
             setEdgeLocked(true);
             drawOverlay(overlay, video, q);
           }
@@ -292,6 +300,23 @@ export default function DocumentScanner({
   // ref so the worker-response handler can rescale the quad back to
   // video-native coords without re-deriving from the video element.
   const liveScaleRef = useRef(1);
+  // Adaptive edge-detection presets. The default (index 0) is the
+  // strict setting tuned for typical document-on-table scans. If
+  // the live loop hasn't found an edge for ~5s we step to a more
+  // permissive set (lower Canny thresholds, smaller minArea, more
+  // lenient fill ratio). Resets back to 0 the moment a quad lands.
+  // This covers: dim lighting, dark paper, small page in frame,
+  // low-contrast scenes where the original 75/200 Canny thresholds
+  // would silently never trigger.
+  const detectPresets = [
+    { cannyLow: 75, cannyHigh: 200, minAreaPct: 0.15, fillRatioMin: 0.85 },
+    { cannyLow: 50, cannyHigh: 150, minAreaPct: 0.10, fillRatioMin: 0.80 },
+    { cannyLow: 30, cannyHigh: 100, minAreaPct: 0.07, fillRatioMin: 0.75 },
+    { cannyLow: 20, cannyHigh: 80, minAreaPct: 0.05, fillRatioMin: 0.70 },
+  ];
+  const detectPresetIdxRef = useRef(0);
+  const lastDetectSuccessAtRef = useRef<number>(performance.now());
+  const PRESET_BUMP_MS = 5000;
 
   // ── Live edge-detection loop. Each tick posts the current frame
   //    to the worker (single-flight via detectInflightRef) and waits
@@ -344,10 +369,34 @@ export default function DocumentScanner({
           ctx.drawImage(video, 0, 0, dw, dh);
           const imgData = ctx.getImageData(0, 0, dw, dh);
           liveScaleRef.current = scale;
+          // Bump the preset every PRESET_BUMP_MS of no successful
+          // detection. Cycles 0 → 1 → 2 → 3 → 0, so even a stuck
+          // permissive preset eventually retries the strict one
+          // (avoids drifting forever into false positives on
+          // background noise).
+          const sinceSuccess = performance.now() - lastDetectSuccessAtRef.current;
+          const wantIdx = Math.min(
+            detectPresets.length - 1,
+            Math.floor(sinceSuccess / PRESET_BUMP_MS),
+          );
+          if (sinceSuccess > PRESET_BUMP_MS * detectPresets.length) {
+            // Wraparound — give the strict preset another shot.
+            detectPresetIdxRef.current = 0;
+            lastDetectSuccessAtRef.current = performance.now();
+          } else if (wantIdx !== detectPresetIdxRef.current) {
+            detectPresetIdxRef.current = wantIdx;
+            console.log(`[scanner] no edge for ${(sinceSuccess / 1000).toFixed(1)}s → stepping to preset ${wantIdx}`);
+          }
+
           detectInflightRef.current = true;
           detectSentAtRef.current = performance.now();
           worker.postMessage(
-            { id: "live", type: "detect", imageData: imgData },
+            {
+              id: "live",
+              type: "detect",
+              imageData: imgData,
+              opts: detectPresets[detectPresetIdxRef.current],
+            },
             [imgData.data.buffer],
           );
         }
