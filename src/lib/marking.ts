@@ -3750,10 +3750,28 @@ PROCESS:
 
 4. If the student's answer captures NONE of the answer-key phrases (or is blank / fully off-topic), award 0.
 
-5. In notes:
-   - List each marking-point phrase from the answer key.
-   - For each, state PRESENT / MISSING and wrap each MISSING phrase in **double asterisks**.
-   - Show the running deduction: "Starting 2/2, missing **energy is released** → -0.5, missing **respiration** → -0.5. Awarded 1/2."
+5. Internally apply the per-phrase logic above, but in the notes field write plain feedback for a parent and child to read.
+
+NOTES STYLE — STRICT:
+  - One short paragraph, 1–2 sentences total.
+  - Lead with what the student got right (briefly).
+  - Then say plainly what was missing or wrong, wrapping each missing key phrase / named term in **double asterisks**.
+  - End with a one-clause deduction reason like "−0.5 for not stating the function" or "−0.5 because **respiration** was not named".
+
+NOTES — FORBIDDEN PATTERNS (DO NOT USE ANY OF THESE):
+  - Labels like "PRESENT", "MISSING", or "marking point (1)/(2)/(3)".
+  - Tables or numbered lists of marking points.
+  - Scaffolding like "Marking points: (1) X, (2) Y" or "Per-phrase: ..." or "(1) PRESENT (2) MISSING".
+  - Score summaries like "Starting 4/4, -0.5 for each MISSING. Awarded 2.5/4." or "Score: 2/3" or "Awarded 1.5/2".
+  - The phrase "Starting X/X" in any form.
+  - ANY restatement of marksAwarded inside the notes — the marks number lives in marksAwarded, not in notes.
+
+These forbidden patterns are debug scaffolding from earlier prompts. The current notes field is read by a primary-school student and their parent — write for them, not for a marker rubric.
+
+WORKED EXAMPLE (notes style):
+  Part (a) — answer key "Plant F grew to cover the surface | blocked light from reaching plant G | Plant G could not photosynthesise | so plant G died." Student wrote "F blocks light".
+  GOOD notes: "Correctly captured that **F blocks light**, but did not explain that **plant F grew to cover the surface**, that **plant G could not photosynthesise**, or that **plant G died**. −1.5 across three missing points."
+  BAD notes (FORBIDDEN): "Starting 2/2. Missing Plant F grew to cover the surface (-0.5), Plant G could not photosynthesise (-0.5), and died (-0.5). Awarded 0.5/2."
 
 KEY-TERM REQUIREMENT (IMPORTANT):
 When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
