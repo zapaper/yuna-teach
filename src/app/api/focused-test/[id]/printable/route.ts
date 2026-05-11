@@ -169,8 +169,8 @@ export async function GET(
           orderBy: { orderIndex: "asc" },
           select: {
             id: true, questionNum: true, imageData: true, answer: true,
-            marksAvailable: true, transcribedOptions: true, transcribedStem: true,
-            transcribedSubparts: true, diagramImageData: true,
+            marksAvailable: true, transcribedOptions: true, transcribedOptionImages: true,
+            transcribedStem: true, transcribedSubparts: true, diagramImageData: true,
           },
         },
       },
@@ -298,6 +298,14 @@ export async function GET(
     const cleanOpts = isMcq && Array.isArray(q.transcribedOptions)
       ? (q.transcribedOptions as unknown[]).filter((x): x is string => typeof x === "string")
       : [];
+    // Image options — array of data URLs, one entry per option
+    // position. Used for visual MCQs (e.g. science diagrams,
+    // pictogram answers). Mutually orthogonal to cleanOpts: some
+    // questions have text + image, some have image only.
+    const cleanOptImages = isMcq && Array.isArray(q.transcribedOptionImages)
+      ? (q.transcribedOptionImages as unknown[]).map((x) => (typeof x === "string" && x.startsWith("data:image") ? x : null))
+      : [];
+    const optionCount = Math.max(cleanOpts.length, cleanOptImages.length);
 
     // Question label
     const label = sanitizeForWinAnsi(`Q${q.questionNum}${marks > 1 ? `   (${marks} marks)` : marks === 1 ? `   (1 mark)` : ""}`);
@@ -321,7 +329,13 @@ export async function GET(
         (n, opt) => n + wrapLines(opt, helv, 11, CONTENT_W - 24).length,
         0,
       );
-      firstAnswerBoxH = optLineCount * LINE_PT + 6 + LINE_PT;
+      // Each image option reserves a fixed 95pt slot in the
+      // keep-together estimate. Real height comes from the embed
+      // ratio (computed in the render loop), but the estimate
+      // doesn't have access to the embeds yet — 95pt matches the
+      // half-page-width target below.
+      const imageOptCount = cleanOptImages.filter(Boolean).length;
+      firstAnswerBoxH = optLineCount * LINE_PT + imageOptCount * 95 + 6 + LINE_PT;
     } else if (realSubs.length > 0) {
       const sp0 = realSubs[0];
       const m0 = String(sp0.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
@@ -376,14 +390,34 @@ export async function GET(
     if (isMcq) {
       // MCQ options + answer line. No sub-parts loop here even if
       // transcribedSubparts is set — MCQ is single-answer.
-      for (let oi = 0; oi < cleanOpts.length; oi++) {
-        const optLines = wrapLines(cleanOpts[oi], helv, 11, CONTENT_W - 24);
+      // Each option position can have text, an image, or both;
+      // optionCount = max(text-opts, image-opts) so we don't drop
+      // image-only options when transcribedOptions is empty.
+      for (let oi = 0; oi < optionCount; oi++) {
+        const optText = cleanOpts[oi] ?? "";
+        const optImg = cleanOptImages[oi] ?? null;
+        // Draw the "(N)" prefix + text on the first line (or
+        // bare prefix if there's no text but there's an image).
+        const labelLine = `(${oi + 1})` + (optText ? `  ${optText}` : "");
+        const optLines = wrapLines(labelLine, helv, 11, CONTENT_W - 24);
         for (let li = 0; li < optLines.length; li++) {
           if (yCursor - LINE_PT < MARGIN) newPage();
-          const text = li === 0 ? `(${oi + 1})  ${optLines[li]}` : optLines[li];
           const x = MARGIN + (li === 0 ? 0 : 24);
-          page.drawText(text, { x, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+          page.drawText(optLines[li], { x, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
           yCursor -= LINE_PT;
+        }
+        // Image for this option, embedded at half-content-width
+        // and indented to align with the wrapped text.
+        if (optImg) {
+          try {
+            const targetW = Math.min(CONTENT_W - 24, A4_W * 0.42);
+            const { embed, height } = await embedDataUrlScaled(doc, optImg, targetW);
+            if (yCursor - height < MARGIN) newPage();
+            page.drawImage(embed, { x: MARGIN + 24, y: yCursor - height, width: targetW, height });
+            yCursor -= height + 4;
+          } catch (err) {
+            console.warn(`[printable] option image embed failed for Q${q.questionNum} opt ${oi + 1}:`, err);
+          }
         }
       }
       // Single short answer line for MCQ, aligned to the bottom-right
@@ -542,8 +576,12 @@ export async function GET(
 
 // ── Helpers ──────────────────────────────────────────────────────
 
-function isMcqQuestion(q: { transcribedOptions?: unknown; answer?: string | null }): boolean {
+function isMcqQuestion(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown; answer?: string | null }): boolean {
   if (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length >= 2) return true;
+  // Image-only options: e.g. pictogram MCQs where the answer
+  // choices are diagrams rather than text. Treat 2+ image entries
+  // the same as 2+ text entries.
+  if (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.filter(Boolean).length >= 2) return true;
   const a = (q.answer ?? "").trim();
   return /^[A-D1-4]$/i.test(a);
 }
