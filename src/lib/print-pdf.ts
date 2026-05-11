@@ -1,32 +1,50 @@
-// Open the system print dialog for a PDF URL without first
-// downloading it to disk. The PDF endpoint must support `?inline=1`
-// (Content-Disposition: inline) so the browser/WebView renders the
-// bytes in an <iframe> instead of triggering a Save dialog. The
-// helper appends `inline=1`, loads the URL into an off-screen
-// iframe, and calls iframe.contentWindow.print() once the load
-// settles.
+// Trigger the system print flow for a PDF URL. Strategy differs by
+// platform because the iframe+print() trick only works reliably on
+// desktop browsers.
 //
-// Works in:
-//   - Chrome / Firefox / Safari (desktop): triggers the browser
-//     print dialog directly.
-//   - Capacitor iOS WKWebView: window.print() inside the iframe
-//     surfaces the iOS share sheet with AirPrint as the first
-//     action (same UX users get on iOS Safari).
+//   Desktop browser:
+//     Hidden iframe → window.print() prints every page of the PDF.
 //
-// Edge cases:
-//   - iOS Safari renders inline PDFs as a "tap to preview" tile
-//     instead of a live document in some configs. If
-//     iframe.contentWindow stays null after load, we fall back to
-//     a same-tab navigation so the user at least sees the PDF and
-//     can use the share button.
-//   - Browsers can block window.print() if it fires too soon — we
-//     wait for the iframe `load` event plus a 250ms settle so the
-//     PDF viewer has time to wire up its document.
+//   Mobile (iOS Safari, iOS WKWebView, Android Chrome):
+//     The iframe approach prints only the first PDF page on
+//     iOS — the inline PDF viewer in an iframe shows a single-
+//     page preview and window.print() captures just that. Worse,
+//     on small screens the user can't even see what's being
+//     printed.
+//
+//     Instead: navigate the current tab/WebView to the inline PDF
+//     URL. iOS's native PDF viewer renders the full document with
+//     a share button that routes to AirPrint. The browser's back
+//     button returns the user to the dashboard. On Android Chrome
+//     the native PDF viewer offers Print via the overflow menu.
+//
+// The PDF endpoint must support `?inline=1` (Content-Disposition:
+// inline) so the browser/WebView renders the bytes in-place
+// instead of triggering a Save dialog.
+
+function isMobile(): boolean {
+  if (typeof window === "undefined") return false;
+  // Touch capability is the most reliable single signal across iOS
+  // Safari, iOS WKWebView, Android Chrome, and Android WebView.
+  // Some hybrid laptops report touch too, but those usually have
+  // a working iframe-print path anyway, so the worst case there is
+  // an extra navigation — not the broken first-page-only print.
+  if ("ontouchstart" in window || (navigator.maxTouchPoints ?? 0) > 0) return true;
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+}
 
 export function printPdf(url: string): void {
   // Add inline=1 to whatever query string is already there.
   const inlineUrl = url + (url.includes("?") ? "&" : "?") + "inline=1";
 
+  // Mobile: navigate to the inline PDF and let the native viewer
+  // handle printing. Most direct path on touch devices.
+  if (isMobile()) {
+    window.location.href = inlineUrl;
+    return;
+  }
+
+  // Desktop: invisible iframe + window.print().
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.right = "0";
@@ -54,8 +72,6 @@ export function printPdf(url: string): void {
         printed = true;
       } catch (err) {
         console.warn("[print-pdf] iframe.print() failed, falling back to navigation", err);
-        // Last resort: open the PDF in the current tab so the user
-        // at least sees it and can print via their browser's UI.
         if (!printed) window.location.href = inlineUrl;
       } finally {
         cleanup();
@@ -65,7 +81,6 @@ export function printPdf(url: string): void {
   iframe.onerror = () => {
     console.warn("[print-pdf] iframe load failed, falling back to download");
     cleanup();
-    // The original URL (without inline=1) still downloads the file.
     window.location.href = url;
   };
 
