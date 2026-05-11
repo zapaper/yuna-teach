@@ -3502,6 +3502,28 @@ ${isDrawableOnly ? "This question" : `Part(s) ${drawableSubLabelList}`} has a pr
 ` : "";
         detectParts.push({ text: `Read the student's handwritten answer from the image above.
 ${drawableClause}
+╔══════════════════════════════════════════════════════════════════╗
+║  ANTI-HALLUCINATION — READ CAREFULLY                              ║
+║                                                                    ║
+║  You are a TRANSCRIBER, not a solver. Your job is to copy what    ║
+║  the student wrote in BLUE INK on the image. You are FORBIDDEN    ║
+║  from:                                                             ║
+║    - Solving the problem yourself                                 ║
+║    - Inventing working / steps the student did not write          ║
+║    - Adding labels, units, or numbers that aren't in the image    ║
+║    - "Cleaning up" a wrong answer into the right one              ║
+║                                                                    ║
+║  If the student wrote ONLY a final answer with no working, you    ║
+║  MUST report "Working: (no working shown)" and the final answer   ║
+║  exactly as written — even if you can compute the "right" answer  ║
+║  and want to add the working that would get there. DON'T.         ║
+║                                                                    ║
+║  If the student wrote a clearly WRONG answer (e.g. "7:3" when     ║
+║  the right answer is "2:3"), report "7:3". Do NOT auto-correct    ║
+║  to "2:3" and claim "transcription error" — that's a marking      ║
+║  decision, not a transcription one. You are NOT marking yet.      ║
+╚══════════════════════════════════════════════════════════════════╝
+
 IMPORTANT — FINAL ANSWER: Look for the "Ans:" line at the bottom-right of the answer area. The value written on or near this line is the student's FINAL ANSWER. Report this as the primary answer.
 
 CRITICAL — PRESERVE UNITS AND SYMBOLS: Copy the final answer EXACTLY as written, including every unit and symbol the student put next to the number. Do NOT strip ° / cm / m / kg / g / ml / $ / % / ² / ³ / fractions — if the student wrote "21°" report "21°", if they wrote "5 cm" report "5 cm". If the unit was printed next to the Ans: line by the paper (not written by the student), still include it in the reported final answer so marking can compare against the expected answer with units.
@@ -3514,6 +3536,10 @@ For example, if the student wrote:
 Report it as:
   Working: Angle x = 180° − 2 × 35° = 110°
   Final answer: 110°
+
+If the student wrote ONLY "7:3" with no working at all, report:
+  Working: (no working shown)
+  Final answer: 7:3
 
 If the student drew a diagram (e.g. bar model, number line, shapes, arrows), describe it briefly (e.g. "Drew a bar model: 3 units = 42, 1 unit = 14").
 
@@ -3859,6 +3885,34 @@ Marks available: ${marksAvailable}${partMaxNote}
 
 CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e.g. "8°", "45°"), accept a trailing 0 as degree symbol.
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  FINAL ANSWER GOVERNS — NEVER UPGRADE A WRONG FINAL ANSWER          ║
+║                                                                      ║
+║  The student's FINAL ANSWER (the value next to "Ans:" / "Final      ║
+║  answer:" / on the answer line) is what gets marked. If the final    ║
+║  answer doesn't match the expected answer, the question is wrong —  ║
+║  unless visible WORKING earns proportional credit per the math       ║
+║  partial-credit rule.                                                ║
+║                                                                      ║
+║  You are FORBIDDEN from:                                             ║
+║    - Treating a wrong final answer as a "transcription error" and   ║
+║      awarding marks for the right calculation in the working.       ║
+║    - "Recovering" a correct value from intermediate steps when the  ║
+║      student's last line is clearly the wrong number.               ║
+║    - Inferring what the student "meant" if their final answer       ║
+║      doesn't match the expected answer.                              ║
+║                                                                      ║
+║  Example: Student writes "7:3" as final answer when expected is     ║
+║  "2:3". Score: 0/1 (or partial only if the WORKING from the          ║
+║  student's pen, not your own calculation, shows correct steps).     ║
+║                                                                      ║
+║  Working you should treat as INVENTED (not the student's):          ║
+║  - Anything the detected-answer text describes as solving / showing ║
+║    "calculation" when the student wrote only a final answer.        ║
+║  - "(no working shown)" → ZERO working, mark on final answer alone. ║
+╚══════════════════════════════════════════════════════════════════════╝
+
 LATEX MATH: stems and expected answers may contain LaTeX inline math wrapped in single dollar signs, e.g. '$4\\frac{5}{6}$', '$\\frac{29}{6}$'. Treat these semantically — '$4\\frac{5}{6}$' IS the mixed number 4 5/6, '$\\frac{29}{6}$' IS twenty-nine over six. A student who writes "4 5/6" or "29/6" in plain text is giving the same answer; mark accordingly. In YOUR feedback text, write fractions in the SAME LaTeX form (e.g. '$\\frac{5}{6}$' or '$4\\frac{5}{6}$') — the parent UI renders them as proper stacked fractions. Do NOT write bare '4 5/6' or '\\frac{5}{6}' without the surrounding '$' delimiters; either causes the parent to see raw text instead of a rendered fraction.
 ${drawableMarkRule}${mathAnswerFirstRule}${sciencePartialRule}
 ANSWER-KEY GAPS — FAIL-SAFE (IMPORTANT):
