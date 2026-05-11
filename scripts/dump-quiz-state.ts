@@ -40,16 +40,23 @@ import { pickScanFileIndex } from "../src/lib/page-map";
   console.log();
   console.log("Per-question state:");
   for (const q of paper.questions) {
-    const bounds = q.printableBounds as { pageIndex?: number; subparts?: Record<string, { pageIndex?: number }> } | null;
+    const bounds = q.printableBounds as {
+      pageIndex?: number;
+      yStartPct?: number;
+      yEndPct?: number;
+      subparts?: Record<string, { pageIndex?: number; yStartPct?: number; yEndPct?: number }>;
+    } | null;
     const subs = q.transcribedSubparts as Array<{ label?: string }> | null;
     const realSubs = (subs ?? []).filter(s => s.label && !s.label.startsWith("_"));
     const mapVal = pageMap[q.id] ?? null;
     const computedVal = pickScanFileIndex(bounds as Parameters<typeof pickScanFileIndex>[0]);
+    const yStart = bounds?.yStartPct?.toFixed(1) ?? "—";
+    const yEnd = bounds?.yEndPct?.toFixed(1) ?? "—";
     const subBoundsList = bounds?.subparts
-      ? Object.entries(bounds.subparts).map(([k, v]) => `${k}:p${v.pageIndex}`).join(", ")
+      ? Object.entries(bounds.subparts).map(([k, v]) => `${k}:p${v.pageIndex}@${v.yStartPct?.toFixed(0)}-${v.yEndPct?.toFixed(0)}`).join(", ")
       : "(none)";
     console.log(
-      `  Q${q.questionNum}  subs=${realSubs.length}  bounds.pageIdx=${bounds?.pageIndex ?? "—"}  ` +
+      `  Q${q.questionNum}  subs=${realSubs.length}  bounds=p${bounds?.pageIndex ?? "—"}@${yStart}-${yEnd}  ` +
       `subBounds={${subBoundsList}}  ` +
       `pageMap=${mapVal}  computed=${computedVal}  ` +
       `marks=${q.marksAwarded ?? "—"}/${q.marksAvailable ?? "—"}  ` +
