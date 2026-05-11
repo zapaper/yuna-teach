@@ -44,11 +44,11 @@ type WorkerMsg =
   | { id: string; type: "warped"; imageData: ImageData };
 
 // Below this Laplacian-variance score the captured still is too
-// blurry for the marker to OCR reliably. ~75 is a moderate
-// threshold; raise for stricter capture, lower if false-positives
-// are annoying users. Tuned against typical phone cameras held a
-// hand's length above an A4 sheet.
-const FOCUS_THRESHOLD = 75;
+// blurry for the marker to OCR reliably. Empirically tuned LOW —
+// the original 75 rejected even mostly-sharp handheld shots; 25
+// blocks only the obviously-out-of-focus ones. Going higher just
+// frustrates users; going lower disables the guard altogether.
+const FOCUS_THRESHOLD = 25;
 
 export default function DocumentScanner({
   parentId,
@@ -395,22 +395,32 @@ export default function DocumentScanner({
 
     try {
       // Focus check FIRST so we don't waste time perspective-warping
-      // a blurry frame. Worker computes variance of Laplacian; we
-      // reject anything under FOCUS_THRESHOLD and tell the user to
-      // hold steady. Buffer is transferred → grab a fresh ImageData
-      // for the detect call afterwards.
-      const focusImg = sctx.getImageData(0, 0, vw, vh);
-      const focusId = `foc-${Date.now()}`;
-      const focusResp = await new Promise<WorkerMsg>((resolve, reject) => {
-        pendingRef.current.set(focusId, { resolve, reject });
-        worker.postMessage(
-          { id: focusId, type: "focus", imageData: focusImg },
-          [focusImg.data.buffer],
-        );
-      });
-      const focusScore = focusResp.type === "focusScored" ? focusResp.score : 0;
-      console.log(`[scanner] focus score: ${focusScore.toFixed(1)} (threshold ${FOCUS_THRESHOLD})`);
-      if (focusScore < FOCUS_THRESHOLD) {
+      // a blurry frame. Worker computes variance of Laplacian.
+      //
+      // Wrapped in its own try/catch so a worker-side failure (e.g.
+      // some opencv.js builds reject CV_64F Laplacian, or the
+      // transferable ImageData arrives detached on certain WebViews)
+      // doesn't kill the capture entirely — we just skip the focus
+      // gate and proceed. Worst case the user gets a slightly blurry
+      // scan, which is fine: the marker has its own ink-detection
+      // fallback for unreadable answers.
+      let focusScoreValue = Infinity;
+      try {
+        const focusImg = sctx.getImageData(0, 0, vw, vh);
+        const focusId = `foc-${Date.now()}`;
+        const focusResp = await new Promise<WorkerMsg>((resolve, reject) => {
+          pendingRef.current.set(focusId, { resolve, reject });
+          worker.postMessage(
+            { id: focusId, type: "focus", imageData: focusImg },
+            [focusImg.data.buffer],
+          );
+        });
+        focusScoreValue = focusResp.type === "focusScored" ? focusResp.score : Infinity;
+      } catch (focusErr) {
+        console.warn("[scanner] focus check failed — proceeding without gate:", focusErr);
+      }
+      console.log(`[scanner] focus score: ${focusScoreValue === Infinity ? "skipped" : focusScoreValue.toFixed(1)} (threshold ${FOCUS_THRESHOLD})`);
+      if (focusScoreValue < FOCUS_THRESHOLD) {
         setErrorMsg("Image is blurry — hold the camera steady and tap again.");
         setTimeout(() => setErrorMsg(""), 3500);
         return;

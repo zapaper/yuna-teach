@@ -261,7 +261,10 @@ function focusScore(cv, imageData) {
     mean = new cv.Mat();
     stddev = new cv.Mat();
     cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
-    cv.Laplacian(gray, lap, cv.CV_64F);
+    // CV_32F (not CV_64F) — universally supported across opencv.js
+    // builds. 32-bit float is plenty of precision for a variance
+    // metric on 8-bit input.
+    cv.Laplacian(gray, lap, cv.CV_32F);
     cv.meanStdDev(lap, mean, stddev);
     const s = stddev.data64F[0];
     return s * s;
