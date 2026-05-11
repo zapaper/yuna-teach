@@ -81,9 +81,13 @@ function flattenLatex(s: string): string {
     return /^-?[\w.]+$/.test(t) ? t : `(${t})`;
   };
   return s
-    // Strip surrounding $...$ and $$...$$ math delimiters but keep inner content
-    .replace(/\$\$([^$]+)\$\$/g, "$1")
-    .replace(/\$([^$]+)\$/g, "$1")
+    // Strip $...$ / $$...$$ math delimiters but ONLY when the inside
+    // actually looks like LaTeX (contains a backslash command or
+    // math-only characters: ^, _, {, }). Plain dollar amounts in
+    // English ("Mum earns $120 a day. Dad earns $200.") would
+    // otherwise be matched pair-wise and have their $ signs stripped.
+    .replace(/\$\$([^$]+)\$\$/g, (m, inner) => /[\\^_{}]/.test(inner) ? inner : m)
+    .replace(/\$([^$]+)\$/g, (m, inner) => /[\\^_{}]/.test(inner) ? inner : m)
     // Fractions: nested-safe enough for the simple cases we see
     .replace(/\\d?frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, (_, a, b) => `${wrapAtomic(a)}/${wrapAtomic(b)}`)
     .replace(/\\sqrt\s*\{([^{}]+)\}/g, (_, a) => `√${wrapAtomic(a)}`)
