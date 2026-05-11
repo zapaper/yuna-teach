@@ -298,12 +298,23 @@ export async function GET(
     const cleanOpts = isMcq && Array.isArray(q.transcribedOptions)
       ? (q.transcribedOptions as unknown[]).filter((x): x is string => typeof x === "string")
       : [];
-    // Image options — array of data URLs, one entry per option
-    // position. Used for visual MCQs (e.g. science diagrams,
-    // pictogram answers). Mutually orthogonal to cleanOpts: some
-    // questions have text + image, some have image only.
+    // Image options — array of base64 strings (raw, no data:
+    // prefix — the crop API at /api/exam/[id]/transcribe-mcq/crop
+    // returns `cropped.toString("base64")` straight, and the quiz
+    // page wraps it with "data:image/jpeg;base64," at render
+    // time). One entry per option position. Mutually orthogonal
+    // to cleanOpts: some questions have text + image, some have
+    // image only.
+    //
+    // We normalise to a data URL here so embedDataUrlScaled can
+    // strip and decode it the same way it handles diagrams.
     const cleanOptImages = isMcq && Array.isArray(q.transcribedOptionImages)
-      ? (q.transcribedOptionImages as unknown[]).map((x) => (typeof x === "string" && x.startsWith("data:image") ? x : null))
+      ? (q.transcribedOptionImages as unknown[]).map((x) => {
+          if (typeof x !== "string" || x.length === 0) return null;
+          if (x.startsWith("data:image")) return x;
+          // Raw base64 — assume JPEG (the crop API only emits JPEG).
+          return `data:image/jpeg;base64,${x}`;
+        })
       : [];
     const optionCount = Math.max(cleanOpts.length, cleanOptImages.length);
 
