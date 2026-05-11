@@ -67,6 +67,11 @@ export default function DocumentScanner({
   // Whether we currently have a stable detected page edge — drives the
   // shutter-enabled state and the "hold steady" hint.
   const [edgeLocked, setEdgeLocked] = useState(false);
+  // How many seconds since detection last succeeded. Drives the
+  // progressive hint text — after ~20s of nothing we suggest the
+  // user angle the phone, since top-down shots often miss edges
+  // due to glare + phone-shadow on the paper.
+  const [noEdgeSec, setNoEdgeSec] = useState(0);
   // Animation state: thumb-flying-to-corner after a successful capture.
   const [flyThumb, setFlyThumb] = useState<{ id: string; thumbUrl: string } | null>(null);
 
@@ -317,6 +322,20 @@ export default function DocumentScanner({
   const detectPresetIdxRef = useRef(0);
   const lastDetectSuccessAtRef = useRef<number>(performance.now());
   const PRESET_BUMP_MS = 5000;
+
+  // No-edge streak counter — ticks every 500ms while in capture
+  // stage. Drives the progressive hint text underneath the
+  // viewport: after ~20s with no detection we tell the user to
+  // try angling the phone.
+  useEffect(() => {
+    if (stage !== "capture") return;
+    setNoEdgeSec(0);
+    const interval = setInterval(() => {
+      const secs = Math.floor((performance.now() - lastDetectSuccessAtRef.current) / 1000);
+      setNoEdgeSec(secs);
+    }, 500);
+    return () => clearInterval(interval);
+  }, [stage]);
 
   // ── Live edge-detection loop. Each tick posts the current frame
   //    to the worker (single-flight via detectInflightRef) and waits
@@ -637,7 +656,9 @@ export default function DocumentScanner({
             ) : null}
             {!edgeLocked && !errorMsg && retakeIdx == null ? (
               <div className="absolute bottom-32 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs font-medium px-3 py-1.5 rounded-full max-w-[80vw] text-center pointer-events-none">
-                Hold steady so we can find the page edges
+                {noEdgeSec >= 20
+                  ? "Try angling the phone slightly — straight-on shots can miss the edges"
+                  : "Hold steady so we can find the page edges"}
               </div>
             ) : null}
             {/* Captured-thumb fly-to-corner animation. Renders for
