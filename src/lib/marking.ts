@@ -1756,6 +1756,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       }
     }
 
+    const paperIsScience = (paper.subject ?? "").toLowerCase().includes("science");
     const questionsToVerify = paper.questions.filter((q) => {
       const r = resultMap.get(q.id);
       if (!r) return false;
@@ -1763,6 +1764,14 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       if (r.notes?.includes("No written answer found")) return false;
       // Skip MCQ — blind detection is already unbiased, re-detection unlikely to differ
       if (isMcqAnswer(q.answer) && !isClozeQuestion(q.syllabusTopic)) return false;
+      // Skip Science entirely — the primary marker now runs on
+      // gemini-3.1-pro-preview with the phrase-by-phrase rule.
+      // The legacy verification pass uses gemini-2.5-flash with
+      // the OLD lenient prompt, and "upgrades" any score it
+      // judges higher — which silently undid every pro deduction
+      // (Q29: pro=2.5/3 → flash verify=3/3 → review shows 3/3).
+      // For science, trust the strict marker.
+      if (paperIsScience) return false;
       return r.marksAwarded < r.marksAvailable;
     });
 
