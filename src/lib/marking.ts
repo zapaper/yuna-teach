@@ -1398,14 +1398,18 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
       }
       parts.push({ text: prompt });
 
-      // Science gets gemini-3-flash-preview by default — flash-2.5
-      // wasn't reliably following the phrase-by-phrase deduction
-      // rule (it kept defaulting to "matches overall → full marks"
-      // even when the answer key had two distinct phrases and the
-      // student only addressed one). Math + English stay on flash
-      // since the rule is simpler. Explicit override still wins.
+      // Science exam-paper marking goes straight to
+      // gemini-3.1-pro-preview. Both flash-2.5 and 3-flash-preview
+      // visibly skipped the phrase-by-phrase rule and defaulted to
+      // "answer is on-topic → full marks", even when the structured
+      // prompt explicitly told them to deduct per missing phrase.
+      // Pro is the smallest model that actually segments the answer
+      // key and applies the per-phrase deduction. Math + English
+      // stay on flash since their rules are mechanical (exact match
+      // or proportional working steps), don't need pro-level
+      // instruction-following.
       const isScience = (paper?.subject ?? "").toLowerCase().includes("science");
-      const defaultModel = isScience ? "gemini-3-flash-preview" : "gemini-2.5-flash";
+      const defaultModel = isScience ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
       const model = modelOverride ?? defaultModel;
       try {
         const response = await withTimeout(
