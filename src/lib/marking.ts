@@ -407,8 +407,14 @@ async function detectPrintableMcqAnswer(
   imageBase64: string,
   q: { id: string; questionNum: string },
   label: string,
+  retry = false,
 ): Promise<string | null> {
-  const prompt = `You are looking at a tightly-cropped strip from a printed MCQ exam paper.
+  // First pass uses the layout-aware prompt; retry uses a plain-OCR
+  // prompt + the stronger gemini-3-flash-preview model. The
+  // layout-aware prompt sometimes pushes the model toward null when
+  // it's hedging about WHERE the ink is, even though the crop
+  // clearly contains one of the eight target characters.
+  const layoutPrompt = `You are looking at a tightly-cropped strip from a printed MCQ exam paper.
 
 The crop shows the "Answer:" line for Question ${q.questionNum}. Layout:
 - The word "Answer:" is printed in BLACK ink on the left.
@@ -423,20 +429,36 @@ RULES:
 - The answer is always exactly ONE of: 1, 2, 3, 4, A, B, C, D. Never multiple.
 - "1" looks like a thin vertical stroke (similar to "l" or "I") — still report as "1".
 - If the ink is faint or partial but still clearly forms a digit/letter, report it.
-- Do NOT guess. If you can't make out the character with reasonable confidence, return null.
 
 Return ONLY JSON (no markdown fences):
 {"detected": "1" | "2" | "3" | "4" | "A" | "B" | "C" | "D" | null, "confidence": "high" | "medium" | "low"}`;
 
+  const plainPrompt = `Look at this image. It contains exactly one handwritten character drawn in BLUE INK.
+
+That character is exactly one of: 1, 2, 3, 4, A, B, C, D.
+
+What is it? Ignore any printed black text. Only the blue handwriting counts.
+
+Return ONLY JSON: {"detected": "1" | "2" | "3" | "4" | "A" | "B" | "C" | "D" | null, "confidence": "high" | "medium" | "low"}`;
+
+  const prompt = retry ? plainPrompt : layoutPrompt;
+  // Retry uses the strongest reasoning-tier model we have, since
+  // by that point Flash already declined to commit on a crop that
+  // (per the saved debug image) clearly contains one of the eight
+  // target characters. One extra second of latency on a rare
+  // retry path is a fair trade for catching it.
+  const model = retry ? "gemini-3.1-pro-preview" : "gemini-2.5-flash";
+  const temperature = retry ? 0.4 : 0.2;
+
   try {
     const response = await withTimeout(
       getAI().models.generateContent({
-        model: "gemini-2.5-flash",
+        model,
         contents: [{ role: "user", parts: [
           { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
           { text: prompt },
         ]}],
-        config: { responseMimeType: "application/json", temperature: 0.1 },
+        config: { responseMimeType: "application/json", temperature },
       }),
       GEMINI_TIMEOUT_MS,
       `printable MCQ detect ${label}`,
@@ -444,13 +466,8 @@ Return ONLY JSON (no markdown fences):
     const text = response.text;
     if (!text) return null;
     const parsed = extractJson(text) as { detected: string | null; confidence?: string };
-    // Keep low-confidence detections — for printable MCQs (where
-    // the answer is always one of a tiny known set) the model
-    // hedges far more than it should, and treating "low" as null
-    // was causing false misses. Only drop when detected is
-    // genuinely null/missing.
     const val = parsed.detected;
-    console.log(`[marking] PRINTABLE MCQ DETECT ${label}: detected="${parsed.detected}", confidence=${parsed.confidence ?? "?"}, using="${val}"`);
+    console.log(`[marking] PRINTABLE MCQ DETECT ${label} (${model}): detected="${parsed.detected}", confidence=${parsed.confidence ?? "?"}, using="${val}"`);
     return val ?? null;
   } catch (err) {
     console.warn(`[marking] printable MCQ detect failed for ${label}:`, err);
@@ -2663,16 +2680,15 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           // First pass: 10% above the Answer line, 3% below,
           // rightmost 45% of page width. Catches the common case.
           const pass1 = await cropMcqStrip(10, 3, 0.45, "pass1");
-          let raw = await detectPrintableMcqAnswer(pass1.base64, q, `scan Q${q.questionNum}`);
-          // Retry on null with a much wider crop — covers the case
-          // where the student wrote far above the underscore (e.g.
-          // wrote inside an option box that sits well above the
-          // Answer line). Adds an extra Gemini call only for the
-          // questions that need it.
+          let raw = await detectPrintableMcqAnswer(pass1.base64, q, `scan Q${q.questionNum}`, false);
+          // Retry on null with a much wider crop AND a stronger
+          // model + plain-OCR prompt — handles both "we missed
+          // the digit because the crop was too tight" and "the
+          // crop was fine but Flash got hedgy" cases.
           if (!raw) {
-            console.log(`[quiz-marking] Scanned MCQ Q${q.questionNum}: first pass null — retrying with wider crop`);
+            console.log(`[quiz-marking] Scanned MCQ Q${q.questionNum}: first pass null — retrying with wider crop + plain-OCR prompt`);
             const pass2 = await cropMcqStrip(18, 4, 0.55, "pass2");
-            raw = await detectPrintableMcqAnswer(pass2.base64, q, `scan Q${q.questionNum} retry`);
+            raw = await detectPrintableMcqAnswer(pass2.base64, q, `scan Q${q.questionNum} retry`, true);
           }
           const student = normalizeMcq(raw ?? "");
           const expected = normalizeMcq(q.answer ?? "");
