@@ -2539,8 +2539,72 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
       console.log(`[quiz-marking] Typed Q${q.questionNum}: "${studentAnsRaw}" vs "${rawCorrect}" → ${isCorrect ? "correct" : "wrong"}`);
     }
 
-    let totalAwarded = mcqQuestions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
     const updates: ReturnType<typeof prisma.examQuestion.update>[] = [];
+    let totalAwarded = mcqQuestions.reduce((sum, q) => sum + (q.marksAwarded ?? 0), 0);
+
+    // ── MCQ scanned-back detection ──────────────────────────────
+    // In-app MCQs already have studentAnswer set (parent/student
+    // tapped a choice button), so their marksAwarded is computed
+    // by the typed-section / direct-compare flow above. Scanned-back
+    // printables don't go through that path — the answer letter is
+    // handwritten on the "Answer: ___" line in the printable PDF,
+    // so we have to OCR it off the scan. Only does work for MCQs
+    // that (a) have printableBounds (= came from a printable scan)
+    // AND (b) still have no studentAnswer.
+    const scannedMcqs = mcqQuestions.filter(q => {
+      if (typedSectionQIds.has(q.id)) return false; // typed section already handled
+      if (!hasOpts(q)) return false; // not a true MCQ
+      if (q.studentAnswer && q.studentAnswer.trim() !== "") return false;
+      const b = q.printableBounds as PrintableBounds | null | undefined;
+      return !!b && Number.isFinite(b.pageIndex);
+    });
+    if (scannedMcqs.length > 0) {
+      console.log(`[quiz-marking] Scanned MCQ detection: ${scannedMcqs.length} questions`);
+      const subDir = path.join(SUBMISSIONS_DIR, paperId);
+      await Promise.all(scannedMcqs.map(async (q) => {
+        const bounds = q.printableBounds as PrintableBounds;
+        const pagePath = path.join(subDir, `page_${bounds.pageIndex + 1}.jpg`);
+        try {
+          const pageBuffer = await fs.readFile(pagePath);
+          // Slightly relax the crop top so the AI sees a little of
+          // the question label, helping it distinguish answer ink
+          // from rough working that may sit just above the Ans line.
+          const padded = {
+            pageIndex: bounds.pageIndex,
+            yStartPct: Math.max(0, bounds.yStartPct - 1),
+            yEndPct: Math.min(100, bounds.yEndPct + 1),
+          };
+          const cropped = await cropPageByBounds(pageBuffer, padded, padded.pageIndex);
+          const base64 = cropped.toString("base64");
+          const detected = await detectMcqAnswers(
+            base64,
+            [{ id: q.id, questionNum: q.questionNum, yStartPct: 0, yEndPct: 100 }],
+            `scan Q${q.questionNum}`,
+          );
+          const raw = detected.get(q.id) ?? null;
+          const student = normalizeMcq(raw ?? "");
+          const expected = normalizeMcq(q.answer ?? "");
+          const match = !!student && !!expected && student === expected;
+          const awarded = match ? (q.marksAvailable ?? 1) : 0;
+          totalAwarded += awarded;
+          console.log(`[quiz-marking] Scanned MCQ Q${q.questionNum}: detected="${raw}" expected="${q.answer}" → ${awarded}/${q.marksAvailable ?? 1}`);
+          updates.push(
+            prisma.examQuestion.update({
+              where: { id: q.id },
+              data: {
+                studentAnswer: raw ?? "",
+                marksAwarded: awarded,
+                markingNotes: raw
+                  ? (match ? "Correct" : `"${raw}" is incorrect. Correct answer: "${q.answer ?? ""}"`)
+                  : "No answer detected",
+              },
+            }),
+          );
+        } catch (err) {
+          console.warn(`[quiz-marking] Scanned MCQ Q${q.questionNum} read/detect failed:`, err);
+        }
+      }));
+    }
 
     if (oeqQuestions.length > 0) {
       const subDir = path.join(SUBMISSIONS_DIR, paperId);
@@ -2551,6 +2615,22 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
       // is single-threaded; `continue` becomes `return` from the IIFE.
       await Promise.all(oeqQuestions.map((q, i) => (async () => {
         const marksAvailable = q.marksAvailable ?? 1;
+
+        // Which on-disk scan file corresponds to this question?
+        //
+        // - In-app canvas papers: each question writes on its own
+        //   canvas, saved as page_${qIndex}.jpg. The fallback below
+        //   (`i`, the OEQ array index) preserves that legacy path.
+        //
+        // - Scanned-back printables: each scan page holds MANY
+        //   questions. The page index lives in printableBounds.
+        //   The parent is told to scan EVERY page (cover included)
+        //   so scan page_0.jpg is the cover and the first question
+        //   page is page_1.jpg — hence the +1 offset.
+        const scanPageIdx = (() => {
+          const bounds = q.printableBounds as PrintableBounds | null | undefined;
+          return bounds && Number.isFinite(bounds.pageIndex) ? bounds.pageIndex + 1 : i;
+        })();
 
         // Build the expected-answer text. If subparts carry per-part answers
         // (from the merge/sync rebuild), format as a clear per-part breakdown
@@ -2859,7 +2939,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         if (hasDrawable && realSubs.length === 0) {
           let inkFound = false;
           try {
-            const inkPath = path.join(subDir, `page_${i}_ink.png`);
+            const inkPath = path.join(subDir, `page_${scanPageIdx}_ink.png`);
             const inkBuffer = await fs.readFile(inkPath);
             // Check if ink PNG has any non-transparent pixels
             inkFound = hasOpaquePixels(inkBuffer);
@@ -2885,12 +2965,19 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         if (!hasDrawable && realSubs.length === 0) {
           let inkFound = true;
           try {
-            const pagePath = path.join(subDir, `page_${i}.jpg`);
+            const pagePath = path.join(subDir, `page_${scanPageIdx}.jpg`);
             const pageBuffer = await fs.readFile(pagePath);
-            inkFound = await hasBlueInk(pageBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`, "image/jpeg");
+            // For scanned-back printables, crop to the question's
+            // writing area before the blue-ink check — otherwise we
+            // catch ink from neighbouring questions on the same page.
+            const bounds = (q.printableBounds as PrintableBounds | null | undefined) ?? null;
+            const checkBuf: Buffer = bounds && Number.isFinite(bounds.pageIndex)
+              ? await cropPageByBounds(pageBuffer, bounds, bounds.pageIndex)
+              : pageBuffer;
+            inkFound = await hasBlueInk(checkBuf.toString("base64"), `quiz-oeq-Q${q.questionNum}`, "image/jpeg");
           } catch {
             try {
-              const inkPath = path.join(subDir, `page_${i}_ink.png`);
+              const inkPath = path.join(subDir, `page_${scanPageIdx}_ink.png`);
               const inkBuffer = await fs.readFile(inkPath);
               inkFound = await hasBlueInk(inkBuffer.toString("base64"), `quiz-oeq-Q${q.questionNum}`, "image/png");
             } catch {
@@ -2916,7 +3003,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             // Check ink PNG for blank canvases using pixel check
             let spHasInk = true;
             try {
-              const spInkPath = path.join(subDir, `page_${i}_${sp.label}_ink.png`);
+              const spInkPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}_ink.png`);
               const spInkBuffer = await fs.readFile(spInkPath);
               spHasInk = hasOpaquePixels(spInkBuffer);
               console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): ink pixel check → ${spHasInk ? "HAS INK" : "BLANK"} (${spInkBuffer.length} bytes)`);
@@ -2930,7 +3017,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               continue;
             }
             try {
-              const spPath = path.join(subDir, `page_${i}_${sp.label}.jpg`);
+              const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
               const spBuffer = await fs.readFile(spPath);
               const isSpDrawable = drawableSubLabels.has(sp.label.toLowerCase());
               const labelNote = isSpDrawable
@@ -2947,7 +3034,11 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               const subBounds = (q.printableBounds as PrintableBounds | null | undefined)?.subparts?.[sp.label];
               if (subBounds) {
                 try {
-                  const pagePath = path.join(subDir, `page_${subBounds.pageIndex}.jpg`);
+                  // Same +1 cover offset as scanPageIdx above —
+                  // scan_page_0 is the cover, so a subpart whose
+                  // bounds say pageIndex=0 actually lives in
+                  // page_1.jpg on disk.
+                  const pagePath = path.join(subDir, `page_${subBounds.pageIndex + 1}.jpg`);
                   const pageBuffer = await fs.readFile(pagePath);
                   const cropped = await cropPageByBounds(pageBuffer, { ...subBounds }, subBounds.pageIndex);
                   parts.push({ text: `Student's handwritten answer for part (${sp.label}):` });
@@ -2980,15 +3071,17 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
         let usedCombinedFallback = false;
         if (!hasSubmission) {
           try {
-            const pagePath = path.join(subDir, `page_${i}.jpg`);
+            const pagePath = path.join(subDir, `page_${scanPageIdx}.jpg`);
             const pageBuffer = await fs.readFile(pagePath);
             // Crop to the question's writing area when we have
             // printableBounds (set during clean-extract printable
             // PDF generation). Falls back to the whole page when
             // bounds are missing, so legacy in-app canvas papers
             // (no printable cycle) still mark the same as before.
+            // submissionPage = bounds.pageIndex (NOT scanPageIdx)
+            // so cropPageByBounds's internal page-match check passes.
             const bounds = (q.printableBounds as PrintableBounds | null | undefined) ?? null;
-            const cropped = await cropPageByBounds(pageBuffer, bounds, i);
+            const cropped = await cropPageByBounds(pageBuffer, bounds, bounds?.pageIndex ?? i);
             parts.push({ text: realSubs.length > 0
               ? "Student's handwritten answer (single combined canvas covering all sub-parts — they share one writing area, not separate per-part images):"
               : "Student's handwritten answer:" });
