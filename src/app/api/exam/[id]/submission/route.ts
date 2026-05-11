@@ -4,6 +4,59 @@ import path from "path";
 import { prisma } from "@/lib/db";
 import { markExamPaper, markFocusedTest } from "@/lib/marking";
 import { bumpUserActivity } from "@/lib/track-activity";
+import { getSessionUserId } from "@/lib/session";
+import { isAdmin as isAdminUser } from "@/lib/admin";
+
+// Authorise a request against a paper's submission files.
+//
+// Returns { ok: true } if the caller is allowed to view/modify
+// the submission, otherwise an HTTP-style error object the caller
+// returns directly.
+//
+// Who's allowed:
+//   - admin
+//   - the paper's owner (uploaded the master / created the clone)
+//   - the assigned student (their own work)
+//   - a parent linked to the assigned student
+//
+// Identity comes from the signed yuna_session cookie. No
+// ?userId= query param fallback — that's spoofable and was the
+// reason this route was readable without auth before this fix.
+async function authoriseSubmissionAccess(paperId: string): Promise<
+  | { ok: true; userId: string; isAdmin: boolean }
+  | { ok: false; status: number; error: string }
+> {
+  const sessionUserId = await getSessionUserId();
+  if (!sessionUserId) {
+    return { ok: false, status: 401, error: "Not signed in" };
+  }
+  const [paper, user] = await Promise.all([
+    prisma.examPaper.findUnique({
+      where: { id: paperId },
+      select: { userId: true, assignedToId: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: sessionUserId },
+      select: { id: true, name: true, settings: true, role: true },
+    }),
+  ]);
+  if (!paper) return { ok: false, status: 404, error: "Paper not found" };
+  if (!user) return { ok: false, status: 401, error: "Session user missing" };
+
+  const admin = isAdminUser(user);
+  if (admin) return { ok: true, userId: sessionUserId, isAdmin: true };
+  if (paper.userId === sessionUserId) return { ok: true, userId: sessionUserId, isAdmin: false };
+  if (paper.assignedToId === sessionUserId) return { ok: true, userId: sessionUserId, isAdmin: false };
+
+  if (paper.assignedToId) {
+    const link = await prisma.parentStudent.findUnique({
+      where: { parentId_studentId: { parentId: sessionUserId, studentId: paper.assignedToId } },
+      select: { id: true },
+    });
+    if (link) return { ok: true, userId: sessionUserId, isAdmin: false };
+  }
+  return { ok: false, status: 403, error: "Forbidden" };
+}
 
 const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
@@ -25,6 +78,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const auth = await authoriseSubmissionAccess(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
   const pageStr = request.nextUrl.searchParams.get("page");
 
   const paper = await prisma.examPaper.findUnique({
@@ -108,6 +164,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const auth = await authoriseSubmissionAccess(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const formData = await request.formData();
   const action = formData.get("action") as string;
