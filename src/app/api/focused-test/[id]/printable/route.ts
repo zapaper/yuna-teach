@@ -425,8 +425,23 @@ export async function GET(
       // student naturally writes a single-letter / single-digit
       // answer.
       yCursor -= 6;
+      // If the Answer line itself can't fit on the current page,
+      // break first. Without this the line is drawn off the
+      // bottom and the saved bounds point at a y outside the
+      // page — but more importantly the printed Answer line and
+      // the saved pageIndex would disagree about which page it
+      // sits on.
+      if (yCursor - LINE_PT < MARGIN) newPage();
       const ansY = yCursor - 11;
       const ansBoxStartY = yCursor;
+      // Capture which PDF page this Answer line lands on. Used
+      // below for printableBounds. The bug was using qStartPage
+      // (where the question LABEL was drawn) — if Q9's options
+      // and image push the Answer line onto the next page, the
+      // y-percentages refer to that next page but pageIndex
+      // still pointed at the old one, so the marker cropped Q8's
+      // answer area instead.
+      const ansBoxPage = pageIndex;
       const ansLabel = "Answer:";
       const ansLabelW = helvBold.widthOfTextAtSize(ansLabel, 11);
       const ansLineW = 120;
@@ -439,7 +454,7 @@ export async function GET(
       yCursor -= LINE_PT;
       const ansBoxEndY = yCursor;
       boundsByQ.set(q.id, {
-        pageIndex: qStartPage,
+        pageIndex: ansBoxPage,
         yStartPct: pctFromY(ansBoxStartY),
         yEndPct: pctFromY(ansBoxEndY),
       });
