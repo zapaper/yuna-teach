@@ -312,8 +312,16 @@ export async function GET(
       ? (q.transcribedOptionImages as unknown[]).map((x) => {
           if (typeof x !== "string" || x.length === 0) return null;
           if (x.startsWith("data:image")) return x;
-          // Raw base64 — assume JPEG (the crop API only emits JPEG).
-          return `data:image/jpeg;base64,${x}`;
+          // Raw base64 — sniff the first 4 bytes to choose the
+          // right MIME. The crop API at transcribe-mcq emits JPEG,
+          // but other flows (gemini-generated option images via
+          // /api/admin/elaborate-mcq, for example) may produce
+          // PNG. Wrapping unconditionally with image/jpeg crashed
+          // embedJpg on PNG bytes and dropped the option silently.
+          const head = Buffer.from(x.slice(0, 12), "base64");
+          const isPng = head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47;
+          const mime = isPng ? "image/png" : "image/jpeg";
+          return `data:${mime};base64,${x}`;
         })
       : [];
     const optionCount = Math.max(cleanOpts.length, cleanOptImages.length);
