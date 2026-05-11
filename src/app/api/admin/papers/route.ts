@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth-guard";
 
-export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-  if (user?.name?.toLowerCase() !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+export async function GET(_request: NextRequest) {
+  // Caller comes from the session. The previous "name === 'admin'"
+  // check was inconsistent with isAdmin() elsewhere — it missed
+  // users granted admin via settings.admin = true. requireAdmin
+  // uses isAdmin() and so admits both paths.
+  const auth = await requireAdmin();
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const papers = await prisma.examPaper.findMany({
     where: { sourceExamId: null },

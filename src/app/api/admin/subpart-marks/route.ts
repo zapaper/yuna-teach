@@ -17,7 +17,9 @@ function subsNeedMarks(subs: unknown): Subpart[] {
 
 // GET → count affected questions (optionally filter by subject)
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
+  // Caller from session cookie; ?userId= query is no longer
+  // trusted as identity (was effectively dead code anyway —
+  // isSessionAdmin() ignores it).
   if (!(await isSessionAdmin())) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const subject = request.nextUrl.searchParams.get("subject")?.toLowerCase() ?? null;
 

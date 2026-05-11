@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getSessionUserId } from "@/lib/session";
+import { requireAdmin } from "@/lib/auth-guard";
 
 // Debug helper for the print-and-scan flow. Lets us see exactly which
 // paper / student a given print code resolves to, plus every other
@@ -15,12 +15,10 @@ import { getSessionUserId } from "@/lib/session";
 // Also accepts ?clone=<paperId> to dump a specific clone's metadata.
 
 export async function GET(request: NextRequest) {
-  const sessionUserId = await getSessionUserId();
-  if (!sessionUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const me = await prisma.user.findUnique({ where: { id: sessionUserId }, select: { name: true } });
-  if (me?.name?.toLowerCase() !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  // Admin only. Was previously gated by name === "admin" — missed
+  // users granted admin via settings.admin. requireAdmin uses isAdmin().
+  const auth = await requireAdmin();
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   const code = request.nextUrl.searchParams.get("code");
   const studentParam = request.nextUrl.searchParams.get("student");

@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireSession, resolveActor, requireAdmin } from "@/lib/auth-guard";
 
-// POST — redeem an invite code to create a parent-student link
+// POST — redeem an invite code to create a parent-student link.
+//
+// Caller comes from the session — body `userId` is no longer
+// trusted as identity (previously, any logged-in user could pass
+// someone else's id and link arbitrary parent-student pairs).
+// We still accept `userId` in the body for admin "view-as" so the
+// admin UI's link flow keeps working.
 export async function POST(request: NextRequest) {
-  const { code, userId } = await request.json();
-  if (!code || !userId) {
-    return NextResponse.json({ error: "code and userId required" }, { status: 400 });
+  const body = await request.json();
+  const { code, userId: bodyUserId } = body as { code?: string; userId?: string };
+  if (!code) {
+    return NextResponse.json({ error: "code required" }, { status: 400 });
   }
+  const auth = await resolveActor(bodyUserId ?? null);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
   // Normalise: trim whitespace (paste from chat apps often brings a leading
   // space or trailing newline), strip non-alphanumerics (some clients inject
@@ -74,12 +85,13 @@ export async function POST(request: NextRequest) {
   });
 }
 
-// GET — get linked users for a user
+// GET — get linked users for a user. Caller from session; admin
+// may view another user's links via ?userId=<target>.
 export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("userId");
-  if (!userId) {
-    return NextResponse.json({ error: "userId required" }, { status: 400 });
-  }
+  const bodyUserId = request.nextUrl.searchParams.get("userId");
+  const auth = await resolveActor(bodyUserId);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+  const userId = auth.userId;
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
@@ -107,12 +119,20 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// DELETE — unlink a parent-student connection
+// DELETE — unlink a parent-student connection. Caller must be one
+// side of the link or an admin (previously: anyone could unlink
+// any pair by passing their ids).
 export async function DELETE(request: NextRequest) {
   const parentId = request.nextUrl.searchParams.get("parentId");
   const studentId = request.nextUrl.searchParams.get("studentId");
   if (!parentId || !studentId) {
     return NextResponse.json({ error: "parentId and studentId required" }, { status: 400 });
+  }
+
+  const session = await requireSession();
+  if (!session.ok) return NextResponse.json({ error: session.error }, { status: session.status });
+  if (!session.isAdmin && session.userId !== parentId && session.userId !== studentId) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   await prisma.parentStudent.deleteMany({ where: { parentId, studentId } });

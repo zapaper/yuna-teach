@@ -9,6 +9,7 @@ import { tagSyllabusTopics } from "@/lib/gemini";
 import { bumpUserActivity } from "@/lib/track-activity";
 import { markQuizPaper, markFocusedTest } from "@/lib/marking";
 import { guardCanAssign } from "@/lib/subscription";
+import { requireAccessToPaper, requireSession } from "@/lib/auth-guard";
 
 // Detect MCQ rows whose stored marksAwarded disagrees with what a
 // fresh comparison says. Used by the GET handler below to lazily
@@ -50,45 +51,49 @@ export async function GET(
 ) {
   const { id } = await params;
   const summary = request.nextUrl.searchParams.get("summary") === "true";
-  const requestingUserId = request.nextUrl.searchParams.get("userId");
 
-  const [paper, requester] = await Promise.all([
-    prisma.examPaper.findUnique({
-      where: { id },
-      include: {
-        questions: {
-          orderBy: { orderIndex: "asc" },
-          select: summary
-            ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, yStartPct: true, yEndPct: true, marksAwarded: true, marksAvailable: true, markingNotes: true, syllabusTopic: true }
-            : undefined,
-        },
-        assignedTo: { select: { id: true, name: true } },
-        clones: {
-          select: {
-            id: true,
-            assignedToId: true,
-            completedAt: true,
-            score: true,
-            markingStatus: true,
-            feedbackSummary: true,
-            timeSpentSeconds: true,
-            instantFeedback: true,
-            assignedTo: { select: { id: true, name: true } },
-          },
-          orderBy: { createdAt: "asc" },
-        },
+  // Caller comes from the session, not the URL — was previously
+  // looking up the user by ?userId= and trusting whatever id the
+  // caller pasted in. That meant a non-admin could send
+  // ?userId=<adminId> and the response would set requesterIsAdmin:true,
+  // unlocking admin UI affordances client-side. Session identity
+  // closes that. Access check also moves here: caller must own the
+  // paper, be the assigned student, a linked parent, or admin.
+  const auth = await requireAccessToPaper(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
+  const paper = await prisma.examPaper.findUnique({
+    where: { id },
+    include: {
+      questions: {
+        orderBy: { orderIndex: "asc" },
+        select: summary
+          ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, yStartPct: true, yEndPct: true, marksAwarded: true, marksAvailable: true, markingNotes: true, syllabusTopic: true }
+          : undefined,
       },
-    }),
-    requestingUserId
-      ? prisma.user.findUnique({ where: { id: requestingUserId }, select: { name: true, settings: true } })
-      : Promise.resolve(null),
-  ]);
+      assignedTo: { select: { id: true, name: true } },
+      clones: {
+        select: {
+          id: true,
+          assignedToId: true,
+          completedAt: true,
+          score: true,
+          markingStatus: true,
+          feedbackSummary: true,
+          timeSpentSeconds: true,
+          instantFeedback: true,
+          assignedTo: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
 
   if (!paper) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const requesterIsAdmin = isAdmin(requester);
+  const requesterIsAdmin = auth.isAdmin;
 
   // Lazy auto-heal: if this is a completed quiz/focused paper and
   // any MCQ row has marks that disagree with a fresh comparison
@@ -147,6 +152,13 @@ export async function PATCH(
 ) {
   const { id } = await params;
   const body = await request.json();
+
+  // Caller must have access to the paper (owner, assigned student,
+  // linked parent, or admin). Closes the prior gap where any
+  // authenticated user could PATCH any paper by id — e.g. setting
+  // score/markingStatus or reassigning a paper they don't own.
+  const auth = await requireAccessToPaper(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
   // --- Clone-on-assign: when assignedToId is provided, create a clone ---
   if ("assignedToId" in body && body.assignedToId) {
@@ -395,6 +407,11 @@ export async function POST(
   const { id } = await params;
   const body = await request.json();
 
+  // Caller must have access to the paper — was previously open to
+  // any authenticated user.
+  const auth = await requireAccessToPaper(id);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
+
   // Add a blank question to this exam paper
   if (body.action === "addQuestion") {
     const afterOrder = typeof body.afterOrderIndex === "number" ? body.afterOrderIndex : null;
@@ -477,12 +494,18 @@ export async function POST(
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const { searchParams } = new URL(request.url);
-  const requesterId = searchParams.get("userId");
+
+  // Caller from session — was previously trusting ?userId= from the
+  // query string, which a non-admin could spoof to "admin" to bypass
+  // the master-paper delete guard below.
+  const session = await requireSession();
+  if (!session.ok) return NextResponse.json({ error: session.error }, { status: session.status });
+  const requesterId = session.userId;
+  const callerIsAdmin = session.isAdmin;
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
@@ -491,18 +514,10 @@ export async function DELETE(
 
   if (!paper) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  // Non-admin users may only delete focused tests they own
-  const requester = requesterId
-    ? await prisma.user.findUnique({ where: { id: requesterId }, select: { name: true, settings: true } })
-    : null;
-  // Admin calls either pass no userId at all (treated as admin) or
-  // pass an admin user's id.
-  const callerIsAdmin = requesterId === null || isAdmin(requester);
-
   if (!callerIsAdmin) {
     // Check if requester is a parent linked to the assigned student
     let isLinkedParent = false;
-    if (requesterId && paper.assignedToId) {
+    if (paper.assignedToId) {
       const link = await prisma.parentStudent.findFirst({
         where: { parentId: requesterId, studentId: paper.assignedToId },
       });
