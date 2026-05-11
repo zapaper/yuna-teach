@@ -750,12 +750,22 @@ STEP C: Compute the score:
   marksAwarded = max(0, marksAvailable - 0.5 × numberOfMissingPoints)
   Award 0 outright if NO marking points are PRESENT.
 
-STEP D: Internally apply the per-phrase logic above, but in the notes field write plain feedback for a parent and child to read. Style guide:
-  - One short paragraph (1–2 sentences). No tables, no numbered point lists, no "PRESENT" / "MISSING" labels, no "Marking points: ..." scaffolding.
+STEP D: Internally apply the per-phrase logic above, but in the notes field write plain feedback for a parent and child to read.
+
+NOTES STYLE — STRICT:
+  - One short paragraph, 1–2 sentences total.
   - Lead with what the student got right (briefly).
   - Then say plainly what was missing or wrong, wrapping each missing key phrase / named term in **double asterisks**.
-  - End with the deduction reason, e.g. "−0.5 for not stating the function" or "−0.5 because **respiration** was not named".
-  - Do NOT write running arithmetic like "Starting 2/2, -0.5 for missing (2). Awarded 1.5/2." Just give the qualitative reason.
+  - End with a one-clause deduction reason like "−0.5 for not stating the function" or "−0.5 because **respiration** was not named".
+
+NOTES — FORBIDDEN PATTERNS (DO NOT USE ANY OF THESE):
+  - Labels like "PRESENT", "MISSING", or "marking point (1)/(2)/(3)".
+  - Tables or numbered lists of marking points.
+  - Scaffolding like "Marking points: (1) X, (2) Y" or "Per-phrase: ..." or "(1) PRESENT (2) MISSING".
+  - Score summaries like "Starting 4/4, -0.5 for each MISSING. Awarded 2.5/4." or "Score: 2/3" or "Awarded 1.5/2".
+  - ANY restatement of marksAwarded inside the notes — the marks number lives in marksAwarded, not in notes.
+
+These forbidden patterns are debug scaffolding from earlier prompts. The current notes field is read by a primary-school student and their parent — write for them, not for a marker rubric.
 
 WORKED EXAMPLES (style your notes like these — internal scoring still uses the per-phrase rule):
 
