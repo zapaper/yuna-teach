@@ -56,8 +56,13 @@ export default function HomePage({
 
       const foundUser: User | null = userData.user ?? null;
       setUser(foundUser);
-      setTests(testsData.tests);
-      setExamPapers(examsData.papers);
+      // `?? []` guards against transient 502 / partial JSON responses
+      // mid-Railway-deploy. Without this, examPapers can end up
+      // undefined and the next .some() call in the polling effect
+      // throws "Cannot read properties of undefined (reading 'some')"
+      // — surfacing as a generic "Application error" page.
+      setTests(testsData.tests ?? []);
+      setExamPapers(examsData.papers ?? []);
       // Default quiz target = first linked student for parents.
       if (foundUser?.linkedStudents && foundUser.linkedStudents.length > 0 && !quizStudentId) {
         setQuizStudentId(foundUser.linkedStudents[0].id);
@@ -112,7 +117,10 @@ export default function HomePage({
           `/api/exam?userId=${userId}&role=${role}`
         );
         const data = await res.json();
-        setExamPapers(data.papers);
+        // Same `?? []` guard as the initial fetch — a 502 / partial
+        // response during a Railway redeploy must not leave
+        // examPapers undefined.
+        setExamPapers(data.papers ?? []);
       } catch {
         /* ignore */
       }
