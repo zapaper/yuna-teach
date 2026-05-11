@@ -348,13 +348,16 @@ export async function GET(
         (n, opt) => n + wrapLines(opt, helv, 11, CONTENT_W - 24).length,
         0,
       );
-      // Each image option reserves a fixed 95pt slot in the
-      // keep-together estimate. Real height comes from the embed
-      // ratio (computed in the render loop), but the estimate
-      // doesn't have access to the embeds yet — 95pt matches the
-      // half-page-width target below.
+      // When ANY option carries an image, the render loop switches
+      // to a 2x2 grid — 2 rows for 4 options. Each row ≈ label
+      // (LINE_PT) + image (~95pt) + 6pt gap. So 2 rows ≈ 230pt
+      // for a typical 4-image MCQ. Text-only stays 1-up.
+      const hasAnyImage = cleanOptImages.some(Boolean);
       const imageOptCount = cleanOptImages.filter(Boolean).length;
-      firstAnswerBoxH = optLineCount * LINE_PT + imageOptCount * 95 + 6 + LINE_PT;
+      const optionAreaH = hasAnyImage
+        ? Math.ceil(optionCount / 2) * (LINE_PT + 95 + 6)
+        : optLineCount * LINE_PT + imageOptCount * 95;
+      firstAnswerBoxH = optionAreaH + 6 + LINE_PT;
     } else if (realSubs.length > 0) {
       const sp0 = realSubs[0];
       const m0 = String(sp0.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
@@ -409,33 +412,76 @@ export async function GET(
     if (isMcq) {
       // MCQ options + answer line. No sub-parts loop here even if
       // transcribedSubparts is set — MCQ is single-answer.
-      // Each option position can have text, an image, or both;
-      // optionCount = max(text-opts, image-opts) so we don't drop
-      // image-only options when transcribedOptions is empty.
-      for (let oi = 0; oi < optionCount; oi++) {
-        const optText = cleanOpts[oi] ?? "";
-        const optImg = cleanOptImages[oi] ?? null;
-        // Draw the "(N)" prefix + text on the first line (or
-        // bare prefix if there's no text but there's an image).
-        const labelLine = `(${oi + 1})` + (optText ? `  ${optText}` : "");
-        const optLines = wrapLines(labelLine, helv, 11, CONTENT_W - 24);
-        for (let li = 0; li < optLines.length; li++) {
-          if (yCursor - LINE_PT < MARGIN) newPage();
-          const x = MARGIN + (li === 0 ? 0 : 24);
-          page.drawText(optLines[li], { x, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
-          yCursor -= LINE_PT;
-        }
-        // Image for this option, embedded at half-content-width
-        // and indented to align with the wrapped text.
-        if (optImg) {
+      // Two layout modes:
+      //   - hasAnyImage: 2×2 grid (matches the in-app quiz UI). Two
+      //     image options side-by-side per row, saves vertical space
+      //     and avoids one-image-per-page on tall diagrams.
+      //   - text-only: 1-up list, one option per line.
+      const hasAnyImage = cleanOptImages.some(Boolean);
+      if (hasAnyImage) {
+        // ── 2-column image-option grid ──
+        const colGap = 16;
+        const colW = (CONTENT_W - colGap) / 2;
+        // Pre-embed all images so we can lay them out with
+        // matching row heights. PDFImage + intrinsic height tracked
+        // alongside.
+        type EmbeddedOpt = { embed: PDFImage; height: number } | null;
+        const embeds: EmbeddedOpt[] = [];
+        for (let oi = 0; oi < optionCount; oi++) {
+          const optImg = cleanOptImages[oi] ?? null;
+          if (!optImg) { embeds.push(null); continue; }
           try {
-            const targetW = Math.min(CONTENT_W - 24, A4_W * 0.42);
-            const { embed, height } = await embedDataUrlScaled(doc, optImg, targetW);
-            if (yCursor - height < MARGIN) newPage();
-            page.drawImage(embed, { x: MARGIN + 24, y: yCursor - height, width: targetW, height });
-            yCursor -= height + 4;
+            const r = await embedDataUrlScaled(doc, optImg, colW - 24);
+            embeds.push(r);
           } catch (err) {
             console.warn(`[printable] option image embed failed for Q${q.questionNum} opt ${oi + 1}:`, err);
+            embeds.push(null);
+          }
+        }
+        for (let row = 0; row < Math.ceil(optionCount / 2); row++) {
+          const leftIdx = row * 2;
+          const rightIdx = row * 2 + 1;
+          const leftText = cleanOpts[leftIdx] ?? "";
+          const rightText = cleanOpts[rightIdx] ?? "";
+          const leftImg = embeds[leftIdx];
+          const rightImg = embeds[rightIdx];
+          // Row height = label + max(image, text-only-line)
+          const leftH = leftImg ? leftImg.height : (leftText ? LINE_PT : 0);
+          const rightH = rightImg ? rightImg.height : (rightText ? LINE_PT : 0);
+          const rowH = LINE_PT + Math.max(leftH, rightH) + 6;
+          if (yCursor - rowH < MARGIN) newPage();
+          // Labels (and any text alongside) on a shared baseline.
+          if (leftIdx < optionCount) {
+            const labelLine = `(${leftIdx + 1})` + (leftText ? `  ${leftText}` : "");
+            page.drawText(labelLine, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+          }
+          if (rightIdx < optionCount) {
+            const labelLine = `(${rightIdx + 1})` + (rightText ? `  ${rightText}` : "");
+            page.drawText(labelLine, { x: MARGIN + colW + colGap, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+          }
+          yCursor -= LINE_PT;
+          // Images on the row below — indent each by 24pt so they
+          // align with their wrapped-text counterpart for text+image
+          // mixed options.
+          if (leftImg) {
+            page.drawImage(leftImg.embed, { x: MARGIN + 24, y: yCursor - leftImg.height, width: colW - 24, height: leftImg.height });
+          }
+          if (rightImg) {
+            page.drawImage(rightImg.embed, { x: MARGIN + colW + colGap + 24, y: yCursor - rightImg.height, width: colW - 24, height: rightImg.height });
+          }
+          yCursor -= Math.max(leftH, rightH) + 6;
+        }
+      } else {
+        // ── 1-up text-only list ──
+        for (let oi = 0; oi < optionCount; oi++) {
+          const optText = cleanOpts[oi] ?? "";
+          const labelLine = `(${oi + 1})` + (optText ? `  ${optText}` : "");
+          const optLines = wrapLines(labelLine, helv, 11, CONTENT_W - 24);
+          for (let li = 0; li < optLines.length; li++) {
+            if (yCursor - LINE_PT < MARGIN) newPage();
+            const x = MARGIN + (li === 0 ? 0 : 24);
+            page.drawText(optLines[li], { x, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+            yCursor -= LINE_PT;
           }
         }
       }
