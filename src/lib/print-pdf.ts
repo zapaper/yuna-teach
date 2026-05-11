@@ -34,8 +34,15 @@ function isMobile(): boolean {
 }
 
 export function printPdf(url: string): void {
-  // Add inline=1 to whatever query string is already there.
-  const inlineUrl = url + (url.includes("?") ? "&" : "?") + "inline=1";
+  // Add inline=1 AND a unique cachebuster to whatever query string
+  // is already there. Mobile browsers (iOS Safari + WKWebView
+  // especially) sometimes ignore Cache-Control: no-store and
+  // serve a stale PDF when the same URL is hit twice in a session.
+  // Date.now() guarantees each print hits the server fresh, so
+  // every print picks up the latest printableBounds and any
+  // route-code changes.
+  const sep = url.includes("?") ? "&" : "?";
+  const inlineUrl = `${url}${sep}inline=1&t=${Date.now()}`;
 
   // Mobile: navigate to the inline PDF and let the native viewer
   // handle printing. Most direct path on touch devices.
