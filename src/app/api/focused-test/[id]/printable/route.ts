@@ -917,10 +917,28 @@ function drawCoverPage(page: PDFPage, bold: PDFFont, regular: PDFFont, args: Cov
 }
 
 async function embedDataUrlScaled(doc: PDFDocument, dataUrl: string, targetWidth: number): Promise<{ embed: Awaited<ReturnType<typeof doc.embedJpg>>; height: number }> {
-  const isPng = dataUrl.startsWith("data:image/png");
   const base64 = dataUrl.replace(/^data:image\/\w+;base64,/, "");
   const bytes = Buffer.from(base64, "base64");
-  const embed = isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+  // Sniff actual binary header rather than trusting the data URL
+  // MIME — the quiz UI hardcodes "image/jpeg" for all option
+  // images regardless of what the upstream API actually returned,
+  // so the prefix can lie. PNG: 89 50 4E 47. JPEG: FF D8 FF.
+  // Anything else, try JPEG first then PNG.
+  const isPng = bytes.length >= 4 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+  const isJpg = bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  let embed: Awaited<ReturnType<typeof doc.embedJpg>>;
+  if (isPng) {
+    embed = await doc.embedPng(bytes);
+  } else if (isJpg) {
+    embed = await doc.embedJpg(bytes);
+  } else {
+    // Unknown header — fall back to converting through sharp,
+    // which handles GIF/WEBP/BMP/SVG and outputs PNG that pdf-lib
+    // can embed. Cheaper than failing the print.
+    const sharp = (await import("sharp")).default;
+    const png = await sharp(bytes).png().toBuffer();
+    embed = await doc.embedPng(png);
+  }
   const ratio = targetWidth / embed.width;
   return { embed, height: embed.height * ratio };
 }
