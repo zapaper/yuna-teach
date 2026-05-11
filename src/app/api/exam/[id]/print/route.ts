@@ -24,6 +24,10 @@ export async function GET(
   const { id } = await params;
   const studentId = request.nextUrl.searchParams.get("studentId");
   const userId = request.nextUrl.searchParams.get("userId");
+  // ?inline=1 → render the PDF inline so the client can embed it in
+  // a hidden iframe and call iframe.contentWindow.print() to open
+  // the system print dialog directly.
+  const inline = request.nextUrl.searchParams.get("inline") === "1";
 
   if (!studentId) {
     return NextResponse.json({ error: "studentId required" }, { status: 400 });
@@ -167,7 +171,7 @@ export async function GET(
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Disposition": `${inline ? "inline" : "attachment"}; filename="${filename}"`,
       "Cache-Control": "no-store",
     },
   });

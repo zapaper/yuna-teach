@@ -11,6 +11,7 @@ import ReviseWorkModal from "@/components/ReviseWorkModal";
 import TrialReminder from "@/components/TrialReminder";
 import ChangePasswordModal from "@/components/ChangePasswordModal";
 import { isNative } from "@/lib/native";
+import { printPdf } from "@/lib/print-pdf";
 
 // On native iOS the WebView can't open a new tab, so any
 // "switch to child account" flow has to log out the parent and
@@ -2369,10 +2370,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                                 e.stopPropagation();
                                 if (!selectedStudentId) return;
                                 const url = `/api/exam/${p.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
-                                window.open(url, "_blank");
+                                printPdf(url);
                               }}
                               disabled={!selectedStudentId}
-                              title="Download a printable PDF for this student"
+                              title="Open the print dialog for this student's copy"
                               className="text-xs font-bold text-[#001e40] bg-white border border-[#c3c6d1] px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 shrink-0 inline-flex items-center gap-1"
                             >
                               <span className="material-symbols-outlined text-base">print</span>
@@ -3387,7 +3388,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                       const printUrl = popup.paperType === "quiz" || popup.paperType === "focused"
                         ? `/api/focused-test/${popup.id}/printable?studentId=${selectedStudentId}&userId=${userId}`
                         : `/api/exam/${popup.id}/print?studentId=${selectedStudentId}&userId=${userId}`;
-                      window.open(printUrl, "_blank");
+                      printPdf(printUrl);
                     }}
                     className="flex-1 py-2.5 rounded-xl border-2 border-[#001e40]/20 text-[#001e40] text-sm font-bold hover:bg-[#eff4ff] transition-colors flex items-center justify-center gap-1.5"
                   >
