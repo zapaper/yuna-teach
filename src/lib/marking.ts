@@ -2629,13 +2629,14 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
         try {
           const pageBuffer = await fs.readFile(pagePath);
           // The saved MCQ bounds cover only the ~16pt "Answer:" line
-          // strip — too thin for reliable OCR. Pad several percent
-          // above so any digit that extends above the underscore is
-          // visible, plus a little below for descenders.
+          // strip — too thin for reliable OCR. Pad generously above
+          // so any digit that extends well above the underscore (or
+          // is written between the options) is visible, plus a
+          // little below for descenders.
           const padded = {
             pageIndex: bounds.pageIndex,
-            yStartPct: Math.max(0, bounds.yStartPct - 3.5),
-            yEndPct: Math.min(100, bounds.yEndPct + 1.5),
+            yStartPct: Math.max(0, bounds.yStartPct - 6),
+            yEndPct: Math.min(100, bounds.yEndPct + 2),
           };
           const yCropped = await cropPageByBounds(pageBuffer, padded, padded.pageIndex);
           // Also crop horizontally to the right ~45% of the page,
@@ -3114,7 +3115,15 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
                   // page_1.jpg on disk.
                   const pagePath = path.join(subDir, `page_${subBounds.pageIndex + 1}.jpg`);
                   const pageBuffer = await fs.readFile(pagePath);
-                  const cropped = await cropPageByBounds(pageBuffer, { ...subBounds }, subBounds.pageIndex);
+                  // Pad ±3% so writing that overflows the printed
+                  // sub-part box (common when the student writes
+                  // bigger than expected) still ends up in the crop.
+                  const paddedSub = {
+                    ...subBounds,
+                    yStartPct: Math.max(0, subBounds.yStartPct - 3),
+                    yEndPct: Math.min(100, subBounds.yEndPct + 3),
+                  };
+                  const cropped = await cropPageByBounds(pageBuffer, paddedSub, paddedSub.pageIndex);
                   parts.push({ text: `Student's handwritten answer for part (${sp.label}):` });
                   parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: cropped.toString("base64") } });
                   hasSubmission = true;
@@ -3154,7 +3163,18 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             // (no printable cycle) still mark the same as before.
             // submissionPage = bounds.pageIndex (NOT scanPageIdx)
             // so cropPageByBounds's internal page-match check passes.
-            const bounds = (q.printableBounds as PrintableBounds | null | undefined) ?? null;
+            // Pad the bounds vertically (~3% above, ~3% below) so
+            // student handwriting that overflows the printed box —
+            // e.g. running below the last line or above the first
+            // — stays in the crop. Without the pad we sometimes
+            // truncate the answer and the AI reads "blank" / a
+            // partial sentence.
+            const boundsRaw = (q.printableBounds as PrintableBounds | null | undefined) ?? null;
+            const bounds = boundsRaw && Number.isFinite(boundsRaw.pageIndex) ? {
+              ...boundsRaw,
+              yStartPct: Math.max(0, boundsRaw.yStartPct - 3),
+              yEndPct: Math.min(100, boundsRaw.yEndPct + 3),
+            } : boundsRaw;
             const cropped = await cropPageByBounds(pageBuffer, bounds, bounds?.pageIndex ?? i);
             parts.push({ text: realSubs.length > 0
               ? "Student's handwritten answer (single combined canvas covering all sub-parts — they share one writing area, not separate per-part images):"
