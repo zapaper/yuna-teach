@@ -40,15 +40,7 @@ type WorkerMsg =
   | { type: "ready" }
   | { type: "error"; message: string; id?: string }
   | { id: string; type: "detected"; quad: [number, number][] | null }
-  | { id: string; type: "focusScored"; score: number }
   | { id: string; type: "warped"; imageData: ImageData };
-
-// Below this Laplacian-variance score the captured still is too
-// blurry for the marker to OCR reliably. Empirically tuned LOW —
-// the original 75 rejected even mostly-sharp handheld shots; 25
-// blocks only the obviously-out-of-focus ones. Going higher just
-// frustrates users; going lower disables the guard altogether.
-const FOCUS_THRESHOLD = 25;
 
 export default function DocumentScanner({
   parentId,
@@ -207,7 +199,7 @@ export default function DocumentScanner({
         }
         return;
       }
-      if (msg.type === "detected" || msg.type === "warped" || msg.type === "focusScored") {
+      if (msg.type === "detected" || msg.type === "warped") {
         const pending = pendingRef.current.get(msg.id);
         if (pending) {
           pending.resolve(msg);
@@ -393,39 +385,18 @@ export default function DocumentScanner({
     if (!sctx) return;
     sctx.drawImage(video, 0, 0, vw, vh);
 
-    try {
-      // Focus check FIRST so we don't waste time perspective-warping
-      // a blurry frame. Worker computes variance of Laplacian.
-      //
-      // Wrapped in its own try/catch so a worker-side failure (e.g.
-      // some opencv.js builds reject CV_64F Laplacian, or the
-      // transferable ImageData arrives detached on certain WebViews)
-      // doesn't kill the capture entirely — we just skip the focus
-      // gate and proceed. Worst case the user gets a slightly blurry
-      // scan, which is fine: the marker has its own ink-detection
-      // fallback for unreadable answers.
-      let focusScoreValue = Infinity;
-      try {
-        const focusImg = sctx.getImageData(0, 0, vw, vh);
-        const focusId = `foc-${Date.now()}`;
-        const focusResp = await new Promise<WorkerMsg>((resolve, reject) => {
-          pendingRef.current.set(focusId, { resolve, reject });
-          worker.postMessage(
-            { id: focusId, type: "focus", imageData: focusImg },
-            [focusImg.data.buffer],
-          );
-        });
-        focusScoreValue = focusResp.type === "focusScored" ? focusResp.score : Infinity;
-      } catch (focusErr) {
-        console.warn("[scanner] focus check failed — proceeding without gate:", focusErr);
-      }
-      console.log(`[scanner] focus score: ${focusScoreValue === Infinity ? "skipped" : focusScoreValue.toFixed(1)} (threshold ${FOCUS_THRESHOLD})`);
-      if (focusScoreValue < FOCUS_THRESHOLD) {
-        setErrorMsg("Image is blurry — hold the camera steady and tap again.");
-        setTimeout(() => setErrorMsg(""), 3500);
-        return;
-      }
+    // Camera readiness check — after a retake, videoWidth can be 0
+    // for the first ~100ms while the WKWebView re-binds the
+    // MediaStream. Surfacing a specific "not ready" message is
+    // friendlier than letting the downstream CV calls explode and
+    // emitting the generic "Failed to process the page".
+    if (vw === 0 || vh === 0) {
+      setErrorMsg("Camera still warming up — try again in a moment.");
+      setTimeout(() => setErrorMsg(""), 2500);
+      return;
+    }
 
+    try {
       // Full-res detect via worker.
       const detectImg = sctx.getImageData(0, 0, vw, vh);
       const detectId = `det-${Date.now()}`;
@@ -492,8 +463,13 @@ export default function DocumentScanner({
       }, 750);
     } catch (err) {
       console.error("[scanner] capture failed:", err);
-      setErrorMsg("Failed to process the page. Try again with steadier framing.");
-      setTimeout(() => setErrorMsg(""), 3000);
+      // Surface the underlying message in the toast so the user (and
+      // we, when they screenshot it) can see what actually failed,
+      // not just the generic "Failed to process". Cap length so a
+      // huge stack doesn't blow out the toast UI.
+      const msg = (err instanceof Error ? err.message : String(err)).slice(0, 140);
+      setErrorMsg(`Could not process this page: ${msg}`);
+      setTimeout(() => setErrorMsg(""), 5000);
     }
   }, [retakeIdx]);
 
