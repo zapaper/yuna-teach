@@ -242,6 +242,13 @@ export async function GET(request: NextRequest) {
   const listOnly = request.nextUrl.searchParams.get("listOnly") === "1";
   const idsParam = request.nextUrl.searchParams.get("ids");
   const onlyIds = idsParam ? idsParam.split(",").filter(Boolean) : null;
+  // Gap-type filter — lets the admin attack one class of gap at a
+  // time. Values:
+  //   "marks"  — marks-only rows (no answer gap)
+  //   "answer" — answer-only rows (no marks gap)
+  //   "both"   — rows with both gaps
+  //   "all"    — anything with at least one gap (legacy default)
+  const gapType = (request.nextUrl.searchParams.get("gapType") ?? "all").toLowerCase();
 
   // Pre-filter at DB level. Re-narrow in JS because gap checks need
   // JSON parsing.
@@ -298,9 +305,18 @@ export async function GET(request: NextRequest) {
       if (subjectFilter && !subj.includes(subjectFilter)) return false;
       if (!subjectFilter && !isMathOrScience(r.q.examPaper.subject)) return false;
       const isScience = subj.includes("science");
-      if (isScience) return r.marksGap;
-      // Math (and "all" with non-science fall-through)
-      return r.marksGap || r.answerGap;
+      // Step 1: keep only rows with at least one applicable gap.
+      // Science is marks-only by policy.
+      const hasAnyGap = isScience ? r.marksGap : (r.marksGap || r.answerGap);
+      if (!hasAnyGap) return false;
+      // Step 2: narrow by requested gapType. Mutually exclusive
+      // partitions so the admin can churn one bucket at a time
+      // without accidentally re-touching rows that need the other
+      // kind of fix.
+      if (gapType === "marks") return r.marksGap && !r.answerGap;
+      if (gapType === "answer") return r.answerGap && !r.marksGap;
+      if (gapType === "both") return r.marksGap && r.answerGap;
+      return true;
     });
   const total = allWithGap.length;
 

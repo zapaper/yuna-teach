@@ -65,6 +65,11 @@ function Content() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<"math" | "science" | "all">("math");
+  // Gap-type filter — lets the admin churn one class of gap at a
+  // time. Defaults to "marks" since marks-only is the cheapest to
+  // approve in bulk (small AI proposals, few rows in math).
+  type GapType = "marks" | "answer" | "both" | "all";
+  const [gapTypeFilter, setGapTypeFilter] = useState<GapType>("marks");
   // Per-row edits — keyed by question id. answer is the textarea
   // value, marks is { label: number }.
   const [editAnswer, setEditAnswer] = useState<Record<string, string>>({});
@@ -124,7 +129,7 @@ function Content() {
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch(`/api/admin/answer-key-gaps?listOnly=1&subject=${subjectFilter}`);
+      const r = await fetch(`/api/admin/answer-key-gaps?listOnly=1&subject=${subjectFilter}&gapType=${gapTypeFilter}`);
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));
         setError(data.error ?? `Scan failed (${r.status})`);
@@ -156,7 +161,7 @@ function Content() {
     setLoading(true);
     setError(null);
     try {
-      const r = await fetch(`/api/admin/answer-key-gaps?subject=${subjectFilter}&ids=${ids.join(",")}`);
+      const r = await fetch(`/api/admin/answer-key-gaps?subject=${subjectFilter}&gapType=${gapTypeFilter}&ids=${ids.join(",")}`);
       if (!r.ok) {
         const data = await r.json().catch(() => ({}));
         setError(data.error ?? `Batch failed (${r.status})`);
@@ -186,7 +191,8 @@ function Content() {
   useEffect(() => {
     void loadBacklog();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subjectFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjectFilter, gapTypeFilter]);
 
   async function apply(id: string, action: "save" | "skip") {
     setSaving((s) => new Set(s).add(id));
@@ -341,9 +347,30 @@ function Content() {
                 </button>
               ))}
             </div>
+            <div className="flex items-center gap-1 bg-white rounded-lg border border-slate-200 p-1">
+              {([
+                { v: "marks" as const, label: "Marks gap" },
+                { v: "answer" as const, label: "Answer gap" },
+                { v: "both" as const, label: "Both" },
+                { v: "all" as const, label: "All" },
+              ]).map(({ v, label }) => (
+                <button
+                  key={v}
+                  onClick={() => {
+                    if (gapTypeFilter === v) return;
+                    setGapTypeFilter(v);
+                  }}
+                  className={`px-3 py-1 rounded text-xs font-bold transition-colors ${
+                    gapTypeFilter === v ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <span className="text-xs text-slate-500 ml-2">
               {totalPending !== null && backlog.length > 0
-                ? `${savedCount} saved · ${Math.min(backlogIndex, backlog.length)} of ${backlog.length} reviewed in ${subjectFilter}`
+                ? `${savedCount} saved · ${Math.min(backlogIndex, backlog.length)} of ${backlog.length} reviewed in ${subjectFilter} / ${gapTypeFilter}`
                 : `${items.length} surfaced`}
             </span>
           </div>
