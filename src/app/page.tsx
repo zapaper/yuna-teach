@@ -1,8 +1,12 @@
 import Link from "next/link";
+import NativeLandingBouncer from "@/components/NativeLandingBouncer";
 
 export default function HomePage() {
   return (
     <div className="bg-background text-on-surface font-body selection:bg-tertiary-container">
+      {/* iOS Capacitor only — redirects the app's cold-launch from
+          the marketing page straight to /login. No-op on web. */}
+      <NativeLandingBouncer />
 
       {/* ── TopNavBar ── */}
       <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-surface-container">
