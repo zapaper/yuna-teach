@@ -46,14 +46,17 @@ function methodAwareAllowed(pathname: string, method: string): boolean {
   return false;
 }
 
-function verifyYunaSession(cookieValue: string | undefined): boolean {
-  if (!cookieValue) return false;
+type SessionCheck = { ok: true } | { ok: false; reason: "no_cookie" | "malformed" | "bad_sig" };
+
+function verifyYunaSession(cookieValue: string | undefined): SessionCheck {
+  if (!cookieValue) return { ok: false, reason: "no_cookie" };
   const [id, sig] = cookieValue.split(".");
-  if (!id || !sig) return false;
+  if (!id || !sig) return { ok: false, reason: "malformed" };
   const secret = process.env.SESSION_SECRET ?? "dev-only-change-me-in-production";
   const crypto = require("crypto");
   const expected = crypto.createHmac("sha256", secret).update(id).digest("hex");
-  return expected === sig;
+  if (expected !== sig) return { ok: false, reason: "bad_sig" };
+  return { ok: true };
 }
 
 export function middleware(request: NextRequest) {
@@ -69,9 +72,23 @@ export function middleware(request: NextRequest) {
   }
   if (methodAwareAllowed(pathname, request.method)) return NextResponse.next();
 
-  // Default: require a valid yuna_session cookie.
+  // Default: require a valid yuna_session cookie. Log the reason
+  // when we reject so silent "kicked to /login" reports have a
+  // trail in Railway. Includes a short UA + the cookie-id prefix
+  // (NOT the signature) so we can tell whether the user even
+  // sent a cookie and which user-id it claimed to be.
   const cookie = request.cookies.get(COOKIE_NAME)?.value;
-  if (!verifyYunaSession(cookie)) {
+  const check = verifyYunaSession(cookie);
+  if (!check.ok) {
+    const idPrefix = cookie ? cookie.split(".")[0]?.slice(0, 12) ?? "" : "";
+    const ua = request.headers.get("user-agent") ?? "";
+    const uaTag = /Capacitor|MarkForYou|CFNetwork/i.test(ua) ? "ios-app"
+      : /iPhone|iPad/i.test(ua) ? "ios-safari"
+      : /Android/i.test(ua) ? "android"
+      : "web";
+    console.warn(
+      `[middleware] 401 ${request.method} ${pathname} reason=${check.reason} ua=${uaTag} id=${idPrefix || "none"}`,
+    );
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return NextResponse.next();
