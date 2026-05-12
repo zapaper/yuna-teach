@@ -3,55 +3,63 @@
 // Native (iOS) Google + Apple sign-in glue.
 //
 // The browser-based Auth.js flow can't complete inside the
-// Capacitor WebView — see src/lib/auth.ts and the cookie-jar split
-// problem documented in commit 67cf848. The fix on iOS is to skip
-// the OAuth web dance entirely and use each provider's native
-// SDK to obtain a signed ID token, then POST that token to
-// `/api/auth/native-oauth` which verifies it and sets our
-// yuna_session cookie.
+// Capacitor WebView — the limitsNavigationsToAppBoundDomains
+// setting forces OAuth to external Safari and the cookies we set
+// inside WKWebView aren't visible there. The fix is to skip the
+// OAuth web dance entirely and have the iOS shell talk to the
+// provider's native SDK, then POST the resulting signed ID token
+// to /api/auth/native-oauth which verifies it and sets
+// yuna_session.
 //
-// Plugin choices:
-//   - Apple: `@capacitor-community/apple-sign-in` (uses
-//     iOS's native AuthenticationServices, including "Sign in
-//     with Apple" — an App Store requirement once Google sign-in
-//     is offered alongside).
-//   - Google: `@codetrix-studio/capacitor-google-auth` (wraps
-//     Google's iOS SDK).
-//
-// Plugins are dynamic-imported so the web bundle doesn't pull
-// them in for browser users (the modules contain iOS-specific
-// surface that won't run server-side).
+// Plugin: `@capgo/capacitor-social-login`. Covers both Google
+// and Apple in one Capacitor 8-compatible package — the previous
+// pair (`@codetrix-studio/capacitor-google-auth` +
+// `@capacitor-community/apple-sign-in`) failed Codemagic builds
+// because @codetrix-studio ships only a `.podspec` and no
+// Package.swift, breaking SPM-based cap sync.
 
 import { Capacitor } from "@capacitor/core";
 
 export type NativeOAuthResult = { ok: true; userId: string } | { ok: false; error: string };
 
-let googleInitialised = false;
+// One-time SocialLogin initialise. The plugin needs the iOS
+// OAuth client id at init for Google; Apple is fully native and
+// has no init-time config. Initialised lazily so the web build
+// never imports the plugin (saves bundle size + avoids running
+// iOS-only code in a browser).
+let initPromise: Promise<void> | null = null;
 
-async function ensureGoogleConfigured(): Promise<void> {
-  if (googleInitialised) return;
-  // NEXT_PUBLIC_GOOGLE_CLIENT_ID — the iOS OAuth 2.0 client id
-  // from the Google Cloud console. Different from the WEB client
-  // id used by Auth.js on the server.
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  if (!clientId) {
-    throw new Error("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set");
-  }
-  const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
-  await GoogleAuth.initialize({
-    clientId,
-    scopes: ["profile", "email"],
-    grantOfflineAccess: false,
-  });
-  googleInitialised = true;
+async function ensureInitialised(): Promise<void> {
+  if (initPromise) return initPromise;
+  initPromise = (async () => {
+    const iOSClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!iOSClientId) {
+      throw new Error("NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set");
+    }
+    const { SocialLogin } = await import("@capgo/capacitor-social-login");
+    await SocialLogin.initialize({
+      google: { iOSClientId },
+      // Apple's iOS-native flow needs no upfront config.
+    });
+  })();
+  return initPromise;
 }
 
 async function getGoogleIdToken(): Promise<{ idToken: string } | { error: string }> {
   try {
-    await ensureGoogleConfigured();
-    const { GoogleAuth } = await import("@codetrix-studio/capacitor-google-auth");
-    const user = await GoogleAuth.signIn();
-    const idToken = user?.authentication?.idToken;
+    await ensureInitialised();
+    const { SocialLogin } = await import("@capgo/capacitor-social-login");
+    const res = await SocialLogin.login({
+      provider: "google",
+      options: { scopes: ["profile", "email"] },
+    });
+    // GoogleLoginResponseOnline shape — has profile + idToken.
+    // The offline shape returns a serverAuthCode instead and is
+    // a deliberately separate flow we don't use here.
+    if (res.result.responseType !== "online") {
+      return { error: "Google returned an offline response" };
+    }
+    const idToken = res.result.idToken;
     if (!idToken) return { error: "Google sign-in returned no idToken" };
     return { idToken };
   } catch (err) {
@@ -61,27 +69,22 @@ async function getGoogleIdToken(): Promise<{ idToken: string } | { error: string
 
 async function getAppleIdToken(): Promise<{ idToken: string } | { error: string }> {
   try {
-    const { SignInWithApple } = await import("@capacitor-community/apple-sign-in");
-    // clientId / redirectURI are only used on the web fallback —
-    // on iOS Sign in with Apple runs natively and ignores them.
-    // We still pass the bundle id for consistency in case the
-    // plugin uses it for token audience validation.
-    const result = await SignInWithApple.authorize({
-      clientId: process.env.NEXT_PUBLIC_APPLE_BUNDLE_ID ?? "com.markforyou.app",
-      redirectURI: "",
-      scopes: "email name",
-      state: "",
-      nonce: "",
+    await ensureInitialised();
+    const { SocialLogin } = await import("@capgo/capacitor-social-login");
+    const res = await SocialLogin.login({
+      provider: "apple",
+      options: { scopes: ["name", "email"] },
     });
-    const idToken = result?.response?.identityToken;
+    const idToken = res.result.idToken;
     if (!idToken) return { error: "Apple sign-in returned no identity token" };
     return { idToken };
   } catch (err) {
-    // The plugin throws { code: "1001" } when the user cancels —
-    // surface a friendly message rather than the raw code.
-    const code = (err as { code?: string } | undefined)?.code;
-    if (code === "1001") return { error: "Sign in cancelled" };
-    return { error: err instanceof Error ? err.message : "Apple sign-in failed" };
+    // Capgo surfaces a string error from the iOS layer when the
+    // user cancels Sign in with Apple. Friendly message instead
+    // of the raw error.
+    const message = err instanceof Error ? err.message : String(err);
+    if (/cancel/i.test(message)) return { error: "Sign in cancelled" };
+    return { error: message || "Apple sign-in failed" };
   }
 }
 
