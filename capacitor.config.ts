@@ -37,6 +37,24 @@ const config: CapacitorConfig = {
     PushNotifications: {
       presentationOptions: ["badge", "sound", "alert"],
     },
+    // Native Google sign-in (iOS). clientId is the iOS OAuth 2.0
+    // client id from the Google Cloud console — distinct from the
+    // GOOGLE_CLIENT_ID env var used by Auth.js for the web flow.
+    // Server-side ID-token verification accepts EITHER audience
+    // (see /api/auth/native-oauth/route.ts), so the same Google
+    // project covers both web and iOS.
+    //
+    // The plugin reads this at native-init time. The runtime
+    // initialize() call in src/lib/native-auth.ts also accepts a
+    // clientId — it must match this one. Configure here so the
+    // initialize() call after `npx cap sync ios` picks up the
+    // correct iOS client id even if NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    // is missing in a build environment.
+    GoogleAuth: {
+      scopes: ["profile", "email"],
+      serverClientId: process.env.GOOGLE_CLIENT_ID,
+      forceCodeForRefreshToken: false,
+    },
   },
 };
 
