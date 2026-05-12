@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAccessToStudent } from "@/lib/auth-guard";
 
+// Normalise the messy paper.subject strings into the three canonical
+// bucket labels used everywhere else in the app. Without this, any
+// case difference (e.g. "science" vs "Science"), prefix ("P5
+// Science"), or null subject produced its own bucket — the parent
+// dashboard would show e.g. "Math", "Science", "English" AND "Other"
+// with the science-tagged questions of the last bucket bleeding
+// into "Other". Mirrors the helper in src/lib/revision.ts so both
+// paths classify the same way.
+function bucketSubject(raw: string | null | undefined): "Math" | "Science" | "English" | "Other" {
+  const lower = (raw ?? "").toLowerCase();
+  if (lower.includes("math")) return "Math";
+  if (lower.includes("science") || lower.includes("sci")) return "Science";
+  if (lower.includes("english") || lower.includes("eng")) return "English";
+  return "Other";
+}
+
 export async function GET(request: NextRequest) {
   const studentId = request.nextUrl.searchParams.get("studentId");
   if (!studentId) {
@@ -111,7 +127,7 @@ export async function GET(request: NextRequest) {
   }>> = {};
 
   for (const paper of papers) {
-    const subject = paper.subject || "Other";
+    const subject = bucketSubject(paper.subject);
     if (!subjects[subject]) {
       subjects[subject] = { examCount: 0, topics: {} };
     }
