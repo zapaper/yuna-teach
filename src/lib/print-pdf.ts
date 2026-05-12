@@ -28,6 +28,22 @@
 // square root on the page, which can take several seconds on a
 // math-heavy paper or on cold-start.
 
+// Convert a Blob to a bare base64 string (no `data:...;base64,`
+// prefix) — what @capacitor/filesystem's writeFile wants.
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const result = fr.result;
+      if (typeof result !== "string") return reject(new Error("FileReader returned non-string"));
+      const comma = result.indexOf(",");
+      resolve(comma >= 0 ? result.slice(comma + 1) : result);
+    };
+    fr.onerror = () => reject(fr.error ?? new Error("FileReader failed"));
+    fr.readAsDataURL(blob);
+  });
+}
+
 function isMobile(): boolean {
   if (typeof window === "undefined") return false;
   // Touch capability is the most reliable single signal across iOS
@@ -155,29 +171,64 @@ export async function printPdf(url: string): Promise<void> {
 
   showSpinner();
 
-  // ── iOS Capacitor app: open in SFSafariViewController ──
-  // Plain `window.location.href = pdfUrl` navigates the main
-  // WebView to the PDF. WKWebView renders it inline but offers
-  // no back / done button — the user gets stuck on the PDF and
-  // can't return to the dashboard without force-quitting the
-  // app. @capacitor/browser opens the same URL in
-  // SFSafariViewController, which has a built-in "Done" button
-  // that closes the in-app browser and returns to the app.
-  // AirPrint is still available via SFSafariViewController's
-  // share sheet, so the actual print flow works the same.
+  // ── iOS Capacitor app: download → iOS share sheet ──
+  // Previously we tried two paths and both stranded the user:
+  //   (1) `window.location.href = pdfUrl` — WKWebView renders the
+  //       PDF inline but offers no Done / back button.
+  //   (2) `@capacitor/browser` → SFSafariViewController — should
+  //       have a Done button, but on this build the plugin's
+  //       native side wasn't actually wired in (likely SPM
+  //       resolution skipped it), so Browser.open() rejected and
+  //       we silently fell through to (1).
+  //
+  // Robust path: fetch the PDF bytes ourselves, drop them in the
+  // app's cache directory via @capacitor/filesystem, and open the
+  // iOS share sheet on the resulting file URI via @capacitor/share.
+  // The share sheet's top row includes Print (which fires AirPrint),
+  // Save to Files, Mail, Messages, etc. Dismissing it returns the
+  // user to the app — no stuck-on-PDF state possible.
   try {
     const { Capacitor } = await import("@capacitor/core");
     if (Capacitor.isNativePlatform()) {
-      const { Browser } = await import("@capacitor/browser");
+      // 1. Pull the PDF bytes. Cookies must travel — the route is
+      //    session-gated.
+      const res = await fetch(inlineUrl, { credentials: "include" });
+      if (!res.ok) {
+        let msg = `Print failed (${res.status})`;
+        try {
+          const body = await res.json();
+          if (body?.error) msg = body.error;
+        } catch { /* not JSON */ }
+        hideSpinner();
+        alert(msg);
+        return;
+      }
+      const blob = await res.blob();
+      // 2. Convert to base64 — @capacitor/filesystem only accepts
+      //    base64 strings (no Blob/ArrayBuffer over the bridge).
+      const base64 = await blobToBase64(blob);
+      // 3. Write into the cache directory. Filename includes a
+      //    timestamp so iOS doesn't show a stale preview from a
+      //    previous print job.
+      const { Filesystem, Directory } = await import("@capacitor/filesystem");
+      const filename = `markforyou-${Date.now()}.pdf`;
+      const written = await Filesystem.writeFile({
+        path: filename,
+        data: base64,
+        directory: Directory.Cache,
+      });
+      // 4. Trigger the iOS share sheet pointing at the local file.
+      const { Share } = await import("@capacitor/share");
       hideSpinner();
-      await Browser.open({
-        url: inlineUrl,
-        presentationStyle: "fullscreen",
+      await Share.share({
+        title: "Print",
+        url: written.uri,
+        dialogTitle: "Print or share PDF",
       });
       return;
     }
   } catch (err) {
-    console.warn("[print-pdf] capacitor browser fallback:", err);
+    console.warn("[print-pdf] capacitor share path failed, falling back:", err);
     // Fall through to the mobile-web path below.
   }
 

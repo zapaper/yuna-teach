@@ -35,12 +35,25 @@ const APPLE_JWKS = createRemoteJWKSet(new URL("https://appleid.apple.com/auth/ke
 type Verified = { sub: string; email: string | null; name: string | null };
 
 async function verifyGoogle(idToken: string): Promise<Verified | { error: string }> {
-  const audience = process.env.NATIVE_GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID;
-  if (!audience) return { error: "GOOGLE_CLIENT_ID not configured" };
+  // Accept any of the three configured client ids as a valid
+  // audience: NATIVE_GOOGLE_CLIENT_ID (explicit override),
+  // NEXT_PUBLIC_GOOGLE_CLIENT_ID (the iOS client id the Capgo
+  // plugin uses — its tokens carry this as `aud`), and
+  // GOOGLE_CLIENT_ID (the web client id used by Auth.js). Without
+  // accepting the iOS one explicitly, every native sign-in came
+  // back with `unexpected "aud" claim value` because the iOS-
+  // minted token's audience matched none of the server's
+  // expectations.
+  const allowed = [
+    process.env.NATIVE_GOOGLE_CLIENT_ID,
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_ID,
+  ].filter((s): s is string => !!s && s.length > 0);
+  if (allowed.length === 0) return { error: "GOOGLE_CLIENT_ID not configured" };
   try {
     const { payload } = await jwtVerify(idToken, GOOGLE_JWKS, {
       issuer: ["https://accounts.google.com", "accounts.google.com"],
-      audience,
+      audience: allowed,
     });
     return {
       sub: String(payload.sub),
