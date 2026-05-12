@@ -3905,6 +3905,36 @@ CRITICAL — DEGREE SYMBOL: ONLY if the expected answer literally contains ° (e
 CRITICAL — DIGIT "1": A handwritten "1" is often just a thin vertical stroke — do not dismiss it.
 
 ╔══════════════════════════════════════════════════════════════════════╗
+║  DETECTION-FAILURE RULE — NO RESCUE MARKING                          ║
+║                                                                       ║
+║  The "Student's answer" text above came from a separate OCR step.    ║
+║  Sometimes that OCR fails: it returns junk (a single ":" / "."       ║
+║  / "/", a stray dot, blank, "(a) missing", "[unreadable]") or it     ║
+║  returns content that clearly doesn't address the question (e.g.     ║
+║  expected "P", detected just ":").                                   ║
+║                                                                       ║
+║  When that happens, you are FORBIDDEN from:                          ║
+║   - Assuming the student "really" wrote the expected answer and      ║
+║     awarding marks for it.                                            ║
+║   - Writing notes like "student correctly stated P" when the         ║
+║     detected text contains no "P".                                    ║
+║   - "Rescuing" the answer by treating junk detection as proof the    ║
+║     student answered correctly.                                       ║
+║                                                                       ║
+║  YOU MUST mark on the detected text as given. If the detected text   ║
+║  doesn't contain the expected answer, award 0 for that part and      ║
+║  note: "Could not read student's answer — please review the scan."   ║
+║  The parent will review on the marked-paper view and override if     ║
+║  the OCR was simply wrong.                                            ║
+║                                                                       ║
+║  Examples of detection-failure inputs (assume nothing about what     ║
+║  was actually written):                                               ║
+║   - student=":" , student="." , student="/"                          ║
+║   - student="" , student="(no answer)" , student="[unclear]"         ║
+║   - student="(a) missing" , student="blank"                          ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════╗
 ║  FINAL ANSWER GOVERNS — NEVER UPGRADE A WRONG FINAL ANSWER          ║
 ║                                                                      ║
 ║  The student's FINAL ANSWER (the value next to "Ans:" / "Final      ║
