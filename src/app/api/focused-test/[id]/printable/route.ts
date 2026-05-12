@@ -5,6 +5,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { prisma } from "@/lib/db";
 import { requireAccessToStudent } from "@/lib/auth-guard";
+import { renderLatexToPng, tokenizeMath, type MathImage } from "@/lib/math-render";
 
 // GET /api/focused-test/[id]/printable?studentId=<id>&userId=<parent>
 //
@@ -196,6 +197,10 @@ export async function GET(
   const doc = await PDFDocument.create();
   const helv = await doc.embedFont(StandardFonts.Helvetica);
   const helvBold = await doc.embedFont(StandardFonts.HelveticaBold);
+  // Embedded math images (one PDFImage per unique LaTeX expression).
+  // Lives for the lifetime of this request — re-used across every
+  // question that references the same fraction / sqrt / etc.
+  const mathCache: MathPdfEmbedCache = new Map();
 
   // Embed the MarkForYou brand assets so the cover page can use
   // them. Best-effort — if either file is missing, the cover
@@ -328,9 +333,15 @@ export async function GET(
     // URLs and embedding twice is expensive) — we use a small
     // allowance instead. The flow-break logic later still handles
     // overruns for very tall questions.
-    const stemLineCount = q.transcribedStem
-      ? wrapLines(q.transcribedStem, helv, 11, CONTENT_W).length
-      : 0;
+    // Build the rich-text atoms for the stem once (math is rendered
+    // and the resulting PNG embedded). Reused below for both the
+    // keep-together estimate and the actual draw pass — building
+    // twice is safe (math-render caches) but wasteful.
+    const stemAtoms = q.transcribedStem
+      ? await buildAtoms(doc, mathCache, q.transcribedStem, helv, 11)
+      : [];
+    const stemLineRows = wrapAtoms(stemAtoms, CONTENT_W);
+    const stemTotalH = stemLineRows.reduce((sum, row) => sum + rowHeight(row, 11).lineH, 0);
     const diagramAllowance = q.diagramImageData ? 80 : 0;
     let firstAnswerBoxH = 0;
     if (isMcq) {
@@ -364,7 +375,7 @@ export async function GET(
         ? Math.max(LINE_PT * 4, marks * A4_H * 0.10)
         : Math.max(singleLineGap * 2, marks * 2 * singleLineGap);
     }
-    const keepTogetherH = labelH + stemLineCount * LINE_PT + diagramAllowance + firstAnswerBoxH + 12;
+    const keepTogetherH = labelH + stemTotalH + diagramAllowance + firstAnswerBoxH + 12;
     const atTopOfPage = yCursor >= A4_H - MARGIN - 18 - 1;
     if (!atTopOfPage && yCursor - keepTogetherH < MARGIN) newPage();
     if (yCursor - labelH < MARGIN) newPage();
@@ -375,13 +386,15 @@ export async function GET(
     const qStartPage = pageIndex;
 
     // Stem text (always render, even alongside subparts — the stem
-    // sets up context that subparts depend on).
+    // sets up context that subparts depend on). Uses the rich-text
+    // path so inline LaTeX like "$\frac{1}{2}$" renders as a real
+    // stacked fraction image rather than the ASCII flatten fallback.
     if (q.transcribedStem) {
-      const lines = wrapLines(q.transcribedStem, helv, 11, CONTENT_W);
-      for (const line of lines) {
-        if (yCursor - LINE_PT < MARGIN) newPage();
-        page.drawText(line, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
-        yCursor -= LINE_PT;
+      for (const row of stemLineRows) {
+        const { lineH, baselineFromTop } = rowHeight(row, 11);
+        if (yCursor - lineH < MARGIN) newPage();
+        drawAtomLine(page, row, helv, 11, MARGIN, yCursor - baselineFromTop, { r: 0, g: 0, b: 0 });
+        yCursor -= lineH;
       }
       yCursor -= 4;
     }
@@ -460,13 +473,18 @@ export async function GET(
           const rowH = LINE_PT + Math.max(leftH, rightH) + 6;
           if (yCursor - rowH < MARGIN) newPage();
           // Labels (and any text alongside) on a shared baseline.
+          // Rich-text path so labels like "(1)  $\frac{1}{2}$ kg"
+          // render the math as a stacked fraction. Wraps fit-or-clip
+          // to the column width — single line only inside the grid.
           if (leftIdx < optionCount) {
-            const labelLine = `(${leftIdx + 1})` + (leftText ? `  ${leftText}` : "");
-            page.drawText(labelLine, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+            const leftLabelAtoms = await buildAtoms(doc, mathCache, `(${leftIdx + 1})` + (leftText ? `  ${leftText}` : ""), helv, 11);
+            const leftFirstRow = wrapAtoms(leftLabelAtoms, colW)[0] ?? [];
+            drawAtomLine(page, leftFirstRow, helv, 11, MARGIN, yCursor - 11, { r: 0, g: 0, b: 0 });
           }
           if (rightIdx < optionCount) {
-            const labelLine = `(${rightIdx + 1})` + (rightText ? `  ${rightText}` : "");
-            page.drawText(labelLine, { x: MARGIN + colW + colGap, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+            const rightLabelAtoms = await buildAtoms(doc, mathCache, `(${rightIdx + 1})` + (rightText ? `  ${rightText}` : ""), helv, 11);
+            const rightFirstRow = wrapAtoms(rightLabelAtoms, colW)[0] ?? [];
+            drawAtomLine(page, rightFirstRow, helv, 11, MARGIN + colW + colGap, yCursor - 11, { r: 0, g: 0, b: 0 });
           }
           yCursor -= LINE_PT;
           // Images on the row below — indent so they align with
@@ -481,15 +499,27 @@ export async function GET(
         }
       } else {
         // ── 1-up text-only list ──
+        const labelGap = helv.widthOfTextAtSize("(1)  ", 11);
         for (let oi = 0; oi < optionCount; oi++) {
           const optText = cleanOpts[oi] ?? "";
-          const labelLine = `(${oi + 1})` + (optText ? `  ${optText}` : "");
-          const optLines = wrapLines(labelLine, helv, 11, CONTENT_W - 24);
-          for (let li = 0; li < optLines.length; li++) {
+          const labelText = `(${oi + 1})`;
+          if (!optText) {
             if (yCursor - LINE_PT < MARGIN) newPage();
-            const x = MARGIN + (li === 0 ? 0 : 24);
-            page.drawText(optLines[li], { x, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
+            page.drawText(labelText, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
             yCursor -= LINE_PT;
+            continue;
+          }
+          const optAtoms = await buildAtoms(doc, mathCache, optText, helv, 11);
+          const optRows = wrapAtoms(optAtoms, CONTENT_W - labelGap);
+          for (let li = 0; li < optRows.length; li++) {
+            const row = optRows[li];
+            const { lineH, baselineFromTop } = rowHeight(row, 11);
+            if (yCursor - lineH < MARGIN) newPage();
+            if (li === 0) {
+              page.drawText(labelText, { x: MARGIN, y: yCursor - baselineFromTop, size: 11, font: helv, color: rgb(0, 0, 0) });
+            }
+            drawAtomLine(page, row, helv, 11, MARGIN + labelGap, yCursor - baselineFromTop, { r: 0, g: 0, b: 0 });
+            yCursor -= lineH;
           }
         }
       }
@@ -544,12 +574,13 @@ export async function GET(
       for (const sp of realSubs) {
         const m = String(sp.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
         const subMarks = m ? parseInt(m[1], 10) : (totalSubMarks > 0 ? marks * (1 / realSubs.length) : marks / realSubs.length);
-        const subText = sanitizeForWinAnsi(`(${sp.label}) ${sp.text}`);
-        const subTextLines = wrapLines(subText, helv, 11, CONTENT_W);
-        for (const line of subTextLines) {
-          if (yCursor - LINE_PT < MARGIN) newPage();
-          page.drawText(line, { x: MARGIN, y: yCursor - 11, size: 11, font: helv, color: rgb(0, 0, 0) });
-          yCursor -= LINE_PT;
+        const subAtoms = await buildAtoms(doc, mathCache, `(${sp.label}) ${sp.text}`, helv, 11);
+        const subTextRows = wrapAtoms(subAtoms, CONTENT_W);
+        for (const row of subTextRows) {
+          const { lineH, baselineFromTop } = rowHeight(row, 11);
+          if (yCursor - lineH < MARGIN) newPage();
+          drawAtomLine(page, row, helv, 11, MARGIN, yCursor - baselineFromTop, { r: 0, g: 0, b: 0 });
+          yCursor -= lineH;
         }
         // Per-subpart diagram
         const spDiagram = sp.diagramBase64 ?? sp.refImageBase64 ?? null;
@@ -959,4 +990,170 @@ function wrapLines(text: string, font: PDFFont, size: number, maxWidth: number):
   }
   if (current) out.push(current);
   return out;
+}
+
+// ── Rich text (text + LaTeX math) ────────────────────────────────
+//
+// `wrapLines` above can only measure / wrap plain text. Question
+// stems and sub-part text routinely contain LaTeX segments like
+// "Find $\frac{1}{2} + \frac{1}{3}$." that we want to render as
+// proper stacked fractions (via MathJax → PNG) inline with the
+// surrounding sentence rather than the crude flatten-to-ASCII
+// fallback in `flattenLatex`.
+//
+// The data flow:
+//   raw string
+//     → tokenizeMath()        : alternating text / math tokens
+//     → buildAtoms()          : flat list of word-sized "atoms"
+//                               (text → split on whitespace; math →
+//                               one atomic atom with measured width)
+//     → wrapAtoms()           : greedy fit atoms into rows ≤ maxWidth
+//     → drawAtomLine()        : draw row at (x, y) — math via
+//                               pdf-lib's embedPng with a vertical
+//                               shift so the image sits on the text
+//                               baseline.
+//
+// Math PNGs are cached in math-render's module-level Map, but each
+// PDF document needs its own `doc.embedPng(...)`, so we keep a
+// per-request `MathPdfEmbedCache` to avoid re-embedding the same
+// bytes when a fraction appears multiple times.
+type Atom =
+  | { kind: "text"; text: string; widthPt: number }
+  | { kind: "space"; widthPt: number }
+  | { kind: "math"; image: MathImage; embed: PDFImage; widthPt: number };
+
+type MathPdfEmbedCache = Map<MathImage, PDFImage>;
+
+async function embedMathOnce(
+  doc: PDFDocument,
+  cache: MathPdfEmbedCache,
+  img: MathImage,
+): Promise<PDFImage> {
+  const hit = cache.get(img);
+  if (hit) return hit;
+  const embed = await doc.embedPng(img.png);
+  cache.set(img, embed);
+  return embed;
+}
+
+async function buildAtoms(
+  doc: PDFDocument,
+  mathCache: MathPdfEmbedCache,
+  text: string,
+  font: PDFFont,
+  size: number,
+): Promise<Atom[]> {
+  const atoms: Atom[] = [];
+  const tokens = tokenizeMath(text);
+  for (const tok of tokens) {
+    if (tok.kind === "math") {
+      const img = renderLatexToPng(tok.value, size);
+      if (img) {
+        const embed = await embedMathOnce(doc, mathCache, img);
+        atoms.push({ kind: "math", image: img, embed, widthPt: img.widthPt });
+        continue;
+      }
+      // MathJax failed — fall through to the existing flatten path so
+      // we still show *something* legible rather than dropping the
+      // expression.
+      const fallback = sanitizeForWinAnsi(`$${tok.value}$`);
+      const parts = fallback.split(/(\s+)/);
+      for (const p of parts) {
+        if (!p) continue;
+        if (/^\s+$/.test(p)) {
+          atoms.push({ kind: "space", widthPt: font.widthOfTextAtSize(" ", size) });
+        } else {
+          atoms.push({ kind: "text", text: p, widthPt: font.widthOfTextAtSize(p, size) });
+        }
+      }
+    } else {
+      const safe = sanitizeForWinAnsi(tok.value);
+      const parts = safe.split(/(\s+)/);
+      for (const p of parts) {
+        if (!p) continue;
+        if (/^\s+$/.test(p)) {
+          atoms.push({ kind: "space", widthPt: font.widthOfTextAtSize(" ", size) });
+        } else {
+          atoms.push({ kind: "text", text: p, widthPt: font.widthOfTextAtSize(p, size) });
+        }
+      }
+    }
+  }
+  return atoms;
+}
+
+function wrapAtoms(atoms: Atom[], maxWidth: number): Atom[][] {
+  const lines: Atom[][] = [];
+  let current: Atom[] = [];
+  let currentW = 0;
+  for (const a of atoms) {
+    // Drop leading spaces on a fresh line — wrap point should never
+    // begin with whitespace.
+    if (current.length === 0 && a.kind === "space") continue;
+    if (currentW + a.widthPt > maxWidth && current.length > 0) {
+      // Trim trailing space before wrap so the right margin is clean.
+      while (current.length > 0 && current[current.length - 1].kind === "space") {
+        const dropped = current.pop()!;
+        currentW -= dropped.widthPt;
+      }
+      lines.push(current);
+      current = [];
+      currentW = 0;
+      if (a.kind === "space") continue;
+    }
+    current.push(a);
+    currentW += a.widthPt;
+  }
+  if (current.length > 0) {
+    while (current.length > 0 && current[current.length - 1].kind === "space") {
+      current.pop();
+    }
+    if (current.length > 0) lines.push(current);
+  }
+  return lines;
+}
+
+// Tallest math atom on the row determines the baseline-to-top
+// distance and the descent below the baseline. Plain-text-only
+// rows default to (baseSize above, LINE_PT - baseSize below) so
+// the layout stays identical to the pre-math version. Math rows
+// grow either bound when an image needs more space.
+function rowHeight(line: Atom[], baseSize: number): { lineH: number; baselineFromTop: number } {
+  let baselineFromTop = baseSize;
+  let descent = LINE_PT - baseSize;
+  for (const a of line) {
+    if (a.kind !== "math") continue;
+    const above = a.image.heightPt - a.image.descentPt;
+    if (above > baselineFromTop) baselineFromTop = above;
+    if (a.image.descentPt > descent) descent = a.image.descentPt;
+  }
+  return { lineH: baselineFromTop + descent, baselineFromTop };
+}
+
+function drawAtomLine(
+  page: PDFPage,
+  line: Atom[],
+  font: PDFFont,
+  size: number,
+  x: number,
+  baselineY: number,
+  color: { r: number; g: number; b: number },
+) {
+  let cx = x;
+  for (const a of line) {
+    if (a.kind === "math") {
+      // The image's bottom edge needs to sit `descentPt` below the
+      // text baseline so the visual baseline of the math lines up.
+      const yBottom = baselineY - a.image.descentPt;
+      page.drawImage(a.embed, {
+        x: cx,
+        y: yBottom,
+        width: a.image.widthPt,
+        height: a.image.heightPt,
+      });
+    } else if (a.kind === "text") {
+      page.drawText(a.text, { x: cx, y: baselineY, size, font, color: rgb(color.r, color.g, color.b) });
+    }
+    cx += a.widthPt;
+  }
 }
