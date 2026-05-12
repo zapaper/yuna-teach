@@ -661,13 +661,13 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   // still appear elsewhere (recent activities, dedicated section)
   // for the parent to navigate to.
   const completedPapers = studentPapers.filter(p => p.completedAt && !p.isRevision);
-  // Pending Review = "AI marked it, you haven't released to the student".
-  // Excludes `instantFeedback` papers (daily quizzes, focused tests,
-  // diagnostics, scan-submits) — the student has already seen results
-  // on those, so there's no review-and-release gate to clear. Without
-  // this filter they piled up here forever even though the rest of the
-  // UI already treats them as done.
-  const pendingRelease = completedPapers.filter(p => p.markingStatus === "complete" && !p.instantFeedback);
+  // Pending Review = "AI marked it, you haven't pressed 'Mark as
+  // Reviewed' yet". Includes instant-feedback papers (daily quizzes,
+  // focused tests, scan-submits) — even though the student already
+  // saw results inline, the parent still needs a centralised place
+  // to track which auto-graded papers they've personally
+  // acknowledged. markingStatus stays "complete" until release.
+  const pendingRelease = completedPapers.filter(p => p.markingStatus === "complete");
   const scoredPapers = completedPapers.filter(p => p.score !== null && p.totalMarks && parseFloat(p.totalMarks) > 0);
   const avgScore = scoredPapers.length > 0
     ? Math.round(scoredPapers.reduce((s, p) => s + (p.score! / parseFloat(p.totalMarks!) * 100), 0) / scoredPapers.length)
