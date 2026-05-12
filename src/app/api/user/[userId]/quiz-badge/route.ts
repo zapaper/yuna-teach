@@ -8,9 +8,11 @@ import { prisma } from "@/lib/db";
  * was just earned (i.e. the completed quiz count exactly hits a milestone).
  *
  * Milestones:
- *   1 quiz  → Bronze Quizzer
- *   3 quizzes → Silver Quizzer
- *  10 quizzes → Gold Quizzer
+ *    1 quiz   → Bronze Quizzer
+ *    3 quizzes → Silver Quizzer
+ *   10 quizzes → Gold Quizzer
+ *   50 quizzes → Diamond Quizzer
+ *  100 quizzes → Legendary Quizzer
  */
 export async function GET(
   _req: Request,
@@ -26,10 +28,17 @@ export async function GET(
   });
   const count = completedQuizzes.length;
 
-  // Determine current badge tier
+  // Determine current badge tier. Checked highest-first so a
+  // student at 50+ shows Diamond rather than back-falling to Gold.
   let badge: string | null = null;
   let image: string | null = null;
-  if (count >= 10) {
+  if (count >= 100) {
+    badge = "Legendary Quizzer";
+    image = "/legendaryquizzer.png";
+  } else if (count >= 50) {
+    badge = "Diamond Quizzer";
+    image = "/diamondquizzer.png";
+  } else if (count >= 10) {
     badge = "Gold Quizzer";
     image = "/goldquizzer.png";
   } else if (count >= 3) {
@@ -59,6 +68,18 @@ export async function GET(
       badge: "Gold Quizzer",
       image: "/goldquizzer.png",
       message: "Incredible dedication! 10 daily quizzes completed! You have earned the Gold Quizzer badge.",
+    },
+    {
+      count: 50,
+      badge: "Diamond Quizzer",
+      image: "/diamondquizzer.png",
+      message: "Unstoppable! 50 daily quizzes completed! You have earned the Diamond Quizzer badge.",
+    },
+    {
+      count: 100,
+      badge: "Legendary Quizzer",
+      image: "/legendaryquizzer.png",
+      message: "Legendary status unlocked! 100 daily quizzes completed! You have earned the Legendary Quizzer badge.",
     },
   ];
 
