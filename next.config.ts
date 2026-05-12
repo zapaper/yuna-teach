@@ -9,7 +9,19 @@ const nextConfig: NextConfig = {
   // @napi-rs/canvas ships a .node native binding loaded via require(), and
   // pdfjs-dist's legacy build uses Node-only APIs. Both need to stay
   // out of the bundler so Node loads them at runtime on the server.
-  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
+  //
+  // mathjax-full and @resvg/resvg-js are also server-only. mathjax-full
+  // is a CJS package that wires its TeX → SVG pipeline through dozens
+  // of nested require() calls — Turbopack's bundler couldn't follow
+  // them all and the printable route silently fell back to the
+  // ASCII-flatten path in production. @resvg/resvg-js ships a per-
+  // platform .node native binding (same constraint as @napi-rs/canvas).
+  serverExternalPackages: [
+    "@napi-rs/canvas",
+    "pdfjs-dist",
+    "mathjax-full",
+    "@resvg/resvg-js",
+  ],
   // pdfjs-dist dynamically imports its worker file at runtime; the
   // standalone tracer doesn't see that import, so we tell it to copy
   // the worker into the deployed bundle for the inbound-email route.
