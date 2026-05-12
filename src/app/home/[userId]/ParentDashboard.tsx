@@ -2203,7 +2203,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
       {/* ════════════════════════════════════════════════════════════════════ */}
       {/* MAIN CONTENT                                                        */}
       {/* ════════════════════════════════════════════════════════════════════ */}
-      <main className="lg:ml-72 pt-20 lg:pt-24 pb-32 lg:pb-12">
+      {/* `pt-20` on mobile used to push content below a sticky
+          header, but the header is now in normal flow (see the
+          comment above <header>). That 80 px of top padding became
+          dead space on the iOS app — a noticeable gap between the
+          MarkForYou logo bar and the "Monitoring Progress" card.
+          Removed for mobile; desktop pt-24 stays because there's no
+          mobile header on that breakpoint and the spacing reads as
+          breathing room. */}
+      <main className="lg:ml-72 pt-2 lg:pt-24 pb-32 lg:pb-12">
 
         {/* ── Papers / Set Papers view ─────────────────────────────────────── */}
         {activeView === "papers" && (
