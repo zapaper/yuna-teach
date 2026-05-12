@@ -21,6 +21,12 @@
 // The PDF endpoint must support `?inline=1` (Content-Disposition:
 // inline) so the browser/WebView renders the bytes in-place
 // instead of triggering a Save dialog.
+//
+// Both paths now fetch the PDF as a blob first so we can show a
+// spinner during the (sometimes slow) server-side render — the
+// printable route does MathJax → SVG → PNG for every fraction /
+// square root on the page, which can take several seconds on a
+// math-heavy paper or on cold-start.
 
 function isMobile(): boolean {
   if (typeof window === "undefined") return false;
@@ -33,7 +39,110 @@ function isMobile(): boolean {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
 }
 
-export function printPdf(url: string): void {
+// ── Spinner overlay ──────────────────────────────────────────────
+// Pure-DOM (no React) so it can be mounted from a lib helper without
+// pulling in a portal. Singleton — repeated calls bump a refcount so
+// the overlay survives chained prints. The "Preparing your print"
+// label appears after a short delay so we don't flash on cached /
+// fast responses.
+
+let spinnerRefCount = 0;
+let spinnerEl: HTMLDivElement | null = null;
+let spinnerLabelTimer: number | null = null;
+let spinnerSafetyTimer: number | null = null;
+// Hardest-failure backstop — no print should ever leave a spinner
+// stuck on screen longer than this. Cold-start MathJax + a math-
+// heavy paper is maybe 5-10s; 30s is comfortably past that and
+// short enough that a stuck UI gets noticed and recovered.
+const SPINNER_SAFETY_MS = 30_000;
+
+// On mobile we navigate away while the spinner is up, so the page
+// may come back via bfcache restore (iOS does this aggressively) —
+// at which point the spinner element is still in the DOM but the
+// JS state is frozen from before the navigation. `pageshow` with
+// `persisted=true` is the signal to clean it up.
+function attachBfcacheCleanup() {
+  if (typeof window === "undefined") return;
+  if ((window as Window & { __mfyPrintBfcacheBound?: boolean }).__mfyPrintBfcacheBound) return;
+  (window as Window & { __mfyPrintBfcacheBound?: boolean }).__mfyPrintBfcacheBound = true;
+  window.addEventListener("pageshow", (ev) => {
+    if (ev.persisted) {
+      // Force-clear regardless of refcount — the previous run's
+      // bookkeeping is meaningless after a bfcache restore.
+      forceHideSpinner();
+    }
+  });
+}
+
+function showSpinner(): void {
+  attachBfcacheCleanup();
+  spinnerRefCount += 1;
+  if (spinnerEl) return;
+  const el = document.createElement("div");
+  el.setAttribute("data-print-spinner", "");
+  el.setAttribute("role", "status");
+  el.setAttribute("aria-live", "polite");
+  el.style.cssText = [
+    "position:fixed", "inset:0", "z-index:9999",
+    "display:flex", "flex-direction:column", "align-items:center", "justify-content:center",
+    "gap:14px",
+    "background:rgba(0,0,0,0.35)",
+    "backdrop-filter:blur(2px)",
+    "-webkit-backdrop-filter:blur(2px)",
+  ].join(";");
+  el.innerHTML = `
+    <style>@keyframes mfy-print-spin { to { transform: rotate(360deg); } }</style>
+    <div style="
+      width:54px;height:54px;border-radius:50%;
+      border:5px solid rgba(255,255,255,0.35);
+      border-top-color:#fff;
+      animation:mfy-print-spin 0.85s linear infinite;
+    "></div>
+    <div data-spinner-label style="
+      color:#fff;font-weight:600;font-size:14px;
+      font-family:system-ui,-apple-system,sans-serif;
+      opacity:0;transition:opacity 0.2s ease-in;
+    ">Preparing your print…</div>
+  `;
+  document.body.appendChild(el);
+  spinnerEl = el;
+  // Slight delay before the label appears — keeps fast responses
+  // (<300ms) from flashing text at the user.
+  spinnerLabelTimer = window.setTimeout(() => {
+    const label = el.querySelector<HTMLDivElement>("[data-spinner-label]");
+    if (label) label.style.opacity = "1";
+  }, 350);
+  // Safety timeout — should never trigger in the happy path; logs
+  // a warning if it does so we can investigate.
+  spinnerSafetyTimer = window.setTimeout(() => {
+    console.warn("[print-pdf] spinner safety timeout fired — forcing hide");
+    forceHideSpinner();
+  }, SPINNER_SAFETY_MS);
+}
+
+function hideSpinner(): void {
+  spinnerRefCount = Math.max(0, spinnerRefCount - 1);
+  if (spinnerRefCount > 0) return;
+  forceHideSpinner();
+}
+
+function forceHideSpinner(): void {
+  spinnerRefCount = 0;
+  if (spinnerLabelTimer !== null) {
+    clearTimeout(spinnerLabelTimer);
+    spinnerLabelTimer = null;
+  }
+  if (spinnerSafetyTimer !== null) {
+    clearTimeout(spinnerSafetyTimer);
+    spinnerSafetyTimer = null;
+  }
+  if (spinnerEl) {
+    try { spinnerEl.remove(); } catch { /* already detached */ }
+    spinnerEl = null;
+  }
+}
+
+export async function printPdf(url: string): Promise<void> {
   // Add inline=1 AND a unique cachebuster to whatever query string
   // is already there. Mobile browsers (iOS Safari + WKWebView
   // especially) sometimes ignore Cache-Control: no-store and
@@ -44,14 +153,58 @@ export function printPdf(url: string): void {
   const sep = url.includes("?") ? "&" : "?";
   const inlineUrl = `${url}${sep}inline=1&t=${Date.now()}`;
 
-  // Mobile: navigate to the inline PDF and let the native viewer
-  // handle printing. Most direct path on touch devices.
+  showSpinner();
+
+  // ── Mobile: navigate to the https URL directly ──
+  // We deliberately do NOT fetch as a blob first on mobile. iOS
+  // Safari + Capacitor WKWebView render PDFs at https URLs via
+  // their native viewer (AirPrint, share sheet), but blob: URLs
+  // either show nothing or trigger a Save sheet — breaking the
+  // whole print-from-phone flow. The browser's URL-bar progress
+  // indicator covers the server-render wait, plus our spinner
+  // stays up until the page unloads.
   if (isMobile()) {
+    // Yield one paint so the spinner is visible before the
+    // navigation tears down the page. Without this the spinner
+    // can appear-and-disappear in the same frame on fast devices.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     window.location.href = inlineUrl;
     return;
   }
 
-  // Desktop: invisible iframe + window.print().
+  // ── Desktop: fetch the PDF as a blob first ──
+  // The slow part of printing a math-heavy paper is the server-
+  // side MathJax → PNG rendering. Fetching into a blob with the
+  // spinner up gives the user real visual feedback. The hidden
+  // iframe then loads the blob URL instantly.
+  let blobUrl: string;
+  try {
+    const res = await fetch(inlineUrl, { credentials: "include" });
+    if (!res.ok) {
+      // Surface a helpful message rather than dumping the user
+      // onto a blank tab. The route returns JSON on error.
+      let msg = `Print failed (${res.status})`;
+      try {
+        const body = await res.json();
+        if (body?.error) msg = body.error;
+      } catch { /* not JSON */ }
+      hideSpinner();
+      alert(msg);
+      return;
+    }
+    const blob = await res.blob();
+    blobUrl = URL.createObjectURL(blob);
+  } catch (err) {
+    console.warn("[print-pdf] fetch failed:", err);
+    hideSpinner();
+    // Last-ditch fallback — let the browser try the URL directly.
+    window.location.href = inlineUrl;
+    return;
+  }
+
+  // Invisible iframe + window.print(). Spinner stays up until the
+  // iframe loads + print dialog is invoked, then is removed before
+  // the dialog opens so it doesn't appear in the print preview.
   const iframe = document.createElement("iframe");
   iframe.style.position = "fixed";
   iframe.style.right = "0";
@@ -60,17 +213,19 @@ export function printPdf(url: string): void {
   iframe.style.height = "0";
   iframe.style.border = "0";
   iframe.setAttribute("aria-hidden", "true");
-  iframe.src = inlineUrl;
+  iframe.src = blobUrl;
 
   const cleanup = () => {
     setTimeout(() => {
       try { iframe.remove(); } catch { /* already detached */ }
+      try { URL.revokeObjectURL(blobUrl); } catch { /* ignored */ }
     }, 60_000); // keep alive while the print dialog is open
   };
 
   let printed = false;
   iframe.onload = () => {
     setTimeout(() => {
+      hideSpinner();
       try {
         const win = iframe.contentWindow;
         if (!win) throw new Error("no contentWindow");
@@ -79,7 +234,7 @@ export function printPdf(url: string): void {
         printed = true;
       } catch (err) {
         console.warn("[print-pdf] iframe.print() failed, falling back to navigation", err);
-        if (!printed) window.location.href = inlineUrl;
+        if (!printed) window.location.href = blobUrl;
       } finally {
         cleanup();
       }
@@ -87,6 +242,7 @@ export function printPdf(url: string): void {
   };
   iframe.onerror = () => {
     console.warn("[print-pdf] iframe load failed, falling back to download");
+    hideSpinner();
     cleanup();
     window.location.href = url;
   };
