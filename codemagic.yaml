@@ -103,41 +103,71 @@ workflows:
             || echo "(failed to list profiles)"
 
       - name: Fetch (or create) signing certificate + App Store profile
-        # Explicit auth args — bypasses the integrations layer.
+        # Three-tier key resolution. Avoids the every-build "Apple
+        # cap reached" loop by reusing the same distribution private
+        # key forever, with two automatic persistence layers and an
+        # auto-revoke fallback for orphaned certs.
         #
-        # The distribution private key is read from env var
-        # IOS_DIST_PRIVATE_KEY_B64 (base64-encoded PEM, marked Secure
-        # in Codemagic). Bootstrap behaviour: if the env var isn't
-        # set yet, we generate a fresh key, run the cert creation,
-        # AND base64-emit the key as a build artifact so the user
-        # can store it in env vars for all future builds. After the
-        # one-time setup, the same key is reused forever and Apple
-        # never gets asked to create another cert — solving the
-        # "Apple cap = 2, every retry creates a new one" loop.
+        #   1. ENV VAR (most durable). IOS_DIST_PRIVATE_KEY_B64
+        #      stores the key as a Codemagic env var. Set once,
+        #      survives cache eviction.
+        #   2. CODEMAGIC CACHE (auto-persisted). After the first
+        #      bootstrap we write the key into $HOME/codemagic-signing
+        #      and the codemagic.yaml `cache:` block restores it on
+        #      every subsequent build. Survives ~weeks of idle, no
+        #      manual step needed.
+        #   3. BOOTSTRAP (last resort). Generate a fresh key, ask
+        #      Apple for a new cert. If Apple replies 409 ("you
+        #      already have a current Distribution cert"), the
+        #      script lists existing certs via the API, revokes any
+        #      that don't match a private key we hold, then retries
+        #      ONCE. No more manual revocation in Apple Dev console.
         #
-        # If you ever need to rotate: revoke the cert in App Store
-        # Connect, blank IOS_DIST_PRIVATE_KEY_B64 in Codemagic,
-        # re-run, and save the new key.
+        # On every bootstrap the key is ALSO written to both the
+        # cache directory AND emitted as a build artifact, so the
+        # user has the option of promoting it to an env var.
         script: |
           set -e
           keychain initialize
           DIST_KEY=/tmp/distribution_key.pem
+          CACHE_DIR="$HOME/codemagic-signing"
+          CACHE_KEY="$CACHE_DIR/dist-key.pem"
+
           if [ -n "${IOS_DIST_PRIVATE_KEY_B64:-}" ]; then
             echo "Using IOS_DIST_PRIVATE_KEY_B64 from env vars."
             echo "$IOS_DIST_PRIVATE_KEY_B64" | base64 --decode > "$DIST_KEY"
             BOOTSTRAP_MODE=0
+          elif [ -f "$CACHE_KEY" ]; then
+            echo "Using cached distribution key from $CACHE_KEY."
+            cp "$CACHE_KEY" "$DIST_KEY"
+            BOOTSTRAP_MODE=0
           else
             echo "==========================================================="
-            echo "  BOOTSTRAP MODE — IOS_DIST_PRIVATE_KEY_B64 is not set."
-            echo "  Generating a fresh distribution key. After this build,"
-            echo "  download the dist-key.b64 artifact and save its contents"
-            echo "  as IOS_DIST_PRIVATE_KEY_B64 in Codemagic env vars."
+            echo "  BOOTSTRAP MODE — no env var, no cache. Generating a"
+            echo "  fresh distribution key. It will be cached for future"
+            echo "  builds AND emitted as a build artifact."
             echo "==========================================================="
             openssl genrsa -out "$DIST_KEY" 2048
             BOOTSTRAP_MODE=1
+          fi
+
+          # Persist to cache + artifact whenever we are about to ask
+          # Apple for a fresh cert (i.e. bootstrap). Cheap to do
+          # unconditionally so subsequent builds always have the
+          # cache populated.
+          mkdir -p "$CACHE_DIR"
+          cp "$DIST_KEY" "$CACHE_KEY"
+          if [ "$BOOTSTRAP_MODE" = "1" ]; then
             mkdir -p build/ios/ipa
             base64 < "$DIST_KEY" > build/ios/ipa/dist-key.b64
           fi
+
+          # ── fetch-signing-files: first attempt ──
+          # Capture stderr so we can detect the 409 "you already
+          # have a current Distribution certificate" case and
+          # auto-recover instead of failing.
+          set +e
+          FETCH_LOG=/tmp/fetch-signing.log
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
@@ -146,7 +176,45 @@ workflows:
             --verbose \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" 2>&1 | tee "$FETCH_LOG"
+          FETCH_RC=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$FETCH_RC" -ne 0 ] && grep -qi "already have a current Distribution certificate" "$FETCH_LOG"; then
+            echo ""
+            echo "==========================================================="
+            echo "  Apple at distribution-cert cap. Revoking orphans (any"
+            echo "  cert whose private key isn't the one we're using) and"
+            echo "  retrying ONCE. Live certs that DO match our key are"
+            echo "  left alone."
+            echo "==========================================================="
+            # The CLI tools accept a -k flag to limit revoke to certs
+            # that don't match the supplied private key — exactly the
+            # behaviour we want. Apple's cap is 2 iOS Distribution
+            # certs per team, so this is safe in practice.
+            app-store-connect certificates delete \
+              --certificate-type IOS_DISTRIBUTION \
+              --certificate-key=@file:$DIST_KEY \
+              --ignore-not-found \
+              --save \
+              --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+              --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+              --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" || true
+            # Retry
+            app-store-connect fetch-signing-files \
+              "$BUNDLE_ID" \
+              --type IOS_APP_STORE \
+              --certificate-key=@file:$DIST_KEY \
+              --create \
+              --verbose \
+              --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+              --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+              --private-key "$APP_STORE_CONNECT_PRIVATE_KEY"
+          elif [ "$FETCH_RC" -ne 0 ]; then
+            echo "fetch-signing-files failed for a reason other than the 409 cap."
+            exit "$FETCH_RC"
+          fi
+
           keychain add-certificates
           echo "=== Installed provisioning profiles ==="
           ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/" || echo "(none)"
@@ -160,15 +228,12 @@ workflows:
           if [ "$BOOTSTRAP_MODE" = "1" ]; then
             echo ""
             echo "==========================================================="
-            echo "  ACTION REQUIRED:"
-            echo "  1. Download dist-key.b64 from this build's Artifacts."
-            echo "  2. Open it, copy the entire base64 string."
-            echo "  3. Codemagic dashboard → app Settings → Environment"
-            echo "     variables → group appstore_credentials, add:"
-            echo "       IOS_DIST_PRIVATE_KEY_B64 = <paste>"
-            echo "       (mark Secure)"
-            echo "  4. Future builds will reuse the same cert. No more"
-            echo "     'Apple cap reached' surprises."
+            echo "  Bootstrap complete. The key is now in the build cache,"
+            echo "  so the next build will reuse it automatically (no env"
+            echo "  var needed). For maximum durability — e.g. if you want"
+            echo "  to survive a cache wipe — promote dist-key.b64 from"
+            echo "  this build's Artifacts to IOS_DIST_PRIVATE_KEY_B64 in"
+            echo "  Codemagic env vars (group: appstore_credentials)."
             echo "==========================================================="
           fi
 
