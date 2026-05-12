@@ -1,6 +1,6 @@
 // Server-side LaTeX → PNG renderer used by the printable PDF route.
 //
-// Pipeline: MathJax (TeX → SVG) → resvg-js (SVG → PNG). Both deps are
+// Pipeline: MathJax (TeX → SVG) → sharp (SVG → PNG). Both deps are
 // pure Node — they work inside Next's API routes with no headless
 // browser. We oversample by 4x so the embedded image still looks
 // crisp when scaled into the PDF at ~11pt body size.
@@ -14,6 +14,13 @@
 // dozens of times across sub-parts and answer keys — caching saves
 // 10-20x on rendering time without bloating memory (PNG buffers for
 // typical primary-school math are <2KB each).
+//
+// Notes on dependency choice: we previously used @resvg/resvg-js for
+// the SVG→PNG step but Turbopack couldn't externalize its native
+// .node binding cleanly (build failed with "non-ecmascript placeable
+// asset"). sharp is already a dependency, already covered by the
+// project's outputFileTracingIncludes, and handles MathJax's SVG
+// just fine via its libvips SVG backend.
 
 import { mathjax } from "mathjax-full/js/mathjax.js";
 import { TeX } from "mathjax-full/js/input/tex.js";
@@ -21,7 +28,7 @@ import { SVG } from "mathjax-full/js/output/svg.js";
 import { liteAdaptor } from "mathjax-full/js/adaptors/liteAdaptor.js";
 import { RegisterHTMLHandler } from "mathjax-full/js/handlers/html.js";
 import { AllPackages } from "mathjax-full/js/input/tex/AllPackages.js";
-import { Resvg } from "@resvg/resvg-js";
+import sharp from "sharp";
 
 type MJDocument = {
   convert: (input: string, options?: { display?: boolean }) => unknown;
@@ -59,7 +66,11 @@ export type MathImage = {
   descentPt: number;
 };
 
-const cache = new Map<string, MathImage | null>();
+// sharp's SVG → PNG path is async (Promise-returning), so we cache
+// the in-flight Promise rather than just the resolved value. That
+// way the second call for the same expression piggybacks on the
+// first render rather than starting a fresh raster job.
+const cache = new Map<string, Promise<MathImage | null>>();
 
 // 1 em ≈ fontSize pt; 1 ex ≈ fontSize/2 pt (close enough for
 // MathJax's sizing — its internal "ex" assumes a font with
@@ -74,70 +85,71 @@ const PX_PER_PT = 4;
  * pdf-lib's `embedPng`. Returns null on parse / render failure so
  * callers can gracefully fall back to plain text.
  */
-export function renderLatexToPng(latex: string, fontSize: number): MathImage | null {
+export function renderLatexToPng(latex: string, fontSize: number): Promise<MathImage | null> {
   const key = `${latex}::${fontSize}`;
-  if (cache.has(key)) return cache.get(key) ?? null;
+  const cached = cache.get(key);
+  if (cached) return cached;
 
-  try {
-    const { doc, adaptor } = ensureMathJax();
-    const node = doc.convert(latex, { display: false });
-    // adaptor.innerHTML returns the SVG string (the math is wrapped
-    // in a single <svg> element).
-    const rawSvg = (adaptor as unknown as { innerHTML: (n: unknown) => string }).innerHTML(node);
+  const job: Promise<MathImage | null> = (async () => {
+    try {
+      const { doc, adaptor } = ensureMathJax();
+      const node = doc.convert(latex, { display: false });
+      // adaptor.innerHTML returns the SVG string (the math is
+      // wrapped in a single <svg> element).
+      const rawSvg = (adaptor as unknown as { innerHTML: (n: unknown) => string }).innerHTML(node);
 
-    // Parse the ex-based dimensions before stripping them — resvg
-    // doesn't understand `ex`, but we need them to compute the PDF
-    // footprint and baseline shift.
-    const widthEx = parseFloat(/width="([\d.]+)ex"/.exec(rawSvg)?.[1] ?? "0");
-    const heightEx = parseFloat(/height="([\d.]+)ex"/.exec(rawSvg)?.[1] ?? "0");
-    const valignEx = parseFloat(/vertical-align:\s*([-\d.]+)ex/.exec(rawSvg)?.[1] ?? "0");
-    if (!widthEx || !heightEx) {
-      cache.set(key, null);
+      // Parse the ex-based dimensions before stripping them — the
+      // raster engine wants absolute pixel sizes, and we need the
+      // ex values to compute the PDF footprint and baseline shift.
+      const widthEx = parseFloat(/width="([\d.]+)ex"/.exec(rawSvg)?.[1] ?? "0");
+      const heightEx = parseFloat(/height="([\d.]+)ex"/.exec(rawSvg)?.[1] ?? "0");
+      const valignEx = parseFloat(/vertical-align:\s*([-\d.]+)ex/.exec(rawSvg)?.[1] ?? "0");
+      if (!widthEx || !heightEx) return null;
+
+      const widthPt = widthEx * PT_PER_EX(fontSize);
+      const heightPt = heightEx * PT_PER_EX(fontSize);
+      // valign is reported as a NEGATIVE ex value when the math
+      // descends below the baseline (e.g. fractions). Flip sign so
+      // descentPt is a positive "how far below baseline" number.
+      const descentPt = -valignEx * PT_PER_EX(fontSize);
+
+      const pxWidth = Math.max(1, Math.ceil(widthPt * PX_PER_PT));
+      const pxHeight = Math.max(1, Math.ceil(heightPt * PX_PER_PT));
+
+      // Replace the ex-based dimensions with the exact pixel size we
+      // want sharp to rasterise at. Leaving them as ex caused libvips
+      // to fall back to its default DPI assumption and produce a
+      // mis-sized output. The viewBox stays untouched so the math
+      // scales correctly.
+      const sizedSvg = rawSvg
+        .replace(/\swidth="[^"]*"/, ` width="${pxWidth}"`)
+        .replace(/\sheight="[^"]*"/, ` height="${pxHeight}"`)
+        .replace(/\sstyle="[^"]*"/g, "");
+
+      const png = await sharp(Buffer.from(sizedSvg))
+        .resize({ width: pxWidth, height: pxHeight, fit: "fill" })
+        .png()
+        .toBuffer();
+
+      return {
+        png,
+        pxWidth,
+        pxHeight,
+        widthPt,
+        heightPt,
+        descentPt,
+      };
+    } catch (err) {
+      console.warn(
+        `[math-render] failed for "${latex}":`,
+        err instanceof Error ? err.message : err,
+      );
       return null;
     }
+  })();
 
-    // Strip the `width`/`height` attributes (which use ex units)
-    // and the inline `style` (which uses vertical-align). Leave
-    // the viewBox intact — resvg uses it for aspect ratio.
-    const cleanSvg = rawSvg
-      .replace(/\s(width|height)="[^"]*"/g, "")
-      .replace(/\sstyle="[^"]*"/g, "");
-
-    const widthPt = widthEx * PT_PER_EX(fontSize);
-    const heightPt = heightEx * PT_PER_EX(fontSize);
-    // valign is reported as a NEGATIVE ex value when the math
-    // descends below the baseline (e.g. fractions). Flip sign so
-    // descentPt is a positive "how far below baseline" number.
-    const descentPt = -valignEx * PT_PER_EX(fontSize);
-
-    const pxWidth = Math.max(1, Math.ceil(widthPt * PX_PER_PT));
-    const pxHeight = Math.max(1, Math.ceil(heightPt * PX_PER_PT));
-
-    const resvg = new Resvg(cleanSvg, {
-      background: "rgba(255,255,255,0)",
-      fitTo: { mode: "width", value: pxWidth },
-    });
-    const rendered = resvg.render();
-    const png = rendered.asPng();
-
-    const result: MathImage = {
-      png,
-      pxWidth: rendered.width,
-      pxHeight: rendered.height,
-      widthPt,
-      heightPt,
-      descentPt,
-    };
-    cache.set(key, result);
-    return result;
-  } catch (err) {
-    console.warn(
-      `[math-render] failed for "${latex}":`,
-      err instanceof Error ? err.message : err,
-    );
-    cache.set(key, null);
-    return null;
-  }
+  cache.set(key, job);
+  return job;
 }
 
 // Math segment regex matching MathText's client-side detection:

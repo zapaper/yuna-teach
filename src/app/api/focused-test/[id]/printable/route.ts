@@ -1047,7 +1047,7 @@ async function buildAtoms(
   const tokens = tokenizeMath(text);
   for (const tok of tokens) {
     if (tok.kind === "math") {
-      const img = renderLatexToPng(tok.value, size);
+      const img = await renderLatexToPng(tok.value, size);
       if (img) {
         const embed = await embedMathOnce(doc, mathCache, img);
         atoms.push({ kind: "math", image: img, embed, widthPt: img.widthPt });
