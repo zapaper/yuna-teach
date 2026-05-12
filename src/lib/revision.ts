@@ -10,6 +10,13 @@ export type SubjectKey = "math" | "science" | "english";
 
 export type SubjectSummary = {
   mistakeCount: number;       // total questions with lost marks
+  // Subset of mistakeCount: only counts mistakes from papers
+  // completed within the last 7 days. Powers the "Last 7 days"
+  // quick-slider preset on the Revise Work modal — clicking it
+  // jumps the slider straight to a small, recent-only batch
+  // instead of asking the parent to eyeball "what does 'recent'
+  // mean for this child."
+  last7DaysCount: number;
   paperCount: number;         // distinct completed papers contributing
   topTopics: string[];        // up to 4 most-frequent topics with mistakes
   earliestAt: string | null;  // ISO of the oldest contributing paper
@@ -76,10 +83,18 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
 
   const init = (): SubjectSummary => ({
     mistakeCount: 0,
+    last7DaysCount: 0,
     paperCount: 0,
     topTopics: [],
     earliestAt: null,
   });
+  // Cut-off for the "last 7 days" preset. Anything completedAt
+  // strictly after this timestamp counts. 7×24h is the
+  // straightforward definition — parents think in "this week's
+  // homework," and rounding to ISO day boundaries would just shift
+  // the cut-off by a few hours.
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+  const recentCutoff = new Date(Date.now() - SEVEN_DAYS_MS);
   const bySubject: Record<SubjectKey, SubjectSummary> = {
     math: init(), science: init(), english: init(),
   };
@@ -103,6 +118,7 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
   for (const p of papers) {
     const subj = classifySubject(p.subject);
     if (!subj) continue;
+    const paperIsRecent = !!p.completedAt && p.completedAt > recentCutoff;
     let paperContributed = false;
     for (const q of p.questions) {
       if (q.marksAwarded == null || q.marksAvailable == null) continue;
@@ -115,6 +131,7 @@ export async function analyseStudentMistakes(studentId: string): Promise<Student
       if (seenSourceIds[subj].has(q.sourceQuestionId)) continue;
       seenSourceIds[subj].add(q.sourceQuestionId);
       bySubject[subj].mistakeCount++;
+      if (paperIsRecent) bySubject[subj].last7DaysCount++;
       paperContributed = true;
       const topic = q.syllabusTopic?.trim();
       if (topic) {

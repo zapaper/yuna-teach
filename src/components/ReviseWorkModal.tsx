@@ -18,6 +18,7 @@ type SubjectKey = "math" | "science" | "english";
 
 type SubjectSummary = {
   mistakeCount: number;
+  last7DaysCount: number;
   paperCount: number;
   topTopics: string[];
   earliestAt: string | null;
@@ -113,9 +114,14 @@ export default function ReviseWorkModal({
   const hasOver30 = max > 30;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[80] flex items-end lg:items-center justify-center p-4" onClick={onClose}>
+    // `items-center` everywhere — the previous `items-end` on mobile
+    // pinned the popup to the very bottom of the screen, partly
+    // under the iOS home indicator and out of comfortable thumb
+    // reach. Centred works for both layouts; `max-h-[85vh]` keeps
+    // headroom above so the controls don't crowd the bottom edge.
+    <div className="fixed inset-0 bg-black/50 z-[80] flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-t-3xl lg:rounded-3xl w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl max-h-[85vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-3">
@@ -169,6 +175,26 @@ export default function ReviseWorkModal({
               )}.
               <br />Would you like to go through them or create a practice?
             </p>
+
+            {/* Quick preset chips — snap the slider to a meaningful
+                subset without making the parent eyeball the count.
+                For now: "Last 7 days" only. Disabled when there are
+                no recent mistakes (chip wouldn't move the slider). */}
+            <div className="flex flex-wrap gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setCount(Math.min(Math.max(sub.last7DaysCount, 1), max))}
+                disabled={!!submitting || sub.last7DaysCount === 0}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${
+                  sub.last7DaysCount > 0 && count === Math.min(Math.max(sub.last7DaysCount, 1), max)
+                    ? "bg-[#003366] text-white border-[#003366]"
+                    : "bg-white text-[#003366] border-[#003366]/30 hover:bg-[#eff4ff]"
+                } disabled:opacity-40 disabled:cursor-not-allowed`}
+              >
+                Last 7 days
+                <span className="ml-1.5 opacity-80">({sub.last7DaysCount})</span>
+              </button>
+            </div>
 
             <div className="bg-[#eff4ff] rounded-2xl p-4 mb-3">
               <div className="flex items-end justify-between mb-2">
