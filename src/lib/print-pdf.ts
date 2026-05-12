@@ -155,18 +155,37 @@ export async function printPdf(url: string): Promise<void> {
 
   showSpinner();
 
-  // ── Mobile: navigate to the https URL directly ──
-  // We deliberately do NOT fetch as a blob first on mobile. iOS
-  // Safari + Capacitor WKWebView render PDFs at https URLs via
-  // their native viewer (AirPrint, share sheet), but blob: URLs
-  // either show nothing or trigger a Save sheet — breaking the
-  // whole print-from-phone flow. The browser's URL-bar progress
-  // indicator covers the server-render wait, plus our spinner
-  // stays up until the page unloads.
+  // ── iOS Capacitor app: open in SFSafariViewController ──
+  // Plain `window.location.href = pdfUrl` navigates the main
+  // WebView to the PDF. WKWebView renders it inline but offers
+  // no back / done button — the user gets stuck on the PDF and
+  // can't return to the dashboard without force-quitting the
+  // app. @capacitor/browser opens the same URL in
+  // SFSafariViewController, which has a built-in "Done" button
+  // that closes the in-app browser and returns to the app.
+  // AirPrint is still available via SFSafariViewController's
+  // share sheet, so the actual print flow works the same.
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (Capacitor.isNativePlatform()) {
+      const { Browser } = await import("@capacitor/browser");
+      hideSpinner();
+      await Browser.open({
+        url: inlineUrl,
+        presentationStyle: "fullscreen",
+      });
+      return;
+    }
+  } catch (err) {
+    console.warn("[print-pdf] capacitor browser fallback:", err);
+    // Fall through to the mobile-web path below.
+  }
+
+  // ── Mobile web (iOS Safari, Android Chrome) ──
+  // Same reasoning as before — blob: URLs don't open in the
+  // native PDF viewer reliably on mobile, so we navigate the
+  // current tab to the https URL and let the browser handle it.
   if (isMobile()) {
-    // Yield one paint so the spinner is visible before the
-    // navigation tears down the page. Without this the spinner
-    // can appear-and-disappear in the same frame on fast devices.
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     window.location.href = inlineUrl;
     return;

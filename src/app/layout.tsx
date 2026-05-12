@@ -2,6 +2,31 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import ChunkErrorReloader from "@/components/ChunkErrorReloader";
+import OfflineOverlay from "@/components/OfflineOverlay";
+
+// Inline pre-paint redirect for the Capacitor iOS shell. WKWebView
+// injects `window.Capacitor` before any HTML is parsed; checking
+// for it in a synchronous <script> in <head> lets us redirect
+// straight to /login BEFORE the marketing page paints. Without
+// this script the iOS app cold-launched onto the marketing page
+// for ~300ms before the React-side NativeLandingBouncer fired,
+// which the user described as "briefly shows homepage before
+// going to login page." Web users (no `window.Capacitor`) fall
+// through unchanged.
+//
+// Only fires when location.pathname is exactly "/" — every other
+// route is reached intentionally and shouldn't be bumped to login.
+const NATIVE_HOME_REDIRECT_SCRIPT = `
+(function(){
+  try {
+    var w = window;
+    if (!w.Capacitor || typeof w.Capacitor.isNativePlatform !== 'function') return;
+    if (!w.Capacitor.isNativePlatform()) return;
+    if (w.location.pathname !== '/' && w.location.pathname !== '') return;
+    w.location.replace('/login');
+  } catch (e) { /* fall through to React-side bouncer */ }
+})();
+`;
 
 // Self-hosted via Next so the body text doesn't render as Times New
 // Roman for ~150ms while Google Fonts loads. Both families end up as
@@ -46,6 +71,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`scroll-smooth ${jakarta.variable} ${inter.variable}`}>
       <head>
+        {/* iOS-only synchronous redirect — runs before any paint.
+            See NATIVE_HOME_REDIRECT_SCRIPT comment above. */}
+        <script dangerouslySetInnerHTML={{ __html: NATIVE_HOME_REDIRECT_SCRIPT }} />
         {/* Material Symbols stays on the CDN — it's an icon font and the
             initial render typically doesn't depend on it. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -54,6 +82,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen">
         <ChunkErrorReloader />
+        <OfflineOverlay />
         {children}
       </body>
     </html>
