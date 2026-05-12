@@ -3813,11 +3813,20 @@ function QuestionDifficultySetting({ student, studentId, onChange }: { student: 
 
   async function select(mode: DifficultyMode) {
     if (!studentId || mode === current) return;
-    await fetch("/api/users", {
+    // Check the response — the previous "fire-and-forget" pattern
+    // hid silent 403s, so a difficulty change appeared to save
+    // (local state flipped) but reverted after a refresh because
+    // the server never wrote anything.
+    const res = await fetch("/api/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: studentId, settings: { questionDifficulty: mode } }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(`Couldn't save difficulty change: ${data?.error ?? `error ${res.status}`}`);
+      return;
+    }
     if (student) {
       student.settings = { ...((student.settings as Record<string, unknown> | null) ?? {}), questionDifficulty: mode };
     }

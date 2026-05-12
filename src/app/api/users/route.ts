@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { DEFAULT_TRIAL_DAYS } from "@/lib/subscription";
-import { requireSelfOrAdmin, requireAdmin, resolveActor } from "@/lib/auth-guard";
+import { requireSelfOrAdmin, requireAdmin, requireSession } from "@/lib/auth-guard";
 
 export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
@@ -219,10 +219,35 @@ export async function PATCH(request: NextRequest) {
   // and not unique.
   const { userId: bodyUserId, settings, displayName } = body as { userId?: string; settings?: Record<string, unknown>; displayName?: string | null };
 
-  // Caller from session; admin view-as via body userId.
-  const auth = await resolveActor(bodyUserId ?? null);
-  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
-  const userId = auth.userId;
+  // Three legitimate edit relationships:
+  //   - user edits their own profile / settings
+  //   - admin view-as another user (uses bodyUserId to target them)
+  //   - parent edits a LINKED student's profile / settings (this
+  //     covers the dashboard's "Questions difficulty" slider —
+  //     the parent passes their student's id as bodyUserId).
+  // The parent case was the missing one and was silently 403ing
+  // every difficulty change. Symptom: the slider on the dashboard
+  // updated locally but reverted on re-login because the DB write
+  // never ran.
+  const session = await requireSession();
+  if (!session.ok) return NextResponse.json({ error: session.error }, { status: session.status });
+
+  const targetId = bodyUserId ?? session.userId;
+  // Track whether the CALLER themselves is an admin — the
+  // privileged-settings filter below must look at the caller, not
+  // the edit target. Admin view-as gets full power; parent editing
+  // a child stays as a non-admin so they can't set admin/role.
+  const callerIsAdmin = session.isAdmin;
+  let allowed = targetId === session.userId || callerIsAdmin;
+  if (!allowed) {
+    const link = await prisma.parentStudent.findUnique({
+      where: { parentId_studentId: { parentId: session.userId, studentId: targetId } },
+      select: { id: true },
+    });
+    allowed = !!link;
+  }
+  if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const userId = targetId;
 
   if (!settings && typeof displayName === "undefined") {
     return NextResponse.json({ error: "settings or displayName required" }, { status: 400 });
@@ -236,11 +261,13 @@ export async function PATCH(request: NextRequest) {
     // Strip privileged keys from the incoming settings unless the
     // caller is already an admin. Without this filter, any logged-in
     // user could PATCH their own row with { settings: { admin: true } }
-    // and self-promote.
+    // and self-promote — same risk applies if a parent could put
+    // `admin: true` on their student's row, hence callerIsAdmin
+    // (not target's role) gates the filter.
     const filteredIncoming: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(settings)) {
-      if (PRIVILEGED_SETTINGS_KEYS.has(k) && !auth.isAdmin) {
-        console.warn(`[users] non-admin user=${userId} attempted to set privileged key "${k}" — ignored`);
+      if (PRIVILEGED_SETTINGS_KEYS.has(k) && !callerIsAdmin) {
+        console.warn(`[users] non-admin caller=${session.userId} target=${userId} attempted to set privileged key "${k}" — ignored`);
         continue;
       }
       filteredIncoming[k] = v;
