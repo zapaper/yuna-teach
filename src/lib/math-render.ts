@@ -121,12 +121,28 @@ export function renderLatexToPng(latex: string, fontSize: number): Promise<MathI
       // to fall back to its default DPI assumption and produce a
       // mis-sized output. The viewBox stays untouched so the math
       // scales correctly.
+      //
+      // Also pin currentColor → #000. MathJax's SVG uses
+      // `stroke="currentColor" fill="currentColor"` on every glyph
+      // and on the fraction-bar `<rect>`. In a browser that resolves
+      // to the parent's text color (black), but when rasterised by
+      // sharp / libvips standalone there is no parent — and in some
+      // libvips builds the fallback is *transparent*, which makes
+      // the fraction bar (a thin filled rect) disappear entirely
+      // while the heavier number glyphs still register. Symptom on
+      // production: "the fractions in MCQ options look squeezed and
+      // the line is missing." Explicit colour fixes both.
       const sizedSvg = rawSvg
         .replace(/\swidth="[^"]*"/, ` width="${pxWidth}"`)
         .replace(/\sheight="[^"]*"/, ` height="${pxHeight}"`)
-        .replace(/\sstyle="[^"]*"/g, "");
+        .replace(/\sstyle="[^"]*"/g, "")
+        .replace(/currentColor/g, "#000");
 
-      const png = await sharp(Buffer.from(sizedSvg))
+      // density 4x => libvips renders the SVG at 4x its declared
+      // pixel size and we resize back down. Gives us anti-aliasing
+      // headroom for thin elements like the fraction vinculum that
+      // would otherwise alias to a faint grey or vanish entirely.
+      const png = await sharp(Buffer.from(sizedSvg), { density: 72 * PX_PER_PT })
         .resize({ width: pxWidth, height: pxHeight, fit: "fill" })
         .png()
         .toBuffer();
