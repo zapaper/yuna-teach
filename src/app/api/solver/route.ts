@@ -35,6 +35,37 @@ const MATH_TOPICS = loadTopics("math-topics.txt");
 const SCIENCE_TOPICS = loadTopics("science-topics.txt");
 const ENGLISH_TOPICS = loadTopics("english-topics.txt");
 
+// Defensive cleanup for orphan LaTeX commands the AI emits despite
+// the prompt's "no LaTeX commands except \\frac" rule. The model
+// keeps shipping things like `60 \\times \\ 100 = \\$6000$` which
+// neither MathText nor KaTeX can render — the user sees the literal
+// backslash commands.
+//
+// These replacements are safe to apply globally:
+//   - Inside a `$...$` math segment, KaTeX renders `\times` and the
+//     Unicode `×` identically, so swapping is visually neutral.
+//   - Outside math, the Unicode form is what we wanted anyway.
+//
+// `\$` always becomes a plain `$`. A leftover stray `$` after the
+// substitution is harmless (MATH_SEGMENT_RE only matches `$...\command...$`
+// — a lone `$` with no command between renders as currency text).
+function sanitizeSolverSolution(s: string): string {
+  if (!s) return s;
+  return s
+    .replace(/\\times\s*\\?\s*/g, "× ")
+    .replace(/\\div\s*\\?\s*/g, "÷ ")
+    .replace(/\\cdot\s*\\?\s*/g, "· ")
+    .replace(/\\pm\s*\\?\s*/g, "± ")
+    .replace(/\\approx\s*\\?\s*/g, "≈ ")
+    .replace(/\\\$/g, "$")
+    // `\,` and `\;` are LaTeX thin-spaces — become a plain space.
+    .replace(/\\[,;:]/g, " ")
+    // `\(` and `\)` are MathJax-style display delimiters — strip.
+    .replace(/\\[()]/g, "")
+    // Tidy any double-spaces left behind by the above.
+    .replace(/ {2,}/g, " ");
+}
+
 // GET /api/solver?jobId=<uuid> — client reconnect path. Returns the saved
 // result (or pending status) for a job the client previously POSTed.
 export async function GET(request: NextRequest) {
@@ -98,10 +129,9 @@ Steps:
    English topics:
    ${ENGLISH_TOPICS.map((t) => `- "${t}"`).join("\n   ")}
 3. If the question contains a geometric diagram (shapes, angles, circles, composite figures):
-   a. First describe every shape, all labelled angles/lengths/measurements and their spatial relationships.
-   b. If it is a composite area or circumference problem, identify how to break the figure into simpler parts (e.g. "draw a vertical line to split into a semicircle and a rectangle"). Name each part and state its measurements.
-   c. Then solve each part separately and combine.
-   Include this geometric analysis at the start of your "solution" field before the working steps.
+   a. PRIVATELY (as your internal reasoning, NOT in the output) describe every shape, all labelled angles/lengths/measurements and their spatial relationships.
+   b. PRIVATELY identify how to break a composite area / circumference figure into simpler parts and note each part's measurements.
+   c. In the "solution" field, jump STRAIGHT into the numbered working steps that use those simpler parts. DO NOT echo your diagram analysis to the student — the answer should read like a clean tutor explanation, not a scratch-pad.
 4. Provide a clear, step-by-step solution suitable for a primary school student.
 5. If the question involves ratio, fractions, percentages, or comparing/sharing quantities between people or groups, ALSO return a "diagrams" field — an array of Singapore model method bar diagram steps:
    [
@@ -125,7 +155,15 @@ Steps:
 ${hint ? `Additional context from the user: ${hint}\n` : ""}Rules:
 - topic must be copied EXACTLY from the list, or null if no match.
 - Do NOT invent or paraphrase topic names.
-- **Fractions MUST be written as inline LaTeX delimited by single dollar signs**. CRITICAL — your output is JSON, so backslashes inside string values MUST be DOUBLED: write \`$\\\\frac{3}{5}$\` (TWO backslashes) inside the "solution" string, not \`$\\frac{3}{5}$\`. The JSON parser will turn the doubled backslash back into one. Same for mixed numbers: \`$2\\\\frac{1}{4}$\`. If you forget to double the backslash, JSON parsing will eat \`\\f\` as a form-feed. Other math stays plain text: x or * for multiply, ÷ for divide, x^2 for powers. The only LaTeX command allowed is \\\\frac. Currency stays plain ("$24" not LaTeX).
+- **Fractions MUST be written as inline LaTeX delimited by single dollar signs**. CRITICAL — your output is JSON, so backslashes inside string values MUST be DOUBLED: write \`$\\\\frac{3}{5}$\` (TWO backslashes) inside the "solution" string, not \`$\\frac{3}{5}$\`. The JSON parser will turn the doubled backslash back into one. Same for mixed numbers: \`$2\\\\frac{1}{4}$\`. If you forget to double the backslash, JSON parsing will eat \`\\f\` as a form-feed.
+- **NO OTHER LATEX COMMANDS.** \\\\frac is the ONLY backslash-command you may emit. Specifically forbidden, even inside \`$...$\`:
+    \\\\times — write × (multiply sign) directly
+    \\\\div   — write ÷ directly
+    \\\\cdot  — write · directly
+    \\\\$     — write a plain $ (no backslash) for currency
+    \\\\,     — just use a space
+    \\\\      — never escape ANYTHING else
+  Example of WHAT NOT TO DO: \`60 \\\\times \\\\ 100 = \\\\$6000$\`. Example of correct output: \`60 × 100 = $6000\`. Powers like x^2 stay as plain x^2. Currency stays plain ("$24", never "\\\\$24" and never wrapped in $...$).
 - Use **double asterisks** to bold: step labels (e.g. **Step 1:**), the answer label (**Answer:**), and key subject terms (e.g. **numerator**, **photosynthesis**, **ratio**). No other markdown.
 - Always end the solution with a blank line followed by a final line that starts exactly with "Answer: " and gives the concise final answer (e.g. "Answer: The total cost is $24." or "Answer: x = 5").
 - For circle problems: use π = 22/7 unless the question specifies otherwise. Circumference = 2 x 22/7 x r. Area = 22/7 x r x r. Diameter = 2 x radius. Always state which value (radius or diameter) you are using.
@@ -185,7 +223,7 @@ Respond with ONLY valid JSON (no markdown fences):
     const result = {
       subject: parsed.subject ?? "Math",
       topic: validTopic,
-      solution: parsed.solution ?? "",
+      solution: sanitizeSolverSolution(parsed.solution ?? ""),
       diagrams,
     };
 
