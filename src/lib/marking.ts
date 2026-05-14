@@ -587,6 +587,26 @@ interface QuestionMarkResult {
   notes: string;
 }
 
+// Strip markdown scaffolding the Phase-1 detection AI occasionally
+// wraps around its raw transcription:
+//   **Part (a)** \n **Transcription** \n ``` <text> ``` \n **Part (b)** ...
+// The "**Transcription**" / "**Part (X)**" labels and triple-backtick
+// fences are presentation cruft, not the student's actual answer. We
+// want the displayed "Detected:" line to show what the student wrote.
+function stripDetectScaffolding(s: string): string {
+  if (!s) return s;
+  return s
+    // Remove **Part (a)**, **Part a**, **Part (i)** etc. as standalone lines.
+    .replace(/\*\*\s*Part\s*\(?[A-Za-z0-9]+\)?\s*\*\*\s*\n?/gi, "")
+    // Remove **Transcription** / **Transcript** / **OCR** labels.
+    .replace(/\*\*\s*(?:Transcription|Transcript|OCR|Detected)\s*\*\*\s*\n?/gi, "")
+    // Drop fenced code-block markers (```lang and closing ```).
+    .replace(/```[a-zA-Z0-9_-]*\n?/g, "")
+    // Collapse runs of blank lines left behind by the strips.
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 /** Build markingNotes string, prefixing with detected student answer when available */
 function buildMarkingNotes(result: QuestionMarkResult): string {
   const parts: string[] = [];
@@ -594,7 +614,8 @@ function buildMarkingNotes(result: QuestionMarkResult): string {
     // The AI's detect prompt asks for 'Working: ... Final answer: X'.
     // Strip the 'Working:' label so we don't render 'Detected: Working: …'
     // — the label is scaffolding, not part of the answer.
-    const cleaned = result.studentAnswer.replace(/^\s*working\s*:?\s*/i, "").trim();
+    let cleaned = result.studentAnswer.replace(/^\s*working\s*:?\s*/i, "").trim();
+    cleaned = stripDetectScaffolding(cleaned);
     parts.push(`Detected: ${cleaned || result.studentAnswer}`);
   }
   if (result.notes) {

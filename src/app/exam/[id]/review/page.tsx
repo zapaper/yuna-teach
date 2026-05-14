@@ -949,6 +949,17 @@ function ExamReviewContent({ id }: { id: string }) {
     let s = raw.trim();
     // Drop a leading "Working:" / "Working" label (with or without colon).
     s = s.replace(/^\s*working\s*:?\s*/i, "");
+    // Strip the AI's markdown scaffolding when it wraps the raw
+    // transcription in **Part (a)** / **Transcription** / fenced
+    // code blocks (newer Phase-1 prompt outputs do this for OEQ).
+    // The labels are presentation noise; only the wrapped content
+    // is the student's actual answer.
+    s = s
+      .replace(/\*\*\s*Part\s*\(?[A-Za-z0-9]+\)?\s*\*\*\s*\n?/gi, "")
+      .replace(/\*\*\s*(?:Transcription|Transcript|OCR|Detected)\s*\*\*\s*\n?/gi, "")
+      .replace(/```[a-zA-Z0-9_-]*\n?/g, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
     // Drop a "blank" or "(blank)" line (or pipe-separated chunk) anywhere.
     s = s
       .split(/\r?\n|\s*\|\s*/)
