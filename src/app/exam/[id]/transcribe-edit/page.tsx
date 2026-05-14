@@ -437,6 +437,52 @@ function TranscribeEditContent({ id }: { id: string }) {
   }
 
   // Recrop: fetch PDF page, render it, show overlay for user to draw crop zone
+  // Per-question re-OCR. Runs the same extractor the bulk job
+  // uses against a single question's already-cropped imageData,
+  // pulls back the fresh stem / options / subparts, and writes
+  // them into the editor's in-memory state. The user reviews and
+  // hits Save (paper-wide) to persist. Useful for one-off fixes
+  // like restoring (a)(i) hierarchy after a prompt change.
+  const [reExtractingId, setReExtractingId] = useState<string | null>(null);
+  async function reExtractQuestion(questionId: string) {
+    setReExtractingId(questionId);
+    try {
+      const res = await fetch("/api/admin/broken-questions/transcribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error ?? "Re-extract failed"); return; }
+      setQuestions(qs => qs.map(q => {
+        if (q.id !== questionId) return q;
+        if (data.type === "mcq") {
+          return {
+            ...q,
+            type: "mcq",
+            stem: typeof data.stem === "string" ? data.stem : q.stem,
+            options: Array.isArray(data.options) && data.options.length === 4
+              ? (data.options as [string, string, string, string])
+              : q.options,
+            subparts: null,
+          };
+        }
+        return {
+          ...q,
+          type: "open",
+          stem: typeof data.stem === "string" ? data.stem : q.stem,
+          subparts: Array.isArray(data.subparts) && data.subparts.length > 0
+            ? data.subparts
+            : q.subparts,
+        };
+      }));
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Re-extract failed");
+    } finally {
+      setReExtractingId(null);
+    }
+  }
+
   async function startRecrop(questionId: string) {
     setRecropQ(questionId);
     setRecropLoading(true);
@@ -614,6 +660,8 @@ function TranscribeEditContent({ id }: { id: string }) {
                 }}
                 onUpdate={(update) => updateQuestion(q.id, update)}
                 onRecrop={() => startRecrop(q.id)}
+                onReExtract={() => reExtractQuestion(q.id)}
+                reExtracting={reExtractingId === q.id}
                 isScience={paperSubject.includes("science")}
               />
             ))}
@@ -727,6 +775,8 @@ function QuestionCard({
   onDelete,
   onUpdate,
   onRecrop,
+  onReExtract,
+  reExtracting,
   isScience,
   id,
 }: {
@@ -743,6 +793,8 @@ function QuestionCard({
   onDelete: () => void;
   onUpdate: (update: Partial<EditQuestion>) => void;
   onRecrop: () => void;
+  onReExtract: () => void;
+  reExtracting: boolean;
   isScience: boolean;
   id?: string;
 }) {
@@ -793,9 +845,17 @@ function QuestionCard({
           </span>
         )}
         <button
+          onClick={onReExtract}
+          disabled={reExtracting}
+          title="Run OCR again on this question's image — useful after a prompt change (e.g. restoring (a)(i) hierarchy). Review and Save to persist."
+          className="ml-auto text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors disabled:opacity-50"
+        >
+          {reExtracting ? "Extracting…" : "Re-extract"}
+        </button>
+        <button
           onClick={onRecrop}
           title="Choose question zone from PDF"
-          className="ml-auto text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+          className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors"
         >
           Recrop
         </button>
