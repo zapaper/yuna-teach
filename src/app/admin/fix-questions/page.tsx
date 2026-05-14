@@ -40,6 +40,7 @@ function FixQuestionsContent() {
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [saving, setSaving] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [proposing, setProposing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -95,6 +96,28 @@ function FixQuestionsContent() {
       flash(`Extracted (${data.type ?? "?"}) — review and Save`);
     } finally {
       setExtracting(false);
+    }
+  }
+
+  async function proposeAnswer() {
+    if (!current) return;
+    setProposing(true);
+    try {
+      const res = await fetch("/api/admin/broken-questions/propose-answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: current.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) { flash(data.error ?? "Proposal failed"); return; }
+      if (typeof data.proposed === "string" && data.proposed.length > 0) {
+        setAnswer(data.proposed);
+        flash("Proposed answer loaded — review and Save");
+      } else {
+        flash("Proposal returned empty");
+      }
+    } finally {
+      setProposing(false);
     }
   }
 
@@ -214,24 +237,58 @@ function FixQuestionsContent() {
                 <textarea value={stem} onChange={e => setStem(e.target.value)} rows={4}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none resize-y" />
               </div>
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Answer</label>
-                <input value={answer} onChange={e => setAnswer(e.target.value)}
-                  placeholder={`e.g. "2" for MCQ, or full worked answer for OEQ`}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none" />
-              </div>
-              <div>
-                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">MCQ options (leave blank for non-MCQ)</label>
-                <div className="space-y-1.5">
-                  {options.map((o, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="w-6 text-xs text-slate-500 font-bold">({i + 1})</span>
-                      <input value={o} onChange={e => setOptions(prev => prev.map((x, j) => j === i ? e.target.value : x))}
-                        className="flex-1 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:border-slate-500 outline-none" />
+              {(() => {
+                const isLabelFix = current.reasons.includes("nonstandard_part_labels");
+                const isMcq = !isLabelFix && (
+                  Array.isArray(current.options) && current.options.some(o => (o ?? "").trim().length > 0)
+                  || /^\(?[1-4]\)?$/.test((current.answer ?? "").trim())
+                );
+                if (isLabelFix) {
+                  return (
+                    <>
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Current answer (non-standard labels)</label>
+                        <textarea readOnly value={current.answer ?? ""} rows={3}
+                          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-500 bg-slate-50 resize-y" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Proposed answer (canonical format)</label>
+                        <button onClick={proposeAnswer} disabled={proposing}
+                          className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded bg-purple-100 text-purple-700 hover:bg-purple-200 disabled:opacity-50">
+                          {proposing ? "Proposing…" : "Propose with AI"}
+                        </button>
+                      </div>
+                      <textarea value={answer} onChange={e => setAnswer(e.target.value)} rows={4}
+                        placeholder={`Click "Propose with AI" or write the rewrite manually. Target: (a) ... | (b) ... | (c) ...`}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none resize-y -mt-2" />
+                    </>
+                  );
+                }
+                return (
+                  <>
+                    <div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Answer</label>
+                      <input value={answer} onChange={e => setAnswer(e.target.value)}
+                        placeholder={`e.g. "2" for MCQ, or full worked answer for OEQ`}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:border-slate-500 outline-none" />
                     </div>
-                  ))}
-                </div>
-              </div>
+                    {isMcq && (
+                      <div>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1">MCQ options</label>
+                        <div className="space-y-1.5">
+                          {options.map((o, i) => (
+                            <div key={i} className="flex items-center gap-2">
+                              <span className="w-6 text-xs text-slate-500 font-bold">({i + 1})</span>
+                              <input value={o} onChange={e => setOptions(prev => prev.map((x, j) => j === i ? e.target.value : x))}
+                                className="flex-1 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm focus:border-slate-500 outline-none" />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <button onClick={() => save({ advance: false, removeFromList: false })} disabled={saving}
