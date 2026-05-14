@@ -4073,7 +4073,13 @@ Instructions:
    - Partially correct → PARTIAL marks for matching portions.
    - Wrong or blank → ZERO.
 2. For multi-part (a), (b), (c): compare each part against its part of the expected answer; for parts with no key, apply the ANSWER-KEY GAPS fail-safe above.
-3. In notes: describe whether the student's answer matches the expected answer, and for each part state "Awarded N mark(s)" explicitly so downstream code can parse per-part correctness. NEVER propose an alternative answer that contradicts a part the key DOES cover.
+3. In notes: write ONE labelled section per part using EXACTLY this structure (the parser depends on it):
+     Part (a): <commentary>. Awarded N mark(s).
+     Part (b): <commentary>. Awarded N mark(s).
+   - Each part header is "Part (X):" with the colon — required.
+   - End each part with a single "Awarded N mark(s)." line that gives the TOTAL marks for that part (sum of any sub-elements). Do NOT write "Awarded 0 marks for the explanation" as the closing line of a part — that's a sub-mention; restate the part total afterwards.
+   - For single-part questions, omit the Part header and just state "Awarded N mark(s)." once at the end.
+   NEVER propose an alternative answer that contradicts a part the key DOES cover.
 
 Return ONLY valid JSON:
 {"questionId": "${q.id}", "marksAvailable": ${marksAvailable}, "marksAwarded": <number>, "studentAnswer": "${detectedAnswer.replace(/"/g, '\\"').replace(/\n/g, '\\n')}", "notes": "<feedback>"}`;
@@ -4170,21 +4176,55 @@ Return ONLY valid JSON:
 
               // Per-part clamp. Multi-mark questions ask the AI to put
               // an explicit "Awarded N mark(s)" line per part in the
-              // notes (see prompt instruction 3 above). When 2+ such
-              // lines appear AND their sum is less than the
-              // marksAwarded number Gemini also returned, trust the
-              // per-part breakdown — it's harder to hallucinate. This
-              // catches the case where the AI correctly describes
-              // "awarded 0 for side view, 1 for top view" but still
-              // returns marksAwarded:2 in the JSON anyway.
+              // notes (see prompt instruction 3 above). Split into
+              // per-part chunks first, then sum mark-earning verbs
+              // (Awarded / earning / earned / scoring / gaining)
+              // within each chunk — a part with sub-elements may
+              // mention each separately ("earning 1 mark" for sub-1,
+              // "Awarded 0 marks for the explanation" for sub-2);
+              // summing recovers the intended part total. Clamp to
+              // each part's cap from [N marks] suffixes in the
+              // subpart text where known. Only clamp the overall
+              // marksAwarded if the per-part total is strictly less
+              // than what the AI returned — never inflate.
               if (parsed.notes && marksAvailable > 1 && awarded > 0) {
                 const notesStr = String(parsed.notes);
-                const partMatches = [...notesStr.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
-                if (partMatches.length >= 2) {
-                  const partSum = partMatches.reduce((s, m) => s + parseFloat(m[1]), 0);
+                const verbRe = /\b(?:awarded|earning|earned|scoring|scored|gaining|gained|given)\s+(\d+(?:\.\d+)?)\s*marks?\b/gi;
+                // Chunk by "Part (x):" / "(x):" headers. Anything
+                // before the first header is unlabelled — skipped.
+                const headerRe = /(?:^|[\n|]|\.\s+|;\s+)\s*(?:Part\s+)?\(([a-z])\)\s*:/gi;
+                const headers = [...notesStr.matchAll(headerRe)];
+                let partSum = 0;
+                let chunkCount = 0;
+                if (headers.length >= 2) {
+                  for (let h = 0; h < headers.length; h++) {
+                    const chunkStart = headers[h].index! + headers[h][0].length;
+                    const chunkEnd = h + 1 < headers.length ? headers[h + 1].index! : notesStr.length;
+                    const chunk = notesStr.slice(chunkStart, chunkEnd);
+                    const matches = [...chunk.matchAll(verbRe)];
+                    if (matches.length === 0) continue;
+                    const partLabel = headers[h][1].toLowerCase();
+                    let chunkSum = matches.reduce((s, m) => s + parseFloat(m[1]), 0);
+                    const cap = partMaxMarks.get(partLabel);
+                    if (cap != null) chunkSum = Math.min(chunkSum, cap);
+                    partSum += chunkSum;
+                    chunkCount++;
+                  }
+                } else {
+                  // No per-part headers — fall back to summing all
+                  // award verbs across the whole notes (legacy
+                  // behaviour, kept for backward-compat with markers
+                  // that emit single-line per-part awards).
+                  const all = [...notesStr.matchAll(verbRe)];
+                  if (all.length >= 2) {
+                    partSum = all.reduce((s, m) => s + parseFloat(m[1]), 0);
+                    chunkCount = all.length;
+                  }
+                }
+                if (chunkCount >= 2) {
                   const sumClamp = Math.min(marksAvailable, Math.max(0, partSum));
                   if (sumClamp < awarded) {
-                    console.log(`[quiz-marking] Q${q.questionNum} per-part clamp: ${partMatches.length} parts sum=${partSum} → ${sumClamp}/${marksAvailable} (was ${awarded})`);
+                    console.log(`[quiz-marking] Q${q.questionNum} per-part clamp: ${chunkCount} chunks sum=${partSum} → ${sumClamp}/${marksAvailable} (was ${awarded})`);
                     awarded = sumClamp;
                   }
                 }

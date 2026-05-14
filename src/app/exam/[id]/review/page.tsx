@@ -2528,21 +2528,26 @@ function ExamReviewContent({ id }: { id: string }) {
                                 type PartStatus = "full" | "partial" | "none";
                                 const notes = currentQ.markingNotes ?? "";
                                 const partStatusMap: Record<string, PartStatus> = {};
-                                const sectionRe = /(?:^|\s|\|)\(?([a-z])\)\s*:?/gi;
-                                const sectionMatches = [...notes.matchAll(sectionRe)].filter(m => spLabels.includes(m[1].toLowerCase()));
-                                // Same letter (e.g. "(a)") may appear multiple
-                                // times in the notes (Detected echo, Final
-                                // answer echo, Part (a): grading section).
-                                // Only the grading section actually carries
-                                // the marks; the others are working text.
-                                // Each pattern below decides for THAT slice
-                                // and the LATEST decisive pattern wins.
+                                // Skip the "Detected: ..." prefix — only the
+                                // part after the " | " separator is actual
+                                // marking commentary. The detected echo
+                                // mentions (a)/(b) too (it parrots the
+                                // question structure) which would otherwise
+                                // be parsed as grading sections.
+                                const sepIdx = notes.indexOf(" | ");
+                                const commentary = sepIdx >= 0 ? notes.slice(sepIdx + 3) : notes;
+                                // Require an explicit section header: optional
+                                // "Part " + "(X)" + ":". The colon is what
+                                // separates a real header from in-prose
+                                // mentions like "Part (b) was left blank".
+                                const sectionRe = /(?:^|\n|\.\s+|;\s+)(?:Part\s+)?\(([a-z])\)\s*:/gi;
+                                const sectionMatches = [...commentary.matchAll(sectionRe)].filter(m => spLabels.includes(m[1].toLowerCase()));
                                 for (let i = 0; i < sectionMatches.length; i++) {
                                   const m = sectionMatches[i];
                                   const label = m[1].toLowerCase();
                                   const start = m.index! + m[0].length;
-                                  const end = i + 1 < sectionMatches.length ? sectionMatches[i + 1].index! : notes.length;
-                                  const section = notes.slice(start, end);
+                                  const end = i + 1 < sectionMatches.length ? sectionMatches[i + 1].index! : commentary.length;
+                                  const section = commentary.slice(start, end);
                                   // Pattern A: explicit mark indicator —
                                   //   "X/Y marks", "X out of Y marks", "X marks out of Y".
                                   // Tight: "marks?" must appear next to the
@@ -2563,20 +2568,21 @@ function ExamReviewContent({ id }: { id: string }) {
                                     partStatusMap[label] = "partial";
                                     continue;
                                   }
-                                  // Pattern C: "Awarded N marks" — compare to
-                                  // the per-subpart available marks if we
-                                  // have them. A fractional awarded (e.g.
-                                  // 1.5) is partial too. No avail → "full"
-                                  // on positive marks (matches the old
-                                  // behaviour, so a missing [N] suffix on
-                                  // the subpart text doesn't downgrade
-                                  // genuinely-correct answers to red).
-                                  const marksMatch = section.match(/(\d+(?:\.\d+)?)\s*marks?\b/i);
-                                  if (marksMatch) {
-                                    const awarded = parseFloat(marksMatch[1]);
+                                  // Pattern C: sum mark-earning verbs in the
+                                  // section. Markers use both "Awarded N
+                                  // marks" (part total) and "earning N
+                                  // mark"/"earned N marks" (sub-element
+                                  // credit) — when a part splits into
+                                  // sub-elements, summing recovers the
+                                  // intended part total. Clamp to the
+                                  // subpart cap if known.
+                                  const awardMatches = [...section.matchAll(/\b(?:awarded|earning|earned|scoring|scored|gaining|gained|given)\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
+                                  if (awardMatches.length > 0) {
+                                    let awarded = awardMatches.reduce((s, mm) => s + parseFloat(mm[1]), 0);
+                                    const avail = partAvailableMap[label];
+                                    if (avail != null) awarded = Math.min(awarded, avail);
                                     if (awarded === 0) { partStatusMap[label] = "none"; continue; }
                                     if (!Number.isInteger(awarded)) { partStatusMap[label] = "partial"; continue; }
-                                    const avail = partAvailableMap[label];
                                     if (avail != null) {
                                       partStatusMap[label] = awarded >= avail ? "full" : "partial";
                                     } else {
@@ -2624,12 +2630,31 @@ function ExamReviewContent({ id }: { id: string }) {
                                       const partStudent = studentParts[sp.label.toLowerCase()];
                                       const partAnswer = answerParts[sp.label.toLowerCase()];
                                       // Tristate: parsed from notes when possible,
-                                      // else fall back to a string-equality check.
-                                      const partStatus: PartStatus = sp.label.toLowerCase() in partStatusMap
-                                        ? partStatusMap[sp.label.toLowerCase()]
-                                        : (partAnswer && partStudent
-                                            ? (partStudent.toLowerCase().replace(/\s/g, "") === partAnswer.toLowerCase().replace(/\s/g, "") ? "full" : "none")
-                                            : (isCorrect ? "full" : "none"));
+                                      // else fall back to comparing student vs
+                                      // expected per part. Exact match → full,
+                                      // shared significant words → partial,
+                                      // blank/no overlap → none. Word overlap
+                                      // catches cases like Q9 (a) where one
+                                      // half of a two-part answer is right and
+                                      // the other half is blank but the marker
+                                      // notes don't carry an explicit per-part
+                                      // breakdown.
+                                      const partStatus: PartStatus = (() => {
+                                        if (sp.label.toLowerCase() in partStatusMap) return partStatusMap[sp.label.toLowerCase()];
+                                        if (!partAnswer || !partStudent) return isCorrect ? "full" : "none";
+                                        const norm = (s: string) => s.toLowerCase().replace(/\s/g, "");
+                                        if (norm(partStudent) === norm(partAnswer)) return "full";
+                                        const stripped = partStudent.toLowerCase().trim();
+                                        if (!stripped || /^(blank|none|empty|skipped|no answer|n\/?a|-)$/i.test(stripped)) return "none";
+                                        const tokenize = (s: string) => new Set(s.toLowerCase().match(/[a-z]{4,}/g) ?? []);
+                                        const studentWords = tokenize(partStudent);
+                                        const answerWords = tokenize(partAnswer);
+                                        let overlap = 0;
+                                        for (const w of answerWords) if (studentWords.has(w)) overlap++;
+                                        if (overlap === 0) return "none";
+                                        if (overlap >= answerWords.size) return "full";
+                                        return "partial";
+                                      })();
                                       return (
                                         <div key={sp.label} className="space-y-2">
                                           <p className="text-sm text-[#0b1c30]">
