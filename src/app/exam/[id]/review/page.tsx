@@ -301,11 +301,16 @@ function ExamReviewContent({ id }: { id: string }) {
             if (pq) {
               if (pq.imageData) q.imageData = pq.imageData;
               if (pq.answerImageData) q.answerImageData = pq.answerImageData;
-              // For quizzes, also attach transcription data
+              // For quizzes, also attach transcription data.
+              // transcribedOptionTable was missing from this merge,
+              // which is why table-format MCQ rendered the OEQ canvas
+              // instead of the actual table — the DB row had it but
+              // currentQ saw `null` after merge.
               if (paperIsQuiz) {
                 q.transcribedStem = pq.transcribedStem ?? null;
                 q.transcribedOptions = pq.transcribedOptions ?? null;
                 q.transcribedOptionImages = pq.transcribedOptionImages ?? null;
+                q.transcribedOptionTable = pq.transcribedOptionTable ?? null;
                 q.transcribedSubparts = pq.transcribedSubparts ?? null;
                 q.diagramImageData = pq.diagramImageData ?? null;
               }
@@ -2727,7 +2732,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     ) : null}
 
                     {/* Quiz OEQ (non-subpart): stacked layout — written answer, detected, correct */}
-                    {isQuiz && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !hasInlinePartAnswers && realSubLabels.length === 0 && (
+                    {isQuiz && currentQOeqIndex >= 0 && !currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !currentQ.transcribedOptionTable && !hasInlinePartAnswers && realSubLabels.length === 0 && (
                       <div className="space-y-4 mb-4">
                         {/* Written answer image */}
                         {(() => {
@@ -2823,7 +2828,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     {/* Exam paper: Submission image + solution side-by-side */}
                     {!isQuiz && (
                     <div className="md:flex gap-5">
-                      {!currentQ.transcribedOptions && !currentQ.transcribedOptionImages && (
+                      {!currentQ.transcribedOptions && !currentQ.transcribedOptionImages && !currentQ.transcribedOptionTable && (
                         <div className="md:w-1/2 md:shrink-0 mb-4 md:mb-0 rounded-2xl overflow-hidden border border-[#e5eeff] relative">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
