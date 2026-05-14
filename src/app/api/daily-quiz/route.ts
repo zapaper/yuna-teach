@@ -3,13 +3,17 @@ import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 import { guardCanAssign } from "@/lib/subscription";
 
-/** MCQ = question has transcribed options (text or images).
- *  An array of 4 entries (even empty) means MCQ — the extraction created option slots. */
-function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
+/** MCQ = question has transcribed options (text, images, or
+ *  table). An array of 4 entries (even empty) means MCQ — the
+ *  extraction created option slots. Table-format MCQ is detected
+ *  by a non-null transcribedOptionTable with the right shape. */
+function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown; transcribedOptionTable?: unknown }): boolean {
   const opts = q.transcribedOptions;
   const imgs = q.transcribedOptionImages;
+  const tbl = q.transcribedOptionTable;
   if (Array.isArray(opts) && opts.length === 4) return true;
   if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+  if (tbl && typeof tbl === "object" && Array.isArray((tbl as { rows?: unknown }).rows) && (tbl as { rows: unknown[] }).rows.length === 4) return true;
   return false;
 }
 
@@ -155,6 +159,7 @@ export async function POST(request: NextRequest) {
             transcribedStem: q.transcribedStem,
             transcribedOptions: q.transcribedOptions ?? undefined,
             transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+            transcribedOptionTable: q.transcribedOptionTable ?? undefined,
             transcribedSubparts: q.transcribedSubparts ?? undefined,
             diagramImageData: q.diagramImageData,
             diagramBounds: q.diagramBounds ?? undefined,
@@ -308,6 +313,7 @@ export async function POST(request: NextRequest) {
     transcribedSubparts: true,
     transcribedOptions: true,
     transcribedOptionImages: true,
+    transcribedOptionTable: true,
     // sourceQuestionId is the master a question was cloned from (or
     // null if it IS a master). Needed for the dedup pass in
     // buildPools so master + synthetic variants don't both surface.
@@ -427,7 +433,7 @@ export async function POST(request: NextRequest) {
     if (ids.length === 0) return new Map();
     const rows = await prisma.examQuestion.findMany({
       where: { id: { in: ids } },
-      select: { id: true, imageData: true, answerImageData: true, transcribedOptions: true, transcribedOptionImages: true, diagramImageData: true },
+      select: { id: true, imageData: true, answerImageData: true, transcribedOptions: true, transcribedOptionImages: true, transcribedOptionTable: true, diagramImageData: true },
     });
     return new Map(rows.map(r => [r.id, r]));
   }
@@ -1155,6 +1161,7 @@ export async function POST(request: NextRequest) {
             transcribedStem: q.transcribedStem,
             transcribedOptions: q.transcribedOptions ?? undefined,
             transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+            transcribedOptionTable: q.transcribedOptionTable ?? undefined,
             transcribedSubparts: q.transcribedSubparts ?? undefined,
             diagramImageData: q.diagramImageData,
             diagramBounds: q.diagramBounds ?? undefined,
@@ -1441,6 +1448,7 @@ export async function POST(request: NextRequest) {
           transcribedStem: q.transcribedStem,
           transcribedOptions: q.transcribedOptions ?? undefined,
           transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+          transcribedOptionTable: q.transcribedOptionTable ?? undefined,
           transcribedSubparts: q.transcribedSubparts ?? undefined,
           diagramImageData: q.diagramImageData,
           diagramBounds: q.diagramBounds ?? undefined,

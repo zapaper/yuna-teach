@@ -3,12 +3,15 @@ import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 import { guardCanAssign } from "@/lib/subscription";
 
-/** MCQ = question has transcribed options (4-element array) or image options. */
-function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
+/** MCQ = question has transcribed options (4-element array),
+ *  image options, or table-format options. */
+function hasOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown; transcribedOptionTable?: unknown }): boolean {
   const opts = q.transcribedOptions;
   const imgs = q.transcribedOptionImages;
+  const tbl = q.transcribedOptionTable;
   if (Array.isArray(opts) && opts.length === 4) return true;
   if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+  if (tbl && typeof tbl === "object" && Array.isArray((tbl as { rows?: unknown }).rows) && (tbl as { rows: unknown[] }).rows.length === 4) return true;
   return false;
 }
 
@@ -154,6 +157,7 @@ export async function POST(request: NextRequest) {
     transcribedStem: true,
     transcribedOptions: true,
     transcribedOptionImages: true,
+    transcribedOptionTable: true,
     transcribedSubparts: true,
     diagramImageData: true,
     diagramBounds: true,
@@ -551,6 +555,7 @@ export async function POST(request: NextRequest) {
           transcribedStem: q.transcribedStem,
           transcribedOptions: q.transcribedOptions ?? undefined,
           transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+          transcribedOptionTable: q.transcribedOptionTable ?? undefined,
           transcribedSubparts: q.transcribedSubparts ?? undefined,
           diagramImageData: q.diagramImageData,
           diagramBounds: q.diagramBounds ?? undefined,

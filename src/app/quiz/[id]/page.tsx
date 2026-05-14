@@ -1533,20 +1533,19 @@ function McqQuestionCard({
 
           {/* Options */}
           {hasOptionTable ? (
-            // Table-format MCQ. Each of the four rows IS one option —
-            // tapping a row selects it the same way numbered MCQ
-            // buttons do elsewhere. Font sizes match the question
-            // stem (text-base lg:text-lg) so the comparison table
-            // doesn't look like a smaller-print footnote. Horizontal
-            // scroll only kicks in when the column count or content
-            // overflows.
-            <div className="overflow-x-auto -mx-1 rounded-2xl border border-[#e5eeff]">
-              <table className="w-full text-base lg:text-lg border-separate border-spacing-0">
-                <thead className="bg-[#eff4ff]">
+            // Table-format MCQ. Each row IS one option — student
+            // taps the row to select it. Black borders on every
+            // cell (collapse model) make the comparison table read
+            // like an exam paper's printed table rather than a
+            // list of separate buttons. Font size matches the
+            // question stem so cells don't look like footnotes.
+            <div className="overflow-x-auto -mx-1">
+              <table className="w-full text-base lg:text-lg border-collapse border-2 border-black">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-3 py-3 text-left font-headline font-bold text-[#001e40] w-16">Option</th>
+                    <th className="px-3 py-3 text-left font-headline font-bold text-black border-2 border-black w-20">Option</th>
                     {optionTable!.columns.map((c, i) => (
-                      <th key={i} className="px-4 py-3 text-left font-headline font-bold text-[#001e40]">
+                      <th key={i} className="px-4 py-3 text-left font-headline font-bold text-black border-2 border-black">
                         <MathText text={c} />
                       </th>
                     ))}
@@ -1563,19 +1562,25 @@ function McqQuestionCard({
                         role="button"
                         tabIndex={0}
                         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(optVal); } }}
-                        className={`cursor-pointer transition-all border-t border-[#e5eeff] ${
+                        className={`cursor-pointer transition-colors ${
                           isSelected
-                            ? "bg-[#dce9ff] ring-2 ring-inset ring-[#001e40]/30"
+                            ? "bg-[#dce9ff]"
                             : "hover:bg-[#eff4ff]"
                         }`}
                       >
-                        <td className="px-3 py-4 align-middle">
-                          <span className={`w-11 h-11 rounded-full flex items-center justify-center font-headline font-bold text-base ${
-                            isSelected ? "bg-[#001e40] text-white" : "bg-white border-2 border-[#c3c6d1]/40 text-[#001e40]"
-                          }`}>{ri + 1}</span>
+                        <td className="px-3 py-3 align-middle border-2 border-black">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              checked={isSelected}
+                              readOnly
+                              className="w-5 h-5 accent-[#001e40] pointer-events-none"
+                            />
+                            <span className="font-headline font-bold text-base text-black">({ri + 1})</span>
+                          </div>
                         </td>
                         {row.map((cell, ci) => (
-                          <td key={ci} className="px-4 py-4 align-middle text-[#0b1c30] font-medium">
+                          <td key={ci} className="px-4 py-3 align-middle text-[#0b1c30] font-medium border-2 border-black">
                             <MathText text={cell} />
                           </td>
                         ))}
