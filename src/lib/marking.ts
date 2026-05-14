@@ -505,25 +505,46 @@ function normalizeMcq(val: string): string {
 /** Parse a flat answer string like "a) X | b) Y" or "(b) foo (c) bar" into
  *  a map of part-label -> answer text. Returns empty map if no part markers.
  *
- *  Labels accepted: single letter (a, b, c, …) AND roman-nested labels
- *  common in Singapore primary papers — (ai), (aii), (aiii), (bi), (bii),
- *  (ci), (civ), (dv). The label captures a letter followed by an optional
- *  short roman tail (i/ii/iii/iv/v/vi/vii/viii). The older single-letter
- *  regex missed "(ai)"-style labels entirely, so the marker reported
- *  "no answer key provided" for those parts. */
+ *  Labels accepted, in priority order:
+ *   - Compound `(a)(i)`, `(a)(ii)`, `(b)(iii)` etc. — Singapore primary
+ *     papers commonly use this notation for nested sub-parts. Stored as
+ *     "a-i" / "a-ii" / "b-iii" to match the transcribedSubparts label
+ *     convention.
+ *   - Concatenated `(ai)`, `(aii)`, `(bi)` etc. — older-style nested
+ *     label; same dash form on output.
+ *   - Plain `(a)`, `(b)`, `(c)` — simple single-letter sub-parts.
+ *
+ *  IMPORTANT — order matters. We try the compound forms FIRST because
+ *  "(a)(i)" naively matches the plain regex twice ("(a)" then "(i)"),
+ *  which silently splits the answer into a parent + a separate `i` part
+ *  that doesn't exist as a subpart. Previously every (a)(i)-style key
+ *  triggered "no answer for sub-part" → solve-on-demand → AI-invented
+ *  answer key overwriting the real one. */
 export function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
   const result = new Map<string, string>();
   if (!answer || !answer.trim()) return result;
-  const re = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
-  const matches = [...answer.matchAll(re)];
+  // Compound paren-separated: "(a)(i)" / "(a) (i)" / "(b)(iii)".
+  // Captures parent letter in group 2, roman tail in group 3.
+  const reCompound = /(^|[|\n])\s*\(([a-z])\)\s*\((i{1,4}|iv|v|vi{0,3})\)\s*/gi;
+  let matches = [...answer.matchAll(reCompound)].map(m => ({
+    full: m[0], index: m.index!, label: `${m[2].toLowerCase()}-${m[3].toLowerCase()}`,
+  }));
+  // Fall back to the historical concat / single-letter form only when no
+  // compound matches were found — mixing the two on the same string would
+  // double-count "(a)(i)" as both a compound AND a single "(a)" match.
+  if (matches.length === 0) {
+    const reFlat = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
+    matches = [...answer.matchAll(reFlat)].map(m => ({
+      full: m[0], index: m.index!, label: m[2].toLowerCase(),
+    }));
+  }
   if (matches.length === 0) return result;
   for (let i = 0; i < matches.length; i++) {
     const m = matches[i];
-    const label = m[2].toLowerCase();
-    const start = m.index! + m[0].length;
-    const end = i + 1 < matches.length ? matches[i + 1].index! : answer.length;
+    const start = m.index + m.full.length;
+    const end = i + 1 < matches.length ? matches[i + 1].index : answer.length;
     const content = answer.slice(start, end).replace(/\s*\|\s*$/, "").trim();
-    if (content) result.set(label, content);
+    if (content) result.set(m.label, content);
   }
   return result;
 }
