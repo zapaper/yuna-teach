@@ -841,6 +841,20 @@ function QuestionCard({
   const tableMode = !!(q.optionTable);
   const [drawTarget, setDrawTarget] = useState<DrawTarget>("diagram");
 
+  // Reset drawTarget back to "diagram" whenever the underlying
+  // sub-part set changes (re-extract, "Clear all", manual delete).
+  // Without this the tab could stay pointing at "sub-i" after the
+  // new subparts arrive with labels like "a-i" / "a-ii" — the
+  // user would see new tabs in the list but the stale label still
+  // sitting in the highlighted state, which looked to them like
+  // "old numbers are still there." Triggers off a label fingerprint
+  // so cosmetic re-renders (typing into a text field) don't reset.
+  const subpartLabelKey = (q.subparts ?? []).map((sp) => sp.label).join(",");
+  useEffect(() => {
+    setDrawTarget("diagram");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subpartLabelKey]);
+
   // Build overlay boxes for the drawable image
   const boxes: { bounds: DiagramBounds; color: string; label: string }[] = [];
   if (q.diagramBounds) boxes.push({ bounds: q.diagramBounds, color: TARGET_COLOR.diagram, label: "Diagram" });
@@ -933,8 +947,8 @@ function QuestionCard({
                   const key = String(t);
                   const color = (t === "drawable" || (typeof t === "string" && (t.startsWith("sub-") || t.startsWith("subref-")))) ? "#7c3aed" : (TARGET_COLOR[key] ?? "#7c3aed");
                   const label = t === "drawable" ? "Drawable diagram"
-                    : typeof t === "string" && t.startsWith("subref-") ? `(${t.slice(7)}) diagram`
-                    : typeof t === "string" && t.startsWith("sub-") ? `(${t.slice(4)}) draw`
+                    : typeof t === "string" && t.startsWith("subref-") ? `${formatSubpartLabel(t.slice(7))} diagram`
+                    : typeof t === "string" && t.startsWith("sub-") ? `${formatSubpartLabel(t.slice(4))} draw`
                     : (TARGET_LABEL[key] ?? key);
                   const active = drawTarget === t;
                   return (
