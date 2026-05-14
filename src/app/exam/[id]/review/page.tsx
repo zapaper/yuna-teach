@@ -9,6 +9,7 @@ import MathText from "@/components/MathText";
 import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
 import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playClick } from "@/lib/sfx";
+import { formatSubpartLabel } from "@/lib/subpart-label";
 import React from "react";
 
 /** Submission image with spinner while loading */
@@ -2551,7 +2552,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                       return (
                                         <div key={sp.label} className="space-y-2">
                                           <p className="text-sm text-[#0b1c30]">
-                                            <span className="font-bold text-[#001e40]">({sp.label})</span> {sp.text}
+                                            <span className="font-bold text-[#001e40]">{formatSubpartLabel(sp.label)}</span> {sp.text}
                                           </p>
                                           {imgSrc && (
                                             // eslint-disable-next-line @next/next/no-img-element

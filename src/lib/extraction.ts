@@ -130,13 +130,21 @@ async function stitchPagesVertically(pages: Buffer[]): Promise<Buffer> {
  * Answer format: "(a) 24 cm² | (b) 15 cm | (c) 3.5 kg"
  * subParts: "ab" → "(a) 24 cm² | (b) 15 cm"
  * subParts: "c"  → "(c) 3.5 kg"
+ *
+ * Tolerates both `(a)` and `a)` forms of the label — parents type
+ * the answer key in either style and the splitter was previously
+ * silent-failing on "a) X | b) Y" because the regex required the
+ * opening paren.
  */
 function splitAnswerBySubParts(fullAnswer: string, subParts: string): string {
   if (!fullAnswer || !subParts) return "";
   const letters = subParts.split("");
-  // Build a regex that matches parts like "(a)", "(b)", etc.
-  // Split the answer into labeled chunks
-  const partRegex = /\(([a-z])\)\s*/gi;
+  // Match `(a)` or `a)` — opening paren optional. Anchored either
+  // at start-of-string or after whitespace / pipe so we don't
+  // accidentally hit a stray "a)" in the middle of explanatory
+  // prose (e.g. "Option a) above is wrong because…"). The pipe
+  // marker is treated as a separator in this codebase.
+  const partRegex = /(?:^|[\s|])\(?([a-z])\)\s*/gi;
   const parts: { label: string; text: string }[] = [];
   let match: RegExpExecArray | null;
   const positions: { label: string; start: number; contentStart: number }[] = [];

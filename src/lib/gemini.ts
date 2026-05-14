@@ -147,6 +147,7 @@ Rules:
   Apply this in BOTH the stem and every option string. The student-facing UI renders these as proper stacked fractions, so accuracy here directly improves readability.
   Do NOT LaTeX-wrap whole numbers, decimals, percentages, or non-fraction expressions — only fractions/mixed numbers.
 - Preserve other mathematical notation (e.g. "3.5 cm²", "2 × 4", "∠ABC")
+- LABELLED STATEMENTS IN THE STEM: if the stem lists multiple labelled statements like "A. <text>  B. <text>  C. <text>" (these are NOT the answer options — answer options are labelled (1)/(2)/(3)/(4)), put EACH statement on its OWN LINE in the stem string using \\n as the line break. Don't run them together on one line. Example: stem = "Which of the following are even?\\nA. 4\\nB. 7\\nC. 12\\nD. 15".
 - Include units in options if present (e.g. "12 cm", "0.75")
 - Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
 - If an option IS a visual/image (shape, diagram, figure), put a brief text description in options (e.g. "Triangle with sides 3cm, 4cm") AND provide its bounding box in optionBounds
@@ -817,7 +818,13 @@ Rules:
 - Preserve other mathematical notation exactly (e.g. "3.5 cm²", "2 × 4", "∠ABC")
 - Include units (e.g. "cm", "kg", "m²")
 - Do NOT include blank answer lines or answer boxes in the text
-- Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
+- SUB-PART LABELS — use these EXACT formats:
+    • Simple sub-part "(a)" → label is "a"
+    • Simple sub-part "(b)" → label is "b"
+    • COMPOUND sub-part "(a)(i)"  → label is "a-i"   (one entry per leaf)
+    • COMPOUND sub-part "(a)(ii)" → label is "a-ii"
+    • COMPOUND sub-part "(b)(i)"  → label is "b-i"
+  The student-facing UI maps "a-i" back to "(a)(i)" when rendering. DO NOT flatten (a)(i) and (a)(ii) into two siblings called "a" and "i" — that loses the hierarchy.
 - If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text in the format "[Nmarks]" (e.g. "Find the area of the triangle. [2marks]"). ALWAYS use this exact format: [Nmarks] with no space.
 - For questions WITHOUT sub-parts, include the marks at the end of the stem in the same format (e.g. "Calculate the total cost. [4marks]")
 
@@ -1023,7 +1030,13 @@ Rules:
 - Preserve all scientific terms exactly (e.g. "photosynthesis", "condensation", "food chain", "life cycle")
 - Include units (e.g. "g", "cm", "°C", "km/h")
 - Do NOT include blank answer lines or answer boxes in the text
-- Sub-part labels are like "(a)", "(b)", "(c)" — extract just the letter as the label
+- SUB-PART LABELS — use these EXACT formats:
+    • Simple sub-part "(a)" → label is "a"
+    • Simple sub-part "(b)" → label is "b"
+    • COMPOUND sub-part "(a)(i)"  → label is "a-i"   (one entry per leaf)
+    • COMPOUND sub-part "(a)(ii)" → label is "a-ii"
+    • COMPOUND sub-part "(b)(i)"  → label is "b-i"
+  The student-facing UI maps "a-i" back to "(a)(i)" when rendering. DO NOT flatten (a)(i) and (a)(ii) into two siblings called "a" and "i" — that loses the hierarchy.
 - If marks are shown per sub-part (e.g. "[2]", "[3 marks]", "[2m]" next to each part), include them at the END of that sub-part's text in the format "[Nmarks]" (e.g. "Explain why Plant A grew taller. [2marks]"). ALWAYS use this exact format: [Nmarks] with no space.
 - For questions WITHOUT sub-parts, include the marks at the end of the stem in the same format (e.g. "Explain why the plant wilted. [4marks]")
 

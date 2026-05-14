@@ -7,6 +7,7 @@ import { ExamPaperDetail, ExamCloneSummary, User } from "@/types";
 import { isAdmin as isAdminUser } from "@/lib/admin";
 import { jsPDF } from "jspdf";
 import BarDiagram, { type DiagramStep } from "@/components/BarDiagram";
+import { formatSubpartLabel } from "@/lib/subpart-label";
 
 // AI-explainer cache reader. Newer entries are JSON ({solution,
 // diagrams}); older ones are bare text. Returns shape both consumers
@@ -1113,7 +1114,7 @@ function ExamOverviewContent({ id }: { id: string }) {
                         <div className="space-y-2 mt-2">
                           {q.subparts.map((sp) => (
                             <div key={sp.label} className="flex gap-2 bg-white rounded-lg px-3 py-2 border border-amber-100">
-                              <span className="font-mono text-xs text-amber-600 mt-0.5 shrink-0">({sp.label})</span>
+                              <span className="font-mono text-xs text-amber-600 mt-0.5 shrink-0">{formatSubpartLabel(sp.label)}</span>
                               <span className="text-sm text-slate-700">{sp.text}</span>
                             </div>
                           ))}

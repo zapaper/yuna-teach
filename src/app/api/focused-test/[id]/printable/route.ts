@@ -6,6 +6,7 @@ import path from "path";
 import { prisma } from "@/lib/db";
 import { requireAccessToStudent } from "@/lib/auth-guard";
 import { renderLatexToPng, tokenizeMath, type MathImage } from "@/lib/math-render";
+import { formatSubpartLabel } from "@/lib/subpart-label";
 
 // GET /api/focused-test/[id]/printable?studentId=<id>&userId=<parent>
 //
@@ -337,10 +338,24 @@ export async function GET(
     // and the resulting PNG embedded). Reused below for both the
     // keep-together estimate and the actual draw pass — building
     // twice is safe (math-render caches) but wasteful.
-    const stemAtoms = q.transcribedStem
-      ? await buildAtoms(doc, mathCache, q.transcribedStem, helv, 11)
-      : [];
-    const stemLineRows = wrapAtoms(stemAtoms, CONTENT_W);
+    // Split the stem on `\n` so explicit line breaks emitted by the
+    // extractor (e.g. labelled statements "A. …\nB. …\nC. …" in an
+    // MCQ stem) survive into the PDF. buildAtoms is per-paragraph;
+    // wrapAtoms then word-wraps each paragraph within CONTENT_W.
+    // Blank paragraphs become empty rows for a half-line of
+    // breathing room.
+    const stemParagraphs = q.transcribedStem ? q.transcribedStem.split("\n") : [];
+    const stemLineRows: Atom[][] = [];
+    for (const para of stemParagraphs) {
+      if (para.trim() === "") {
+        stemLineRows.push([]);
+        continue;
+      }
+      const atoms = await buildAtoms(doc, mathCache, para, helv, 11);
+      for (const row of wrapAtoms(atoms, CONTENT_W)) {
+        stemLineRows.push(row);
+      }
+    }
     const stemTotalH = stemLineRows.reduce((sum, row) => sum + rowHeight(row, 11).lineH, 0);
     const diagramAllowance = q.diagramImageData ? 80 : 0;
     let firstAnswerBoxH = 0;
@@ -363,7 +378,7 @@ export async function GET(
       const sp0 = realSubs[0];
       const m0 = String(sp0.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
       const sp0Marks = m0 ? parseInt(m0[1], 10) : marks / realSubs.length;
-      const sp0TextH = wrapLines(`(${sp0.label}) ${sp0.text}`, helv, 11, CONTENT_W).length * LINE_PT;
+      const sp0TextH = wrapLines(`${formatSubpartLabel(sp0.label)} ${sp0.text}`, helv, 11, CONTENT_W).length * LINE_PT;
       const sp0LineGap = isScience ? SCI_LINE_GAP : LINE_PT;
       const sp0WriteH = isMath
         ? Math.max(LINE_PT * 3, sp0Marks * A4_H * 0.085)
@@ -574,7 +589,7 @@ export async function GET(
       for (const sp of realSubs) {
         const m = String(sp.text ?? "").match(/\[\s*(\d+)\s*(?:m(?:ark)?s?)?\s*\]/i);
         const subMarks = m ? parseInt(m[1], 10) : (totalSubMarks > 0 ? marks * (1 / realSubs.length) : marks / realSubs.length);
-        const subAtoms = await buildAtoms(doc, mathCache, `(${sp.label}) ${sp.text}`, helv, 11);
+        const subAtoms = await buildAtoms(doc, mathCache, `${formatSubpartLabel(sp.label)} ${sp.text}`, helv, 11);
         const subTextRows = wrapAtoms(subAtoms, CONTENT_W);
         for (const row of subTextRows) {
           const { lineH, baselineFromTop } = rowHeight(row, 11);

@@ -102,9 +102,15 @@ function renderInline(text: string, keyBase: string): React.ReactNode[] {
 export default function MathText({ text, className }: { text: string; className?: string }) {
   if (!text) return null;
   const repaired = repairLatex(text);
+  // Preserve newlines when present (e.g. labelled statements in
+  // MCQ stems like "A.…\nB.…\nC.…"). HTML span collapses
+  // whitespace by default, so an explicit `pre-line` is needed.
+  // No-op for single-line text — `pre-line` only differs from
+  // the default when there are actual line breaks.
+  const style = repaired.includes("\n") ? { whiteSpace: "pre-line" as const } : undefined;
   // Cheap fast-path: no special markers → render as plain string.
   if (!repaired.includes("$") && !repaired.includes("**") && !repaired.includes("__")) {
-    return <span className={className}>{repaired}</span>;
+    return <span className={className} style={style}>{repaired}</span>;
   }
-  return <span className={className}>{renderInline(repaired, "0")}</span>;
+  return <span className={className} style={style}>{renderInline(repaired, "0")}</span>;
 }

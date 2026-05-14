@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import EnglishQuizSection from "@/components/EnglishQuizSection";
 import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playPointChime, playClick } from "@/lib/sfx";
+import { formatSubpartLabel } from "@/lib/subpart-label";
 
 /* ────────────── types ────────────── */
 
@@ -2174,7 +2175,7 @@ function OeqQuestionCard({
                       <p className="text-[10px] font-bold text-[#003366] uppercase tracking-widest mb-1">{spMarks} {spMarks === 1 ? "mark" : "marks"}</p>
                     )}
                     <p className="text-base text-[#0b1c30]">
-                      <span className="font-bold text-[#001e40]">({sp.label})</span> <MathText text={spText} />
+                      <span className="font-bold text-[#001e40]">{formatSubpartLabel(sp.label)}</span> <MathText text={spText} />
                     </p>
                     {sp.refImageBase64 && (
                       <div className="mt-2 relative">
