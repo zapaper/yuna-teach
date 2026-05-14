@@ -2349,6 +2349,32 @@ You are given ONLY the answer key pages. Each image is labeled with its original
   - Sub-parts: "(a) 24 cm² | (b) 15 cm"
   - IMPORTANT: Do NOT use literal newlines — use " | " as separator
 
+### CRITICAL — Sub-part label format (Math / Science OEQ):
+Sub-part labels inside the "value" string MUST use the canonical
+parenthesised form. The question number is already the JSON key —
+never include it inside the value.
+
+ALWAYS emit:               NEVER emit:
+  "(a)"                      "a)" , "a." , "7a" , "7a)" , "7(a)"
+  "(b)"                      "b)" , "7b)"
+  "(a)(i)"                   "(i)" alone , "a)(i)" , "(a) i)" , "7a)(i)"
+  "(a)(ii)"                  "(ii)" alone , "(a) ii"
+  "(b)(i)"                   "(i)" reused under (b) , "7b)(i)"
+
+Concrete rewrites for common answer-key formats:
+  Answer-key prints "7a) 24 cm²"          → output "(a) 24 cm²"
+  Answer-key prints "a) 24 cm²"           → output "(a) 24 cm²"
+  Answer-key prints "(a) 24 cm² (b) 15"   → output "(a) 24 cm² | (b) 15"
+  Answer-key prints "(a)(i) 8 (a)(ii) 16" → output "(a)(i) 8 | (a)(ii) 16"
+  Answer-key prints just "(i) 8 (ii) 16"
+  under a parent "(a)" heading            → output "(a)(i) 8 | (a)(ii) 16"
+                                              (parent letter REQUIRED for compounds)
+
+The student-facing marker parses these labels to attribute each
+sub-part's answer to the right cell. Bare "(i)" with no parent
+letter under a compound parent CANNOT be matched and will silently
+miss that sub-part during marking.
+
 ### Shared working blocks for multi-part questions:
 Many primary-school answer keys solve sub-parts (a), (b), (c)... in
 ONE shared step-by-step block, with the per-part answers only

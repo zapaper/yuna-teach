@@ -162,18 +162,25 @@ function FlaggedContent() {
                         </svg>
                       )}
                     </button>
-                    {(item.paperType === "quiz" || item.paperType === "focused") && (
-                      <button
-                        onClick={() => {
-                          const examId = item.cloneId ?? item.paperId;
-                          window.open(`/exam/${examId}/review?userId=${userId}`, "_blank");
-                        }}
-                        className="text-[10px] font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded underline underline-offset-2"
-                        title="Open quiz review"
-                      >
-                        {item.paperType === "focused" ? "Focused ↗" : "Quiz ↗"}
-                      </button>
-                    )}
+                    {/* Always-on 'Go to paper' link. Quiz / focused
+                        flags open the student's review page so admin
+                        sees the actual answer + marks; master / clone
+                        of a regular paper goes to /overview. The
+                        Q{num} button above is the same nav but easy
+                        to miss — this explicit button matches the
+                        user's expected "Go to paper" affordance. */}
+                    <button
+                      onClick={() => {
+                        const examId = item.cloneId ?? item.paperId;
+                        const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
+                        const path = isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`;
+                        window.open(`${path}?userId=${userId}`, "_blank");
+                      }}
+                      className="text-[10px] font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded underline underline-offset-2"
+                      title="Open this flag's paper"
+                    >
+                      {item.paperType === "focused" ? "Focused ↗" : item.paperType === "quiz" ? "Quiz ↗" : "Paper ↗"}
+                    </button>
                     {item.year && (
                       <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
                         {item.year}
