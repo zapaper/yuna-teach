@@ -9,6 +9,20 @@ const isPassageBound = (topic: string | null | undefined) => {
   return (x.includes("grammar") && x.includes("cloze")) || x.includes("editing") || (x.includes("comprehension") && x.includes("cloze"));
 };
 
+/** True if a multi-part OEQ answer uses a non-standard label scheme that
+ *  trips parsePartAnswers — variants like "ai)", "Part a)i)", "6b:",
+ *  "i) | ii)" (roman without parent letter), or no labels at all. */
+function answerHasNonstandardPartLabels(answer: string): boolean {
+  const hasStandardParen = /\(\s*([a-z])\s*\)(?:\s*\(\s*(i{1,4}|iv|vi{0,3}|v)\s*\))?/i.test(answer);
+  const hasBareLetterParen = /(?:^|[|\n;])\s*[a-z]\)\s/i.test(answer);
+  const hasNumberLetterPrefix = /(?:^|[|\n;])\s*\d+\s*[a-z](?:\)|:|\.)\s/i.test(answer);
+  const hasRomanWithoutParent = /(?:^|[|\n;])\s*\(?(i{1,4}|iv|vi{0,3}|v)\)/i.test(answer) && !hasStandardParen;
+  if (hasNumberLetterPrefix) return true;
+  if (hasRomanWithoutParent) return true;
+  if (!hasStandardParen && !hasBareLetterParen) return true;
+  return false;
+}
+
 // GET /api/admin/broken-questions
 // Returns questions with missing stems / missing answers / (optional) missing MCQ options,
 // across all visible master papers, so admin can fix them one by one.
@@ -25,7 +39,7 @@ export async function GET() {
     orderBy: [{ examPaperId: "asc" }, { orderIndex: "asc" }],
   });
 
-  type Reason = "missing_stem" | "missing_answer" | "synthesis_no_source" | "mcq_no_options";
+  type Reason = "missing_stem" | "missing_answer" | "synthesis_no_source" | "mcq_no_options" | "nonstandard_part_labels";
   const items: Array<{
     id: string; questionNum: string; paperId: string; paperTitle: string; subject: string | null;
     stem: string | null; answer: string | null; options: string[] | null; reasons: Reason[];
@@ -49,6 +63,23 @@ export async function GET() {
         const before = stem.slice(0, idx).trim();
         if (before.length < 15 || /^[_\s]*$/.test(before)) reasons.push("synthesis_no_source");
       }
+    }
+
+    // Non-standard part labels: multi-part OEQ whose answer text lacks the
+    // parser-friendly "(a) ... | (b) ..." or "a) ... | b) ..." structure.
+    // Catches "ai)", "Part a)i)", "6b:", "i) | ii)" and other variants that
+    // confuse parsePartAnswers and silently route marking through AI Judge.
+    // Only checked when both (i) the question has 2+ subparts and (ii) the
+    // answer field is non-empty — otherwise the existing missing_* reasons
+    // already cover it.
+    const subs = q.transcribedSubparts as Array<{ label: string }> | null;
+    const answerStr = (q.answer ?? "").trim();
+    if (
+      subs && subs.length >= 2 && answerStr.length > 0 &&
+      !isMcqAnswer(q.answer) &&
+      answerHasNonstandardPartLabels(answerStr)
+    ) {
+      reasons.push("nonstandard_part_labels");
     }
 
     if (reasons.length === 0) continue;

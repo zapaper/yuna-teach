@@ -148,7 +148,7 @@ function FixQuestionsContent() {
           <div>
             <Link href={`/admin?userId=${userId}`} className="text-xs text-slate-400 hover:text-slate-600">← Admin</Link>
             <h1 className="text-lg font-bold text-slate-800">Fix Broken Questions</h1>
-            <p className="text-xs text-slate-400">Questions with missing stem / answer / source sentence</p>
+            <p className="text-xs text-slate-400">Questions with missing stem / answer / source sentence / nonstandard part labels</p>
           </div>
           <button onClick={loadList} disabled={loading}
             className="px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-bold disabled:opacity-50">
