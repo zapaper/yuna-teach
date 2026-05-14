@@ -2424,8 +2424,12 @@ function ExamReviewContent({ id }: { id: string }) {
                                   </table>
                                 </div>
                               )}
-                              {/* MCQ options — image grid */}
-                              {currentQ.transcribedOptionImages && currentQ.transcribedOptionImages.some(img => img) && (
+                              {/* MCQ options — image grid (hidden when a
+                                  table is in play; the three branches are
+                                  mutually exclusive even if the underlying
+                                  row carries leftover legacy text/image
+                                  arrays). */}
+                              {!currentQ.transcribedOptionTable && currentQ.transcribedOptionImages && currentQ.transcribedOptionImages.some(img => img) && (
                                 <div className="grid grid-cols-2 gap-3 mt-2">
                                   {[0, 1, 2, 3].map(i => {
                                     const optNum = String(i + 1);
@@ -2450,8 +2454,9 @@ function ExamReviewContent({ id }: { id: string }) {
                                   })}
                                 </div>
                               )}
-                              {/* MCQ options — text list */}
-                              {currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 && (
+                              {/* MCQ options — text list (same mutual-
+                                  exclusion as the image branch above). */}
+                              {!currentQ.transcribedOptionTable && currentQ.transcribedOptions && currentQ.transcribedOptions.length > 0 && (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                                   {currentQ.transcribedOptions.map((opt, i) => {
                                     const optNum = String(i + 1);
