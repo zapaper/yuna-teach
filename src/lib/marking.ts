@@ -2708,11 +2708,18 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
 
     // Separate MCQ (has options) and OEQ (need AI marking).
     // Use options-based classification (same as quiz page) — NOT answer format.
+    // Must recognise ALL THREE option shapes (text / image / table); without the
+    // optionTable branch, a science table-MCQ was getting filed into oeqQuestions
+    // and shifting every downstream OEQ's page-index by +1. Symptom: Q9's
+    // detected text was actually Q11's canvas content because Q9's marker pulled
+    // page_${i} at a higher i than the quiz had saved it at.
     const hasOpts = (q: typeof paper.questions[0]) => {
       const opts = q.transcribedOptions as unknown[] | null;
       const imgs = q.transcribedOptionImages as unknown[] | null;
+      const tbl = (q as { transcribedOptionTable?: { rows?: unknown } | null }).transcribedOptionTable;
       if (Array.isArray(opts) && opts.length === 4) return true;
       if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+      if (tbl && Array.isArray(tbl.rows) && (tbl.rows as unknown[]).length === 4) return true;
       return false;
     };
     const mcqQuestions = paper.questions.filter(q => hasOpts(q) || typedSectionQIds.has(q.id));
