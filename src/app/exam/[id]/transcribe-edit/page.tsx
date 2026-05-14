@@ -1002,44 +1002,110 @@ function QuestionCard({
           {isMcq && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Options{tableMode ? " — table format" : ""}
-                </label>
-                {!tableMode && (
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Options</label>
+                {/* Three-way mode selector. Picks one of:
+                    text → string[] in transcribedOptions
+                    images → (string|null)[] in transcribedOptionImages
+                    table → { columns, rows } in transcribedOptionTable
+                    Switching modes clears the other two on q. Table
+                    mode starts with a 2-col / 4-row blank scaffold
+                    so admins have something to type into; re-extract
+                    on a Science MCQ with a table image fills it in
+                    automatically. */}
+                <div className="flex items-center gap-1 text-[11px]">
                   <button
-                    onClick={() => onToggleOptionImages(!imageOptionsMode)}
-                    className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
-                      imageOptionsMode
-                        ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                        : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                    onClick={() => onUpdate({
+                      options: q.options ?? ["", "", "", ""],
+                      optionImages: null,
+                      optionTable: null,
+                    })}
+                    className={`px-2 py-1 rounded-md border font-medium transition-colors ${
+                      !imageOptionsMode && !tableMode
+                        ? "bg-slate-200 border-slate-300 text-slate-700"
+                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
                     }`}
-                  >
-                    {imageOptionsMode ? "Images mode" : "Text mode"} — switch
-                  </button>
-                )}
-                {tableMode && (
+                  >Text</button>
                   <button
-                    onClick={() => onUpdate({ optionTable: null, options: ["", "", "", ""] })}
-                    className="text-xs px-2.5 py-1 rounded-lg border bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
-                    title="Discard the table and switch back to text options"
-                  >
-                    Clear table → text
-                  </button>
-                )}
+                    onClick={() => onUpdate({
+                      options: null,
+                      optionImages: q.optionImages ?? [null, null, null, null],
+                      optionTable: null,
+                    })}
+                    className={`px-2 py-1 rounded-md border font-medium transition-colors ${
+                      imageOptionsMode
+                        ? "bg-blue-100 border-blue-300 text-blue-700"
+                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}
+                  >Images</button>
+                  <button
+                    onClick={() => onUpdate({
+                      options: null,
+                      optionImages: null,
+                      optionTable: q.optionTable ?? { columns: ["", ""], rows: [["", ""], ["", ""], ["", ""], ["", ""]] },
+                    })}
+                    className={`px-2 py-1 rounded-md border font-medium transition-colors ${
+                      tableMode
+                        ? "bg-emerald-100 border-emerald-300 text-emerald-700"
+                        : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+                    }`}
+                    title="Table-format MCQ — for Science questions whose four options are rows of a comparison table"
+                  >Table</button>
+                </div>
               </div>
 
               {tableMode && q.optionTable ? (
-                // Read-only preview. Editing is intentionally not
-                // exposed in v1 — admin re-extracts to update, or
-                // clears the table to fall back to text options.
+                // Editable table. Each cell + each header is an
+                // input. Columns can be added or removed; rows are
+                // fixed at 4 (one per option). When a column is
+                // added/removed, the existing rows are reshaped to
+                // match. Re-extract on a Science MCQ overwrites
+                // the whole table with whatever the AI returned.
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
                   <table className="w-full text-xs">
                     <thead className="bg-slate-50">
                       <tr>
                         <th className="px-2 py-2 text-left font-semibold text-slate-500 border-b border-slate-200 w-10">Opt</th>
-                        {q.optionTable.columns.map((c, i) => (
-                          <th key={i} className="px-2 py-2 text-left font-semibold text-slate-500 border-b border-slate-200">{c}</th>
+                        {q.optionTable.columns.map((c, ci) => (
+                          <th key={ci} className="px-1 py-1 text-left font-semibold text-slate-500 border-b border-slate-200">
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="text"
+                                value={c}
+                                placeholder={`Col ${ci + 1}`}
+                                onChange={(e) => {
+                                  const cols = q.optionTable!.columns.slice();
+                                  cols[ci] = e.target.value;
+                                  onUpdate({ optionTable: { ...q.optionTable!, columns: cols } });
+                                }}
+                                className="flex-1 px-1.5 py-0.5 text-xs font-semibold rounded border border-transparent hover:border-slate-200 focus:border-slate-400 focus:outline-none bg-transparent"
+                              />
+                              {q.optionTable!.columns.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const cols = q.optionTable!.columns.filter((_, i) => i !== ci);
+                                    const rows = q.optionTable!.rows.map((r) => r.filter((_, i) => i !== ci));
+                                    onUpdate({ optionTable: { columns: cols, rows } });
+                                  }}
+                                  className="text-red-300 hover:text-red-500"
+                                  title={`Remove column ${ci + 1}`}
+                                >×</button>
+                              )}
+                            </div>
+                          </th>
                         ))}
+                        <th className="px-1 py-1 w-10 border-b border-slate-200">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const cols = [...q.optionTable!.columns, ""];
+                              const rows = q.optionTable!.rows.map((r) => [...r, ""]);
+                              onUpdate({ optionTable: { columns: cols, rows } });
+                            }}
+                            className="text-emerald-500 hover:text-emerald-700"
+                            title="Add column"
+                          >+</button>
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1047,10 +1113,22 @@ function QuestionCard({
                         const isAnswer = String(ri + 1) === normalizeAnswer(q.answer);
                         return (
                           <tr key={ri} className={isAnswer ? "bg-green-50" : ""}>
-                            <td className="px-2 py-1.5 border-t border-slate-100 font-mono text-slate-500">({ri + 1}){isAnswer && " ✓"}</td>
+                            <td className="px-2 py-1 border-t border-slate-100 font-mono text-slate-500">({ri + 1}){isAnswer && " ✓"}</td>
                             {row.map((cell, ci) => (
-                              <td key={ci} className="px-2 py-1.5 border-t border-slate-100 text-slate-700">{cell}</td>
+                              <td key={ci} className="px-1 py-0.5 border-t border-slate-100">
+                                <input
+                                  type="text"
+                                  value={cell}
+                                  placeholder="—"
+                                  onChange={(e) => {
+                                    const rows = q.optionTable!.rows.map((r, i) => i === ri ? r.map((c, j) => j === ci ? e.target.value : c) : r);
+                                    onUpdate({ optionTable: { ...q.optionTable!, rows } });
+                                  }}
+                                  className="w-full px-1.5 py-0.5 text-xs rounded border border-transparent hover:border-slate-200 focus:border-slate-400 focus:outline-none bg-transparent"
+                                />
+                              </td>
                             ))}
+                            <td className="border-t border-slate-100" />
                           </tr>
                         );
                       })}

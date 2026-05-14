@@ -903,7 +903,9 @@ export async function transcribeMathOpenEndedQuestion(
   imageBase64: string
 ): Promise<TranscribedOpenEnded> {
   const response = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
+    // See transcribeScienceOpenEndedQuestion — same reasoning
+    // for upgrading off flash: compound (a)(i)/(a)(ii) labels.
+    model: "gemini-3-flash-preview",
     contents: [
       {
         role: "user",
@@ -1086,8 +1088,13 @@ Return ONLY valid JSON, no markdown fences:
 export async function transcribeScienceOpenEndedQuestion(
   imageBase64: string
 ): Promise<TranscribedOpenEnded> {
+  // Upgraded from gemini-2.5-flash because flash kept flattening
+  // compound sub-part labels like "(a)(i)" / "(a)(ii)" into three
+  // siblings called "a", "i", "ii" despite the prompt's explicit
+  // examples. 3-flash-preview's instruction following on the
+  // (a)/(b) ↔ (a)(i)/(a)(ii) distinction is markedly better.
   const response = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash-preview",
     contents: [
       {
         role: "user",
