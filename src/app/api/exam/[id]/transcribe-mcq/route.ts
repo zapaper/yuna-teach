@@ -58,7 +58,8 @@ export async function GET(
     select: {
       id: true, questionNum: true, answer: true, syllabusTopic: true, marksAvailable: true,
       transcribedStem: true, transcribedOptions: true, transcribedOptionImages: true,
-      transcribedSubparts: true, diagramBounds: true, diagramImageData: true,
+      transcribedOptionTable: true, transcribedSubparts: true, diagramBounds: true,
+      diagramImageData: true,
     },
   });
   const hasSaved = questions.some(q => q.transcribedStem || q.diagramImageData || q.transcribedOptionImages);
@@ -78,6 +79,7 @@ export async function PUT(
       stem: string | null;
       options: string[] | null;
       optionImages: string[] | null;
+      optionTable?: { columns: string[]; rows: string[][] } | null;
       subparts: { label: string; text: string }[] | null;
       diagramBounds: { top: number; left: number; bottom: number; right: number } | null;
       diagramImageData: string | null;
@@ -93,6 +95,7 @@ export async function PUT(
           transcribedStem: q.stem,
           transcribedOptions: q.options ?? undefined,
           transcribedOptionImages: q.optionImages ?? undefined,
+          transcribedOptionTable: q.optionTable ?? undefined,
           transcribedSubparts: q.subparts ?? undefined,
           diagramBounds: q.diagramBounds ?? undefined,
           diagramImageData: q.diagramImageData,
@@ -193,14 +196,23 @@ export async function POST(
       const mcq = detectedType === "mcq";
       try {
         if (mcq) {
+          // Science MCQ can additionally come back as a table-
+          // format option set; the math extractor never does. Pull
+          // optionTable from the result when the science variant
+          // chose that shape; otherwise it's null.
           const transcribed = await (isScience ? transcribeScienceMcqQuestion(base64) : transcribeMathMcqQuestion(base64));
+          const optionTable = isScience
+            ? (transcribed as { optionTable?: { columns: string[]; rows: string[][] } | null }).optionTable ?? null
+            : null;
           const diagramBase64 = transcribed.diagram
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
 
-          // Auto-crop option images when Gemini returns option bounding boxes
+          // Auto-crop option images when Gemini returns option
+          // bounding boxes. Skipped when the extractor chose
+          // table-format — table cells are text-only.
           let optionImages: (string | null)[] | null = null;
-          if (transcribed.optionBounds && transcribed.optionBounds.some(b => b !== null)) {
+          if (!optionTable && transcribed.optionBounds && transcribed.optionBounds.some(b => b !== null)) {
             optionImages = await Promise.all(
               transcribed.optionBounds.map(b =>
                 b ? cropDiagram(base64, b).catch(() => null) : null
@@ -216,8 +228,9 @@ export async function POST(
             syllabusTopic: q.syllabusTopic,
             marksAvailable: q.marksAvailable,
             stem: transcribed.stem,
-            options: optionImages ? null : transcribed.options,
+            options: optionTable || optionImages ? null : transcribed.options,
             optionImages,
+            optionTable,
             subparts: null,
             diagramBounds: transcribed.diagram ?? null,
             diagramBase64,
@@ -238,6 +251,7 @@ export async function POST(
             stem: transcribed.stem,
             options: null,
             optionImages: null,
+            optionTable: null,
             subparts: transcribed.subparts,
             diagramBounds: transcribed.diagram ?? null,
             diagramBase64,
@@ -256,6 +270,7 @@ export async function POST(
           stem: null,
           options: null,
           optionImages: null,
+          optionTable: null,
           subparts: null,
           diagramBounds: null,
           diagramBase64: null,

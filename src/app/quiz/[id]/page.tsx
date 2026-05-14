@@ -18,6 +18,10 @@ interface QuizQuestion {
   transcribedStem: string | null;
   transcribedOptions: string[] | null;
   transcribedOptionImages: string[] | null;
+  // Table-format MCQ — for Science questions where the four
+  // options are rows of a comparison table (e.g. "Liquid" vs
+  // "Gas"). Mutually exclusive with the two fields above.
+  transcribedOptionTable: { columns: string[]; rows: string[][] } | null;
   transcribedSubparts: { label: string; text: string; diagramBase64?: string | null }[] | null;
   diagramImageData: string | null;
   marksAvailable: number | null;
@@ -47,11 +51,13 @@ type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
 
 /** MCQ = question has transcribed options (text or images).
  *  An array of 4 entries (even empty) means MCQ — the extraction created option slots. */
-function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown }): boolean {
+function hasQuestionOptions(q: { transcribedOptions?: unknown; transcribedOptionImages?: unknown; transcribedOptionTable?: unknown }): boolean {
   const opts = q.transcribedOptions;
   const imgs = q.transcribedOptionImages;
+  const tbl = q.transcribedOptionTable;
   if (Array.isArray(opts) && opts.length === 4) return true;
   if (Array.isArray(imgs) && imgs.some((o: unknown) => !!o)) return true;
+  if (tbl && typeof tbl === "object" && Array.isArray((tbl as { rows?: unknown }).rows)) return true;
   return false;
 }
 
@@ -1461,7 +1467,9 @@ function McqQuestionCard({
 }) {
   const options = question.transcribedOptions as string[] | null;
   const optionImages = question.transcribedOptionImages as string[] | null;
+  const optionTable = question.transcribedOptionTable as { columns: string[]; rows: string[][] } | null;
   const hasImageOptions = optionImages && optionImages.some(img => img);
+  const hasOptionTable = !!optionTable && Array.isArray(optionTable.rows) && optionTable.rows.length === 4;
 
   const numStr = String(index + 1).padStart(2, "0");
 
@@ -1524,7 +1532,55 @@ function McqQuestionCard({
           )}
 
           {/* Options */}
-          {hasImageOptions ? (
+          {hasOptionTable ? (
+            // Table-format MCQ — each option is a row of the same
+            // comparison table. The leading "Option" column shows
+            // (1)/(2)/(3)/(4) bubbles so picking a row feels the
+            // same as picking a numbered option. Horizontal scroll
+            // on mobile so wide tables don't break the layout.
+            <div className="overflow-x-auto -mx-1">
+              <table className="w-full text-sm border-separate border-spacing-0">
+                <thead>
+                  <tr>
+                    <th className="px-2 py-2 text-left font-bold text-[#001e40] border-b-2 border-[#c3c6d1]/40 w-12">Option</th>
+                    {optionTable!.columns.map((c, i) => (
+                      <th key={i} className="px-3 py-2 text-left font-bold text-[#001e40] border-b-2 border-[#c3c6d1]/40">
+                        <MathText text={c} />
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {optionTable!.rows.map((row, ri) => {
+                    const optVal = String(ri + 1);
+                    const isSelected = selected === optVal;
+                    return (
+                      <tr
+                        key={ri}
+                        onClick={() => onSelect(optVal)}
+                        className={`cursor-pointer transition-colors ${
+                          isSelected
+                            ? "bg-[#dce9ff]"
+                            : "hover:bg-[#eff4ff]"
+                        }`}
+                      >
+                        <td className="px-2 py-3 align-middle border-b border-[#e5eeff]">
+                          <span className={`w-9 h-9 rounded-full flex items-center justify-center font-headline font-bold text-sm ${
+                            isSelected ? "bg-[#001e40] text-white" : "bg-white border border-[#c3c6d1]/40 text-[#001e40]"
+                          }`}>{ri + 1}</span>
+                        </td>
+                        {row.map((cell, ci) => (
+                          <td key={ci} className="px-3 py-3 align-middle text-[#0b1c30] border-b border-[#e5eeff]">
+                            <MathText text={cell} />
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : hasImageOptions ? (
             <div className="grid grid-cols-2 gap-3 lg:gap-4">
               {[0, 1, 2, 3].map(i => {
                 const optVal = String(i + 1);

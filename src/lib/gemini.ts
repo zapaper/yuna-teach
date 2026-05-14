@@ -941,33 +941,48 @@ The image shows ONE question with a question stem and four answer options labele
 
 Your task:
 1. Extract the FULL question stem — include all context, labels, descriptions
-2. Extract all four answer options exactly as printed
+2. Decide HOW the four options are presented and emit ONE of these formats:
+   a) TEXT options — set "options" to four plain strings and "optionTable" to null.
+   b) IMAGE options — set "options" to a short text description per option (e.g. "Diagram showing water cycle") and ALSO provide bounding boxes in "optionBounds".
+   c) TABLE options — when all four options are ROWS of the SAME table comparing 2+ attributes (very common in Science: a column for "Liquid" and a column for "Gas", or "Process" + "Where it happens", etc., with each option being a distinct combination of values). In that case set "options" to null, "optionBounds" to null, and emit:
+        "optionTable": {
+          "columns": ["<header 1>", "<header 2>", ...],
+          "rows": [
+            ["<option (1) value for column 1>", "<option (1) value for column 2>", ...],
+            ["<option (2) ...>"],
+            ["<option (3) ...>"],
+            ["<option (4) ...>"]
+          ]
+        }
+      Rows MUST be exactly 4 (one per option, in order 1→4) and each row's length MUST equal columns.length. The "(1)/(2)/(3)/(4)" labels themselves do NOT go in columns or rows — they are added back by the renderer.
 3. Detect any diagram/figure in the question
 ${DIAGRAM_BOUNDS_INSTRUCTION}
-4. Check if the answer options are IMAGE-BASED (diagrams of apparatus, animals, plants, life cycles, food chains, graphs, etc. that cannot be fully represented as text). If so, return bounding boxes for each option in "optionBounds".
 
 Rules:
 - Do NOT include the question number at the start of the stem (e.g. "21.", "5)", "Q3.") — start with the actual question text
 - Preserve all scientific terms exactly (e.g. "photosynthesis", "condensation", "Newton", "km/h")
 - Include units in options if present (e.g. "60 km/h", "200 g")
-- Do NOT include the "(1)" / "(2)" labels in the option text — just the option content
-- If an option IS a visual/image (diagram, apparatus, organism, graph), put a brief text description in options (e.g. "Diagram showing water cycle") AND provide its bounding box in optionBounds
-- optionBounds: array of 4 bounding boxes, each as { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 } or null if that option is text-only. Set entire array to null if ALL options are plain text.
+- Do NOT include the "(1)" / "(2)" labels in the option text or in any table cell — just the content
+- Pick exactly ONE format. Mixed formats (e.g. half text + half image) are not supported — describe images as text inside cells if needed.
+- optionBounds: array of 4 bounding boxes (only used in IMAGE format), each as { "top": 0-100, "left": 0-100, "bottom": 0-100, "right": 0-100 } or null. Set the array to null for TEXT or TABLE formats.
 
 Return ONLY valid JSON, no markdown fences:
 {
   "stem": "full question text here",
-  "options": ["option 1 text", "option 2 text", "option 3 text", "option 4 text"],
-  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 },
-  "optionBounds": null
-}
-(set "diagram" to null if no diagram, set "optionBounds" to null if all options are plain text)`;
+  "options": ["option 1 text", "option 2 text", "option 3 text", "option 4 text"] | null,
+  "optionTable": null | { "columns": [...], "rows": [[...], [...], [...], [...]] },
+  "diagram": { "top": 10, "left": 5, "bottom": 45, "right": 95 } | null,
+  "optionBounds": null | [bbox|null, bbox|null, bbox|null, bbox|null]
+}`;
+
+export type OptionTable = { columns: string[]; rows: string[][] };
 
 export async function transcribeScienceMcqQuestion(
   imageBase64: string
 ): Promise<{
   stem: string;
-  options: [string, string, string, string];
+  options: [string, string, string, string] | null;
+  optionTable: OptionTable | null;
   diagram: DiagramBounds | null;
   optionBounds: (DiagramBounds | null)[] | null;
 }> {
@@ -989,14 +1004,31 @@ export async function transcribeScienceMcqQuestion(
   const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
   const d = parsed.diagram;
   const ob = parsed.optionBounds;
+  // Validate optionTable shape: 4 rows, each row length == columns.length.
+  // Falls back to null when anything is off so downstream code can use the
+  // text/image branches without nil-checks per cell.
+  let optionTable: OptionTable | null = null;
+  if (parsed.optionTable && typeof parsed.optionTable === "object" && Array.isArray(parsed.optionTable.columns) && Array.isArray(parsed.optionTable.rows)) {
+    const columns = parsed.optionTable.columns.map((c: unknown) => String(c ?? "")).filter((c: string) => c.length > 0);
+    const rows = parsed.optionTable.rows;
+    if (columns.length >= 1 && rows.length === 4 && rows.every((r: unknown) => Array.isArray(r) && r.length === columns.length)) {
+      optionTable = {
+        columns,
+        rows: rows.map((r: unknown[]) => r.map((c: unknown) => String(c ?? ""))),
+      };
+    }
+  }
   return {
     stem: stripQuestionNumber(String(parsed.stem ?? "")),
-    options: [
-      String(parsed.options?.[0] ?? ""),
-      String(parsed.options?.[1] ?? ""),
-      String(parsed.options?.[2] ?? ""),
-      String(parsed.options?.[3] ?? ""),
-    ],
+    options: optionTable
+      ? null
+      : [
+          String(parsed.options?.[0] ?? ""),
+          String(parsed.options?.[1] ?? ""),
+          String(parsed.options?.[2] ?? ""),
+          String(parsed.options?.[3] ?? ""),
+        ],
+    optionTable,
     diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
     optionBounds: Array.isArray(ob)
       ? ob.map((b: unknown) => (b && typeof b === "object") ? { top: +(b as DiagramBounds).top, left: +(b as DiagramBounds).left, bottom: +(b as DiagramBounds).bottom, right: +(b as DiagramBounds).right } : null)

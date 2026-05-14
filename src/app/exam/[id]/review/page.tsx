@@ -92,6 +92,7 @@ interface ReviewQuestion {
   transcribedStem?: string | null;
   transcribedOptions?: string[] | null;
   transcribedOptionImages?: string[] | null;
+  transcribedOptionTable?: { columns: string[]; rows: string[][] } | null;
   transcribedSubparts?: { label: string; text: string; refImageBase64?: string | null; diagramBase64?: string | null }[] | null;
   diagramImageData?: string | null;
 }
@@ -728,7 +729,7 @@ function ExamReviewContent({ id }: { id: string }) {
   // For quiz OEQ: determine submission page index for the current question.
   // Prefer stored oeqPageMap (set at submission time) to avoid mismatches when
   // MCQ/OEQ classification logic changes between quiz-taking and review.
-  const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o));
+  const hasOpts = (q: ReviewQuestion) => (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) || (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o)) || (!!q.transcribedOptionTable && Array.isArray(q.transcribedOptionTable.rows) && q.transcribedOptionTable.rows.length === 4);
   // Math/Science MCQ get the plain "Explanation" label (the elaboration
   // is admin-curated and lives on the master paper). Everything else
   // (English, OEQ on any subject) keeps "AI explanation" since those
@@ -2374,6 +2375,45 @@ function ExamReviewContent({ id }: { id: string }) {
                                   through as a SubmissionImage further down, so
                                   rendering this here just doubles up with a
                                   blank copy. Dropped per parent feedback. */}
+                              {/* MCQ options — table format */}
+                              {currentQ.transcribedOptionTable
+                                && Array.isArray(currentQ.transcribedOptionTable.rows)
+                                && currentQ.transcribedOptionTable.rows.length === 4 && (
+                                <div className="overflow-x-auto rounded-2xl border border-[#e5eeff] mt-2">
+                                  <table className="w-full text-sm border-separate border-spacing-0">
+                                    <thead className="bg-[#eff4ff]">
+                                      <tr>
+                                        <th className="px-2 py-2 text-left font-bold text-[#001e40] w-12">Option</th>
+                                        {currentQ.transcribedOptionTable.columns.map((c, i) => (
+                                          <th key={i} className="px-3 py-2 text-left font-bold text-[#001e40]"><MathText text={c} /></th>
+                                        ))}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {currentQ.transcribedOptionTable.rows.map((row, ri) => {
+                                        const optNum = String(ri + 1);
+                                        const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                                        const isSelected = currentQ.studentAnswer === optNum;
+                                        const rowBg = isOptCorrect ? "bg-[#6cf8bb]/20" : isSelected ? "bg-[#ffdad6]" : "";
+                                        return (
+                                          <tr key={ri} className={rowBg}>
+                                            <td className="px-2 py-3 align-middle border-t border-[#e5eeff]">
+                                              <span className={`w-9 h-9 rounded-full flex items-center justify-center font-headline font-bold text-sm ${
+                                                isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-white border border-[#c3c6d1]/40 text-[#001e40]"
+                                              }`}>{ri + 1}</span>
+                                            </td>
+                                            {row.map((cell, ci) => (
+                                              <td key={ci} className="px-3 py-3 align-middle text-[#0b1c30] border-t border-[#e5eeff]">
+                                                <MathText text={cell} />
+                                              </td>
+                                            ))}
+                                          </tr>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              )}
                               {/* MCQ options — image grid */}
                               {currentQ.transcribedOptionImages && currentQ.transcribedOptionImages.some(img => img) && (
                                 <div className="grid grid-cols-2 gap-3 mt-2">

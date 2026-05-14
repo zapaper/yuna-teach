@@ -21,6 +21,11 @@ type EditQuestion = {
   stem: string;
   options: [string, string, string, string] | null;   // text options
   optionImages: (string | null)[] | null;              // image options (null = not drawn yet)
+  // Table-format MCQ (Science only). When set, options/optionImages
+  // should be null — the four answer choices ARE the rows of this
+  // table. Editing UI is read-only preview for now: admin can re-
+  // extract or clear it; the source of truth is the extractor.
+  optionTable: { columns: string[]; rows: string[][] } | null;
   subparts: SubpartData[] | null;
   diagramBounds: DiagramBounds | null;
   diagramBase64: string | null;
@@ -248,11 +253,12 @@ function TranscribeEditContent({ id }: { id: string }) {
                 transcribedStem: string | null;
                 transcribedOptions: string[] | null;
                 transcribedOptionImages: string[] | null;
+                transcribedOptionTable: { columns: string[]; rows: string[][] } | null;
                 transcribedSubparts: { label: string; text: string }[] | null;
                 diagramBounds: DiagramBounds | null;
                 diagramImageData: string | null;
               }) => {
-                const isMcq = !!(q.transcribedOptions) || !!(q.transcribedOptionImages);
+                const isMcq = !!(q.transcribedOptions) || !!(q.transcribedOptionImages) || !!(q.transcribedOptionTable);
                 return {
                   id: q.id,
                   type: isMcq ? "mcq" as const : "open" as const,
@@ -263,6 +269,7 @@ function TranscribeEditContent({ id }: { id: string }) {
                   stem: q.transcribedStem ?? "",
                   options: q.transcribedOptions as [string, string, string, string] | null,
                   optionImages: q.transcribedOptionImages ?? null,
+                  optionTable: q.transcribedOptionTable ?? null,
                   subparts: (() => {
                     const subs = (q.transcribedSubparts as SubpartData[] | null) ?? null;
                     if (!subs) return null;
@@ -385,8 +392,9 @@ function TranscribeEditContent({ id }: { id: string }) {
             id: q.id,
             answer: q.answer || null,
             stem: q.stem,
-            options: q.optionImages ? null : q.options,
+            options: (q.optionImages || q.optionTable) ? null : q.options,
             optionImages: q.optionImages ?? null,
+            optionTable: q.optionTable ?? null,
             subparts: (() => {
               const base = q.subparts ?? [];
               const sentinels: SubpartData[] = [];
@@ -457,13 +465,27 @@ function TranscribeEditContent({ id }: { id: string }) {
       setQuestions(qs => qs.map(q => {
         if (q.id !== questionId) return q;
         if (data.type === "mcq") {
+          // Re-extract may now come back with optionTable (table-
+          // format MCQ) instead of options. When that happens we
+          // clear the other two option fields so the renderer
+          // picks the table branch unambiguously.
+          const optionTable = data.optionTable && typeof data.optionTable === "object"
+            && Array.isArray(data.optionTable.columns)
+            && Array.isArray(data.optionTable.rows)
+            && data.optionTable.rows.length === 4
+              ? data.optionTable as { columns: string[]; rows: string[][] }
+              : null;
           return {
             ...q,
             type: "mcq",
             stem: typeof data.stem === "string" ? data.stem : q.stem,
-            options: Array.isArray(data.options) && data.options.length === 4
-              ? (data.options as [string, string, string, string])
-              : q.options,
+            options: optionTable
+              ? null
+              : Array.isArray(data.options) && data.options.length === 4
+                ? (data.options as [string, string, string, string])
+                : q.options,
+            optionImages: optionTable ? null : q.optionImages,
+            optionTable,
             subparts: null,
           };
         }
@@ -800,6 +822,7 @@ function QuestionCard({
 }) {
   const isMcq = q.type === "mcq";
   const imageOptionsMode = !!(q.optionImages);
+  const tableMode = !!(q.optionTable);
   const [drawTarget, setDrawTarget] = useState<DrawTarget>("diagram");
 
   // Build overlay boxes for the drawable image
@@ -963,20 +986,62 @@ function QuestionCard({
           {isMcq && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Options</label>
-                <button
-                  onClick={() => onToggleOptionImages(!imageOptionsMode)}
-                  className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
-                    imageOptionsMode
-                      ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-                      : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
-                  }`}
-                >
-                  {imageOptionsMode ? "Images mode" : "Text mode"} — switch
-                </button>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Options{tableMode ? " — table format" : ""}
+                </label>
+                {!tableMode && (
+                  <button
+                    onClick={() => onToggleOptionImages(!imageOptionsMode)}
+                    className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-colors ${
+                      imageOptionsMode
+                        ? "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                        : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                    }`}
+                  >
+                    {imageOptionsMode ? "Images mode" : "Text mode"} — switch
+                  </button>
+                )}
+                {tableMode && (
+                  <button
+                    onClick={() => onUpdate({ optionTable: null, options: ["", "", "", ""] })}
+                    className="text-xs px-2.5 py-1 rounded-lg border bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100"
+                    title="Discard the table and switch back to text options"
+                  >
+                    Clear table → text
+                  </button>
+                )}
               </div>
 
-              {imageOptionsMode ? (
+              {tableMode && q.optionTable ? (
+                // Read-only preview. Editing is intentionally not
+                // exposed in v1 — admin re-extracts to update, or
+                // clears the table to fall back to text options.
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                  <table className="w-full text-xs">
+                    <thead className="bg-slate-50">
+                      <tr>
+                        <th className="px-2 py-2 text-left font-semibold text-slate-500 border-b border-slate-200 w-10">Opt</th>
+                        {q.optionTable.columns.map((c, i) => (
+                          <th key={i} className="px-2 py-2 text-left font-semibold text-slate-500 border-b border-slate-200">{c}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {q.optionTable.rows.map((row, ri) => {
+                        const isAnswer = String(ri + 1) === normalizeAnswer(q.answer);
+                        return (
+                          <tr key={ri} className={isAnswer ? "bg-green-50" : ""}>
+                            <td className="px-2 py-1.5 border-t border-slate-100 font-mono text-slate-500">({ri + 1}){isAnswer && " ✓"}</td>
+                            {row.map((cell, ci) => (
+                              <td key={ci} className="px-2 py-1.5 border-t border-slate-100 text-slate-700">{cell}</td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : imageOptionsMode ? (
                 // Image options: 2×2 grid (options 1&2 on row 1, 3&4 on row 2)
                 <div className="grid grid-cols-2 gap-2">
                   {[0, 1, 2, 3].map(i => {

@@ -34,7 +34,14 @@ export async function POST(request: NextRequest) {
   try {
     const detectedType = await detectQuestionType(base64);
     if (detectedType === "mcq") {
-      const r = await (isScience ? transcribeScienceMcqQuestion(base64) : transcribeMathMcqQuestion(base64));
+      if (isScience) {
+        // Science MCQ extractor can also emit table-format options.
+        // Forward whichever shape it chose — the caller (transcribe-
+        // edit) inspects optionTable first, then options.
+        const r = await transcribeScienceMcqQuestion(base64);
+        return NextResponse.json({ type: "mcq", stem: r.stem, options: r.options, optionTable: r.optionTable });
+      }
+      const r = await transcribeMathMcqQuestion(base64);
       return NextResponse.json({ type: "mcq", stem: r.stem, options: r.options });
     } else {
       const r = await (isScience ? transcribeScienceOpenEndedQuestion(base64) : transcribeMathOpenEndedQuestion(base64));
