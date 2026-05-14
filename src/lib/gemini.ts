@@ -957,6 +957,14 @@ Your task:
           ]
         }
       Rows MUST be exactly 4 (one per option, in order 1→4) and each row's length MUST equal columns.length. The "(1)/(2)/(3)/(4)" labels themselves do NOT go in columns or rows — they are added back by the renderer.
+
+   TABLE DETECTION CHECKLIST — pick TABLE format if ALL of these are true:
+   - The image shows a literal grid with visible borders / horizontal rules between options.
+   - There is a HEADER ROW above the options with 2+ column labels (e.g. "Process" + "Example", or "X" + "Y" + "Z").
+   - Each of the four options (1)/(2)/(3)/(4) occupies its own row and has a value in EACH column.
+   - It would be unnatural to collapse a row into one comma-separated sentence, because the columns name distinct attributes the question is asking the student to compare.
+   When in doubt and a header row is present with 2+ columns, PREFER TABLE over TEXT. DO NOT collapse a real table into a TEXT array of comma-separated strings — that loses the column structure the renderer needs to redraw the table for the student.
+
 3. Detect any diagram/figure in the question
 ${DIAGRAM_BOUNDS_INSTRUCTION}
 
@@ -989,7 +997,11 @@ export async function transcribeScienceMcqQuestion(
   optionBounds: (DiagramBounds | null)[] | null;
 }> {
   const response = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
+    // 3-flash-preview reads table grids more reliably than 2.5-flash —
+    // 2.5 was collapsing real tables into comma-separated TEXT options
+    // when the column headers were small, especially on the bulk
+    // first-time extraction pass.
+    model: "gemini-3-flash-preview",
     contents: [
       {
         role: "user",
