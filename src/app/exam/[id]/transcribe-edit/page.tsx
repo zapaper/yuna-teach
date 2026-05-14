@@ -1236,13 +1236,35 @@ function QuestionCard({
           {/* Open-ended subparts */}
           {!isMcq && q.subparts && q.subparts.length > 0 && (
             <div className="space-y-2 mt-2">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Sub-parts</label>
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Sub-parts</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!confirm(`Clear ALL ${q.subparts!.length} sub-part(s) on Q${q.questionNum}? You can then Re-extract to repopulate, or leave it empty if this question has no sub-parts.`)) return;
+                    onUpdate({ subparts: null });
+                  }}
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors"
+                  title="Wipe all sub-parts on this question — use when legacy data has duplicate labels or you want to start over before Re-extract"
+                >
+                  Clear all
+                </button>
+              </div>
               {q.subparts.map((sp, i) => {
                 // Parse marks from text suffix like "[2]"
                 const marksMatch = sp.text.match(/\[(\d+)\s*(?:m(?:ark)?s?)?\]\s*$/i);
                 const spMarks = marksMatch ? marksMatch[1] : "";
+                // Key MUST include the index. Some legacy paper data
+                // has duplicate labels like ["i","ii","b","i","ii"]
+                // (flattened compound (a)(i)/(a)(ii)/(b)(i)/(b)(ii)
+                // without the prefix). With key={sp.label} React's
+                // reconciler treats both "i" entries as the same DOM
+                // node — delete on the second one is a no-op, and
+                // Re-extract appears to "add on" rows because old
+                // and new collide during reconciliation. Index +
+                // label is stable AND unique.
                 return (
-                <div key={sp.label} className="rounded-xl bg-white border border-amber-100 px-3 py-2">
+                <div key={`${i}-${sp.label}`} className="rounded-xl bg-white border border-amber-100 px-3 py-2">
                   <div className="flex items-start gap-2">
                     <span className="font-mono text-xs text-amber-600 mt-2 shrink-0">{formatSubpartLabel(sp.label)}</span>
                     <textarea
