@@ -3870,6 +3870,25 @@ WORKED EXAMPLE (notes style):
   GOOD notes: "Correctly captured that **F blocks light**, but did not explain that **plant F grew to cover the surface**, that **plant G could not photosynthesise**, or that **plant G died**. −1.5 across three missing points."
   BAD notes (FORBIDDEN): "Starting 2/2. Missing Plant F grew to cover the surface (-0.5), Plant G could not photosynthesise (-0.5), and died (-0.5). Awarded 0.5/2."
 
+LABELLED-LIST ANSWERS (IMPORTANT — special case):
+When a part's answer key takes the form "<LABEL>: <value> | <LABEL>: <value> | <LABEL>: <value>" — for example "A: nose | B: windpipe | C: lungs", "P: heart | Q: lung", "1: oxygen | 2: carbon dioxide", or "X: evaporation | Y: condensation" — EACH labelled entry is a SEPARATE marking point. The student must provide a correct label for EACH item, not just one.
+- Within a single label, "/" separates ACCEPTABLE alternatives (e.g. "nose / nostril" = nose OR nostril is accepted for that one label).
+- Between labels, "|" separates SEPARATE labels the student must each get right.
+
+SCORING for labelled-list answers (apply STRICTLY, override the general 0.5-deduction rule for this pattern):
+- 1-mark part with N labels (N ≥ 2): all-or-nothing within rounding. Each label is worth 1/N. Sum correct labels and round DOWN to the nearest 0.5. Concretely:
+    N=2: 1/2 correct → 0.5; 2/2 → 1; 0/2 → 0.
+    N=3: 1/3 correct → 0 (0.33 rounds down to 0); 2/3 → 0.5; 3/3 → 1.
+    N=4: 1/4 → 0; 2/4 → 0.5; 3/4 → 0.5; 4/4 → 1.
+  DO NOT award the full 1 mark unless ALL labels are correct.
+- 2-mark part with N labels: each label worth 2/N. Sum and round DOWN to nearest 0.5.
+- 3-mark or higher with N labels: each label worth marksAvailable/N. Standard rounding.
+
+WORKED EXAMPLE — labelled list:
+  Part (a) — "Name the parts A, B and C [1 mark]." Answer key "A: nose / nostril | B: windpipe | C: lungs / lung." Student wrote "lung" for C only (B and A left blank).
+  Correct labels = 1/3. Score = floor(1/3 × 1 to nearest 0.5) = 0. Awarded 0 mark(s).
+  GOOD notes: "Correctly identified **lungs** for C, but did not name **nose/nostril** for A or **windpipe** for B. With only 1 of 3 labels correct, no marks are awarded for this 1-mark part."
+
 KEY-TERM REQUIREMENT (IMPORTANT):
 When the expected answer contains a specific scientific TERM that names the underlying concept being tested (e.g. fertilisation, photosynthesis, chlorophyll, evaporation, condensation, respiration, germination, pollination, dissolved, freezing, melting, gravity, friction, conductor, insulator, transparent, opaque, food chain, predator, prey, habitat, community, population, ecosystem, organism, producer, consumer, decomposer, ovum, ovule, sperm, pollen), the student's answer MUST contain that exact term (or a recognised scientific equivalent — NOT a vague everyday paraphrase).
 - 'fertilisation' must appear as 'fertilisation' / 'fertilization'. 'joining of male and female cells' is NOT a substitute — it describes the process but doesn't name it. Mark 0 for that concept.
