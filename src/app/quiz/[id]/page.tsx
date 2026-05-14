@@ -1533,18 +1533,20 @@ function McqQuestionCard({
 
           {/* Options */}
           {hasOptionTable ? (
-            // Table-format MCQ — each option is a row of the same
-            // comparison table. The leading "Option" column shows
-            // (1)/(2)/(3)/(4) bubbles so picking a row feels the
-            // same as picking a numbered option. Horizontal scroll
-            // on mobile so wide tables don't break the layout.
-            <div className="overflow-x-auto -mx-1">
-              <table className="w-full text-sm border-separate border-spacing-0">
-                <thead>
+            // Table-format MCQ. Each of the four rows IS one option —
+            // tapping a row selects it the same way numbered MCQ
+            // buttons do elsewhere. Font sizes match the question
+            // stem (text-base lg:text-lg) so the comparison table
+            // doesn't look like a smaller-print footnote. Horizontal
+            // scroll only kicks in when the column count or content
+            // overflows.
+            <div className="overflow-x-auto -mx-1 rounded-2xl border border-[#e5eeff]">
+              <table className="w-full text-base lg:text-lg border-separate border-spacing-0">
+                <thead className="bg-[#eff4ff]">
                   <tr>
-                    <th className="px-2 py-2 text-left font-bold text-[#001e40] border-b-2 border-[#c3c6d1]/40 w-12">Option</th>
+                    <th className="px-3 py-3 text-left font-headline font-bold text-[#001e40] w-16">Option</th>
                     {optionTable!.columns.map((c, i) => (
-                      <th key={i} className="px-3 py-2 text-left font-bold text-[#001e40] border-b-2 border-[#c3c6d1]/40">
+                      <th key={i} className="px-4 py-3 text-left font-headline font-bold text-[#001e40]">
                         <MathText text={c} />
                       </th>
                     ))}
@@ -1558,19 +1560,22 @@ function McqQuestionCard({
                       <tr
                         key={ri}
                         onClick={() => onSelect(optVal)}
-                        className={`cursor-pointer transition-colors ${
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(optVal); } }}
+                        className={`cursor-pointer transition-all border-t border-[#e5eeff] ${
                           isSelected
-                            ? "bg-[#dce9ff]"
+                            ? "bg-[#dce9ff] ring-2 ring-inset ring-[#001e40]/30"
                             : "hover:bg-[#eff4ff]"
                         }`}
                       >
-                        <td className="px-2 py-3 align-middle border-b border-[#e5eeff]">
-                          <span className={`w-9 h-9 rounded-full flex items-center justify-center font-headline font-bold text-sm ${
-                            isSelected ? "bg-[#001e40] text-white" : "bg-white border border-[#c3c6d1]/40 text-[#001e40]"
+                        <td className="px-3 py-4 align-middle">
+                          <span className={`w-11 h-11 rounded-full flex items-center justify-center font-headline font-bold text-base ${
+                            isSelected ? "bg-[#001e40] text-white" : "bg-white border-2 border-[#c3c6d1]/40 text-[#001e40]"
                           }`}>{ri + 1}</span>
                         </td>
                         {row.map((cell, ci) => (
-                          <td key={ci} className="px-3 py-3 align-middle text-[#0b1c30] border-b border-[#e5eeff]">
+                          <td key={ci} className="px-4 py-4 align-middle text-[#0b1c30] font-medium">
                             <MathText text={cell} />
                           </td>
                         ))}

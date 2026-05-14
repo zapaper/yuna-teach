@@ -1507,7 +1507,12 @@ function ExamReviewContent({ id }: { id: string }) {
               // lg+ — passage on the left, questions/answers on the
               // right, each pane scrolls independently. Below lg the
               // existing single-column stacked layout is preserved.
-              const useSplitScreen = isCompOeq || isVisualText;
+              // Visual Text used to be split-screen too, but the
+              // questions column got squeezed on tablets (~410 px
+              // wide) and the MCQ options ran into each other.
+              // Reverted to grammar-cloze-style single-column so the
+              // visual passes use the full content width.
+              const useSplitScreen = isCompOeq;
               // Position-based mapping for cloze / editing markers in
               // the passage. Each `**(N)**` token in the passage
               // corresponds to the i-th question in the section

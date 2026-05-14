@@ -368,7 +368,17 @@ function TranscribeEditContent({ id }: { id: string }) {
       if (q.type === "mcq") {
         const hasText = !!q.options && q.options.every(o => String(o ?? "").trim().length > 0);
         const hasImages = !!q.optionImages && q.optionImages.some(o => !!o);
-        if (!hasText && !hasImages) problems.push(`Q${q.questionNum}: MCQ with no options (neither text nor image crops)`);
+        // Table-format MCQ counts as having options too — the four
+        // rows ARE the options. Previously these were flagged as
+        // "no text" because transcribedOptions/transcribedOptionImages
+        // are intentionally null in table mode.
+        const hasTable = !!q.optionTable
+          && Array.isArray(q.optionTable.rows) && q.optionTable.rows.length === 4
+          && Array.isArray(q.optionTable.columns) && q.optionTable.columns.length >= 1
+          && q.optionTable.rows.every(r => Array.isArray(r) && r.length === q.optionTable!.columns.length);
+        if (!hasText && !hasImages && !hasTable) {
+          problems.push(`Q${q.questionNum}: MCQ with no options (text, image, or table)`);
+        }
       }
       if (q.type === "open" && !q.answer?.trim()) problems.push(`Q${q.questionNum}: open-ended with no answer`);
     }
