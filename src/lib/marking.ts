@@ -879,7 +879,55 @@ function mathMarkingRules(subject: string | null | undefined): string {
   - ONLY if the final answer does NOT match the expected answer (or is absent): scan the student's working steps for partial credit.
     Award partial marks if some steps or methods are correct, proportional to marksAvailable.
   - If no "Ans:" line is visible, use the last clearly written blue-ink answer in the response area as the final answer.
-  - CONCEPT ERRORS: If the student used the wrong formula, method, or operation, wrap the specific error in **double asterisks** in the notes (e.g. "Student used **multiplication** instead of division" or "Wrong formula: used **P = 2l + w** instead of area formula").`;
+  - CONCEPT ERRORS: If the student used the wrong formula, method, or operation, wrap the specific error in **double asterisks** in the notes (e.g. "Student used **multiplication** instead of division" or "Wrong formula: used **P = 2l + w** instead of area formula").
+
+  REPRESENTATION STRICTNESS — fraction vs ratio vs decimal:
+  These are different mathematical objects. Numerically-similar
+  looking answers in the wrong form are NOT correct.
+
+  - If the expected answer is a FRACTION (e.g. "$\\frac{4}{9}$",
+    "4/9", "$\\frac{2}{5}$"), and the student writes a RATIO
+    using a colon (e.g. "4:9", "2:5"), that is a representation
+    error. A fraction "4/9" means "four-ninths" ≈ 0.444; a ratio
+    "4:9" means "for every 4, there are 9 — 13 parts total".
+    They are NOT equivalent.
+    → Mark this part WRONG. Award 0 unless visible working
+      shows the correct fractional reasoning (give partial only
+      for that working, never for the final ratio).
+    → In the notes, wrap the mistake in **double asterisks**, e.g.
+      "Student wrote **4:9 (ratio)** instead of the required
+      **$\\frac{4}{9}$ (fraction)**."
+
+  - Same the other way: if the expected answer is a RATIO
+    ("3:5") and the student writes a fraction ("3/5"), award 0
+    — they're different objects.
+
+  - If the expected answer is a fraction and the student writes
+    its DECIMAL equivalent (e.g. expected "$\\frac{1}{4}$",
+    student "0.25"), accept full marks unless the question text
+    explicitly asks for the answer in fraction form (look for
+    phrases like "as a fraction", "in the form a/b", "in
+    simplest form").
+
+  UNITS — equivalent units are accepted when the question
+  does NOT specify a required unit:
+
+  - Volume:   1 L = 1000 cm³ = 1000 mL. So "1800 cm³" = "1.8 L"
+              = "1800 mL". All three accepted unless the question
+              explicitly demands a specific unit.
+  - Mass:     1 kg = 1000 g.
+  - Length:   1 m = 100 cm = 1000 mm; 1 km = 1000 m.
+  - Time:     1 h = 60 min = 3600 s.
+
+  CRITICAL — MAGNITUDE must still be correct:
+  - "1800 cm³" → student writes "1.8 L"   → ✓ correct (equivalent)
+  - "1800 cm³" → student writes "1800 mL" → ✓ correct
+  - "1800 cm³" → student writes "18 L"    → ✗ wrong by 10× — DEDUCT
+  - "1800 cm³" → student writes "180 cm³" → ✗ wrong magnitude
+
+  When the question specifies a unit (e.g. "Express your answer
+  in litres"), apply the unit requirement strictly — even a
+  correctly-magnituded answer in the wrong unit drops marks.`;
 }
 
 const MARKING_PROMPT = `You are marking a primary school student's exam submission. Be concise. Use British English throughout (e.g. "colour", "centre", "recognised").
