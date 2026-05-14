@@ -2385,17 +2385,26 @@ function ExamReviewContent({ id }: { id: string }) {
                                   through as a SubmissionImage further down, so
                                   rendering this here just doubles up with a
                                   blank copy. Dropped per parent feedback. */}
-                              {/* MCQ options — table format */}
+                              {/* MCQ options — table format. Matches the
+                                  quiz-player style: black 2-px borders on
+                                  every cell (border-collapse), header in a
+                                  light fill, rows tinted by outcome (green
+                                  for correct row, red for the student's
+                                  pick when wrong). Radio in the leading
+                                  column with the option number so the
+                                  student's pick is unmistakable. */}
                               {currentQ.transcribedOptionTable
                                 && Array.isArray(currentQ.transcribedOptionTable.rows)
                                 && currentQ.transcribedOptionTable.rows.length === 4 && (
-                                <div className="overflow-x-auto rounded-2xl border border-[#e5eeff] mt-2">
-                                  <table className="w-full text-sm border-separate border-spacing-0">
-                                    <thead className="bg-[#eff4ff]">
+                                <div className="overflow-x-auto mt-2">
+                                  <table className="w-full text-base lg:text-lg border-collapse border-2 border-black">
+                                    <thead className="bg-slate-50">
                                       <tr>
-                                        <th className="px-2 py-2 text-left font-bold text-[#001e40] w-12">Option</th>
+                                        <th className="px-3 py-3 text-left font-headline font-bold text-black border-2 border-black w-20">Option</th>
                                         {currentQ.transcribedOptionTable.columns.map((c, i) => (
-                                          <th key={i} className="px-3 py-2 text-left font-bold text-[#001e40]"><MathText text={c} /></th>
+                                          <th key={i} className="px-4 py-3 text-left font-headline font-bold text-black border-2 border-black">
+                                            <MathText text={c} />
+                                          </th>
                                         ))}
                                       </tr>
                                     </thead>
@@ -2404,16 +2413,22 @@ function ExamReviewContent({ id }: { id: string }) {
                                         const optNum = String(ri + 1);
                                         const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
                                         const isSelected = currentQ.studentAnswer === optNum;
-                                        const rowBg = isOptCorrect ? "bg-[#6cf8bb]/20" : isSelected ? "bg-[#ffdad6]" : "";
+                                        const rowBg = isOptCorrect ? "bg-[#6cf8bb]/30" : isSelected ? "bg-[#ffdad6]" : "";
                                         return (
                                           <tr key={ri} className={rowBg}>
-                                            <td className="px-2 py-3 align-middle border-t border-[#e5eeff]">
-                                              <span className={`w-9 h-9 rounded-full flex items-center justify-center font-headline font-bold text-sm ${
-                                                isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-white border border-[#c3c6d1]/40 text-[#001e40]"
-                                              }`}>{ri + 1}</span>
+                                            <td className="px-3 py-3 align-middle border-2 border-black">
+                                              <div className="flex items-center gap-2">
+                                                <input
+                                                  type="radio"
+                                                  checked={isSelected}
+                                                  readOnly
+                                                  className={`w-5 h-5 pointer-events-none ${isOptCorrect ? "accent-[#006c49]" : isSelected ? "accent-[#ba1a1a]" : "accent-[#001e40]"}`}
+                                                />
+                                                <span className={`font-headline font-bold text-base ${isOptCorrect ? "text-[#006c49]" : isSelected ? "text-[#ba1a1a]" : "text-black"}`}>({ri + 1})</span>
+                                              </div>
                                             </td>
                                             {row.map((cell, ci) => (
-                                              <td key={ci} className="px-3 py-3 align-middle text-[#0b1c30] border-t border-[#e5eeff]">
+                                              <td key={ci} className="px-4 py-3 align-middle text-[#0b1c30] font-medium border-2 border-black">
                                                 <MathText text={cell} />
                                               </td>
                                             ))}
