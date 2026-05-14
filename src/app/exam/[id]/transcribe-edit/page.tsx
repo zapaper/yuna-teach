@@ -3,6 +3,7 @@
 import { Suspense, use, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DiagramEditor from "@/components/DiagramEditor";
+import { formatSubpartLabel } from "@/lib/subpart-label";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -462,13 +463,17 @@ function TranscribeEditContent({ id }: { id: string }) {
       });
       const data = await res.json();
       if (!res.ok) { alert(data.error ?? "Re-extract failed"); return; }
+      // Log the raw response so future bug reports have data.
+      // The user has reported "subparts added on instead of
+      // replaced" and "labels reverted from a-i to i" — without
+      // a visible trace of what the extractor actually returned
+      // we can't tell whether the AI is ignoring the new prompt
+      // or whether the editor merge logic is wrong.
+      console.log("[re-extract] response for", questionId, JSON.stringify(data, null, 2));
       setQuestions(qs => qs.map(q => {
         if (q.id !== questionId) return q;
         if (data.type === "mcq") {
-          // Re-extract may now come back with optionTable (table-
-          // format MCQ) instead of options. When that happens we
-          // clear the other two option fields so the renderer
-          // picks the table branch unambiguously.
+          // MCQ branch — drop all OEQ state.
           const optionTable = data.optionTable && typeof data.optionTable === "object"
             && Array.isArray(data.optionTable.columns)
             && Array.isArray(data.optionTable.rows)
@@ -489,13 +494,24 @@ function TranscribeEditContent({ id }: { id: string }) {
             subparts: null,
           };
         }
+        // OEQ branch — UNCONDITIONALLY replace subparts with the
+        // extractor's output. Previously we kept the old subparts
+        // when the response was empty; that hid bugs where the
+        // model returned [] and the user thought re-extract was
+        // a no-op while really we silently preserved stale data.
+        // If the response is empty, set null — same as a fresh
+        // OEQ with no parts yet.
+        const newSubparts = Array.isArray(data.subparts) && data.subparts.length > 0
+          ? data.subparts as SubpartData[]
+          : null;
         return {
           ...q,
           type: "open",
           stem: typeof data.stem === "string" ? data.stem : q.stem,
-          subparts: Array.isArray(data.subparts) && data.subparts.length > 0
-            ? data.subparts
-            : q.subparts,
+          options: null,
+          optionImages: null,
+          optionTable: null,
+          subparts: newSubparts,
         };
       }));
     } catch (e) {
@@ -870,7 +886,7 @@ function QuestionCard({
         <button
           onClick={onReExtract}
           disabled={reExtracting}
-          title="Run OCR again on this question's image — useful after a prompt change (e.g. restoring (a)(i) hierarchy). Review and Save to persist."
+          title="Re-run the OCR extractor on this question's image. Works for both MCQ and OEQ — for Science MCQ, will detect and emit table-format options if the question's choices are rows of a comparison table; for OEQ, will restore (a)(i)/(a)(ii) compound hierarchy. Review and Save to persist."
           className="ml-auto text-[10px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors disabled:opacity-50"
         >
           {reExtracting ? "Extracting…" : "Re-extract"}
@@ -1150,7 +1166,7 @@ function QuestionCard({
                 return (
                 <div key={sp.label} className="rounded-xl bg-white border border-amber-100 px-3 py-2">
                   <div className="flex items-start gap-2">
-                    <span className="font-mono text-xs text-amber-600 mt-2 shrink-0">({sp.label})</span>
+                    <span className="font-mono text-xs text-amber-600 mt-2 shrink-0">{formatSubpartLabel(sp.label)}</span>
                     <textarea
                       value={sp.text}
                       onChange={e => onUpdateSubpart(i, e.target.value)}
@@ -1177,7 +1193,7 @@ function QuestionCard({
                         onUpdate({ subparts: newSubs.length > 0 ? newSubs : null });
                       }}
                       className="text-red-300 hover:text-red-500 shrink-0 mt-2"
-                      title={`Delete (${sp.label})`}
+                      title={`Delete ${formatSubpartLabel(sp.label)}`}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                     </button>
