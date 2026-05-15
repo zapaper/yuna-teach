@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { isCompOeqLabel } from "./english-sections";
 
 let _ai: GoogleGenAI | null = null;
 function getAI() {
@@ -3460,7 +3461,7 @@ export async function analyzeExamBatch(
           const secLabel = sec.name || sec.type;
 
           // Step 1: OCR — extract clean text from all section pages
-          const isCompOEQSec = secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open");
+          const isCompOEQSec = isCompOeqLabel(secLabel);
           const isVisualTextSec = secLabel.toLowerCase().includes("visual text");
           const visualPagesForVT: number[] = isVisualTextSec ? ((sec as { visualPages?: number[] }).visualPages ?? []) : [];
           // Get passage pages from structure analysis (or fall back to auto-detection)
@@ -3562,9 +3563,10 @@ Rules:
     Place this marker INLINE in the passage text where the blank appears: "... word **(29)________** word ..."
     Look for the blank lines FIRST (they are the questions), then read the number printed below/beside each blank.
   * This cloze formatting applies ONLY to Grammar Cloze and Comprehension Cloze sections.
-    For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
-    For Vocabulary Cloze MCQ where an UNDERLINED WORD replaces the blank (student must find the most similar word): use double underscores to mark the underlined word: "... word **(16) __highlighted__** word ..." — the __double underscores__ render as underlined text in the UI.
-    CRITICAL FOR VOCAB CLOZE MCQ: output ONLY the passage with the inline **(N)________** (or **(N) __word__**) markers. STOP at the end of the passage. DO NOT append the list of questions and answer options that appears below the passage on the page — e.g. lines like "16. (1) library (2) market (3) park (4) cinema" must NOT be in the output. Those options are extracted and stored on each question separately; duplicating them under the passage shows them twice in the quiz UI.
+    For Vocabulary Cloze MCQ, mark each blank inline by bolding just the underscores — DO NOT include a question number: "... word **________** word ..." (eight underscores between two asterisks). The renderer maps the Nth bold-blank in the passage to the Nth question, so the question number must NOT appear next to the blank.
+    For Vocabulary Cloze MCQ where an UNDERLINED WORD replaces the blank (student must find the most similar word): bold-wrap the word in double underscores WITHOUT a question number: "... word **__highlighted__** word ..." — the __double underscores__ render as underlined text in the UI.
+    CRITICAL FOR VOCAB CLOZE MCQ: output ONLY the passage with the inline **________** (or **__word__**) markers. STOP at the end of the passage. DO NOT append the list of questions and answer options that appears below the passage on the page — e.g. lines like "16. (1) library (2) market (3) park (4) cinema" must NOT be in the output. Those options are extracted and stored on each question separately; duplicating them under the passage shows them twice in the quiz UI. ALSO do not put "(16)", "(17)" etc anywhere next to the blanks — the number is rendered by the UI from the question card, not the passage.
+    For Vocabulary MCQ (the standalone questions WITHOUT a passage, Q11-15): each question stem may contain a blank where the missing word goes. Render this blank as plain underscores in the stem text: "The boy was ______ to school." Do NOT bold the blank, do NOT prefix it with the question number, do NOT use the **(N)________** marker syntax — that syntax is reserved for cloze-passage blanks.
   * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title, etc.
     Only include the passage text, word bank, and questions. Remove all administrative text.
 - For EDITING sections: the passage contains UNDERLINED+BOLDED error words with numbered answer boxes nearby.

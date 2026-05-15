@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 import { guardCanAssign } from "@/lib/subscription";
+import { isCompOeqLabel } from "@/lib/english-sections";
 
 /** MCQ = question has transcribed options (text, images, or
  *  table). An array of 4 entries (even empty) means MCQ — the
@@ -640,7 +641,7 @@ export async function POST(request: NextRequest) {
       "editing": t => t.includes("editing"),
       "comprehension-cloze": t => t.includes("comprehension") && t.includes("cloze"),
       "synthesis": t => t.includes("synthesis"),
-      "comprehension-oeq": t => t.includes("comprehension") && (t.includes("open") || t.includes("oeq")),
+      "comprehension-oeq": t => isCompOeqLabel(t),
     };
 
     // Fixed order: MCQ sections first (Vocab Cloze, Visual Text), then OEQ sections
@@ -775,7 +776,7 @@ export async function POST(request: NextRequest) {
       "editing": ["Editing", "Editing (Spelling & Grammar)", "Editing for Spelling and Grammar", "Editing (Spelling and Grammar)"],
       "comprehension-cloze": ["Comprehension Cloze"],
       "synthesis": ["Synthesis & Transformation", "Synthesis"],
-      "comprehension-oeq": ["Comprehension OEQ", "Comprehension Open Ended", "Comprehension (Open-ended)"],
+      "comprehension-oeq": ["Comprehension OEQ", "Comprehension Open Ended", "Comprehension OE", "Comprehension (Open-ended)"],
     };
 
     for (const group of extraSectionGroups) {
@@ -800,8 +801,7 @@ export async function POST(request: NextRequest) {
             const ocrKeys = Object.keys(meta.sectionOcrTexts);
             console.log(`[English Quiz] Comp OEQ: sectionOcrTexts keys = [${ocrKeys.join(", ")}]`);
             for (const [secName, secData] of Object.entries(meta.sectionOcrTexts)) {
-              const sl = secName.toLowerCase();
-              if (sl.includes("comprehension") && (sl.includes("open") || sl.includes("oeq"))) {
+              if (isCompOeqLabel(secName)) {
                 const fullData = secData as Record<string, unknown>;
                 console.log(`[English Quiz] Comp OEQ: matched "${secName}", keys = [${Object.keys(fullData).join(", ")}]`);
                 const passageText = fullData.passageOcrText as string | undefined;

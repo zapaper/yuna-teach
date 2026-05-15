@@ -7,6 +7,7 @@ import EnglishQuizSection from "@/components/EnglishQuizSection";
 import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playPointChime, playClick } from "@/lib/sfx";
 import { formatSubpartLabel } from "@/lib/subpart-label";
+import { isCompOeqLabel } from "@/lib/english-sections";
 
 /* ────────────── types ────────────── */
 
@@ -369,7 +370,7 @@ function QuizContent({ id }: { id: string }) {
       const isTyped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
         label.includes("visual text") || label.includes("synthesis") ||
-        label.includes("comprehension oeq") || label.includes("comp oeq") || label.includes("comprehension open");
+        isCompOeqLabel(label);
       if (isTyped) {
         for (let i = sec.startIndex; i <= sec.endIndex; i++) {
           if (paper.questions[i]) typedSectionQIds.add(paper.questions[i].id);
@@ -564,7 +565,7 @@ function QuizContent({ id }: { id: string }) {
       if (paper!.metadata?.englishSections) {
         for (const sec of (paper!.metadata.englishSections as Array<{ label: string; startIndex: number; endIndex: number }>)) {
           const l = sec.label.toLowerCase();
-          if (l.includes("synthesis") || l.includes("comprehension oeq") || l.includes("comp oeq") || l.includes("comprehension open")) {
+          if (l.includes("synthesis") || isCompOeqLabel(l)) {
             for (let i = sec.startIndex; i <= sec.endIndex; i++) {
               if (paper!.questions[i]) aiMarkSectionLabels.add(paper!.questions[i].id);
             }
@@ -1030,7 +1031,7 @@ function QuizContent({ id }: { id: string }) {
                   const isCompCloze = label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze"));
                   const isVisualText = label.includes("visual text");
                   const isSynthesis = label.includes("synthesis");
-                  const isCompOeq = label.includes("comprehension oeq") || label.includes("comp oeq") || label.includes("comprehension open");
+                  const isCompOeq = isCompOeqLabel(label);
                   const isTypedSection = isGrammarCloze || isEditing || isCompCloze || isVisualText;
 
                   // Split-screen gating ONLY applies on lg+ (desktop).
@@ -1159,20 +1160,34 @@ function QuizContent({ id }: { id: string }) {
                                 </div>
                               );
                             }
-                            // Rich text: replace **(N)text** with styled blanks
+                            // Rich text: replace bold blanks with styled blanks.
+                            // Accepts BOTH the new numberless format
+                            // "**________**" / "**__word__**" and the
+                            // legacy numbered format "**(N)________**" /
+                            // "**(N) __word__**" so existing papers
+                            // still render correctly. The question
+                            // number badge is no longer shown next to
+                            // the blank — each question is presented
+                            // separately below the passage with its own
+                            // number, so duplicating it inline was just
+                            // noise.
                             const parts: React.ReactNode[] = [];
-                            const regex = /\*\*\((\d+)\)([^*]*)\*\*/g;
+                            const regex = /\*\*(?:\((\d+)\)\s*)?([^*]*)\*\*/g;
                             let lastIdx2 = 0;
                             let m;
+                            let blankCount = 0;
                             while ((m = regex.exec(line)) !== null) {
+                              const inner = (m[2] ?? "").trim();
+                              // Skip bold markers that aren't blanks (eg. random
+                              // bolded prose). A blank either has 2+ underscores
+                              // OR is an __underlined__ word.
+                              const isUnderscoreBlank = /^_{2,}$/.test(inner);
+                              const underlineMatch = inner.match(/^__([^_]+)__$/);
+                              if (!isUnderscoreBlank && !underlineMatch) continue;
                               if (m.index > lastIdx2) parts.push(<span key={`t${lastIdx2}`}>{renderUnderline(line.slice(lastIdx2, m.index))}</span>);
-                              const qNum = m[1];
-                              const content = (m[2] ?? "").trim();
-                              // Check if content has an underlined word (__word__)
-                              const underlineMatch = content.match(/^_*\s*__([^_]+)__\s*_*$/);
+                              const key = m[1] ?? `p${blankCount++}`;
                               parts.push(
-                                <span key={`q${qNum}`} className="inline-flex items-center gap-0.5 mx-0.5">
-                                  <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1 rounded">({qNum})</span>
+                                <span key={`q${key}`} className="inline-flex items-center mx-0.5">
                                   {underlineMatch ? (
                                     <span className="underline decoration-2 font-semibold text-[#001e40] px-1">{underlineMatch[1]}</span>
                                   ) : (

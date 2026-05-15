@@ -4,6 +4,7 @@ import sharp from "sharp";
 import { GoogleGenAI } from "@google/genai";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { isCompOeqLabel } from "@/lib/english-sections";
 
 // Re-run a marker on transient failure (Gemini timeout / 504 /
 // rate limit / network blip). Each marker has its own try/catch
@@ -2755,8 +2756,7 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
     if (meta?.englishSections) {
       for (const sec of meta.englishSections) {
         const label = sec.label.toLowerCase();
-        const isAiTyped = label.includes("synthesis") ||
-          (label.includes("comprehension") && (label.includes("oeq") || label.includes("open")));
+        const isAiTyped = label.includes("synthesis") || isCompOeqLabel(label);
         if (isAiTyped) {
           for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
             aiTypedOeqQIds.add(paper.questions[i].id);
