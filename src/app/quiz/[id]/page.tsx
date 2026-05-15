@@ -1189,9 +1189,16 @@ function QuizContent({ id }: { id: string }) {
                               parts.push(
                                 <span key={`q${key}`} className="inline-flex items-center mx-0.5">
                                   {underlineMatch ? (
-                                    <span className="underline decoration-2 font-semibold text-[#001e40] px-1">{underlineMatch[1]}</span>
+                                    // Highlighted word in passage —
+                                    // bold + underline so it stands
+                                    // out as the focus of the question.
+                                    <span className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] px-0.5">{underlineMatch[1]}</span>
                                   ) : (
-                                    <span className="border-b-2 border-[#001e40]/30 px-2 text-sm">________</span>
+                                    // Blank — render the underscores
+                                    // themselves bold and underlined,
+                                    // so the eye lands on it the same
+                                    // way as the underlined-word variant.
+                                    <span className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] px-1 tracking-widest">________</span>
                                   )}
                                 </span>
                               );
@@ -1212,19 +1219,42 @@ function QuizContent({ id }: { id: string }) {
                       )}
 
                       <div className="space-y-10">
-                        {secQuestions.filter(q => hasQuestionOptions(q)).map((q, idx) => (
-                          <McqQuestionCard
-                            key={q.id}
-                            question={q}
-                            index={sec.startIndex + idx}
-                            selected={mcqAnswers[q.id] ?? null}
-                            onSelect={(opt) => selectMcqAnswer(q.id, opt)}
-                            flagged={flaggedIds.has(q.id)}
-                            onToggleFlag={() => toggleFlag(q.id)}
-                            tool={tool}
-                            hideScratchPad
-                          />
-                        ))}
+                        {secQuestions.filter(q => hasQuestionOptions(q)).map((q, idx) => {
+                          // For Vocab Cloze MCQ underlined-word variant,
+                          // existing data carries the highlighted word
+                          // as plain bold ("** plucking**"). Render it
+                          // as bold + underlined by wrapping the bold
+                          // content in __underscores__ if it's a word
+                          // (not a row of underscores from the blank
+                          // variant). MathText handles both markers.
+                          const isVocabCloze = label.includes("vocab") && label.includes("cloze");
+                          const stem = q.transcribedStem ?? null;
+                          const transformed = isVocabCloze && stem
+                            ? stem.replace(/\*\*\s*([^*_\n][^*\n]*?)\s*\*\*/g, (_full, inner: string) => {
+                                // Skip purely-underscore content (the blank variant) — leave as bold.
+                                if (/^_+$/.test(inner.trim())) return `**${inner.trim()}**`;
+                                // Already contains __ markers — leave alone.
+                                if (inner.includes("__")) return `**${inner.trim()}**`;
+                                return `**__${inner.trim()}__**`;
+                              })
+                            : stem;
+                          const qForRender = transformed !== stem
+                            ? { ...q, transcribedStem: transformed }
+                            : q;
+                          return (
+                            <McqQuestionCard
+                              key={q.id}
+                              question={qForRender}
+                              index={sec.startIndex + idx}
+                              selected={mcqAnswers[q.id] ?? null}
+                              onSelect={(opt) => selectMcqAnswer(q.id, opt)}
+                              flagged={flaggedIds.has(q.id)}
+                              onToggleFlag={() => toggleFlag(q.id)}
+                              tool={tool}
+                              hideScratchPad
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                     </Fragment>

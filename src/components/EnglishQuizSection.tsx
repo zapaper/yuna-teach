@@ -621,7 +621,53 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
             </div>
           );
         }
-        // Tick box: [ ] or [✓] or [x] — at start OR end of line
+        // Tick boxes: [ ] / [x] / [✓] — handle THREE cases:
+        // (a) line is "[ ] option" → single checkbox + label after
+        // (b) line is "text [ ]"   → single checkbox + label before
+        // (c) line is "intro? [ ] A [ ] B [ ] C [ ] D" → inline list of
+        //     checkbox+label pairs after the intro prose. The OCR used
+        //     to emit each tick on its own line, but multi-tick stems
+        //     like Q73/Q79 come through as one continuous line — we
+        //     have to split inline so all boxes render.
+        const tickGlobalRe = /\[[ x✓✗]\]/gi;
+        const tickHits = [...trimmed.matchAll(tickGlobalRe)];
+        if (tickHits.length >= 2) {
+          // Inline split: prose before the first [ ], then alternating
+          // checkbox + label until end-of-line.
+          const intro = trimmed.slice(0, tickHits[0].index).trim();
+          const items: Array<{ label: string }> = [];
+          for (let h = 0; h < tickHits.length; h++) {
+            const start = tickHits[h].index! + tickHits[h][0].length;
+            const end = h + 1 < tickHits.length ? tickHits[h + 1].index! : trimmed.length;
+            items.push({ label: trimmed.slice(start, end).trim() });
+          }
+          return (
+            <div key={li} className="my-2">
+              {intro && (
+                <p className="text-base text-[#001e40] leading-relaxed mb-2">
+                  {renderInlineBold(intro)}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
+                {items.map((it, ii) => {
+                  const tickKey = `tick${tickIdx++}`;
+                  const isChecked = tableCells[tickKey] === "true";
+                  return (
+                    <label key={ii} className="flex items-center gap-2 cursor-pointer text-base text-[#001e40]">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={e => updateTableCell(tickKey, e.target.checked ? "true" : "")}
+                        className="w-4 h-4 accent-[#003366]"
+                      />
+                      <span>{renderInlineBold(it.label)}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
         const tickStartMatch = trimmed.match(/^\[[ x✓✗]\]\s*(.*)/i);
         const tickEndMatch = !tickStartMatch ? trimmed.match(/^(.*?)\s*\[[ x✓✗]\]\s*$/i) : null;
         if (tickStartMatch || tickEndMatch) {
