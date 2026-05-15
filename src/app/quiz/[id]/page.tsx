@@ -1160,39 +1160,48 @@ function QuizContent({ id }: { id: string }) {
                                 </div>
                               );
                             }
-                            // Rich text: replace bold blanks with styled blanks.
-                            // Accepts BOTH the new numberless format
-                            // "**________**" / "**__word__**" and the
-                            // legacy numbered format "**(N)________**" /
-                            // "**(N) __word__**" so existing papers
-                            // still render correctly. The question
-                            // number badge is no longer shown next to
-                            // the blank — each question is presented
-                            // separately below the passage with its own
-                            // number, so duplicating it inline was just
-                            // noise.
+                            // Rich text: every **bold** chunk in a Vocab Cloze
+                            // MCQ passage is a question marker — either a
+                            // blank (the underscore variant) or a highlighted
+                            // word the student picks a synonym for. Both render
+                            // bold + underlined; the question number prefix
+                            // "(N)" is stripped because each question is shown
+                            // separately below with its own number. Accepts ALL
+                            // historical formats:
+                            //   "**________**"           — new numberless blank
+                            //   "**(16)________**"        — legacy numbered blank
+                            //   "**__plucking__**"        — new numberless word
+                            //   "**(17) __plucking__**"   — legacy numbered word
+                            //   "**(17) plucking**"       — older numbered word,
+                            //                               plain bold, no __ markers
+                            //   "**fixated**"             — bare bold word
                             const parts: React.ReactNode[] = [];
-                            const regex = /\*\*(?:\((\d+)\)\s*)?([^*]*)\*\*/g;
+                            const regex = /\*\*([^*]+)\*\*/g;
                             let lastIdx2 = 0;
                             let m;
                             let blankCount = 0;
                             while ((m = regex.exec(line)) !== null) {
-                              const inner = (m[2] ?? "").trim();
-                              // Skip bold markers that aren't blanks (eg. random
-                              // bolded prose). A blank either has 2+ underscores
-                              // OR is an __underlined__ word.
+                              const raw = m[1] ?? "";
+                              // Strip leading "(N)" or "(N) " if present.
+                              const numMatch = raw.match(/^\s*\((\d+)\)\s*/);
+                              const trimmed = (numMatch ? raw.slice(numMatch[0].length) : raw).trim();
+                              // Strip optional surrounding __ markers — same
+                              // word, just an alternate OCR style.
+                              const inner = trimmed.replace(/^__|__$/g, "");
                               const isUnderscoreBlank = /^_{2,}$/.test(inner);
-                              const underlineMatch = inner.match(/^__([^_]+)__$/);
-                              if (!isUnderscoreBlank && !underlineMatch) continue;
+                              // Anything non-empty that isn't a blank counts
+                              // as a highlighted word.
+                              if (!inner) continue;
                               if (m.index > lastIdx2) parts.push(<span key={`t${lastIdx2}`}>{renderUnderline(line.slice(lastIdx2, m.index))}</span>);
-                              const key = m[1] ?? `p${blankCount++}`;
+                              const key = numMatch ? numMatch[1] : `p${blankCount++}`;
+                              const highlightedWord = !isUnderscoreBlank ? inner : null;
                               parts.push(
                                 <span key={`q${key}`} className="inline-flex items-center mx-0.5">
-                                  {underlineMatch ? (
+                                  {highlightedWord ? (
                                     // Highlighted word in passage —
                                     // bold + underline so it stands
                                     // out as the focus of the question.
-                                    <span className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] px-0.5">{underlineMatch[1]}</span>
+                                    <span className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] px-0.5">{highlightedWord}</span>
                                   ) : (
                                     // Blank — render the underscores
                                     // themselves bold and underlined,
