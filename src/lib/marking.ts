@@ -524,48 +524,61 @@ function normalizeMcq(val: string): string {
 export function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
   const result = new Map<string, string>();
   if (!answer || !answer.trim()) return result;
-  // Single pass that matches BOTH compound and simple labels, in any
-  // mix on the same string. Patterns recognised:
+  // Match compound and simple labels separately, then merge by position.
+  // Patterns recognised:
   //   "(a)(i)"  / "(a) (i)"      — paren-paren compound
   //   "(a-i)"   / "(a-ii)"       — hyphen compound (storage-shorthand
-  //                                  that occasionally leaks into the
-  //                                  answer string from a partial
-  //                                  clone-time rewrite)
+  //                                  that leaks into answer strings via
+  //                                  a partial clone-time rewrite)
   //   "(a)"    / "(b)"            — simple paren label
-  // The previous version ran two separate passes and only fell through
-  // to simple labels when zero compound matches were found — which
-  // meant a hybrid string like "(a-i) K (a)(ii) J | (b) ..." lost
-  // parts (b) / (c) because the compound pass found something.
   //
-  // Groups (in matching order):
-  //   m[1] — leading anchor (^ / | / \n) — discarded
-  //   m[2] — letter when format is "(a)(i)" or "(a-i)"
-  //   m[3] — roman tail when format is compound
-  //   m[4] — letter when format is the simple "(a)"
-  const reAll = /(^|[|\n])\s*(?:\(([a-z])(?:\)\s*\(|-)(i{1,4}|iv|v|vi{0,3})\)|\(([a-z])\))\s*/gi;
-  const matches = [...answer.matchAll(reAll)].map(m => {
-    const letter = (m[2] ?? m[4] ?? "").toLowerCase();
-    const roman = (m[3] ?? "").toLowerCase();
-    return {
-      full: m[0], index: m.index!,
-      label: roman ? `${letter}-${roman}` : letter,
-    };
-  });
-  if (matches.length === 0) {
+  // Compound labels are distinctive enough that they DON'T need a
+  // leading "^|[|\n]" anchor — the paren-paren / paren-hyphen-roman
+  // shape doesn't occur in normal prose. Without this relaxation, a
+  // master answer like "(a)(i) K (a)(ii) J | (b) ..." only matched
+  // the FIRST "(a)(i)" (anchored by ^) and the second compound was
+  // swallowed into part (a)'s content. The focused-test rebuild then
+  // emitted broken clones like "(a-i) K (a)(ii) J | (b) ...".
+  //
+  // Simple labels DO keep the anchor — "(a)" / "(b)" can occur in
+  // prose ("Apply rule (a) to the next step"), so we need an explicit
+  // separator to call them a label.
+  const reCompound = /\s*\(([a-z])(?:\)\s*\(|-)(i{1,4}|iv|v|vi{0,3})\)\s*/gi;
+  const reSimple = /(^|[|\n])\s*\(([a-z])\)\s*/gi;
+  type Hit = { full: string; index: number; label: string };
+  const hits: Hit[] = [];
+  for (const m of answer.matchAll(reCompound)) {
+    hits.push({ full: m[0], index: m.index!, label: `${m[1].toLowerCase()}-${m[2].toLowerCase()}` });
+  }
+  // Cover the compound spans so the simple-label scan doesn't re-match
+  // the outer "(a)" of an already-recognised "(a)(i)".
+  for (const m of answer.matchAll(reSimple)) {
+    const idx = m.index!;
+    const matchStart = idx + m[1].length;
+    const fullEnd = idx + m[0].length;
+    const inCompound = hits.some(h => matchStart >= h.index && matchStart < h.index + h.full.length);
+    if (inCompound) continue;
+    // Trim the leading "|" / "\n" so the slice math lines up with the
+    // compound branch above (which has no anchor capture).
+    hits.push({ full: m[0].slice(m[1].length), index: matchStart, label: m[2].toLowerCase() });
+    void fullEnd;
+  }
+  hits.sort((a, b) => a.index - b.index);
+  if (hits.length === 0) {
     // Last-resort: bare "a)" or "(ai)" concat that the regex above
     // doesn't catch. Kept for backwards-compat with very old answers.
     const reFlat = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
-    matches.push(...[...answer.matchAll(reFlat)].map(m => ({
-      full: m[0], index: m.index!, label: m[2].toLowerCase(),
-    })));
+    for (const m of answer.matchAll(reFlat)) {
+      hits.push({ full: m[0], index: m.index!, label: m[2].toLowerCase() });
+    }
   }
-  if (matches.length === 0) return result;
-  for (let i = 0; i < matches.length; i++) {
-    const m = matches[i];
-    const start = m.index + m.full.length;
-    const end = i + 1 < matches.length ? matches[i + 1].index : answer.length;
+  if (hits.length === 0) return result;
+  for (let i = 0; i < hits.length; i++) {
+    const h = hits[i];
+    const start = h.index + h.full.length;
+    const end = i + 1 < hits.length ? hits[i + 1].index : answer.length;
     const content = answer.slice(start, end).replace(/\s*\|\s*$/, "").trim();
-    if (content) result.set(m.label, content);
+    if (content) result.set(h.label, content);
   }
   return result;
 }
