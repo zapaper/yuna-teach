@@ -46,16 +46,18 @@ export async function GET(req: NextRequest) {
 
   const filtered = qs.filter(q => {
     const opts = q.transcribedOptions as unknown;
-    if (!Array.isArray(opts) || opts.length === 0) return true; // no options yet
+    // Strict criterion: only questions that DO have a transcribedOptions
+    // array AND at least one of its entries is blank. The previous
+    // version also returned questions with row-flattened comma patterns
+    // (e.g. "evaporation, freezing") and questions with no options at
+    // all — both can have legitimate non-table reasons for looking that
+    // way (genuine compound options, or image-only MCQs that just
+    // haven't been extracted yet). The blank-text-options signal is the
+    // narrowest hit for "this was a table that didn't survive
+    // extraction".
+    if (!Array.isArray(opts) || opts.length === 0) return false;
     const strs = opts.map(o => String(o ?? "").trim());
-    // Treat as candidate when:
-    //  - any option is blank, OR
-    //  - 2+ options contain a comma AND no option is meaningfully long
-    //    (the flattened-row pattern: each option is "evaporation, freezing")
-    if (strs.some(s => s.length === 0)) return true;
-    const commaCount = strs.filter(s => /,/.test(s) || /\s+\/\s+/.test(s)).length;
-    if (commaCount >= 2 && strs.every(s => s.length < 60)) return true;
-    return false;
+    return strs.some(s => s.length === 0);
   });
 
   const page = filtered.slice(offset, offset + limit);
