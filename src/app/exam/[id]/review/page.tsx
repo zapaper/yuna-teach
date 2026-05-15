@@ -2681,10 +2681,10 @@ function ExamReviewContent({ id }: { id: string }) {
                                             if (isBlankAnswer && !sp.diagramBase64 && !sp.refImageBase64) return null;
                                             const spCanvasId = `${currentQ.id}_${sp.label}`;
                                             // Drawable subparts looked squished vertically — bumped
-                                            // 50 % so the canvas isn't compressed against the
+                                            // 100 % so the canvas isn't compressed against the
                                             // student's actual writing aspect. Matches the
                                             // whole-question drawable bump just below.
-                                            const spDefault = sp.diagramBase64 ? Math.round(390 * 1.5) : 390;
+                                            const spDefault = sp.diagramBase64 ? Math.round(390 * 2) : 390;
                                             const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 900);
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             return (
@@ -2809,12 +2809,12 @@ function ExamReviewContent({ id }: { id: string }) {
                             || sa === "no answer detected"
                             || sa.startsWith("no answer");
                           if (isBlankAnswer && !hasDrawable) return null;
-                          // +50 % bump when a drawable diagram is the canvas
+                          // +100 % bump when a drawable diagram is the canvas
                           // background — without it, the canvas reads squished
                           // because the drawing was originally captured at a
                           // taller aspect. 900 cap so a really tall drawable
                           // doesn't get clipped after being drawn.
-                          const defaultH = hasDrawable ? Math.round(450 * 1.5) : 450;
+                          const defaultH = hasDrawable ? Math.round(450 * 2) : 450;
                           const visibleH = Math.min(canvasHeights[currentQ.id] ?? defaultH, 900);
                           const overlayKey = `question:${currentQ.id}`;
                           return (

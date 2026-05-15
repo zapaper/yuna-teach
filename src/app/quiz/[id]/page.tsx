@@ -2313,7 +2313,7 @@ function OeqQuestionCard({
                     ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
                     tool={tool}
                     onStrokeStart={() => { onStrokeStart(); onSubpartStrokeStart?.(sp.label); }}
-                    defaultHeight={sp.diagramBase64 ? 340 : 260}
+                    defaultHeight={sp.diagramBase64 ? 520 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
                     savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink`}
                     canvasId={`${question.id}_${sp.label}`}
@@ -2331,7 +2331,7 @@ function OeqQuestionCard({
               ref={onCanvasRef}
               tool={tool}
               onStrokeStart={onStrokeStart}
-              defaultHeight={drawableDiagramBase64 ? 360 : 300}
+              defaultHeight={drawableDiagramBase64 ? 600 : 300}
               backgroundImage={drawableDiagramBase64}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
               canvasId={question.id}
