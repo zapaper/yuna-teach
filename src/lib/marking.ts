@@ -3212,12 +3212,37 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
               const tableCells = Object.entries(parsed).filter(([k, v]) => v && k.startsWith("r")).map(([k, v]) => `${k}: "${v}"`);
               fullStudentAnswer = textVal || (tableCells.length > 0 ? `[TABLE] ${tableCells.join(", ")}` : fullStudentAnswer);
               if (ticks.length > 0) {
-                // Map tick indices to the checkbox labels from the stem
+                // Map tick indices to the checkbox labels from the
+                // stem. The renderer also handles INLINE multi-tick
+                // lines ("intro [ ] A [ ] B [ ] C [ ] D"), so we
+                // mirror that here: walk every line, collect each [ ]
+                // hit in order, and the label is the text following
+                // that hit (up to the next [ ] on the same line, or
+                // end of line). Without this, multi-tick stems like
+                // Q73/Q79 collapse to "option 1 / option 2" and the
+                // AI can't tell ticked-correct from ticked-wrong.
                 const stemLines = (q.transcribedStem ?? "").split("\n");
                 const checkboxLabels: string[] = [];
+                const tickGlobalRe = /\[[ x✓✗]\]/gi;
                 for (const line of stemLines) {
-                  const m = line.trim().match(/^\[[ x✓✗]\]\s*(.*)/i);
-                  if (m) checkboxLabels.push(m[1].trim());
+                  const trimmed = line.trim();
+                  const hits = [...trimmed.matchAll(tickGlobalRe)];
+                  if (hits.length === 0) continue;
+                  if (hits.length === 1) {
+                    // Single-tick: support both [ ] before AND [ ] at end of line.
+                    const startMatch = trimmed.match(/^\[[ x✓✗]\]\s*(.*)/i);
+                    const endMatch = !startMatch ? trimmed.match(/^(.*?)\s*\[[ x✓✗]\]\s*$/i) : null;
+                    if (startMatch) checkboxLabels.push(startMatch[1].trim());
+                    else if (endMatch) checkboxLabels.push(endMatch[1].trim());
+                    continue;
+                  }
+                  // Multi-tick inline: label is the text after each hit,
+                  // up to the next hit (or end-of-line).
+                  for (let h = 0; h < hits.length; h++) {
+                    const start = hits[h].index! + hits[h][0].length;
+                    const end = h + 1 < hits.length ? hits[h + 1].index! : trimmed.length;
+                    checkboxLabels.push(trimmed.slice(start, end).trim());
+                  }
                 }
                 const tickedLabels = ticks.map(i => checkboxLabels[i] ?? `option ${i + 1}`);
                 tickInfo = `\nStudent ticked: ${tickedLabels.join(", ")}`;

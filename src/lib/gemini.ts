@@ -3611,7 +3611,12 @@ Rules:
              | | The plants grew |
   * Only include [LINES: N] where there are ACTUAL printed answer lines in the paper. Do NOT add lines that don't exist.
   * Answer lines (where student writes) shown as: [LINES: N] where N is the number of lines
-  * Tick boxes / checkboxes: render as [ ] for empty box, [x] for ticked box. E.g. "[ ] evaporation  [x] condensation"
+  * Tick boxes / checkboxes: render as [ ] for empty box, [x] for ticked box. Put EACH tick box on its OWN LINE — never run multiple [ ] markers on a single line. So a question like "Tick two: [ ] determined [ ] weak [ ] persevering" becomes:
+       Tick two:
+       [ ] determined
+       [ ] weak
+       [ ] persevering
+    This matters because downstream parsing (renderer + marker) assigns each tick box its own answer slot keyed on its position. When multiple boxes share a line the labels collapse and ticked-correct can't be distinguished from ticked-wrong.
   * If a question references a passage, note: [See passage above]
   * Flow diagrams with boxes and arrows: describe as [DIAGRAM: Box A → Box B → Box C]
 - TABLES: whenever you see a table or grid in the image, reproduce it as a markdown table with | separators and --- header row.
@@ -3702,7 +3707,7 @@ For EACH question, extract:
   If the source sentence is missing from the OCR, leave a placeholder like "[source sentence]" rather than silently dropping it. Bold the keyword/joining word with **double asterisks**.` : ""}${secLabel.toLowerCase().includes("comprehension") && secLabel.toLowerCase().includes("open") ? `
   For Comprehension OEQ: include the FULL question text in RICH TEXT format.
   - If the question contains a TABLE, include it as a markdown table (| col1 | col2 |) in the stem — do NOT summarize as "[TABLE: ...]"
-  - If the question contains checkboxes, use [ ] and [x]
+  - If the question contains checkboxes, use [ ] and [x] — put EACH checkbox on its OWN LINE (newline-separated), never multiple checkboxes on the same line
   - If there are answer lines, show as [LINES: N]
   - Include ALL text exactly as it appears — diagrams can be described as [DIAGRAM: description]` : ""}
 - answer: the correct answer from the answer key if known, null otherwise

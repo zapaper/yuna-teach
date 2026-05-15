@@ -1618,8 +1618,12 @@ function ExamReviewContent({ id }: { id: string }) {
                   {currentSection?.passage && currentSection.passage.startsWith("[VISUAL_") && (
                     <VisualTextImages passage={currentSection.passage} fallbackImage={sectionQuestions[0]?.imageData ?? undefined} />
                   )}
-                  {/* Passage text */}
-                  {currentSection?.passage && !currentSection.passage.startsWith("[") && (
+                  {/* Passage text. Skipped for Synthesis sections —
+                      the "passage" there is just the raw OCR extract
+                      of the section text, which duplicates content
+                      that's already shown per-question below. Go
+                      straight into the questions/answers. */}
+                  {currentSection?.passage && !currentSection.passage.startsWith("[") && !isSynthesis && (
                     <div className={`mb-6 bg-[#f8f9ff] rounded-2xl p-5 lg:p-8 border border-slate-100 max-h-[32rem] overflow-y-auto w-full relative ${useSplitScreen ? "lg:max-h-none lg:overflow-visible" : ""}`}>
                       <ReviewPenOverlay
                         key={`passage:${currentSection?.label ?? "unnamed"}`}
