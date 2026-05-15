@@ -531,45 +531,68 @@ function TranscribeEditContent({ id }: { id: string }) {
     }
   }
 
+  // Lazy fetch one page as a data URL from the pre-rendered JPEG
+  // endpoint. Falls back to PDF render only if the page file is
+  // missing on the volume.
+  async function fetchPageDataUrl(pageIdx: number): Promise<string | null> {
+    const r = await fetch(`/api/exam/${id}/pages?page=${pageIdx}`);
+    if (!r.ok) return null;
+    const blob = await r.blob();
+    return await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  }
+
   async function startRecrop(questionId: string) {
     setRecropQ(questionId);
     setRecropLoading(true);
     setRecropPageImg(null);
     setRecropPages([]);
     try {
-      // Fetch the question's pageIndex
-      const paperRes = await fetch(`/api/exam/${id}`);
+      // Fetch the question's pageIndex + total page count in parallel.
+      const [paperRes, countRes] = await Promise.all([
+        fetch(`/api/exam/${id}`),
+        fetch(`/api/exam/${id}/pages`),
+      ]);
       const paperData = await paperRes.json();
       const question = paperData.questions?.find((q: { id: string }) => q.id === questionId);
-      if (!question) { alert("Question not found"); return; }
-      const pageIndex = question.pageIndex ?? 0;
+      if (!question) { alert("Question not found"); setRecropQ(null); return; }
+      const pageIndex: number = question.pageIndex ?? 0;
+      const countData = countRes.ok ? await countRes.json() : { pageCount: 0 };
+      const pageCount: number = countData.pageCount ?? 0;
 
-      // Try PDF first; fall back to stored page images
-      let pages: string[] = [];
-      const pdfRes = await fetch(`/api/exam/${id}/pdf`);
-      if (pdfRes.ok) {
-        const pdfBlob = await pdfRes.blob();
-        const pdfFile = new File([pdfBlob], "exam.pdf", { type: "application/pdf" });
-        const { renderPdfToImages } = await import("@/lib/pdf");
-        pages = await renderPdfToImages(pdfFile, 2048, 0.9);
-      } else {
-        // Fall back: load pre-rendered page JPEGs from volume
-        const countRes = await fetch(`/api/exam/${id}/pages`);
-        const countData = countRes.ok ? await countRes.json() : { pageCount: 0 };
-        const pageCount: number = countData.pageCount ?? 0;
-        if (pageCount === 0) { alert("No pages available for this paper. Please re-upload the PDF."); setRecropQ(null); return; }
-        pages = await Promise.all(
-          Array.from({ length: pageCount }, async (_, i) => {
-            const r = await fetch(`/api/exam/${id}/pages?page=${i}`);
-            const blob = await r.blob();
-            return new Promise<string>((resolve) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.readAsDataURL(blob);
-            });
-          })
-        );
+      // FAST PATH — load ONLY the target page from the pre-rendered
+      // JPEG endpoint. Other pages stay null until the user clicks
+      // Prev / Next. Old code downloaded the whole PDF and re-rendered
+      // every page through pdf.js at 2048px, which on a 20-page paper
+      // could take 30+ seconds and burn a lot of memory.
+      if (pageCount > 0) {
+        const idx = Math.min(Math.max(0, pageIndex), pageCount - 1);
+        const dataUrl = await fetchPageDataUrl(idx);
+        if (dataUrl) {
+          const pages = new Array<string>(pageCount).fill("");
+          pages[idx] = dataUrl;
+          setRecropPages(pages);
+          setRecropPageIdx(idx);
+          setRecropPageImg(dataUrl);
+          return;
+        }
       }
+
+      // SLOW FALLBACK — pre-rendered pages aren't on the volume.
+      // Pull the PDF and render all pages once.
+      const pdfRes = await fetch(`/api/exam/${id}/pdf`);
+      if (!pdfRes.ok) {
+        alert("No pages available for this paper. Please re-upload the PDF.");
+        setRecropQ(null);
+        return;
+      }
+      const pdfBlob = await pdfRes.blob();
+      const pdfFile = new File([pdfBlob], "exam.pdf", { type: "application/pdf" });
+      const { renderPdfToImages } = await import("@/lib/pdf");
+      const pages = await renderPdfToImages(pdfFile, 2048, 0.9);
       if (pages.length === 0) { alert("No pages found"); setRecropQ(null); return; }
       setRecropPages(pages);
       const idx = Math.min(pageIndex, pages.length - 1);
@@ -578,6 +601,27 @@ function TranscribeEditContent({ id }: { id: string }) {
     } catch (e) {
       alert(e instanceof Error ? e.message : "Failed to load PDF page");
       setRecropQ(null);
+    } finally {
+      setRecropLoading(false);
+    }
+  }
+
+  // Page navigation in the recrop modal — lazy-load if the slot is
+  // still empty (the fast path only fetched the target page upfront).
+  async function gotoRecropPage(idx: number) {
+    const cached = recropPages[idx];
+    if (cached) {
+      setRecropPageIdx(idx);
+      setRecropPageImg(cached);
+      return;
+    }
+    setRecropLoading(true);
+    try {
+      const dataUrl = await fetchPageDataUrl(idx);
+      if (!dataUrl) { alert("Failed to load page"); return; }
+      setRecropPages(prev => { const next = [...prev]; next[idx] = dataUrl; return next; });
+      setRecropPageIdx(idx);
+      setRecropPageImg(dataUrl);
     } finally {
       setRecropLoading(false);
     }
@@ -736,16 +780,16 @@ function TranscribeEditContent({ id }: { id: string }) {
                 {recropPages.length > 1 && (
                   <div className="flex items-center justify-center gap-3 mb-2">
                     <button
-                      onClick={() => { const idx = Math.max(0, recropPageIdx - 1); setRecropPageIdx(idx); setRecropPageImg(recropPages[idx]); }}
-                      disabled={recropPageIdx === 0}
+                      onClick={() => void gotoRecropPage(Math.max(0, recropPageIdx - 1))}
+                      disabled={recropPageIdx === 0 || recropLoading}
                       className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200 disabled:opacity-30"
                     >
                       &larr; Prev
                     </button>
                     <span className="text-xs text-slate-500">Page {recropPageIdx + 1} / {recropPages.length}</span>
                     <button
-                      onClick={() => { const idx = Math.min(recropPages.length - 1, recropPageIdx + 1); setRecropPageIdx(idx); setRecropPageImg(recropPages[idx]); }}
-                      disabled={recropPageIdx === recropPages.length - 1}
+                      onClick={() => void gotoRecropPage(Math.min(recropPages.length - 1, recropPageIdx + 1))}
+                      disabled={recropPageIdx === recropPages.length - 1 || recropLoading}
                       className="px-2 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200 disabled:opacity-30"
                     >
                       Next &rarr;
