@@ -141,8 +141,23 @@ function ConvertContent() {
     setStates(prev => ({ ...prev, [id]: { kind: "applied" } }));
   }
 
-  function skip(id: string) {
+  async function skip(id: string) {
+    // Optimistic UI — mark skipped immediately, then persist. On error
+    // surface a message but don't roll back: the user can re-skip when
+    // it shows up again next batch.
     setStates(prev => ({ ...prev, [id]: { kind: "skipped" } }));
+    try {
+      const res = await fetch("/api/admin/mcq-table-candidates/skip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: id }),
+      });
+      if (!res.ok) {
+        setStates(prev => ({ ...prev, [id]: { kind: "error", message: "Skip didn't persist — refresh will bring it back" } }));
+      }
+    } catch {
+      setStates(prev => ({ ...prev, [id]: { kind: "error", message: "Skip didn't persist — refresh will bring it back" } }));
+    }
   }
 
   if (allowed === null) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" /></div>;

@@ -207,6 +207,10 @@ model ExamQuestion {
   transcribedOptions      Json?    // string[4] for MCQ (text options)
   transcribedOptionImages Json?    // string[4] for MCQ (image options, base64)
   transcribedOptionTable  Json?    // table-format MCQ: { columns: string[], rows: string[][] (4 rows, each = one option's values per column) }. Mutually exclusive with the two fields above — if set, the options ARE the rows.
+  // Set to TRUE when an admin skips this question in the
+  // /admin/convert-mcq-tables tool, so it never reappears in the
+  // candidate list. Has no effect outside that tool.
+  mcqTableSkipped         Boolean  @default(false)
   transcribedSubparts     Json?    // {label: string, text: string}[]
   diagramBounds           Json?    // {top, left, bottom, right} percentages
   diagramImageData        String?  // base64 cropped diagram
