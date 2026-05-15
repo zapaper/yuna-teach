@@ -815,6 +815,13 @@ function ExamReviewContent({ id }: { id: string }) {
   // Parse multi-part answer string by finding known subpart labels in the text
   function parsePartAnswers(text: string | null, knownLabels?: string[]): Record<string, string> {
     if (!text) return {};
+    // Normalise the storage-shorthand compound form "(a-i)" / "(b-ii)"
+    // back into "(a)(i)" / "(b)(ii)" so the label finder below sees the
+    // OUTER "(a)" at the earliest position. Without this, a hybrid
+    // answer like "(a-i) K (a)(ii) J | (b) ..." caused the label
+    // finder to settle on the SECOND "(a)" inside "(a)(ii)", losing
+    // the "(a-i) K" portion entirely from part (a)'s displayed answer.
+    text = text.replace(/\(([a-z])-(i{1,4}|iv|v|vi{0,3})\)/gi, "($1)($2)");
     const lower = text.toLowerCase();
     const labels = knownLabels ?? ["a", "b", "c", "d", "e", "f"];
 

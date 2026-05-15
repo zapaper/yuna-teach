@@ -524,20 +524,40 @@ function normalizeMcq(val: string): string {
 export function parsePartAnswers(answer: string | null | undefined): Map<string, string> {
   const result = new Map<string, string>();
   if (!answer || !answer.trim()) return result;
-  // Compound paren-separated: "(a)(i)" / "(a) (i)" / "(b)(iii)".
-  // Captures parent letter in group 2, roman tail in group 3.
-  const reCompound = /(^|[|\n])\s*\(([a-z])\)\s*\((i{1,4}|iv|v|vi{0,3})\)\s*/gi;
-  let matches = [...answer.matchAll(reCompound)].map(m => ({
-    full: m[0], index: m.index!, label: `${m[2].toLowerCase()}-${m[3].toLowerCase()}`,
-  }));
-  // Fall back to the historical concat / single-letter form only when no
-  // compound matches were found — mixing the two on the same string would
-  // double-count "(a)(i)" as both a compound AND a single "(a)" match.
+  // Single pass that matches BOTH compound and simple labels, in any
+  // mix on the same string. Patterns recognised:
+  //   "(a)(i)"  / "(a) (i)"      — paren-paren compound
+  //   "(a-i)"   / "(a-ii)"       — hyphen compound (storage-shorthand
+  //                                  that occasionally leaks into the
+  //                                  answer string from a partial
+  //                                  clone-time rewrite)
+  //   "(a)"    / "(b)"            — simple paren label
+  // The previous version ran two separate passes and only fell through
+  // to simple labels when zero compound matches were found — which
+  // meant a hybrid string like "(a-i) K (a)(ii) J | (b) ..." lost
+  // parts (b) / (c) because the compound pass found something.
+  //
+  // Groups (in matching order):
+  //   m[1] — leading anchor (^ / | / \n) — discarded
+  //   m[2] — letter when format is "(a)(i)" or "(a-i)"
+  //   m[3] — roman tail when format is compound
+  //   m[4] — letter when format is the simple "(a)"
+  const reAll = /(^|[|\n])\s*(?:\(([a-z])(?:\)\s*\(|-)(i{1,4}|iv|v|vi{0,3})\)|\(([a-z])\))\s*/gi;
+  const matches = [...answer.matchAll(reAll)].map(m => {
+    const letter = (m[2] ?? m[4] ?? "").toLowerCase();
+    const roman = (m[3] ?? "").toLowerCase();
+    return {
+      full: m[0], index: m.index!,
+      label: roman ? `${letter}-${roman}` : letter,
+    };
+  });
   if (matches.length === 0) {
+    // Last-resort: bare "a)" or "(ai)" concat that the regex above
+    // doesn't catch. Kept for backwards-compat with very old answers.
     const reFlat = /(^|[|\n])\s*\(?([a-z](?:i{1,4}|iv|v|vi{0,3})?)\)\s*/gi;
-    matches = [...answer.matchAll(reFlat)].map(m => ({
+    matches.push(...[...answer.matchAll(reFlat)].map(m => ({
       full: m[0], index: m.index!, label: m[2].toLowerCase(),
-    }));
+    })));
   }
   if (matches.length === 0) return result;
   for (let i = 0; i < matches.length; i++) {
