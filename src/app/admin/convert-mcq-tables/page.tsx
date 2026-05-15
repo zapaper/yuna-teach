@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
+import MathText from "@/components/MathText";
 
 type Candidate = {
   id: string;
@@ -22,11 +23,24 @@ type OptionTable = { columns: string[]; rows: string[][] };
 type CardState =
   | { kind: "pending" }
   | { kind: "extracting" }
-  | { kind: "table"; table: OptionTable }
-  | { kind: "text"; options: string[] }
+  | { kind: "table"; table: OptionTable; stem: string | null }
+  | { kind: "text"; options: string[]; stem: string | null }
   | { kind: "error"; message: string }
   | { kind: "applied" }
   | { kind: "skipped" };
+
+/** Normalize "(2)" → "2", "A" → "1", etc. — same as the marker's MCQ
+ *  answer normaliser, just enough to map a stored answer onto the row
+ *  index (1..4). */
+function normAns(a: string | null | undefined): string {
+  if (!a) return "";
+  const t = a.trim().replace(/[().]/g, "").toUpperCase();
+  if (t === "A") return "1";
+  if (t === "B") return "2";
+  if (t === "C") return "3";
+  if (t === "D") return "4";
+  return t;
+}
 
 export default function ConvertMcqTablesPage() {
   return (
@@ -85,10 +99,11 @@ function ConvertContent() {
         setStates(prev => ({ ...prev, [id]: { kind: "error", message: data.error ?? "Extract failed" } }));
         return;
       }
+      const stem = typeof data.stem === "string" ? data.stem : null;
       if (data.optionTable && Array.isArray(data.optionTable.columns) && Array.isArray(data.optionTable.rows)) {
-        setStates(prev => ({ ...prev, [id]: { kind: "table", table: data.optionTable } }));
+        setStates(prev => ({ ...prev, [id]: { kind: "table", table: data.optionTable, stem } }));
       } else if (Array.isArray(data.options)) {
-        setStates(prev => ({ ...prev, [id]: { kind: "text", options: data.options.map((o: unknown) => String(o ?? "")) } }));
+        setStates(prev => ({ ...prev, [id]: { kind: "text", options: data.options.map((o: unknown) => String(o ?? "")), stem } }));
       } else {
         setStates(prev => ({ ...prev, [id]: { kind: "error", message: "Empty extraction" } }));
       }
@@ -207,31 +222,58 @@ function ConvertContent() {
                         </ol>
                       </div>
                     )}
-                    {st.kind === "table" && (
-                      <div>
-                        <p className="text-[10px] text-emerald-700 font-bold mb-1">Detected TABLE</p>
-                        <table className="w-full text-xs border border-slate-800">
-                          <thead>
-                            <tr className="bg-slate-100">
-                              <th className="border border-slate-800 px-2 py-1"></th>
-                              {st.table.columns.map((c, j) => (
-                                <th key={j} className="border border-slate-800 px-2 py-1 font-bold text-slate-800">{c}</th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {st.table.rows.map((row, ri) => (
-                              <tr key={ri}>
-                                <td className="border border-slate-800 px-2 py-1 font-bold text-slate-700 text-center">({ri + 1})</td>
-                                {row.map((cell, ci) => (
-                                  <td key={ci} className="border border-slate-800 px-2 py-1 text-slate-700">{cell}</td>
-                                ))}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
+                    {st.kind === "table" && (() => {
+                      const correctIdx = parseInt(normAns(q.answer), 10) - 1; // 0-3
+                      return (
+                        <div>
+                          <p className="text-[10px] text-emerald-700 font-bold mb-2">Detected TABLE — preview as it would appear in the quiz (correct row in green)</p>
+                          <div className="rounded-xl border border-slate-200 bg-white p-3 lg:p-4">
+                            {st.stem && (
+                              <p className="font-headline text-sm font-semibold leading-snug text-[#0b1c30] mb-3 whitespace-pre-wrap">
+                                <MathText text={st.stem} />
+                              </p>
+                            )}
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-xs border-collapse border-2 border-black">
+                                <thead className="bg-slate-50">
+                                  <tr>
+                                    <th className="px-2 py-2 text-left font-headline font-bold text-black border-2 border-black w-14">Option</th>
+                                    {st.table.columns.map((c, j) => (
+                                      <th key={j} className="px-2 py-2 text-left font-headline font-bold text-black border-2 border-black">
+                                        <MathText text={c} />
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {st.table.rows.map((row, ri) => {
+                                    const isCorrect = ri === correctIdx;
+                                    return (
+                                      <tr key={ri} className={isCorrect ? "bg-[#6cf8bb]/30" : ""}>
+                                        <td className="px-2 py-2 align-middle border-2 border-black">
+                                          <div className="flex items-center gap-1.5">
+                                            <input type="radio" checked={isCorrect} readOnly className="w-4 h-4 accent-[#006c49] pointer-events-none" />
+                                            <span className="font-headline font-bold text-black">({ri + 1})</span>
+                                          </div>
+                                        </td>
+                                        {row.map((cell, ci) => (
+                                          <td key={ci} className={`px-2 py-2 align-middle border-2 border-black ${isCorrect ? "text-[#001e40] font-semibold" : "text-[#0b1c30]"}`}>
+                                            <MathText text={cell} />
+                                          </td>
+                                        ))}
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                            {correctIdx < 0 || correctIdx > 3 ? (
+                              <p className="mt-2 text-[10px] text-amber-700">⚠️ stored answer “{q.answer}” doesn’t map to a row 1-4</p>
+                            ) : null}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     {st.kind === "applied" && <p className="text-xs font-bold text-emerald-700">✅ Saved as table</p>}
                     {st.kind === "skipped" && <p className="text-xs font-bold text-slate-500">↩︎ Skipped</p>}
                   </div>
