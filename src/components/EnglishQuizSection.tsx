@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import FormattedText from "./FormattedText";
 
 interface QuizQuestion {
   id: string;
@@ -353,7 +354,7 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                 )}
               </div>
               {q.transcribedStem && (
-                <p className="text-sm text-[#0b1c30] mb-3 whitespace-pre-wrap">{q.transcribedStem}</p>
+                <FormattedText text={q.transcribedStem} className="text-sm text-[#0b1c30] mb-3 whitespace-pre-wrap" />
               )}
               {q.transcribedOptions && (
                 <div className="space-y-2">

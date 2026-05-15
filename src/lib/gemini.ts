@@ -3527,6 +3527,21 @@ Output ONLY the table.` });
             if (secImages.length > 1) ocrParts.push({ text: `(image ${pi + 1} of ${secImages.length})` });
           }
           ocrParts.push({ text: `Extract ALL text from these exam paper pages as RICH TEXT. Preserve formatting:
+
+TABLES — FIRST PRIORITY (apply to EVERY section, before any other rule):
+Whenever the printed page shows a grid / table / "complete the table" exercise — anywhere on the page, in any section — you MUST reproduce it as a Markdown pipe table with a header separator row, exactly like:
+  | Heading 1 | Heading 2 | Heading 3 |
+  |-----------|-----------|-----------|
+  | row 1 a   | row 1 b   | row 1 c   |
+  | row 2 a   |           | row 2 c   |
+Rules:
+- The separator row (\`|---|---|...|\`) is REQUIRED — without it the downstream renderer won't see this as a table.
+- Cells the student must FILL IN: leave as empty / single underscore. Do NOT write \`[ ]\` or \`[blank]\`.
+- Cells the paper has ALREADY filled: copy the text verbatim.
+- One row per visible row of the original table. Column count and order must match.
+- Do NOT collapse a table into a comma-separated sentence or bullet list. Do NOT summarise as "[TABLE: …]".
+- If there's introductory text ("Complete the table below.") keep it on its own line ABOVE the markdown table.
+
 - Keep question numbers exactly as printed (e.g. "1.", "11.", "(29)")
 - Keep answer options exactly (e.g. "(1) option text", "(2) option text")
 - Keep blank lines as "___" (underscore line where student writes)
@@ -3549,6 +3564,7 @@ Output ONLY the table.` });
   * This cloze formatting applies ONLY to Grammar Cloze and Comprehension Cloze sections.
     For Vocabulary Cloze MCQ, bold the question number and blank inline: "... word **(16)________** word ..." but do NOT render the cloze box — the MCQ options are shown separately below each question.
     For Vocabulary Cloze MCQ where an UNDERLINED WORD replaces the blank (student must find the most similar word): use double underscores to mark the underlined word: "... word **(16) __highlighted__** word ..." — the __double underscores__ render as underlined text in the UI.
+    CRITICAL FOR VOCAB CLOZE MCQ: output ONLY the passage with the inline **(N)________** (or **(N) __word__**) markers. STOP at the end of the passage. DO NOT append the list of questions and answer options that appears below the passage on the page — e.g. lines like "16. (1) library (2) market (3) park (4) cinema" must NOT be in the output. Those options are extracted and stored on each question separately; duplicating them under the passage shows them twice in the quiz UI.
   * Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title, etc.
     Only include the passage text, word bank, and questions. Remove all administrative text.
 - For EDITING sections: the passage contains UNDERLINED+BOLDED error words with numbered answer boxes nearby.
@@ -3601,7 +3617,11 @@ Output ONLY the table.` });
 Output ONLY the clean passage/question text, no commentary.` });
 
           const ocrResponse = await generateContentWithRetry({
-            model: "gemini-2.5-flash",
+            // 3-flash-preview reads pipe tables and grid layouts more
+            // reliably than 2.5-flash — 2.5 was occasionally collapsing
+            // "complete the table" exercises into prose, which dropped
+            // the column structure RichStemText needs to render inputs.
+            model: "gemini-3-flash-preview",
             contents: [{ role: "user", parts: ocrParts }],
             config: { temperature: 0.1 },
           }, 2, 5000, `ocr:${secLabel}`);
@@ -3701,7 +3721,10 @@ Return ONLY valid JSON:
 }`;
 
           const extractResponse = await generateContentWithRetry({
-            model: "gemini-2.5-flash",
+            // Upgraded alongside the OCR step so the structured JSON
+            // also preserves Markdown tables faithfully when they appear
+            // in OEQ stems (the comp-OEQ prompt already requires them).
+            model: "gemini-3-flash-preview",
             contents: [{ role: "user", parts: [{ text: extractPrompt }] }],
             config: { responseMimeType: "application/json", temperature: 0.1 },
           }, 2, 5000, `text-extract:${secLabel}`);
