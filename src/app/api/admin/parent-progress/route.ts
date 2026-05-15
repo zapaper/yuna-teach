@@ -23,12 +23,18 @@ type ChildSummary = {
   weaknessTopic: string | null;
   avg7dPct: number | null;
   recent: Array<{ title: string; pct: number | null }>;
+  // ISO date of the most recently completed paper for this child, or
+  // null when they have never completed one.
+  lastQuizAt: string | null;
 };
 
 type ParentRow = {
   parentName: string;
   parentEmail: string;
   parentHomepageUrl: string;
+  // ISO date the parent account was created — surfaced in the CSV so
+  // admin can see how long someone has been on the platform.
+  parentRegisteredAt: string;
   // Total quizzes "set" — parent-assigned + each linked student's
   // self-assigned/uploaded papers (matches the paperCount shown on
   // /admin/users so the two views agree).
@@ -57,6 +63,7 @@ export async function GET(request: NextRequest) {
       name: true,
       displayName: true,
       email: true,
+      createdAt: true,
       _count: { select: { examPapers: true } },
       parentLinks: {
         select: {
@@ -197,12 +204,17 @@ export async function GET(request: NextRequest) {
       // "quizzes all students completed" total.
       quizzesCompleted += papers.length;
 
+      const lastQuizAt = paperScores[0]?.completedAt
+        ? paperScores[0].completedAt.toISOString()
+        : null;
+
       children.push({
         name: studentName,
         homepageUrl: homepageUrl(studentId),
         weaknessTopic,
         avg7dPct,
         recent,
+        lastQuizAt,
       });
     }
 
@@ -210,6 +222,7 @@ export async function GET(request: NextRequest) {
       parentName: p.displayName?.trim() || p.name,
       parentEmail: p.email!,
       parentHomepageUrl: homepageUrl(p.id),
+      parentRegisteredAt: p.createdAt.toISOString(),
       quizzesSet,
       quizzesCompleted,
       children,

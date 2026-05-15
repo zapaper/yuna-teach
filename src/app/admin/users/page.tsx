@@ -89,6 +89,7 @@ function AdminUsersContent() {
           parentName: string;
           parentEmail: string;
           parentHomepageUrl: string;
+          parentRegisteredAt: string;
           quizzesSet: number;
           quizzesCompleted: number;
           children: Array<{
@@ -97,6 +98,7 @@ function AdminUsersContent() {
             weaknessTopic: string | null;
             avg7dPct: number | null;
             recent: Array<{ title: string; pct: number | null }>;
+            lastQuizAt: string | null;
           }>;
         }>;
       };
@@ -104,10 +106,12 @@ function AdminUsersContent() {
         "parent_name",
         "parent_email",
         "parent_homepage_link",
+        "parent_registered_at",
         "quizzes_set",
         "quizzes_completed_by_students",
         "child_1_name",
         "child_1_homepage_link",
+        "child_1_last_quiz_at",
         "child_1_weakness_topic",
         "child_1_avg_score_last_7_days",
         "child_1_last_quiz_title",
@@ -118,6 +122,7 @@ function AdminUsersContent() {
         "child_1_3rd_last_quiz_score",
         "child_2_name",
         "child_2_homepage_link",
+        "child_2_last_quiz_at",
         "child_2_weakness_topic",
         "child_2_avg_score_last_7_days",
         "child_2_last_quiz_title",
@@ -128,11 +133,14 @@ function AdminUsersContent() {
         "child_2_3rd_last_quiz_score",
       ];
       const fmtPct = (n: number | null) => (n == null ? "" : `${n}%`);
-      const childCols = (c: { name: string; homepageUrl: string; weaknessTopic: string | null; avg7dPct: number | null; recent: Array<{ title: string; pct: number | null }> } | undefined) => {
-        if (!c) return ["", "", "", "", "", "", "", "", "", ""];
+      // ISO date (YYYY-MM-DD) — readable in Sheets and sorts correctly.
+      const fmtDate = (iso: string | null) => (iso ? iso.slice(0, 10) : "");
+      const childCols = (c: { name: string; homepageUrl: string; weaknessTopic: string | null; avg7dPct: number | null; recent: Array<{ title: string; pct: number | null }>; lastQuizAt: string | null } | undefined) => {
+        if (!c) return ["", "", "", "", "", "", "", "", "", "", ""];
         return [
           c.name,
           c.homepageUrl,
+          fmtDate(c.lastQuizAt),
           c.weaknessTopic ?? "",
           fmtPct(c.avg7dPct),
           c.recent[0]?.title ?? "",
@@ -150,6 +158,7 @@ function AdminUsersContent() {
           r.parentName,
           r.parentEmail,
           r.parentHomepageUrl,
+          fmtDate(r.parentRegisteredAt),
           r.quizzesSet,
           r.quizzesCompleted,
           ...childCols(r.children[0]),
