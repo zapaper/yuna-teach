@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
     select: {
       id: true, questionNum: true, answer: true, syllabusTopic: true,
       transcribedStem: true, transcribedOptions: true, imageData: true,
+      diagramImageData: true,
       examPaper: { select: { id: true, title: true } },
     },
     orderBy: [{ examPaperId: "asc" }, { orderIndex: "asc" }],
@@ -72,6 +73,7 @@ export async function GET(req: NextRequest) {
       answer: q.answer,
       topic: q.syllabusTopic,
       imageData: q.imageData,
+      diagramImageData: q.diagramImageData,
     })),
   });
 }

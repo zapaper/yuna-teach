@@ -16,15 +16,18 @@ type Candidate = {
   answer: string | null;
   topic: string | null;
   imageData: string;
+  diagramImageData: string | null;
 };
+
+type DiagramBounds = { top: number; left: number; bottom: number; right: number };
 
 type OptionTable = { columns: string[]; rows: string[][] };
 
 type CardState =
   | { kind: "pending" }
   | { kind: "extracting" }
-  | { kind: "table"; table: OptionTable; stem: string | null }
-  | { kind: "text"; options: string[]; stem: string | null }
+  | { kind: "table"; table: OptionTable; stem: string | null; diagramBase64: string | null; diagramBounds: DiagramBounds | null }
+  | { kind: "text"; options: string[]; stem: string | null; diagramBase64: string | null }
   | { kind: "error"; message: string }
   | { kind: "applied" }
   | { kind: "skipped" };
@@ -100,10 +103,12 @@ function ConvertContent() {
         return;
       }
       const stem = typeof data.stem === "string" ? data.stem : null;
+      const diagramBase64 = typeof data.diagramBase64 === "string" ? data.diagramBase64 : null;
+      const diagramBounds = (data.diagramBounds && typeof data.diagramBounds === "object") ? data.diagramBounds : null;
       if (data.optionTable && Array.isArray(data.optionTable.columns) && Array.isArray(data.optionTable.rows)) {
-        setStates(prev => ({ ...prev, [id]: { kind: "table", table: data.optionTable, stem } }));
+        setStates(prev => ({ ...prev, [id]: { kind: "table", table: data.optionTable, stem, diagramBase64, diagramBounds } }));
       } else if (Array.isArray(data.options)) {
-        setStates(prev => ({ ...prev, [id]: { kind: "text", options: data.options.map((o: unknown) => String(o ?? "")), stem } }));
+        setStates(prev => ({ ...prev, [id]: { kind: "text", options: data.options.map((o: unknown) => String(o ?? "")), stem, diagramBase64 } }));
       } else {
         setStates(prev => ({ ...prev, [id]: { kind: "error", message: "Empty extraction" } }));
       }
@@ -112,12 +117,22 @@ function ConvertContent() {
     }
   }
 
-  async function apply(id: string, table: OptionTable) {
+  async function apply(id: string, st: Extract<CardState, { kind: "table" }>) {
     setStates(prev => ({ ...prev, [id]: { kind: "extracting" } }));
+    // Save the table + clear old text options. Also save freshly-
+    // cropped diagram if present, so the quiz preview matches what
+    // the admin just eyeballed.
+    const body: Record<string, unknown> = {
+      transcribedOptionTable: st.table,
+      transcribedOptions: null,
+    };
+    if (st.stem) body.transcribedStem = st.stem;
+    if (st.diagramBase64) body.diagramImageData = st.diagramBase64;
+    if (st.diagramBounds) body.diagramBounds = st.diagramBounds;
     const res = await fetch(`/api/exam/questions/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transcribedOptionTable: table, transcribedOptions: null }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) {
       setStates(prev => ({ ...prev, [id]: { kind: "error", message: "Save failed" } }));
@@ -224,6 +239,7 @@ function ConvertContent() {
                     )}
                     {st.kind === "table" && (() => {
                       const correctIdx = parseInt(normAns(q.answer), 10) - 1; // 0-3
+                      const diagramSrc = st.diagramBase64 ?? q.diagramImageData ?? null;
                       return (
                         <div>
                           <p className="text-[10px] text-emerald-700 font-bold mb-2">Detected TABLE — preview as it would appear in the quiz (correct row in green)</p>
@@ -232,6 +248,14 @@ function ConvertContent() {
                               <p className="font-headline text-sm font-semibold leading-snug text-[#0b1c30] mb-3 whitespace-pre-wrap">
                                 <MathText text={st.stem} />
                               </p>
+                            )}
+                            {diagramSrc && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={diagramSrc.startsWith("data:") ? diagramSrc : `data:image/jpeg;base64,${diagramSrc}`}
+                                alt="diagram"
+                                className="w-full rounded-lg border border-slate-200 mb-3"
+                              />
                             )}
                             <div className="overflow-x-auto">
                               <table className="w-full text-xs border-collapse border-2 border-black">
@@ -281,7 +305,7 @@ function ConvertContent() {
 
                 <div className="flex gap-2 pt-3 mt-3 border-t border-slate-100">
                   <button
-                    onClick={() => st.kind === "table" && apply(q.id, st.table)}
+                    onClick={() => st.kind === "table" && apply(q.id, st)}
                     disabled={st.kind !== "table"}
                     className="flex-1 py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold disabled:bg-slate-200 disabled:text-slate-400">
                     Apply table
