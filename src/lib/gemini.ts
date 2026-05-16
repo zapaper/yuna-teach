@@ -1747,33 +1747,47 @@ For Visual Text Comprehension, also include "visualPages" — the 0-based page i
 For Comprehension OEQ, also include "passagePages" — the 0-based page indices of the reading passage pages. For P5/P6 papers, the passage is usually in Booklet A (last 1-2 pages). For P4 English papers, the passage may appear on the page(s) IMMEDIATELY BEFORE the comprehension questions (in the same booklet, not a separate one), since P4 papers are often shorter with fewer sections and no separate Booklet A/B split.
 
 ### CHINESE PAPERS (华文 / 中文) — Section identification:
-For Chinese papers, identify these sections in order. Use these EXACT NORMALISED names and types in the sections array — the downstream pathway depends on the wording:
-1. **语文应用 MCQ** — standalone Chinese vocab / grammar / 词语 MCQ. Type: "MCQ"
-   Section headers may print as: 语文应用 / 语文运用
-2. **短文填空** — a SHORT PASSAGE with NUMBERED blanks inline; each blank has 4 word options (1)/(2)/(3)/(4) (or full-width "（1）"–"（4）") printed inline or below. Type: "MCQ"
-   Section headers may print as: 短文填空 / 短文填写 / 完形填空 — all map to the same normalised name "短文填空".
-3. **阅读理解 MCQ** — a longer reading PASSAGE then MCQ questions about it. Type: "MCQ"
-   Section headers may print as: 阅读理解(一) / 阅读理解一 / 短文理解 — when the questions are MCQ.
-4. **完成对话** — a WORD BANK in a box at the top (甲/乙/丙/丁... or A/B/C/D...), then a dialogue / passage with NUMBERED blanks. Type: "grammar-cloze"
-   Section headers may print as: 完成对话 / 对话填空
-5. **Visual Text Comprehension MCQ** — MCQ based on a poster / advertisement / 漫画 / leaflet. May end with one short open-ended question. Type: "MCQ"
-   Section headers may print as: 看图理解 / 图表理解 / 视觉文本理解
-6. **阅读理解 OEQ** — written-answer questions on a longer reading passage. Type: "comprehension-oeq"
-   Section headers may print as: 阅读理解(二) / 阅读理解二
+PSLE / SA / EOY 华文 papers follow a strict pattern. EVERY section header in
+the original paper starts with a Chinese ordinal "一", "二", "三", "四",
+"五", "六" (sometimes with a "、" mark after it). Find each header and
+emit one section entry per header. Sub-groups marked "A 组" / "B 组"
+inside section 五 must be split into TWO separate section entries (see
+below).
 
-Use these type values in the sections array for Chinese papers. ALSO include "startPage", "endPage", and "questionRange" for each section (same rules as English).
+The canonical PSLE structure (use EXACTLY these section names + types):
 
-For Visual Text MCQ in Chinese papers, also include "visualPages" — the 0-based page indices of the visual content that appears BEFORE the questions.
-For 阅读理解 OEQ, also include "passagePages" — the 0-based page indices of the reading passage.
+| # | Header in paper                | Normalised name      | Type                | Format                                                                                                            |
+|---|--------------------------------|----------------------|---------------------|-------------------------------------------------------------------------------------------------------------------|
+| 一 | 一 语文应用 (15题30分)         | "语文应用 MCQ"       | "MCQ"               | 15 standalone MCQ questions, no passage. Options (1)/(2)/(3)/(4).                                                |
+| 二 | 二 短文填空 (5题10分)          | "短文填空"           | "MCQ"               | Short passage with 5 numbered blanks; each blank has its own 4 MCQ options printed below or inline.              |
+| 三 | 三 阅读理解一 (5题10分)        | "阅读理解 MCQ"       | "MCQ"               | Passage on its own, then 5 MCQ questions about the passage. Set "passagePages" to where the passage lives.       |
+| 四 | 四 完成对话 (4题8分)            | "完成对话"           | "grammar-cloze"     | A box with 8 numbered phrases (the word bank), then a dialogue with 4 numbered blanks. Student fills with 1-8.   |
+| 五A| 五 阅读理解二 → A 组 (Q30-33)  | "阅读理解 MCQ"       | "MCQ"               | Passage, then 3 MCQ (Q30-Q32) + 1 OEQ (Q33). Split: emit MCQ subsection for Q30-Q32 AND OEQ subsection for Q33.   |
+| 五A-OEQ | (Q33 inside A 组)         | "阅读理解 OEQ"       | "comprehension-oeq" | Single OEQ on the SAME passage as the A组 MCQ. passagePages same as A组 MCQ.                                      |
+| 五B| 五 阅读理解二 → B 组 (Q34-40)  | "阅读理解 OEQ"       | "comprehension-oeq" | Different passage, followed by 7 OEQ questions.                                                                  |
 
-Chinese paper section name conventions:
-- Section headers in the original paper may be prefixed "一、", "二、", "三、" etc., or with Chinese marks like "（一）". Strip those prefixes and normalise to the SHORT section name from the list above. Examples:
-    "一、语文应用"   → "语文应用 MCQ"
-    "二、短文填写"   → "短文填空"   (note: 填空 / 填写 / 完形填空 all normalise to 短文填空)
-    "三、阅读理解(一)" → "阅读理解 MCQ"   (when the questions below are MCQ)
-    "四、完成对话"   → "完成对话"
-    "五、阅读理解(二)" → "阅读理解 OEQ"   (when the questions below need written answers)
-- 作文 (composition) and 听力 (listening) sections must be marked with "skipExtraction": true on the parent paper — they cannot be auto-graded.
+CRITICAL — Section 五 (阅读理解二) splits into THREE section entries because A 组 mixes MCQ + OEQ on the same passage and B 组 has a different passage. Emit them as:
+  - "阅读理解 MCQ" with passagePages = A 组 passage pages, questionRange = Q30-32
+  - "阅读理解 OEQ" with passagePages = SAME A 组 passage pages, questionRange = Q33
+  - "阅读理解 OEQ" with passagePages = B 组 passage pages, questionRange = Q34-40
+
+If a paper omits one section (e.g. no Visual Text), just skip it. Don't fabricate.
+
+Header variants you should ALSO recognise (same normalised name):
+- 短文填空 / 短文填写 / 完形填空           → "短文填空"
+- 阅读理解一 / 阅读理解(一) / 阅读理解1   → "阅读理解 MCQ" (when section 三)
+- 阅读理解二 / 阅读理解(二) / 阅读理解2   → split per A组/B组 rule above
+- 完成对话 / 对话填空 / 选词填空           → "完成对话"
+- 看图理解 / 图表理解 / 漫画 / 视觉文本   → "Visual Text Comprehension MCQ"
+- 语文应用 / 语文运用                       → "语文应用 MCQ"
+
+Strip the leading ordinal ("一、", "二", "（三）" etc.) — keep just the normalised name.
+
+ALWAYS include "startPage", "endPage", and "questionRange" for each section (same rules as English).
+For Visual Text MCQ, include "visualPages" — pages where the visual content lives.
+For 阅读理解 MCQ / 阅读理解 OEQ, include "passagePages" — pages where the reading passage lives.
+
+作文 (composition) and 听力 (listening) sections: mark the parent paper with "skipExtraction": true — they cannot be auto-graded.
 
 ### P4 ENGLISH PAPERS — Important differences:
 - P4 English papers are typically shorter with fewer questions per section
@@ -2303,10 +2317,17 @@ Rules per topic:
 - "短文填空" — a PASSAGE fills the top portion, blanks are inline within the passage; answer is (1)/(2)/(3)/(4); ALWAYS tag these as this topic, NOT "语文应用 MCQ"
 - "阅读理解 MCQ" — a longer PASSAGE then MCQ questions BELOW (or after) the passage; tag every MCQ question following the comprehension passage
 - "Visual Text Comprehension MCQ" — MCQ based on a visual text (poster, ad, 漫画); tag the trailing open-ended question (if any) as "阅读理解 OEQ"
-- "完成对话" — a word-bank cloze with a labelled word box at the top and numbered blanks below; student writes a SINGLE LABEL (a letter or 甲/乙/丙…) in each blank
+- "完成对话" — a word-bank cloze with a NUMBERED word box (1-8) at the top and numbered blanks below; student writes a SINGLE DIGIT (1-8) in each blank
 - "阅读理解 OEQ" — open-ended written answers to questions about a reading passage; NOT multiple choice
 - "作文" (composition) and "听力" (listening) are extraction-SKIPPED — do not tag any question as these
-- If the question does not clearly fit any topic, set "syllabusTopic" to null`;
+- If the question does not clearly fit any topic, set "syllabusTopic" to null
+
+PSLE 阅读理解二 split — IMPORTANT:
+The section "五 阅读理解二" in PSLE 华文 is split into A 组 (Q30-Q33) and B 组 (Q34-Q40). Tag per-question:
+- Q30-Q32 (the 3 MCQ inside A 组) → "阅读理解 MCQ"
+- Q33 (the 1 OEQ inside A 组)      → "阅读理解 OEQ"
+- Q34-Q40 (all 7 OEQ inside B 组)  → "阅读理解 OEQ"
+The structure-analysis step already split this into separate sections — just keep the per-question syllabusTopic consistent with the section the question lives in.`;
 
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
