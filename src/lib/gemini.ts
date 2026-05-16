@@ -3859,15 +3859,31 @@ CHINESE PAPER (华文) — language-specific rules:
 - For ALL sections: exclude preamble instructions (e.g. "For each question...", "Choose the best answer..."), page numbers, "--- Page N ---" markers, section titles, and any question/answer text that is NOT part of the passage or questions.
 Output ONLY the clean passage/question text, no commentary.` });
 
-          const ocrResponse = await generateContentWithRetry({
-            // 3-flash-preview reads pipe tables and grid layouts more
-            // reliably than 2.5-flash — 2.5 was occasionally collapsing
-            // "complete the table" exercises into prose, which dropped
-            // the column structure RichStemText needs to render inputs.
-            model: "gemini-3-flash-preview",
-            contents: [{ role: "user", parts: ocrParts }],
-            config: { temperature: 0.1 },
-          }, 2, 5000, `ocr:${secLabel}`);
+          // Model fallback chain — same logic as the text-extract
+          // step below. 3-flash-preview is preferred (best table
+          // handling) but 504s on large Chinese passages, so fall
+          // back to 2.5-flash then 2.5-pro before failing the
+          // whole upload.
+          const OCR_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro"] as const;
+          let ocrResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
+          let lastOcrErr: unknown = null;
+          for (let mi = 0; mi < OCR_MODELS.length; mi++) {
+            const model = OCR_MODELS[mi];
+            try {
+              ocrResponse = await generateContentWithRetry({
+                model,
+                contents: [{ role: "user", parts: ocrParts }],
+                config: { temperature: 0.1 },
+              }, 2, 5000, `ocr:${secLabel}:${model}`);
+              if (mi > 0) console.log(`[Exam Pipeline] ${secLabel} OCR: succeeded on fallback model ${model}`);
+              break;
+            } catch (err) {
+              lastOcrErr = err;
+              console.warn(`[Exam Pipeline] ${secLabel} OCR on ${model} failed: ${err instanceof Error ? err.message : String(err)}`);
+              if (mi === OCR_MODELS.length - 1) throw err;
+            }
+          }
+          if (!ocrResponse) throw lastOcrErr ?? new Error("ocr: all fallback models failed");
 
           const ocrText = ocrResponse.text?.trim() ?? "";
           console.log(`[Exam Pipeline] ${secLabel}: OCR result (${ocrText.length} chars, first 300):`, ocrText.slice(0, 300));
@@ -3969,14 +3985,35 @@ Return ONLY valid JSON:
   ]
 }`;
 
-          const extractResponse = await generateContentWithRetry({
-            // Upgraded alongside the OCR step so the structured JSON
-            // also preserves Markdown tables faithfully when they appear
-            // in OEQ stems (the comp-OEQ prompt already requires them).
-            model: "gemini-3-flash-preview",
-            contents: [{ role: "user", parts: [{ text: extractPrompt }] }],
-            config: { responseMimeType: "application/json", temperature: 0.1 },
-          }, 2, 5000, `text-extract:${secLabel}`);
+          // Model fallback chain. If gemini-3-flash-preview 504s
+          // through its own internal retries (3 attempts), fall back
+          // to 2.5-flash, then 2.5-pro. Each model gets the FULL
+          // retry budget. A whole section's text-extract failing is
+          // an extraction killer — losing 3-flash to a transient
+          // 504 should not kill the upload. Once any model returns
+          // a valid response we stop.
+          const TEXT_EXTRACT_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro"] as const;
+          let extractResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
+          let lastExtractErr: unknown = null;
+          for (let mi = 0; mi < TEXT_EXTRACT_MODELS.length; mi++) {
+            const model = TEXT_EXTRACT_MODELS[mi];
+            try {
+              extractResponse = await generateContentWithRetry({
+                model,
+                contents: [{ role: "user", parts: [{ text: extractPrompt }] }],
+                config: { responseMimeType: "application/json", temperature: 0.1 },
+              }, 2, 5000, `text-extract:${secLabel}:${model}`);
+              if (mi > 0) console.log(`[Exam Pipeline] ${secLabel} text-extract: succeeded on fallback model ${model}`);
+              break;
+            } catch (err) {
+              lastExtractErr = err;
+              console.warn(`[Exam Pipeline] ${secLabel} text-extract on ${model} failed: ${err instanceof Error ? err.message : String(err)}`);
+              if (mi === TEXT_EXTRACT_MODELS.length - 1) {
+                throw err;
+              }
+            }
+          }
+          if (!extractResponse) throw lastExtractErr ?? new Error("text-extract: all fallback models failed");
 
           const extractText = extractResponse.text?.trim() ?? "";
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
