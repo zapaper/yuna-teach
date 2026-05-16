@@ -63,7 +63,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
   // Re-add comfortable horizontal padding so the content doesn't sit
   // against the edge.
   const outerCls = useSplitScreen
-    ? "mb-12 lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)] lg:my-[-32px] lg:px-8 xl:px-16 lg:py-4"
+    ? "mb-12 lg:grid lg:grid-cols-2 lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)] lg:my-[-32px] lg:px-8 xl:px-16 lg:py-4"
     : "mb-12";
   // Tighten the section header in split-screen — the header bar
   // shouldn't eat into the precious viewport-height the passage and
@@ -98,10 +98,10 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
             );
           })()}
         </div>
-        {sectionType === "grammar-cloze" && <p className="text-[#737780] mt-1 text-sm">From the list of words given, choose the most suitable word, and write its letter (A to Q) in the blank.</p>}
-        {sectionType === "editing" && <p className="text-[#737780] mt-1 text-sm">Each of the underlined words contains either a spelling or grammatical error. Type the correct word in each of the boxes.</p>}
-        {sectionType === "comprehension-cloze" && <p className="text-[#737780] mt-1 text-sm">Fill in each blank with a suitable word.</p>}
-        {sectionType === "synthesis" && <p className="text-[#737780] mt-1 text-sm">Rewrite the given sentence(s) using the word(s) provided. Your answer must be in one sentence. The meaning of your sentence must be the same as the meaning of the given sentence(s).</p>}
+        {/* Section sub-headings are English copy from the English
+            forks. Chinese sections suppress them — the original 华文
+            paper prints no English instructions and the student
+            shouldn't see one. */}
       </div>
       </div>
 
@@ -446,7 +446,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                 const opts = (q.transcribedOptions as string[] | null) ?? ["", "", "", ""];
                 const selected = answers[q.id] ?? null;
                 return (
-                  <span key={i} className="inline-flex items-center gap-1 align-middle mx-1 my-1 bg-[#eff4ff] border border-[#d3e4fe] rounded-xl px-2 py-1">
+                  <span key={i} className="inline-flex flex-wrap items-center gap-1 align-middle mx-1 my-1 bg-[#eff4ff] border border-[#d3e4fe] rounded-xl px-2 py-1 max-w-full">
                     <span className="text-[10px] font-extrabold text-[#003366] bg-white px-1.5 rounded">Q{parseInt(q.questionNum)}</span>
                     {[0, 1, 2, 3].map(oi => {
                       const optNum = String(oi + 1);
@@ -479,48 +479,72 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
         );
       })()}
 
-      {/* Visual Text MCQ: standard question + options */}
+      {/* Visual Text MCQ / 阅读理解 mixed: standard question + options
+          for MCQ, 田字格 handwriting canvas for OEQ. 阅读理解A on PSLE
+          华文 carries Q30-32 (MCQ) + Q33 (long OEQ) sharing one
+          passage — the renderer picks the shape per-question instead
+          of routing the whole section through one sectionType. */}
       {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && (
         <div className={`space-y-6 ${splitQuestionsCls}`}>
-
-          <p className="text-sm text-[#737780] italic">Choose the most appropriate answer for each question.</p>
-          {questions.map((q, idx) => (
-            <div key={q.id} className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-bold text-sm text-[#001e40]">Question {parseInt(q.questionNum)}</p>
-                {onToggleFlag && (
-                  <button onClick={() => onToggleFlag(q.id)} className="text-[#737780] hover:text-[#ba1a1a] transition-colors">
-                    <span className="material-symbols-outlined text-sm" style={flaggedIds?.has(q.id) ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
-                  </button>
+          {questions.map(q => {
+            const hasOptions = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length > 0;
+            const isOeq = !hasOptions;
+            const stored = answers[q.id] ?? "";
+            const initialInk = stored.startsWith("data:image") ? stored : null;
+            return (
+              <div key={q.id} className="bg-white rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-bold text-sm text-[#001e40]">Question {parseInt(q.questionNum)}</p>
+                  {q.marksAvailable != null && (
+                    <span className="text-[10px] font-bold text-[#003366] bg-[#d3e4fe] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                      {q.marksAvailable} {q.marksAvailable > 1 ? "marks" : "mark"}
+                    </span>
+                  )}
+                  {onToggleFlag && (
+                    <button onClick={() => onToggleFlag(q.id)} className="text-[#737780] hover:text-[#ba1a1a] transition-colors">
+                      <span className="material-symbols-outlined text-sm" style={flaggedIds?.has(q.id) ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+                    </button>
+                  )}
+                </div>
+                {q.transcribedStem && (
+                  <FormattedText text={q.transcribedStem} className="text-sm text-[#0b1c30] mb-3 whitespace-pre-wrap" />
+                )}
+                {hasOptions && (
+                  <div className="space-y-2">
+                    {(q.transcribedOptions as string[]).map((opt, oi) => {
+                      const optNum = String(oi + 1);
+                      const selected = answers[q.id] === optNum;
+                      return (
+                        <button
+                          key={oi}
+                          onClick={() => onAnswer(q.id, optNum)}
+                          className={`w-full text-left p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                            selected ? "border-[#006c49] bg-[#6cf8bb]/10" : "border-slate-200 hover:border-[#003366]/30"
+                          }`}
+                        >
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                            selected ? "bg-[#006c49] text-white" : "bg-[#eff4ff] text-[#001e40]"
+                          }`}>{oi + 1}</span>
+                          <span className="text-sm text-[#001e40]">{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {isOeq && (
+                  <div className="mt-2">
+                    <ChineseHandwritingCanvas
+                      height={320}
+                      cellSize={80}
+                      tool={tool}
+                      savedInkUrl={initialInk}
+                      onChange={(inkDataUrl) => onAnswer(q.id, inkDataUrl)}
+                    />
+                  </div>
                 )}
               </div>
-              {q.transcribedStem && (
-                <FormattedText text={q.transcribedStem} className="text-sm text-[#0b1c30] mb-3 whitespace-pre-wrap" />
-              )}
-              {q.transcribedOptions && (
-                <div className="space-y-2">
-                  {(q.transcribedOptions as string[]).map((opt, oi) => {
-                    const optNum = String(oi + 1);
-                    const selected = answers[q.id] === optNum;
-                    return (
-                      <button
-                        key={oi}
-                        onClick={() => onAnswer(q.id, optNum)}
-                        className={`w-full text-left p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
-                          selected ? "border-[#006c49] bg-[#6cf8bb]/10" : "border-slate-200 hover:border-[#003366]/30"
-                        }`}
-                      >
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                          selected ? "bg-[#006c49] text-white" : "bg-[#eff4ff] text-[#001e40]"
-                        }`}>{oi + 1}</span>
-                        <span className="text-sm text-[#001e40]">{opt}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -1003,5 +1003,53 @@ function buildChineseSections(
     }
     // 语文应用 MCQ / Visual Text MCQ: no passage attached.
   }
-  return sections;
+
+  // 3. PSLE 阅读理解二 grouping. The user-facing layout merges
+  //    consecutive 阅读理解 sections that share the same passage
+  //    (e.g. 五-A's MCQ Q30-32 + 五-A's OEQ Q33, which sit on the
+  //    same reading passage) into ONE section, and labels passage A
+  //    / passage B as "阅读理解A" / "阅读理解B" when 阅读理解二
+  //    splits into multiple sub-passages. A solitary 阅读理解 group
+  //    (e.g. section 三 阅读理解一 with only Q21-25) keeps its
+  //    original label so we don't rename a section that has no peer.
+  const grouped: BuiltSection[] = [];
+  let i = 0;
+  while (i < sections.length) {
+    const sec = sections[i];
+    if (!sec.label.includes("阅读理解")) {
+      grouped.push(sec);
+      i++;
+      continue;
+    }
+    // Collect the run of consecutive 阅读理解 sections.
+    let j = i;
+    while (j + 1 < sections.length && sections[j + 1].label.includes("阅读理解")) j++;
+    // Within [i..j], merge subsequent sections that share the SAME
+    // passage string. Step 2's adjacency fallback already populated
+    // 五-A's OEQ with the MCQ's passage, so a true same-passage match
+    // suffices — a section with no passage (e.g. 五-B when its own
+    // passagePages was never set) gets its own subgroup rather than
+    // borrowing the previous group's passage, which would be wrong.
+    const subgroups: BuiltSection[] = [{ ...sections[i] }];
+    for (let k = i + 1; k <= j; k++) {
+      const s = sections[k];
+      const cur = subgroups[subgroups.length - 1];
+      const samePassage = !!s.passage && !!cur.passage && s.passage === cur.passage;
+      if (samePassage) {
+        cur.endIndex = s.endIndex;
+      } else {
+        subgroups.push({ ...s });
+      }
+    }
+    // Rename when this 阅读理解 run holds more than one passage —
+    // those are the A组 / B组 of 阅读理解二.
+    if (subgroups.length > 1) {
+      subgroups.forEach((g, idx) => {
+        g.label = `阅读理解${String.fromCharCode(65 + idx)}`;
+      });
+    }
+    grouped.push(...subgroups);
+    i = j + 1;
+  }
+  return grouped;
 }

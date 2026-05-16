@@ -1329,22 +1329,32 @@ function QuizContent({ id }: { id: string }) {
                   const labelLc = label.toLowerCase();
                   const isWordBankCloze = label.includes("完成对话") || label.includes("对话填空");
                   const isShortClozeMcq = label.includes("短文填空");
-                  const isCompMcq = label.includes("阅读理解 MCQ") || labelLc.includes("阅读理解 mcq");
+                  // "阅读理解 MCQ", "阅读理解 OEQ", "阅读理解A",
+                  // "阅读理解B" (merged 五-A / 五-B). Any 阅读理解
+                  // label that ISN'T 短文填空 carries a passage and
+                  // wants the split layout. 阅读理解A is mixed MCQ +
+                  // OEQ; the ChineseQuizSection renders each question
+                  // per-shape (MCQ buttons vs 田字格 canvas).
+                  const isAnyComp = label.includes("阅读理解") && !isShortClozeMcq;
+                  const isCompAllOeq = (label.includes("阅读理解 OEQ") || labelLc.includes("阅读理解 oeq")) ||
+                    (isAnyComp && sec.startIndex !== undefined && (() => {
+                      const qs = paper.questions.slice(sec.startIndex, sec.endIndex + 1);
+                      return qs.length > 0 && qs.every(q => !Array.isArray(q.transcribedOptions) || q.transcribedOptions.length === 0);
+                    })());
                   const isVisualText = labelLc.includes("visual text");
-                  const isCompOeq = label.includes("阅读理解 OEQ") || labelLc.includes("阅读理解 oeq");
                   // sectionType maps Chinese sections onto the same
                   // renderer shapes the component already supports.
                   const sectionType: "grammar-cloze" | "visual-text-mcq" | "comprehension-oeq" =
                     isWordBankCloze ? "grammar-cloze"
-                    : isCompOeq ? "comprehension-oeq"
+                    : isCompAllOeq ? "comprehension-oeq"
                     : "visual-text-mcq";
-                  // Click-to-enter sections: 阅读理解 MCQ (passage left
-                  // + MCQ right) AND 阅读理解 OEQ (passage left +
-                  // canvas right). 短文填空 stays single-column with
-                  // inline pickers. 完成对话 uses grammar-cloze layout.
-                  // Mirrors the English Continue-card pattern but in
-                  // the Chinese-only block so changes don't leak.
-                  const wantsSplit = isCompOeq || isCompMcq || isVisualText;
+                  // Click-to-enter sections: every 阅读理解 (passage
+                  // left + questions right) + Visual Text. 短文填空
+                  // stays single-column inline pickers. 完成对话 uses
+                  // grammar-cloze layout. Mirrors the English
+                  // Continue-card pattern but in the Chinese-only
+                  // block so changes don't leak.
+                  const wantsSplit = isAnyComp || isVisualText;
                   const isPureCompQuiz = totalSections === 1 && wantsSplit;
                   const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
                   const divider = si > 0 ? <hr className="border-t-2 border-slate-200 my-10 lg:my-12" /> : null;

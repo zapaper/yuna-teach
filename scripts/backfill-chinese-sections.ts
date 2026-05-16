@@ -72,7 +72,29 @@ function build(
       sec.passage = e?.ocrText;
     }
   }
-  return sections;
+  // Mirror buildChineseSections in lib/extraction.ts — merge
+  // consecutive 阅读理解 sections that share a passage, label A/B
+  // when 阅读理解二 splits across passages.
+  const grouped: Sec[] = [];
+  let i = 0;
+  while (i < sections.length) {
+    const sec = sections[i];
+    if (!sec.label.includes("阅读理解")) { grouped.push(sec); i++; continue; }
+    let j = i;
+    while (j + 1 < sections.length && sections[j + 1].label.includes("阅读理解")) j++;
+    const subgroups: Sec[] = [{ ...sections[i] }];
+    for (let k = i + 1; k <= j; k++) {
+      const s = sections[k];
+      const cur = subgroups[subgroups.length - 1];
+      const samePassage = !!s.passage && !!cur.passage && s.passage === cur.passage;
+      if (samePassage) cur.endIndex = s.endIndex;
+      else subgroups.push({ ...s });
+    }
+    if (subgroups.length > 1) subgroups.forEach((g, idx) => { g.label = `阅读理解${String.fromCharCode(65 + idx)}`; });
+    grouped.push(...subgroups);
+    i = j + 1;
+  }
+  return grouped;
 }
 
 const prisma = new PrismaClient();

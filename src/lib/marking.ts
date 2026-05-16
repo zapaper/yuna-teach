@@ -2818,14 +2818,19 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
         }
       }
     }
-    // Chinese AI-marked sections — separate branch. 阅读理解 OEQ is
-    // the only Chinese typed-OEQ section.
+    // Chinese AI-marked sections — separate branch. Any 阅读理解
+    // section can carry OEQ questions: 阅读理解 OEQ on its own,
+    // 阅读理解A (merged Q30-32 MCQ + Q33 OEQ on shared passage —
+    // route the OEQ portion through AI marking) and 阅读理解B (all
+    // OEQ). For every question inside a 阅读理解 section, mark it
+    // AI-typed when it has no MCQ options.
     if (meta?.chineseSections) {
       for (const sec of meta.chineseSections) {
-        if (sec.label.includes("阅读理解 OEQ") || sec.label.includes("阅读理解 oeq")) {
-          for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
-            aiTypedOeqQIds.add(paper.questions[i].id);
-          }
+        if (!sec.label.includes("阅读理解")) continue;
+        for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
+          const q = paper.questions[i];
+          if (hasOpts(q)) continue;
+          aiTypedOeqQIds.add(q.id);
         }
       }
     }

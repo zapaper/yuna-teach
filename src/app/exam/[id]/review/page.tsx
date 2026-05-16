@@ -1548,12 +1548,19 @@ function ExamReviewContent({ id }: { id: string }) {
                 }
               }
 
-              const isGrammarCloze = currentSectionLabel.includes("grammar cloze");
+              const rawLabel = currentSection?.label ?? "";
+              const isGrammarCloze = currentSectionLabel.includes("grammar cloze") || rawLabel.includes("完成对话") || rawLabel.includes("对话填空");
               const isEditing = currentSectionLabel.includes("editing");
               const isSynthesis = currentSectionLabel.includes("synthesis");
-              const isCompOeq = currentSectionLabel.includes("comprehension oeq") || currentSectionLabel.includes("comprehension open");
+              // Chinese 阅读理解 sections (including the merged
+              // 阅读理解A / 阅读理解B from 五-A/B) reuse the comp-OEQ
+              // split layout: passage on the left, questions on the
+              // right. Detection is on the original (non-lowercased)
+              // label so the Chinese characters match.
+              const isChineseComp = rawLabel.includes("阅读理解") && !rawLabel.includes("短文填空");
+              const isCompOeq = currentSectionLabel.includes("comprehension oeq") || currentSectionLabel.includes("comprehension open") || isChineseComp;
               const isCompCloze = currentSectionLabel.includes("comprehension") && currentSectionLabel.includes("cloze") && !isCompOeq;
-              const isVocabCloze = currentSectionLabel.includes("vocab") && currentSectionLabel.includes("cloze");
+              const isVocabCloze = (currentSectionLabel.includes("vocab") && currentSectionLabel.includes("cloze")) || rawLabel.includes("短文填空");
               const isVisualText = currentSectionLabel.includes("visual") && currentSectionLabel.includes("text");
               const totalMarks = sectionQuestions.reduce((s, q) => s + (q.marksAvailable ?? 1), 0);
               const earnedMarks = sectionQuestions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
