@@ -356,10 +356,26 @@ function ExamReviewContent({ id }: { id: string }) {
               .map((s) => s.label.toLowerCase());
             if (labels.length === 0) return false;
             const ans = (q.answer ?? "").toLowerCase();
-            // True if at least one label is NOT mentioned anywhere
-            // in the answer text. Catches cases like our (a)+(b)
-            // shared-block extraction miss.
-            return labels.some((l) => !ans.includes(`(${l})`));
+            // True if at least one label is NOT mentioned anywhere in
+            // the answer text. Accept any of the equivalent label
+            // forms so hybrid answers don't falsely trigger:
+            //   "(a)"       — plain
+            //   "(a-i)"     — hyphen-compound storage shorthand
+            //   "(a)(i)"    — paren-paren compound
+            //   "a)"        — bare close-paren (very old extracts)
+            //   "Na:"       — question-number prefix (e.g. "7a:")
+            // Without these alternatives, a perfectly-good compound
+            // answer like "(a-i) K (a)(ii) J | (b) ... | (c) ..."
+            // re-triggered auto-solve and the AI wrote a steps-based
+            // solution into the answer field, destroying the key.
+            return labels.some((l) => {
+              if (ans.includes(`(${l})`)) return false;
+              if (ans.includes(`(${l}-`)) return false;
+              // word-boundary "a)" — avoid matching the "a)" inside "(a)"
+              if (new RegExp(`(^|[\\s|])${l}\\)`, "i").test(ans)) return false;
+              if (new RegExp(`\\d+${l}[\\s:)]`, "i").test(ans)) return false;
+              return true;
+            });
           });
           // Fire-and-forget — limit concurrency a little so we don't
           // hammer Gemini if a parent opens a paper with 20 missing
@@ -838,8 +854,14 @@ function ExamReviewContent({ id }: { id: string }) {
       let pos = lower.indexOf(bracketed);
       if (pos !== -1) {
         let end = pos + bracketed.length;
+        // Compound form: "(a)(i) K (a)(ii) J ...". When the bracketed
+        // label is immediately followed by another "(", treat it as a
+        // compound — keep the outer "(a)" inside the content so the
+        // rendered correct-answer block reads "(a)(i) K (a)(ii) J"
+        // rather than just "(i) K (a)(ii) J".
+        const isCompound = text[end] === "(";
         while (end < text.length && text[end] === " ") end++;
-        found.push({ label: lbl, start: end, matchStart: pos });
+        found.push({ label: lbl, start: isCompound ? pos : end, matchStart: pos });
         continue;
       }
       // Try "label)" pattern at word boundary (e.g. "a) 3", "b) VW")
