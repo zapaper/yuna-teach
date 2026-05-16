@@ -567,8 +567,9 @@ function QuestionRow({
               {options.length >= 2 && !editingOptions && (
                 <div className="flex flex-col gap-0.5 mt-2 mb-1 ml-4">
                   {options.map((opt, i) => (
-                    <span key={i} className="text-xs text-slate-600">
-                      <span className="font-bold text-slate-400">({i + 1})</span> {opt}
+                    <span key={i} className="text-xs text-slate-600 inline-flex flex-wrap items-baseline gap-1">
+                      <span className="font-bold text-slate-400">({i + 1})</span>
+                      <OcrRichText text={opt} />
                     </span>
                   ))}
                   <button

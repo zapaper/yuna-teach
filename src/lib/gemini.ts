@@ -3854,7 +3854,13 @@ CHINESE PAPER (华文) — language-specific rules:
 - Preserve Chinese characters EXACTLY as printed — do NOT transliterate to pinyin and do NOT translate. Output 中文 verbatim.
 - Full-width punctuation (。， 、 ：； "" 「」 《》 ！？) and Chinese quotation marks are PART of the text. Keep them as printed.
 - Full-width digits / parens (１ ２ ３ ／ （ ）) are equivalent to half-width — normalise to half-width for question numbers and option labels so downstream parsers see "1." not "１。". But keep Chinese punctuation in the surrounding prose.
-- For 短文填空 (Vocab-Cloze MCQ equivalent): the passage has numbered blanks inline like "他____地走了" — bold-mark each blank as "**________**" (eight underscores between two asterisks), no question number next to it. The renderer maps the Nth bold-blank to the Nth question. STOP at the end of the passage — DO NOT include the "(1)...(4)" options list below; those are stored per-question separately.
+- For 短文填空 (Vocab-Cloze MCQ equivalent): output TWO blocks separated by the literal divider line "---OPTIONS---":
+  1. FIRST: the passage with numbered blanks inline. Bold-mark each blank as "**________**" (eight underscores between two asterisks), no question number next to it. The renderer maps the Nth bold-blank to the Nth question.
+  2. THEN the divider "---OPTIONS---" on its own line.
+  3. THEN one line per question in the form "<Qnum>. (1) optionA (2) optionB (3) optionC (4) optionD". Example:
+       16. (1) 期待 (2) 等候 (3) 盼望 (4) 等待
+       17. (1) 哈哈 (2) 呵呵 (3) 嘿嘿 (4) 哎哟
+  This lets the downstream JSON extract pull the four options per question while the passage renderer stops at the divider.
 - For 完成对话 (Grammar-Cloze equivalent): the WORD BANK is a BOX at the top containing 6-10 phrases each labelled with a NUMBER (typically 1, 2, 3 … 8). Copy the word bank as a markdown table — one row with the digit labels, one row with the corresponding phrases:
     | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
     |---|---|---|---|---|---|---|---|
