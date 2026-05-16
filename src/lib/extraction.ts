@@ -375,6 +375,22 @@ async function extractExamPaperCore(
               qImageData = `data:image/jpeg;base64,${stitched.toString("base64")}`;
             } catch { /* ignore */ }
           }
+          // Per-question crop from the source page image — gives the
+          // /edit view something to display when text-based extraction
+          // doesn't produce a stitched visual image. Falls back to
+          // empty string on any error so the edit view still works in
+          // text-only mode.
+          if (!qImageData && q.yStartPct != null && q.yEndPct != null && imageBuffers[page.pageIndex]) {
+            try {
+              qImageData = await cropQuestionServer(
+                imageBuffers[page.pageIndex],
+                q.yStartPct,
+                q.yEndPct,
+                0.005, // tight top pad — coordinates come from structure analysis already
+                0.005,
+              );
+            } catch { /* leave empty, edit view will degrade gracefully */ }
+          }
 
           questions.push({
             questionNum: qNum,

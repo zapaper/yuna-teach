@@ -24,6 +24,17 @@ export async function classifyPaperDifficulty(paperId: string): Promise<void> {
     // Skip synthetic bank papers — they inherit difficulty from their source.
     if (paper.title?.startsWith("[Synthetic Bank]")) return;
 
+    // Chinese pathway is still being scaffolded — the difficulty
+    // classifier prompt only knows Math / Science / English syllabus
+    // taxonomies, so running it on Chinese papers produces noise.
+    // Suspend until the Chinese rubric is added.
+    const subjectLower = (paper.subject ?? "").toLowerCase();
+    const isChinese = subjectLower.includes("chinese") || (paper.subject ?? "").includes("华文") || (paper.subject ?? "").includes("中文") || (paper.subject ?? "").includes("华语");
+    if (isChinese) {
+      console.log(`[difficulty] Skipping ${paperId} — Chinese subject, classifier not wired yet.`);
+      return;
+    }
+
     let batchNo = 0;
     while (true) {
       const questions = await prisma.examQuestion.findMany({

@@ -130,9 +130,12 @@ export async function GET(request: NextRequest) {
     actorIsAdmin = isAdmin(actor);
   }
   if (!actorIsAdmin) {
-    const chineseFilter = { subject: { not: { contains: "chinese", mode: "insensitive" } } } as const;
+    // Prisma's `mode: "insensitive"` can't sit inside a nested `not` —
+    // it has to be on a top-level NOT clause that wraps the
+    // case-insensitive `contains` filter.
+    const hideChinese = { NOT: { subject: { contains: "chinese", mode: "insensitive" as const } } };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    where = where ? { AND: [where as any, chineseFilter] } : chineseFilter;
+    where = where ? { AND: [where as any, hideChinese] } : hideChinese;
   }
 
   const papers = await prisma.examPaper.findMany({
