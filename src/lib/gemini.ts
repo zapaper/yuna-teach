@@ -4078,7 +4078,19 @@ Return ONLY valid JSON:
               console.log(`[Exam Pipeline] Trimmed Q${q.questionNum} from "${secLabel}" (outside range Q${secFirstQ}-Q${secLastQ})`);
               continue;
             }
-            const pi = q.pageIndex ?? secPageIndices[0];
+            // The AI's pageIndex is unreliable for text-extract — the
+            // OCR doesn't insert "--- Page N ---" markers so the model
+            // often copies the prompt's example value (0) for every
+            // question. That landed Q1-Q40 all on PDF page 0 (the
+            // cover) in the latest Chinese paper.
+            // Instead, snap pageIndex to a value INSIDE the section's
+            // known page range (secPageIndices). If the AI's value is
+            // already a valid section page, keep it; otherwise fall
+            // back to the section's first page.
+            const aiPi = typeof q.pageIndex === "number" ? q.pageIndex : null;
+            const pi = (aiPi != null && secPageIndices.includes(aiPi))
+              ? aiPi
+              : secPageIndices[0];
             const entry = {
               questionNum: String(q.questionNum),
               yStartPct: q.yStartPct ?? 0,
@@ -4138,7 +4150,12 @@ Return ONLY valid JSON:
               console.log(`[Exam Pipeline] ${secLabel}: missing retry returned ${missingQs.length} questions`);
 
               for (const q of missingQs) {
-                const pi = q.pageIndex ?? secPageIndices[0];
+                // Snap to section pages — same rationale as the main
+                // extract loop above.
+                const aiPi = typeof q.pageIndex === "number" ? q.pageIndex : null;
+                const pi = (aiPi != null && secPageIndices.includes(aiPi))
+                  ? aiPi
+                  : secPageIndices[0];
                 const entry = {
                   questionNum: String(q.questionNum),
                   yStartPct: q.yStartPct ?? 0, yEndPct: q.yEndPct ?? 0,
@@ -4260,7 +4277,23 @@ Return ONLY valid JSON:
           const ocrTexts: Record<string, { ocrText: string; pageIndices: number[] }> = {};
           for (const r of results) {
             const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[]; passagePageIndices?: number[]; passageOcrText?: string } })._sectionOcr;
-            if (ocr) ocrTexts[ocr.name] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}), ...(ocr.passageOcrText ? { passageOcrText: ocr.passageOcrText } : {}) };
+            if (!ocr) continue;
+            // Multiple sections can share the same NORMALISED name (e.g. the
+            // Chinese 五 阅读理解二 split produces TWO "阅读理解 MCQ"
+            // entries when A组 has 3 MCQ + 1 OEQ + B组 has 7 OEQ on
+            // a different passage). The map was keyed by name only, so
+            // the later write silently overwrote the earlier one and
+            // those questions lost their per-section OCR.
+            // De-dup by appending the section's page-range suffix when
+            // the name is already taken.
+            let key = ocr.name;
+            if (key in ocrTexts) {
+              const range = ocr.pageIndices.length > 0
+                ? `pp${ocr.pageIndices[0]}-${ocr.pageIndices[ocr.pageIndices.length - 1]}`
+                : `dup${Math.random().toString(36).slice(2, 6)}`;
+              key = `${ocr.name} (${range})`;
+            }
+            ocrTexts[key] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}), ...(ocr.passageOcrText ? { passageOcrText: ocr.passageOcrText } : {}) };
           }
           // Sort pages by question number to maintain section order (parallel tasks finish in random order)
           const allPages = results.flatMap(r => r.pages);

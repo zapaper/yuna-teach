@@ -520,9 +520,17 @@ function ExamEditContent({ id }: { id: string }) {
   }
 
   const subjectLower = (paper?.subject || "").toLowerCase();
+  const subjectRaw = paper?.subject || "";
   const isMathPaper = subjectLower.includes("math");
   const isEnglishPaper = subjectLower.includes("english");
-  const isTaggablePaper = isMathPaper || subjectLower.includes("science") || isEnglishPaper;
+  const isChinesePaper = subjectLower.includes("chinese") || subjectRaw.includes("华文") || subjectRaw.includes("中文") || subjectRaw.includes("华语");
+  // The /edit section-grouped view applies to BOTH English and
+  // Chinese — same data shape (sectionOcrTexts keyed by section name,
+  // questions with syllabusTopic), same renderer. Forking later if
+  // 华文 needs UI tweaks; for now share EnglishEditView so the user
+  // sees section headers + grouped questions.
+  const isSectionedPaper = isEnglishPaper || isChinesePaper;
+  const isTaggablePaper = isMathPaper || subjectLower.includes("science") || isEnglishPaper || isChinesePaper;
   const backPath = `/exam/${id}/overview?userId=${userId}`;
 
   if (loading) {
@@ -624,7 +632,7 @@ function ExamEditContent({ id }: { id: string }) {
       {/* Question cards — English uses section-based view. Also used for
           Synthetic Bank English papers, which don't carry sectionOcrTexts
           but still need the synthesis-aware question rendering. */}
-      {isEnglishPaper && (paper.metadata?.sectionOcrTexts || paper.title?.startsWith("[Synthetic Bank]")) ? (
+      {isSectionedPaper && (paper.metadata?.sectionOcrTexts || paper.title?.startsWith("[Synthetic Bank]")) ? (
         <div className="mt-5">
           <EnglishEditView
             paper={paper}
@@ -721,7 +729,7 @@ function ExamEditContent({ id }: { id: string }) {
             question={q}
             saving={saving?.startsWith(q.id) ? saving.slice(q.id.length) as keyof ExamQuestionItem | "redo" : null}
             pdfLoaded={pageImages.length > 0}
-            syllabusTopics={isTaggablePaper ? (isMathPaper ? P6_MATH_TOPICS : isEnglishPaper ? ENGLISH_TOPICS : SCIENCE_TOPICS) : null}
+            syllabusTopics={isTaggablePaper ? (isMathPaper ? P6_MATH_TOPICS : isEnglishPaper ? ENGLISH_TOPICS : isChinesePaper ? CHINESE_TOPICS : SCIENCE_TOPICS) : null}
             onSave={saveQuestion}
             onDelete={() => deleteQuestion(q.id)}
             onRedo={() => redoQuestion(q.id)}
@@ -993,6 +1001,15 @@ const ENGLISH_TOPICS = [
   "Continuous Writing",
   "Situational Writing",
   "Oral Communication",
+];
+
+const CHINESE_TOPICS = [
+  "语文应用 MCQ",
+  "短文填空",
+  "阅读理解 MCQ",
+  "完成对话",
+  "Visual Text Comprehension MCQ",
+  "阅读理解 OEQ",
 ];
 
 function QuestionEditCard({
