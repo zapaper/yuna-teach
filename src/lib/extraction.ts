@@ -421,6 +421,16 @@ async function extractExamPaperCore(
       const sectionOcrTexts = result.sectionOcrTexts ?? null;
       const vocabClozePassageImage: string | null = null; // TODO: extract if needed
 
+      // For Chinese papers, build `chineseSections` metadata so the
+      // quiz UI (ChineseQuizSection) and the AI marker get the
+      // section grouping + per-section passage they expect. Without
+      // this the quiz falls back to flat MCQ rendering and the
+      // typed OEQ + dialogue + inline-options sections silently
+      // disappear.
+      const chineseSections = isChineseEarly
+        ? buildChineseSections(questions, sectionOcrTexts)
+        : null;
+
       await prisma.$transaction([
         prisma.examQuestion.deleteMany({ where: { examPaperId: paperId } }),
         ...questions.map((q, i) =>
@@ -457,6 +467,7 @@ async function extractExamPaperCore(
               ...(debugMetadata as object ?? {}),
               ...(sectionOcrTexts ? { sectionOcrTexts } : {}),
               ...(vocabClozePassageImage ? { vocabClozePassageImage } : {}),
+              ...(chineseSections ? { chineseSections } : {}),
             },
             extractionStatus: "ready",
           },
@@ -464,6 +475,9 @@ async function extractExamPaperCore(
       ]);
 
       console.log(`[extraction] ${langLabel} text-based: ${questions.length} questions saved.`);
+      if (chineseSections) {
+        console.log(`[extraction] chineseSections: ${chineseSections.map(s => `${s.label}[${s.startIndex}-${s.endIndex}]${s.passage ? "+passage" : ""}`).join(", ")}`);
+      }
       // Fire-and-forget AI audit of the freshly extracted Q&A
       import("@/lib/audit-qa").then(m => m.auditPaper(paperId).catch(e => console.error(`[extraction] auditPaper failed:`, e)));
       // Fire-and-forget difficulty classification (see main-path hook below).
@@ -866,4 +880,128 @@ async function extractExamPaperCore(
   } finally {
     clearTimeout(timeoutHandle);
   }
+}
+
+// Build the chineseSections metadata array from the extracted questions
+// and per-section OCR data. The quiz and review UI both key off this
+// array to enable the specialised Chinese section layouts:
+//   - 短文填空           → inline 4-option pickers inside the passage
+//   - 阅读理解 MCQ       → side-by-side passage + MCQ buttons
+//   - 阅读理解 OEQ       → side-by-side passage + 田字格 canvas
+//   - 完成对话           → word-bank table + dialogue with numbered blanks
+//   - 语文应用 MCQ       → standalone MCQ cards (no passage)
+//
+// Grouping rule: consecutive questions sharing the same syllabusTopic
+// form ONE section. For "阅读理解 MCQ" / "阅读理解 OEQ" we further
+// split on pageIndex change since PSLE 五-A and 五-B each get their
+// own passage. Each section's `passage` is sourced from
+// sectionOcrTexts using the OCR key that matches the section's page
+// (the per-section OCR step appends a "(pp<start>-<end>)" suffix when
+// two sections share a name).
+type BuiltSection = { label: string; startIndex: number; endIndex: number; passage?: string };
+type QForGrouping = { pageIndex: number; syllabusTopic: string | null };
+type OcrEntry = { ocrText?: string; passageOcrText?: string; pageIndices?: number[] };
+function buildChineseSections(
+  questions: QForGrouping[],
+  sectionOcrTexts: Record<string, OcrEntry> | null,
+): BuiltSection[] {
+  if (questions.length === 0) return [];
+
+  // 1. Group consecutive questions with the same syllabusTopic. For
+  //    阅读理解 sections, also split on a pageIndex change so 五-A
+  //    (MCQ on page N) and 五-B (OEQ on page M) end up as distinct
+  //    entries.
+  const sections: BuiltSection[] = [];
+  let curLabel = "";
+  let curStart = -1;
+  let curBoundaryPage = -1;
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const label = (q.syllabusTopic ?? "").trim();
+    const isCompSec = label.includes("阅读理解");
+    const boundaryPage = isCompSec ? q.pageIndex : -1;
+    const startsNew = label !== curLabel || boundaryPage !== curBoundaryPage;
+    if (startsNew && curStart >= 0) {
+      sections.push({ label: curLabel, startIndex: curStart, endIndex: i - 1 });
+    }
+    if (startsNew) {
+      curLabel = label;
+      curStart = i;
+      curBoundaryPage = boundaryPage;
+    }
+  }
+  if (curStart >= 0) {
+    sections.push({ label: curLabel, startIndex: curStart, endIndex: questions.length - 1 });
+  }
+
+  // 2. Attach `passage` from sectionOcrTexts. Each section's passage
+  //    source depends on its label:
+  //      - 阅读理解 (MCQ or OEQ): the standalone passageOcrText, or
+  //        the previous comp-section's passage when 五-A's OEQ
+  //        reuses the MCQ passage.
+  //      - 完成对话 / 短文填空: ocrText (carries the dialogue / cloze
+  //        passage inline).
+  //      - 语文应用 MCQ: no passage.
+  if (!sectionOcrTexts) return sections;
+  const ocr = sectionOcrTexts;
+  const ocrKeys = Object.keys(ocr);
+  function findOcrKey(label: string, pages: Set<number>): string | null {
+    // Prefer a (pp<a>-<b>) suffixed key whose range overlaps the section's pages.
+    // The suffix is written from raw pageIndices (already 0-based), so no
+    // conversion is needed — see ocrTexts key construction in lib/gemini.ts.
+    const suffixed = ocrKeys.filter(k => k.startsWith(label + " (pp"));
+    for (const k of suffixed) {
+      const m = k.match(/\(pp(\d+)-(\d+)\)$/);
+      if (!m) continue;
+      const a = parseInt(m[1], 10);
+      const b = parseInt(m[2], 10);
+      for (let p = a; p <= b; p++) if (pages.has(p)) return k;
+    }
+    // Else any key with overlapping pageIndices (covers both the
+    // exact-label case and unsuffixed first-encounter case).
+    for (const k of ocrKeys) {
+      if (k !== label && !k.startsWith(label + " (")) continue;
+      const entry = ocr[k];
+      if (!entry?.pageIndices) continue;
+      if (entry.pageIndices.some(p => pages.has(p))) return k;
+    }
+    // Last-resort: exact label match regardless of pages.
+    if (ocrKeys.includes(label)) return label;
+    return null;
+  }
+  let lastCompPassage: string | undefined;
+  let lastCompPages: Set<number> | undefined;
+  for (const sec of sections) {
+    const pages = new Set<number>();
+    for (let i = sec.startIndex; i <= sec.endIndex; i++) pages.add(questions[i].pageIndex);
+    const key = findOcrKey(sec.label, pages);
+    const entry = key ? ocr[key] : null;
+    if (sec.label.includes("阅读理解")) {
+      // 阅读理解 sections render the dedicated passageOcrText. The
+      // section's ocrText is just the questions block, so it's NOT
+      // suitable as a passage. When the section is missing its own
+      // passageOcrText, only fall back to the previous comp section's
+      // passage if the page ranges are adjacent (within 1 page) — that
+      // covers PSLE 五-A's OEQ sharing 五-A's MCQ passage. A 五-B with
+      // missing passage data must stay passage-less rather than
+      // borrowing 五-A's, which would mislead the student.
+      const p = entry?.passageOcrText;
+      if (p) {
+        sec.passage = p;
+        lastCompPassage = p;
+        lastCompPages = pages;
+      } else if (lastCompPassage && lastCompPages) {
+        const minPrev = Math.min(...lastCompPages);
+        const maxPrev = Math.max(...lastCompPages);
+        const minThis = Math.min(...pages);
+        const maxThis = Math.max(...pages);
+        const adjacent = (minThis - maxPrev <= 1 && minThis - maxPrev >= 0) || (minPrev - maxThis <= 1 && minPrev - maxThis >= 0);
+        if (adjacent) sec.passage = lastCompPassage;
+      }
+    } else if (sec.label.includes("短文填空") || sec.label.includes("完成对话") || sec.label.includes("对话填空")) {
+      sec.passage = entry?.ocrText;
+    }
+    // 语文应用 MCQ / Visual Text MCQ: no passage attached.
+  }
+  return sections;
 }

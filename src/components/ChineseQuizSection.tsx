@@ -115,14 +115,48 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
       {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && (() => {
         const isImagePassage = !!passage && (passage.startsWith("[VISUAL_") || passage.startsWith("data:image"));
         const hasTextPassage = !!passage && !isImagePassage;
+        // The OCR step emits the passage as a 3-col line-numbered
+        // markdown table (| Line | Text | No. |). Plain Chinese prose
+        // reads better without the table chrome — strip the wrapper,
+        // collapse line-wraps inside each paragraph, and treat blank
+        // rows OR rows that start with a tab/4-space indent as
+        // paragraph boundaries.
+        function toParagraphs(raw: string): string[] {
+          // Detect table shape
+          const lines = raw.split("\n");
+          const isTableRow = (l: string) => l.trim().startsWith("|") && l.trim().endsWith("|");
+          const tableLines = lines.filter(isTableRow);
+          const looksLikeTable = tableLines.length >= 3 && /^\s*\|\s*-+\s*\|/.test(tableLines[1] ?? "");
+          if (looksLikeTable) {
+            const dataLines = tableLines
+              .filter(l => !/^\s*\|[\s|:-]+\|\s*$/.test(l))
+              .slice(1); // drop header row
+            const paras: string[] = [];
+            let cur = "";
+            const pushCur = () => { if (cur.trim()) paras.push(cur.replace(/^[\s\t]+/, "").trim()); cur = ""; };
+            for (const row of dataLines) {
+              const cols = row.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c);
+              const text = (cols[1] ?? "").replace(/^\s+|\s+$/g, "");
+              const isIndentedRow = /^\t|^ {2,}/.test(cols[1] ?? "");
+              if (!text) { pushCur(); continue; }
+              if (isIndentedRow && cur) { pushCur(); }
+              cur += (cur ? "" : "") + text;
+            }
+            pushCur();
+            return paras;
+          }
+          // Non-table — split on blank lines OR on tab-indented line starts.
+          return raw.split(/\n\s*\n+/).map(p => p.replace(/^[\s\t]+/, "").trim()).filter(Boolean);
+        }
+        const paragraphs = hasTextPassage ? toParagraphs(passage!) : [];
         return (
           <div className={`relative ${splitPassageCls}`}>
             {tool === "pen" && <PassageScratchOverlay />}
             {hasTextPassage ? (
               <div className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
-                {passage!.split(/\n\n+/).map((para, pi) => (
+                {paragraphs.map((para, pi) => (
                   <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
-                    {para.replace(/^\s+/, "")}
+                    {para}
                   </p>
                 ))}
               </div>

@@ -1771,6 +1771,12 @@ CRITICAL — Section 五 (阅读理解二) splits into THREE section entries bec
   - "阅读理解 OEQ" with passagePages = SAME A 组 passage pages, questionRange = Q33
   - "阅读理解 OEQ" with passagePages = B 组 passage pages, questionRange = Q34-40
 
+CRITICAL passage detection for 五-B (Q34-40):
+- The B 组 passage is a SEPARATE multi-paragraph reading passage printed on its OWN page(s) BEFORE the B 组 questions (Q34-Q40)
+- It is DIFFERENT from the A 组 passage. NEVER reuse A 组's passagePages for the B 组 entry
+- The B 组 passage page usually appears one page before Q34's page (e.g. if Q34 starts on page 13, the B 组 passage lives on page 12 or sometimes pages 11-12)
+- If you cannot locate a separate B 组 passage page in the PDF, STILL include the page directly before Q34 in B 组's passagePages — never omit the field
+
 If a paper omits one section (e.g. no Visual Text), just skip it. Don't fabricate.
 
 Header variants you should ALSO recognise (same normalised name):
@@ -2807,6 +2813,13 @@ export async function analyzeExamStructure(
   }
   if (!Array.isArray(parsed.papers)) {
     throw new Error(`Structure analysis: missing papers array. Keys: ${Object.keys(parsed).join(", ")}. Raw: ${text.slice(0, 300)}`);
+  }
+  // When there is only one paper (e.g. a standalone Chinese 华文 Paper 2
+  // upload), strip any prefix the AI may have assigned from the label.
+  // A prefix only earns its keep when it disambiguates between papers.
+  if (parsed.papers.length === 1 && parsed.papers[0].questionPrefix) {
+    console.log(`[Exam Pipeline] Forcing questionPrefix="" for single-paper upload (was "${parsed.papers[0].questionPrefix}")`);
+    parsed.papers[0].questionPrefix = "";
   }
   return parsed;
 }

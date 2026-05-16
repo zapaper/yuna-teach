@@ -985,8 +985,11 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
   }
 
   // Parse inline formatting: **bold**, [error:N]word[/error], [underline]word[/underline], ___(N)
+  // Underline now uses isolated-`__` guards so it doesn't partially
+  // match longer runs like "___ word __" (which would otherwise
+  // underline " word ").
   const parts: React.ReactNode[] = [];
-  const regex = /(\*\*[^*]+\*\*|__[^_]+__|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\)|\[LINES:\s*\d+\]|\[x\]|\[ \]|\[DIAGRAM:[^\]]+\])/g;
+  const regex = /(\*\*[^*]+\*\*|(?<!_)__(?!_)[^_\n](?:[^\n]*?[^_\n])?__(?!_)|\[error:\d+\][^[]+\[\/error\]|\[underline\][^[]+\[\/underline\]|___\(\d+\)|\[LINES:\s*\d+\]|\[x\]|\[ \]|\[DIAGRAM:[^\]]+\])/g;
   let lastIdx = 0;
   let match;
 
@@ -1021,8 +1024,14 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
           // Nested underline inside bold: "**__word__**" → bold + underline.
           // The flat regex doesn't recurse, so peel off matching __ pairs
           // and apply both classes when the inner is wholly wrapped.
+          // Inner must NOT contain extra `_` on either side — otherwise
+          // we'd be eating part of a blank-line run like "**___ X __**".
           const innerUnder = inner.match(/^__([^_].*?[^_])__$|^__(.)__$/);
-          if (innerUnder) {
+          // Treat "**___…**" / "**…___**" (3+ underscores anywhere in
+          // the bold) as a blank-line stamp, not as underlined text.
+          // Render the literal underscores in bold, no underline.
+          const isBlankRun = /___/.test(inner);
+          if (innerUnder && !isBlankRun) {
             const word = innerUnder[1] ?? innerUnder[2] ?? "";
             parts.push(<strong key={match.index} className="font-bold text-slate-800 underline decoration-2">{word}</strong>);
           } else {

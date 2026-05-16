@@ -19,8 +19,13 @@ import "katex/dist/katex.min.css";
 // currency ("$5", "$27") is left alone.
 const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/;
 // Bold and underline — non-greedy, content cannot contain newlines.
+// Underline requires the two surrounding underscores to be ISOLATED:
+// no `_` immediately before the opening pair, none immediately after
+// the closing pair, and the content itself cannot start or end with
+// `_`. Without these guards a run like "___ XX __" would partially
+// match and wrongly underline " XX ".
 const BOLD_RE = /\*\*([^\n]+?)\*\*/;
-const UNDER_RE = /__([^\n]+?)__/;
+const UNDER_RE = /(?<!_)__(?!_)([^_\n][^\n]*?[^_\n]|[^_\n])(?<!_)__(?!_)/;
 
 // Repair common LaTeX escape losses caused by the AI emitting
 // "$\frac{...}$" inside JSON string values without doubling the
