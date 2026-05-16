@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import FormattedText from "./FormattedText";
+import ChineseHandwritingCanvas from "./ChineseHandwritingCanvas";
 
 interface QuizQuestion {
   id: string;
@@ -305,33 +306,31 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                     inputs in RichStemText, so showing the outer textarea on
                     top would create a duplicate input. */}
                 {sectionType === "comprehension-oeq" && !cleanStem.includes("|") && !hasInlineLineMarkers && (() => {
+                  // Chinese 阅读理解 OEQ: render a 田字格-style
+                  // handwriting canvas instead of a textarea so the
+                  // student writes Chinese characters by hand on a
+                  // tablet rather than typing on a hard-to-use IME.
+                  // Ink is stored as a base64 PNG data URL on the
+                  // answer field. Persistence + marker handover wire
+                  // up the same path English OEQ canvases use.
                   const stored = answers[q.id] ?? "";
-                  const isJson = stored.startsWith("{");
-                  let textVal = stored;
-                  if (isJson) {
-                    try { textVal = (JSON.parse(stored) as Record<string, string>)._text ?? ""; } catch { textVal = ""; }
-                  }
+                  const initialInk = stored.startsWith("data:image") ? stored : null;
+                  // Sizing: ~12 columns × multiple rows. 80px cells
+                  // give the student a comfortable area for primary-
+                  // school characters. Tall enough for an answer
+                  // sentence (typically 30-60 characters).
+                  const linesPerAnswer = Math.max(3, Math.min(6, lineCount));
+                  const cellSize = 80;
+                  const canvasHeight = cellSize * linesPerAnswer;
                   return (
                     <div className="mt-3 ml-[52px]">
-                      <textarea
-                        spellCheck={false}
-                        autoComplete="one-time-code"
-                        autoCorrect="off"
-                        autoCapitalize="none"
-                        value={textVal}
-                        onChange={e => {
-                          if (isJson) {
-                            let obj: Record<string, string> = {};
-                            try { obj = JSON.parse(stored); } catch { /* ignore */ }
-                            obj._text = e.target.value;
-                            onAnswer(q.id, JSON.stringify(obj));
-                          } else {
-                            onAnswer(q.id, e.target.value);
-                          }
-                        }}
-                        rows={lineCount}
-                        className="w-full border-2 border-slate-200 focus:border-[#003366] outline-none rounded-xl px-4 py-3 text-base text-[#001e40] resize-none leading-relaxed"
-                        placeholder="Type your answer here..."
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">在格子内书写</p>
+                      <ChineseHandwritingCanvas
+                        height={canvasHeight}
+                        cellSize={cellSize}
+                        tool={tool}
+                        savedInkUrl={initialInk}
+                        onChange={(inkDataUrl) => onAnswer(q.id, inkDataUrl)}
                       />
                     </div>
                   );
