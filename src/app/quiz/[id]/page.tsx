@@ -1326,33 +1326,62 @@ function QuizContent({ id }: { id: string }) {
                   const secQuestions = paper.questions.slice(sec.startIndex, sec.endIndex + 1);
                   if (secQuestions.length === 0) return null;
                   const label = sec.label;
+                  const labelLc = label.toLowerCase();
                   const isWordBankCloze = label.includes("完成对话") || label.includes("对话填空");
-                  const isPassageMcq = label.includes("短文填空") || label.includes("阅读理解 MCQ") || label.toLowerCase().includes("visual text");
-                  const isCompOeq = label.includes("阅读理解 OEQ") || label.toLowerCase().includes("阅读理解 oeq");
+                  const isShortClozeMcq = label.includes("短文填空");
+                  const isCompMcq = label.includes("阅读理解 MCQ") || labelLc.includes("阅读理解 mcq");
+                  const isVisualText = labelLc.includes("visual text");
+                  const isCompOeq = label.includes("阅读理解 OEQ") || labelLc.includes("阅读理解 oeq");
                   // sectionType maps Chinese sections onto the same
                   // renderer shapes the component already supports.
                   const sectionType: "grammar-cloze" | "visual-text-mcq" | "comprehension-oeq" =
                     isWordBankCloze ? "grammar-cloze"
                     : isCompOeq ? "comprehension-oeq"
-                    : isPassageMcq ? "visual-text-mcq"
                     : "visual-text-mcq";
-                  // Side-by-side passage + questions: comp-OEQ
-                  // (passage on left, typed answers on right) AND
-                  // 阅读理解 MCQ (passage on left, MCQ buttons on
-                  // right). 短文填空 keeps its single-column inline
-                  // pickers — splitting would awkwardly separate
-                  // each blank from its options.
-                  const wantsSplit = isCompOeq || label.includes("阅读理解 mcq") || label.toLowerCase().includes("visual text");
+                  // Click-to-enter sections: 阅读理解 MCQ (passage left
+                  // + MCQ right) AND 阅读理解 OEQ (passage left +
+                  // canvas right). 短文填空 stays single-column with
+                  // inline pickers. 完成对话 uses grammar-cloze layout.
+                  // Mirrors the English Continue-card pattern but in
+                  // the Chinese-only block so changes don't leak.
+                  const wantsSplit = isCompOeq || isCompMcq || isVisualText;
                   const isPureCompQuiz = totalSections === 1 && wantsSplit;
                   const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
-                  const divider = si > 0 ? <div className="my-12 border-t border-slate-200" /> : null;
+                  const divider = si > 0 ? <hr className="border-t-2 border-slate-200 my-10 lg:my-12" /> : null;
+                  // Continue card: render on lg+ for every unentered
+                  // wantsSplit section. Mobile never shows the card.
+                  const continueCard = (wantsSplit && !isEntered) ? (
+                    <div className="hidden lg:block mb-12 lg:mb-16">
+                      <button
+                        type="button"
+                        onClick={() => setEnteredCompSections(prev => { const next = new Set(prev); next.add(si); return next; })}
+                        className="w-full bg-white rounded-2xl border-2 border-[#dce9ff] hover:border-[#003366] hover:bg-[#f5f9ff] hover:-translate-y-0.5 hover:shadow-md active:scale-[0.99] transition-all p-8 lg:p-12 text-left"
+                      >
+                        <p className="text-xs font-extrabold text-[#003366] uppercase tracking-wider mb-2">Next section</p>
+                        <h2 className="font-headline font-extrabold text-2xl lg:text-3xl text-[#001e40] mb-4 leading-tight">{sec.label}</h2>
+                        <p className="text-sm text-[#43474f] leading-relaxed mb-6">
+                          On this section, the passage will sit on the left and the questions on the right so you can read and answer without scrolling between them.
+                        </p>
+                        <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-[#001e40] text-white text-sm font-bold">
+                          Continue to {sec.label}
+                          <span className="material-symbols-outlined text-base">arrow_forward</span>
+                        </span>
+                      </button>
+                    </div>
+                  ) : null;
+                  // Hide the section body on lg+ while the Continue
+                  // card is showing. Mobile always renders the body
+                  // directly (single column, no Continue card).
+                  const lgHiddenWhenGated = wantsSplit && !isEntered ? "lg:hidden" : "";
+                  // Suppress isShortClozeMcq's not-yet-used warning while
+                  // making the variable available for downstream
+                  // conditional rendering hooks.
+                  void isShortClozeMcq;
                   return (
                     <Fragment key={si}>
                       {divider}
-                      <div className="mb-12">
-                        <div className="mb-8 mt-4">
-                          <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sec.label.toUpperCase()}</h2>
-                        </div>
+                      {continueCard}
+                      <div className={`mb-12 ${lgHiddenWhenGated}`}>
                         <ChineseQuizSection
                           sectionLabel={sec.label}
                           passage={sec.passage ?? null}

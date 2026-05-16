@@ -85,6 +85,16 @@ function groupBySection(
       else sections.push({ name: topic, ocrKey: candidateKeys[0] ?? topic, questions: leftovers });
     }
   }
+  // After splits, sections built from a topic that appears in TWO
+  // non-contiguous spans (e.g. Chinese 阅读理解 MCQ at section 三
+  // and again at section 五-A, with 完成对话 in between) get pushed
+  // in topic-order, not paper order. Re-sort by the first question's
+  // orderIndex so the UI matches the printed paper sequence.
+  sections.sort((a, b) => {
+    const aFirst = a.questions[0]?.orderIndex ?? 0;
+    const bFirst = b.questions[0]?.orderIndex ?? 0;
+    return aFirst - bFirst;
+  });
   return sections;
 }
 

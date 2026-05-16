@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
     if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
 
     const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
+    const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
     const allQs = paper.questions.filter(q => q.answer);
     if (allQs.length === 0) return NextResponse.json({ error: "No questions with answers" }, { status: 404 });
 
@@ -129,6 +130,30 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Chinese sections — parallel to the English block above, NOT
+    // shared with it. The Chinese quiz UI keys off
+    // metadata.chineseSections (separate field from englishSections)
+    // and rendering rules differ per section type, so the build logic
+    // forks here. Source: paper.metadata.chineseSections is already
+    // built by the extraction pipeline; copy it over and re-anchor
+    // the indices to the test quiz's reordered allQs array.
+    let chineseSectionsMeta: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> | undefined;
+    if (isChinese) {
+      const masterCs = (paper.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> } | null)?.chineseSections;
+      if (masterCs) {
+        // The test quiz keeps allQs in paper order (no reordering for
+        // Chinese — Chinese papers don't have an English-style sortable
+        // section order). Each master section's [start..end] range
+        // already aligns with allQs indices, so we can copy directly.
+        chineseSectionsMeta = masterCs.map(s => ({
+          label: s.label,
+          startIndex: s.startIndex,
+          endIndex: s.endIndex,
+          ...(s.passage ? { passage: s.passage } : {}),
+        }));
+      }
+    }
+
     const testQuiz = await prisma.examPaper.create({
       data: {
         title: `Test Quiz — ${paper.title}`,
@@ -145,6 +170,7 @@ export async function POST(request: NextRequest) {
         metadata: {
           quizType: oeqQs.length > 0 ? "mcq-oeq" : "mcq",
           ...(englishSectionsMeta ? { englishSections: englishSectionsMeta } : {}),
+          ...(chineseSectionsMeta ? { chineseSections: chineseSectionsMeta } : {}),
           sourceLabels: Object.fromEntries(allQs.map((q, i) => [String(i + 1), [paper.year, paper.examType, paper.school].filter(Boolean).join(" ") || null])),
         },
         questions: {

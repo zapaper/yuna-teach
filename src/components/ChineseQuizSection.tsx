@@ -136,11 +136,17 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
             const pushCur = () => { if (cur.trim()) paras.push(cur.replace(/^[\s\t]+/, "").trim()); cur = ""; };
             for (const row of dataLines) {
               const cols = row.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c);
-              const text = (cols[1] ?? "").replace(/^\s+|\s+$/g, "");
-              const isIndentedRow = /^\t|^ {2,}/.test(cols[1] ?? "");
+              const rawCell = cols[1] ?? "";
+              // Markdown cells are padded with a single space inside the
+              // pipes (` text `). Strip ONE leading space so a tab or
+              // 4-space paragraph indent that the OCR placed right after
+              // the pipe shows up at position 0.
+              const cell = rawCell.startsWith(" ") ? rawCell.slice(1) : rawCell;
+              const text = cell.replace(/^[\s\t]+|\s+$/g, "");
+              const isIndentedRow = /^\t| {2,}/.test(cell);
               if (!text) { pushCur(); continue; }
               if (isIndentedRow && cur) { pushCur(); }
-              cur += (cur ? "" : "") + text;
+              cur += text;
             }
             pushCur();
             return paras;
