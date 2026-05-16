@@ -1713,6 +1713,75 @@ function ExamReviewContent({ id }: { id: string }) {
                             );
                           });
                         }
+                        // Chinese 短文填空 review — render the passage with
+                        // each **________** blank replaced by the student's
+                        // pick (green if correct, red if wrong) and a
+                        // tick / cross indicator. Mirrors the inline-picker
+                        // layout the quiz player uses, but read-only and
+                        // marked-up. Stop at the "---OPTIONS---" divider
+                        // so the options block (already shown per-question
+                        // below) doesn't render twice.
+                        if (isVocabCloze && rawLabel.includes("短文填空")) {
+                          const sortedSecQs = [...sectionQuestions].sort((a, b) =>
+                            a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
+                          );
+                          let blankIdx = 0;
+                          const divIdx = (currentSection?.passage ?? "").indexOf("---OPTIONS---");
+                          const passageOnly = divIdx >= 0 ? (currentSection?.passage ?? "").slice(0, divIdx) : (currentSection?.passage ?? "");
+                          return passageOnly.split("\n").map((line: string, li: number) => {
+                            if (!line.trim()) return <br key={li} />;
+                            const parts: React.ReactNode[] = [];
+                            const re = /\*\*[^*]+\*\*/g;
+                            let lastEnd = 0;
+                            let m: RegExpExecArray | null;
+                            while ((m = re.exec(line)) !== null) {
+                              if (m.index > lastEnd) parts.push(<span key={`t${lastEnd}`}>{line.slice(lastEnd, m.index)}</span>);
+                              const q = sortedSecQs[blankIdx++];
+                              if (!q) {
+                                parts.push(<span key={`miss${m.index}`} className="text-slate-400 mx-1">______</span>);
+                                lastEnd = m.index + m[0].length;
+                                continue;
+                              }
+                              const opts = (q.transcribedOptions as string[] | null) ?? [];
+                              const studentRaw = (q.studentAnswer ?? "").trim();
+                              const correctRaw = (q.answer ?? "").replace(/[().]/g, "").trim();
+                              const studentNum = parseInt(studentRaw, 10);
+                              const correctNum = parseInt(correctRaw, 10);
+                              const isBlank = !studentRaw || studentRaw === "__SKIPPED__" || isNaN(studentNum);
+                              const earned = q.marksAwarded ?? 0;
+                              const available = q.marksAvailable ?? 1;
+                              const isCorrect = !isBlank && (earned >= available || studentNum === correctNum);
+                              const studentText = !isNaN(studentNum) && studentNum >= 1 ? (opts[studentNum - 1] ?? "") : "";
+                              const correctText = !isNaN(correctNum) && correctNum >= 1 ? (opts[correctNum - 1] ?? "") : "";
+                              parts.push(
+                                <span key={`q${q.questionNum}`} className="inline-flex items-baseline gap-1 align-middle mx-1 my-1 px-2 py-0.5 rounded-md border bg-white">
+                                  <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-1 rounded leading-none relative -top-px">Q{parseInt(q.questionNum)}</span>
+                                  {isBlank ? (
+                                    <>
+                                      <span className="font-bold text-[#ba1a1a] text-sm">({correctNum}) {correctText}</span>
+                                      <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                    </>
+                                  ) : isCorrect ? (
+                                    <>
+                                      <span className="font-bold text-[#006c49] text-sm">({studentNum}) {studentText}</span>
+                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="font-bold text-[#ba1a1a] text-sm">({studentNum}) {studentText}</span>
+                                      <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                      <span className="font-bold text-[#006c49] text-sm">({correctNum}) {correctText}</span>
+                                    </>
+                                  )}
+                                </span>
+                              );
+                              lastEnd = m.index + m[0].length;
+                            }
+                            if (lastEnd < line.length) parts.push(<span key="end">{line.slice(lastEnd)}</span>);
+                            const indent = line.match(/^(\s{2,}|\t)/);
+                            return <p key={li} className="text-sm text-[#0b1c30] leading-loose my-1" style={indent ? { textIndent: "2em" } : { textIndent: "2em" }}>{parts.length > 0 ? parts : line}</p>;
+                          });
+                        }
                         // Standard passage (grammar cloze, editing, comp cloze)
                         return pLines.map((line: string, li: number) => {
                           if (!line.trim()) return <br key={li} />;
@@ -1844,8 +1913,10 @@ function ExamReviewContent({ id }: { id: string }) {
                               // "(C) HIS" etc. — extract the leading letter so the
                               // comparison and word-bank lookup don't fail when the
                               // key carries the word too.
+                              // Accept letters (English A-Q) or digits (Chinese
+                              // 完成对话 uses 1-8 as word-bank keys).
                               const extractLetter = (raw: string) => {
-                                const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z])\b/);
+                                const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z]|\d+)\b/);
                                 return m ? m[1] : raw.trim().toUpperCase();
                               };
                               const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
@@ -1928,8 +1999,10 @@ function ExamReviewContent({ id }: { id: string }) {
                       // Pull out the letter so the word-bank lookup + the
                       // 'Your/Correct answer' display doesn't end up showing
                       // "(C) HIS: —".
+                      // Accept letters (English A-Q) or digits (Chinese
+                      // 完成对话 uses 1-8 as word-bank keys).
                       const extractClozeLetter = (raw: string) => {
-                        const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z])\b/);
+                        const m = raw.trim().toUpperCase().match(/^[(\s]*([A-Z]|\d+)\b/);
                         return m ? m[1] : raw.trim().toUpperCase();
                       };
                       const rawStudent = q.studentAnswer ?? "";
