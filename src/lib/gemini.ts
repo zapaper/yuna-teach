@@ -3765,16 +3765,24 @@ export async function analyzeExamBatch(
 
           // Step 1: OCR — extract clean text from all section pages
           const isCompOEQSec = isCompOeqLabel(secLabel);
+          const isChineseCompMcqSec = isChineseBooklet && (secLabel.includes("阅读理解 MCQ") || secLabel.includes("阅读理解 mcq"));
+          // Sections that need a separate passage-OCR pass: any
+          // comprehension section that has a reading passage. For
+          // Chinese this includes BOTH 阅读理解 MCQ (section 三 and
+          // section 五-A) and 阅读理解 OEQ (section 五-A's OEQ +
+          // section 五-B). Without this, the MCQ-style comprehension
+          // sections rendered the questions but lost the passage.
+          const needsPassageOcr = isCompOEQSec || isChineseCompMcqSec;
           const isVisualTextSec = secLabel.toLowerCase().includes("visual text");
           const visualPagesForVT: number[] = isVisualTextSec ? ((sec as { visualPages?: number[] }).visualPages ?? []) : [];
           // Get passage pages from structure analysis (or fall back to auto-detection)
-          const passagePagesForOEQ: number[] = isCompOEQSec
+          const passagePagesForOEQ: number[] = needsPassageOcr
             ? ((sec as { passagePages?: number[] }).passagePages ?? [])
             : [];
 
-          // For Comprehension OEQ: OCR the passage pages as a line-numbered table
+          // OCR the passage pages as a line-numbered table when needed.
           let passageOcrText = "";
-          if (isCompOEQSec && passagePagesForOEQ.length > 0) {
+          if (needsPassageOcr && passagePagesForOEQ.length > 0) {
             console.log(`[Exam Pipeline] ${secLabel}: OCR passage pages [${passagePagesForOEQ.map(p => p + 1).join(", ")}] as line-numbered table`);
             const passageOcrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
             for (const pIdx of passagePagesForOEQ) {
@@ -4019,7 +4027,7 @@ Output ONLY the clean passage/question text, no commentary.` });
 
             return { pages, _sectionOcr: {
               name: secLabel, ocrText, pageIndices: secPageIndices,
-              ...(isCompOEQSec && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
+              ...(needsPassageOcr && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
               ...(isVisualTextSec && visualPagesForVT.length > 0 ? { passagePageIndices: visualPagesForVT } : {}),
             } };
           }
@@ -4282,7 +4290,7 @@ Return ONLY valid JSON:
 
           return { pages, _sectionOcr: {
             name: secLabel, ocrText, pageIndices: secPageIndices,
-            ...(isCompOEQSec && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
+            ...(needsPassageOcr && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
             ...(isVisualTextSec && visualPagesForVT.length > 0 ? { passagePageIndices: visualPagesForVT } : {}),
             ...(passageOcrText ? { passageOcrText } : {}),
           } };
