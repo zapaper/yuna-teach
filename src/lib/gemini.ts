@@ -3789,9 +3789,25 @@ export async function analyzeExamBatch(
           const isVisualTextSec = secLabel.toLowerCase().includes("visual text");
           const visualPagesForVT: number[] = isVisualTextSec ? ((sec as { visualPages?: number[] }).visualPages ?? []) : [];
           // Get passage pages from structure analysis (or fall back to auto-detection)
-          const passagePagesForOEQ: number[] = needsPassageOcr
+          let passagePagesForOEQ: number[] = needsPassageOcr
             ? ((sec as { passagePages?: number[] }).passagePages ?? [])
             : [];
+          // Chinese 阅读理解 OEQ fallback: the structure analyser
+          // sometimes returns passagePages=[] for 五-B (B 组) because
+          // the B-组 passage and questions look superficially like one
+          // continuous block. Without passagePages the passage OCR is
+          // skipped and the student sees a 阅读理解B section with no
+          // reading text. Default to the page IMMEDIATELY BEFORE the
+          // first question page on this section so the OCR pass picks
+          // up the passage that almost always lives there. Only kick
+          // in for Chinese 阅读理解 sections (not English compre OEQ).
+          if (needsPassageOcr && passagePagesForOEQ.length === 0 && isChineseBooklet && secLabel.includes("阅读理解")) {
+            const secPages = (sec as { startPage?: number }).startPage;
+            if (typeof secPages === "number" && secPages > 0) {
+              passagePagesForOEQ = [secPages - 1];
+              console.log(`[Exam Pipeline] ${secLabel}: passagePages missing — falling back to [${secPages}] (page before first question)`);
+            }
+          }
 
           // OCR the passage pages as a line-numbered table when needed.
           let passageOcrText = "";
