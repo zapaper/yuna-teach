@@ -105,13 +105,33 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
       </div>
       </div>
 
-      {/* Visual Text: show scanned page images with drawing overlay */}
-      {sectionType === "visual-text-mcq" && (
-        <div className={`relative ${splitPassageCls}`}>
-          {tool === "pen" && <PassageScratchOverlay />}
-          <VisualTextImages passage={passage ?? ""} fallbackImage={questions.find(q => q.imageData && q.imageData.length > 100)?.imageData} />
-        </div>
-      )}
+      {/* Passage column for visual-text-mcq. Two flavours:
+          - True Visual Text (poster / 漫画): passage is a sentinel
+            "[VISUAL_PAGES:…]" or an image data URL; render as page
+            images with the existing VisualTextImages component.
+          - Chinese 阅读理解 MCQ: passage is plain Chinese text. Render
+            it as paragraphs with a tab-indent on each new line so the
+            student reads it as a normal passage. */}
+      {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && (() => {
+        const isImagePassage = !!passage && (passage.startsWith("[VISUAL_") || passage.startsWith("data:image"));
+        const hasTextPassage = !!passage && !isImagePassage;
+        return (
+          <div className={`relative ${splitPassageCls}`}>
+            {tool === "pen" && <PassageScratchOverlay />}
+            {hasTextPassage ? (
+              <div className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
+                {passage!.split(/\n\n+/).map((para, pi) => (
+                  <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
+                    {para.replace(/^\s+/, "")}
+                  </p>
+                ))}
+              </div>
+            ) : (
+              <VisualTextImages passage={passage ?? ""} fallbackImage={questions.find(q => q.imageData && q.imageData.length > 100)?.imageData} />
+            )}
+          </div>
+        );
+      })()}
 
       {/* Passage with inline inputs (Grammar Cloze, Editing, Comp Cloze) */}
       {passage && (sectionType === "grammar-cloze" || sectionType === "editing" || sectionType === "comprehension-cloze") && (

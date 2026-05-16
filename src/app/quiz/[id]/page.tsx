@@ -1336,7 +1336,13 @@ function QuizContent({ id }: { id: string }) {
                     : isCompOeq ? "comprehension-oeq"
                     : isPassageMcq ? "visual-text-mcq"
                     : "visual-text-mcq";
-                  const wantsSplit = isCompOeq;
+                  // Side-by-side passage + questions: comp-OEQ
+                  // (passage on left, typed answers on right) AND
+                  // 阅读理解 MCQ (passage on left, MCQ buttons on
+                  // right). 短文填空 keeps its single-column inline
+                  // pickers — splitting would awkwardly separate
+                  // each blank from its options.
+                  const wantsSplit = isCompOeq || label.includes("阅读理解 mcq") || label.toLowerCase().includes("visual text");
                   const isPureCompQuiz = totalSections === 1 && wantsSplit;
                   const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
                   const divider = si > 0 ? <div className="my-12 border-t border-slate-200" /> : null;
