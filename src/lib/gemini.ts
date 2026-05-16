@@ -3825,6 +3825,7 @@ export async function analyzeExamBatch(
 CRITICAL RULES:
 - Each line of the passage must be its OWN row in the table
 - The text in each row must match the EXACT line break in the original — if a line ends at the word "at", your row must also end at "at"
+- Every paragraph's FIRST line — INCLUDING the very first paragraph of the passage — MUST start with a tab character (or 4 spaces). Do NOT skip the tab on line 1; it is just as much a paragraph start as any other.
 - If a line is indented (new paragraph), start the text with a tab character
 - If there is a blank line in the original, include an empty row
 - The passage has LINE NUMBERS printed in the margin (usually every 5 lines: 5, 10, 15, 20...)
@@ -3833,7 +3834,7 @@ CRITICAL RULES:
 Output as a markdown table:
 | Line | Text | No. |
 |------|------|-----|
-| 1 | The boy walked slowly down the | |
+| 1 |     The boy walked slowly down the | |
 | 2 | narrow path, looking at the trees | |
 | 3 | that lined both sides. He had | |
 | 4 | never been to this part of the | |
@@ -3841,7 +3842,7 @@ Output as a markdown table:
 | | | |
 | 6 |     A sudden noise startled him. | |
 
-IMPORTANT: Blank lines (paragraph breaks) do NOT increment the line count. In the example above, the blank line has NO number in column 1. Line 6 comes after the blank. New paragraphs must have a tab indent (4 spaces) at the start of the text.
+IMPORTANT: Blank lines (paragraph breaks) do NOT increment the line count. In the example above, the blank line has NO number in column 1. Line 6 comes after the blank. Every paragraph's first line is indented — including line 1.
 
 Exclude page headers, footers, page numbers, and titles. Only the passage text.
 Output ONLY the table.` });
@@ -3904,7 +3905,7 @@ CHINESE PAPER (华文) — language-specific rules:
     | 谢谢您 | 麻烦您了 | 不客气 | 您先请 | 请慢用 | 别这么说 | 没关系 | 我先走 |
   Then output the dialogue / conversation. Each numbered blank in the dialogue is "**(N)________**" where N is the question number (e.g. "(36)", "(37)"). The student writes a single DIGIT 1-8 (one of the word-bank labels) in each blank.
   IMPORTANT: word-bank labels are NUMBERS (1-8). Do NOT relabel them as 甲/乙/丙 or A/B/C — keep them as the digits printed in the paper.
-- For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Preserve Chinese paragraph indentation as 4 leading spaces.
+- For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Every paragraph's first line — INCLUDING the very first paragraph — MUST start with 4 leading spaces. Do not skip the indent on paragraph 1.
 - 作文 (composition) and 听力 (listening) sections: output empty — those sections are extraction-skipped.
 ` : ""}
 - PARAGRAPH INDENTATION — CRITICAL: When the original text shows a NEW PARAGRAPH (indented first line), you MUST start that line with exactly 4 spaces. This is how the UI detects paragraph breaks. Every indented line in the original = 4 spaces at the start in your output. Do NOT skip this.
