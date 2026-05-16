@@ -3170,9 +3170,10 @@ async function runExtractionCall(
 
   // Model fallback chain — the per-booklet question-coordinate
   // extraction sends many page images plus the long extraction prompt
-  // and 504s under load. Without a fallback, one timed-out call killed
-  // the whole upload after 3 retries on a single model.
-  const QEX_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-2.5-pro"] as const;
+  // and 504s under load. 2.5-flash is fastest; 3-flash-preview reads
+  // grids better; 3.1-pro-preview is the last resort with separate
+  // gateway capacity (gets through when the flash tiers are saturated).
+  const QEX_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
   let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
   let lastErr: unknown = null;
   for (let mi = 0; mi < QEX_MODELS.length; mi++) {
@@ -3345,8 +3346,10 @@ async function extractAnswersWithWorking(
 
   // Model fallback chain — answer extraction sends every answer-key
   // page + the long answer-extraction prompt. Same 504 risk as the
-  // question-extraction call above.
-  const ANS_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-2.5-pro"] as const;
+  // question-extraction call above. 3.1-pro-preview is the last
+  // resort: separate gateway capacity, gets through when flash tiers
+  // are saturated.
+  const ANS_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
   let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
   let lastErr: unknown = null;
   for (let mi = 0; mi < ANS_MODELS.length; mi++) {
@@ -3938,12 +3941,13 @@ CHINESE PAPER (华文) — language-specific rules:
 - For ALL sections: exclude preamble instructions (e.g. "For each question...", "Choose the best answer..."), page numbers, "--- Page N ---" markers, section titles, and any question/answer text that is NOT part of the passage or questions.
 Output ONLY the clean passage/question text, no commentary.` });
 
-          // Model fallback chain — same logic as the text-extract
-          // step below. 3-flash-preview is preferred (best table
-          // handling) but 504s on large Chinese passages, so fall
-          // back to 2.5-flash then 2.5-pro before failing the
-          // whole upload.
-          const OCR_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro"] as const;
+          // Model fallback chain — 3-flash-preview is preferred
+          // (best table / grid handling) but 504s on large Chinese
+          // passages. 2.5-flash is the fast fallback. 3.1-pro-preview
+          // is the last-resort: different model family with separate
+          // gateway capacity, so it usually goes through when both
+          // flash tiers are saturated.
+          const OCR_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.1-pro-preview"] as const;
           let ocrResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
           let lastOcrErr: unknown = null;
           for (let mi = 0; mi < OCR_MODELS.length; mi++) {
@@ -4064,14 +4068,13 @@ Return ONLY valid JSON:
   ]
 }`;
 
-          // Model fallback chain. If gemini-3-flash-preview 504s
-          // through its own internal retries (3 attempts), fall back
-          // to 2.5-flash, then 2.5-pro. Each model gets the FULL
-          // retry budget. A whole section's text-extract failing is
-          // an extraction killer — losing 3-flash to a transient
-          // 504 should not kill the upload. Once any model returns
-          // a valid response we stop.
-          const TEXT_EXTRACT_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro"] as const;
+          // Model fallback chain. 3-flash-preview is preferred (best
+          // table handling). 2.5-flash is the fast fallback. 3.1-pro-
+          // preview is the last resort — different model family with
+          // separate gateway capacity, so it gets through when both
+          // flash tiers are 504-ing on big Chinese prompts. A whole
+          // section's text-extract failing is an extraction killer.
+          const TEXT_EXTRACT_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.1-pro-preview"] as const;
           let extractResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
           let lastExtractErr: unknown = null;
           for (let mi = 0; mi < TEXT_EXTRACT_MODELS.length; mi++) {
