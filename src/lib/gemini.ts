@@ -1785,7 +1785,7 @@ Strip the leading ordinal ("一、", "二", "（三）" etc.) — keep just the 
 
 ALWAYS include "startPage", "endPage", and "questionRange" for each section (same rules as English).
 For Visual Text MCQ, include "visualPages" — pages where the visual content lives.
-For 阅读理解 MCQ / 阅读理解 OEQ, include "passagePages" — pages where the reading passage lives.
+For 阅读理解 MCQ / 阅读理解 OEQ, include "passagePages" — pages where the reading passage lives. This is MANDATORY — never omit it. EVERY 阅读理解 section, whether MCQ or OEQ, has its OWN passage. When a section reuses an earlier section's passage (e.g. 五-A's OEQ shares the same passage as 五-A's MCQ), copy the same passagePages array to both. The passage is typically the page IMMEDIATELY BEFORE the question pages (e.g. if section 三's MCQ starts on page 8, the passage usually lives on page 7).
 
 作文 (composition) and 听力 (listening) sections: mark the parent paper with "skipExtraction": true — they cannot be auto-graded.
 
