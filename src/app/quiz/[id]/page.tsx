@@ -115,20 +115,16 @@ function QuizContent({ id }: { id: string }) {
   const [mcqAnswers, setMcqAnswers] = useState<Record<string, string>>({});
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
 
-  // OEQ drawing
+  // OEQ drawing.
+  // English and Chinese papers each carry their OWN metadata field
+  // (englishSections / chineseSections) so the two pathways stay
+  // strictly isolated — no change to Chinese can ripple into English
+  // and vice versa.
   const isEnglishQuiz = !!paper?.metadata?.englishSections;
-  // Chinese quiz sections share the same metadata shape (label,
-  // startIndex, endIndex, passage) but live under a different key
-  // so the two pathways stay isolated. The quiz player treats
-  // Chinese the same as English for section-based rendering — only
-  // the SectionRenderer component differs (ChineseQuizSection vs
-  // EnglishQuizSection).
   const isChineseQuiz = !!(paper?.metadata as { chineseSections?: unknown })?.chineseSections;
-  const isTextSectionedQuiz = isEnglishQuiz || isChineseQuiz;
-  const SectionRenderer = isChineseQuiz ? ChineseQuizSection : EnglishQuizSection;
   const [tool, setTool] = useState<DrawTool>("pen");
   const toolInitRef = useRef(false);
-  if (isTextSectionedQuiz && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
+  if ((isEnglishQuiz || isChineseQuiz) && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
   const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
@@ -372,22 +368,13 @@ function QuizContent({ id }: { id: string }) {
     return <div className="p-6 text-center py-24"><p className="text-[#43474f]">Quiz not found</p></div>;
   }
 
-  // textSections: either the English or Chinese array, whichever the
-  // paper carries. Both shapes are identical ({label, startIndex,
-  // endIndex, passage?}) — the field name is the only signal of
-  // which renderer to use. Reads anywhere below should go through
-  // this helper instead of poking the language-specific field
-  // directly.
-  type SectionMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
-  const textSections: SectionMeta[] = (() => {
-    const meta = paper.metadata as { englishSections?: SectionMeta[]; chineseSections?: SectionMeta[] } | null;
-    return meta?.englishSections ?? meta?.chineseSections ?? [];
-  })();
-
   // Build set of question IDs handled by typed English sections (not OEQ canvasses)
   const typedSectionQIds = new Set<string>();
-  if (textSections.length > 0) {
-    for (const sec of textSections) {
+  // English typed-section detection. Chinese papers go through the
+  // separate isChineseQuiz block further down and never touch this
+  // branch.
+  if (paper.metadata?.englishSections) {
+    for (const sec of paper.metadata.englishSections) {
       const label = sec.label.toLowerCase();
       const isTyped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
@@ -401,9 +388,29 @@ function QuizContent({ id }: { id: string }) {
     }
   }
 
+  // Chinese typed-section detection — parallel to the English block
+  // above. Kept separate so changes to the Chinese mapping never
+  // ripple into the English path.
+  const chineseSectionsMeta = (paper.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> })?.chineseSections;
+  if (chineseSectionsMeta) {
+    for (const sec of chineseSectionsMeta) {
+      const label = sec.label.toLowerCase();
+      // Chinese 完成对话 = dialogue cloze (typed). 短文填空 + 阅读理解 MCQ
+      // + Visual Text MCQ are MCQ. 阅读理解 OEQ is OEQ-typed-answer.
+      const isTyped = label.includes("完成对话") || label.includes("对话填空") ||
+        label.includes("短文填空") || label.includes("阅读理解") ||
+        label.includes("visual text");
+      if (isTyped) {
+        for (let i = sec.startIndex; i <= sec.endIndex; i++) {
+          if (paper.questions[i]) typedSectionQIds.add(paper.questions[i].id);
+        }
+      }
+    }
+  }
+
   const mcqQuestions = paper.questions.filter(q => hasQuestionOptions(q));
-  // English quizzes: all questions are typed (no canvas OEQ)
-  const oeqQuestions = isTextSectionedQuiz ? [] : paper.questions.filter(q => !hasQuestionOptions(q) && !typedSectionQIds.has(q.id));
+  // English / Chinese quizzes: all questions are typed (no canvas OEQ)
+  const oeqQuestions = (isEnglishQuiz || isChineseQuiz) ? [] : paper.questions.filter(q => !hasQuestionOptions(q) && !typedSectionQIds.has(q.id));
   const hasOeq = oeqQuestions.length > 0;
 
   function selectMcqAnswer(questionId: string, option: string) {
@@ -584,10 +591,23 @@ function QuizContent({ id }: { id: string }) {
       // Simple comparison: Grammar Cloze, Editing, Comp Cloze
       // AI marking needed: Synthesis, Comp OEQ (just save answer, let markQuizPaper handle)
       const aiMarkSectionLabels = new Set<string>();
-      if (textSections.length > 0) {
-        for (const sec of textSections) {
+      // English AI-marked sections
+      if (paper!.metadata?.englishSections) {
+        for (const sec of (paper!.metadata.englishSections as Array<{ label: string; startIndex: number; endIndex: number }>)) {
           const l = sec.label.toLowerCase();
-          if (l.includes("synthesis") || isCompOeqLabel(l) || l.includes("阅读理解 oeq")) {
+          if (l.includes("synthesis") || isCompOeqLabel(l)) {
+            for (let i = sec.startIndex; i <= sec.endIndex; i++) {
+              if (paper!.questions[i]) aiMarkSectionLabels.add(paper!.questions[i].id);
+            }
+          }
+        }
+      }
+      // Chinese AI-marked sections — parallel branch, fully isolated
+      // from the English block above.
+      const chSecs = (paper!.metadata as { chineseSections?: Array<{ label: string; startIndex: number; endIndex: number }> })?.chineseSections;
+      if (chSecs) {
+        for (const sec of chSecs) {
+          if (sec.label.includes("阅读理解 OEQ") || sec.label.includes("阅读理解 oeq")) {
             for (let i = sec.startIndex; i <= sec.endIndex; i++) {
               if (paper!.questions[i]) aiMarkSectionLabels.add(paper!.questions[i].id);
             }
@@ -737,7 +757,7 @@ function QuizContent({ id }: { id: string }) {
       // per-question AI synonym/grammar check on the server, so include it here too —
       // otherwise the review page renders the client's instant simple-compare marks
       // before the server AI has had a chance to update them.
-      const hasAiMarking = hasOeq || (isTextSectionedQuiz && paper!.questions.some(q => {
+      const hasAiMarking = hasOeq || ((isEnglishQuiz || isChineseQuiz) && paper!.questions.some(q => {
         const t = (q.syllabusTopic ?? "").toLowerCase();
         return t.includes("synthesis")
           || (t.includes("comprehension") && (t.includes("open") || t.includes("oeq")))
@@ -815,7 +835,7 @@ function QuizContent({ id }: { id: string }) {
 
           {markingOeq && !markingDone && (
             <>
-              <MarkingStatus isEnglish={isTextSectionedQuiz} />
+              <MarkingStatus isEnglish={isEnglishQuiz || isChineseQuiz} />
               <ForceRemarkButton paperId={id} />
             </>
           )}
@@ -952,7 +972,7 @@ function QuizContent({ id }: { id: string }) {
           <div className="h-6 w-px bg-[#c3c6d1]/40" />
           <div className="flex items-center gap-4">
             <span className="font-headline text-sm font-semibold text-[#001e40]">{paper.title}</span>
-            {mcqQuestions.length > 0 && !isTextSectionedQuiz && (
+            {mcqQuestions.length > 0 && !isEnglishQuiz && !isChineseQuiz && (
               <span className="px-3 py-1 bg-[#dce9ff] rounded-full font-label text-xs font-bold text-[#001e40]">
                 {answeredCount} / {mcqQuestions.length} MCQ
               </span>
@@ -1018,7 +1038,7 @@ function QuizContent({ id }: { id: string }) {
       <div className="pt-24 pb-8 max-w-4xl mx-auto px-4 lg:px-16">
 
         {/* Mobile progress bar */}
-        {mcqQuestions.length > 0 && !isTextSectionedQuiz && (
+        {mcqQuestions.length > 0 && !isEnglishQuiz && !isChineseQuiz && (
           <div className="lg:hidden mb-8">
             <div className="flex justify-between items-end mb-3">
               <div>
@@ -1033,16 +1053,16 @@ function QuizContent({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Questions — English sections or standard MCQ */}
-        {(mcqQuestions.length > 0 || paper.metadata?.englishSections) && (
+        {/* Questions — English sections OR Chinese sections OR standard MCQ */}
+        {(mcqQuestions.length > 0 || paper.metadata?.englishSections || chineseSectionsMeta) && (
           <>
-            {textSections.length > 0 ? (
-              // English or Chinese quiz: render sections by type
+            {paper.metadata?.englishSections ? (
+              // English quiz: render sections by type — UNCHANGED.
               (() => {
-                const totalSections = textSections.length;
+                const totalSections = paper.metadata.englishSections.length;
                 return (
               <>
-                {textSections.map((sec, si) => {
+                {paper.metadata.englishSections.map((sec, si) => {
                   // Get ALL questions for this section (not just MCQ)
                   const secQuestions = paper.questions.slice(sec.startIndex, sec.endIndex + 1);
                   if (secQuestions.length === 0) return null;
@@ -1109,7 +1129,7 @@ function QuizContent({ id }: { id: string }) {
                         {divider}
                         {continueCard}
                         <div className={lgHiddenWhenGated}>
-                          <SectionRenderer
+                          <EnglishQuizSection
                             sectionLabel={sec.label}
                             passage={sec.passage ?? null}
                             questions={secQuestions}
@@ -1135,7 +1155,7 @@ function QuizContent({ id }: { id: string }) {
                         {divider}
                         {continueCard}
                         <div className={lgHiddenWhenGated}>
-                          <SectionRenderer
+                          <EnglishQuizSection
                             sectionLabel={sec.label}
                             passage={sec.passage ?? null}
                             questions={secQuestions}
@@ -1291,6 +1311,61 @@ function QuizContent({ id }: { id: string }) {
                     </Fragment>
                   );
                 })}
+              </>
+                );
+              })()
+            ) : chineseSectionsMeta ? (
+              // Chinese quiz — parallel render block. Forks ChineseQuizSection
+              // so any UI iteration on Chinese rendering is fully isolated
+              // from the English block above.
+              (() => {
+                const totalSections = chineseSectionsMeta.length;
+                return (
+              <>
+                {chineseSectionsMeta.map((sec, si) => {
+                  const secQuestions = paper.questions.slice(sec.startIndex, sec.endIndex + 1);
+                  if (secQuestions.length === 0) return null;
+                  const label = sec.label;
+                  const isWordBankCloze = label.includes("完成对话") || label.includes("对话填空");
+                  const isPassageMcq = label.includes("短文填空") || label.includes("阅读理解 MCQ") || label.toLowerCase().includes("visual text");
+                  const isCompOeq = label.includes("阅读理解 OEQ") || label.toLowerCase().includes("阅读理解 oeq");
+                  // sectionType maps Chinese sections onto the same
+                  // renderer shapes the component already supports.
+                  const sectionType: "grammar-cloze" | "visual-text-mcq" | "comprehension-oeq" =
+                    isWordBankCloze ? "grammar-cloze"
+                    : isCompOeq ? "comprehension-oeq"
+                    : isPassageMcq ? "visual-text-mcq"
+                    : "visual-text-mcq";
+                  const wantsSplit = isCompOeq;
+                  const isPureCompQuiz = totalSections === 1 && wantsSplit;
+                  const isEntered = enteredCompSections.has(si) || isPureCompQuiz;
+                  const divider = si > 0 ? <div className="my-12 border-t border-slate-200" /> : null;
+                  return (
+                    <Fragment key={si}>
+                      {divider}
+                      <div className="mb-12">
+                        <div className="mb-8 mt-4">
+                          <h2 className="font-headline text-xl lg:text-2xl font-extrabold text-[#001e40] tracking-tight">{sec.label.toUpperCase()}</h2>
+                        </div>
+                        <ChineseQuizSection
+                          sectionLabel={sec.label}
+                          passage={sec.passage ?? null}
+                          questions={secQuestions}
+                          sectionType={sectionType}
+                          answers={mcqAnswers}
+                          onAnswer={selectMcqAnswer}
+                          tool={tool}
+                          onToolChange={(t) => setTool(t)}
+                          emptyFieldIds={emptyFieldIds}
+                          flaggedIds={flaggedIds}
+                          onToggleFlag={(qId) => toggleFlag(qId)}
+                          splitScreen={wantsSplit && isEntered}
+                        />
+                      </div>
+                    </Fragment>
+                  );
+                })}
+                <span data-section-total={totalSections} className="hidden" />
               </>
                 );
               })()

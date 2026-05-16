@@ -2330,7 +2330,12 @@ async function _legacyMarkFocusedTest(paperId: string): Promise<void> {
     select: { metadata: true },
   });
   const hasEnglishSections = !!(paperKind?.metadata as { englishSections?: unknown } | null)?.englishSections;
-  if (hasEnglishSections) {
+  // Chinese sections route through the same markQuizPaper unified
+  // pipeline (the typed-section + AI-OEQ paths inside that function
+  // recognise Chinese topics separately). Kept as a separate guard
+  // so the English branch is untouched.
+  const hasChineseSections = !!(paperKind?.metadata as { chineseSections?: unknown } | null)?.chineseSections;
+  if (hasEnglishSections || hasChineseSections) {
     return markQuizPaper(paperId);
   }
 
@@ -2746,7 +2751,9 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
     // Identify typed English section questions (Grammar Cloze, Editing, Comp Cloze, Visual Text MCQ)
     // These are scored by direct comparison, not AI marking
     const typedSectionQIds = new Set<string>();
-    const meta = paper.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> } | null;
+    type SecMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
+    const meta = paper.metadata as { englishSections?: SecMeta[]; chineseSections?: SecMeta[] } | null;
+    // English typed sections — UNCHANGED.
     if (meta?.englishSections) {
       for (const sec of meta.englishSections) {
         const label = sec.label.toLowerCase();
@@ -2754,6 +2761,19 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
           label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
           label.includes("visual text");
         if (isTyped) {
+          for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
+            typedSectionQIds.add(paper.questions[i].id);
+          }
+        }
+      }
+    }
+    // Chinese typed sections — separate branch. 完成对话 uses a
+    // single-label answer like English grammar cloze. The MCQ
+    // sections (短文填空 / 阅读理解 MCQ / Visual Text MCQ) are NOT
+    // "typed" here — they go through the standard MCQ marking path.
+    if (meta?.chineseSections) {
+      for (const sec of meta.chineseSections) {
+        if (sec.label.includes("完成对话") || sec.label.includes("对话填空")) {
           for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
             typedSectionQIds.add(paper.questions[i].id);
           }
@@ -2786,11 +2806,23 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
     // studentAnswer currently contains (may be a stale "No answer detected" from a
     // previous marking run).
     const aiTypedOeqQIds = new Set<string>();
+    // English AI-marked sections — UNCHANGED.
     if (meta?.englishSections) {
       for (const sec of meta.englishSections) {
         const label = sec.label.toLowerCase();
         const isAiTyped = label.includes("synthesis") || isCompOeqLabel(label);
         if (isAiTyped) {
+          for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
+            aiTypedOeqQIds.add(paper.questions[i].id);
+          }
+        }
+      }
+    }
+    // Chinese AI-marked sections — separate branch. 阅读理解 OEQ is
+    // the only Chinese typed-OEQ section.
+    if (meta?.chineseSections) {
+      for (const sec of meta.chineseSections) {
+        if (sec.label.includes("阅读理解 OEQ") || sec.label.includes("阅读理解 oeq")) {
           for (let i = sec.startIndex; i <= sec.endIndex && i < paper.questions.length; i++) {
             aiTypedOeqQIds.add(paper.questions[i].id);
           }
@@ -2844,7 +2876,10 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
       return true;
     })) {
       const qTopicLower = (q.syllabusTopic ?? "").toLowerCase();
-      const isGrammarClozeQ = qTopicLower.includes("grammar") && qTopicLower.includes("cloze");
+      // Treat 完成对话 the same as English grammar cloze — both use a
+      // word-bank cloze with a single-label answer.
+      const isChineseDialogueCloze = (q.syllabusTopic ?? "").includes("完成对话") || (q.syllabusTopic ?? "").includes("对话填空");
+      const isGrammarClozeQ = (qTopicLower.includes("grammar") && qTopicLower.includes("cloze")) || isChineseDialogueCloze;
       const studentAnsRaw = stripQuotes((q.studentAnswer ?? "").trim());
       const rawCorrect = stripQuotes(q.answer ?? "");
       let isCorrect = false;

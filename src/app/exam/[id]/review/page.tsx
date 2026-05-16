@@ -278,13 +278,15 @@ function ExamReviewContent({ id }: { id: string }) {
           setPaperType(paper.paperType ?? null);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
-          // englishSections OR chineseSections — both shapes are
-          // identical; the review page treats them the same for
-          // section grouping. Field name divergence preserves
-          // language isolation at the data layer.
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
-          else if ((paper.metadata as { chineseSections?: typeof paper.metadata.englishSections } | undefined)?.chineseSections) {
-            setEnglishSections(((paper.metadata as { chineseSections: NonNullable<typeof paper.metadata.englishSections> }).chineseSections));
+          // Chinese sections feed the same review state as English —
+          // both shapes are identical so the existing render path
+          // works for either. Kept as a SEPARATE branch (not folded
+          // into the English condition) so a future change to either
+          // path doesn't accidentally affect the other.
+          else {
+            const chSecs = (paper.metadata as { chineseSections?: typeof paper.metadata.englishSections } | undefined)?.chineseSections;
+            if (chSecs) setEnglishSections(chSecs);
           }
           if (paper.metadata?.sticker) setSticker(paper.metadata.sticker);
           if (paper.metadata?.canvasHeights) setCanvasHeights(paper.metadata.canvasHeights as Record<string, number>);
