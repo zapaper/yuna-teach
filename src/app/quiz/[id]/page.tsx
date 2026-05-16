@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useState, useRef, useImperativeHandle, fo
 import MathText from "@/components/MathText";
 import { useRouter, useSearchParams } from "next/navigation";
 import EnglishQuizSection from "@/components/EnglishQuizSection";
+import ChineseQuizSection from "@/components/ChineseQuizSection";
 import { FlagVoiceModal } from "@/components/FlagVoiceModal";
 import { playPointChime, playClick } from "@/lib/sfx";
 import { formatSubpartLabel } from "@/lib/subpart-label";
@@ -116,9 +117,18 @@ function QuizContent({ id }: { id: string }) {
 
   // OEQ drawing
   const isEnglishQuiz = !!paper?.metadata?.englishSections;
+  // Chinese quiz sections share the same metadata shape (label,
+  // startIndex, endIndex, passage) but live under a different key
+  // so the two pathways stay isolated. The quiz player treats
+  // Chinese the same as English for section-based rendering — only
+  // the SectionRenderer component differs (ChineseQuizSection vs
+  // EnglishQuizSection).
+  const isChineseQuiz = !!(paper?.metadata as { chineseSections?: unknown })?.chineseSections;
+  const isTextSectionedQuiz = isEnglishQuiz || isChineseQuiz;
+  const SectionRenderer = isChineseQuiz ? ChineseQuizSection : EnglishQuizSection;
   const [tool, setTool] = useState<DrawTool>("pen");
   const toolInitRef = useRef(false);
-  if (isEnglishQuiz && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
+  if (isTextSectionedQuiz && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
   const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
@@ -362,10 +372,22 @@ function QuizContent({ id }: { id: string }) {
     return <div className="p-6 text-center py-24"><p className="text-[#43474f]">Quiz not found</p></div>;
   }
 
+  // textSections: either the English or Chinese array, whichever the
+  // paper carries. Both shapes are identical ({label, startIndex,
+  // endIndex, passage?}) — the field name is the only signal of
+  // which renderer to use. Reads anywhere below should go through
+  // this helper instead of poking the language-specific field
+  // directly.
+  type SectionMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
+  const textSections: SectionMeta[] = (() => {
+    const meta = paper.metadata as { englishSections?: SectionMeta[]; chineseSections?: SectionMeta[] } | null;
+    return meta?.englishSections ?? meta?.chineseSections ?? [];
+  })();
+
   // Build set of question IDs handled by typed English sections (not OEQ canvasses)
   const typedSectionQIds = new Set<string>();
-  if (paper.metadata?.englishSections) {
-    for (const sec of paper.metadata.englishSections) {
+  if (textSections.length > 0) {
+    for (const sec of textSections) {
       const label = sec.label.toLowerCase();
       const isTyped = label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
@@ -381,7 +403,7 @@ function QuizContent({ id }: { id: string }) {
 
   const mcqQuestions = paper.questions.filter(q => hasQuestionOptions(q));
   // English quizzes: all questions are typed (no canvas OEQ)
-  const oeqQuestions = isEnglishQuiz ? [] : paper.questions.filter(q => !hasQuestionOptions(q) && !typedSectionQIds.has(q.id));
+  const oeqQuestions = isTextSectionedQuiz ? [] : paper.questions.filter(q => !hasQuestionOptions(q) && !typedSectionQIds.has(q.id));
   const hasOeq = oeqQuestions.length > 0;
 
   function selectMcqAnswer(questionId: string, option: string) {
@@ -562,10 +584,10 @@ function QuizContent({ id }: { id: string }) {
       // Simple comparison: Grammar Cloze, Editing, Comp Cloze
       // AI marking needed: Synthesis, Comp OEQ (just save answer, let markQuizPaper handle)
       const aiMarkSectionLabels = new Set<string>();
-      if (paper!.metadata?.englishSections) {
-        for (const sec of (paper!.metadata.englishSections as Array<{ label: string; startIndex: number; endIndex: number }>)) {
+      if (textSections.length > 0) {
+        for (const sec of textSections) {
           const l = sec.label.toLowerCase();
-          if (l.includes("synthesis") || isCompOeqLabel(l)) {
+          if (l.includes("synthesis") || isCompOeqLabel(l) || l.includes("阅读理解 oeq")) {
             for (let i = sec.startIndex; i <= sec.endIndex; i++) {
               if (paper!.questions[i]) aiMarkSectionLabels.add(paper!.questions[i].id);
             }
@@ -715,7 +737,7 @@ function QuizContent({ id }: { id: string }) {
       // per-question AI synonym/grammar check on the server, so include it here too —
       // otherwise the review page renders the client's instant simple-compare marks
       // before the server AI has had a chance to update them.
-      const hasAiMarking = hasOeq || (isEnglishQuiz && paper!.questions.some(q => {
+      const hasAiMarking = hasOeq || (isTextSectionedQuiz && paper!.questions.some(q => {
         const t = (q.syllabusTopic ?? "").toLowerCase();
         return t.includes("synthesis")
           || (t.includes("comprehension") && (t.includes("open") || t.includes("oeq")))
@@ -793,7 +815,7 @@ function QuizContent({ id }: { id: string }) {
 
           {markingOeq && !markingDone && (
             <>
-              <MarkingStatus isEnglish={isEnglishQuiz} />
+              <MarkingStatus isEnglish={isTextSectionedQuiz} />
               <ForceRemarkButton paperId={id} />
             </>
           )}
@@ -930,7 +952,7 @@ function QuizContent({ id }: { id: string }) {
           <div className="h-6 w-px bg-[#c3c6d1]/40" />
           <div className="flex items-center gap-4">
             <span className="font-headline text-sm font-semibold text-[#001e40]">{paper.title}</span>
-            {mcqQuestions.length > 0 && !isEnglishQuiz && (
+            {mcqQuestions.length > 0 && !isTextSectionedQuiz && (
               <span className="px-3 py-1 bg-[#dce9ff] rounded-full font-label text-xs font-bold text-[#001e40]">
                 {answeredCount} / {mcqQuestions.length} MCQ
               </span>
@@ -996,7 +1018,7 @@ function QuizContent({ id }: { id: string }) {
       <div className="pt-24 pb-8 max-w-4xl mx-auto px-4 lg:px-16">
 
         {/* Mobile progress bar */}
-        {mcqQuestions.length > 0 && !isEnglishQuiz && (
+        {mcqQuestions.length > 0 && !isTextSectionedQuiz && (
           <div className="lg:hidden mb-8">
             <div className="flex justify-between items-end mb-3">
               <div>
@@ -1014,13 +1036,13 @@ function QuizContent({ id }: { id: string }) {
         {/* Questions — English sections or standard MCQ */}
         {(mcqQuestions.length > 0 || paper.metadata?.englishSections) && (
           <>
-            {paper.metadata?.englishSections ? (
-              // English quiz: render sections by type
+            {textSections.length > 0 ? (
+              // English or Chinese quiz: render sections by type
               (() => {
-                const totalSections = paper.metadata.englishSections.length;
+                const totalSections = textSections.length;
                 return (
               <>
-                {paper.metadata.englishSections.map((sec, si) => {
+                {textSections.map((sec, si) => {
                   // Get ALL questions for this section (not just MCQ)
                   const secQuestions = paper.questions.slice(sec.startIndex, sec.endIndex + 1);
                   if (secQuestions.length === 0) return null;
@@ -1087,7 +1109,7 @@ function QuizContent({ id }: { id: string }) {
                         {divider}
                         {continueCard}
                         <div className={lgHiddenWhenGated}>
-                          <EnglishQuizSection
+                          <SectionRenderer
                             sectionLabel={sec.label}
                             passage={sec.passage ?? null}
                             questions={secQuestions}
@@ -1113,7 +1135,7 @@ function QuizContent({ id }: { id: string }) {
                         {divider}
                         {continueCard}
                         <div className={lgHiddenWhenGated}>
-                          <EnglishQuizSection
+                          <SectionRenderer
                             sectionLabel={sec.label}
                             passage={sec.passage ?? null}
                             questions={secQuestions}

@@ -278,7 +278,14 @@ function ExamReviewContent({ id }: { id: string }) {
           setPaperType(paper.paperType ?? null);
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
+          // englishSections OR chineseSections — both shapes are
+          // identical; the review page treats them the same for
+          // section grouping. Field name divergence preserves
+          // language isolation at the data layer.
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
+          else if ((paper.metadata as { chineseSections?: typeof paper.metadata.englishSections } | undefined)?.chineseSections) {
+            setEnglishSections(((paper.metadata as { chineseSections: NonNullable<typeof paper.metadata.englishSections> }).chineseSections));
+          }
           if (paper.metadata?.sticker) setSticker(paper.metadata.sticker);
           if (paper.metadata?.canvasHeights) setCanvasHeights(paper.metadata.canvasHeights as Record<string, number>);
           if (paper.metadata?.oeqPageMap) setOeqPageMap(paper.metadata.oeqPageMap as Record<string, number>);
