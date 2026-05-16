@@ -2885,17 +2885,32 @@ async function _markQuizPaperOnce(paperId: string): Promise<void> {
       let isCorrect = false;
       let acceptableAnswers: string[] = [];
       if (isGrammarClozeQ) {
-        // Grammar cloze answer keys can be:
-        // 1. Single letters from a word bank ("H", "K or P", "L/P") — match any case
-        // 2. Actual words ("helps", "repairs") — match raw text case-insensitively
-        const letterMatches = rawCorrect.match(/\b[A-Za-z]\b/g) ?? [];
+        // Grammar / dialogue cloze answer keys can be:
+        // 1. Single letters from a word bank ("H", "K or P", "L/P")
+        //    — English Grammar Cloze (A-Q).
+        // 2. Single digits from a word bank ("3", "5/7", "1 or 2")
+        //    — Chinese 完成对话 (1-8 numbered phrases).
+        // 3. Actual words ("helps", "repairs", "谢谢您") — match raw
+        //    text case-insensitively.
+        // Try letters first (English path) ONLY when this isn't a
+        // Chinese dialogue cloze, so a Chinese answer "2" / "5" goes
+        // straight to the digit branch instead of being misread.
+        const letterMatches = !isChineseDialogueCloze ? (rawCorrect.match(/\b[A-Za-z]\b/g) ?? []) : [];
         const isLetterKey = letterMatches.length > 0 && letterMatches.every(l => l.length === 1)
           && rawCorrect.replace(/[A-Za-z\s/,|.()or]+/gi, "").trim() === "";
+        const digitMatches = rawCorrect.match(/\b[1-9]\b/g) ?? [];
+        const isDigitKey = isChineseDialogueCloze && digitMatches.length > 0
+          && rawCorrect.replace(/[\d\s/,|.()或]+/g, "").trim() === "";
         if (isLetterKey) {
           const letters = new Set(letterMatches.map(l => l.toUpperCase()));
           const studentLetter = (studentAnsRaw.toUpperCase().match(/\b[A-Z]\b/) ?? [""])[0];
           isCorrect = !!studentLetter && letters.has(studentLetter);
           acceptableAnswers = [...letters];
+        } else if (isDigitKey) {
+          const digits = new Set(digitMatches);
+          const studentDigit = (studentAnsRaw.match(/\b[1-9]\b/) ?? [""])[0];
+          isCorrect = !!studentDigit && digits.has(studentDigit);
+          acceptableAnswers = [...digits];
         } else {
           // Word-based grammar cloze — compare raw text case-insensitively
           acceptableAnswers = rawCorrect.split(/\s+or\s+|\//).map(a => stripQuotes(a.trim()));

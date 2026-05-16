@@ -1747,13 +1747,19 @@ For Visual Text Comprehension, also include "visualPages" — the 0-based page i
 For Comprehension OEQ, also include "passagePages" — the 0-based page indices of the reading passage pages. For P5/P6 papers, the passage is usually in Booklet A (last 1-2 pages). For P4 English papers, the passage may appear on the page(s) IMMEDIATELY BEFORE the comprehension questions (in the same booklet, not a separate one), since P4 papers are often shorter with fewer sections and no separate Booklet A/B split.
 
 ### CHINESE PAPERS (华文 / 中文) — Section identification:
-For Chinese papers, identify these sections in order. Use these EXACT names and types in the sections array — the downstream pathway depends on the wording:
+For Chinese papers, identify these sections in order. Use these EXACT NORMALISED names and types in the sections array — the downstream pathway depends on the wording:
 1. **语文应用 MCQ** — standalone Chinese vocab / grammar / 词语 MCQ. Type: "MCQ"
-2. **短文填空** — a SHORT PASSAGE with NUMBERED blanks inline; each blank has 4 word options (1)/(2)/(3)/(4) printed below the passage. Type: "MCQ"
+   Section headers may print as: 语文应用 / 语文运用
+2. **短文填空** — a SHORT PASSAGE with NUMBERED blanks inline; each blank has 4 word options (1)/(2)/(3)/(4) (or full-width "（1）"–"（4）") printed inline or below. Type: "MCQ"
+   Section headers may print as: 短文填空 / 短文填写 / 完形填空 — all map to the same normalised name "短文填空".
 3. **阅读理解 MCQ** — a longer reading PASSAGE then MCQ questions about it. Type: "MCQ"
+   Section headers may print as: 阅读理解(一) / 阅读理解一 / 短文理解 — when the questions are MCQ.
 4. **完成对话** — a WORD BANK in a box at the top (甲/乙/丙/丁... or A/B/C/D...), then a dialogue / passage with NUMBERED blanks. Type: "grammar-cloze"
+   Section headers may print as: 完成对话 / 对话填空
 5. **Visual Text Comprehension MCQ** — MCQ based on a poster / advertisement / 漫画 / leaflet. May end with one short open-ended question. Type: "MCQ"
+   Section headers may print as: 看图理解 / 图表理解 / 视觉文本理解
 6. **阅读理解 OEQ** — written-answer questions on a longer reading passage. Type: "comprehension-oeq"
+   Section headers may print as: 阅读理解(二) / 阅读理解二
 
 Use these type values in the sections array for Chinese papers. ALSO include "startPage", "endPage", and "questionRange" for each section (same rules as English).
 
@@ -1761,7 +1767,12 @@ For Visual Text MCQ in Chinese papers, also include "visualPages" — the 0-base
 For 阅读理解 OEQ, also include "passagePages" — the 0-based page indices of the reading passage.
 
 Chinese paper section name conventions:
-- Section headers in the original paper may say "一、语文应用", "二、短文填空", "三、阅读理解", "四、完成对话", "五、阅读理解" etc. Strip the leading "一/二/三/四/五/六" + "、" and use the SHORT section name from the list above.
+- Section headers in the original paper may be prefixed "一、", "二、", "三、" etc., or with Chinese marks like "（一）". Strip those prefixes and normalise to the SHORT section name from the list above. Examples:
+    "一、语文应用"   → "语文应用 MCQ"
+    "二、短文填写"   → "短文填空"   (note: 填空 / 填写 / 完形填空 all normalise to 短文填空)
+    "三、阅读理解(一)" → "阅读理解 MCQ"   (when the questions below are MCQ)
+    "四、完成对话"   → "完成对话"
+    "五、阅读理解(二)" → "阅读理解 OEQ"   (when the questions below need written answers)
 - 作文 (composition) and 听力 (listening) sections must be marked with "skipExtraction": true on the parent paper — they cannot be auto-graded.
 
 ### P4 ENGLISH PAPERS — Important differences:
@@ -3586,22 +3597,35 @@ export async function analyzeExamBatch(
       // (e.g. "完成对话") contain no English keywords — checking those
       // before the English rules avoids accidental misclassification
       // when the structure analysis returns a translated name.
-      const normaliseSectionName = (name: string): string => {
+      const normaliseSectionName = (name: string, sectionType?: string): string => {
         const n = name.toLowerCase().replace(/^section\s*[a-z][\s:.-]*/i, "").trim();
         // ── Chinese section names ───────────────────────────────────
         if (isChineseBooklet) {
           if (name.includes("语文应用") || name.includes("语文运用")) return "语文应用 MCQ";
-          if (name.includes("短文填空")) return "短文填空";
+          // 短文填空 / 短文填写 / 完形填空 — all the same passage-cloze MCQ section.
+          if (name.includes("短文填空") || name.includes("短文填写") || name.includes("完形填空")) return "短文填空";
           if (name.includes("完成对话") || name.includes("对话填空")) return "完成对话";
-          // Visual text 漫画 / 阅读 + visual cue
-          if (name.includes("漫画") || (name.includes("看") && name.includes("图"))) return "Visual Text Comprehension MCQ";
+          // Visual text 漫画 / 看图 / 图表 / 视觉文本
+          if (name.includes("漫画") || name.includes("视觉文本") || name.includes("图表理解") || (name.includes("看") && name.includes("图"))) return "Visual Text Comprehension MCQ";
           if (name.includes("阅读理解") || name.includes("理解")) {
-            // Distinguish MCQ vs OEQ when the section name doesn't say
-            // 选择 / 开放: defer to the section type field if present.
-            // For now, OEQ is the default Chinese comprehension label;
-            // MCQ vs OEQ disambiguation happens during per-question
-            // tagging when options are detected.
-            return name.includes("选择") || n.includes("mcq") ? "阅读理解 MCQ" : "阅读理解 OEQ";
+            // Disambiguate MCQ vs OEQ using:
+            //   1. Section type from structure analysis (authoritative)
+            //   2. Explicit "选择" / "MCQ" in the name
+            //   3. (一)/(二) heuristic — when a paper has two 阅读理解
+            //      sections, the FIRST is typically MCQ, the SECOND OEQ.
+            const t = (sectionType ?? "").toLowerCase();
+            const isOeqType = t.includes("comprehension-oeq") || t.includes("oeq") || t.includes("open") || t.includes("structured");
+            const isMcqType = t === "mcq" || t.includes("multiple");
+            const nameSaysSecond = name.includes("二") || name.includes("(二)") || name.includes("（二）") || name.includes("2") || name.includes("(2)") || name.includes("（2）");
+            const nameSaysFirst = name.includes("一") || name.includes("(一)") || name.includes("（一）") || name.includes("1") || name.includes("(1)") || name.includes("（1）");
+            const nameSaysMcq = name.includes("选择") || n.includes("mcq");
+            if (isOeqType && !isMcqType) return "阅读理解 OEQ";
+            if (isMcqType) return "阅读理解 MCQ";
+            if (nameSaysMcq) return "阅读理解 MCQ";
+            if (nameSaysFirst && !nameSaysSecond) return "阅读理解 MCQ";
+            if (nameSaysSecond && !nameSaysFirst) return "阅读理解 OEQ";
+            // Last-resort default: OEQ (matches the safer marking path)
+            return "阅读理解 OEQ";
           }
         }
         // ── English section names (existing logic) ─────────────────
@@ -3622,7 +3646,7 @@ export async function analyzeExamBatch(
 
       for (let si = 0; si < paper.sections.length; si++) {
         const rawSec = paper.sections[si] as { name: string; type: string; questionCount: number; marksPerQuestion: number | null; startPage?: number; endPage?: number; questionRange?: string };
-        const sec = { ...rawSec, name: normaliseSectionName(rawSec.name || rawSec.type) };
+        const sec = { ...rawSec, name: normaliseSectionName(rawSec.name || rawSec.type, rawSec.type) };
         const nextSec = paper.sections[si + 1] as { startPage?: number } | undefined;
         // Use the AI guidance's startPage/endPage directly
         const secStartPage = sec.startPage ?? pageIndices[0];
@@ -3749,7 +3773,12 @@ CHINESE PAPER (华文) — language-specific rules:
 - Full-width punctuation (。， 、 ：； "" 「」 《》 ！？) and Chinese quotation marks are PART of the text. Keep them as printed.
 - Full-width digits / parens (１ ２ ３ ／ （ ）) are equivalent to half-width — normalise to half-width for question numbers and option labels so downstream parsers see "1." not "１。". But keep Chinese punctuation in the surrounding prose.
 - For 短文填空 (Vocab-Cloze MCQ equivalent): the passage has numbered blanks inline like "他____地走了" — bold-mark each blank as "**________**" (eight underscores between two asterisks), no question number next to it. The renderer maps the Nth bold-blank to the Nth question. STOP at the end of the passage — DO NOT include the "(1)...(4)" options list below; those are stored per-question separately.
-- For 完成对话 (Grammar-Cloze equivalent): copy the WORD BANK box at the top as a markdown table — one row with the labels (甲/乙/丙/丁... or A/B/C/D...) and one row with the words. Then output the dialogue / passage. Bold-wrap each numbered blank inline as "**(N)________**" with the question number. The student types a single label in each blank.
+- For 完成对话 (Grammar-Cloze equivalent): the WORD BANK is a BOX at the top containing 6-10 phrases each labelled with a NUMBER (typically 1, 2, 3 … 8). Copy the word bank as a markdown table — one row with the digit labels, one row with the corresponding phrases:
+    | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+    |---|---|---|---|---|---|---|---|
+    | 谢谢您 | 麻烦您了 | 不客气 | 您先请 | 请慢用 | 别这么说 | 没关系 | 我先走 |
+  Then output the dialogue / conversation. Each numbered blank in the dialogue is "**(N)________**" where N is the question number (e.g. "(36)", "(37)"). The student writes a single DIGIT 1-8 (one of the word-bank labels) in each blank.
+  IMPORTANT: word-bank labels are NUMBERS (1-8). Do NOT relabel them as 甲/乙/丙 or A/B/C — keep them as the digits printed in the paper.
 - For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Preserve Chinese paragraph indentation as 4 leading spaces.
 - 作文 (composition) and 听力 (listening) sections: output empty — those sections are extraction-skipped.
 ` : ""}
