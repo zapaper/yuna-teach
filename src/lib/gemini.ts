@@ -2001,6 +2001,102 @@ Return ONLY valid JSON:
 
 Return ONLY valid JSON.`;
 
+// ─── Chinese structure-analysis prompt ──────────────────────────────────────
+// Standalone fork from the English version. Section taxonomy matches
+// Singapore P5/P6 华文 papers and produces section.type values:
+//   "chinese-mcq"           — 语文应用 / 语文运用 (standalone MCQ)
+//   "chinese-vocab-cloze"   — 短文填空 (passage with inline 4-choice blanks)
+//   "chinese-comp-mcq"      — 阅读理解 MCQ (passage then MCQ questions)
+//   "chinese-grammar-cloze" — 完成对话 (word bank + dialogue/passage with blanks)
+//   "chinese-visual-text"   — visual text + MCQ (+ optional tail OEQ)
+//   "chinese-comp-oeq"      — 阅读理解 OEQ
+const CHINESE_EXTRACTION_PROMPT = `You are an expert at extracting question boundaries from Singapore primary school CHINESE (华文 / 中文) exam papers.
+
+You are given ONLY the question pages of the exam (answer sheets have been removed). Each image is labeled with its original page index (0-based).
+
+## Context from structure analysis:
+{structureContext}
+
+## Your task: Extract EVERY question's crop boundaries
+
+### Crop boundaries — TIGHT, 0.5% padding:
+- yStartPct = 0.5% ABOVE the question number. The question number MUST be fully inside the crop.
+- yEndPct = 0.5% BELOW the last line of content (last answer option for MCQ, last answer line for written)
+- Questions are CONTIGUOUS: Q(N+1) yStartPct = Q(N) yEndPct — no gaps between questions
+- Each question is ONE entry — do NOT split sub-parts (a), (b), (c) into separate entries
+
+### Question number position — output these fields for EACH question:
+- "questionNumYPct" — EXACT vertical position (%) of the CENTER of the question number text. Measure to 0.5% accuracy.
+- "questionNumXPct" — EXACT horizontal position (%) of the CENTER of the question number text. For cloze sections, this is the center of the parenthesised number e.g. the center of "(29)". Be precise — this determines the crop window.
+
+### WHERE to find question numbers — LEFT MARGIN ONLY:
+- Question numbers are ONLY at the FAR LEFT MARGIN (within ~3% of the left edge), flush with the left edge
+- A question number is a bare integer (e.g. "1", "11", "16") or integer + "。" / "." (e.g. "1。", "11.")
+- Numbers that appear ANYWHERE ELSE on the page are NEVER question numbers:
+  * "(1)", "(2)", "(3)", "(4)" / "（1）" etc. = MCQ answer options (indented)
+  * Numbers inside Chinese text passages, dates, ages, prices = NOT question numbers
+  * Page numbers in headers/footers = NOT question numbers
+- The question number must be the FIRST character on its line, at the LEFTMOST position
+- Chinese papers may use full-width digits and punctuation (e.g. "１。", "（1）"). Treat full-width and half-width digits as the same number.
+
+### Sequential extraction:
+- Extract questions strictly in order, page by page, top to bottom
+- SAME PAGE: each new question starts exactly where the previous ended
+- PAGE BOUNDARY: last question on a page gets yEndPct = 95. Next question starts at ~2% on the next page
+- Process pages in ASCENDING order. Never go backwards.
+- If a page has NO question numbers at the left margin, return it with an EMPTY questions array
+
+### FIRST QUESTION — BE VERY CAREFUL:
+- The first question number is a STANDALONE integer at the FAR LEFT MARGIN (within 3% of left edge)
+- It is followed by a question stem on the same line or the line below
+- Numbers in instruction/preamble text are NOT questions. Examples that are NOT Q1:
+  * "第一部分" / "Part 1" — section heading
+  * "1. 选出..." inside an instruction sentence — instruction
+  * Any number that is part of a sentence
+- If the first page has only instructions, skip it and look at the NEXT page
+
+### Chinese section taxonomy — CONTINUOUS numbering across sections:
+  * 语文应用 / 语文运用 MCQ — standalone Chinese vocab/grammar MCQ questions (typically Q1-10). syllabusTopic: "语文应用 MCQ"
+  * 短文填空 (Passage Cloze MCQ) — a SHORT PASSAGE with NUMBERED BLANKS inline, each blank has 4 options labelled (1)/(2)/(3)/(4) printed BELOW the passage. Looks similar to the English Vocab Cloze MCQ. syllabusTopic: "短文填空"
+  * 阅读理解 MCQ (Comprehension MCQ) — a PASSAGE fills the top portion, then MCQ questions below it. Each question has its own (1)/(2)/(3)/(4) options. syllabusTopic: "阅读理解 MCQ"
+  * 完成对话 (Complete the Dialogue) — a WORD BANK printed in a box at the TOP (typically labelled 甲/乙/丙/丁/戊/己/庚/辛 or A/B/C/D/E/F/G/H), then a DIALOGUE or passage with NUMBERED blanks. The student fills in by choosing from the word bank. Similar to English Grammar Cloze. syllabusTopic: "完成对话"
+  * Visual + MCQ + OEQ — visual content (poster / leaflet / 漫画) shown on its own page(s), then MCQ questions about it, sometimes ending with one short open-ended question. Passage-only / visual-only pages have NO question numbers — output EMPTY questions array for them. syllabusTopic: "Visual Text Comprehension MCQ" for the MCQ entries, "阅读理解 OEQ" for any tail open-ended question.
+  * 阅读理解 OEQ — a LONGER PASSAGE (typically on its own page or two) followed by OPEN-ENDED questions requiring written answers. syllabusTopic: "阅读理解 OEQ"
+- Passage-only pages (no question numbers at the left margin) = output EMPTY questions array, then continue to the NEXT page
+- For 短文填空 / 阅读理解 MCQ: scan from the MIDDLE of the page downward for the first question number at the left margin
+- For Visual: SKIP pages that only contain the visual content (no question numbers). Questions are on a LATER page.
+
+### Written / OEQ questions:
+- Keep the ENTIRE question as ONE entry including ALL sub-parts and answer lines
+- Include any pictures, answer lines, answer boxes
+
+### Marks detection:
+- Look for marks in brackets like [1], [2分], [2 marks], 「2分」
+- MCQ = typically 1 mark each unless stated otherwise
+- 作文 (composition) and 听力 (listening) sections are EXTRACTION-SKIPPED — do not output question entries for them
+
+### CRITICAL — Only report what you can SEE:
+- ONLY output a question number if you can clearly SEE it printed on the page
+- NEVER invent or guess question numbers
+- NEVER duplicate a question number
+- It is BETTER to output fewer questions than to hallucinate
+
+## OUTPUT FORMAT
+Return ONLY valid JSON:
+{
+  "pages": [
+    {
+      "pageIndex": 2,
+      "questions": [
+        {"questionNum": "1", "yStartPct": 12.0, "yEndPct": 19.0, "questionNumYPct": 12.5, "questionNumXPct": 3.0, "boundaryTop": "1", "boundaryBottom": "2", "marksAvailable": 1, "syllabusTopic": "语文应用 MCQ"},
+        {"questionNum": "2", "yStartPct": 19.0, "yEndPct": 26.0, "questionNumYPct": 19.5, "questionNumXPct": 3.0, "boundaryTop": "2", "boundaryBottom": "3", "marksAvailable": 1, "syllabusTopic": "语文应用 MCQ"}
+      ]
+    }
+  ]
+}
+
+Return ONLY valid JSON.`;
+
 // Science-specific addendum — appended to QUESTION_EXTRACTION_PROMPT for science papers
 const SCIENCE_ADDENDUM = `
 
@@ -2132,6 +2228,46 @@ The "left margin only" rule does NOT apply to Cloze and Editing sections.
 - Question number at left margin, standard extraction
 - yStartPct = ~0.5% above question number. yEndPct = next question number or end of page`;
 
+// ─── Chinese syllabus addendum ──────────────────────────────────────────────
+// Mirrors the English syllabus block but with the 华文 section taxonomy.
+// Appended to CHINESE_EXTRACTION_PROMPT during question extraction.
+const CHINESE_SYLLABUS = [
+  "语文应用 MCQ",
+  "短文填空",
+  "阅读理解 MCQ",
+  "完成对话",
+  "Visual Text Comprehension MCQ",
+  "阅读理解 OEQ",
+];
+
+const CHINESE_SYLLABUS_ADDENDUM = `
+
+## CHINESE PAPER — Syllabus topic tagging
+
+This is a CHINESE (华文) paper. For EACH question, you MUST also output a "syllabusTopic" field.
+
+Chinese Paper 2 follows this section order — use it to resolve ambiguous questions:
+
+MCQ sections:
+1. 语文应用 MCQ — standalone Chinese vocab / grammar / 词语 MCQ (typically Q1-10). NO passage above.
+2. 短文填空 — a SHORT PASSAGE with NUMBERED blanks inline; each blank has 4 word options (1)-(4) printed below. Similar to English "Vocabulary Cloze MCQ".
+3. 阅读理解 MCQ — a longer PASSAGE then MCQ questions about the passage; each question has its own (1)-(4) options.
+4. Visual Text Comprehension MCQ — MCQ based on a poster / advertisement / 漫画 / leaflet. May end with one short open-ended question.
+
+Written sections:
+5. 完成对话 — a WORD BANK in a box at the top (甲/乙/丙/丁... or A/B/C/D...), then a dialogue or passage with NUMBERED blanks; student writes a single label in each blank. Similar to English "Grammar Cloze".
+6. 阅读理解 OEQ — written answers to questions about a longer reading passage; NOT multiple choice.
+
+Rules per topic:
+- "语文应用 MCQ" — standalone MCQ testing 词语 / 语法 / word choice; answer is (1)/(2)/(3)/(4); appears at the start; NO passage above
+- "短文填空" — a PASSAGE fills the top portion, blanks are inline within the passage; answer is (1)/(2)/(3)/(4); ALWAYS tag these as this topic, NOT "语文应用 MCQ"
+- "阅读理解 MCQ" — a longer PASSAGE then MCQ questions BELOW (or after) the passage; tag every MCQ question following the comprehension passage
+- "Visual Text Comprehension MCQ" — MCQ based on a visual text (poster, ad, 漫画); tag the trailing open-ended question (if any) as "阅读理解 OEQ"
+- "完成对话" — a word-bank cloze with a labelled word box at the top and numbered blanks below; student writes a SINGLE LABEL (a letter or 甲/乙/丙…) in each blank
+- "阅读理解 OEQ" — open-ended written answers to questions about a reading passage; NOT multiple choice
+- "作文" (composition) and "听力" (listening) are extraction-SKIPPED — do not tag any question as these
+- If the question does not clearly fit any topic, set "syllabusTopic" to null`;
+
 const ENGLISH_SYLLABUS_ADDENDUM = `
 
 ## ENGLISH PAPER — Syllabus topic tagging
@@ -2245,8 +2381,12 @@ export async function tagSyllabusTopics(
   const subjectLower = (subject || "").toLowerCase();
   const isScience = subjectLower.includes("science");
   const isEnglish = subjectLower.includes("english");
-  const topicList = isScience ? SCIENCE_SYLLABUS : isEnglish ? ENGLISH_SYLLABUS : P6_MATH_SYLLABUS;
-  const subjectLabel = isScience ? "Science" : isEnglish ? "English" : "Math";
+  const isChineseSubject = subjectLower.includes("chinese") || (subject || "").includes("华文") || (subject || "").includes("中文");
+  const topicList = isScience ? SCIENCE_SYLLABUS
+    : isEnglish ? ENGLISH_SYLLABUS
+    : isChineseSubject ? CHINESE_SYLLABUS
+    : P6_MATH_SYLLABUS;
+  const subjectLabel = isScience ? "Science" : isEnglish ? "English" : isChineseSubject ? "Chinese" : "Math";
 
   const prompt = `You are tagging Primary school ${subjectLabel} exam questions by syllabus topic.
 
@@ -2921,8 +3061,12 @@ async function runExtractionCall(
   const isScience = subjectLowerEx.includes("science");
   const isMath = subjectLowerEx.includes("math");
   const isEnglish = subjectLowerEx.includes("english");
-  // Use separate prompt for English — tighter padding, questionNumYPct/XPct
-  const basePrompt = isEnglish ? ENGLISH_EXTRACTION_PROMPT : QUESTION_EXTRACTION_PROMPT;
+  const isChinese = subjectLowerEx.includes("chinese") || subject.includes("华文") || subject.includes("中文") || subject.includes("华语");
+  // Use separate prompt for English / Chinese — tighter padding,
+  // questionNumYPct/XPct, language-specific section taxonomy.
+  const basePrompt = isChinese ? CHINESE_EXTRACTION_PROMPT
+    : isEnglish ? ENGLISH_EXTRACTION_PROMPT
+    : QUESTION_EXTRACTION_PROMPT;
   let prompt = basePrompt.replace(
     "{structureContext}",
     bookletContext
@@ -2933,6 +3077,9 @@ async function runExtractionCall(
   }
   if (isMath) {
     prompt += MATH_SYLLABUS_ADDENDUM;
+  }
+  if (isChinese) {
+    prompt += CHINESE_SYLLABUS_ADDENDUM;
   }
   if (isEnglish) {
     prompt += ENGLISH_CLOZE_ADDENDUM;
@@ -3400,14 +3547,37 @@ export async function analyzeExamBatch(
     }
 
     const isEnglishBooklet = detectedSubject.includes("english");
+    const isChineseBooklet = detectedSubject.includes("chinese") || detectedSubject.includes("华文") || detectedSubject.includes("中文") || detectedSubject.includes("华语");
+    const isTextBookletPaper = isEnglishBooklet || isChineseBooklet;
     const hasSectionPages = paper.sections?.some((s) => (s as unknown as { startPage?: number }).startPage != null);
 
-    if (isEnglishBooklet && hasSectionPages && paper.sections.length > 1) {
+    if (isTextBookletPaper && hasSectionPages && paper.sections.length > 1) {
       // Split by section — each section gets its own parallel extraction
       const sectionTasks: Array<Promise<QuestionExtractionResult>> = [];
-      // Normalise section names to standard syllabus topics
+      // Normalise section names to standard syllabus topics. Chinese
+      // section names are checked first because some Chinese strings
+      // (e.g. "完成对话") contain no English keywords — checking those
+      // before the English rules avoids accidental misclassification
+      // when the structure analysis returns a translated name.
       const normaliseSectionName = (name: string): string => {
         const n = name.toLowerCase().replace(/^section\s*[a-z][\s:.-]*/i, "").trim();
+        // ── Chinese section names ───────────────────────────────────
+        if (isChineseBooklet) {
+          if (name.includes("语文应用") || name.includes("语文运用")) return "语文应用 MCQ";
+          if (name.includes("短文填空")) return "短文填空";
+          if (name.includes("完成对话") || name.includes("对话填空")) return "完成对话";
+          // Visual text 漫画 / 阅读 + visual cue
+          if (name.includes("漫画") || (name.includes("看") && name.includes("图"))) return "Visual Text Comprehension MCQ";
+          if (name.includes("阅读理解") || name.includes("理解")) {
+            // Distinguish MCQ vs OEQ when the section name doesn't say
+            // 选择 / 开放: defer to the section type field if present.
+            // For now, OEQ is the default Chinese comprehension label;
+            // MCQ vs OEQ disambiguation happens during per-question
+            // tagging when options are detected.
+            return name.includes("选择") || n.includes("mcq") ? "阅读理解 MCQ" : "阅读理解 OEQ";
+          }
+        }
+        // ── English section names (existing logic) ─────────────────
         // Check editing FIRST — "editing for spelling and grammar" contains "grammar" but is NOT Grammar MCQ
         if (n.includes("editing")) return "Editing (Spelling & Grammar)";
         if (n.includes("grammar") && n.includes("cloze")) return "Grammar Cloze";
@@ -3546,6 +3716,16 @@ Rules:
 - Keep question numbers exactly as printed (e.g. "1.", "11.", "(29)")
 - Keep answer options exactly (e.g. "(1) option text", "(2) option text")
 - Keep blank lines as "___" (underscore line where student writes)
+${isChineseBooklet ? `
+CHINESE PAPER (华文) — language-specific rules:
+- Preserve Chinese characters EXACTLY as printed — do NOT transliterate to pinyin and do NOT translate. Output 中文 verbatim.
+- Full-width punctuation (。， 、 ：； "" 「」 《》 ！？) and Chinese quotation marks are PART of the text. Keep them as printed.
+- Full-width digits / parens (１ ２ ３ ／ （ ）) are equivalent to half-width — normalise to half-width for question numbers and option labels so downstream parsers see "1." not "１。". But keep Chinese punctuation in the surrounding prose.
+- For 短文填空 (Vocab-Cloze MCQ equivalent): the passage has numbered blanks inline like "他____地走了" — bold-mark each blank as "**________**" (eight underscores between two asterisks), no question number next to it. The renderer maps the Nth bold-blank to the Nth question. STOP at the end of the passage — DO NOT include the "(1)...(4)" options list below; those are stored per-question separately.
+- For 完成对话 (Grammar-Cloze equivalent): copy the WORD BANK box at the top as a markdown table — one row with the labels (甲/乙/丙/丁... or A/B/C/D...) and one row with the words. Then output the dialogue / passage. Bold-wrap each numbered blank inline as "**(N)________**" with the question number. The student types a single label in each blank.
+- For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Preserve Chinese paragraph indentation as 4 leading spaces.
+- 作文 (composition) and 听力 (listening) sections: output empty — those sections are extraction-skipped.
+` : ""}
 - PARAGRAPH INDENTATION — CRITICAL: When the original text shows a NEW PARAGRAPH (indented first line), you MUST start that line with exactly 4 spaces. This is how the UI detects paragraph breaks. Every indented line in the original = 4 spaces at the start in your output. Do NOT skip this.
 - Preserve PARAGRAPH SPACING: use ONE blank line between paragraphs.
 - Do NOT include page break markers, page numbers, "--- Page N ---", "Page X", or any page indicators in the output
@@ -3683,7 +3863,7 @@ Output ONLY the clean passage/question text, no commentary.` });
             } };
           }
 
-          const extractPrompt = `You are extracting individual questions from an English exam paper. The text below was OCR'd from the exam pages.
+          const extractPrompt = `You are extracting individual questions from a ${isChineseBooklet ? "CHINESE (华文)" : "ENGLISH"} exam paper. The text below was OCR'd from the exam pages.
 
 Section: ${secLabel}
 Expected questions: Q${secFirstQ} to Q${secLastQ} (${sec.questionCount} questions)
@@ -3709,7 +3889,13 @@ For EACH question, extract:
   - If the question contains a TABLE, include it as a markdown table (| col1 | col2 |) in the stem — do NOT summarize as "[TABLE: ...]"
   - If the question contains checkboxes, use [ ] and [x] — put EACH checkbox on its OWN LINE (newline-separated), never multiple checkboxes on the same line
   - If there are answer lines, show as [LINES: N]
-  - Include ALL text exactly as it appears — diagrams can be described as [DIAGRAM: description]` : ""}
+  - Include ALL text exactly as it appears — diagrams can be described as [DIAGRAM: description]` : ""}${isChineseBooklet ? `
+  CHINESE PAPER — language-specific stem rules:
+  - Preserve Chinese characters EXACTLY. Do NOT translate or transliterate. Keep full-width punctuation (。，、：；""「」《》！？) as printed.
+  - Normalise question numbers from full-width to half-width digits (so "１。" becomes "1.") but keep all other Chinese punctuation in the stem text.
+  - For 短文填空 questions: each question's stem is the SENTENCE from the passage containing the relevant blank (so the student can read it in context). Mark the blank as "______" (six underscores). The 4 options go in the options array.
+  - For 阅读理解 OEQ questions: include the FULL question text. Tables stay as markdown pipe tables; checkbox lists keep one per line.
+  - For 完成对话 questions: stem is the LINE from the dialogue containing the blank. The word bank is stored in the section's passage data, not duplicated per-question.` : ""}
 - answer: the correct answer from the answer key if known, null otherwise
 - marksAvailable: marks if shown (e.g. from [2] brackets), null otherwise
 - pageIndex: the 0-based page index (from "--- Page N ---" markers)

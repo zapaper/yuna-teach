@@ -310,16 +310,19 @@ async function extractExamPaperCore(
         .map(p => p.label)
     );
 
-    // 4. For English text-based extraction: skip image cropping entirely
-    const detectedSubjectEarly = (result.header?.subject || paper.subject || "").toLowerCase();
+    // 4. For English / Chinese text-based extraction: skip image cropping entirely
+    const detectedSubjectRaw = result.header?.subject || paper.subject || "";
+    const detectedSubjectEarly = detectedSubjectRaw.toLowerCase();
     const isEnglishEarly = detectedSubjectEarly.includes("english");
-    const hasTextExtraction = isEnglishEarly && result.pages.some(p =>
+    const isChineseEarly = detectedSubjectEarly.includes("chinese") || detectedSubjectRaw.includes("华文") || detectedSubjectRaw.includes("中文") || detectedSubjectRaw.includes("华语");
+    const isTextBasedSubject = isEnglishEarly || isChineseEarly;
+    const hasTextExtraction = isTextBasedSubject && result.pages.some(p =>
       p.questions.some(q => (q as { _stem?: string })._stem || (q as { _options?: string[] })._options)
     );
 
     // Pre-compute visual text pages for both text-based and image-based paths
     const visualTextPages: Buffer[] = [];
-    if (isEnglishEarly) {
+    if (isTextBasedSubject) {
       const vtQuestionPages = new Set<number>();
       const nonVtQuestionPages = new Set<number>();
       for (const page of result.pages) {
@@ -341,7 +344,8 @@ async function extractExamPaperCore(
     }
 
     if (hasTextExtraction) {
-      console.log(`[extraction] English text-based: building questions from OCR text (no image crops)`);
+      const langLabel = isChineseEarly ? "Chinese" : "English";
+      console.log(`[extraction] ${langLabel} text-based: building questions from OCR text (no image crops)`);
       const questions: Array<{
         questionNum: string; imageData: string; answer: string; answerImageData: string;
         pageIndex: number; orderIndex: number; yStartPct: number | null; yEndPct: number | null;
@@ -443,7 +447,7 @@ async function extractExamPaperCore(
         }),
       ]);
 
-      console.log(`[extraction] English text-based: ${questions.length} questions saved.`);
+      console.log(`[extraction] ${langLabel} text-based: ${questions.length} questions saved.`);
       // Fire-and-forget AI audit of the freshly extracted Q&A
       import("@/lib/audit-qa").then(m => m.auditPaper(paperId).catch(e => console.error(`[extraction] auditPaper failed:`, e)));
       // Fire-and-forget difficulty classification (see main-path hook below).
@@ -525,11 +529,19 @@ async function extractExamPaperCore(
       questionGroups.get(seg.questionNum)!.push(seg);
     }
 
-    const detectedSubject = (result.header?.subject || paper.subject || "").toLowerCase();
+    const detectedSubjectRawImg = result.header?.subject || paper.subject || "";
+    const detectedSubject = detectedSubjectRawImg.toLowerCase();
     const isEnglish = detectedSubject.includes("english");
+    const isChinese = detectedSubject.includes("chinese") || detectedSubjectRawImg.includes("华文") || detectedSubjectRawImg.includes("中文") || detectedSubjectRawImg.includes("华语");
 
-    // English MCQ topics — use tighter top padding so answer options aren't clipped
-    const ENGLISH_MCQ_TOPICS = new Set(["Grammar MCQ", "Vocabulary MCQ", "Vocabulary Cloze MCQ", "Visual Text Comprehension MCQ"]);
+    // MCQ topics — used to tighten the top padding so answer options
+    // aren't clipped. Chinese MCQ section names live alongside the
+    // English ones; the padding rules in the body below apply when a
+    // question's syllabusTopic matches any entry in this set.
+    const ENGLISH_MCQ_TOPICS = new Set([
+      "Grammar MCQ", "Vocabulary MCQ", "Vocabulary Cloze MCQ", "Visual Text Comprehension MCQ",
+      "语文应用 MCQ", "短文填空", "阅读理解 MCQ", "完成对话",
+    ]);
 
     // For Visual Text Comprehension (image-based path): reuse pre-computed visualTextPages or rebuild
     // visualTextPages was already computed above for the text-based path
