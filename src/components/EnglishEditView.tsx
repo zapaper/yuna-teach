@@ -956,7 +956,16 @@ function RichLine({ text, isMcq }: { text: string; isMcq?: boolean }) {
             </span>
           );
         } else {
-          parts.push(<strong key={match.index} className="font-bold text-slate-800">{inner}</strong>);
+          // Nested underline inside bold: "**__word__**" → bold + underline.
+          // The flat regex doesn't recurse, so peel off matching __ pairs
+          // and apply both classes when the inner is wholly wrapped.
+          const innerUnder = inner.match(/^__([^_].*?[^_])__$|^__(.)__$/);
+          if (innerUnder) {
+            const word = innerUnder[1] ?? innerUnder[2] ?? "";
+            parts.push(<strong key={match.index} className="font-bold text-slate-800 underline decoration-2">{word}</strong>);
+          } else {
+            parts.push(<strong key={match.index} className="font-bold text-slate-800">{inner}</strong>);
+          }
         }
       }
     } else if (m.startsWith("__") && m.endsWith("__") && !m.startsWith("___")) {
