@@ -14,11 +14,32 @@ interface Props {
 }
 
 // Group questions by syllabusTopic into sections
-function groupBySection(questions: ExamQuestionItem[]) {
-  const sections: Array<{ name: string; questions: ExamQuestionItem[] }> = [];
+type SectionOcrEntry = { ocrText?: string; pageIndices?: number[]; passagePageIndices?: number[]; passageOcrText?: string };
+
+/** Group questions by section.
+ *
+ *  Default behaviour (English / Math / Science): one entry per
+ *  distinct syllabusTopic — unchanged from the original.
+ *
+ *  When sectionOcrTexts contains MULTIPLE keys for the same base
+ *  syllabusTopic (e.g. Chinese "阅读理解 MCQ" + "阅读理解 MCQ
+ *  (pp10-10)" from the 五-A split, or two 阅读理解 OEQ entries
+ *  for A组 and B组), split the topic group by pageIndex: each
+ *  OCR key gets the questions whose pageIndex falls inside its
+ *  pageIndices. Each split renders as its own collapsible section
+ *  with its own passage. Without this, only the first ocr-key
+ *  entry was matched and the second passage/sub-section silently
+ *  disappeared from /edit.
+ *
+ *  sectionOcrTexts is optional — when missing, fall back to the
+ *  default per-topic grouping. */
+function groupBySection(
+  questions: ExamQuestionItem[],
+  sectionOcrTexts?: Record<string, SectionOcrEntry>,
+): Array<{ name: string; ocrKey: string; questions: ExamQuestionItem[] }> {
+  const sections: Array<{ name: string; ocrKey: string; questions: ExamQuestionItem[] }> = [];
   const sectionMap = new Map<string, ExamQuestionItem[]>();
   const order: string[] = [];
-
   for (const q of questions) {
     const topic = q.syllabusTopic || "Other";
     if (!sectionMap.has(topic)) {
@@ -28,8 +49,41 @@ function groupBySection(questions: ExamQuestionItem[]) {
     sectionMap.get(topic)!.push(q);
   }
 
-  for (const name of order) {
-    sections.push({ name, questions: sectionMap.get(name)! });
+  // Map each topic to its candidate OCR keys (exact match + "Topic (pp…)" suffix dedup).
+  function keysForTopic(topic: string): string[] {
+    if (!sectionOcrTexts) return [topic];
+    const exact = Object.keys(sectionOcrTexts).filter(k => k === topic);
+    const suffixed = Object.keys(sectionOcrTexts).filter(k => k.startsWith(`${topic} (pp`) || k.startsWith(`${topic} (dup`));
+    return [...exact, ...suffixed];
+  }
+
+  for (const topic of order) {
+    const groupQs = sectionMap.get(topic)!;
+    const candidateKeys = keysForTopic(topic);
+
+    if (candidateKeys.length <= 1) {
+      sections.push({ name: topic, ocrKey: candidateKeys[0] ?? topic, questions: groupQs });
+      continue;
+    }
+
+    // Multi-key topic — split by pageIndex overlap with each key's pageIndices.
+    const claimed = new Set<string>();
+    for (const key of candidateKeys) {
+      const pageSet = new Set((sectionOcrTexts![key]?.pageIndices ?? []) as number[]);
+      const matching = groupQs.filter(q => !claimed.has(q.id) && pageSet.has(q.pageIndex));
+      for (const q of matching) claimed.add(q.id);
+      if (matching.length > 0) {
+        sections.push({ name: topic, ocrKey: key, questions: matching });
+      }
+    }
+    // Leftovers — questions whose pageIndex didn't match any key's pageIndices.
+    const leftovers = groupQs.filter(q => !claimed.has(q.id));
+    if (leftovers.length > 0) {
+      // Append to the first split (or as its own block when no splits matched).
+      const firstSplit = sections.find(s => s.name === topic);
+      if (firstSplit) firstSplit.questions.push(...leftovers);
+      else sections.push({ name: topic, ocrKey: candidateKeys[0] ?? topic, questions: leftovers });
+    }
   }
   return sections;
 }
@@ -38,9 +92,9 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
   const metadata = paper.metadata;
   const ocrTexts = metadata?.sectionOcrTexts ?? {};
   const auditFlags = ((metadata as { auditFlags?: Record<string, string> } | null)?.auditFlags ?? {}) as Record<string, string>;
-  const sections = groupBySection(paper.questions);
+  const sections = groupBySection(paper.questions, ocrTexts);
 
-  const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.name ?? null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.ocrKey ?? null);
   const [editingOcr, setEditingOcr] = useState<string | null>(null);
   const [ocrDrafts, setOcrDrafts] = useState<Record<string, string>>({});
   const [editingPassage, setEditingPassage] = useState<string | null>(null);
@@ -55,24 +109,32 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
   return (
     <div className="space-y-6">
       {sections.map(sec => {
-        const isExpanded = expandedSection === sec.name;
-        // Try exact match first, then fuzzy match on section name
-        const ocrData = ocrTexts[sec.name] ?? Object.entries(ocrTexts).find(([k]) =>
+        // Use the section's resolved ocrKey (set by groupBySection)
+        // so duplicate-name topics each get their own ocrData entry.
+        // Fall back to fuzzy match for legacy data that doesn't have
+        // the suffixed keys yet.
+        const isExpanded = expandedSection === sec.ocrKey;
+        const ocrData = ocrTexts[sec.ocrKey] ?? ocrTexts[sec.name] ?? Object.entries(ocrTexts).find(([k]) =>
           k.toLowerCase().replace(/\s+/g, "").includes(sec.name.toLowerCase().replace(/\s+/g, "").slice(0, 10))
         )?.[1] ?? null;
         const sectionPageIndices = ocrData?.pageIndices ?? [];
 
         return (
-          <div key={sec.name} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div key={sec.ocrKey} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Section header */}
             <button
-              onClick={() => setExpandedSection(isExpanded ? null : sec.name)}
+              onClick={() => setExpandedSection(isExpanded ? null : sec.ocrKey)}
               className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <SectionBadge name={sec.name} />
                 <div className="text-left">
-                  <h3 className="font-bold text-sm text-slate-800">{sec.name}</h3>
+                  <h3 className="font-bold text-sm text-slate-800">
+                    {sec.name}
+                    {sec.ocrKey !== sec.name && (
+                      <span className="text-[10px] font-normal text-slate-400 ml-2">{sec.ocrKey.replace(sec.name, "").trim()}</span>
+                    )}
+                  </h3>
                   <p className="text-xs text-slate-400">{sec.questions.length} questions</p>
                 </div>
               </div>
