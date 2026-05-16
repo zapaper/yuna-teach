@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateContentWithRetry } from "@/lib/gemini";
+import { buildChineseSections, type OcrEntry } from "@/lib/extraction";
 import fs from "fs";
 import path from "path";
 
@@ -84,10 +85,26 @@ Output ONLY the table.` });
     passageOcrText,
     passagePageIndices: pageIndices,
   };
+
+  // For Chinese papers, rebuild chineseSections so the freshly OCR'd
+  // passage immediately shows up in the quiz / edit / review UI
+  // without a separate backfill step.
+  const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
+  let chineseSectionsUpdate: Record<string, unknown> = {};
+  if (isChinese) {
+    const qs = await prisma.examQuestion.findMany({
+      where: { examPaperId: id },
+      orderBy: { orderIndex: "asc" },
+      select: { pageIndex: true, syllabusTopic: true },
+    });
+    const built = buildChineseSections(qs, allOcr as Record<string, OcrEntry>);
+    chineseSectionsUpdate = { chineseSections: built };
+  }
+
   await prisma.examPaper.update({
     where: { id },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: { metadata: { ...meta, sectionOcrTexts: allOcr } as any },
+    data: { metadata: { ...meta, sectionOcrTexts: allOcr, ...chineseSectionsUpdate } as any },
   });
 
   return NextResponse.json({ passageOcrText, charCount: passageOcrText.length });

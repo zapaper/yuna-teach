@@ -898,10 +898,10 @@ async function extractExamPaperCore(
 // sectionOcrTexts using the OCR key that matches the section's page
 // (the per-section OCR step appends a "(pp<start>-<end>)" suffix when
 // two sections share a name).
-type BuiltSection = { label: string; startIndex: number; endIndex: number; passage?: string };
-type QForGrouping = { pageIndex: number; syllabusTopic: string | null };
-type OcrEntry = { ocrText?: string; passageOcrText?: string; pageIndices?: number[] };
-function buildChineseSections(
+export type BuiltSection = { label: string; startIndex: number; endIndex: number; passage?: string };
+export type QForGrouping = { pageIndex: number; syllabusTopic: string | null };
+export type OcrEntry = { ocrText?: string; passageOcrText?: string; pageIndices?: number[] };
+export function buildChineseSections(
   questions: QForGrouping[],
   sectionOcrTexts: Record<string, OcrEntry> | null,
 ): BuiltSection[] {
