@@ -2733,23 +2733,44 @@ export async function analyzeExamStructure(
     { text: `[Page ${i}]` },
   ]).flat();
 
-  const response = await generateContentWithRetry({
-    model: "gemini-2.5-pro",
-    contents: [
-      {
-        role: "user",
-        parts: [...imageParts, { text: STRUCTURE_ANALYSIS_PROMPT }],
-      },
-    ],
-    config: {
-      responseMimeType: "application/json",
-      temperature: 0.1,
-      // 38-page papers produce a lot of output (per-page pages array
-      // + papers array + sections per paper). Bump from the default
-      // ~8k cap so the response doesn't get truncated mid-string.
-      maxOutputTokens: 32000,
-    },
-  }, 2, 5000, "structure-analysis");
+  // Model fallback chain. 3.1-pro-preview reads small section-divider
+  // text (e.g. 三、阅读理解（一）) far more reliably than 2.5-pro,
+  // especially on Chinese papers where headers appear at the top of
+  // narrow whitespace bands the smaller model skims over. 2.5-pro is
+  // the proven fallback. 2.5-flash is the last-ditch fallback so a
+  // single overloaded model can't kill the upload.
+  const STRUCTURE_MODELS = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const;
+  let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
+  let lastErr: unknown = null;
+  for (let mi = 0; mi < STRUCTURE_MODELS.length; mi++) {
+    const model = STRUCTURE_MODELS[mi];
+    try {
+      response = await generateContentWithRetry({
+        model,
+        contents: [
+          {
+            role: "user",
+            parts: [...imageParts, { text: STRUCTURE_ANALYSIS_PROMPT }],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+          // 38-page papers produce a lot of output (per-page pages array
+          // + papers array + sections per paper). Bump from the default
+          // ~8k cap so the response doesn't get truncated mid-string.
+          maxOutputTokens: 32000,
+        },
+      }, 2, 5000, `structure-analysis:${model}`);
+      if (mi > 0) console.log(`[Exam Pipeline] structure-analysis: succeeded on fallback model ${model}`);
+      break;
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[Exam Pipeline] structure-analysis on ${model} failed: ${err instanceof Error ? err.message : String(err)}`);
+      if (mi === STRUCTURE_MODELS.length - 1) throw err;
+    }
+  }
+  if (!response) throw lastErr ?? new Error("structure-analysis: all fallback models failed");
 
   const text = response.text;
   if (!text) throw new Error("Gemini returned empty response for structure analysis");
