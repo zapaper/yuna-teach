@@ -1746,6 +1746,24 @@ IMPORTANT: "startPage" = page with first question number. "endPage" = last page 
 For Visual Text Comprehension, also include "visualPages" — the 0-based page indices of the visual text/poster pages that appear BEFORE the questions.
 For Comprehension OEQ, also include "passagePages" — the 0-based page indices of the reading passage pages. For P5/P6 papers, the passage is usually in Booklet A (last 1-2 pages). For P4 English papers, the passage may appear on the page(s) IMMEDIATELY BEFORE the comprehension questions (in the same booklet, not a separate one), since P4 papers are often shorter with fewer sections and no separate Booklet A/B split.
 
+### CHINESE PAPERS (华文 / 中文) — Section identification:
+For Chinese papers, identify these sections in order. Use these EXACT names and types in the sections array — the downstream pathway depends on the wording:
+1. **语文应用 MCQ** — standalone Chinese vocab / grammar / 词语 MCQ. Type: "MCQ"
+2. **短文填空** — a SHORT PASSAGE with NUMBERED blanks inline; each blank has 4 word options (1)/(2)/(3)/(4) printed below the passage. Type: "MCQ"
+3. **阅读理解 MCQ** — a longer reading PASSAGE then MCQ questions about it. Type: "MCQ"
+4. **完成对话** — a WORD BANK in a box at the top (甲/乙/丙/丁... or A/B/C/D...), then a dialogue / passage with NUMBERED blanks. Type: "grammar-cloze"
+5. **Visual Text Comprehension MCQ** — MCQ based on a poster / advertisement / 漫画 / leaflet. May end with one short open-ended question. Type: "MCQ"
+6. **阅读理解 OEQ** — written-answer questions on a longer reading passage. Type: "comprehension-oeq"
+
+Use these type values in the sections array for Chinese papers. ALSO include "startPage", "endPage", and "questionRange" for each section (same rules as English).
+
+For Visual Text MCQ in Chinese papers, also include "visualPages" — the 0-based page indices of the visual content that appears BEFORE the questions.
+For 阅读理解 OEQ, also include "passagePages" — the 0-based page indices of the reading passage.
+
+Chinese paper section name conventions:
+- Section headers in the original paper may say "一、语文应用", "二、短文填空", "三、阅读理解", "四、完成对话", "五、阅读理解" etc. Strip the leading "一/二/三/四/五/六" + "、" and use the SHORT section name from the list above.
+- 作文 (composition) and 听力 (listening) sections must be marked with "skipExtraction": true on the parent paper — they cannot be auto-graded.
+
 ### P4 ENGLISH PAPERS — Important differences:
 - P4 English papers are typically shorter with fewer questions per section
 - The paper may NOT be split into Booklet A + Booklet B — all sections may be in a single booklet
@@ -1967,6 +1985,7 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
 ### MCQ questions:
 - Each MCQ = stem + answer options (1)/(2)/(3)/(4) as ONE entry
 - English MCQ are tightly spaced (~3-8% of page height)
+
 - Sections have CONTINUOUS numbering:
   * Grammar MCQ Q1-10 — standalone grammar questions
   * Vocabulary MCQ Q11-15 — standalone vocabulary questions with NO passage. These are individual word-meaning questions. They MUST be a SEPARATE section from Vocabulary Cloze MCQ.
@@ -2054,6 +2073,16 @@ You are given ONLY the question pages of the exam (answer sheets have been remov
   * "1. 选出..." inside an instruction sentence — instruction
   * Any number that is part of a sentence
 - If the first page has only instructions, skip it and look at the NEXT page
+
+### CHINESE MCQ — crop must include ALL 4 options:
+Each Chinese MCQ has a stem followed by FOUR options labelled "(1)", "(2)", "(3)", "(4)" (or full-width "（1）" / "（2）" / "（3）" / "（4）"). The crop boundary yEndPct MUST extend past option "(4)" — if you stop at the stem or after only 1-2 options, the student sees a half-question.
+- The four options may be laid out:
+  * Stacked vertically below the stem (most common in 语文应用)
+  * All four on ONE line right after the stem: e.g. "看见你这么努力，妈妈感到很___。 (1)安慰 (2)担心 (3)欣慰 (4)自豪"
+  * In two rows of two: "(1)__ (2)__" then "(3)__ (4)__"
+- BEFORE finalising yEndPct, scan downward from the question stem until you SEE the "(4)" label — that is the floor of the option block.
+- For Chinese 语文应用 MCQ specifically: a single question typically occupies 7-12% of page height (stem 1-2 lines + 4 options 1 line each or stacked). If your yEndPct minus yStartPct is less than 7%, you likely cut off options — extend it.
+- DO NOT confuse the next question's number for an option label: option labels are "(1)" through "(4)" inside parens; question numbers are bare integers at the FAR LEFT MARGIN.
 
 ### Chinese section taxonomy — CONTINUOUS numbering across sections:
   * 语文应用 / 语文运用 MCQ — standalone Chinese vocab/grammar MCQ questions (typically Q1-10). syllabusTopic: "语文应用 MCQ"
