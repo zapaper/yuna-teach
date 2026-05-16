@@ -341,8 +341,86 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
         </div>
       )}
 
+      {/* 短文填空 — passage with inline 4-option pickers per blank.
+          No separate question cards; the student picks options right
+          inside the passage prose. */}
+      {sectionType === "visual-text-mcq" && sectionLabel.includes("短文填空") && passage && (() => {
+        // Split the passage on the "---OPTIONS---" divider the Chinese
+        // OCR rule emits. Everything before is the passage with
+        // **________** blank markers; everything after is the per-
+        // question option list ("16. (1) ... (2) ... (3) ... (4) ...").
+        // Options are also stored on each question's transcribedOptions,
+        // so prefer that — fall back to parsing the divider block when
+        // a question has empty options (older extractions).
+        const sortedQs = [...questions].sort((a, b) =>
+          a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
+        );
+        const dividerIdx = passage.indexOf("---OPTIONS---");
+        const passageOnly = dividerIdx >= 0 ? passage.slice(0, dividerIdx) : passage;
+        // Walk every **...**  occurrence; nth occurrence = nth question.
+        const blankRe = /\*\*[^*]*\*\*/g;
+        const segments: Array<{ kind: "text" | "blank"; text: string; qIdx: number }> = [];
+        let lastEnd = 0;
+        let bi = 0;
+        for (const m of passageOnly.matchAll(blankRe)) {
+          if (m.index! > lastEnd) {
+            segments.push({ kind: "text", text: passageOnly.slice(lastEnd, m.index!), qIdx: -1 });
+          }
+          segments.push({ kind: "blank", text: m[0], qIdx: bi });
+          bi++;
+          lastEnd = m.index! + m[0].length;
+        }
+        if (lastEnd < passageOnly.length) {
+          segments.push({ kind: "text", text: passageOnly.slice(lastEnd), qIdx: -1 });
+        }
+        return (
+          <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100">
+            <p className="text-sm text-slate-500 italic mb-4">阅读短文，从每题的四个选项中选出最合适的答案。</p>
+            <div className="leading-loose text-base text-[#0b1c30]">
+              {segments.map((seg, i) => {
+                if (seg.kind === "text") {
+                  return <span key={i} className="whitespace-pre-wrap">{seg.text}</span>;
+                }
+                const q = sortedQs[seg.qIdx];
+                if (!q) return <span key={i} className="text-slate-400 border-b border-slate-400 px-3">______</span>;
+                const opts = (q.transcribedOptions as string[] | null) ?? ["", "", "", ""];
+                const selected = answers[q.id] ?? null;
+                return (
+                  <span key={i} className="inline-flex items-center gap-1 align-middle mx-1 my-1 bg-[#eff4ff] border border-[#d3e4fe] rounded-xl px-2 py-1">
+                    <span className="text-[10px] font-extrabold text-[#003366] bg-white px-1.5 rounded">Q{parseInt(q.questionNum)}</span>
+                    {[0, 1, 2, 3].map(oi => {
+                      const optNum = String(oi + 1);
+                      const isSelected = selected === optNum;
+                      const isEmpty = !opts[oi];
+                      return (
+                        <button
+                          key={oi}
+                          type="button"
+                          disabled={isEmpty}
+                          onClick={() => onAnswer(q.id, optNum)}
+                          className={`text-xs font-semibold px-2 py-0.5 rounded-md border transition-colors ${
+                            isSelected
+                              ? "bg-[#003366] text-white border-[#003366]"
+                              : isEmpty
+                                ? "bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed"
+                                : "bg-white text-[#001e40] border-[#c3c6d1] hover:border-[#003366]"
+                          }`}
+                          title={isEmpty ? "(option missing)" : opts[oi]}
+                        >
+                          ({oi + 1}) {opts[oi] || "—"}
+                        </button>
+                      );
+                    })}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Visual Text MCQ: standard question + options */}
-      {sectionType === "visual-text-mcq" && (
+      {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && (
         <div className={`space-y-6 ${splitQuestionsCls}`}>
 
           <p className="text-sm text-[#737780] italic">Choose the most appropriate answer for each question.</p>
