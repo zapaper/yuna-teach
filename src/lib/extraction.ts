@@ -47,6 +47,10 @@ export function normalizeSubject(raw: string | null | undefined): string | null 
   if (s.includes("math")) return "Mathematics";
   if (s.includes("science")) return "Science";
   if (s.includes("english")) return "English";
+  // Chinese / 华文 / 中文 / Mother Tongue (Chinese variant). Matches
+  // both English and Chinese spellings so a paper's cover-page header
+  // routes to the Chinese pathway regardless of which the user uploads.
+  if (s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语")) return "Chinese";
   // Return original casing for unknown subjects
   return raw.trim();
 }

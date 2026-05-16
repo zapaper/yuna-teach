@@ -120,6 +120,21 @@ export async function GET(request: NextRequest) {
     data: { extractionStatus: "failed" },
   });
 
+  // Chinese pathway gating: while the Chinese fork is being built, only
+  // admin users see Chinese papers in any list view. Apply on top of
+  // the role-based `where` rather than replacing it.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let actorIsAdmin = false;
+  if (userId) {
+    const actor = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true } });
+    actorIsAdmin = isAdmin(actor);
+  }
+  if (!actorIsAdmin) {
+    const chineseFilter = { subject: { not: { contains: "chinese", mode: "insensitive" } } } as const;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    where = where ? { AND: [where as any, chineseFilter] } : chineseFilter;
+  }
+
   const papers = await prisma.examPaper.findMany({
     where,
     orderBy: { createdAt: "desc" },
