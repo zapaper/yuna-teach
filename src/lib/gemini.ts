@@ -2461,14 +2461,12 @@ You are given ONLY the answer key pages. Each image is labeled with its original
 - NEVER translate between formats — reproduce exactly what is printed
 
 ### CRITICAL — Multi-paper answer separation:
-- The structure context above tells you which answer pages belong to which paper
-- Paper 1 answers and Paper 2 answers are on DIFFERENT pages — do NOT mix them
-- For Paper 1 answers: use no prefix (questions "1", "2", "3")
-- For Paper 2 answers: use prefix "P2-" (questions "P2-1", "P2-2", "P2-3")
-- Read the HEADER on each answer key page to confirm which paper it belongs to (e.g. "Paper 1 Answer Key", "Paper 2 Answers")
-- If an answer page header says "Paper 2", ALL answers on that page get the "P2-" prefix
+- The structure context above tells you which answer pages belong to which paper, AND the question prefix to use for each (look for the "use question prefix '<X>'" hint per page).
+- ALWAYS use the prefix specified in the structure context above — DO NOT invent a prefix from the page header.
+- When the structure says prefix "" (empty), output keys as plain numbers: "1", "2", "3". DO NOT add a "P2-" or similar prefix even if the page header reads "Paper 2".
+- When the structure says prefix "P2-", output keys as "P2-1", "P2-2", "P2-3" etc.
+- Paper 1 answers and Paper 2 answers are on DIFFERENT pages — do NOT mix them. The structure tells you which page belongs to which paper.
 - NEVER assign a Paper 1 answer to Paper 2 or vice versa
-- If no header specifies, use the paperLabel from the structure context
 
 ### Classify each answer:
 
