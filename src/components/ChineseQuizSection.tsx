@@ -435,15 +435,20 @@ function PassageWithInputs({
   // Parse passage and replace question markers with inputs
   const lines = passage.split("\n");
 
-  // Collect the set of letters (A-Q) the student has already typed into any
-  // cloze blank in this section. The letter bank in TableLine uses this to
-  // auto-strikethrough used letters — saves the student from marking them
-  // manually. Case-insensitive, reacts live as the student types/deletes.
+  // Collect labels the student has already typed into any cloze blank
+  // in this section. The word-bank table uses this to auto-strikethrough
+  // used labels — for English Grammar Cloze the labels are letters A-Q,
+  // for Chinese 完成对话 they are digits 1-8.
   const usedLetters = new Set<string>();
   if (sectionType === "grammar-cloze") {
     for (const q of sortedQs) {
       const a = (answers[q.id] ?? "").trim().toUpperCase();
+      // English: single letter A-Q
       if (/^[A-Q]$/.test(a)) usedLetters.add(a);
+      // Chinese 完成对话: single digit 1-8 (or 9 for an extended bank).
+      // Stored verbatim so the table cell lookup can match by the
+      // literal label string.
+      if (/^[1-9]$/.test(a)) usedLetters.add(a);
     }
   }
 
@@ -480,16 +485,20 @@ function PassageWithInputs({
 
 function TableLine({ line, usedLetters }: { line: string; usedLetters?: Set<string> }) {
   const cells = line.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
-  // Detect if this is a letter row (A-Q single uppercase letters). For a
-  // grammar-cloze letter bank, auto-strikethrough any letter the student
-  // has typed into a cloze input — saves them from manually eliminating,
-  // and the strike clears if they delete the answer.
+  // Detect if this is a label row. Two flavours of word bank:
+  //  - English Grammar Cloze: single letters A-Q
+  //  - Chinese 完成对话:        single digits 1-8 (or 9)
+  // When the student types a label into any blank, auto-strike the
+  // matching cell in the bank so they don't have to manually track
+  // which options they've used.
   const isLetterRow = cells.every(c => /^[A-Q]$/.test(c));
+  const isDigitRow = cells.every(c => /^[1-9]$/.test(c));
+  const isLabelRow = isLetterRow || isDigitRow;
   return (
     <div className="flex gap-2 my-1">
       {cells.map((cell, ci) => {
-        const isUsed = isLetterRow && usedLetters?.has(cell) === true;
-        const base = `flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLetterRow ? "font-extrabold text-[#003366] underline" : "font-medium"} transition-opacity`;
+        const isUsed = isLabelRow && usedLetters?.has(cell) === true;
+        const base = `flex-1 text-center text-xs text-[#001e40] bg-[#eff4ff] rounded px-2 py-1 ${isLabelRow ? "font-extrabold text-[#003366] underline" : "font-medium"} transition-opacity`;
         const styleProps = isUsed ? { textDecoration: "line-through", opacity: 0.4 } : undefined;
         return (
           <span key={ci} className={base} style={styleProps}>{cell}</span>
