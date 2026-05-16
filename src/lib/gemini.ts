@@ -3168,19 +3168,38 @@ async function runExtractionCall(
 
   console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
 
-  const response = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
-    contents: [
-      {
-        role: "user",
-        parts: [...imageParts, { text: prompt }],
-      },
-    ],
-    config: {
-      responseMimeType: "application/json",
-      temperature: 0.1,
-    },
-  }, 2, 5000, `extraction:${label}`);
+  // Model fallback chain — the per-booklet question-coordinate
+  // extraction sends many page images plus the long extraction prompt
+  // and 504s under load. Without a fallback, one timed-out call killed
+  // the whole upload after 3 retries on a single model.
+  const QEX_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-2.5-pro"] as const;
+  let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
+  let lastErr: unknown = null;
+  for (let mi = 0; mi < QEX_MODELS.length; mi++) {
+    const model = QEX_MODELS[mi];
+    try {
+      response = await generateContentWithRetry({
+        model,
+        contents: [
+          {
+            role: "user",
+            parts: [...imageParts, { text: prompt }],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      }, 2, 5000, `extraction:${label}:${model}`);
+      if (mi > 0) console.log(`[Exam Pipeline] extraction ${label}: succeeded on fallback model ${model}`);
+      break;
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[Exam Pipeline] extraction ${label} on ${model} failed: ${err instanceof Error ? err.message : String(err)}`);
+      if (mi === QEX_MODELS.length - 1) throw err;
+    }
+  }
+  if (!response) throw lastErr ?? new Error(`extraction: all fallback models failed for ${label}`);
 
   const text = response.text;
   if (!text) throw new Error(`Gemini returned empty response for question extraction (${label})`);
@@ -3324,19 +3343,37 @@ async function extractAnswersWithWorking(
     buildStructureContext(structure)
   );
 
-  const response = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
-    contents: [
-      {
-        role: "user",
-        parts: [...imageParts, { text: prompt }],
-      },
-    ],
-    config: {
-      responseMimeType: "application/json",
-      temperature: 0.1,
-    },
-  });
+  // Model fallback chain — answer extraction sends every answer-key
+  // page + the long answer-extraction prompt. Same 504 risk as the
+  // question-extraction call above.
+  const ANS_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-2.5-pro"] as const;
+  let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
+  let lastErr: unknown = null;
+  for (let mi = 0; mi < ANS_MODELS.length; mi++) {
+    const model = ANS_MODELS[mi];
+    try {
+      response = await generateContentWithRetry({
+        model,
+        contents: [
+          {
+            role: "user",
+            parts: [...imageParts, { text: prompt }],
+          },
+        ],
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.1,
+        },
+      }, 2, 5000, `answer-extract:${model}`);
+      if (mi > 0) console.log(`[Exam Pipeline] answer-extract: succeeded on fallback model ${model}`);
+      break;
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[Exam Pipeline] answer-extract on ${model} failed: ${err instanceof Error ? err.message : String(err)}`);
+      if (mi === ANS_MODELS.length - 1) throw err;
+    }
+  }
+  if (!response) throw lastErr ?? new Error("answer-extract: all fallback models failed");
 
   const text = response.text;
   if (!text) {
