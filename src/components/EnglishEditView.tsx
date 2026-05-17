@@ -556,7 +556,15 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         const hasOptions = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length > 0;
                         const isLongOeqQuestion = isLongOeqSection && !hasOptions;
                         const isCompBOeqQuestion = isCompBSection && !hasOptions;
-                        const allowImageUpload = isChineseSection ? isLongOeqQuestion : true;
+                        // Upload image:
+                        //   Chinese — only the long OEQ in 阅读理解 A (Q33).
+                        //   English / Math / Science — OEQ only. MCQ stems
+                        //     never need a diagram upload because the option
+                        //     images are the diagrams; the upload control
+                        //     was just clutter on MCQ rows.
+                        const allowImageUpload = isChineseSection
+                          ? isLongOeqQuestion
+                          : !hasOptions;
                         const allowImageCrop = isLongOeqQuestion;
                         const allowReextractAnswer = isLongOeqQuestion || isCompBOeqQuestion;
                         return (
