@@ -968,13 +968,19 @@ function QuizContent({ id }: { id: string }) {
 
   return (
     <div
-      className={`min-h-screen bg-[#f8f9ff] pb-24 ${isChineseQuiz ? "" : "select-none"}`}
-      style={isChineseQuiz
-        // Chinese quizzes need text selection enabled so the dictionary
-        // can pick up the student's highlight on stems / options /
-        // passages. The root-wide select-none was added for English
-        // quizzes to prevent accidental tap-to-select on mobile —
-        // Chinese inherits its own per-element selection gates instead.
+      // Chinese quizzes need text selection enabled so the dictionary
+      // can pick up the student's highlight on stems / options /
+      // passages — UNLESS the pen/eraser tool is active. With the pen
+      // active, every pointer-move was triggering the browser's text-
+      // selection machinery (drag-to-select), which competed with the
+      // canvas's own pointer events and made the pen feel laggy.
+      // While drawing tools are active, lock the page back into the
+      // same select-none state used for English quizzes; switch to
+      // "type" (or null) to re-enable dictionary lookups.
+      className={`min-h-screen bg-[#f8f9ff] pb-24 ${
+        isChineseQuiz && tool === "type" ? "" : "select-none"
+      }`}
+      style={isChineseQuiz && tool === "type"
         ? undefined
         : { WebkitTouchCallout: "none", WebkitUserSelect: "none" }}
     >
