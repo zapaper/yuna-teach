@@ -513,9 +513,23 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                     </button>
                   )}
                 </div>
-                {q.transcribedStem && (
-                  <FormattedText text={q.transcribedStem} className="text-sm text-[#0b1c30] mb-3 whitespace-pre-wrap" />
-                )}
+                {q.transcribedStem && (() => {
+                  // Long-OEQ stems in 阅读理解 A are multi-paragraph
+                  // instructions (e.g. Q33's 邀请 prompt). Render each
+                  // paragraph as its own <p> so the visual layout
+                  // matches the printed paper. Short stems collapse
+                  // to a single paragraph naturally.
+                  const paras = q.transcribedStem.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
+                  return (
+                    <div className="mb-3">
+                      {paras.map((para, pi) => (
+                        <p key={pi} className="text-sm text-[#0b1c30] leading-relaxed mb-2 last:mb-0 whitespace-pre-wrap">
+                          <FormattedText text={para} />
+                        </p>
+                      ))}
+                    </div>
+                  );
+                })()}
                 {hasOptions && (
                   <div className="space-y-2">
                     {(q.transcribedOptions as string[]).map((opt, oi) => {
@@ -546,8 +560,13 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                 )}
                 {isOeq && (
                   <div className="mt-2">
+                    {/* Canvas height scales with mark allocation —
+                        Q33-style long OEQ (≥4 marks) gets ~12 rows of
+                        田字格 (~960px) so the student has room for a
+                        full 短信 / paragraph. Short OEQs keep the
+                        4-row default. */}
                     <ChineseHandwritingCanvas
-                      height={320}
+                      height={(q.marksAvailable ?? 0) >= 4 ? 960 : 320}
                       cellSize={80}
                       tool={tool}
                       savedInkUrl={initialInk}
