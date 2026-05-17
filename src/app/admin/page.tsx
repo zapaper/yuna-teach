@@ -133,6 +133,13 @@ function AdminContent() {
       href: `/admin/answer-key-gaps?userId=${userId}`,
       color: "bg-rose-50 text-rose-600",
     },
+    {
+      icon: "ink_eraser",
+      label: "Remask CamScanner Watermarks",
+      description: "Paint a white box over the bottom-right of every page + the top-left of page 1, across every master paper. Idempotent.",
+      href: `/admin/remask-watermarks?userId=${userId}`,
+      color: "bg-sky-50 text-sky-600",
+    },
   ];
 
   return (

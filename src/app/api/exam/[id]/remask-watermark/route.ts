@@ -3,6 +3,8 @@ import path from "path";
 import { promises as fs } from "fs";
 import { prisma } from "@/lib/db";
 import { maskCorners } from "@/lib/watermark";
+import { getSessionUserId } from "@/lib/session";
+import { isAdmin } from "@/lib/admin";
 
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const PAGES_DIR = path.join(VOLUME_PATH, "pages");
@@ -16,6 +18,14 @@ export async function POST(
   _req: NextRequest,
   context: { params: Promise<{ id: string }> },
 ) {
+  const sessionUserId = await getSessionUserId();
+  if (!sessionUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const me = await prisma.user.findUnique({
+    where: { id: sessionUserId },
+    select: { name: true, settings: true },
+  });
+  if (!isAdmin(me)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
   const { id } = await context.params;
   const paper = await prisma.examPaper.findUnique({
     where: { id },
