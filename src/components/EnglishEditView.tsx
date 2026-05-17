@@ -696,6 +696,9 @@ function QuestionRow({
   pageImage?: string;
 }) {
   const [cropOpen, setCropOpen] = useState(false);
+  const [reextractAnsPages, setReextractAnsPages] = useState("");
+  const [reextractAnsBusy, setReextractAnsBusy] = useState(false);
+  const [reextractAnsResult, setReextractAnsResult] = useState<string | null>(null);
   const [editAnswer, setEditAnswer] = useState(false);
   const [answerDraft, setAnswerDraft] = useState(q.answer ?? "");
   const [marksDraft, setMarksDraft] = useState(q.marksAvailable != null ? String(q.marksAvailable) : "");
@@ -1085,6 +1088,69 @@ function QuestionRow({
             </div>
           );
         })()}
+
+        {/* Re-extract Answer from the answer-key page(s). Admin types
+            the page number(s) (1-indexed) and we re-OCR just this
+            question's key from those pages. Useful when the bulk
+            answer-extract grabbed the wrong region (e.g. Chinese
+            长 OEQ where the underlined model answer was missed). */}
+        <div className="mt-2 flex items-center gap-1 text-[10px]">
+          <span className="text-slate-400 font-bold uppercase tracking-wider">Re-extract Ans from page</span>
+          <input
+            type="text"
+            placeholder="e.g. 15 or 15-16"
+            value={reextractAnsPages}
+            onChange={e => setReextractAnsPages(e.target.value)}
+            className="w-24 px-1.5 py-0.5 rounded border border-slate-200 focus:outline-none focus:border-amber-400 text-xs"
+          />
+          <button
+            type="button"
+            disabled={reextractAnsBusy || !reextractAnsPages.trim()}
+            onClick={async () => {
+              const indices: number[] = [];
+              for (const part of reextractAnsPages.split(",")) {
+                const t = part.trim();
+                if (!t) continue;
+                if (t.includes("-")) {
+                  const [a, b] = t.split("-").map(s => parseInt(s.trim()));
+                  if (!isNaN(a) && !isNaN(b)) {
+                    for (let i = a; i <= b; i++) indices.push(i - 1);
+                  }
+                } else {
+                  const n = parseInt(t);
+                  if (!isNaN(n)) indices.push(n - 1);
+                }
+              }
+              if (indices.length === 0) return;
+              setReextractAnsBusy(true);
+              setReextractAnsResult(null);
+              try {
+                const res = await fetch(`/api/exam/questions/${q.id}/reextract-answer`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ pageIndices: indices }),
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                  setReextractAnsResult(`Error: ${data.error ?? "Re-extract failed"}`);
+                } else {
+                  setReextractAnsResult(`Saved. Reload to view.`);
+                  await onSave(q.id, { answer: data.answer });
+                }
+              } catch (err) {
+                setReextractAnsResult(`Error: ${err instanceof Error ? err.message : "network"}`);
+              } finally {
+                setReextractAnsBusy(false);
+              }
+            }}
+            className="px-2 py-0.5 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold disabled:opacity-50 transition-colors"
+          >
+            {reextractAnsBusy ? "Working…" : "Re-extract"}
+          </button>
+          {reextractAnsResult && (
+            <span className={`text-[10px] ${reextractAnsResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>{reextractAnsResult}</span>
+          )}
+        </div>
       </div>
 
       {/* Marks */}
