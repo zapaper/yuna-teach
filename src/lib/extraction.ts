@@ -900,7 +900,7 @@ async function extractExamPaperCore(
 // two sections share a name).
 export type BuiltSection = { label: string; startIndex: number; endIndex: number; passage?: string };
 export type QForGrouping = { pageIndex: number; syllabusTopic: string | null };
-export type OcrEntry = { ocrText?: string; passageOcrText?: string; pageIndices?: number[] };
+export type OcrEntry = { ocrText?: string; passageOcrText?: string; pageIndices?: number[]; passagePageIndices?: number[] };
 export function buildChineseSections(
   questions: QForGrouping[],
   sectionOcrTexts: Record<string, OcrEntry> | null,
@@ -969,34 +969,46 @@ export function buildChineseSections(
     if (ocrKeys.includes(label)) return label;
     return null;
   }
+  // Track each 阅读理解 section's passage PAGE indices so step 3 can
+  // merge by passage source, not by passage string. The OCR step
+  // sometimes re-OCRs the same physical page (e.g. 五-A's MCQ
+  // passage and 五-A's OEQ passage both come from page 10) and the
+  // two calls return slightly different text — a string-equality
+  // merge fails to combine them. Page indices are stable.
+  const secPassagePages = new Map<BuiltSection, Set<number>>();
   let lastCompPassage: string | undefined;
   let lastCompPages: Set<number> | undefined;
+  let lastCompPassagePages: Set<number> | undefined;
   for (const sec of sections) {
     const pages = new Set<number>();
     for (let i = sec.startIndex; i <= sec.endIndex; i++) pages.add(questions[i].pageIndex);
     const key = findOcrKey(sec.label, pages);
     const entry = key ? ocr[key] : null;
     if (sec.label.includes("阅读理解")) {
-      // 阅读理解 sections render the dedicated passageOcrText. The
-      // section's ocrText is just the questions block, so it's NOT
-      // suitable as a passage. When the section is missing its own
-      // passageOcrText, only fall back to the previous comp section's
-      // passage if the page ranges are adjacent (within 1 page) — that
-      // covers PSLE 五-A's OEQ sharing 五-A's MCQ passage. A 五-B with
-      // missing passage data must stay passage-less rather than
-      // borrowing 五-A's, which would mislead the student.
       const p = entry?.passageOcrText;
+      const ppi = entry?.passagePageIndices;
       if (p) {
         sec.passage = p;
         lastCompPassage = p;
         lastCompPages = pages;
+        if (ppi && ppi.length > 0) {
+          lastCompPassagePages = new Set(ppi);
+          secPassagePages.set(sec, new Set(ppi));
+        }
       } else if (lastCompPassage && lastCompPages) {
+        // No own passage — borrow the previous comp section's passage
+        // when the question pages are adjacent (within 1). Covers
+        // older Chinese extractions where 五-A's OEQ has no passage
+        // step at all.
         const minPrev = Math.min(...lastCompPages);
         const maxPrev = Math.max(...lastCompPages);
         const minThis = Math.min(...pages);
         const maxThis = Math.max(...pages);
         const adjacent = (minThis - maxPrev <= 1 && minThis - maxPrev >= 0) || (minPrev - maxThis <= 1 && minPrev - maxThis >= 0);
-        if (adjacent) sec.passage = lastCompPassage;
+        if (adjacent) {
+          sec.passage = lastCompPassage;
+          if (lastCompPassagePages) secPassagePages.set(sec, new Set(lastCompPassagePages));
+        }
       }
     } else if (sec.label.includes("短文填空") || sec.label.includes("完成对话") || sec.label.includes("对话填空")) {
       sec.passage = entry?.ocrText;
@@ -1024,21 +1036,38 @@ export function buildChineseSections(
     // Collect the run of consecutive 阅读理解 sections.
     let j = i;
     while (j + 1 < sections.length && sections[j + 1].label.includes("阅读理解")) j++;
-    // Within [i..j], merge subsequent sections that share the SAME
-    // passage string. Step 2's adjacency fallback already populated
-    // 五-A's OEQ with the MCQ's passage, so a true same-passage match
-    // suffices — a section with no passage (e.g. 五-B when its own
-    // passagePages was never set) gets its own subgroup rather than
-    // borrowing the previous group's passage, which would be wrong.
-    const subgroups: BuiltSection[] = [{ ...sections[i] }];
+    // Within [i..j], merge subsequent sections that read the SAME
+    // passage page. 五-A's MCQ Q30-32 and 五-A's OEQ Q33 both OCR'd
+    // page 10 separately, so their passage STRINGS differ slightly
+    // even though the underlying printed passage is identical. Merge
+    // by passagePageIndices overlap (recorded in step 2) — any single
+    // shared page means the printed passage is the same.
+    const overlaps = (a?: Set<number>, b?: Set<number>) => {
+      if (!a || !b || a.size === 0 || b.size === 0) return false;
+      for (const p of a) if (b.has(p)) return true;
+      return false;
+    };
+    type Sub = BuiltSection & { _passagePages?: Set<number> };
+    const subgroups: Sub[] = [{ ...sections[i], _passagePages: secPassagePages.get(sections[i]) }];
     for (let k = i + 1; k <= j; k++) {
       const s = sections[k];
       const cur = subgroups[subgroups.length - 1];
-      const samePassage = !!s.passage && !!cur.passage && s.passage === cur.passage;
-      if (samePassage) {
+      const sPages = secPassagePages.get(s);
+      const same = overlaps(cur._passagePages, sPages)
+        // String-equality fallback for sections that don't have
+        // passagePageIndices recorded (older extractions).
+        || (!!s.passage && !!cur.passage && s.passage === cur.passage);
+      if (same) {
         cur.endIndex = s.endIndex;
+        // Keep the union so a later subgroup with overlapping pages
+        // still merges. If the cur subgroup hasn't recorded pages,
+        // adopt the new section's.
+        if (sPages) {
+          if (cur._passagePages) for (const p of sPages) cur._passagePages.add(p);
+          else cur._passagePages = new Set(sPages);
+        }
       } else {
-        subgroups.push({ ...s });
+        subgroups.push({ ...s, _passagePages: sPages });
       }
     }
     // Rename when this 阅读理解 run holds more than one passage —
@@ -1059,7 +1088,13 @@ export function buildChineseSections(
         g.label = allOeq ? `阅读理解 ${letter} OEQ` : `阅读理解 ${letter}`;
       });
     }
-    grouped.push(...subgroups);
+    // Strip the internal _passagePages field before persisting — it
+    // exists only to drive the merge above.
+    for (const g of subgroups) {
+      const { _passagePages: _ignored, ...clean } = g as Sub & Record<string, unknown>;
+      void _ignored;
+      grouped.push(clean as BuiltSection);
+    }
     i = j + 1;
   }
   return grouped;

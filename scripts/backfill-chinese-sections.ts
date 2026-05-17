@@ -8,7 +8,7 @@
 
 import { PrismaClient } from "@prisma/client";
 
-type OcrEntry = { ocrText?: string; passageOcrText?: string; pageIndices?: number[] };
+type OcrEntry = { ocrText?: string; passageOcrText?: string; pageIndices?: number[]; passagePageIndices?: number[] };
 type Sec = { label: string; startIndex: number; endIndex: number; passage?: string };
 
 function build(
@@ -52,8 +52,10 @@ function build(
     if (ocrKeys.includes(label)) return label;
     return null;
   };
+  const secPassagePages = new Map<Sec, Set<number>>();
   let lastCompPassage: string | undefined;
   let lastCompPages: Set<number> | undefined;
+  let lastCompPassagePages: Set<number> | undefined;
   for (const sec of sections) {
     const pages = new Set<number>();
     for (let i = sec.startIndex; i <= sec.endIndex; i++) pages.add(questions[i].pageIndex);
@@ -61,12 +63,18 @@ function build(
     const e = k ? ocr[k] : null;
     if (sec.label.includes("阅读理解")) {
       const p = e?.passageOcrText;
-      if (p) { sec.passage = p; lastCompPassage = p; lastCompPages = pages; }
-      else if (lastCompPassage && lastCompPages) {
+      const ppi = e?.passagePageIndices;
+      if (p) {
+        sec.passage = p; lastCompPassage = p; lastCompPages = pages;
+        if (ppi && ppi.length > 0) { lastCompPassagePages = new Set(ppi); secPassagePages.set(sec, new Set(ppi)); }
+      } else if (lastCompPassage && lastCompPages) {
         const minPrev = Math.min(...lastCompPages); const maxPrev = Math.max(...lastCompPages);
         const minThis = Math.min(...pages); const maxThis = Math.max(...pages);
         const adjacent = (minThis - maxPrev <= 1 && minThis - maxPrev >= 0) || (minPrev - maxThis <= 1 && minPrev - maxThis >= 0);
-        if (adjacent) sec.passage = lastCompPassage;
+        if (adjacent) {
+          sec.passage = lastCompPassage;
+          if (lastCompPassagePages) secPassagePages.set(sec, new Set(lastCompPassagePages));
+        }
       }
     } else if (sec.label.includes("短文填空") || sec.label.includes("完成对话") || sec.label.includes("对话填空")) {
       sec.passage = e?.ocrText;
@@ -82,13 +90,27 @@ function build(
     if (!sec.label.includes("阅读理解")) { grouped.push(sec); i++; continue; }
     let j = i;
     while (j + 1 < sections.length && sections[j + 1].label.includes("阅读理解")) j++;
-    const subgroups: Sec[] = [{ ...sections[i] }];
+    const overlaps = (a?: Set<number>, b?: Set<number>) => {
+      if (!a || !b || a.size === 0 || b.size === 0) return false;
+      for (const p of a) if (b.has(p)) return true;
+      return false;
+    };
+    type Sub = Sec & { _passagePages?: Set<number> };
+    const subgroups: Sub[] = [{ ...sections[i], _passagePages: secPassagePages.get(sections[i]) }];
     for (let k = i + 1; k <= j; k++) {
       const s = sections[k];
       const cur = subgroups[subgroups.length - 1];
-      const samePassage = !!s.passage && !!cur.passage && s.passage === cur.passage;
-      if (samePassage) cur.endIndex = s.endIndex;
-      else subgroups.push({ ...s });
+      const sPages = secPassagePages.get(s);
+      const same = overlaps(cur._passagePages, sPages) || (!!s.passage && !!cur.passage && s.passage === cur.passage);
+      if (same) {
+        cur.endIndex = s.endIndex;
+        if (sPages) {
+          if (cur._passagePages) for (const p of sPages) cur._passagePages.add(p);
+          else cur._passagePages = new Set(sPages);
+        }
+      } else {
+        subgroups.push({ ...s, _passagePages: sPages });
+      }
     }
     if (subgroups.length > 1) subgroups.forEach((g, idx) => {
       const letter = String.fromCharCode(65 + idx);
@@ -97,7 +119,11 @@ function build(
       const allOeq = startQ && endQ && (startQ.syllabusTopic ?? "").includes("OEQ") && (endQ.syllabusTopic ?? "").includes("OEQ");
       g.label = allOeq ? `阅读理解 ${letter} OEQ` : `阅读理解 ${letter}`;
     });
-    grouped.push(...subgroups);
+    for (const g of subgroups) {
+      const { _passagePages: _ignored, ...clean } = g;
+      void _ignored;
+      grouped.push(clean as Sec);
+    }
     i = j + 1;
   }
   return grouped;

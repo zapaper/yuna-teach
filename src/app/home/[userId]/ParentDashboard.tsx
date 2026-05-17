@@ -1101,7 +1101,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             return subjects.map(s => (
               <button key={s} onClick={() => setQuizSubject(s)}
                 className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-                {s === "math" ? "Math" : s === "science" ? "Science" : s === "english" ? "English" : "Chinese"}
+                {s === "math" ? "Math" : s === "science" ? "Science" : s === "english" ? "English" : "华文"}
               </button>
             ));
           })()}
@@ -1320,7 +1320,14 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    userId: quizStudentId,
+                    // Chinese assignments need to identify the admin
+                    // ACTOR (not the target student) so the route's
+                    // admin gate passes. Send admin id as userId and
+                    // the student as studentId. Other subjects keep
+                    // the existing student-as-userId pattern.
+                    ...(quizSubject === "chinese"
+                      ? { userId, studentId: quizStudentId }
+                      : { userId: quizStudentId }),
                     quizType: quizSubject === "english" || quizSubject === "chinese" ? "mcq" : quizType,
                     subject: quizSubject,
                     ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),

@@ -923,6 +923,21 @@ SCORING TABLE (apply strictly):
 `;
 }
 
+function chineseMarkingRules(subject: string | null | undefined): string {
+  const s = (subject ?? "").toLowerCase();
+  const raw = subject ?? "";
+  const isChinese = s.includes("chinese") || raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
+  if (!isChinese) return "";
+  return `
+  CHINESE PAPER (华文) MARKING RULES — OVERRIDES "British English" guidance above:
+  - The student's answers and the questions are in Simplified Chinese.
+  - 阅读理解 OEQ (open-ended comprehension): award marks based on whether the student's 中文 answer captures the required idea. Synonymous phrasings are accepted. Partial credit allowed when marksAvailable > 1.
+  - 短文填空 / 阅读理解 MCQ: exact option match (1-4 digit). No partial marks.
+  - 完成对话: exact word-bank digit (1-8) match. No partial marks.
+  - LANGUAGE OF OUTPUT — CRITICAL: EVERY string in the "notes" / "feedback" field of your JSON response MUST be written in Simplified Chinese (简体中文). Do NOT respond in English. Do NOT use British English. Numbers and punctuation may stay as printed.
+  `;
+}
+
 function scienceCommandWordRules(subject: string | null | undefined): string {
   if (!subject?.toLowerCase().includes("science")) return "";
   return `
@@ -1351,7 +1366,7 @@ export async function remarkSingleQuestion(questionId: string): Promise<void> {
     }
   }
 
-  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject));
+  const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject) + chineseMarkingRules(paper.subject));
   parts.push({ text: prompt });
 
   const isCloze = question.syllabusTopic === "Grammar Cloze" || question.syllabusTopic === "Comprehension Cloze";
@@ -1554,7 +1569,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
             .join("\n");
       }
 
-      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + scienceStrictRules(paper?.subject) + mathMarkingRules(paper?.subject) + englishMarkingRules(paper?.subject));
+      const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper?.subject) + scienceStrictRules(paper?.subject) + mathMarkingRules(paper?.subject) + englishMarkingRules(paper?.subject) + chineseMarkingRules(paper?.subject));
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parts: any[] = [
@@ -1839,7 +1854,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject));
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject) + chineseMarkingRules(paper.subject));
           parts.push({ text: prompt });
 
           try {
@@ -1952,7 +1967,7 @@ async function _markExamPaperOnce(paperId: string): Promise<void> {
               parts.push({ inlineData: { mimeType: q.answerImageData.slice(5, sepIdx), data: q.answerImageData.slice(sepIdx + 8) } });
             }
           }
-          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject));
+          const prompt = MARKING_PROMPT.replace("{QUESTIONS}", questionLines).replace("{ANSWER_IMAGES_NOTE}", answerImagesNote).replace("{SUBJECT_RULES}", scienceCommandWordRules(paper.subject) + mathMarkingRules(paper.subject) + englishMarkingRules(paper.subject) + chineseMarkingRules(paper.subject));
           parts.push({ text: prompt });
 
           try {

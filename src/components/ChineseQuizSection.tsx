@@ -1149,7 +1149,39 @@ function ReadingPassage({ text }: { text: string }) {
   const lines = text.split("\n");
   // Check if it's a markdown table format (| Line | Text | No. |)
   const isTable = lines.some(l => l.trim().startsWith("|") && l.trim().endsWith("|") && !l.match(/^\s*\|[\s-:|]+\|\s*$/));
-
+  // Chinese 阅读理解 passages — no line numbering, body font. The
+  // printed 华文 paper carries no margin line numbers and OEQ answers
+  // never cite line numbers, so the English-style small-font + No.
+  // margin layout is wrong here. Render as plain paragraphs using
+  // the same toParagraphs logic as the 阅读理解 MCQ branch above.
+  const hasChinese = /[一-鿿]/.test(text);
+  if (isTable && hasChinese) {
+    const tableLines = lines.filter(l => l.trim().startsWith("|") && l.trim().endsWith("|"));
+    const dataLines = tableLines.filter(l => !/^\s*\|[\s|:-]+\|\s*$/.test(l)).slice(1);
+    const paras: string[] = [];
+    let cur = "";
+    const pushCur = () => { if (cur.trim()) paras.push(cur.replace(/^[\s\t]+/, "").trim()); cur = ""; };
+    for (const row of dataLines) {
+      const cols = row.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c);
+      const rawCell = cols[1] ?? "";
+      const cell = rawCell.startsWith(" ") ? rawCell.slice(1) : rawCell;
+      const text = cell.replace(/^[\s\t]+|\s+$/g, "");
+      const isIndentedRow = /^\t| {2,}/.test(cell);
+      if (!text) { pushCur(); continue; }
+      if (isIndentedRow && cur) { pushCur(); }
+      cur += text;
+    }
+    pushCur();
+    return (
+      <div className="mb-8 bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100 w-full">
+        {paras.map((para, pi) => (
+          <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
+            {para}
+          </p>
+        ))}
+      </div>
+    );
+  }
   if (isTable) {
     // Parse table rows, skip header separator. Preserve raw cell text in
     // a parallel array — needed to detect leading indentation (start of
