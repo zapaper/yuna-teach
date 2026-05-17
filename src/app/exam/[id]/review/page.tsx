@@ -2144,7 +2144,16 @@ function ExamReviewContent({ id }: { id: string }) {
                                   )}
                                   <div className="bg-white rounded-lg p-3 border border-slate-200">
                                     <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
-                                    {studentAns.startsWith("{") ? (
+                                    {studentAns.startsWith("data:image") ? (
+                                      // Chinese 阅读理解 OEQ stores the
+                                      // student's 田字格 ink as a PNG
+                                      // data-URL. Render the image
+                                      // directly — the typed-text path
+                                      // below would just dump the
+                                      // base64 string into the page.
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={studentAns} alt={`Question ${q.questionNum} answer`} className="w-full rounded border border-slate-100" />
+                                    ) : studentAns.startsWith("{") ? (
                                       // JSON answer — table cells, ticks, and/or text
                                       (() => {
                                         let cells: Record<string, string> = {};
