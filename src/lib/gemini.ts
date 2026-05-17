@@ -3866,7 +3866,10 @@ export async function analyzeExamBatch(
 - 一段一段输出，每段一行；段与段之间用一个空行隔开。
 - 每段的开头必须空两格 (即在该行的开头加 4 个空格)，包括第一段。
 - 保留印在原文上的格式标记：原文加粗的部分用 **双星号** 包围 (例：**重要**)；原文有下划线的词用 __双下划线__ 包围 (例：__稍微__)；既加粗又有下划线的用 **__双星号加双下划线__**。不要把这些标记去掉，前端的渲染器会用到。
-- 不要加任何编号、行号、表格、标题、页眉、页脚。只输出短文本身的段落文字。
+- 短文标题 (通常在首段上方、居中、加粗) 必须单独一行输出，整行用 **双星号** 包围，例如 **校庆 50 周年纪念活动**。不要把标题省略，也不要并入下一段。
+- 短文里的小标题 (例如 活动一 / 活动二 / 一、 / 单独成行加粗的词) 必须保留它单独的一行，整行用 **双星号** 包围。不要把它合并到上下段落里。
+- 不要把试卷的章节标签 (一 语文应用 / 二 短文填空 / 三 阅读理解一 / 五 阅读理解二) 和指示语 ("根据短文的内容…") 当成短文内容输出。这些行要删掉。
+- 不要加任何编号、行号、表格、页眉、页脚。
 - 标点符号和中文字符保持原样 (全角)。
 
 只输出短文文本，不要任何其他说明。` : `Extract the reading passage from these pages as a LINE-BY-LINE table.
@@ -3957,7 +3960,10 @@ CHINESE PAPER (华文) — language-specific rules:
   IMPORTANT: word-bank labels are NUMBERS (1-8). Do NOT relabel them as 甲/乙/丙 or A/B/C — keep them as the digits printed in the paper.
 - For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Every paragraph's first line — INCLUDING the very first paragraph — MUST start with 4 leading spaces. Do not skip the indent on paragraph 1.
 - For 语文应用 MCQ (一, Q1-15) — PRESERVE the test-phrase markup in each stem. The printed paper highlights the phrase being tested by making it BOLD and UNDERLINED (e.g. 国强只是 **__稍微__** 用力一拉…). In your output the tested phrase MUST be wrapped as **__phrase__** (double-asterisks PLUS double-underscores) so the renderer shows the bold-underline correctly. Do NOT strip the markup, do NOT replace it with plain text. Same rule applies wherever you see a bold-underlined phrase in any Chinese question stem.
-- Passage / 阅读理解 OCR output: do NOT include the section title (e.g. "一 语文应用", "二 短文填空", "三 阅读理解一"), the section instruction line ("根据短文的内容…"), or page numbers. Output ONLY the passage prose itself.
+- Passage / 阅读理解 OCR output:
+  - DROP the exam-paper section labels and instructions: "一 语文应用", "二 短文填空", "三 阅读理解一", "四 完成对话", "五 阅读理解二", and the instruction line "根据短文的内容…", plus page numbers and header / footer text.
+  - KEEP the passage's OWN content. If the printed passage has a TITLE above its first paragraph (often centered, sometimes bold), include it as the FIRST line wrapped in **double asterisks** so it renders bold (e.g. "**校庆 50 周年纪念活动**" on its own line). Do NOT prepend section labels in front of the title.
+  - KEEP sub-headers WITHIN the passage. Lines like 活动一 / 活动二 / 一、 / "甲" / similar that the printed text shows on their OWN line (often bold) must stay on their OWN line, wrapped in **double asterisks**. Do NOT merge them into the surrounding paragraph.
 - 作文 (composition) and 听力 (listening) sections: output empty — those sections are extraction-skipped.
 ` : ""}
 - PARAGRAPH INDENTATION — CRITICAL: When the original text shows a NEW PARAGRAPH (indented first line), you MUST start that line with exactly 4 spaces. This is how the UI detects paragraph breaks. Every indented line in the original = 4 spaces at the start in your output. Do NOT skip this.
@@ -4154,7 +4160,7 @@ For EACH question, extract:
   - Preserve Chinese characters EXACTLY. Do NOT translate or transliterate. Keep full-width punctuation (。，、：；""「」《》！？) as printed.
   - Normalise question numbers from full-width to half-width digits (so "１。" becomes "1.") but keep all other Chinese punctuation in the stem text.
   - For 短文填空 questions: each question's stem is the SENTENCE from the passage containing the relevant blank (so the student can read it in context). Mark the blank as "______" (six underscores). The 4 options go in the options array.
-  - For 阅读理解 OEQ questions: include the FULL question text. Tables stay as markdown pipe tables; checkbox lists keep one per line.
+  - For 阅读理解 OEQ questions: include the FULL question text. Tables stay as markdown pipe tables; checkbox lists keep one per line. When the section is supposed to have EXACTLY ONE question (e.g. the 长 OEQ in 五-A: Q${secFirstQ}, single question) and the OCR text doesn't carry an explicit "Q${secFirstQ}" or "${secFirstQ}." marker, emit ONE entry with questionNum "${prefix}${secFirstQ}" and stem = the WHOLE OCR text (minus instruction headers like "请把答案写在作答簿上"). The long-OEQ stem is a multi-sentence instruction (e.g. 邀请短信 / 写一段话) — never return an empty stem or zero questions for a section that's expected to have one.
   - For 完成对话 questions: stem is the LINE from the dialogue containing the blank. The word bank is stored in the section's passage data, not duplicated per-question.` : ""}
 - answer: the correct answer from the answer key if known, null otherwise
 - marksAvailable: marks if shown (e.g. from [2] brackets), null otherwise

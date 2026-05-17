@@ -527,24 +527,29 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                   </p>
                   <div className="space-y-3">
                     {(() => {
-                      // Chinese sections 1-4 (语文应用 MCQ, 短文填空,
-                      // 阅读理解 MCQ, 完成对话) should NOT carry an
-                      // "Upload image" control — only 阅读理解 A's
-                      // long OEQ Q33 and (potentially) any 阅读理解
-                      // OEQ question can have an attached picture.
+                      // Across the WHOLE Chinese paper, only ONE
+                      // question needs an attached image: the long
+                      // OEQ inside 阅读理解 A (the merged 五-A MCQ +
+                      // OEQ section, Q33 in PSLE 华文). Every other
+                      // Chinese question — 语文应用 MCQ, 短文填空,
+                      // 阅读理解 MCQ, 完成对话, AND 阅读理解 B OEQ
+                      // (Q34-40) — has zero image controls.
+                      // English / Math / Science keep the Upload
+                      // control on every question (unchanged
+                      // behaviour), but never see the Crop button.
                       const sname = sec.name;
-                      const isChineseLabel = sname.includes("语文应用") || sname.includes("短文填空") || sname.includes("完成对话") || sname.includes("对话填空") || sname.includes("阅读理解");
-                      const allowImageUpload = !isChineseLabel || sname.includes("OEQ") || sname.includes("阅读理解 A") || sname.includes("阅读理解 B");
-                      // In-app cropper is even more restrictive: only
-                      // the ONE 长 OEQ inside 阅读理解 A (the merged
-                      // 五-A MCQ + OEQ section). That's the question
-                      // that ships with a printed 短信 / phone-note
-                      // picture the admin needs to attach. Every other
-                      // question across the whole paper has no need.
-                      const isChineseLongOeqSection = sname.includes("阅读理解 A") && !sname.includes("OEQ");
+                      const isChineseSection =
+                        sname.includes("语文应用") ||
+                        sname.includes("短文填空") ||
+                        sname.includes("完成对话") ||
+                        sname.includes("对话填空") ||
+                        sname.includes("阅读理解");
+                      const isLongOeqSection = sname.includes("阅读理解 A") && !sname.includes("OEQ");
                       return sec.questions.map(q => {
                         const hasOptions = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length > 0;
-                        const allowImageCrop = isChineseLongOeqSection && !hasOptions;
+                        const isLongOeqQuestion = isLongOeqSection && !hasOptions;
+                        const allowImageUpload = isChineseSection ? isLongOeqQuestion : true;
+                        const allowImageCrop = isLongOeqQuestion;
                         return (
                           <QuestionRow
                             key={q.id}
