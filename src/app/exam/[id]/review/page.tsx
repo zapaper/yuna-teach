@@ -1699,6 +1699,45 @@ function ExamReviewContent({ id }: { id: string }) {
                         const pLines = currentSection.passage!.split("\n");
                         // Detect line-numbered table (Comp OEQ reading passage)
                         const isLineTable = pLines.some((l: string) => l.trim().startsWith("|") && l.includes("Text"));
+                        // Chinese 阅读理解 passages come in the same
+                        // line-numbered table shape, but the printed
+                        // 华文 paper has no line-number margin and the
+                        // student doesn't need to look anything up by
+                        // line. Render as plain paragraphs with full
+                        // body font, matching the quiz player's
+                        // toParagraphs layout. English compre OEQ keeps
+                        // the small-font + margin-number layout below.
+                        if (isLineTable && isChineseComp) {
+                          const rows: string[][] = [];
+                          for (const line of pLines) {
+                            if ((line as string).match(/^\s*\|[\s-:|]+\|\s*$/)) continue;
+                            if ((line as string).trim().startsWith("|") && (line as string).trim().endsWith("|")) {
+                              rows.push((line as string).trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map((c: string) => c));
+                            }
+                          }
+                          // Drop the header row ("| Line | Text | No. |").
+                          const dataRows = rows.length > 1 ? rows.slice(1) : rows;
+                          // Group rows into paragraphs: an indented
+                          // (tab / 4-space) row opens a new paragraph;
+                          // an empty row closes the current one; every
+                          // other non-blank row continues the current.
+                          const paras: string[] = [];
+                          let cur = "";
+                          const pushCur = () => { if (cur.trim()) paras.push(cur.replace(/^[\s\t]+/, "").trim()); cur = ""; };
+                          for (const cells of dataRows) {
+                            const rawCell = cells[1] ?? "";
+                            const cell = rawCell.startsWith(" ") ? rawCell.slice(1) : rawCell;
+                            const text = cell.replace(/^[\s\t]+|\s+$/g, "");
+                            const isIndentedRow = /^\t| {2,}/.test(cell);
+                            if (!text) { pushCur(); continue; }
+                            if (isIndentedRow && cur) { pushCur(); }
+                            cur += text;
+                          }
+                          pushCur();
+                          return paras.map((para, pi) => (
+                            <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>{para}</p>
+                          ));
+                        }
                         if (isLineTable && isCompOeq) {
                           const rows: string[][] = [];
                           for (const line of pLines) {

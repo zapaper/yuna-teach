@@ -525,7 +525,13 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                           <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
                             selected ? "bg-[#006c49] text-white" : "bg-[#eff4ff] text-[#001e40]"
                           }`}>{oi + 1}</span>
-                          <span className="text-sm text-[#001e40]">{opt}</span>
+                          {/* Options can carry **__word__** for the
+                              tested phrase (Q13-15 in 语文应用 MCQ
+                              "pick the correct sentence" sub-bank).
+                              Run through FormattedText so the bold +
+                              underline render instead of leaking the
+                              raw markdown to the page. */}
+                          <FormattedText text={opt} className="text-sm text-[#001e40]" />
                         </button>
                       );
                     })}

@@ -3789,13 +3789,20 @@ export async function analyzeExamBatch(
           // Step 1: OCR — extract clean text from all section pages
           const isCompOEQSec = isCompOeqLabel(secLabel);
           const isChineseCompMcqSec = isChineseBooklet && (secLabel.includes("阅读理解 MCQ") || secLabel.includes("阅读理解 mcq"));
+          // 阅读理解 OEQ on Chinese papers (五-A's Q33 + 五-B's Q34-40)
+          // also has a reading passage that lives one page before the
+          // questions. isCompOeqLabel only matches English wording so
+          // we need an explicit Chinese check here — without it
+          // needsPassageOcr is false and the passage OCR step is
+          // skipped, leaving 阅读理解 B OEQ with no passage at all.
+          const isChineseCompOeqSec = isChineseBooklet && (secLabel.includes("阅读理解 OEQ") || secLabel.includes("阅读理解 oeq"));
           // Sections that need a separate passage-OCR pass: any
           // comprehension section that has a reading passage. For
           // Chinese this includes BOTH 阅读理解 MCQ (section 三 and
           // section 五-A) and 阅读理解 OEQ (section 五-A's OEQ +
           // section 五-B). Without this, the MCQ-style comprehension
           // sections rendered the questions but lost the passage.
-          const needsPassageOcr = isCompOEQSec || isChineseCompMcqSec;
+          const needsPassageOcr = isCompOEQSec || isChineseCompMcqSec || isChineseCompOeqSec;
           const isVisualTextSec = secLabel.toLowerCase().includes("visual text");
           const visualPagesForVT: number[] = isVisualTextSec ? ((sec as { visualPages?: number[] }).visualPages ?? []) : [];
           // Get passage pages from structure analysis (or fall back to auto-detection)
