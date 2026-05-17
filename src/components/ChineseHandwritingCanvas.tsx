@@ -214,7 +214,7 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function pointerPos(e: React.PointerEvent): { x: number; y: number } {
+  function pointerPos(e: React.PointerEvent | PointerEvent): { x: number; y: number } {
     const canvas = visibleRef.current!;
     const rect = canvas.getBoundingClientRect();
     return {
@@ -238,8 +238,6 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     const inkCtx = inkLayerRef.current?.getContext("2d");
     const visibleCtx = visibleRef.current?.getContext("2d");
     if (!inkCtx || !visibleCtx) return;
-    const pos = pointerPos(e);
-    const prev = lastPos.current ?? pos;
     inkCtx.lineCap = "round";
     inkCtx.lineJoin = "round";
     if (t === "eraser" || t === "eraser-large") {
@@ -252,11 +250,26 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
       inkCtx.strokeStyle = inkColor;
       inkCtx.lineWidth = PEN_WIDTH * DPR;
     }
-    inkCtx.beginPath();
-    inkCtx.moveTo(prev.x, prev.y);
-    inkCtx.lineTo(pos.x, pos.y);
-    inkCtx.stroke();
-    lastPos.current = pos;
+    // High-frequency pen devices (Apple Pencil, S-Pen) report at 120-
+    // 240Hz, but pointermove fires at the display's 60Hz refresh rate.
+    // The browser bundles the dropped samples into getCoalescedEvents()
+    // — reading them lets us stroke every sample point, eliminating
+    // the gaps that show up as intermittent breaks on fast strokes.
+    const native = e.nativeEvent;
+    const samples =
+      typeof native.getCoalescedEvents === "function"
+        ? native.getCoalescedEvents()
+        : null;
+    const points = samples && samples.length > 0 ? samples : [native];
+    for (const ev of points) {
+      const pos = pointerPos(ev);
+      const prev = lastPos.current ?? pos;
+      inkCtx.beginPath();
+      inkCtx.moveTo(prev.x, prev.y);
+      inkCtx.lineTo(pos.x, pos.y);
+      inkCtx.stroke();
+      lastPos.current = pos;
+    }
     // Cheap path: repaint just the changed neighbourhood by redrawing
     // the whole visible canvas (grid + full ink layer). Canvas pixel
     // count is modest so this stays smooth.
