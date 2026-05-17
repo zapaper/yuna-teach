@@ -147,8 +147,10 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
               // 4-space paragraph indent that the OCR placed right after
               // the pipe shows up at position 0.
               const cell = rawCell.startsWith(" ") ? rawCell.slice(1) : rawCell;
-              const text = cell.replace(/^[\s\t]+|\s+$/g, "");
-              const isIndentedRow = /^\t| {2,}/.test(cell);
+              const text = cell.replace(/^[\s\t　]+|\s+$/g, "");
+              // Tab / 2+ ASCII spaces / full-width space (U+3000) all
+              // count as a new-paragraph indent.
+              const isIndentedRow = /^[\t　]|^ {2,}/.test(cell);
               if (!text) { pushCur(); continue; }
               if (isIndentedRow && cur) { pushCur(); }
               cur += text;

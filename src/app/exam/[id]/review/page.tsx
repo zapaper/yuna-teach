@@ -1761,17 +1761,45 @@ function ExamReviewContent({ id }: { id: string }) {
                           // other non-blank row continues the current.
                           const paras: string[] = [];
                           let cur = "";
-                          const pushCur = () => { if (cur.trim()) paras.push(cur.replace(/^[\s\t]+/, "").trim()); cur = ""; };
+                          const pushCur = () => { if (cur.trim()) paras.push(cur.replace(/^[\s\t　]+/, "").trim()); cur = ""; };
                           for (const cells of dataRows) {
                             const rawCell = cells[1] ?? "";
+                            // Strip ONE leading pipe-padding space (markdown
+                            // pads each cell as ` text `). What remains is
+                            // the OCR's own indent, if any.
                             const cell = rawCell.startsWith(" ") ? rawCell.slice(1) : rawCell;
-                            const text = cell.replace(/^[\s\t]+|\s+$/g, "");
-                            const isIndentedRow = /^\t| {2,}/.test(cell);
+                            const text = cell.replace(/^[\s\t　]+|\s+$/g, "");
+                            // Accept tab, 2+ ASCII spaces, OR a leading
+                            // full-width space (U+3000). The Chinese OCR
+                            // occasionally returns 　 (full-width) for the
+                            // paragraph indent instead of 4 ASCII spaces.
+                            const isIndentedRow = /^[\t　]|^ {2,}/.test(cell);
                             if (!text) { pushCur(); continue; }
                             if (isIndentedRow && cur) { pushCur(); }
                             cur += text;
                           }
                           pushCur();
+                          // Defensive fallback: if NO indent was found and
+                          // we ended up with one giant paragraph, try
+                          // splitting on Chinese sentence terminators so
+                          // the student isn't stuck reading a wall of
+                          // text. Better wrong-than-none.
+                          if (paras.length <= 1 && paras[0] && paras[0].length > 200) {
+                            const joined = paras[0];
+                            const sentences = joined.split(/(?<=[。!?！？])\s*/).filter(s => s.trim().length > 0);
+                            if (sentences.length > 3) {
+                              // Re-group every 3-4 sentences into a paragraph.
+                              const regrouped: string[] = [];
+                              for (let i = 0; i < sentences.length; i += 3) {
+                                regrouped.push(sentences.slice(i, i + 3).join(""));
+                              }
+                              return regrouped.map((para, pi) => (
+                                <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
+                                  <ReviewRichText text={para} />
+                                </p>
+                              ));
+                            }
+                          }
                           return paras.map((para, pi) => (
                             <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
                               <ReviewRichText text={para} />
