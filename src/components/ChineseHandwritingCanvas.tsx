@@ -66,7 +66,6 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
   const visibleRef = useRef<HTMLCanvasElement>(null);
   const inkLayerRef = useRef<HTMLCanvasElement | null>(null);
   const gridLayerRef = useRef<HTMLCanvasElement | null>(null);
-  const rafPendingRef = useRef(false);
   const drawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const [ready, setReady] = useState(false);
@@ -147,21 +146,6 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     if (!ctx) return;
     ctx.drawImage(gridLayer, 0, 0);
     ctx.drawImage(inkLayer, 0, 0);
-  }
-
-  // Coalesce repaint() calls to one per animation frame. Without this,
-  // a high-frequency stylus fires ~120+ pointer-move events per second
-  // and we'd paint the visible canvas the same number of times, even
-  // though the display only refreshes at 60Hz. The extra paints don't
-  // appear on screen but DO backpressure the event pipeline, which
-  // shows up as intermittent stroke breaks.
-  function scheduleRepaint() {
-    if (rafPendingRef.current) return;
-    rafPendingRef.current = true;
-    requestAnimationFrame(() => {
-      rafPendingRef.current = false;
-      repaint();
-    });
   }
 
   function emitChange() {
@@ -286,9 +270,11 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
       inkCtx.stroke();
       lastPos.current = pos;
     }
-    // Schedule paint at the next frame instead of painting now — see
-    // scheduleRepaint() for why coalescing matters on a high-rate pen.
-    scheduleRepaint();
+    // Paint synchronously. RAF batching was tried and felt worse —
+    // the visible stroke lagged a frame behind the pen tip, which the
+    // user perceives as gaps/breaks even when no ink samples were
+    // dropped. drawImage(gridLayer) + drawImage(inkLayer) is cheap.
+    repaint();
   }
   function onPointerUp() {
     if (!drawing.current) return;
