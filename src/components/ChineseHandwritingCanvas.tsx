@@ -210,8 +210,10 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
   }
 
   function onPointerDown(e: React.PointerEvent) {
-    const t = toolRef.current;
-    if (t !== "pen" && t !== "eraser" && t !== "eraser-large") return;
+    // The Chinese OEQ canvas is the student's PRIMARY answer surface
+    // (there's no typed-answer alternative for 田字格 character
+    // boxes), so draw regardless of the parent's tool state. Eraser
+    // modes still respect the prop.
     (e.target as Element).setPointerCapture(e.pointerId);
     drawing.current = true;
     lastPos.current = pointerPos(e);
@@ -226,14 +228,15 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     const prev = lastPos.current ?? pos;
     inkCtx.lineCap = "round";
     inkCtx.lineJoin = "round";
-    if (t === "pen") {
-      inkCtx.globalCompositeOperation = "source-over";
-      inkCtx.strokeStyle = inkColor;
-      inkCtx.lineWidth = PEN_WIDTH * DPR;
-    } else {
+    if (t === "eraser" || t === "eraser-large") {
       inkCtx.globalCompositeOperation = "destination-out";
       inkCtx.strokeStyle = "rgba(0,0,0,1)";
       inkCtx.lineWidth = (t === "eraser-large" ? ERASER_LARGE_WIDTH : ERASER_WIDTH) * DPR;
+    } else {
+      // Default to pen — covers "pen", "type", undefined, null, etc.
+      inkCtx.globalCompositeOperation = "source-over";
+      inkCtx.strokeStyle = inkColor;
+      inkCtx.lineWidth = PEN_WIDTH * DPR;
     }
     inkCtx.beginPath();
     inkCtx.moveTo(prev.x, prev.y);
@@ -261,7 +264,7 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         className="w-full h-full block touch-none"
-        style={{ touchAction: "none", cursor: tool === "pen" ? "crosshair" : tool === "eraser" || tool === "eraser-large" ? "cell" : "default" }}
+        style={{ touchAction: "none", cursor: tool === "eraser" || tool === "eraser-large" ? "cell" : "crosshair" }}
       />
       {!ready && (
         <div className="text-xs text-slate-400 p-2">Loading…</div>

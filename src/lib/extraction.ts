@@ -1042,10 +1042,21 @@ export function buildChineseSections(
       }
     }
     // Rename when this 阅读理解 run holds more than one passage —
-    // those are the A组 / B组 of 阅读理解二.
+    // those are the A组 / B组 of 阅读理解二. The A group typically
+    // mixes MCQ + 1 long OEQ on the same passage; B is all OEQ. Tag
+    // the labels accordingly so the /edit + quiz UIs can show them
+    // distinctly without re-deriving the shape from question data.
     if (subgroups.length > 1) {
       subgroups.forEach((g, idx) => {
-        g.label = `阅读理解${String.fromCharCode(65 + idx)}`;
+        const letter = String.fromCharCode(65 + idx);
+        const startQ = questions[g.startIndex];
+        const endQ = questions[g.endIndex];
+        const allOeq = startQ && endQ &&
+          // Detect "all OEQ" by checking syllabusTopic of bounds; mixed
+          // groups (5-A) have an MCQ start, so this lands false there.
+          (startQ.syllabusTopic ?? "").includes("OEQ") &&
+          (endQ.syllabusTopic ?? "").includes("OEQ");
+        g.label = allOeq ? `阅读理解 ${letter} OEQ` : `阅读理解 ${letter}`;
       });
     }
     grouped.push(...subgroups);

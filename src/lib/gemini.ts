@@ -3187,6 +3187,10 @@ async function runExtractionCall(
   // grids better; 3.1-pro-preview is the last resort with separate
   // gateway capacity (gets through when the flash tiers are saturated).
   const QEX_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
+  // Chinese-only fail-fast: retrying a 504-saturated model 3x burns
+  // 90-180s and starves the rest of the chain. The chain itself IS
+  // the retry. Non-Chinese papers keep maxRetries=2.
+  const qexRetries = isChinese ? 0 : 2;
   let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
   let lastErr: unknown = null;
   for (let mi = 0; mi < QEX_MODELS.length; mi++) {
@@ -3204,7 +3208,7 @@ async function runExtractionCall(
           responseMimeType: "application/json",
           temperature: 0.1,
         },
-      }, 2, 5000, `extraction:${label}:${model}`);
+      }, qexRetries, 5000, `extraction:${label}:${model}`);
       if (mi > 0) console.log(`[Exam Pipeline] extraction ${label}: succeeded on fallback model ${model}`);
       break;
     } catch (err) {
@@ -3363,6 +3367,12 @@ async function extractAnswersWithWorking(
   // resort: separate gateway capacity, gets through when flash tiers
   // are saturated.
   const ANS_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
+  // Chinese-only fail-fast — derived from the structure header so the
+  // retry budget shrinks only for 华文 papers, leaving English / Math /
+  // Science behavior unchanged.
+  const subjLower = (structure.header.subject ?? "").toLowerCase();
+  const isChineseForAns = subjLower.includes("chinese") || subjLower.includes("华文") || subjLower.includes("中文") || subjLower.includes("华语");
+  const ansRetries = isChineseForAns ? 0 : 2;
   let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
   let lastErr: unknown = null;
   for (let mi = 0; mi < ANS_MODELS.length; mi++) {
@@ -3380,7 +3390,7 @@ async function extractAnswersWithWorking(
           responseMimeType: "application/json",
           temperature: 0.1,
         },
-      }, 2, 5000, `answer-extract:${model}`);
+      }, ansRetries, 5000, `answer-extract:${model}`);
       if (mi > 0) console.log(`[Exam Pipeline] answer-extract: succeeded on fallback model ${model}`);
       break;
     } catch (err) {
@@ -3992,6 +4002,12 @@ Output ONLY the clean passage/question text, no commentary.` });
           // gateway capacity, so it usually goes through when both
           // flash tiers are saturated.
           const OCR_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.1-pro-preview"] as const;
+          // Chinese-only: skip per-model 504 retries. The chain itself
+          // is the retry — re-attempting a 504-saturated model 3x
+          // burns 90-180s before falling through to the next model and
+          // routinely hits the 600s pipeline timeout. English / Math /
+          // Science papers keep maxRetries=2 unchanged.
+          const ocrRetries = isChineseBooklet ? 0 : 2;
           let ocrResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
           let lastOcrErr: unknown = null;
           for (let mi = 0; mi < OCR_MODELS.length; mi++) {
@@ -4001,7 +4017,7 @@ Output ONLY the clean passage/question text, no commentary.` });
                 model,
                 contents: [{ role: "user", parts: ocrParts }],
                 config: { temperature: 0.1 },
-              }, 2, 5000, `ocr:${secLabel}:${model}`);
+              }, ocrRetries, 5000, `ocr:${secLabel}:${model}`);
               if (mi > 0) console.log(`[Exam Pipeline] ${secLabel} OCR: succeeded on fallback model ${model}`);
               break;
             } catch (err) {
@@ -4119,6 +4135,8 @@ Return ONLY valid JSON:
           // flash tiers are 504-ing on big Chinese prompts. A whole
           // section's text-extract failing is an extraction killer.
           const TEXT_EXTRACT_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.1-pro-preview"] as const;
+          // Chinese-only fail-fast — see OCR_MODELS loop above.
+          const textExtractRetries = isChineseBooklet ? 0 : 2;
           let extractResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
           let lastExtractErr: unknown = null;
           for (let mi = 0; mi < TEXT_EXTRACT_MODELS.length; mi++) {
@@ -4128,7 +4146,7 @@ Return ONLY valid JSON:
                 model,
                 contents: [{ role: "user", parts: [{ text: extractPrompt }] }],
                 config: { responseMimeType: "application/json", temperature: 0.1 },
-              }, 2, 5000, `text-extract:${secLabel}:${model}`);
+              }, textExtractRetries, 5000, `text-extract:${secLabel}:${model}`);
               if (mi > 0) console.log(`[Exam Pipeline] ${secLabel} text-extract: succeeded on fallback model ${model}`);
               break;
             } catch (err) {

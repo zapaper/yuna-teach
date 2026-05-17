@@ -90,7 +90,13 @@ function build(
       if (samePassage) cur.endIndex = s.endIndex;
       else subgroups.push({ ...s });
     }
-    if (subgroups.length > 1) subgroups.forEach((g, idx) => { g.label = `阅读理解${String.fromCharCode(65 + idx)}`; });
+    if (subgroups.length > 1) subgroups.forEach((g, idx) => {
+      const letter = String.fromCharCode(65 + idx);
+      const startQ = questions[g.startIndex];
+      const endQ = questions[g.endIndex];
+      const allOeq = startQ && endQ && (startQ.syllabusTopic ?? "").includes("OEQ") && (endQ.syllabusTopic ?? "").includes("OEQ");
+      g.label = allOeq ? `阅读理解 ${letter} OEQ` : `阅读理解 ${letter}`;
+    });
     grouped.push(...subgroups);
     i = j + 1;
   }

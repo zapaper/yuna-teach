@@ -98,11 +98,60 @@ function groupBySection(
   return sections;
 }
 
+// For Chinese papers we GROUP from the chineseSections metadata
+// instead of per-question syllabusTopic — the metadata already has
+// the user-facing layout (e.g. 阅读理解 A merges Q30-32 MCQ + Q33
+// OEQ on shared passage A). Per-question syllabusTopic would split
+// Q33 into its own 阅读理解 OEQ block, which doesn't match what the
+// quiz renders.
+type ChineseSecMeta = { label: string; startIndex: number; endIndex: number; passage?: string };
+function groupFromChineseMetadata(
+  questions: ExamQuestionItem[],
+  chineseSections: ChineseSecMeta[],
+  sectionOcrTexts?: Record<string, SectionOcrEntry>,
+): Array<{ name: string; ocrKey: string; questions: ExamQuestionItem[] }> {
+  const out: Array<{ name: string; ocrKey: string; questions: ExamQuestionItem[] }> = [];
+  for (const sec of chineseSections) {
+    const qs = questions.slice(sec.startIndex, sec.endIndex + 1);
+    if (qs.length === 0) continue;
+    // Find the OCR key that best matches this section. Try in priority:
+    //   1. exact label match (handles 短文填空 / 完成对话 / 语文应用 MCQ)
+    //   2. exact match for the section's underlying syllabusTopic
+    //      (impedance-matches "阅读理解 MCQ" / "阅读理解 OEQ" keys with
+    //      the merged "阅读理解 A" / "阅读理解 B OEQ" labels)
+    //   3. (pp<a>-<b>) suffix key whose pages overlap section pages
+    const ocrKeys = Object.keys(sectionOcrTexts ?? {});
+    let ocrKey: string | null = null;
+    if (ocrKeys.includes(sec.label)) ocrKey = sec.label;
+    if (!ocrKey) {
+      const firstTopic = qs[0].syllabusTopic ?? "";
+      if (firstTopic && ocrKeys.includes(firstTopic)) ocrKey = firstTopic;
+      // Multi-key topic — pick the entry whose pageIndices overlap.
+      if (!ocrKey && firstTopic) {
+        const pageSet = new Set(qs.map(q => q.pageIndex));
+        for (const k of ocrKeys) {
+          if (k !== firstTopic && !k.startsWith(firstTopic + " (")) continue;
+          const pi = (sectionOcrTexts?.[k]?.pageIndices ?? []) as number[];
+          if (pi.some(p => pageSet.has(p))) { ocrKey = k; break; }
+        }
+      }
+    }
+    out.push({ name: sec.label, ocrKey: ocrKey ?? sec.label, questions: qs });
+  }
+  return out;
+}
+
 export default function EnglishEditView({ paper, pageImages, onSave, onDelete, onSaveOcr, onRegenerateOcr, saving }: Props) {
   const metadata = paper.metadata;
   const ocrTexts = metadata?.sectionOcrTexts ?? {};
   const auditFlags = ((metadata as { auditFlags?: Record<string, string> } | null)?.auditFlags ?? {}) as Record<string, string>;
-  const sections = groupBySection(paper.questions, ocrTexts);
+  // Chinese papers: route through the metadata-driven grouping so the
+  // edit view matches what the quiz renders (merged 阅读理解 A etc.).
+  // English papers keep the syllabusTopic-based grouping unchanged.
+  const chineseSections = (metadata as { chineseSections?: ChineseSecMeta[] } | null)?.chineseSections;
+  const sections = chineseSections
+    ? groupFromChineseMetadata(paper.questions, chineseSections, ocrTexts)
+    : groupBySection(paper.questions, ocrTexts);
 
   const [expandedSection, setExpandedSection] = useState<string | null>(sections[0]?.ocrKey ?? null);
   const [editingOcr, setEditingOcr] = useState<string | null>(null);
