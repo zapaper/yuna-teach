@@ -716,7 +716,21 @@ function ExamReviewContent({ id }: { id: string }) {
     // Find which sections are typed (shown as a group)
     for (const sec of englishSections) {
       const label = sec.label.toLowerCase();
-      const isGrouped = label.includes("grammar cloze") || label.includes("editing") ||
+      // Chinese 华文 sections — `englishSections` doubles as the
+      // chineseSections feed for Chinese papers (see useEffect that
+      // populates the state). Detection has to match on the raw
+      // (Chinese-character) label since toLowerCase() doesn't strip
+      // Chinese chars. Without this, every Chinese section bypassed
+      // the grouped layout and the review page rendered them as a
+      // flat list of individual questions — no passage, no inline
+      // pickers, no green/red.
+      const rawLabel = sec.label;
+      const isChineseGrouped =
+        rawLabel.includes("短文填空") ||         // vocab cloze MCQ inline pickers
+        rawLabel.includes("完成对话") || rawLabel.includes("对话填空") ||  // word-bank dialogue cloze
+        rawLabel.includes("阅读理解");           // 阅读理解 MCQ / 阅读理解 A / 阅读理解 B OEQ
+      const isGrouped = isChineseGrouped ||
+        label.includes("grammar cloze") || label.includes("editing") ||
         label.includes("comprehension cloze") || (label.includes("comp") && label.includes("cloze")) ||
         label.includes("vocab cloze") || (label.includes("vocab") && label.includes("cloze")) ||
         label.includes("synthesis") || label.includes("comprehension oeq") || label.includes("comprehension open") ||
