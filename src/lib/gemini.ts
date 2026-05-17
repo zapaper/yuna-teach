@@ -3960,10 +3960,13 @@ CHINESE PAPER (华文) — language-specific rules:
   Then output the dialogue / conversation. Each numbered blank in the dialogue is "**(N)________**" where N is the question number (e.g. "(36)", "(37)"). The student writes a single DIGIT 1-8 (one of the word-bank labels) in each blank.
   IMPORTANT: word-bank labels are NUMBERS (1-8). Do NOT relabel them as 甲/乙/丙 or A/B/C — keep them as the digits printed in the paper.
 - For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Every paragraph's first line — INCLUDING the very first paragraph — MUST start with 4 leading spaces. Do not skip the indent on paragraph 1.
-- For 语文应用 MCQ (一, Q1-15) — PRESERVE the test-phrase markup EVERYWHERE in the question and EVERY option:
-  - Q1-Q10-style questions: the tested phrase appears in the STEM with bold+underline (e.g. 国强只是 **__稍微__** 用力一拉…). Output wrapped as **__phrase__**.
-  - Q13-Q15-style "pick the correct sentence" questions: each of the 4 OPTIONS contains the same tested word/phrase in bold+underline (e.g. opt1 = "不管做什么事情都要认真，不能 **__马虎__**。"). EVERY option string MUST keep the **__phrase__** wrapping — do NOT strip the markup from option text. Apply the SAME rule on ALL four options.
-  - Same rule applies wherever you see a bold-underlined phrase in any Chinese question stem or option.
+- For 语文应用 MCQ (一, Q1-15) — PRESERVE EVERY visual marking on the tested word/phrase, in BOTH stem and EACH option:
+  - Read the printed page carefully. The phrase being tested is shown with one or more visual emphases: BOLD ink (darker / thicker), UNDERLINE, sometimes both, sometimes a wavy underline. Output it with the matching markdown:
+      * Bold only          → **phrase**
+      * Underline only     → __phrase__
+      * Bold + underline   → **__phrase__**
+  - Apply this on EVERY occurrence — the stem AND ALL FOUR options. Q13-15-style "pick the correct sentence" questions place the same tested phrase (e.g. 马虎 / 原谅 / 详情) inside EACH of the 4 options with bold/underline; every option string MUST keep its markup. Do NOT strip the bold from any option. Do NOT output plain text for the tested phrase even if you're not 100% sure whether the print is bold OR underline OR both — when in doubt, output **__phrase__** (the safest, fully-emphasised form).
+  - Same rule applies wherever you see an emphasised phrase in any Chinese question stem or option.
 - Passage / 阅读理解 OCR output:
   - DROP the exam-paper section labels and instructions: "一 语文应用", "二 短文填空", "三 阅读理解一", "四 完成对话", "五 阅读理解二", and the instruction line "根据短文的内容…", plus page numbers and header / footer text.
   - KEEP the passage's OWN content. If the printed passage has a TITLE above its first paragraph (often centered, sometimes bold), include it as the FIRST line wrapped in **double asterisks** so it renders bold (e.g. "**校庆 50 周年纪念活动**" on its own line). Do NOT prepend section labels in front of the title.
