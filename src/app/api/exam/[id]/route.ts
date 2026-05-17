@@ -164,8 +164,18 @@ export async function PATCH(
   if ("assignedToId" in body && body.assignedToId) {
     const studentId = body.assignedToId as string;
     // Track the parent's activity for the admin "Last active" stamp.
-    const masterForBump = await prisma.examPaper.findUnique({ where: { id }, select: { userId: true } });
+    const masterForBump = await prisma.examPaper.findUnique({ where: { id }, select: { userId: true, subject: true } });
     bumpUserActivity(masterForBump?.userId ?? null);
+    // Chinese papers: admin-only assignment. Non-admins shouldn't be
+    // able to clone a Chinese master onto any student even if a
+    // stale UI somehow exposes the action — the API list endpoint
+    // already hides Chinese papers from non-admins, this is the
+    // belt-and-braces guard. Admin role is determined from the
+    // session, not the URL.
+    const isChineseSubject = (masterForBump?.subject ?? "").toLowerCase().includes("chinese");
+    if (isChineseSubject && !auth.isAdmin) {
+      return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
+    }
     // Trial / subscription gate. The assigner is the master paper's
     // owner (parent); admin-owned masters bypass the gate via
     // guardCanAssign returning null for users without subscription

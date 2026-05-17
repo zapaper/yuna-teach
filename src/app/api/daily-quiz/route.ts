@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getStudentDifficultyMode, resolveDifficultyFilter, modeWarningLabel } from "@/lib/difficulty-filter";
 import { guardCanAssign } from "@/lib/subscription";
 import { isCompOeqLabel } from "@/lib/english-sections";
+import { isAdmin } from "@/lib/admin";
 
 /** MCQ = question has transcribed options (text, images, or
  *  table). An array of 4 entries (even empty) means MCQ — the
@@ -61,6 +62,15 @@ export async function POST(request: NextRequest) {
 
     const isEnglish = (paper.subject ?? "").toLowerCase().includes("english");
     const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
+    // Chinese papers: admin-only test-quiz creation. Mirrors the
+    // same guard on the assign endpoint so a non-admin can't slip a
+    // sourcePaperId for a Chinese master through here either.
+    if (isChinese) {
+      const actor = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true } });
+      if (!isAdmin(actor)) {
+        return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
+      }
+    }
     const allQs = paper.questions.filter(q => q.answer);
     if (allQs.length === 0) return NextResponse.json({ error: "No questions with answers" }, { status: 404 });
 
