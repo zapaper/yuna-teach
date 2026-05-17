@@ -3960,13 +3960,17 @@ CHINESE PAPER (华文) — language-specific rules:
   Then output the dialogue / conversation. Each numbered blank in the dialogue is "**(N)________**" where N is the question number (e.g. "(36)", "(37)"). The student writes a single DIGIT 1-8 (one of the word-bank labels) in each blank.
   IMPORTANT: word-bank labels are NUMBERS (1-8). Do NOT relabel them as 甲/乙/丙 or A/B/C — keep them as the digits printed in the paper.
 - For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Every paragraph's first line — INCLUDING the very first paragraph — MUST start with 4 leading spaces. Do not skip the indent on paragraph 1.
-- For 语文应用 MCQ (一, Q1-15) — PRESERVE EVERY visual marking on the tested word/phrase, in BOTH stem and EACH option:
-  - Read the printed page carefully. The phrase being tested is shown with one or more visual emphases: BOLD ink (darker / thicker), UNDERLINE, sometimes both, sometimes a wavy underline. Output it with the matching markdown:
+- For 语文应用 MCQ (一, Q1-15) — PRESERVE EVERY visual marking on the tested word/phrase, in BOTH stem and EACH option. This section's ENTIRE POINT is testing recognition of a specific word/phrase, which is ALWAYS visually emphasised in print. If you output plain text for the tested phrase, the question becomes unanswerable — the student can no longer see WHICH word is being tested.
+  - Read the printed page carefully. The phrase being tested is shown with one or more visual emphases: BOLD ink (darker / thicker glyphs than surrounding characters), UNDERLINE (a straight line beneath the characters), sometimes both, sometimes a wavy underline. Output it with the matching markdown:
       * Bold only          → **phrase**
       * Underline only     → __phrase__
       * Bold + underline   → **__phrase__**
-  - Apply this on EVERY occurrence — the stem AND ALL FOUR options. Q13-15-style "pick the correct sentence" questions place the same tested phrase (e.g. 马虎 / 原谅 / 详情) inside EACH of the 4 options with bold/underline; every option string MUST keep its markup. Do NOT strip the bold from any option. Do NOT output plain text for the tested phrase even if you're not 100% sure whether the print is bold OR underline OR both — when in doubt, output **__phrase__** (the safest, fully-emphasised form).
-  - Same rule applies wherever you see an emphasised phrase in any Chinese question stem or option.
+  - Pattern by sub-type — DETECT WHICH PATTERN APPLIES and emit emphasis accordingly:
+      * Q1-Q5-style "近义词 / 反义词" — the STEM contains an emphasised word (e.g. "他做事很__马虎__。") and the 4 options are plain word candidates. The emphasised word in the STEM must keep its markup. Options may be plain.
+      * Q6-Q12-style "填空 / 词语搭配" — the STEM has the emphasised target phrase or a blank; options are plain words. Same rule on the stem.
+      * Q13-Q15-style "选出正确的一句 / 词语用法" — the SAME tested phrase appears INSIDE EACH of the 4 options (e.g. every option has 马虎 used differently). EVERY option string MUST keep the phrase's bold/underline markup. The stem may be a generic instruction without emphasis.
+  - Apply on EVERY occurrence. Never strip emphasis from any option just because three other options also contain it. When in doubt about whether the print is bold OR underline OR both, output **__phrase__** (the safest, fully-emphasised form) rather than plain text.
+  - Same rule applies wherever you see an emphasised phrase in any Chinese question stem or option, in any section.
 - Passage / 阅读理解 OCR output:
   - DROP the exam-paper section labels and instructions: "一 语文应用", "二 短文填空", "三 阅读理解一", "四 完成对话", "五 阅读理解二", and the instruction line "根据短文的内容…", plus page numbers and header / footer text.
   - KEEP the passage's OWN content. If the printed passage has a TITLE above its first paragraph (often centered, sometimes bold), include it as the FIRST line wrapped in **double asterisks** so it renders bold (e.g. "**校庆 50 周年纪念活动**" on its own line). Do NOT prepend section labels in front of the title.
@@ -4166,6 +4170,7 @@ For EACH question, extract:
   CHINESE PAPER — language-specific stem rules:
   - Preserve Chinese characters EXACTLY. Do NOT translate or transliterate. Keep full-width punctuation (。，、：；""「」《》！？) as printed.
   - Normalise question numbers from full-width to half-width digits (so "１。" becomes "1.") but keep all other Chinese punctuation in the stem text.
+  - CRITICAL — EMPHASIS MARKUP PASS-THROUGH: the OCR text you are reading has already wrapped every bold / underlined / bold+underlined phrase in markdown (**phrase** for bold, __phrase__ for underline, **__phrase__** for both). You MUST copy these markers VERBATIM into the stem AND every option string. Never strip them. Never "clean them up". Never decide the markdown looks like noise. If the OCR text shows __快乐__ inside the stem, the stem you emit must also contain __快乐__. If option 3 in the OCR text reads "**马虎** 地写字", the options[2] you emit must read "**马虎** 地写字". This applies to 语文应用 MCQ Q1-15 most heavily (the tested word is the WHOLE POINT of the question) but holds for every Chinese section.
   - For 短文填空 questions: each question's stem is the SENTENCE from the passage containing the relevant blank (so the student can read it in context). Mark the blank as "______" (six underscores). The 4 options go in the options array.
   - For 阅读理解 OEQ questions: include the FULL question text. Tables stay as markdown pipe tables; checkbox lists keep one per line. When the section is supposed to have EXACTLY ONE question (e.g. the 长 OEQ in 五-A: Q${secFirstQ}, single question) and the OCR text doesn't carry an explicit "Q${secFirstQ}" or "${secFirstQ}." marker, emit ONE entry with questionNum "${prefix}${secFirstQ}" and stem = the WHOLE OCR text (minus instruction headers like "请把答案写在作答簿上"). The long-OEQ stem is a multi-sentence instruction (e.g. 邀请短信 / 写一段话) — never return an empty stem or zero questions for a section that's expected to have one.
   - For 完成对话 questions: stem is the LINE from the dialogue containing the blank. The word bank is stored in the section's passage data, not duplicated per-question.` : ""}
@@ -4360,7 +4365,8 @@ OCR TEXT:
 ${ocrText}
 
 For EACH question listed above, find the 4 answer options (1)(2)(3)(4) and return them.
-Return ONLY valid JSON:
+${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown — **bold**, __underline__, **__both__**. Copy these markers VERBATIM into each option string. Never strip them. Chinese 语文应用 MCQ Q13-15 in particular places the tested phrase inside every option with bold/underline; if you drop the markup the question becomes unanswerable.
+` : ""}Return ONLY valid JSON:
 {
   "questions": [
     {"questionNum": "1", "options": ["option1", "option2", "option3", "option4"]},
