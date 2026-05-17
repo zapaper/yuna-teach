@@ -1619,8 +1619,15 @@ function ExamReviewContent({ id }: { id: string }) {
                   }
                 });
               }
+              // Chinese 阅读理解 sections use a 50/50 split (matches
+              // the quiz player) and DROP the lg:my-[-32px] viewport-
+              // stretch — without that the "Question Review" header
+              // overlaps the top of the section card. English Comp
+              // OEQ keeps its 3:2 split + negative margin unchanged.
               const cardCls = useSplitScreen
-                ? "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:my-[-32px] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]"
+                ? (isChineseComp
+                  ? "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-2 lg:gap-6 lg:grid-rows-[auto_1fr] lg:min-h-[calc(100vh-160px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]"
+                  : "bg-white rounded-3xl p-5 lg:p-6 shadow-sm border border-[#e5eeff] lg:grid lg:grid-cols-[3fr_2fr] lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:my-[-32px] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)]")
                 : "bg-white rounded-3xl p-5 lg:p-8 shadow-sm border border-[#e5eeff]";
               const headerInCardCls = useSplitScreen ? "lg:col-span-2" : "";
               const passageColCls = useSplitScreen ? "lg:row-start-2 lg:col-start-1 lg:overflow-y-auto lg:pr-2 lg:min-h-0" : "";
@@ -1811,14 +1818,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-1 rounded leading-none relative -top-px">Q{parseInt(q.questionNum)}</span>
                                   {isBlank ? (
                                     <>
-                                      <span className="font-bold text-[#ba1a1a] text-sm">({correctNum}) {correctText}</span>
+                                      <span className="font-bold text-[#ba1a1a] text-sm">[Blank]</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
                                     </>
                                   ) : isCorrect ? (
-                                    <>
-                                      <span className="font-bold text-[#006c49] text-sm">({studentNum}) {studentText}</span>
-                                      <span className="material-symbols-outlined text-[#006c49]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>check</span>
-                                    </>
+                                    <span className="font-bold text-[#006c49] text-sm">({correctNum}) {correctText}</span>
                                   ) : (
                                     <>
                                       <span className="font-bold text-[#ba1a1a] text-sm">({studentNum}) {studentText}</span>
@@ -1983,12 +1987,32 @@ function ExamReviewContent({ id }: { id: string }) {
                               const earned = q?.marksAwarded ?? 0;
                               const available = q?.marksAvailable ?? 1;
                               const isCorrect = !isBlank && (earned >= available || studentLetter === correctLetter);
+                              // Chinese 完成对话 uses a stricter user-spec
+                              // review treatment: blank → red [Blank] + ✗,
+                              // correct → green answer only, wrong → red
+                              // student + ✗ + GREEN correct. English keeps
+                              // the original colour scheme below.
+                              const isChineseDialogueCloze = rawLabel.includes("完成对话") || rawLabel.includes("对话填空");
                               parts.push(
                                 <span key={`q${num}`} className="inline-flex items-baseline gap-0.5 mx-0.5">
                                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-0.5 rounded leading-none relative -top-px">{num}</span>
-                                  {isBlank ? (
-                                    // Student left it blank — show the correct word in
-                                    // red bold + red cross so the missed answer is clear.
+                                  {isChineseDialogueCloze ? (
+                                    isBlank ? (
+                                      <>
+                                        <span className="font-bold text-[#ba1a1a] px-1 text-sm">[Blank]</span>
+                                        <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                      </>
+                                    ) : isCorrect ? (
+                                      <span className="font-bold text-[#006c49] px-1 text-sm">{correctWord}</span>
+                                    ) : (
+                                      <>
+                                        <span className="font-bold text-[#ba1a1a] px-1 text-sm">{studentWord || studentLetter}</span>
+                                        <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                        <span className="font-bold text-[#006c49] px-1 text-sm">{correctWord}</span>
+                                      </>
+                                    )
+                                  ) : isBlank ? (
+                                    // English grammar cloze — original colour scheme
                                     <>
                                       <span className="font-bold text-[#ba1a1a] underline decoration-2 decoration-[#ba1a1a]/40 underline-offset-2 px-1 text-sm">{correctWord}</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
