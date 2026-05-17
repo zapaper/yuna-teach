@@ -234,9 +234,10 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
             const stem = q.transcribedStem ?? "";
             const displayNum = parseInt(q.questionNum);
 
-            // Parse lines count from stem: [Lines: N] or [N lines]
+            // Parse lines count from stem: [Lines: N] or [N lines].
+            // Only used to detect that the stem CONTAINS a [LINES:] marker
+            // (hasInlineLineMarkers); canvas height now scales with marks.
             const linesMatch = stem.match(/\[(?:Lines?:\s*)?(\d+)\s*(?:lines?)?\]/i);
-            const lineCount = linesMatch ? parseInt(linesMatch[1]) : 2;
             // For comp-OEQ we keep the [LINES: N] / ___ markers in the stem so
             // RichStemText can render them as actual textareas (one per subpart).
             // For synthesis we strip them — synthesis has its own marker logic.
@@ -406,11 +407,15 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                   // up the same path English OEQ canvases use.
                   const stored = answers[q.id] ?? "";
                   const initialInk = stored.startsWith("data:image") ? stored : null;
-                  // Sizing: ~12 columns × multiple rows. 80px cells
-                  // give the student a comfortable area for primary-
-                  // school characters. Tall enough for an answer
-                  // sentence (typically 30-60 characters).
-                  const linesPerAnswer = Math.max(3, Math.min(6, lineCount));
+                  // Sizing: rows scale with the question's mark
+                  // allocation so a 4-mark answer gets more 田字格
+                  // space than a 1-mark one.
+                  //   1 mark / unmarked → 3 rows
+                  //   2 marks           → 4 rows
+                  //   3 marks           → 6 rows
+                  //   4+ marks          → 8 rows
+                  const m = q.marksAvailable ?? 0;
+                  const linesPerAnswer = m >= 4 ? 8 : m === 3 ? 6 : m === 2 ? 4 : 3;
                   const cellSize = 88;
                   const canvasHeight = cellSize * linesPerAnswer;
                   return (
