@@ -63,7 +63,10 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
   // Re-add comfortable horizontal padding so the content doesn't sit
   // against the edge.
   const outerCls = useSplitScreen
-    ? "mb-12 lg:grid lg:grid-cols-2 lg:gap-6 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)] lg:my-[-32px] lg:px-8 xl:px-16 lg:py-4"
+    // Tighter gap (gap-2 → 8px) + slim outer horizontal padding so
+    // the passage / Q&A panes get more usable width. Without this
+    // the boundary between the two panes wasted ~50px of whitespace.
+    ? "mb-12 lg:grid lg:grid-cols-2 lg:gap-2 lg:grid-rows-[auto_1fr] lg:h-[calc(100vh-96px)] lg:w-screen lg:max-w-none lg:mx-[calc(-50vw+50%)] lg:my-[-32px] lg:px-4 xl:px-6 lg:py-4"
     : "mb-12";
   // Tighten the section header in split-screen — the header bar
   // shouldn't eat into the precious viewport-height the passage and
@@ -387,10 +390,10 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                   // school characters. Tall enough for an answer
                   // sentence (typically 30-60 characters).
                   const linesPerAnswer = Math.max(3, Math.min(6, lineCount));
-                  const cellSize = 80;
+                  const cellSize = 88;
                   const canvasHeight = cellSize * linesPerAnswer;
                   return (
-                    <div className="mt-3 ml-[52px]">
+                    <div className="mt-3">
                       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">在格子内书写</p>
                       <ChineseHandwritingCanvas
                         height={canvasHeight}
@@ -569,8 +572,8 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                   return (
                     <div className="mt-2">
                       <ChineseHandwritingCanvas
-                        height={rows * 80}
-                        cellSize={80}
+                        height={rows * 88}
+                        cellSize={88}
                         tool={tool}
                         savedInkUrl={initialInk}
                         onChange={(inkDataUrl) => onAnswer(q.id, inkDataUrl)}
