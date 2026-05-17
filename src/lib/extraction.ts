@@ -67,6 +67,22 @@ const VOLUME_PATH =
   process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const PAGES_DIR = path.join(VOLUME_PATH, "pages");
 
+// Coerce a marks-like value coming back from the AI to a number-or-null.
+// The model sometimes emits `"2"` (string) instead of `2`, which Prisma
+// then rejects on the Float column. Catches strings with stray "marks"
+// suffixes (e.g. "2 marks" → 2) and falls back to null on garbage.
+function coerceMarks(v: unknown): number | null {
+  if (v == null) return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "string") {
+    const trimmed = v.trim();
+    if (!trimmed) return null;
+    const n = parseFloat(trimmed);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
 export async function cropQuestionServer(
   imageBuffer: Buffer,
   yStartPct: number,
@@ -402,7 +418,7 @@ async function extractExamPaperCore(
             orderIndex: questions.length,
             yStartPct: q.yStartPct ?? null,
             yEndPct: q.yEndPct ?? null,
-            marksAvailable: q.marksAvailable ?? result.marksPerQuestion?.[qNum] ?? null,
+            marksAvailable: coerceMarks(q.marksAvailable ?? result.marksPerQuestion?.[qNum]),
             syllabusTopic: q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? null,
             transcribedStem: ext._stem || ext._blankContext || ext._errorWord || undefined,
             transcribedOptions: ext._options || undefined,
@@ -774,8 +790,7 @@ async function extractExamPaperCore(
         orderIndex: questions.length,
         yStartPct: primary.yStartPct ?? null,
         yEndPct: primary.yEndPct ?? null,
-        marksAvailable:
-          result.marksPerQuestion?.[qNum] ?? null,
+        marksAvailable: coerceMarks(result.marksPerQuestion?.[qNum]),
         syllabusTopic: result.syllabusTopics?.[qNum] ?? null,
         // English text content — store as transcribed fields for clean display
         ...(seg0._stem ? { transcribedStem: seg0._stem } : {}),
