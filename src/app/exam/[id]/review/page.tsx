@@ -12,6 +12,37 @@ import { playClick } from "@/lib/sfx";
 import { formatSubpartLabel } from "@/lib/subpart-label";
 import React from "react";
 
+/** Speak a Chinese MCQ sentence with the correct option substituted
+ *  for the blank / underlined phrase. Browser TTS only — no network
+ *  call. Used by the speaker button in the Chinese review path. */
+function speakChineseMcq(stem: string, options: string[], correctAnsRaw: string): void {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  const correctNum = parseInt(correctAnsRaw.replace(/[().]/g, "").trim(), 10);
+  const correctText = !isNaN(correctNum) && correctNum >= 1 && correctNum <= options.length ? options[correctNum - 1] ?? "" : "";
+  // Strip the leading "Q1." / "Q1: " prefix some stems carry, then
+  // substitute the answer into whichever marker the stem uses:
+  //   1. **__phrase__** / **__**           → replace with correct option (synonym style)
+  //   2. ______ (3+ underscores)           → replace blank with correct option
+  //   3. No marker                         → just speak the stem (e.g. 以下哪一个句子是正确的？), then read the correct option
+  let line = stem.replace(/^[Qq]?\s*\d+\s*[.:]\s*/, "").trim();
+  let substituted = false;
+  // **__phrase__** — the tested phrase, replace it with the correct option
+  line = line.replace(/\*\*__(.*?)__\*\*/g, () => { substituted = true; return correctText; });
+  // Bare __phrase__ — same treatment
+  line = line.replace(/__(.*?)__/g, () => { substituted = true; return correctText; });
+  // **bold** — leave as-is, strip markers for TTS
+  line = line.replace(/\*\*(.*?)\*\*/g, "$1");
+  // Cloze blanks
+  line = line.replace(/_{3,}/g, () => { substituted = true; return correctText; });
+  // If nothing was substituted (e.g. "以下哪一个句子是正确的？") then read the correct option as the answer.
+  const speakText = substituted ? line : `${line} 答案：${correctText}`;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(speakText);
+  utter.lang = "zh-CN";
+  utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+
 /** Submission image with spinner while loading */
 function SubmissionImage({ src, alt, className, aspectRatio, imgStyle, onError }: {
   src: string; alt: string; className?: string; aspectRatio?: string;
@@ -2117,6 +2148,23 @@ function ExamReviewContent({ id }: { id: string }) {
                                 className={`transition-colors disabled:opacity-50 ${flaggedIds.has(q.id) ? "text-[#ba1a1a]" : "text-[#737780] hover:text-[#ba1a1a]"}`}>
                                 <span className="material-symbols-outlined text-base" style={flaggedIds.has(q.id) ? { fontVariationSettings: "'FILL' 1" } : {}}>flag</span>
                               </button>
+                              {/* Speaker — Chinese MCQ only. Reads the
+                                  sentence with the correct option
+                                  substituted in place of the blank /
+                                  underlined phrase. Browser TTS, no
+                                  network round-trip. */}
+                              {isChineseComp || rawLabel.includes("语文应用") || rawLabel.includes("短文填空") || rawLabel.includes("完成对话") ? (
+                                Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4 ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => speakChineseMcq(q.transcribedStem ?? "", q.transcribedOptions as string[], correctAns)}
+                                    title="朗读句子"
+                                    className="text-[#737780] hover:text-[#003366] transition-colors"
+                                  >
+                                    <span className="material-symbols-outlined text-base">volume_up</span>
+                                  </button>
+                                ) : null
+                              ) : null}
                             </div>
                             <div className="flex-1 min-w-0">
                               {/* Synthesis / Comp OEQ: show question + typed answer */}
