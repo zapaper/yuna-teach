@@ -125,6 +125,66 @@ function QuizContent({ id }: { id: string }) {
   const [tool, setTool] = useState<DrawTool>("pen");
   const toolInitRef = useRef(false);
   if ((isEnglishQuiz || isChineseQuiz) && !toolInitRef.current) { toolInitRef.current = true; setTool("type"); }
+
+  // Chinese-only dictionary lookup. Tracks the student's text
+  // selection so the toolbar button can fire on the current
+  // highlight. Pin the result to a side popover so the student
+  // doesn't lose place in the question.
+  type DictResult = { word: string; pinyin: string; meaningCn: string; meaningEn: string };
+  const [dictSelection, setDictSelection] = useState<string>("");
+  const [dictLoading, setDictLoading] = useState(false);
+  const [dictResult, setDictResult] = useState<DictResult | null>(null);
+  const [dictBlocked, setDictBlocked] = useState<string | null>(null);
+  useEffect(() => {
+    if (!isChineseQuiz) return;
+    const onChange = () => {
+      const sel = window.getSelection();
+      const text = (sel?.toString() ?? "").trim();
+      // Only track Chinese-character selections (1-20 chars). Ignore
+      // empty / punctuation-only / overly long picks so the button
+      // doesn't enable on accidental highlights of the entire page.
+      if (text && text.length <= 20 && /[一-鿿]/.test(text)) setDictSelection(text);
+      else setDictSelection("");
+    };
+    document.addEventListener("selectionchange", onChange);
+    return () => document.removeEventListener("selectionchange", onChange);
+  }, [isChineseQuiz]);
+  async function lookupSelection() {
+    if (!dictSelection || dictLoading) return;
+    // Check if the selection is the TESTED phrase in any visible
+    // question (i.e. it's wrapped in **__…__** or __…__ markup in
+    // a transcribedStem). If so, don't look it up — would give
+    // away the answer for Q13-15-style "pick the correct sentence"
+    // questions or for synonym MCQs in section 一.
+    const phraseRe = new RegExp(`(\\*\\*__|__)${dictSelection.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(__\\*\\*|__)`);
+    const isTested = (paper?.questions ?? []).some(q => phraseRe.test(q.transcribedStem ?? ""));
+    if (isTested) {
+      setDictBlocked(dictSelection);
+      setDictResult(null);
+      setTimeout(() => setDictBlocked(null), 3500);
+      return;
+    }
+    setDictBlocked(null);
+    setDictLoading(true);
+    setDictResult(null);
+    try {
+      const res = await fetch("/api/chinese-dictionary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phrase: dictSelection }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDictResult(data as DictResult);
+      } else {
+        setDictResult({ word: dictSelection, pinyin: "", meaningCn: "查询失败", meaningEn: "Lookup failed" });
+      }
+    } catch {
+      setDictResult({ word: dictSelection, pinyin: "", meaningCn: "查询失败", meaningEn: "Lookup failed" });
+    } finally {
+      setDictLoading(false);
+    }
+  }
   const oeqCanvasHandles = useRef<Record<string, AnswerCanvasHandle | null>>({});
   const oeqSubpartHandles = useRef<Record<string, Record<string, AnswerCanvasHandle | null>>>({});
   const lastDrawnId = useRef<string | null>(null);
@@ -930,6 +990,16 @@ function QuizContent({ id }: { id: string }) {
           >
             <span className="material-symbols-outlined text-xl">edit</span>
           </button>
+          {isChineseQuiz && (
+            <button
+              onClick={() => lookupSelection()}
+              disabled={!dictSelection || dictLoading}
+              title={dictSelection ? `查 “${dictSelection}”` : "选中要查的词"}
+              className={`p-2.5 rounded-full transition-all ${dictSelection ? "text-[#003366] hover:bg-[#eff4ff]" : "text-[#c3c6d1] cursor-not-allowed"}`}
+            >
+              <span className="material-symbols-outlined text-xl">{dictLoading ? "hourglass_top" : "translate"}</span>
+            </button>
+          )}
           <button
             onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "eraser" : "eraser")}
             className={`p-2.5 rounded-full transition-colors ${tool === "eraser" || tool === "eraser-large" ? "bg-[#eff4ff] text-[#001e40]" : "text-[#737780]"} hover:text-[#001e40]`}
@@ -1477,6 +1547,41 @@ function QuizContent({ id }: { id: string }) {
           </>
         )}
       </div>
+
+      {/* Chinese dictionary popover. Fixed right margin so the
+          student keeps their place in the question. Auto-dismiss
+          when student selects a different phrase or clicks the
+          backdrop. Chinese quiz only. */}
+      {isChineseQuiz && (dictResult || dictLoading || dictBlocked) && (
+        <div className="fixed right-4 top-24 z-50 w-72 bg-white rounded-2xl shadow-xl border border-[#dce9ff] p-4">
+          {dictLoading && (
+            <div className="flex items-center gap-2 text-sm text-[#43474f]">
+              <span className="material-symbols-outlined text-base animate-spin">progress_activity</span>
+              <span>查询中：{dictSelection}</span>
+            </div>
+          )}
+          {dictBlocked && !dictLoading && (
+            <div>
+              <p className="text-sm font-bold text-[#001e40] mb-1">{dictBlocked}</p>
+              <p className="text-xs text-[#ba1a1a]">这是题目要考的词，无法查询。</p>
+              <p className="text-xs text-[#737780] mt-0.5">This phrase is being tested — dictionary disabled.</p>
+            </div>
+          )}
+          {dictResult && !dictLoading && (
+            <div className="space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-bold text-lg text-[#001e40]">{dictResult.word}</p>
+                <button onClick={() => setDictResult(null)} className="text-[#737780] hover:text-[#001e40] -mt-1">
+                  <span className="material-symbols-outlined text-base">close</span>
+                </button>
+              </div>
+              {dictResult.pinyin && <p className="text-sm text-[#003366] italic">{dictResult.pinyin}</p>}
+              {dictResult.meaningCn && <p className="text-sm text-[#0b1c30]">{dictResult.meaningCn}</p>}
+              {dictResult.meaningEn && <p className="text-xs text-[#737780]">{dictResult.meaningEn}</p>}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Voice-note popup for flagging questions. Lives at root so it
           renders above all quiz UI. */}
