@@ -1853,6 +1853,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                     <>
                                       <span className="font-bold text-[#ba1a1a] text-sm">[Blank]</span>
                                       <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                      <span className="font-bold text-[#006c49] text-sm">({correctNum}) {correctText}</span>
                                     </>
                                   ) : isCorrect ? (
                                     <span className="font-bold text-[#006c49] text-sm">({correctNum}) {correctText}</span>
@@ -2034,6 +2035,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                       <>
                                         <span className="font-bold text-[#ba1a1a] px-1 text-sm">[Blank]</span>
                                         <span className="material-symbols-outlined text-[#ba1a1a]" style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>close</span>
+                                        <span className="font-bold text-[#006c49] px-1 text-sm">{correctWord}</span>
                                       </>
                                     ) : isCorrect ? (
                                       <span className="font-bold text-[#006c49] px-1 text-sm">{correctWord}</span>
