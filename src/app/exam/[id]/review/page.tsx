@@ -1745,6 +1745,26 @@ function ExamReviewContent({ id }: { id: string }) {
                         // body font, matching the quiz player's
                         // toParagraphs layout. English compre OEQ keeps
                         // the small-font + margin-number layout below.
+                        // Chinese 阅读理解 passage stored as PLAIN
+                        // paragraphs (post-OCR-prompt-rework — the
+                        // 华文 OCR step now emits plain text instead
+                        // of a line-numbered table). Split on blank
+                        // lines, render each as a textIndent paragraph
+                        // through ReviewRichText so **bold** / __underline__
+                        // markers render.
+                        if (!isLineTable && isChineseComp) {
+                          const paras = currentSection.passage!
+                            .split(/\n\s*\n+/)
+                            .map(p => p.replace(/^[\s\t　]+|\s+$/g, ""))
+                            .filter(Boolean);
+                          if (paras.length > 0) {
+                            return paras.map((para, pi) => (
+                              <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
+                                <ReviewRichText text={para} />
+                              </p>
+                            ));
+                          }
+                        }
                         if (isLineTable && isChineseComp) {
                           const rows: string[][] = [];
                           for (const line of pLines) {

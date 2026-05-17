@@ -3849,7 +3849,21 @@ export async function analyzeExamBatch(
                 passageOcrParts.push({ text: `[Page ${pIdx}]` });
               }
             }
-            passageOcrParts.push({ text: `Extract the reading passage from these pages as a LINE-BY-LINE table.
+            // Chinese 阅读理解 passages don't have margin line numbers
+            // on the printed paper and the student never has to cite a
+            // line number in their answer — output plain paragraphs.
+            // English Comp OEQ keeps the line-numbered markdown table
+            // because students DO cite line numbers in their answers.
+            passageOcrParts.push({ text: isChineseBooklet ? `从这些页中提取阅读理解的短文。
+
+要求：
+- 一段一段输出，每段一行；段与段之间用一个空行隔开。
+- 每段的开头必须空两格 (即在该行的开头加 4 个空格)，包括第一段。
+- 保留印在原文上的格式标记：原文加粗的部分用 **双星号** 包围 (例：**重要**)；原文有下划线的词用 __双下划线__ 包围 (例：__稍微__)；既加粗又有下划线的用 **__双星号加双下划线__**。不要把这些标记去掉，前端的渲染器会用到。
+- 不要加任何编号、行号、表格、标题、页眉、页脚。只输出短文本身的段落文字。
+- 标点符号和中文字符保持原样 (全角)。
+
+只输出短文文本，不要任何其他说明。` : `Extract the reading passage from these pages as a LINE-BY-LINE table.
 
 CRITICAL RULES:
 - Each line of the passage must be its OWN row in the table
@@ -3857,7 +3871,7 @@ CRITICAL RULES:
 - Every paragraph's FIRST line — INCLUDING the very first paragraph of the passage — MUST start with a tab character (or 4 spaces). Do NOT skip the tab on line 1; it is just as much a paragraph start as any other.
 - If a line is indented (new paragraph), start the text with a tab character
 - If there is a blank line in the original, include an empty row
-- PRESERVE formatting from the printed page: BOLD text → wrap with **double asterisks** (e.g. **重要**); UNDERLINED text → wrap with __double underscores__ (e.g. __稍微__). Apply BOTH together as **__word__** when a phrase is both bold and underlined. Do NOT strip these marks — the renderer relies on them. Punctuation and Chinese characters inside the marks are fine.
+- PRESERVE formatting from the printed page: BOLD text → wrap with **double asterisks** (e.g. **important**); UNDERLINED text → wrap with __double underscores__ (e.g. __slightly__). Apply BOTH together as **__word__** when a phrase is both bold and underlined.
 - The passage has LINE NUMBERS printed in the margin (usually every 5 lines: 5, 10, 15, 20...)
 - Include these line numbers in the second column where they appear
 
@@ -4021,7 +4035,12 @@ Output ONLY the clean passage/question text, no commentary.` });
           // is the last-resort: different model family with separate
           // gateway capacity, so it usually goes through when both
           // flash tiers are saturated.
-          const OCR_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.1-pro-preview"] as const;
+          // 2.5-flash is now FIRST in the chain because 3-flash-preview
+          // has been 504-ing on Chinese passage prompts (Stream
+          // cancelled / DEADLINE_EXCEEDED). Keep 3-flash-preview as
+          // the second try since it handles English line-numbered
+          // tables better when the gateway IS healthy.
+          const OCR_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
           // Chinese-only: skip per-model 504 retries. The chain itself
           // is the retry — re-attempting a 504-saturated model 3x
           // burns 90-180s before falling through to the next model and

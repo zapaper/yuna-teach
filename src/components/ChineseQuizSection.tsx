@@ -1254,7 +1254,27 @@ function ReadingPassage({ text }: { text: string }) {
     );
   }
 
-  // Plain text fallback
+  // Plain text fallback — preferred for Chinese passages now that
+  // the OCR step emits plain paragraphs instead of a line-numbered
+  // table. Split on blank lines (paragraph boundaries) and indent
+  // each paragraph with text-indent 2em. Bold / underline markers
+  // travel through FormattedText so they actually render.
+  const isChinesePlain = hasChinese && !isTable;
+  if (isChinesePlain) {
+    const paras = text
+      .split(/\n\s*\n+/)
+      .map(p => p.replace(/^[\s\t　]+|\s+$/g, ""))
+      .filter(Boolean);
+    return (
+      <div className="mb-8 bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100 w-full">
+        {paras.map((para, pi) => (
+          <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
+            <FormattedText text={para} />
+          </p>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full lg:max-h-none lg:overflow-visible">
       <p className="text-[#0b1c30] leading-relaxed whitespace-pre-wrap text-justify" style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(12px, 1vw, 14px)" }}>{text}</p>

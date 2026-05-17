@@ -32,12 +32,25 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     imagesBase64.push(fs.readFileSync(filePath).toString("base64"));
   }
 
-  // OCR passage as line-numbered table
+  // OCR the passage. Chinese papers get a plain-paragraph prompt
+  // (no margin line numbers — 华文 papers don't print them and the
+  // student never has to cite them). English keeps the line-numbered
+  // markdown table because Comp OEQ answers DO reference line numbers.
+  const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
   const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
   for (const img of imagesBase64) {
     parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: img } });
   }
-  parts.push({ text: `Extract the reading passage from these pages as a LINE-BY-LINE table.
+  parts.push({ text: isChinese ? `从这些页中提取阅读理解的短文。
+
+要求：
+- 一段一段输出，每段一行；段与段之间用一个空行隔开。
+- 每段的开头必须空两格 (即在该行的开头加 4 个空格)，包括第一段。
+- 保留印在原文上的格式标记：原文加粗的部分用 **双星号** 包围 (例：**重要**)；原文有下划线的词用 __双下划线__ 包围 (例：__稍微__)；既加粗又有下划线的用 **__双星号加双下划线__**。不要把这些标记去掉，前端的渲染器会用到。
+- 不要加任何编号、行号、表格、标题、页眉、页脚。只输出短文本身的段落文字。
+- 标点符号和中文字符保持原样 (全角)。
+
+只输出短文文本，不要任何其他说明。` : `Extract the reading passage from these pages as a LINE-BY-LINE table.
 
 CRITICAL RULES:
 - Each line of the passage must be its OWN row in the table
@@ -45,7 +58,7 @@ CRITICAL RULES:
 - Every paragraph's FIRST line — INCLUDING the very first paragraph of the passage — MUST start with a tab character (or 4 spaces). Do NOT skip the tab on line 1; it is just as much a paragraph start as any other.
 - If a line is indented (new paragraph), start the text with a tab character
 - If there is a blank line in the original, include an empty row
-- PRESERVE formatting from the printed page: BOLD text → wrap with **double asterisks** (e.g. **重要**); UNDERLINED text → wrap with __double underscores__ (e.g. __稍微__). Both together is **__word__**. Do NOT strip these marks — the renderer relies on them.
+- PRESERVE formatting from the printed page: BOLD text → wrap with **double asterisks** (e.g. **important**); UNDERLINED text → wrap with __double underscores__ (e.g. __slightly__). Both together is **__word__**.
 - The passage has LINE NUMBERS printed in the margin (usually every 5 lines: 5, 10, 15, 20...)
 - Include these line numbers in the second column where they appear
 
@@ -90,8 +103,8 @@ Output ONLY the table.` });
 
   // For Chinese papers, rebuild chineseSections so the freshly OCR'd
   // passage immediately shows up in the quiz / edit / review UI
-  // without a separate backfill step.
-  const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
+  // without a separate backfill step. (isChinese already declared
+  // above to switch the OCR prompt.)
   let chineseSectionsUpdate: Record<string, unknown> = {};
   if (isChinese) {
     const qs = await prisma.examQuestion.findMany({
