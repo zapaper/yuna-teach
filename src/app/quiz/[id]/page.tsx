@@ -1068,6 +1068,17 @@ function QuizContent({ id }: { id: string }) {
               <span className="material-symbols-outlined text-xl">edit</span>
               Pen
             </button>
+            {isChineseQuiz && (
+              <button
+                onClick={() => lookupSelection()}
+                disabled={!dictSelection || dictLoading}
+                title={dictSelection ? `查 “${dictSelection}”` : "选中要查的词"}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${dictSelection ? "text-[#003366] hover:bg-[#dce9ff]" : "text-[#c3c6d1] cursor-not-allowed"}`}
+              >
+                <span className="material-symbols-outlined text-xl">{dictLoading ? "hourglass_top" : "translate"}</span>
+                Dict
+              </button>
+            )}
             <button
               onClick={() => setTool(tool === "eraser" ? "eraser-large" : tool === "eraser-large" ? "eraser" : "eraser")}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md transition-colors font-headline text-[10px] uppercase tracking-wider font-bold ${tool === "eraser" || tool === "eraser-large" ? "bg-[#003366]/20 text-[#001e40]" : "text-[#737780]"}`}

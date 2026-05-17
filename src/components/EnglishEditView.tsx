@@ -1089,11 +1089,12 @@ function QuestionRow({
           );
         })()}
 
-        {/* Re-extract Answer from the answer-key page(s). Admin types
-            the page number(s) (1-indexed) and we re-OCR just this
-            question's key from those pages. Useful when the bulk
-            answer-extract grabbed the wrong region (e.g. Chinese
-            长 OEQ where the underlined model answer was missed). */}
+        {/* Re-extract Answer from the answer-key page(s). Same gate
+            as the Crop button — only the long OEQ inside 阅读理解 A
+            (Chinese Q33) shows this. Every other Chinese question
+            has its answer auto-extracted correctly and doesn't need
+            the per-question rerun. */}
+        {allowImageCrop && (
         <div className="mt-2 flex items-center gap-1 text-[10px]">
           <span className="text-slate-400 font-bold uppercase tracking-wider">Re-extract Ans from page</span>
           <input
@@ -1151,6 +1152,7 @@ function QuestionRow({
             <span className={`text-[10px] ${reextractAnsResult.startsWith("Error") ? "text-red-600" : "text-green-600"}`}>{reextractAnsResult}</span>
           )}
         </div>
+        )}
       </div>
 
       {/* Marks */}
