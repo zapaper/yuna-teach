@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ExamPaperDetail, ExamQuestionItem } from "@/types";
+import ImageCropModal from "./ImageCropModal";
 
 interface Props {
   paper: ExamPaperDetail;
@@ -545,6 +546,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                           saving={saving}
                           auditFlag={auditFlags[q.id]}
                           allowImageUpload={allowImageUpload}
+                          pageImage={allowImageUpload && q.pageIndex != null ? pageImages[q.pageIndex] : undefined}
                         />
                       ));
                     })()}
@@ -657,6 +659,7 @@ function QuestionRow({
   saving,
   auditFlag,
   allowImageUpload = true,
+  pageImage,
 }: {
   question: ExamQuestionItem;
   onSave: (questionId: string, data: Record<string, unknown>) => Promise<void>;
@@ -668,7 +671,11 @@ function QuestionRow({
    *  阅读理解 MCQ / 完成对话) where no diagram should ever be
    *  attached — only 阅读理解 A's long OEQ Q33 needs one. */
   allowImageUpload?: boolean;
+  /** Source page image for this question. When present the row shows
+   *  a "Re-crop from page" button that opens an in-app cropper. */
+  pageImage?: string;
 }) {
+  const [cropOpen, setCropOpen] = useState(false);
   const [editAnswer, setEditAnswer] = useState(false);
   const [answerDraft, setAnswerDraft] = useState(q.answer ?? "");
   const [marksDraft, setMarksDraft] = useState(q.marksAvailable != null ? String(q.marksAvailable) : "");
@@ -938,7 +945,18 @@ function QuestionRow({
           />
         )}
         {allowImageUpload && (
-          <div className="flex items-center gap-2 mb-2 text-[10px]">
+          <div className="flex items-center gap-2 mb-2 text-[10px] flex-wrap">
+            {pageImage && (
+              <button
+                type="button"
+                onClick={() => setCropOpen(true)}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold transition-colors"
+                title="Drag a box on the source page to crop the picture"
+              >
+                <span className="material-symbols-outlined text-xs">crop</span>
+                {q.imageData ? "Re-crop from page" : "Crop from page"}
+              </button>
+            )}
             <label className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold cursor-pointer transition-colors">
               <span className="material-symbols-outlined text-xs">{q.imageData ? "swap_horiz" : "add_photo_alternate"}</span>
               {q.imageData ? "Replace image" : "Upload image"}
@@ -973,6 +991,18 @@ function QuestionRow({
               </button>
             )}
           </div>
+        )}
+        {pageImage && (
+          <ImageCropModal
+            open={cropOpen}
+            pageImageSrc={pageImage}
+            initialBox={q.yStartPct != null && q.yEndPct != null ? { topPct: q.yStartPct, leftPct: 0, rightPct: 100, bottomPct: q.yEndPct } : null}
+            onClose={() => setCropOpen(false)}
+            onCropped={async dataUrl => {
+              await onSave(q.id, { imageData: dataUrl });
+              setCropOpen(false);
+            }}
+          />
         )}
 
         {/* Answer — OEQ gets its own full-width textarea, MCQ stays inline */}
