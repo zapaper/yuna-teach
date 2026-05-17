@@ -4,6 +4,27 @@ import { useEffect, useRef, useState } from "react";
 import FormattedText from "./FormattedText";
 import ChineseHandwritingCanvas from "./ChineseHandwritingCanvas";
 
+// Browser TTS for Chinese MCQ stems. Substitutes the correct option
+// into the **__phrase__** / ______ blank so the sentence reads as a
+// complete utterance. Same shape as the review-page helper. Quiz-side
+// the student can preview the answer-sound for any MCQ question.
+function speakChineseMcq(stem: string, options: string[]): void {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  let line = stem.replace(/^[Qq]?\s*\d+\s*[.:]\s*/, "").trim();
+  // Strip the **__phrase__** markers so the TTS doesn't read them.
+  line = line.replace(/\*\*__(.*?)__\*\*/g, "$1");
+  line = line.replace(/__(.*?)__/g, "$1");
+  line = line.replace(/\*\*(.*?)\*\*/g, "$1");
+  // Cloze blanks — substitute the first option as placeholder so the
+  // sentence is grammatical; the student isn't being told the answer.
+  line = line.replace(/_{3,}/g, options[0] ?? "");
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(line);
+  utter.lang = "zh-CN";
+  utter.rate = 0.85;
+  window.speechSynthesis.speak(utter);
+}
+
 interface QuizQuestion {
   id: string;
   questionNum: string;
@@ -513,6 +534,20 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                   {onToggleFlag && (
                     <button onClick={() => onToggleFlag(q.id)} className="text-[#737780] hover:text-[#ba1a1a] transition-colors">
                       <span className="material-symbols-outlined text-sm" style={flaggedIds?.has(q.id) ? { fontVariationSettings: "'FILL' 1", color: "#ba1a1a" } : undefined}>flag</span>
+                    </button>
+                  )}
+                  {/* Speaker — Chinese MCQ only. Reads the stem
+                      with markup stripped; cloze blanks get a
+                      placeholder so the sentence is grammatical
+                      without leaking the answer. */}
+                  {hasOptions && (
+                    <button
+                      type="button"
+                      onClick={() => speakChineseMcq(q.transcribedStem ?? "", (q.transcribedOptions as string[]) ?? [])}
+                      title="朗读句子"
+                      className="text-[#737780] hover:text-[#003366] transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-sm">volume_up</span>
                     </button>
                   )}
                 </div>
