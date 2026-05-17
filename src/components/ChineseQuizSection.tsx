@@ -112,9 +112,14 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
           - Chinese 阅读理解 MCQ: passage is plain Chinese text. Render
             it as paragraphs with a tab-indent on each new line so the
             student reads it as a normal passage. */}
-      {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && (() => {
-        const isImagePassage = !!passage && (passage.startsWith("[VISUAL_") || passage.startsWith("data:image"));
-        const hasTextPassage = !!passage && !isImagePassage;
+      {sectionType === "visual-text-mcq" && !sectionLabel.includes("短文填空") && !!passage && (() => {
+        // Guarded on `!!passage` — 语文应用 MCQ has no passage and
+        // was previously falling into the VisualTextImages branch,
+        // which then rendered Q1's cropped page image as a
+        // "fallback" passage above the first question. That was the
+        // mystery image crop the user kept seeing above 语文应用 Q1.
+        const isImagePassage = passage.startsWith("[VISUAL_") || passage.startsWith("data:image");
+        const hasTextPassage = !isImagePassage;
         // The OCR step emits the passage as a 3-col line-numbered
         // markdown table (| Line | Text | No. |). Plain Chinese prose
         // reads better without the table chrome — strip the wrapper,
