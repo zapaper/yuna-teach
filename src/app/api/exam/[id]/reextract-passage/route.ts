@@ -45,6 +45,7 @@ CRITICAL RULES:
 - Every paragraph's FIRST line — INCLUDING the very first paragraph of the passage — MUST start with a tab character (or 4 spaces). Do NOT skip the tab on line 1; it is just as much a paragraph start as any other.
 - If a line is indented (new paragraph), start the text with a tab character
 - If there is a blank line in the original, include an empty row
+- PRESERVE formatting from the printed page: BOLD text → wrap with **double asterisks** (e.g. **重要**); UNDERLINED text → wrap with __double underscores__ (e.g. __稍微__). Both together is **__word__**. Do NOT strip these marks — the renderer relies on them.
 - The passage has LINE NUMBERS printed in the margin (usually every 5 lines: 5, 10, 15, 20...)
 - Include these line numbers in the second column where they appear
 

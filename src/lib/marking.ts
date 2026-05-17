@@ -3295,6 +3295,85 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           }
         }
 
+        // CHINESE 阅读理解 OEQ canvas marking — Chinese-only branch.
+        // The student's answer is the 田字格 handwriting canvas saved
+        // as a data:image/png URL on studentAnswer. The regular OEQ
+        // canvas flow (further down) reads scanned page_<i>.jpg files
+        // from disk — there's nothing on disk for Chinese OEQ, so it
+        // returned "No answer detected". Intercept here and ask the
+        // AI to read the canvas image directly, with feedback in 中文.
+        if (
+          aiTypedOeqQIds.has(q.id) &&
+          q.studentAnswer &&
+          q.studentAnswer.startsWith("data:image") &&
+          (paper.subject ?? "").toLowerCase().includes("chinese")
+        ) {
+          const expectedAnswer = q.answer ?? "";
+          const marksAvailable = q.marksAvailable ?? 1;
+          const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+          const sepIdx = q.studentAnswer.indexOf(";base64,");
+          if (sepIdx > 0) {
+            parts.push({ inlineData: { mimeType: q.studentAnswer.slice(5, sepIdx), data: q.studentAnswer.slice(sepIdx + 8) } });
+          }
+          parts.push({
+            text: `你正在批改新加坡小六会考(PSLE)华文阅读理解开放式问答题。
+
+学生的答案是写在田字格上的手写汉字 (蓝色墨水，每个汉字占一个格子)。仔细辨认每一个字。
+
+题目:
+${(q.transcribedStem ?? "").replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim()}
+
+参考答案:
+${expectedAnswer}
+
+总分: ${marksAvailable}
+
+批改要求:
+- 仔细辨认学生写的汉字，逐字读出后再判断答案是否正确。
+- 答案的意思与参考答案相同就给满分，允许同义词、不同的语序、近义表达。
+- 错别字: 每个错别字扣 0.5 分，但不要因为简繁体差异扣分。
+- 答案为空白或仅有少量无意义涂鸦时给 0 分。
+- 反馈 (feedback) 必须用简体中文写，简洁清晰，最多两句。
+
+请返回 JSON:
+{"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "detectedAnswer": "<学生写的内容>", "feedback": "<中文反馈>"}]}`,
+          });
+          try {
+            const response = await withTimeout(
+              ai.models.generateContent({
+                model: "gemini-2.5-flash",
+                contents: [{ role: "user", parts }],
+                config: { responseMimeType: "application/json", temperature: 0.1 },
+              }),
+              GEMINI_TIMEOUT_MS,
+              `quiz-chinese-canvas-Q${q.questionNum}`,
+            );
+            const parsed = extractJson(response.text ?? "") as { questions?: Array<{ marksAwarded?: number; feedback?: string; detectedAnswer?: string }> };
+            const result = parsed.questions?.[0] ?? {};
+            const awarded = Math.min(Math.max(0, Number(result.marksAwarded) || 0), marksAvailable);
+            const notes = (result.feedback ?? "").trim();
+            const detected = (result.detectedAnswer ?? "").trim();
+            const notesWithDetected = `检测到答案: ${detected || "无"}${notes ? ` | ${notes}` : ""}`;
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: awarded, markingNotes: notesWithDetected },
+              }),
+            );
+            totalAwarded += awarded;
+            console.log(`[quiz-marking] Chinese canvas Q${q.questionNum}: ${awarded}/${marksAvailable} — ${detected}`);
+          } catch (err) {
+            console.error(`[quiz-marking] Chinese canvas Q${q.questionNum} marking failed:`, err);
+            updates.push(
+              prisma.examQuestion.update({
+                where: { id: q.id },
+                data: { marksAwarded: 0, markingNotes: "批改失败" },
+              }),
+            );
+          }
+          return;
+        }
+
         // Check if this is a typed answer (synthesis, comp OEQ in English quiz).
         // Only trust studentAnswer as typed text when the question is actually in a
         // synthesis/comprehension-OEQ section. For all other OEQs, studentAnswer may

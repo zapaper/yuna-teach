@@ -162,7 +162,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
               <div className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
                 {paragraphs.map((para, pi) => (
                   <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
-                    {para}
+                    <FormattedText text={para} />
                   </p>
                 ))}
               </div>
@@ -1176,7 +1176,7 @@ function ReadingPassage({ text }: { text: string }) {
       <div className="mb-8 bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100 w-full">
         {paras.map((para, pi) => (
           <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
-            {para}
+            <FormattedText text={para} />
           </p>
         ))}
       </div>

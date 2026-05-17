@@ -1742,7 +1742,9 @@ function ExamReviewContent({ id }: { id: string }) {
                           }
                           pushCur();
                           return paras.map((para, pi) => (
-                            <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>{para}</p>
+                            <p key={pi} className="text-base text-[#0b1c30] leading-loose mb-3 last:mb-0" style={{ textIndent: "2em", whiteSpace: "pre-wrap" }}>
+                              <ReviewRichText text={para} />
+                            </p>
                           ));
                         }
                         if (isLineTable && isCompOeq) {
@@ -2144,7 +2146,34 @@ function ExamReviewContent({ id }: { id: string }) {
                                   )}
                                   <div className="bg-white rounded-lg p-3 border border-slate-200">
                                     <p className="text-xs font-bold text-[#43474f] mb-1">Your answer:</p>
-                                    {studentAns.startsWith("data:image") ? (
+                                    {Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4 ? (
+                                      // Chinese 阅读理解 A is a mixed
+                                      // MCQ + OEQ section, but the
+                                      // comp-OEQ render path was
+                                      // shoving MCQ Q30-32 through the
+                                      // typed-text branch — students
+                                      // saw "Student: 1, Correct: 2"
+                                      // with no option text. Show the
+                                      // full option list with green
+                                      // for correct + red for picked.
+                                      <div className="space-y-1.5">
+                                        {q.transcribedOptions.map((opt: string, oi: number) => {
+                                          const optNum = String(oi + 1);
+                                          const isOptCorrect = correctAns.replace(/[().]/g, "").trim() === optNum;
+                                          const isSelected = studentAns === optNum;
+                                          return (
+                                            <div key={oi} className={`flex items-start gap-2 p-2 rounded-lg text-sm ${
+                                              isOptCorrect ? "bg-[#d1fae5] border border-[#006c49]/20" : isSelected ? "bg-[#ffdad6] border border-[#ba1a1a]/20" : "bg-[#f8f9ff] border border-transparent"
+                                            }`}>
+                                              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 ${
+                                                isOptCorrect ? "bg-[#006c49] text-white" : isSelected ? "bg-[#ba1a1a] text-white" : "bg-white border border-[#c3c6d1]/30 text-[#001e40]"
+                                              }`}>{oi + 1}</span>
+                                              <span className={`font-medium ${isOptCorrect || isSelected ? "text-[#001e40]" : "text-[#43474f]"}`}>{opt}</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : studentAns.startsWith("data:image") ? (
                                       // Chinese 阅读理解 OEQ stores the
                                       // student's 田字格 ink as a PNG
                                       // data-URL. Render the image
