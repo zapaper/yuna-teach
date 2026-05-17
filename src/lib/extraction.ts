@@ -375,19 +375,13 @@ async function extractExamPaperCore(
               qImageData = `data:image/jpeg;base64,${stitched.toString("base64")}`;
             } catch { /* ignore */ }
           }
-          // Per-question crop from the source page image. Used for
-          // English text-extraction (every question gets a crop) AND
-          // for Chinese ONLY when the question is a LONG 阅读理解
-          // OEQ (3+ marks, no MCQ options). Those long OEQs usually
-          // carry a printed picture / 短信 image that the student
-          // answers against; the rest of the Chinese questions are
-          // text-only and the crop just clutters /edit.
-          const markVal = q.marksAvailable ?? result.marksPerQuestion?.[qNum] ?? null;
-          const topicHasOeq = qTopic.includes("oeq") || qTopic.includes("open");
-          const hasOptions = !!(ext._options && ext._options.length > 0);
-          const isChineseLongOeq = isChineseEarly && topicHasOeq && !hasOptions && (markVal ?? 0) >= 3;
-          const shouldCrop = !isChineseEarly || isChineseLongOeq;
-          if (!qImageData && shouldCrop && q.yStartPct != null && q.yEndPct != null && imageBuffers[page.pageIndex]) {
+          // Per-question crop from the source page image — English
+          // text-extraction only. Chinese skips this entirely; if a
+          // 长 OEQ (e.g. 五-A Q33) needs a picture / 短信 diagram
+          // attached, the admin uploads it via /edit's Upload Image
+          // button. Auto-cropping every question created clutter the
+          // user explicitly didn't want.
+          if (!qImageData && !isChineseEarly && q.yStartPct != null && q.yEndPct != null && imageBuffers[page.pageIndex]) {
             try {
               qImageData = await cropQuestionServer(
                 imageBuffers[page.pageIndex],
