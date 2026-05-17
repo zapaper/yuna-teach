@@ -532,23 +532,33 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                       // "Upload image" control — only 阅读理解 A's
                       // long OEQ Q33 and (potentially) any 阅读理解
                       // OEQ question can have an attached picture.
-                      // Detection: any Chinese section that doesn't
-                      // contain "OEQ" / "A" / "B" gets no upload.
                       const sname = sec.name;
                       const isChineseLabel = sname.includes("语文应用") || sname.includes("短文填空") || sname.includes("完成对话") || sname.includes("对话填空") || sname.includes("阅读理解");
                       const allowImageUpload = !isChineseLabel || sname.includes("OEQ") || sname.includes("阅读理解 A") || sname.includes("阅读理解 B");
-                      return sec.questions.map(q => (
-                        <QuestionRow
-                          key={q.id}
-                          question={q}
-                          onSave={onSave}
-                          onDelete={onDelete}
-                          saving={saving}
-                          auditFlag={auditFlags[q.id]}
-                          allowImageUpload={allowImageUpload}
-                          pageImage={allowImageUpload && q.pageIndex != null ? pageImages[q.pageIndex] : undefined}
-                        />
-                      ));
+                      // In-app cropper is even more restrictive: only
+                      // the ONE 长 OEQ inside 阅读理解 A (the merged
+                      // 五-A MCQ + OEQ section). That's the question
+                      // that ships with a printed 短信 / phone-note
+                      // picture the admin needs to attach. Every other
+                      // question across the whole paper has no need.
+                      const isChineseLongOeqSection = sname.includes("阅读理解 A") && !sname.includes("OEQ");
+                      return sec.questions.map(q => {
+                        const hasOptions = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length > 0;
+                        const allowImageCrop = isChineseLongOeqSection && !hasOptions;
+                        return (
+                          <QuestionRow
+                            key={q.id}
+                            question={q}
+                            onSave={onSave}
+                            onDelete={onDelete}
+                            saving={saving}
+                            auditFlag={auditFlags[q.id]}
+                            allowImageUpload={allowImageUpload}
+                            allowImageCrop={allowImageCrop}
+                            pageImage={allowImageCrop && q.pageIndex != null ? pageImages[q.pageIndex] : undefined}
+                          />
+                        );
+                      });
                     })()}
                   </div>
                 </div>
@@ -659,6 +669,7 @@ function QuestionRow({
   saving,
   auditFlag,
   allowImageUpload = true,
+  allowImageCrop = false,
   pageImage,
 }: {
   question: ExamQuestionItem;
@@ -671,8 +682,12 @@ function QuestionRow({
    *  阅读理解 MCQ / 完成对话) where no diagram should ever be
    *  attached — only 阅读理解 A's long OEQ Q33 needs one. */
   allowImageUpload?: boolean;
-  /** Source page image for this question. When present the row shows
-   *  a "Re-crop from page" button that opens an in-app cropper. */
+  /** When true, show the in-app "Crop from page" button. Chinese
+   *  阅读理解 OEQ / 阅读理解 A / 阅读理解 B sections only — English /
+   *  Math / Science don't need the cropper. */
+  allowImageCrop?: boolean;
+  /** Source page image for this question. When present and crop is
+   *  allowed, the row shows a "Re-crop from page" button. */
   pageImage?: string;
 }) {
   const [cropOpen, setCropOpen] = useState(false);
@@ -946,7 +961,7 @@ function QuestionRow({
         )}
         {allowImageUpload && (
           <div className="flex items-center gap-2 mb-2 text-[10px] flex-wrap">
-            {pageImage && (
+            {allowImageCrop && pageImage && (
               <button
                 type="button"
                 onClick={() => setCropOpen(true)}
@@ -992,7 +1007,7 @@ function QuestionRow({
             )}
           </div>
         )}
-        {pageImage && (
+        {allowImageCrop && pageImage && (
           <ImageCropModal
             open={cropOpen}
             pageImageSrc={pageImage}
