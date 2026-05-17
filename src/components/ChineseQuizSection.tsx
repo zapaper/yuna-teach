@@ -558,22 +558,26 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                     })}
                   </div>
                 )}
-                {isOeq && (
-                  <div className="mt-2">
-                    {/* Canvas height scales with mark allocation —
-                        Q33-style long OEQ (≥4 marks) gets ~12 rows of
-                        田字格 (~960px) so the student has room for a
-                        full 短信 / paragraph. Short OEQs keep the
-                        4-row default. */}
-                    <ChineseHandwritingCanvas
-                      height={(q.marksAvailable ?? 0) >= 4 ? 960 : 320}
-                      cellSize={80}
-                      tool={tool}
-                      savedInkUrl={initialInk}
-                      onChange={(inkDataUrl) => onAnswer(q.id, inkDataUrl)}
-                    />
-                  </div>
-                )}
+                {isOeq && (() => {
+                  // Canvas height scales with mark allocation:
+                  //   4+ marks (long OEQ like Q33): 12 rows (960px)
+                  //   3 marks: 4 + 3 = 7 rows (560px)
+                  //   2 marks: 4 + 2 = 6 rows (480px)
+                  //   ≤1 mark / unmarked: 4 rows baseline (320px)
+                  const m = q.marksAvailable ?? 0;
+                  const rows = m >= 4 ? 12 : m === 3 ? 7 : m === 2 ? 6 : 4;
+                  return (
+                    <div className="mt-2">
+                      <ChineseHandwritingCanvas
+                        height={rows * 80}
+                        cellSize={80}
+                        tool={tool}
+                        savedInkUrl={initialInk}
+                        onChange={(inkDataUrl) => onAnswer(q.id, inkDataUrl)}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
