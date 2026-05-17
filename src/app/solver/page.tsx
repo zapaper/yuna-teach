@@ -102,7 +102,9 @@ function SolverContent() {
           const data = await res.json();
           if (data.status === "done") { applyResult(data); return; }
           if (data.status === "error") {
-            setError(data.error ?? "Failed to solve");
+            const raw = typeof data.error === "string" ? data.error : "";
+            const looksOverloaded = /DEADLINE_EXCEEDED|deadline exceeded|stream cancelled|UNAVAILABLE|RESOURCE_EXHAUSTED|overload|timeout|504/i.test(raw);
+            setError(looksOverloaded ? "Solver failed due to load. Please retry." : (raw || "Failed to solve"));
             setStep("capture");
             sessionStorage.removeItem(JOB_KEY);
             return;
@@ -149,9 +151,17 @@ function SolverContent() {
         body: JSON.stringify({ jobId, imageBase64: dataUrl, hint: hint.trim() || undefined }),
         signal: abort.signal,
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "Failed to solve");
+        // Hide raw Gemini 504 / DEADLINE_EXCEEDED paragraphs from the
+        // mobile UI. Treat any 5xx-shaped or known-overload error
+        // string as "load — please retry". Server-side already
+        // normalises but keep the guard for older deployments.
+        const raw = typeof data.error === "string" ? data.error : "";
+        const looksOverloaded =
+          res.status === 504 || res.status === 503 || res.status === 429 ||
+          /DEADLINE_EXCEEDED|deadline exceeded|stream cancelled|UNAVAILABLE|RESOURCE_EXHAUSTED|overload|timeout|504/i.test(raw);
+        setError(looksOverloaded ? "Solver failed due to load. Please retry." : (raw || "Failed to solve"));
         setStep("capture");
         sessionStorage.removeItem(JOB_KEY);
         return;

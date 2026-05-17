@@ -237,10 +237,22 @@ Respond with ONLY valid JSON (no markdown fences):
     return NextResponse.json(result);
   } catch (err) {
     console.error("[solver] Gemini error:", err);
-    const msg = err instanceof Error ? err.message : "Failed to solve question";
+    // Normalise the user-facing error message — the raw Gemini 504
+    // response is a paragraph of internal trace text ("Stream
+    // cancelled / DEADLINE_EXCEEDED / prefill servable…") that
+    // shouldn't show up in the mobile UI. Map known overload /
+    // timeout shapes to a single friendly line.
+    const rawMsg = err instanceof Error ? err.message : String(err ?? "");
+    const status = (err as { status?: number } | null)?.status ?? null;
+    const looksOverloaded =
+      status === 504 || status === 503 || status === 429 ||
+      /DEADLINE_EXCEEDED|deadline exceeded|stream cancelled|UNAVAILABLE|RESOURCE_EXHAUSTED|overload|timeout/i.test(rawMsg);
+    const friendly = looksOverloaded
+      ? "Solver failed due to load. Please retry."
+      : "Failed to solve question";
     await prisma.solverJob
-      .update({ where: { id: jobId }, data: { status: "error", error: msg, completedAt: new Date() } })
+      .update({ where: { id: jobId }, data: { status: "error", error: friendly, completedAt: new Date() } })
       .catch(() => {});
-    return NextResponse.json({ error: "Failed to solve question" }, { status: 500 });
+    return NextResponse.json({ error: friendly }, { status: looksOverloaded ? 503 : 500 });
   }
 }
