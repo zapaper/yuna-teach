@@ -545,11 +545,20 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         sname.includes("对话填空") ||
                         sname.includes("阅读理解");
                       const isLongOeqSection = sname.includes("阅读理解 A") && !sname.includes("OEQ");
+                      // 阅读理解 B is the short-OEQ section (Q34-40
+                      // on PSLE 华文). Any OEQ question inside it
+                      // gets the per-question Re-extract Answer
+                      // button so the editor can point at the right
+                      // answer-key page when the auto-extract picks
+                      // the wrong region.
+                      const isCompBSection = sname.includes("阅读理解 B");
                       return sec.questions.map(q => {
                         const hasOptions = Array.isArray(q.transcribedOptions) && q.transcribedOptions.length > 0;
                         const isLongOeqQuestion = isLongOeqSection && !hasOptions;
+                        const isCompBOeqQuestion = isCompBSection && !hasOptions;
                         const allowImageUpload = isChineseSection ? isLongOeqQuestion : true;
                         const allowImageCrop = isLongOeqQuestion;
+                        const allowReextractAnswer = isLongOeqQuestion || isCompBOeqQuestion;
                         return (
                           <QuestionRow
                             key={q.id}
@@ -560,6 +569,7 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                             auditFlag={auditFlags[q.id]}
                             allowImageUpload={allowImageUpload}
                             allowImageCrop={allowImageCrop}
+                            allowReextractAnswer={allowReextractAnswer}
                             pageImage={allowImageCrop && q.pageIndex != null ? pageImages[q.pageIndex] : undefined}
                           />
                         );
@@ -675,6 +685,7 @@ function QuestionRow({
   auditFlag,
   allowImageUpload = true,
   allowImageCrop = false,
+  allowReextractAnswer = false,
   pageImage,
 }: {
   question: ExamQuestionItem;
@@ -691,6 +702,11 @@ function QuestionRow({
    *  阅读理解 OEQ / 阅读理解 A / 阅读理解 B sections only — English /
    *  Math / Science don't need the cropper. */
   allowImageCrop?: boolean;
+  /** When true, show the "Re-extract Answer from page" control.
+   *  Strict superset of allowImageCrop — also true for 阅读理解 B
+   *  OEQ questions where the answer key may live on a different
+   *  page than the question itself. */
+  allowReextractAnswer?: boolean;
   /** Source page image for this question. When present and crop is
    *  allowed, the row shows a "Re-crop from page" button. */
   pageImage?: string;
@@ -1089,12 +1105,17 @@ function QuestionRow({
           );
         })()}
 
-        {/* Re-extract Answer from the answer-key page(s). Same gate
-            as the Crop button — only the long OEQ inside 阅读理解 A
-            (Chinese Q33) shows this. Every other Chinese question
-            has its answer auto-extracted correctly and doesn't need
-            the per-question rerun. */}
-        {allowImageCrop && (
+        {/* Re-extract Answer from the answer-key page(s).
+            Surfaced for:
+              • 阅读理解 A long OEQ (Chinese Q33) — answer key often
+                spans multiple lines + a footnote; the auto-extract
+                sometimes grabs just the footnote.
+              • 阅读理解 B OEQ questions — the answer key for short
+                OEQ frequently lives on a page far from the question,
+                so the auto-extract may pick the wrong region.
+            Every other Chinese question has its answer auto-extracted
+            correctly and doesn't need the per-question rerun. */}
+        {allowReextractAnswer && (
         <div className="mt-2 flex items-center gap-1 text-[10px]">
           <span className="text-slate-400 font-bold uppercase tracking-wider">Re-extract Ans from page</span>
           <input
