@@ -27,12 +27,13 @@ function isMcq(answer: string | null): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const { userId, studentId, quizType, subject, englishSections, sourcePaperId, scheduledFor, focused, revisionLevel } = await request.json() as {
+  const { userId, studentId, quizType, subject, englishSections, chineseSections, sourcePaperId, scheduledFor, focused, revisionLevel } = await request.json() as {
     userId: string;
     studentId?: string;
     quizType: "mcq" | "mcq-oeq";
-    subject?: "math" | "science" | "english";
+    subject?: "math" | "science" | "english" | "chinese";
     englishSections?: string[];
+    chineseSections?: string[]; // admin: section labels (e.g. "短文填空", "阅读理解 A")
     sourcePaperId?: string; // admin: generate test quiz from specific paper
     scheduledFor?: string; // ISO date; when the quiz should appear on the student's dashboard
     focused?: boolean; // when true + english + single section, take 2x questions for that section
@@ -214,6 +215,117 @@ export async function POST(request: NextRequest) {
   }
 
   const targetStudentId = studentId || userId;
+
+  // ── Chinese subject (admin-only) — pool Chinese masters and build
+  // a Test Quiz from the selected sections. The dashboard's Chinese
+  // checklist sends section labels that match chineseSections labels
+  // on the master ("短文填空", "阅读理解 A", "阅读理解 B OEQ", …).
+  // We pull the master's questions for those sections, copy the
+  // passages over, and stamp chineseSections metadata on the new
+  // paper so the quiz player picks up the section-aware layouts.
+  if (subject === "chinese") {
+    const actor = await prisma.user.findUnique({ where: { id: userId }, select: { name: true, settings: true } });
+    if (!isAdmin(actor)) {
+      return NextResponse.json({ error: "Chinese papers can only be assigned by an admin." }, { status: 403 });
+    }
+    if (!chineseSections || chineseSections.length === 0) {
+      return NextResponse.json({ error: "Pick at least one Chinese section." }, { status: 400 });
+    }
+    const wanted = new Set(chineseSections);
+    // Pull all uploaded Chinese masters (newest first), pool their
+    // questions for the selected sections.
+    const masters = await prisma.examPaper.findMany({
+      where: {
+        subject: { contains: "chinese", mode: "insensitive" },
+        sourceExamId: null,
+        extractionStatus: "ready",
+      },
+      orderBy: { createdAt: "desc" },
+      include: { questions: { orderBy: { orderIndex: "asc" } } },
+    });
+    if (masters.length === 0) {
+      return NextResponse.json({ error: "No extracted Chinese master papers found." }, { status: 404 });
+    }
+    type MasterSec = { label: string; startIndex: number; endIndex: number; passage?: string };
+    type PickedSec = MasterSec & { questions: typeof masters[0]["questions"]; sourcePaperId: string };
+    const pickedSections: PickedSec[] = [];
+    for (const master of masters) {
+      const cs = (master.metadata as { chineseSections?: MasterSec[] } | null)?.chineseSections ?? [];
+      for (const sec of cs) {
+        if (!wanted.has(sec.label)) continue;
+        // Skip if the section is already in the pool — avoid showing
+        // the same printed section twice when the admin has multiple
+        // years of the same paper.
+        if (pickedSections.some(p => p.label === sec.label)) continue;
+        const secQs = master.questions.slice(sec.startIndex, sec.endIndex + 1);
+        if (secQs.length === 0) continue;
+        pickedSections.push({ ...sec, questions: secQs, sourcePaperId: master.id });
+      }
+    }
+    if (pickedSections.length === 0) {
+      return NextResponse.json({ error: "No matching sections found across the Chinese masters." }, { status: 404 });
+    }
+    // Build the flat question list and a fresh chineseSections array
+    // with re-anchored indices into the test quiz's question pool.
+    const allQs: typeof masters[0]["questions"] = [];
+    const newChineseSections: MasterSec[] = [];
+    for (const sec of pickedSections) {
+      const startIndex = allQs.length;
+      allQs.push(...sec.questions);
+      newChineseSections.push({
+        label: sec.label,
+        startIndex,
+        endIndex: startIndex + sec.questions.length - 1,
+        ...(sec.passage ? { passage: sec.passage } : {}),
+      });
+    }
+    const totalMarks = allQs.reduce((sum, q) => sum + (q.marksAvailable ?? 1), 0);
+    const scheduledForDate2 = scheduledFor ? new Date(scheduledFor) : undefined;
+    const titleLabel = newChineseSections.length === 1
+      ? `Chinese — ${newChineseSections[0].label}`
+      : `Chinese — ${newChineseSections.length} sections`;
+    const testQuiz = await prisma.examPaper.create({
+      data: {
+        title: titleLabel,
+        subject: "Chinese",
+        level: masters[0].level,
+        userId,
+        assignedToId: targetStudentId,
+        ...(scheduledForDate2 ? { scheduledFor: scheduledForDate2 } : {}),
+        paperType: "quiz",
+        instantFeedback: true,
+        pageCount: 0,
+        extractionStatus: "ready",
+        totalMarks: String(totalMarks),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        metadata: {
+          quizType: "mcq",
+          chineseSections: newChineseSections,
+        } as any,
+        questions: {
+          create: allQs.map((q, i) => ({
+            questionNum: String(i + 1),
+            imageData: q.imageData,
+            answer: q.answer,
+            answerImageData: q.answerImageData,
+            marksAvailable: q.marksAvailable ?? 1,
+            syllabusTopic: q.syllabusTopic,
+            pageIndex: 0,
+            orderIndex: i,
+            transcribedStem: q.transcribedStem,
+            transcribedOptions: q.transcribedOptions ?? undefined,
+            transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+            transcribedOptionTable: q.transcribedOptionTable ?? undefined,
+            transcribedSubparts: q.transcribedSubparts ?? undefined,
+            diagramImageData: q.diagramImageData,
+            diagramBounds: q.diagramBounds ?? undefined,
+            sourceQuestionId: q.id,
+          })),
+        },
+      },
+    });
+    return NextResponse.json({ id: testQuiz.id, questionCount: allQs.length });
+  }
 
   // Get the student's level
   const student = await prisma.user.findUnique({

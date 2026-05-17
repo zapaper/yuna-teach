@@ -249,9 +249,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const [showQuiz, setShowQuiz] = useState(initialOpenQuiz ?? false);
   const [quizStudentId, setQuizStudentId] = useState(initialStudentId ?? user.linkedStudents[0]?.id ?? "");
   const [quizType, setQuizType] = useState<"mcq" | "mcq-oeq">("mcq");
-  const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english">("math");
+  const [quizSubject, setQuizSubject] = useState<"math" | "science" | "english" | "chinese">("math");
   // If the parent switches to a P3 student while English is selected,
-  // reset to Math — P3 English isn't supported yet.
+  // reset to Math — P3 English isn't supported yet. Chinese is admin-
+  // only, so if admin switches between students just keep their pick.
   useEffect(() => {
     const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
     if (quizStudent?.level === 3) {
@@ -259,6 +260,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     }
   }, [quizStudentId, user.linkedStudents]);
   const [englishSections, setEnglishSections] = useState<Set<string>>(new Set(["grammar-mcq", "vocab-mcq", "vocab-cloze"]));
+  // Chinese (admin only) — same shape as englishSections. Section
+  // keys are the labels stored on the master's chineseSections
+  // metadata so a daily-quiz pool can filter by exact match.
+  const [chineseSections, setChineseSections] = useState<Set<string>>(new Set(["语文应用 MCQ", "短文填空", "阅读理解 MCQ", "完成对话", "阅读理解 A", "阅读理解 B OEQ"]));
   const [assignMode, setAssignMode] = useState<"quiz" | "focused">("quiz");
   // Revision mode: when the student's settings.allowRevision is on and
   // they're at P >= 2, the parent can flip to one level below for the
@@ -1088,14 +1093,15 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
             // P3 English isn't supported yet — hide the option for P3
             // students. If quizSubject was already "english" when the
             // parent switched to a P3 student, the auto-correct effect
-            // below resets it.
+            // below resets it. Chinese is admin-only.
             const quizStudent = user.linkedStudents.find(s => s.id === quizStudentId);
             const isP3 = quizStudent?.level === 3;
-            const subjects = isP3 ? (["math", "science"] as const) : (["math", "science", "english"] as const);
+            const base: Array<"math" | "science" | "english"> = isP3 ? ["math", "science"] : ["math", "science", "english"];
+            const subjects: Array<"math" | "science" | "english" | "chinese"> = isAdminUser ? [...base, "chinese"] : base;
             return subjects.map(s => (
               <button key={s} onClick={() => setQuizSubject(s)}
                 className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizSubject === s ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
-                {s === "math" ? "Math" : s === "science" ? "Science" : "English"}
+                {s === "math" ? "Math" : s === "science" ? "Science" : s === "english" ? "English" : "Chinese"}
               </button>
             ));
           })()}
@@ -1164,7 +1170,42 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         })()}
         {assignMode === "quiz" && (<>
         <p className="text-xs font-extrabold text-[#43474f] uppercase tracking-wider mb-2">Type</p>
-        {quizSubject !== "english" ? (<>
+        {quizSubject === "chinese" ? (
+          // Chinese (admin-only) — mirror the English sections
+          // checklist. Section keys are the exact normalised labels
+          // the extraction pipeline writes to chineseSections, so the
+          // backend can filter the question pool by direct match.
+          <div className="mb-5">
+            <p className="text-[10px] text-[#43474f] mb-3">Select sections to include:</p>
+            <div className="space-y-2">
+              {[
+                { key: "语文应用 MCQ", label: "一 语文应用 (MCQ)" },
+                { key: "短文填空", label: "二 短文填空" },
+                { key: "阅读理解 MCQ", label: "三 阅读理解一 MCQ" },
+                { key: "完成对话", label: "四 完成对话" },
+                { key: "阅读理解 A", label: "五 阅读理解二 A (MCQ + 长 OEQ)" },
+                { key: "阅读理解 B OEQ", label: "五 阅读理解二 B (OEQ)" },
+              ].map(s => (
+                <label key={s.key} className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={chineseSections.has(s.key)}
+                    onChange={() => {
+                      setChineseSections(prev => {
+                        const next = new Set(prev);
+                        if (next.has(s.key)) next.delete(s.key);
+                        else next.add(s.key);
+                        return next;
+                      });
+                    }}
+                    className="w-4 h-4 rounded accent-[#006c49]"
+                  />
+                  <span className="text-sm text-[#001e40]">{s.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : quizSubject !== "english" ? (<>
           <div className="flex gap-2 mb-5">
             <button onClick={() => setQuizType("mcq")}
               className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-medium ${quizType === "mcq" ? "border-[#006c49] bg-[#6cf8bb]/20 text-[#006c49]" : "border-[#c3c6d1] text-[#43474f]"}`}>
@@ -1280,9 +1321,10 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                     userId: quizStudentId,
-                    quizType: quizSubject === "english" ? "mcq" : quizType,
+                    quizType: quizSubject === "english" || quizSubject === "chinese" ? "mcq" : quizType,
                     subject: quizSubject,
                     ...(quizSubject === "english" && englishSections.size > 0 ? { englishSections: [...englishSections] } : {}),
+                    ...(quizSubject === "chinese" && chineseSections.size > 0 ? { chineseSections: [...chineseSections] } : {}),
                     ...(revisionLevel ? { revisionLevel } : {}),
                     ...(scheduledForIso ? { scheduledFor: scheduledForIso } : {}),
                   }),
