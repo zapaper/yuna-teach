@@ -934,6 +934,14 @@ function chineseMarkingRules(subject: string | null | undefined): string {
   - 阅读理解 OEQ (open-ended comprehension): award marks based on whether the student's 中文 answer captures the required idea. Synonymous phrasings are accepted. Partial credit allowed when marksAvailable > 1.
   - 短文填空 / 阅读理解 MCQ: exact option match (1-4 digit). No partial marks.
   - 完成对话: exact word-bank digit (1-8) match. No partial marks.
+
+  CHINESE 长 OEQ RUBRIC SCORING (e.g. 五-A Q33, 4 marks):
+  - When the expected answer (answer key) contains (0.5) / (1) notations interleaved with phrases, that is the MARKING RUBRIC. Each (0.5) marks a content phrase worth 0.5.
+  - Score CONTENT: for each (0.5) phrase in the rubric, check if the student's answer contains that phrase OR an equivalent idea. Award 0.5 per match. Synonyms / paraphrases of the rubric phrase still count.
+  - Score LANGUAGE (the remaining 2 marks on a 4-mark question): start from full language marks and deduct 0.5 per category of error — major grammar / sentence-structure mistake, wrong / missing punctuation, awkward flow / unclear referent, or character / homophone error. Cap deduction at the full language allocation.
+  - Final marksAwarded = content_score + language_score. Round to the nearest 0.5. Clamp to [0, marksAvailable].
+  - In your Chinese feedback note, briefly list which content phrases were captured and any language deductions.
+
   - LANGUAGE OF OUTPUT — CRITICAL: EVERY string in the "notes" / "feedback" field of your JSON response MUST be written in Simplified Chinese (简体中文). Do NOT respond in English. Do NOT use British English. Numbers and punctuation may stay as printed.
   `;
 }
@@ -3323,17 +3331,20 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
 题目:
 ${(q.transcribedStem ?? "").replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim()}
 
-参考答案:
+参考答案 (可能包含 (0.5) 等评分要点标注):
 ${expectedAnswer}
 
 总分: ${marksAvailable}
 
 批改要求:
 - 仔细辨认学生写的汉字，逐字读出后再判断答案是否正确。
-- 答案的意思与参考答案相同就给满分，允许同义词、不同的语序、近义表达。
-- 错别字: 每个错别字扣 0.5 分，但不要因为简繁体差异扣分。
+- 如果参考答案里出现 (0.5)、(1) 等数字标注，那是评分细则：每个标注代表一个内容要点的分值。逐一检查学生答案是否覆盖该要点 (同义、改写都算)，每命中一个就加上该分值。
+- 长 OEQ (满分 4 分) 的典型结构: 内容 2 分 (通常是 4 × 0.5)、语文运用 2 分。语文运用从满分开始，每出现一处明显的语病、错别字、标点错误、句子不通顺，就扣 0.5，直到扣完为止。
+- 较短的 OEQ (满分 1-3 分) 按内容要点累计即可，没有单独的语文分。
+- 错别字: 每个错别字扣 0.5 分 (在语文分里扣)，简繁体差异不扣。
 - 答案为空白或仅有少量无意义涂鸦时给 0 分。
-- 反馈 (feedback) 必须用简体中文写，简洁清晰，最多两句。
+- 最终分数按 0.5 取整，范围 [0, ${marksAvailable}]。
+- 反馈 (feedback) 必须用简体中文写，简洁清晰，列出命中的要点和扣分原因，最多两句。
 
 请返回 JSON:
 {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "detectedAnswer": "<学生写的内容>", "feedback": "<中文反馈>"}]}`,

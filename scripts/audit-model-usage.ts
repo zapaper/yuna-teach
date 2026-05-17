@@ -16,7 +16,7 @@ async function main() {
     const meta = p.metadata as Record<string, unknown> | null;
     const fb = (meta as { fallbackModelUsed?: string } | null)?.fallbackModelUsed;
     if (fb) fallbackHits[fb] = (fallbackHits[fb] ?? 0) + 1;
-    console.log(`${p.createdAt.toISOString().slice(0,10)}  ${p.extractionStatus.padEnd(7)} ${(p.subject ?? "-").padEnd(10)} fb=${fb ?? "."}  ${p.title?.slice(0, 50)}`);
+    console.log(`${p.createdAt.toISOString().slice(0,10)}  ${(p.extractionStatus ?? "-").padEnd(7)} ${(p.subject ?? "-").padEnd(10)} fb=${fb ?? "."}  ${p.title?.slice(0, 50)}`);
   }
   console.log("\n--- summary ---");
   console.log(`ready: ${totalReady}, failed: ${totalFailed}`);

@@ -2640,6 +2640,15 @@ shared block across the parts whose answers appear in its
 - If you genuinely cannot read an answer, output {"type": "text", "value": "?"} as a placeholder
 - It is far better to output a "?" placeholder than to silently omit a key
 
+### CHINESE PAPERS — 长 OEQ marking rubric (e.g. 阅读理解二 五-A Q33):
+- A long Chinese OEQ answer key often shows a SAMPLE answer (e.g. a phone-note / 短信 / 邀请 transcript) with partial-credit notations like 「XXXX」(0.5)、「YYYY」(0.5) interleaved with the prose.
+- The notations are the RUBRIC: each (0.5) means "award 0.5 marks for including this phrase / idea".
+- Preserve EVERY (0.5), (1), (1.5), (2) marking VERBATIM in the value string — they tell the marker how to score the student answer.
+- Also include the SAMPLE answer text so the marker can compare wording.
+- Typical 4-mark structure: ~4 content phrases × 0.5 marks = 2 marks for content + 2 marks for language (grammar, punctuation, flow). Note any language-mark guidance the answer key prints.
+- Example value:
+  "亲爱的小文: | 我想邀请你 (0.5) 一起回学校 (0.5) 参加 50 周年校庆。 | 我们可以一起 (0.5) 看历史走廊。 | 时间: 10 月 28 日 (0.5)。 | 思佳上。 | 满分 4 分: 内容 2 分 (4 × 0.5)、语文运用 2 分 (扣分: 错别字/语病/标点 每处 0.5)。"
+
 ## OUTPUT FORMAT
 Return ONLY valid JSON:
 {
