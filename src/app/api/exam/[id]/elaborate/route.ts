@@ -246,21 +246,33 @@ export async function POST(
       ? `\n\nHere is the visual text (flyer/poster/advertisement) that the question refers to:\n${visualTextContext}\n`
       : "";
 
-    // For Grammar Cloze / Editing: include the passage text for context
+    // For Grammar Cloze / Editing: include the passage text for context.
+    // Chinese 阅读理解 / 短文填空 / 完成对话 questions ALSO get passage
+    // context — the metadata key is `chineseSections` instead of
+    // `englishSections`, same shape.
     let passageContext = "";
     const topic = (question.syllabusTopic ?? "").toLowerCase();
+    const rawTopic = question.syllabusTopic ?? "";
     const isGrammarCloze = topic.includes("grammar") && topic.includes("cloze");
     const isEditing = topic.includes("editing");
     const isCompCloze = topic.includes("comprehension") && topic.includes("cloze");
     const isCompOeq = (topic.includes("comprehension") && (topic.includes("open") || topic.includes("oeq")));
-    if ((isGrammarCloze || isEditing || isCompCloze || isCompOeq) && question.examPaper?.metadata) {
-      const paperMeta = question.examPaper.metadata as { englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }> };
-      if (paperMeta.englishSections) {
-        const qIdx = parseInt(question.questionNum) - 1; // 0-based
-        const sec = paperMeta.englishSections.find(s => qIdx >= s.startIndex && qIdx <= s.endIndex);
-        if (sec?.passage && !sec.passage.startsWith("[")) {
-          passageContext = sec.passage;
-        }
+    const isChinesePaper = subjectLower.includes("chinese") || subjectLower.includes("华文") || subjectLower.includes("中文");
+    const isChineseCompMcq = rawTopic.includes("阅读理解 MCQ") || rawTopic.includes("阅读理解 mcq");
+    const isChineseCompOeq = rawTopic.includes("阅读理解 OEQ") || rawTopic.includes("阅读理解 oeq");
+    const isChineseVocabCloze = rawTopic.includes("短文填空");
+    const isChineseDialogue = rawTopic.includes("完成对话") || rawTopic.includes("对话填空");
+    const needsPassage = isGrammarCloze || isEditing || isCompCloze || isCompOeq || isChineseCompMcq || isChineseCompOeq || isChineseVocabCloze || isChineseDialogue;
+    if (needsPassage && question.examPaper?.metadata) {
+      const paperMeta = question.examPaper.metadata as {
+        englishSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }>;
+        chineseSections?: Array<{ label: string; startIndex: number; endIndex: number; passage?: string }>;
+      };
+      const allSecs = [...(paperMeta.englishSections ?? []), ...(paperMeta.chineseSections ?? [])];
+      const qIdx = parseInt(question.questionNum) - 1; // 0-based
+      const sec = allSecs.find(s => qIdx >= s.startIndex && qIdx <= s.endIndex);
+      if (sec?.passage && !sec.passage.startsWith("[")) {
+        passageContext = sec.passage;
       }
     }
     if (isGrammarCloze || isEditing || isCompCloze) {
@@ -272,7 +284,9 @@ export async function POST(
       }
     }
     const passageNote = passageContext
-      ? `\n\nHere is the FULL passage that this question is based on:\n${passageContext}\n\n${isCompOeq ? "Use the passage to explain the answer to this comprehension question." : `Focus on blank (${question.questionNum}) in the passage above. Look at the surrounding sentences to explain the answer.`}\n`
+      ? isChinesePaper
+        ? `\n\n以下是这道题对应的整段短文：\n${passageContext}\n\n${isChineseCompMcq || isChineseCompOeq ? "请根据短文内容解释答案。" : isChineseVocabCloze ? `请聚焦于短文中的空格（第 ${question.questionNum} 题），从前后文判断哪个选项最合适。` : isChineseDialogue ? `请聚焦于对话中的空格（第 ${question.questionNum} 题），从上下文判断哪一项最合适。` : "请利用短文内容解释答案。"}\n`
+        : `\n\nHere is the FULL passage that this question is based on:\n${passageContext}\n\n${isCompOeq ? "Use the passage to explain the answer to this comprehension question." : `Focus on blank (${question.questionNum}) in the passage above. Look at the surrounding sentences to explain the answer.`}\n`
       : "";
     // For synthesis: combine keyword with student's typed answer
     const isSynthesis = topic.includes("synthesis");
@@ -309,9 +323,22 @@ export async function POST(
               : "";
 
     const hasDiagramHere = !!question.diagramImageData;
-    const answerAnchor = `**The answer is ${question.answer ?? "Not provided"} — this is the official answer key and is authoritative.**${hasDiagramHere ? " The question contains a diagram which may be hard to read precisely from the image alone — when in doubt, trust the answer key over your reading of the diagram and work backwards to justify it." : ""} Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine and explain how the official answer is reached.`;
+    const answerAnchor = isChinesePaper
+      ? `**正确答案是：${question.answer ?? "未提供"}** — 这是官方参考答案，须以此为准。${hasDiagramHere ? "若题目含有图示，可能不易精确辨认；遇到分歧时以参考答案为准，并据此倒推合理解释。" : ""} 你的解释必须最终落到此答案。如果你的推理指向其他选项，那是你看错了题目，请重新阅读并解释如何得出参考答案。`
+      : `**The answer is ${question.answer ?? "Not provided"} — this is the official answer key and is authoritative.**${hasDiagramHere ? " The question contains a diagram which may be hard to read precisely from the image alone — when in doubt, trust the answer key over your reading of the diagram and work backwards to justify it." : ""} Your explanation MUST arrive at this answer. If your working seems to point at a different answer, you have misread the question or diagram — re-examine and explain how the official answer is reached.`;
     parts.push({
-      text: `You are a helpful tutor for a primary/secondary school student.
+      text: isChinesePaper ? `你是一位耐心的华文老师，正在帮一位小学生理解这道题。
+
+题目：
+${questionText}
+${visualTextNote}${passageNote}
+${answerAnchor}${studentAnswerNote}
+
+请直接给出正确答案，然后用简单清楚的简体中文，按步骤解释为什么这是正确答案。不要讨论学生哪里错了，也不要列出失分原因——只教正确思路。${sectionHint}
+
+"solution" 字段的内容必须用简体中文，控制在 150 字以内，语气友好、简单易懂。可以用 **双星号** 标出关键词或步骤标签 (例如 **关键词:**、**答案:**)。${isChineseCompMcq || isChineseCompOeq ? " 引用短文里相关的语句来支持你的解释。" : ""}${isChineseVocabCloze ? " 请说明所选选项为什么最贴合空格前后的语境，其他选项为什么不行。" : ""}${isChineseDialogue ? " 请说明所选短语为什么最适合对话情境。" : ""} 数字、(1)/(2)/(3)/(4) 等选项标号保持原样。不要使用任何 LaTeX 或英文公式语法。
+
+${COMMON_DIAGRAM_RULES.replace(/^When a fraction[\s\S]*?return "diagrams": \[\]\./, "Chinese 阅读 / 词语题不需要画图，请直接返回 \"diagrams\": [].")}` : `You are a helpful tutor for a primary/secondary school student.
 
 Here is the question:
 ${questionText}

@@ -2424,7 +2424,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                       })()}</p>
                                     )}
                                   </div>
-                                  {correctAns && (
+                                  {correctAns && !(Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) && (
+                                    // Hide the textual "Correct answer:" line
+                                    // for MCQ — the option list above already
+                                    // highlights the correct option in green
+                                    // and the student-picked one in red.
                                     <div className="text-sm text-[#006c49]">
                                       <span className="font-semibold">Correct answer:</span>
                                       <ReviewRichText text={correctAns} />
