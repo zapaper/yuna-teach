@@ -501,6 +501,17 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                   </div>
                 )}
 
+                {/* Chinese 短文填空 quiz preview — mirrors the quiz
+                    player's inline 4-option pickers so admins can
+                    eyeball the section the way the student sees it.
+                    Correct answer is highlighted in green. */}
+                {sec.name.includes("短文填空") && (
+                  <ShortClozeQuizPreview
+                    passage={ocrData?.ocrText ?? ""}
+                    questions={sec.questions}
+                  />
+                )}
+
                 {/* Questions */}
                 <div className="p-4">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">
@@ -524,6 +535,82 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// Chinese 短文填空 quiz preview — read-only mirror of the
+// ChineseQuizSection inline-pickers branch. Renders the passage
+// with each **...** blank replaced by a row of 4 option buttons.
+// The CORRECT answer is highlighted in green so the admin can
+// verify the answer key + passage shape at a glance.
+function ShortClozeQuizPreview({
+  passage,
+  questions,
+}: {
+  passage: string;
+  questions: ExamQuestionItem[];
+}) {
+  if (!passage) return null;
+  const dividerIdx = passage.indexOf("---OPTIONS---");
+  const passageOnly = dividerIdx >= 0 ? passage.slice(0, dividerIdx) : passage;
+  const sortedQs = [...questions].sort((a, b) =>
+    a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
+  );
+  // Walk every **...** occurrence; nth occurrence = nth question.
+  const blankRe = /\*\*[^*]*\*\*/g;
+  type Seg = { kind: "text" | "blank"; text: string; qIdx: number };
+  const segments: Seg[] = [];
+  let lastEnd = 0;
+  let bi = 0;
+  for (const m of passageOnly.matchAll(blankRe)) {
+    if (m.index! > lastEnd) segments.push({ kind: "text", text: passageOnly.slice(lastEnd, m.index!), qIdx: -1 });
+    segments.push({ kind: "blank", text: m[0], qIdx: bi });
+    bi++;
+    lastEnd = m.index! + m[0].length;
+  }
+  if (lastEnd < passageOnly.length) segments.push({ kind: "text", text: passageOnly.slice(lastEnd), qIdx: -1 });
+  return (
+    <div className="p-4 bg-[#f7faff] border-b border-slate-100">
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Quiz preview (answer key in green)</p>
+      <div className="bg-white rounded-2xl p-5 lg:p-6 shadow-sm border border-slate-100">
+        <p className="text-sm text-slate-500 italic mb-4">阅读短文，从每题的四个选项中选出最合适的答案。</p>
+        <div className="leading-loose text-base text-[#0b1c30]">
+          {segments.map((seg, i) => {
+            if (seg.kind === "text") return <span key={i} className="whitespace-pre-wrap">{seg.text}</span>;
+            const q = sortedQs[seg.qIdx];
+            if (!q) return <span key={i} className="text-slate-400 border-b border-slate-400 px-3">______</span>;
+            const opts = (q.transcribedOptions as string[] | null) ?? ["", "", "", ""];
+            const correctRaw = (q.answer ?? "").replace(/[().]/g, "").trim();
+            const correctNum = parseInt(correctRaw, 10);
+            return (
+              <span key={i} className="inline-flex flex-wrap items-center gap-1 align-middle mx-1 my-1 bg-[#eff4ff] border border-[#d3e4fe] rounded-xl px-2 py-1 max-w-full">
+                <span className="text-[10px] font-extrabold text-[#003366] bg-white px-1.5 rounded">Q{parseInt(q.questionNum)}</span>
+                {[0, 1, 2, 3].map(oi => {
+                  const optNum = oi + 1;
+                  const isCorrect = !isNaN(correctNum) && correctNum === optNum;
+                  const isEmpty = !opts[oi];
+                  return (
+                    <span
+                      key={oi}
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
+                        isCorrect
+                          ? "bg-[#006c49] text-white border-[#006c49]"
+                          : isEmpty
+                            ? "bg-slate-100 text-slate-300 border-slate-200"
+                            : "bg-white text-[#001e40] border-[#c3c6d1]"
+                      }`}
+                      title={isEmpty ? "(option missing)" : opts[oi]}
+                    >
+                      ({optNum}) {opts[oi] || "—"}
+                    </span>
+                  );
+                })}
+              </span>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
