@@ -270,12 +270,12 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
   }
 
   return (
-    {/* select-none + WebkitTouchCallout: none locally on the canvas
-        wrapper. The quiz root previously had this globally, but it was
-        relaxed so the dictionary could pick up text selections on
-        stems / passages / MCQ options. Without these here, every
-        pointer-move on the canvas competes with the browser's
-        selection / callout machinery, which feels like pen lag. */}
+    // select-none + WebkitTouchCallout: none applied locally on the
+    // canvas wrapper. The quiz root previously had this globally but
+    // was relaxed so the dictionary can pick up text selections on
+    // stems / passages / MCQ options. Without these here, every
+    // pointer-move on the canvas competes with the browser's
+    // selection / callout machinery, which feels like pen lag.
     <div
       className="bg-white rounded-2xl shadow-sm ring-1 ring-[#c3c6d1]/20 overflow-hidden select-none"
       style={{ height: CSS_H, WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none" }}
