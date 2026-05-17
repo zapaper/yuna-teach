@@ -967,7 +967,17 @@ function QuizContent({ id }: { id: string }) {
   const answeredCount = Object.keys(mcqAnswers).length;
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] pb-24 select-none" style={{ WebkitTouchCallout: "none", WebkitUserSelect: "none" }}>
+    <div
+      className={`min-h-screen bg-[#f8f9ff] pb-24 ${isChineseQuiz ? "" : "select-none"}`}
+      style={isChineseQuiz
+        // Chinese quizzes need text selection enabled so the dictionary
+        // can pick up the student's highlight on stems / options /
+        // passages. The root-wide select-none was added for English
+        // quizzes to prevent accidental tap-to-select on mobile —
+        // Chinese inherits its own per-element selection gates instead.
+        ? undefined
+        : { WebkitTouchCallout: "none", WebkitUserSelect: "none" }}
+    >
       {/* ── Mobile Top Bar (split pills) ──
           Single pill used to overflow off-screen on narrow phones —
           the Submit button got half-clipped on the right edge.

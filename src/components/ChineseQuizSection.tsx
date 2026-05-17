@@ -559,7 +559,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                   // to a single paragraph naturally.
                   const paras = q.transcribedStem.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
                   return (
-                    <div className="mb-3">
+                    <div className="mb-3 select-text" style={{ WebkitUserSelect: "text", userSelect: "text", WebkitTouchCallout: "default" }}>
                       {paras.map((para, pi) => (
                         <p key={pi} className="text-sm text-[#0b1c30] leading-relaxed mb-2 last:mb-0 whitespace-pre-wrap">
                           <FormattedText text={para} />
@@ -576,20 +576,33 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                       return (
                         <button
                           key={oi}
-                          onClick={() => onAnswer(q.id, optNum)}
-                          className={`w-full text-left p-3 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                          onClick={(e) => {
+                            // Don't pick this option if the user was
+                            // selecting text within it (dictionary lookup).
+                            // window.getSelection().toString() catches the
+                            // case where mouse-up after a drag-select still
+                            // fires click on the same element.
+                            const sel = typeof window !== "undefined" ? window.getSelection() : null;
+                            const selText = sel?.toString() ?? "";
+                            if (selText && e.currentTarget.contains(sel?.anchorNode ?? null)) return;
+                            onAnswer(q.id, optNum);
+                          }}
+                          className={`w-full text-left p-3 rounded-xl border-2 transition-all flex items-center gap-3 select-text ${
                             selected ? "border-[#006c49] bg-[#6cf8bb]/10" : "border-slate-200 hover:border-[#003366]/30"
                           }`}
+                          style={{ WebkitUserSelect: "text", userSelect: "text", WebkitTouchCallout: "default" }}
                         >
-                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 select-none ${
                             selected ? "bg-[#006c49] text-white" : "bg-[#eff4ff] text-[#001e40]"
-                          }`}>{oi + 1}</span>
+                          }`} style={{ WebkitUserSelect: "none", userSelect: "none" }}>{oi + 1}</span>
                           {/* Options can carry **__word__** for the
                               tested phrase (Q13-15 in 语文应用 MCQ
                               "pick the correct sentence" sub-bank).
                               Run through FormattedText so the bold +
                               underline render instead of leaking the
-                              raw markdown to the page. */}
+                              raw markdown to the page. select-text on
+                              the parent <button> opens dictionary lookup
+                              on long-press / drag-highlight. */}
                           <FormattedText text={opt} className="text-sm text-[#001e40]" />
                         </button>
                       );
