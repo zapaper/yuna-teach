@@ -3837,6 +3837,9 @@ export async function analyzeExamBatch(
 
           // OCR the passage pages as a line-numbered table when needed.
           let passageOcrText = "";
+          if (needsPassageOcr && passagePagesForOEQ.length === 0) {
+            console.warn(`[Exam Pipeline] ${secLabel}: needsPassageOcr=true but passagePagesForOEQ is EMPTY — passage will be missing in /edit and quiz. Fallback to startPage-1 didn't fire.`);
+          }
           if (needsPassageOcr && passagePagesForOEQ.length > 0) {
             console.log(`[Exam Pipeline] ${secLabel}: OCR passage pages [${passagePagesForOEQ.map(p => p + 1).join(", ")}] as line-numbered table`);
             const passageOcrParts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
