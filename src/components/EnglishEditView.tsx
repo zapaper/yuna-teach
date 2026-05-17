@@ -114,28 +114,35 @@ function groupFromChineseMetadata(
   for (const sec of chineseSections) {
     const qs = questions.slice(sec.startIndex, sec.endIndex + 1);
     if (qs.length === 0) continue;
-    // Find the OCR key that best matches this section. Try in priority:
-    //   1. exact label match (handles 短文填空 / 完成对话 / 语文应用 MCQ)
-    //   2. exact match for the section's underlying syllabusTopic
-    //      (impedance-matches "阅读理解 MCQ" / "阅读理解 OEQ" keys with
-    //      the merged "阅读理解 A" / "阅读理解 B OEQ" labels)
-    //   3. (pp<a>-<b>) suffix key whose pages overlap section pages
+    // Find the OCR key. Priority order:
+    //   1. Among all keys whose label matches this section's
+    //      syllabusTopic (or our renamed label), pick the one whose
+    //      pageIndices overlap THIS section's question pages. Critical
+    //      for 阅读理解 A — its underlying topic is 阅读理解 MCQ,
+    //      which matches TWO OCR keys (section 三 on page 7 and
+    //      五-A on page 10). Without the page overlap check the
+    //      naive "first match wins" picks section 三's OCR and the
+    //      /edit view shows Q21-25 text under 五-A.
+    //   2. Exact section.label match (covers 短文填空 / 完成对话 /
+    //      语文应用 MCQ where there's only one OCR key per topic).
+    //   3. Exact match for the question's syllabusTopic (last-resort
+    //      single key with no page-index data).
     const ocrKeys = Object.keys(sectionOcrTexts ?? {});
+    const firstTopic = qs[0].syllabusTopic ?? "";
+    const pageSet = new Set(qs.map(q => q.pageIndex));
     let ocrKey: string | null = null;
-    if (ocrKeys.includes(sec.label)) ocrKey = sec.label;
-    if (!ocrKey) {
-      const firstTopic = qs[0].syllabusTopic ?? "";
-      if (firstTopic && ocrKeys.includes(firstTopic)) ocrKey = firstTopic;
-      // Multi-key topic — pick the entry whose pageIndices overlap.
-      if (!ocrKey && firstTopic) {
-        const pageSet = new Set(qs.map(q => q.pageIndex));
-        for (const k of ocrKeys) {
-          if (k !== firstTopic && !k.startsWith(firstTopic + " (")) continue;
-          const pi = (sectionOcrTexts?.[k]?.pageIndices ?? []) as number[];
-          if (pi.some(p => pageSet.has(p))) { ocrKey = k; break; }
-        }
+    // Step 1: page-overlap match among candidate keys for this topic.
+    if (firstTopic) {
+      const candidates = ocrKeys.filter(k => k === firstTopic || k.startsWith(firstTopic + " ("));
+      for (const k of candidates) {
+        const pi = (sectionOcrTexts?.[k]?.pageIndices ?? []) as number[];
+        if (pi.some(p => pageSet.has(p))) { ocrKey = k; break; }
       }
     }
+    // Step 2: exact label match.
+    if (!ocrKey && ocrKeys.includes(sec.label)) ocrKey = sec.label;
+    // Step 3: exact topic match (no page data).
+    if (!ocrKey && firstTopic && ocrKeys.includes(firstTopic)) ocrKey = firstTopic;
     out.push({ name: sec.label, ocrKey: ocrKey ?? sec.label, questions: qs });
   }
   return out;
@@ -518,16 +525,29 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                     Questions & Answers
                   </p>
                   <div className="space-y-3">
-                    {sec.questions.map(q => (
-                      <QuestionRow
-                        key={q.id}
-                        question={q}
-                        onSave={onSave}
-                        onDelete={onDelete}
-                        saving={saving}
-                        auditFlag={auditFlags[q.id]}
-                      />
-                    ))}
+                    {(() => {
+                      // Chinese sections 1-4 (语文应用 MCQ, 短文填空,
+                      // 阅读理解 MCQ, 完成对话) should NOT carry an
+                      // "Upload image" control — only 阅读理解 A's
+                      // long OEQ Q33 and (potentially) any 阅读理解
+                      // OEQ question can have an attached picture.
+                      // Detection: any Chinese section that doesn't
+                      // contain "OEQ" / "A" / "B" gets no upload.
+                      const sname = sec.name;
+                      const isChineseLabel = sname.includes("语文应用") || sname.includes("短文填空") || sname.includes("完成对话") || sname.includes("对话填空") || sname.includes("阅读理解");
+                      const allowImageUpload = !isChineseLabel || sname.includes("OEQ") || sname.includes("阅读理解 A") || sname.includes("阅读理解 B");
+                      return sec.questions.map(q => (
+                        <QuestionRow
+                          key={q.id}
+                          question={q}
+                          onSave={onSave}
+                          onDelete={onDelete}
+                          saving={saving}
+                          auditFlag={auditFlags[q.id]}
+                          allowImageUpload={allowImageUpload}
+                        />
+                      ));
+                    })()}
                   </div>
                 </div>
               </div>
@@ -636,12 +656,18 @@ function QuestionRow({
   onDelete,
   saving,
   auditFlag,
+  allowImageUpload = true,
 }: {
   question: ExamQuestionItem;
   onSave: (questionId: string, data: Record<string, unknown>) => Promise<void>;
   onDelete?: (questionId: string) => void;
   saving: string | null;
   auditFlag?: string;
+  /** When false, hide the Upload/Replace/Delete image controls.
+   *  Used for Chinese sections 1-4 (语文应用 MCQ / 短文填空 /
+   *  阅读理解 MCQ / 完成对话) where no diagram should ever be
+   *  attached — only 阅读理解 A's long OEQ Q33 needs one. */
+  allowImageUpload?: boolean;
 }) {
   const [editAnswer, setEditAnswer] = useState(false);
   const [answerDraft, setAnswerDraft] = useState(q.answer ?? "");
@@ -911,41 +937,43 @@ function QuestionRow({
             className="max-h-32 rounded border border-slate-200 mb-2"
           />
         )}
-        <div className="flex items-center gap-2 mb-2 text-[10px]">
-          <label className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold cursor-pointer transition-colors">
-            <span className="material-symbols-outlined text-xs">{q.imageData ? "swap_horiz" : "add_photo_alternate"}</span>
-            {q.imageData ? "Replace image" : "Upload image"}
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={async e => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const dataUrl = await new Promise<string>((resolve, reject) => {
-                  const reader = new FileReader();
-                  reader.onload = () => resolve(reader.result as string);
-                  reader.onerror = reject;
-                  reader.readAsDataURL(file);
-                });
-                await onSave(q.id, { imageData: dataUrl });
-                e.target.value = "";
-              }}
-            />
-          </label>
-          {q.imageData && (
-            <button
-              type="button"
-              onClick={async () => {
-                if (!confirm("Remove this question's image?")) return;
-                await onSave(q.id, { imageData: null });
-              }}
-              className="px-2 py-1 rounded-md bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 font-bold transition-colors"
-            >
-              <span className="material-symbols-outlined text-xs">delete</span>
-            </button>
-          )}
-        </div>
+        {allowImageUpload && (
+          <div className="flex items-center gap-2 mb-2 text-[10px]">
+            <label className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold cursor-pointer transition-colors">
+              <span className="material-symbols-outlined text-xs">{q.imageData ? "swap_horiz" : "add_photo_alternate"}</span>
+              {q.imageData ? "Replace image" : "Upload image"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const dataUrl = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                  });
+                  await onSave(q.id, { imageData: dataUrl });
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {q.imageData && (
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!confirm("Remove this question's image?")) return;
+                  await onSave(q.id, { imageData: null });
+                }}
+                className="px-2 py-1 rounded-md bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 font-bold transition-colors"
+              >
+                <span className="material-symbols-outlined text-xs">delete</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Answer — OEQ gets its own full-width textarea, MCQ stays inline */}
         {(() => {

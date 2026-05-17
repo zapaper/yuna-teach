@@ -3195,7 +3195,11 @@ async function runExtractionCall(
   // and 504s under load. 2.5-flash is fastest; 3-flash-preview reads
   // grids better; 3.1-pro-preview is the last resort with separate
   // gateway capacity (gets through when the flash tiers are saturated).
-  const QEX_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
+  // gemini-3-flash-preview dropped — it was responsible for most of
+  // the 504 cascades the user reported. Replaced with 2.5-pro as the
+  // second-try: different SKU, different gateway, slower but more
+  // stable. 3.1-pro-preview stays as last-resort (its own gateway).
+  const QEX_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const;
   // Chinese-only fail-fast: retrying a 504-saturated model 3x burns
   // 90-180s and starves the rest of the chain. The chain itself IS
   // the retry. Non-Chinese papers keep maxRetries=2.
@@ -3375,7 +3379,9 @@ async function extractAnswersWithWorking(
   // question-extraction call above. 3.1-pro-preview is the last
   // resort: separate gateway capacity, gets through when flash tiers
   // are saturated.
-  const ANS_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
+  // 3-flash-preview dropped (see QEX_MODELS rationale). 2.5-pro is
+  // the new second-try.
+  const ANS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const;
   // Chinese-only fail-fast — derived from the structure header so the
   // retry budget shrinks only for 华文 papers, leaving English / Math /
   // Science behavior unchanged.
@@ -3950,6 +3956,8 @@ CHINESE PAPER (华文) — language-specific rules:
   Then output the dialogue / conversation. Each numbered blank in the dialogue is "**(N)________**" where N is the question number (e.g. "(36)", "(37)"). The student writes a single DIGIT 1-8 (one of the word-bank labels) in each blank.
   IMPORTANT: word-bank labels are NUMBERS (1-8). Do NOT relabel them as 甲/乙/丙 or A/B/C — keep them as the digits printed in the paper.
 - For 阅读理解 MCQ / 阅读理解 OEQ: copy the passage verbatim above the questions, paragraph by paragraph. Do NOT translate. Every paragraph's first line — INCLUDING the very first paragraph — MUST start with 4 leading spaces. Do not skip the indent on paragraph 1.
+- For 语文应用 MCQ (一, Q1-15) — PRESERVE the test-phrase markup in each stem. The printed paper highlights the phrase being tested by making it BOLD and UNDERLINED (e.g. 国强只是 **__稍微__** 用力一拉…). In your output the tested phrase MUST be wrapped as **__phrase__** (double-asterisks PLUS double-underscores) so the renderer shows the bold-underline correctly. Do NOT strip the markup, do NOT replace it with plain text. Same rule applies wherever you see a bold-underlined phrase in any Chinese question stem.
+- Passage / 阅读理解 OCR output: do NOT include the section title (e.g. "一 语文应用", "二 短文填空", "三 阅读理解一"), the section instruction line ("根据短文的内容…"), or page numbers. Output ONLY the passage prose itself.
 - 作文 (composition) and 听力 (listening) sections: output empty — those sections are extraction-skipped.
 ` : ""}
 - PARAGRAPH INDENTATION — CRITICAL: When the original text shows a NEW PARAGRAPH (indented first line), you MUST start that line with exactly 4 spaces. This is how the UI detects paragraph breaks. Every indented line in the original = 4 spaces at the start in your output. Do NOT skip this.
@@ -4035,12 +4043,10 @@ Output ONLY the clean passage/question text, no commentary.` });
           // is the last-resort: different model family with separate
           // gateway capacity, so it usually goes through when both
           // flash tiers are saturated.
-          // 2.5-flash is now FIRST in the chain because 3-flash-preview
-          // has been 504-ing on Chinese passage prompts (Stream
-          // cancelled / DEADLINE_EXCEEDED). Keep 3-flash-preview as
-          // the second try since it handles English line-numbered
-          // tables better when the gateway IS healthy.
-          const OCR_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"] as const;
+          // 3-flash-preview dropped entirely (kept 504-ing on Chinese
+          // passage prompts). 2.5-pro is the new second-try — slower
+          // but a different gateway with separate capacity.
+          const OCR_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const;
           // Chinese-only: skip per-model 504 retries. The chain itself
           // is the retry — re-attempting a 504-saturated model 3x
           // burns 90-180s before falling through to the next model and
@@ -4173,7 +4179,11 @@ Return ONLY valid JSON:
           // separate gateway capacity, so it gets through when both
           // flash tiers are 504-ing on big Chinese prompts. A whole
           // section's text-extract failing is an extraction killer.
-          const TEXT_EXTRACT_MODELS = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.1-pro-preview"] as const;
+          // 3-flash-preview dropped (504 cascade source). 2.5-flash
+          // is now the primary (fast, stable), 2.5-pro the second-try
+          // for when flash itself is throttled, 3.1-pro-preview the
+          // last-resort with separate gateway capacity.
+          const TEXT_EXTRACT_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const;
           // Chinese-only fail-fast — see OCR_MODELS loop above.
           const textExtractRetries = isChineseBooklet ? 0 : 2;
           let extractResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
