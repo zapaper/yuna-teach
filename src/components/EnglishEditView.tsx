@@ -900,14 +900,52 @@ function QuestionRow({
           </div>
         )}
 
-        {/* Fallback: image if no text content */}
-        {!q.transcribedStem && q.imageData && (
+        {/* Image / diagram. Visible whenever imageData is set (so
+            admin can verify the current crop), with an Upload control
+            below so admin can attach a missing picture (e.g. the
+            diagram on the PSLE 华文 五-A Q33 long OEQ). */}
+        {q.imageData && (
           <img
             src={q.imageData}
             alt={`Q${q.questionNum}`}
-            className="max-h-16 rounded border border-slate-200 mb-2"
+            className="max-h-32 rounded border border-slate-200 mb-2"
           />
         )}
+        <div className="flex items-center gap-2 mb-2 text-[10px]">
+          <label className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold cursor-pointer transition-colors">
+            <span className="material-symbols-outlined text-xs">{q.imageData ? "swap_horiz" : "add_photo_alternate"}</span>
+            {q.imageData ? "Replace image" : "Upload image"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.onerror = reject;
+                  reader.readAsDataURL(file);
+                });
+                await onSave(q.id, { imageData: dataUrl });
+                e.target.value = "";
+              }}
+            />
+          </label>
+          {q.imageData && (
+            <button
+              type="button"
+              onClick={async () => {
+                if (!confirm("Remove this question's image?")) return;
+                await onSave(q.id, { imageData: null });
+              }}
+              className="px-2 py-1 rounded-md bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 font-bold transition-colors"
+            >
+              <span className="material-symbols-outlined text-xs">delete</span>
+            </button>
+          )}
+        </div>
 
         {/* Answer — OEQ gets its own full-width textarea, MCQ stays inline */}
         {(() => {
