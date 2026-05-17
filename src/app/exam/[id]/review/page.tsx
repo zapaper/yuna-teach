@@ -714,12 +714,19 @@ function ExamReviewContent({ id }: { id: string }) {
     );
   }
 
-  // Students can only see results once released (or instant feedback)
-  if (isStudent && data.markingStatus !== "released" && !(instantFeedback && data.markingStatus === "complete") && !(isQuiz && instantFeedback)) {
+  // Students can only see results once released (or instant feedback).
+  // EXCEPTION: Chinese quizzes contain OEQ that goes through async AI
+  // marking (markExamPaper); the `instantFeedback` shortcut would let
+  // students peek at a half-marked paper before the OEQ scores land.
+  // For Chinese, force the same "complete" gate as non-instant papers.
+  const isChinesePaper = ((paperSubject ?? "").toLowerCase() === "chinese") || ((paperSubject ?? "").includes("华文"));
+  const chineseGate = isChinesePaper && data.markingStatus !== "complete" && data.markingStatus !== "released";
+  const englishGate = data.markingStatus !== "released" && !(instantFeedback && data.markingStatus === "complete") && !(isQuiz && instantFeedback);
+  if (isStudent && (isChinesePaper ? chineseGate : englishGate)) {
     return (
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6 text-center">
         <div>
-          <p className="text-[#43474f] mb-4">Results are not available yet.</p>
+          <p className="text-[#43474f] mb-4">{isChinesePaper ? "批改中，请稍候…" : "Results are not available yet."}</p>
           <button onClick={() => { playClick(); router.replace(backPath); }} className="px-6 py-2.5 rounded-2xl bg-[#001e40] text-white font-bold text-sm">
             Go Home
           </button>

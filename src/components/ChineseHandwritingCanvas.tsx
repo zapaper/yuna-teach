@@ -65,6 +65,7 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
 
   const visibleRef = useRef<HTMLCanvasElement>(null);
   const inkLayerRef = useRef<HTMLCanvasElement | null>(null);
+  const gridLayerRef = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const [ready, setReady] = useState(false);
@@ -132,14 +133,18 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     }
   }
 
-  // Render the visible canvas: grid background + ink on top.
+  // Render the visible canvas: grid background + ink on top. The grid
+  // is drawn ONCE into an offscreen cache at mount; per-frame repaint
+  // is two fast bitmap blits, not ~1300 stroke ops. This keeps the pen
+  // smooth on larger grids (Q33 = 12×18 cells).
   function repaint() {
     const visible = visibleRef.current;
     const inkLayer = inkLayerRef.current;
-    if (!visible || !inkLayer) return;
+    const gridLayer = gridLayerRef.current;
+    if (!visible || !inkLayer || !gridLayer) return;
     const ctx = visible.getContext("2d");
     if (!ctx) return;
-    drawGrid(ctx);
+    ctx.drawImage(gridLayer, 0, 0);
     ctx.drawImage(inkLayer, 0, 0);
   }
 
@@ -179,6 +184,15 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     inkLayer.width = BUFFER_W;
     inkLayer.height = BUFFER_H;
     inkLayerRef.current = inkLayer;
+
+    // Pre-render the grid into an offscreen canvas once — repaint then
+    // blits this cached bitmap instead of restroking every cell.
+    const gridLayer = document.createElement("canvas");
+    gridLayer.width = BUFFER_W;
+    gridLayer.height = BUFFER_H;
+    const gridCtx = gridLayer.getContext("2d");
+    if (gridCtx) drawGrid(gridCtx);
+    gridLayerRef.current = gridLayer;
 
     // Load saved ink onto the ink-layer first so the initial repaint
     // shows previously-saved work.
