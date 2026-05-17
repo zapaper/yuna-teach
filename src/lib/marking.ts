@@ -3323,13 +3323,35 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
           if (sepIdx > 0) {
             parts.push({ inlineData: { mimeType: q.studentAnswer.slice(5, sepIdx), data: q.studentAnswer.slice(sepIdx + 8) } });
           }
+          // For long OEQ (Q33 style — 4 marks), the printed paper
+          // often ends the question stem with the FIRST line of the
+          // sample answer (e.g. "小文，" or "亲爱的小文，") so the
+          // student continues from there. The handwritten canvas is
+          // the rest of the message. Stitch them together so the
+          // marker sees the FULL message (intro + student writing)
+          // when judging content phrases. Pull the trailing intro
+          // sentence (the line after a "请你写一段话…" type prompt)
+          // and surface it explicitly in the prompt.
+          const stemText = (q.transcribedStem ?? "").replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim();
+          const stemLines = stemText.split(/\n+/).map(s => s.trim()).filter(Boolean);
+          const lastLine = stemLines[stemLines.length - 1] ?? "";
+          // Heuristic: if the last line looks like a salutation /
+          // intro (very short, ends with 「，」 or「：」 or has a
+          // person name followed by ","), treat it as the intro the
+          // student continues from. Otherwise leave blank.
+          const looksLikeIntro = lastLine.length > 0 && lastLine.length <= 25 &&
+            (/[，：,:]$/.test(lastLine) || /^(亲爱的|敬爱的|致|.{1,8})$/.test(lastLine));
+          const introNote = looksLikeIntro
+            ? `\n附注: 题目的最后一句 "${lastLine}" 是范文的开头 (例如：开头的称呼)，学生在田字格里写的是这句之后的内容。批改时请把 "${lastLine}" 当作答案的第一句，与学生手写的内容拼接起来再对照参考答案。`
+            : "";
+
           parts.push({
             text: `你正在批改新加坡小六会考(PSLE)华文阅读理解开放式问答题。
 
 学生的答案是写在田字格上的手写汉字 (蓝色墨水，每个汉字占一个格子)。仔细辨认每一个字。
 
 题目:
-${(q.transcribedStem ?? "").replace(/\[(?:Lines?:\s*)?\d+\s*(?:lines?)?\]/gi, "").trim()}
+${stemText}${introNote}
 
 参考答案 (可能包含 (0.5) 等评分要点标注):
 ${expectedAnswer}
@@ -3345,9 +3367,10 @@ ${expectedAnswer}
 - 答案为空白或仅有少量无意义涂鸦时给 0 分。
 - 最终分数按 0.5 取整，范围 [0, ${marksAvailable}]。
 - 反馈 (feedback) 必须用简体中文写，简洁清晰，列出命中的要点和扣分原因，最多两句。
+- detectedAnswer 字段必须输出 "完整的范文" — 即题目最后一句的开头 (如有) 加上学生在田字格里写的全部内容，让阅卷者一眼看清整段答案。
 
 请返回 JSON:
-{"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "detectedAnswer": "<学生写的内容>", "feedback": "<中文反馈>"}]}`,
+{"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, "marksAvailable": ${marksAvailable}, "detectedAnswer": "<完整答案：开头 + 学生手写>", "feedback": "<中文反馈>"}]}`,
           });
           try {
             const response = await withTimeout(
