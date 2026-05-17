@@ -26,6 +26,12 @@ const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/;
 // match and wrongly underline " XX ".
 const BOLD_RE = /\*\*([^\n]+?)\*\*/;
 const UNDER_RE = /(?<!_)__(?!_)([^_\n][^\n]*?[^_\n]|[^_\n])(?<!_)__(?!_)/;
+// Tag-style underline that older extractions emitted:
+// `[underline]word[/underline]` and `<u>word</u>`. RichLine on /edit
+// already handles these; MathText needs to as well so the quiz UI
+// shows underline for legacy data without forcing a re-extract.
+const UNDER_TAG_RE = /\[underline\]([^[\n]+?)\[\/underline\]/;
+const UNDER_HTML_RE = /<u>([^<\n]+?)<\/u>/;
 
 // Repair common LaTeX escape losses caused by the AI emitting
 // "$\frac{...}$" inside JSON string values without doubling the
@@ -55,6 +61,8 @@ function firstMatch(text: string): MatchResult | null {
     { kind: "math", m: MATH_SEGMENT_RE.exec(text) },
     { kind: "bold", m: BOLD_RE.exec(text) },
     { kind: "underline", m: UNDER_RE.exec(text) },
+    { kind: "underline", m: UNDER_TAG_RE.exec(text) },
+    { kind: "underline", m: UNDER_HTML_RE.exec(text) },
   ];
   let best: MatchResult | null = null;
   for (const c of candidates) {
@@ -114,7 +122,13 @@ export default function MathText({ text, className }: { text: string; className?
   // the default when there are actual line breaks.
   const style = repaired.includes("\n") ? { whiteSpace: "pre-line" as const } : undefined;
   // Cheap fast-path: no special markers → render as plain string.
-  if (!repaired.includes("$") && !repaired.includes("**") && !repaired.includes("__")) {
+  if (
+    !repaired.includes("$") &&
+    !repaired.includes("**") &&
+    !repaired.includes("__") &&
+    !repaired.includes("[underline]") &&
+    !repaired.includes("<u>")
+  ) {
     return <span className={className} style={style}>{repaired}</span>;
   }
   return <span className={className} style={style}>{renderInline(repaired, "0")}</span>;
