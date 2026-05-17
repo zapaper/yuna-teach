@@ -270,15 +270,24 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm ring-1 ring-[#c3c6d1]/20 overflow-hidden" style={{ height: CSS_H }}>
+    {/* select-none + WebkitTouchCallout: none locally on the canvas
+        wrapper. The quiz root previously had this globally, but it was
+        relaxed so the dictionary could pick up text selections on
+        stems / passages / MCQ options. Without these here, every
+        pointer-move on the canvas competes with the browser's
+        selection / callout machinery, which feels like pen lag. */}
+    <div
+      className="bg-white rounded-2xl shadow-sm ring-1 ring-[#c3c6d1]/20 overflow-hidden select-none"
+      style={{ height: CSS_H, WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none" }}
+    >
       <canvas
         ref={visibleRef}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
-        className="w-full h-full block touch-none"
-        style={{ touchAction: "none", cursor: tool === "eraser" || tool === "eraser-large" ? "cell" : "crosshair" }}
+        className="w-full h-full block touch-none select-none"
+        style={{ touchAction: "none", WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none", cursor: tool === "eraser" || tool === "eraser-large" ? "cell" : "crosshair" }}
       />
       {!ready && (
         <div className="text-xs text-slate-400 p-2">Loading…</div>
