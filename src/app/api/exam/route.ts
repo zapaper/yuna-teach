@@ -130,12 +130,27 @@ export async function GET(request: NextRequest) {
     actorIsAdmin = isAdmin(actor);
   }
   if (!actorIsAdmin) {
-    // Prisma's `mode: "insensitive"` can't sit inside a nested `not` —
-    // it has to be on a top-level NOT clause that wraps the
-    // case-insensitive `contains` filter.
-    const hideChinese = { NOT: { subject: { contains: "chinese", mode: "insensitive" as const } } };
+    // Chinese pathway: hide the MASTER Chinese papers from non-admins
+    // (those are the library entries non-admins shouldn't browse / clone
+    // from) but KEEP Chinese clones — when an admin assigns a Chinese
+    // paper to a student, the resulting clone (sourceExamId != null) is
+    // the student's actual quiz and must remain visible. Hiding it too
+    // would mean the student opens the dashboard and the assignment is
+    // gone. Quizzes / focused tests built from Chinese masters
+    // (paperType="quiz" / "focused") are also clone-shaped under our
+    // model — they all have a real master assignedToId — so the
+    // sourceExamId guard alone leaks them through.
+    const hideChineseMaster = {
+      NOT: {
+        AND: [
+          { subject: { contains: "chinese", mode: "insensitive" as const } },
+          { sourceExamId: null },
+          { paperType: null },
+        ],
+      },
+    };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    where = where ? { AND: [where as any, hideChinese] } : hideChinese;
+    where = where ? { AND: [where as any, hideChineseMaster] } : hideChineseMaster;
   }
 
   const papers = await prisma.examPaper.findMany({
