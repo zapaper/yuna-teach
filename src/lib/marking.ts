@@ -4220,6 +4220,14 @@ In the notes field, wrap every key scientific term or phrase from the expected a
         const detectedSaysAllBlank = /^\s*(\(?\w+\)?\s*[:.]?\s*)?(ans\s*[:=]?\s*)?blank\s*$/i.test(detectedAnswer.trim())
           || /^(?:[(\w)\s:.]*\bblank\s*\n?)+$/i.test(detectedAnswer.trim());
         const partsBlankSet = new Set<string>();
+        // Seed from the upstream pixel-level ink check. blankSubparts
+        // is GROUND TRUTH (we read the ink PNG and found no opaque
+        // pixels) — far more reliable than parsing Phase 1's detected
+        // text, which sometimes returns junk like ":" for a blank
+        // canvas instead of the literal word "blank". Without this
+        // seed, the marker has hallucinated full marks for subparts
+        // that were physically blank.
+        for (const lbl of blankSubparts) partsBlankSet.add(lbl.toLowerCase());
         // Per-part "blank" detection — e.g. "(a) blank", "Part (b): blank",
         // "(c) Ans: blank". Adds the label to partsBlankSet for the prompt.
         for (const m of detectedAnswer.matchAll(/(?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)?\s*[:.]?\s*(?:Ans\s*[:=]?\s*)?blank\b/gi)) {
@@ -4230,8 +4238,8 @@ In the notes field, wrap every key scientific term or phrase from the expected a
 DETECTION SAID BLANK — CRITICAL ANTI-HALLUCINATION RULE:
 ${detectedSaysAllBlank
   ? `Phase 1 detection (which already retried with the strongest model) reports the student's answer is **entirely blank**. Treat the detected answer as ground truth: the student wrote nothing usable. Award 0 marks.`
-  : `Phase 1 detection (which already retried with the strongest model) reports the following parts are blank: ${[...partsBlankSet].map(l => `(${l})`).join(", ")}. Treat those parts as ground truth blank. For each blank part, award 0 marks.`}
-You are FORBIDDEN from "finding" the expected answer in the image when detection says blank. If the detection text says "(a) blank" or "Ans: blank", the student wrote nothing — do not claim to see "15" in the working / "Saturday" in the answer area / any other content the detection didn't pick up. The image is for cross-checking handwriting interpretation, NOT for re-discovering content detection said wasn't there.
+  : `The following parts are confirmed BLANK (no ink at all on the student's canvas — verified by pixel-level inspection of the ink layer, NOT by reading the image): ${[...partsBlankSet].map(l => `(${l})`).join(", ")}. These parts are ground truth blank. For each of these parts, marksAwarded MUST be 0 and the note MUST say the student left it blank. This is non-negotiable — the canvas was empty.`}
+You are FORBIDDEN from "finding" the expected answer in the image when a part is confirmed blank. Do not claim the student "correctly filled in the boxes" / "wrote A, B, C, D, E" / "drew the arrow" / any other content. The canvas had zero pen strokes. If the image you see appears to contain the expected answer, that is the printed question or an overlay — NOT the student's handwriting. The image is for cross-checking handwriting interpretation, NOT for re-discovering content the ink check said wasn't there.
 ` : "";
 
         const markPrompt = `You are marking a primary school student's answer. Be concise. Use British English throughout.
@@ -4539,6 +4547,41 @@ Return ONLY valid JSON:
                     console.log(`[quiz-marking] Q${q.questionNum} per-part hard-cap clamp: ${awarded} → ${newAwarded}/${marksAvailable}`);
                     awarded = newAwarded;
                   }
+                }
+              }
+
+              // Blank-subpart clamp. blankSubparts came from a
+              // pixel-level inspection of the ink layer — it's a hard
+              // physical fact that those parts had zero pen strokes.
+              // We've still seen the marker hallucinate marks for them
+              // (e.g. detected="(b) :" → notes claim student "filled
+              // in A, B, C, D, E" → awarded 2/2). Strip any per-part
+              // mark on a confirmed-blank label and rewrite that
+              // chunk's "Awarded N mark(s)" to 0.
+              if (parsed.notes && blankSubparts.size > 0 && awarded > 0) {
+                const notesStr = String(parsed.notes);
+                const partRe = /((?:^|[\n|])\s*(?:Part\s*)?\(?([a-z])\)\s*:?\s*)([\s\S]*?)(?=(?:^|[\n|])\s*(?:Part\s*)?\([a-z]\)\s*:?|$)/gi;
+                let deducted = 0;
+                let rewritten = notesStr;
+                for (const m of notesStr.matchAll(partRe)) {
+                  const label = m[2].toLowerCase();
+                  if (!blankSubparts.has(label)) continue;
+                  const chunk = m[3];
+                  const awardMatches = [...chunk.matchAll(/awarded\s+(\d+(?:\.\d+)?)\s*marks?\b/gi)];
+                  if (awardMatches.length === 0) continue;
+                  const partAwarded = parseFloat(awardMatches[awardMatches.length - 1][1]);
+                  if (partAwarded > 0) {
+                    deducted += partAwarded;
+                    const replacement = ` The student left this part blank — confirmed by ink check. Awarded 0 mark(s).`;
+                    rewritten = rewritten.replace(m[0], m[1] + replacement);
+                    console.log(`[quiz-marking] Q${q.questionNum} blank-subpart clamp: (${label}) AI awarded ${partAwarded} but canvas was blank → 0`);
+                  }
+                }
+                if (deducted > 0) {
+                  const newAwarded = Math.max(0, awarded - deducted);
+                  console.log(`[quiz-marking] Q${q.questionNum} blank-subpart total clamp: ${awarded} → ${newAwarded}/${marksAvailable} (deducted ${deducted})`);
+                  awarded = newAwarded;
+                  parsed.notes = rewritten;
                 }
               }
 

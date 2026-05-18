@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
               { paperType: "focused", assignedToId: { in: linkedStudentIds } },
               { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
               { paperType: "diagnostic", assignedToId: { in: linkedStudentIds } },
+              { paperType: "mastery", assignedToId: { in: linkedStudentIds } },
               // Also include regular paper clones assigned to linked students
               { sourceExamId: { not: null }, paperType: null, assignedToId: { in: linkedStudentIds } },
             ],
@@ -87,6 +88,7 @@ export async function GET(request: NextRequest) {
               { paperType: "focused", assignedToId: { in: linkedStudentIds } },
               { paperType: "quiz", assignedToId: { in: linkedStudentIds } },
               { paperType: "diagnostic", assignedToId: { in: linkedStudentIds } },
+              { paperType: "mastery", assignedToId: { in: linkedStudentIds } },
               // Also include regular paper clones assigned to linked students
               { sourceExamId: { not: null }, paperType: null, assignedToId: { in: linkedStudentIds } },
             ],

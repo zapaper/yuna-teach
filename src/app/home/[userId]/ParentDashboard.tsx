@@ -77,6 +77,7 @@ function relativeDate(dateStr: string) {
 function activityIcon(paper: ExamPaperSummary) {
   if (paper.paperType === "focused") return "psychology";
   if (paper.paperType === "quiz") return "quiz";
+  if (paper.paperType === "mastery") return "school";
   const s = (paper.subject ?? "").toLowerCase();
   if (s.includes("english")) return "abc";
   if (s.includes("science")) return "science";
@@ -728,7 +729,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
 
   const threeDaysAgo = new Date(); threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
   const recentQuizCount = completedPapers.filter(p =>
-    (p.paperType === "quiz" || p.paperType === "focused") &&
+    (p.paperType === "quiz" || p.paperType === "focused" || p.paperType === "mastery") &&
     p.completedAt && new Date(p.completedAt) >= threeDaysAgo
   ).length;
 
@@ -2479,7 +2480,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 return s.includes(activitiesSubjectFilter);
               };
               const unstartedPapers = studentPapers
-                .filter(p => !p.completedAt && (p.paperType === "quiz" || p.paperType === "focused" || p.sourceExamId))
+                .filter(p => !p.completedAt && (p.paperType === "quiz" || p.paperType === "focused" || p.paperType === "mastery" || p.sourceExamId))
                 .filter(matchesSubject);
               const filteredCompleted = completedPapers.filter(matchesSubject);
               const allActivities = [...unstartedPapers, ...filteredCompleted];
