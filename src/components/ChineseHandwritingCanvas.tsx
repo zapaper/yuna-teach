@@ -68,6 +68,15 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
   const gridLayerRef = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
+  // Quadratic-curve smoothing state — between three consecutive
+  // samples a, b, c we draw quadraticCurveTo(b, mid(b,c)) starting
+  // from mid(a,b). Mirrors the Math/Science BlankCanvas approach.
+  const lastMid = useRef<{ x: number; y: number } | null>(null);
+  // Cached getBoundingClientRect — recomputed only on scroll/resize.
+  // pointerPos() is called many times per pointer-move with
+  // coalesced events, so an uncached layout read was the hot path.
+  const cachedRect = useRef<DOMRect | null>(null);
+  function invalidateRect() { cachedRect.current = null; }
   const [ready, setReady] = useState(false);
   const toolRef = useRef<CharCanvasTool>(tool);
   toolRef.current = tool;
@@ -133,17 +142,18 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     }
   }
 
-  // Render the visible canvas: grid background + ink on top. The grid
-  // is drawn ONCE into an offscreen cache at mount; per-frame repaint
-  // is two fast bitmap blits, not ~1300 stroke ops. This keeps the pen
-  // smooth on larger grids (Q33 = 12×18 cells).
+  // Full repaint — grid + entire ink layer. Used on init, eraser
+  // strokes, undo, and saved-ink load. NOT called per pointer-move
+  // during normal pen drawing (we paint the incremental segment
+  // directly on visible instead — see strokeEvent).
   function repaint() {
     const visible = visibleRef.current;
     const inkLayer = inkLayerRef.current;
     const gridLayer = gridLayerRef.current;
     if (!visible || !inkLayer || !gridLayer) return;
-    const ctx = visible.getContext("2d");
+    const ctx = visible.getContext("2d", { desynchronized: true });
     if (!ctx) return;
+    ctx.globalCompositeOperation = "source-over";
     ctx.drawImage(gridLayer, 0, 0);
     ctx.drawImage(inkLayer, 0, 0);
   }
@@ -177,45 +187,96 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
 
   function pointerPos(e: PointerEvent): { x: number; y: number } {
     const canvas = visibleRef.current!;
-    const rect = canvas.getBoundingClientRect();
+    if (!cachedRect.current) cachedRect.current = canvas.getBoundingClientRect();
+    const rect = cachedRect.current;
     return {
       x: ((e.clientX - rect.left) / rect.width) * BUFFER_W,
       y: ((e.clientY - rect.top) / rect.height) * BUFFER_H,
     };
   }
 
-  // Stroke one event's worth of samples into the ink layer. Reads
-  // coalesced events so high-frequency pens (Apple Pencil 240Hz,
-  // S-Pen 120Hz) don't lose sub-frame samples between vsyncs.
+  // Stroke one event's worth of samples into BOTH the offscreen ink
+  // layer (for export / undo) AND the visible canvas directly (for
+  // immediate display, no full repaint). Matches the Math/Science
+  // BlankCanvas pen path: incremental drawing keeps the visible
+  // surface fresh without ~3.4M-pixel drawImage blits per event.
+  //
+  // Quadratic-curve smoothing — between three consecutive samples
+  // a, b, c we draw quadraticCurveTo(b, mid(b,c)) starting from
+  // mid(a,b). Turns sparse-finger-sample straight lines into smooth
+  // curves. Eraser stays on raw lineTo (smoothing would erode the
+  // erase zone awkwardly).
   function strokeEvent(e: PointerEvent) {
     if (!drawing.current) return;
-    const inkCtx = inkLayerRef.current?.getContext("2d");
-    if (!inkCtx) return;
+    const visible = visibleRef.current;
+    const inkLayer = inkLayerRef.current;
+    if (!visible || !inkLayer) return;
+    const visCtx = visible.getContext("2d", { desynchronized: true });
+    const inkCtx = inkLayer.getContext("2d");
+    if (!visCtx || !inkCtx) return;
     const t = toolRef.current;
+    const isErase = t === "eraser" || t === "eraser-large";
+    const lineWidth = isErase
+      ? (t === "eraser-large" ? ERASER_LARGE_WIDTH : ERASER_WIDTH) * DPR
+      : PEN_WIDTH * DPR;
+
+    // Visible ctx style: pen draws normal source-over on the
+    // already-composited bitmap (grid + previous ink). Eraser
+    // shouldn't paint white directly on visible — we full-repaint
+    // after the eraser samples land on the ink layer so the grid
+    // shows back through.
+    visCtx.lineCap = "round";
+    visCtx.lineJoin = "round";
+    visCtx.globalCompositeOperation = "source-over";
+    visCtx.strokeStyle = inkColor;
+    visCtx.lineWidth = lineWidth;
+
     inkCtx.lineCap = "round";
     inkCtx.lineJoin = "round";
-    if (t === "eraser" || t === "eraser-large") {
+    if (isErase) {
       inkCtx.globalCompositeOperation = "destination-out";
       inkCtx.strokeStyle = "rgba(0,0,0,1)";
-      inkCtx.lineWidth = (t === "eraser-large" ? ERASER_LARGE_WIDTH : ERASER_WIDTH) * DPR;
     } else {
       inkCtx.globalCompositeOperation = "source-over";
       inkCtx.strokeStyle = inkColor;
-      inkCtx.lineWidth = PEN_WIDTH * DPR;
     }
+    inkCtx.lineWidth = lineWidth;
+
     const samples =
       typeof e.getCoalescedEvents === "function" ? e.getCoalescedEvents() : null;
     const points = samples && samples.length > 0 ? samples : [e];
+
     for (const ev of points) {
       const pos = pointerPos(ev);
       const prev = lastPos.current ?? pos;
-      inkCtx.beginPath();
-      inkCtx.moveTo(prev.x, prev.y);
-      inkCtx.lineTo(pos.x, pos.y);
-      inkCtx.stroke();
+      const mid = lastMid.current ?? prev;
+      const newMid = { x: (prev.x + pos.x) / 2, y: (prev.y + pos.y) / 2 };
+
+      if (isErase) {
+        // Erase: raw lineTo on the ink layer, no smoothing.
+        inkCtx.beginPath();
+        inkCtx.moveTo(prev.x, prev.y);
+        inkCtx.lineTo(pos.x, pos.y);
+        inkCtx.stroke();
+      } else {
+        // Pen: quadratic Bezier through prev as control point,
+        // midpoints as anchors. Paint on BOTH visible and ink
+        // contexts so the user sees the stroke immediately.
+        for (const ctx of [visCtx, inkCtx]) {
+          ctx.beginPath();
+          ctx.moveTo(mid.x, mid.y);
+          ctx.quadraticCurveTo(prev.x, prev.y, newMid.x, newMid.y);
+          ctx.stroke();
+        }
+      }
       lastPos.current = pos;
+      lastMid.current = newMid;
     }
-    repaint();
+
+    // For eraser, the erase landed on the ink layer but visible
+    // still shows the old ink — full-composite so the grid shows
+    // through the erased area.
+    if (isErase) repaint();
   }
 
   useEffect(() => {
@@ -249,7 +310,11 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
       e.preventDefault();
       (e.target as Element).setPointerCapture(e.pointerId);
       drawing.current = true;
-      lastPos.current = pointerPos(e);
+      const pos = pointerPos(e);
+      lastPos.current = pos;
+      // Reset smoothing state so the first segment of a new stroke
+      // doesn't pick up the midpoint of the previous stroke.
+      lastMid.current = pos;
     };
     const onMove = (e: PointerEvent) => {
       if (!drawing.current) return;
@@ -270,6 +335,7 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
       if (!drawing.current) return;
       drawing.current = false;
       lastPos.current = null;
+      lastMid.current = null;
       emitChange();
     };
 
@@ -280,6 +346,10 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     // The "as keyof HTMLElementEventMap" cast is needed because
     // pointerrawupdate isn't yet in lib.dom.d.ts in all TS versions.
     visible.addEventListener("pointerrawupdate" as keyof HTMLElementEventMap, onRaw as EventListener, { passive: false } as AddEventListenerOptions);
+    // Invalidate the cached client-rect on scroll / resize so
+    // pointerPos still maps correctly after the page moves.
+    window.addEventListener("scroll", invalidateRect, true);
+    window.addEventListener("resize", invalidateRect);
 
     // Load saved ink onto the ink-layer first so the initial repaint
     // shows previously-saved work.

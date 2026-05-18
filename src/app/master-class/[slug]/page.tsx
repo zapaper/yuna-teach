@@ -172,27 +172,53 @@ function SlideCard({
     return () => { cancelled = true; };
   }, [slideIdx, slug]);
 
-  // Play current segment.
+  // Mobile autoplay between segments — iOS Safari and Android Chrome
+  // only permit audio.play() inside an active user-gesture chain.
+  // Creating a fresh `new Audio()` per segment in a useEffect breaks
+  // that chain, so segment 2 onwards silently failed on mobile.
+  //
+  // Fix: reuse ONE audio element across the whole slide, and have
+  // the `onended` handler advance to the next segment *inline*
+  // (setTimeout → assign new src → call play() on the same element).
+  // That keeps playback inside the same media-gesture context.
+  //
+  // The useEffect below only initialises the audio on FIRST load of
+  // a segments batch. After that, all segment transitions flow
+  // through onended. A ref-tracked flag tells the effect to skip
+  // re-init when segIdx changes via onended (vs an external nudge
+  // like prev/next button or slide change).
+  const internalAdvanceRef = useRef(false);
+  const segmentsRef = useRef<Segment[]>([]);
+  segmentsRef.current = segments;
+
   useEffect(() => {
+    // Skip if this segIdx change was an internal advance from
+    // onended — playback is already in-flight on the audio element.
+    if (internalAdvanceRef.current) {
+      internalAdvanceRef.current = false;
+      return;
+    }
     if (segments.length === 0 || segIdx >= segments.length) {
       audioRef.current?.pause();
-      audioRef.current = null;
       setPlaying(false);
       return;
     }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    const seg = segments[segIdx];
-    const audio = new Audio(`data:audio/mpeg;base64,${seg.audio}`);
+    const audio = audioRef.current ?? new Audio();
+    audioRef.current = audio;
     audio.muted = muted;
+    audio.src = `data:audio/mpeg;base64,${segments[segIdx].audio}`;
     audio.onended = () => {
-      cancelPendingAdvance();
       const next = segIdxRef.current + 1;
-      if (next < segments.length) {
+      const segs = segmentsRef.current;
+      if (next < segs.length) {
         pendingAdvanceRef.current = setTimeout(() => {
           pendingAdvanceRef.current = null;
+          // Advance via the SAME audio element so the gesture
+          // context survives. Mark this as an internal advance so
+          // the useEffect's next firing skips re-initialising.
+          internalAdvanceRef.current = true;
+          audio.src = `data:audio/mpeg;base64,${segs[next].audio}`;
+          audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
           setSegIdx(next);
         }, INTER_SEGMENT_PAUSE_MS);
       } else {
@@ -200,7 +226,6 @@ function SlideCard({
       }
     };
     audio.onerror = () => { setPlaying(false); setTtsError("Audio playback failed"); };
-    audioRef.current = audio;
     audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segments, segIdx]);
@@ -222,7 +247,7 @@ function SlideCard({
   const activeBulletIdx = playing && segIdx >= 1 && segIdx <= numBullets ? segIdx - 1 : -1;
 
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[480px] flex flex-col">
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[640px] flex flex-col">
       {/* TTS controls */}
       <div className="flex items-center justify-between mb-4 gap-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
@@ -264,16 +289,19 @@ function SlideCard({
       </div>
       {ttsError && <p className="text-[10px] text-rose-600 mb-2">{ttsError}</p>}
 
-      {/* Slide content */}
-      <h2 className={`text-2xl lg:text-3xl font-bold text-slate-900 leading-tight transition-all ${isIntroActive ? "bg-emerald-50/60 ring-1 ring-emerald-200 rounded-xl px-3 py-2 -mx-3" : ""}`}>
-        {slide.title}
-      </h2>
-      {slide.body && (
-        <p
-          className="text-base text-slate-700 mt-3 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
-        />
-      )}
+      {/* Slide content — title + body both highlight together when
+          the intro segment is being narrated (segIdx === 0). */}
+      <div className={isIntroActive ? "bg-emerald-50/60 ring-1 ring-emerald-200 rounded-xl px-3 py-2 -mx-3 transition-all" : "transition-all"}>
+        <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 leading-tight">
+          {slide.title}
+        </h2>
+        {slide.body && (
+          <p
+            className="text-base text-slate-700 mt-3 leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
+          />
+        )}
+      </div>
       {slide.pieChart && (
         <div className="mt-5 flex items-center gap-5">
           <PieChart percentage={slide.pieChart.percentage} />
