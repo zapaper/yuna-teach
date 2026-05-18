@@ -225,10 +225,9 @@ export const interactionsEnvironment: MasterClassContent = {
           text: "Bacteria decompose dead organisms and waste, **releasing nutrients** back to the soil for **plants to absorb**.",
         },
       },
-      callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
     },
     {
-      title: "7: Human Impact : trace the effects",
+      title: "7: Human Impact",
       body: "Human actions like deforestation, pollution and pest control disrupt the food chain. PSLE answers must trace the cascade: **human action → environmental change → biological effect → population outcome**.",
       bullets: [
         "**Deforestation** — cutting down trees → fewer plants doing **photosynthesis** → less **oxygen** released, more **carbon dioxide** in the atmosphere; many animals lose their **habitat** and die.",

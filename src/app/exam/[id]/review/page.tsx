@@ -119,6 +119,10 @@ interface ReviewQuestion {
   imageData?: string;
   answerImageData?: string | null;
   syllabusTopic?: string | null;
+  // Master Class sub-topic tag (only present on mastery-quiz questions).
+  // Used to group missed questions by sub-topic for the post-quiz
+  // "review weak concepts" cards.
+  subTopic?: string | null;
   // Quiz-specific transcription fields
   transcribedStem?: string | null;
   transcribedOptions?: string[] | null;
@@ -193,6 +197,12 @@ function ExamReviewContent({ id }: { id: string }) {
   const [instantFeedback, setInstantFeedback] = useState(false);
   const [isQuiz, setIsQuiz] = useState(false);
   const [paperType, setPaperType] = useState<string | null>(null);
+  // Master Class metadata — populated only when paperType === "mastery".
+  // masterClassSlug links back to /admin/master-class/<slug>; the
+  // missed-sub-topic computation below derives weak areas from this.
+  const [masterClassSlug, setMasterClassSlug] = useState<string | null>(null);
+  const [masterClassTitle, setMasterClassTitle] = useState<string | null>(null);
+  const [masteryQuizLaunching, setMasteryQuizLaunching] = useState(false);
   const [canvasHeights, setCanvasHeights] = useState<Record<string, number>>({});
   const [oeqPageMap, setOeqPageMap] = useState<Record<string, number> | null>(null);
   const [releasing, setReleasing] = useState(false);
@@ -304,9 +314,14 @@ function ExamReviewContent({ id }: { id: string }) {
           setTotalMarks(paper.totalMarks ?? null);
           setAssignedToId(paper.assignedToId ?? null);
           setInstantFeedback(paper.instantFeedback === true);
-          paperIsQuiz = paper.paperType === "quiz" || paper.paperType === "focused";
+          paperIsQuiz = paper.paperType === "quiz" || paper.paperType === "focused" || paper.paperType === "mastery";
           setIsQuiz(paperIsQuiz);
           setPaperType(paper.paperType ?? null);
+          if (paper.paperType === "mastery") {
+            const meta = paper.metadata as { masterClassSlug?: string; masterClassTitle?: string } | null;
+            setMasterClassSlug(meta?.masterClassSlug ?? null);
+            setMasterClassTitle(meta?.masterClassTitle ?? null);
+          }
           setAnswerPages(paper.metadata?.answerPages ?? []);
           setSkipPages(paper.metadata?.skipPages ?? []);
           if (paper.metadata?.englishSections) setEnglishSections(paper.metadata.englishSections);
@@ -1155,6 +1170,108 @@ function ExamReviewContent({ id }: { id: string }) {
       </header>
 
       <div className="pt-16 pb-24 max-w-5xl mx-auto px-4 lg:px-8 relative">
+
+        {/* ── Mastery Quiz panel ──
+            Renders only for paperType === "mastery". Shows a result
+            card on top:
+              • full marks → "Congrats! Try another quiz" button
+              • not full marks → "Let's review [weak concepts]" with a
+                button that links to the Master Class workshop, filtered
+                to the weak sub-topics' slides.
+            Plus a "Back to Master Class" pill always. */}
+        {paperType === "mastery" && masterClassSlug && isMarked && (() => {
+          // Group misses by subTopic. Marks lost = (available − awarded)
+          // for questions where awarded < available. Top 3 weakest.
+          const byTopic = new Map<string, { label: string; lost: number; total: number }>();
+          for (const q of data.questions) {
+            const tag = (q.subTopic ?? "").trim();
+            if (!tag) continue;
+            const lost = Math.max(0, (q.marksAvailable ?? 0) - (q.marksAwarded ?? 0));
+            const total = q.marksAvailable ?? 0;
+            if (!byTopic.has(tag)) byTopic.set(tag, { label: tag, lost: 0, total: 0 });
+            const e = byTopic.get(tag)!;
+            e.lost += lost;
+            e.total += total;
+          }
+          const weakRanked = [...byTopic.entries()]
+            .filter(([, v]) => v.lost > 0)
+            .sort((a, b) => b[1].lost - a[1].lost)
+            .slice(0, 3);
+          const fullMarks = weakRanked.length === 0;
+          // Pretty label lookup — keep it simple: kebab-case → Title Case.
+          const prettify = (id: string) =>
+            id.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+          async function tryAnotherQuiz() {
+            if (!assignedToId) return;
+            setMasteryQuizLaunching(true);
+            try {
+              const res = await fetch(`/api/master-class/${masterClassSlug}/start-quiz`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId: assignedToId, parentMasteryId: id }),
+              });
+              const d = await res.json();
+              if (res.ok) router.push(`/quiz/${d.paperId}?userId=${assignedToId}`);
+            } finally {
+              setMasteryQuizLaunching(false);
+            }
+          }
+
+          function reviewWeakSlides() {
+            const focus = weakRanked.map(([k]) => k).join(",");
+            router.push(`/admin/master-class/${masterClassSlug}?userId=${userId}&focus=${focus}`);
+          }
+
+          return (
+            <section className="mt-5 mb-5">
+              <div className={`rounded-2xl p-5 lg:p-6 shadow-sm ring-1 ${fullMarks ? "bg-gradient-to-br from-emerald-50 to-sky-50 ring-emerald-200" : "bg-gradient-to-br from-amber-50 to-rose-50 ring-amber-200"}`}>
+                <div className="flex items-baseline justify-between gap-3 mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                    Mastery Quiz · {masterClassTitle ?? "Master Class"}
+                  </p>
+                  <button
+                    onClick={() => router.push(`/admin/master-class/${masterClassSlug}?userId=${userId}`)}
+                    className="text-[11px] font-bold text-slate-700 hover:text-slate-900 underline"
+                  >
+                    ← Back to Master Class
+                  </button>
+                </div>
+                {fullMarks ? (
+                  <>
+                    <h2 className="text-xl lg:text-2xl font-extrabold text-emerald-900">🎉 Congrats! Full marks.</h2>
+                    <p className="text-sm text-emerald-800 mt-1">Want to try another quiz to make sure you have mastered the concepts?</p>
+                    <button
+                      onClick={tryAnotherQuiz}
+                      disabled={masteryQuizLaunching || !assignedToId}
+                      className="mt-4 px-5 py-2.5 rounded-2xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:bg-slate-300"
+                    >
+                      {masteryQuizLaunching ? "Spawning next quiz…" : "Try another quiz →"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl lg:text-2xl font-extrabold text-amber-900">Great job!</h2>
+                    <p className="text-sm text-amber-900 mt-1">
+                      Let&apos;s review {weakRanked.map(([, v], i) => (
+                        <span key={v.label}>
+                          <strong className="font-bold">{prettify(v.label)}</strong>
+                          {i < weakRanked.length - 1 ? (i === weakRanked.length - 2 ? " and " : ", ") : ""}
+                        </span>
+                      ))} again. I&apos;ll bring you back to just those slides.
+                    </p>
+                    <button
+                      onClick={reviewWeakSlides}
+                      className="mt-4 px-5 py-2.5 rounded-2xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700"
+                    >
+                      Re-watch these concepts →
+                    </button>
+                  </>
+                )}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* ── Hero Score Section ── */}
         {/* Mobile: compact single card */}

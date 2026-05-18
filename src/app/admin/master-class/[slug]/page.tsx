@@ -37,7 +37,13 @@ type ApiPayload = {
 
 function MasterClassWorkshop() {
   const slug = (useParams() as { slug?: string }).slug ?? "";
-  const userId = useSearchParams().get("userId") ?? "";
+  const params = useSearchParams();
+  const userId = params.get("userId") ?? "";
+  // ?focus=causal-chain,mutual-benefits → filter slide deck to only
+  // the slides teaching those sub-topics. Used by the mastery-quiz
+  // review page when it sends a student back to re-watch weak areas.
+  const focusParam = params.get("focus") ?? "";
+  const focusIds = focusParam ? focusParam.split(",").map(s => s.trim()).filter(Boolean) : [];
   const [allowed, setAllowed] = useState<boolean | null>(null);
   const [data, setData] = useState<ApiPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -161,16 +167,54 @@ function MasterClassWorkshop() {
             <p className="text-[10px] text-slate-400 mt-3">Hover/tap a word to see the PSLE-precise definition.</p>
           </section>
 
-          {/* ── Key concepts deck ── */}
-          <SlideDeck
-            label="Key concepts deck"
-            slides={content.keyConcepts}
-            currentIdx={conceptIdx}
-            setIdx={setConceptIdx}
-            accent="emerald"
-            slug={slug}
-            globalIdxOffset={0}
-          />
+          {/* ── Focused-replay banner — appears when redirected here
+              with ?focus=<weak-sub-topics>. Filters the deck below to
+              just those slides. ── */}
+          {focusIds.length > 0 && (() => {
+            const focusLabels = focusIds
+              .map(id => content.subTopics?.find(t => t.id === id)?.label ?? id)
+              .join(", ");
+            return (
+              <section className="bg-amber-50 border border-amber-200 rounded-2xl p-4 shadow-sm flex items-baseline justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800">Focused replay</p>
+                  <p className="text-sm text-amber-900 mt-1">
+                    Reviewing: <strong className="font-bold">{focusLabels}</strong>
+                  </p>
+                </div>
+                <a
+                  href={`/admin/master-class/${slug}?userId=${userId}`}
+                  className="text-[11px] font-bold text-amber-800 underline hover:text-amber-900"
+                >
+                  Show full deck
+                </a>
+              </section>
+            );
+          })()}
+
+          {/* ── Key concepts deck ──
+              When ?focus= is set, hand the deck only the slides whose
+              sub-topic IDs match. slideIdx in subTopics is the 0-based
+              position into keyConcepts; we use it to filter. */}
+          {(() => {
+            const filteredSlides = focusIds.length > 0
+              ? focusIds
+                  .map(id => content.subTopics?.find(t => t.id === id)?.slideIdx ?? -1)
+                  .filter(idx => idx >= 0 && idx < content.keyConcepts.length)
+                  .map(idx => content.keyConcepts[idx])
+              : content.keyConcepts;
+            return (
+              <SlideDeck
+                label={focusIds.length > 0 ? "Focused replay deck" : "Key concepts deck"}
+                slides={filteredSlides}
+                currentIdx={conceptIdx}
+                setIdx={setConceptIdx}
+                accent="emerald"
+                slug={slug}
+                globalIdxOffset={0}
+              />
+            );
+          })()}
 
           {/* ── Common mistakes deck — only rendered if authored.
                 For Interactions the mistakes are baked into the Key
