@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import crypto from "crypto";
 import { promises as fs } from "fs";
-import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
-import { isAdmin } from "@/lib/admin";
 import { getMasterClass, type MasterClassSlide } from "@/data/master-class";
 
-// POST /api/admin/master-class/[slug]/tts
+// POST /api/master-class/[slug]/tts
 //   body: { slideIdx: number; force?: boolean }
 //
 // Generates an ElevenLabs voice-over for the slide at slideIdx,
@@ -83,13 +81,11 @@ function slideToSegments(slide: MasterClassSlide): Array<{ label: string; text: 
 }
 
 export async function POST(req: NextRequest, context: { params: Promise<{ slug: string }> }) {
+  // Any signed-in user can request narration — both the admin
+  // workshop and the student-facing player call this. Caching
+  // makes repeat hits free regardless of who triggered the first.
   const sessionUserId = await getSessionUserId();
   if (!sessionUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const me = await prisma.user.findUnique({
-    where: { id: sessionUserId },
-    select: { name: true, settings: true },
-  });
-  if (!isAdmin(me)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {

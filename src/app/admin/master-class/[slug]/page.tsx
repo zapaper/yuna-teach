@@ -338,7 +338,7 @@ function SlideDeck({
       setTtsLoading(true);
       try {
         const globalIdx = globalIdxOffset + currentIdx;
-        const res = await fetch(`/api/admin/master-class/${slug}/tts`, {
+        const res = await fetch(`/api/master-class/${slug}/tts`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ slideIdx: globalIdx, force: false }),
@@ -441,7 +441,7 @@ function SlideDeck({
     setTtsError(null);
     try {
       const globalIdx = globalIdxOffset + currentIdx;
-      const res = await fetch(`/api/admin/master-class/${slug}/tts`, {
+      const res = await fetch(`/api/master-class/${slug}/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slideIdx: globalIdx, force: true }),

@@ -300,7 +300,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
   const [enterLoading, setEnterLoading] = useState(false);
   const [enterError, setEnterError] = useState("");
   const [enterSuccess, setEnterSuccess] = useState(false);
-  const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz">("home");
+  const [activeNav, setActiveNav] = useState<"home" | "scan" | "quiz" | "master">("home");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showPastWork, setShowPastWork] = useState(false);
   const [pastWorkLimit, setPastWorkLimit] = useState(10);
@@ -1122,6 +1122,14 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
                 <span className="material-symbols-outlined">quiz</span>Quiz
               </button>
             )}
+            {/* Master Class — gated to a small allow-list for now
+                (admin + student666 test account) until we ship to all
+                students. */}
+            {(["admin", "student666"].includes(user.name?.toLowerCase() ?? "")) && (
+              <button onClick={() => router.push(`/master-class?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
+                <span className="material-symbols-outlined">school</span>Master Class
+              </button>
+            )}
           </nav>
           <div className="mt-auto">
             <button onClick={() => openLinkModal("share")} className="w-full py-2.5 rounded-xl border-2 border-[#003366]/20 text-[#003366] text-xs font-bold hover:bg-[#003366]/5 transition-colors">
@@ -1827,6 +1835,17 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
           >
             <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "quiz" ? "'FILL' 1" : "'FILL' 0" }}>history_edu</span>
             <span className="text-[10px] font-medium">Quiz</span>
+          </button>
+        )}
+        {/* Master Class — admin + student666 only for now. Mirrors
+            the desktop nav gate. */}
+        {(["admin", "student666"].includes(user.name?.toLowerCase() ?? "")) && (
+          <button
+            onClick={() => { setActiveNav("master"); router.push(`/master-class?userId=${userId}`); }}
+            className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "master" ? "text-[#006c49]" : "text-slate-400"}`}
+          >
+            <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: activeNav === "master" ? "'FILL' 1" : "'FILL' 0" }}>school</span>
+            <span className="text-[10px] font-medium">Master</span>
           </button>
         )}
       </nav>
