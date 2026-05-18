@@ -772,8 +772,22 @@ function QuizContent({ id }: { id: string }) {
             const visible = canvasHeights.current[q.id] ?? 360;
             canvasHeights.current[q.id] = await inkBottomCss(ink, visible);
           }
-          // Save individual subpart images
+          // Save individual subpart images.
+          //
+          // Sanity-check: when q.transcribedSubparts has real labels but
+          // oeqSubpartHandles is missing/empty, no per-subpart ink files
+          // will be POSTed → the server marker can't tell blank subparts
+          // from ink-present ones and can hallucinate (especially on
+          // drawable diagrams). Log loudly so production traces flag it.
+          const expectedSubLabels = ((q.transcribedSubparts as Array<{ label: string }> | null) ?? [])
+            .map(sp => sp.label)
+            .filter(l => !l.startsWith("_"));
           const spRefs = oeqSubpartHandles.current[q.id];
+          const actualLabels = spRefs ? Object.keys(spRefs).filter(k => !!spRefs[k]) : [];
+          if (expectedSubLabels.length > 0 && actualLabels.length < expectedSubLabels.length) {
+            const missing = expectedSubLabels.filter(l => !actualLabels.includes(l));
+            console.warn(`[submit-subparts] Q${q.questionNum} (${q.id}): expected ${expectedSubLabels.length} subpart handles, got ${actualLabels.length}. Missing: [${missing.join(", ")}]`);
+          }
           if (spRefs) {
             for (const [label, spHandle] of Object.entries(spRefs)) {
               if (spHandle) {

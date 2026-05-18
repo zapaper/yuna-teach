@@ -181,7 +181,9 @@ export async function POST(
 
   let pageCount = 0;
   const written: string[] = [];
+  const allKeys: string[] = [];
   for (const [key, value] of formData.entries()) {
+    if (value instanceof File) allKeys.push(`${key}(${value.size}b)`);
     if (!(value instanceof File)) continue;
     if (key.startsWith("page_") && key.endsWith("_ink")) {
       // Ink-only PNG (for reload)
@@ -198,7 +200,7 @@ export async function POST(
       pageCount++;
     }
   }
-  console.log(`[submission] ${id} action=${action} wrote: [${written.join(", ")}]`);
+  console.log(`[submission] ${id} action=${action} wrote: [${written.join(", ")}] received-files: [${allKeys.join(", ")}]`);
 
   if (action === "submit") {
     const updatedPaper = await prisma.examPaper.update({
