@@ -88,7 +88,7 @@ export const interactionsEnvironment: MasterClassContent = {
     },
     {
       title: "1: Key Definitions",
-      body: "**33% of PSLE OEQ** have a definition sub-part. This is a give-away to master.",
+      body: "**33% of PSLE OEQ** have a definition sub-part. This is a give-away to master. Let's go through these definitions.",
       bullets: [
         "**Population** — a group of living things of the **same kind** in one place",
         "**Community** — all the **different populations** living in one place",
