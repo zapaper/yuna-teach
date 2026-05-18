@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
@@ -161,6 +161,8 @@ function MasterClassWorkshop() {
             currentIdx={conceptIdx}
             setIdx={setConceptIdx}
             accent="emerald"
+            slug={slug}
+            globalIdxOffset={0}
           />
 
           {/* ── Common mistakes deck — only rendered if authored.
@@ -172,6 +174,8 @@ function MasterClassWorkshop() {
             currentIdx={mistakeIdx}
             setIdx={setMistakeIdx}
             accent="rose"
+            slug={slug}
+            globalIdxOffset={content.keyConcepts.length}
           />}
 
           {/* ── Practice set ── */}
@@ -227,13 +231,159 @@ function SlideDeck({
   currentIdx,
   setIdx,
   accent,
+  slug,
+  globalIdxOffset = 0,
 }: {
   label: string;
   slides: MasterClassSlide[];
   currentIdx: number;
   setIdx: (n: number) => void;
   accent: "emerald" | "rose";
+  slug: string;
+  globalIdxOffset?: number;
 }) {
+  // TTS playback state — keyed on global slide idx so common-mistakes
+  // deck can coexist later without colliding.
+  // Per-segment TTS playback. The server returns N audio segments
+  // (intro, one per bullet, scoring example, callout). We autoplay
+  // them in order, and >> / << jump between segment indices.
+  type Segment = { label: string; audio: string };  // audio = base64
+  const [segments, setSegments] = useState<Segment[]>([]);
+  const [segIdx, setSegIdx] = useState(0);
+  const [ttsLoading, setTtsLoading] = useState(false);
+  const [ttsError, setTtsError] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Latest segIdx value the audio element should follow — avoids
+  // closure staleness inside onended.
+  const segIdxRef = useRef(0);
+  segIdxRef.current = segIdx;
+
+  // Fetch segments whenever the slide changes. Stop any active audio
+  // first so we don't keep narrating the previous slide.
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setSegments([]);
+    setSegIdx(0);
+    setPlaying(false);
+    setTtsError(null);
+    let cancelled = false;
+    (async () => {
+      setTtsLoading(true);
+      try {
+        const globalIdx = globalIdxOffset + currentIdx;
+        const res = await fetch(`/api/admin/master-class/${slug}/tts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slideIdx: globalIdx, force: false }),
+        });
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}));
+          if (!cancelled) setTtsError(d.error ?? `TTS failed (${res.status})`);
+          return;
+        }
+        const data = await res.json() as { segments: Segment[] };
+        if (!cancelled) setSegments(data.segments);
+      } catch (err) {
+        if (!cancelled) setTtsError((err as Error).message);
+      } finally {
+        if (!cancelled) setTtsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [currentIdx, slug, globalIdxOffset]);
+
+  // Play the segment at segIdx whenever it changes (and segments are
+  // available). Autoplay starts on initial load; manual >>/<< also
+  // routes through here.
+  useEffect(() => {
+    if (segments.length === 0 || segIdx >= segments.length) {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setPlaying(false);
+      return;
+    }
+    // Tear down any existing audio first.
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    const seg = segments[segIdx];
+    const url = `data:audio/mpeg;base64,${seg.audio}`;
+    const audio = new Audio(url);
+    audio.muted = muted;
+    audio.onended = () => {
+      // Advance to next segment if any remain.
+      const next = segIdxRef.current + 1;
+      if (next < segments.length) setSegIdx(next);
+      else setPlaying(false);
+    };
+    audio.onerror = () => {
+      setPlaying(false);
+      setTtsError("Audio playback failed");
+    };
+    audioRef.current = audio;
+    audio.play().then(() => setPlaying(true)).catch(() => {
+      // Browser blocked autoplay — common on first slide before any
+      // user interaction. Stay paused; user can press Play.
+      setPlaying(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [segments, segIdx]);
+
+  // Keep audio.muted in sync with the muted state.
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.muted = muted;
+  }, [muted]);
+
+  function togglePlay() {
+    const a = audioRef.current;
+    if (!a) {
+      // Trigger initial play by re-setting segIdx to itself; the
+      // segments effect above will create a new audio element.
+      if (segments.length > 0) setSegIdx(s => s);
+      return;
+    }
+    if (playing) { a.pause(); setPlaying(false); }
+    else { a.play().then(() => setPlaying(true)).catch(() => setPlaying(false)); }
+  }
+  function jumpNext() {
+    if (segIdx + 1 < segments.length) setSegIdx(segIdx + 1);
+  }
+  function jumpPrev() {
+    if (segIdx > 0) setSegIdx(segIdx - 1);
+  }
+  async function regenerate() {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setSegments([]);
+    setSegIdx(0);
+    setTtsLoading(true);
+    setTtsError(null);
+    try {
+      const globalIdx = globalIdxOffset + currentIdx;
+      const res = await fetch(`/api/admin/master-class/${slug}/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slideIdx: globalIdx, force: true }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setTtsError(d.error ?? `TTS failed (${res.status})`);
+        return;
+      }
+      const data = await res.json() as { segments: Segment[] };
+      setSegments(data.segments);
+    } catch (err) {
+      setTtsError((err as Error).message);
+    } finally {
+      setTtsLoading(false);
+    }
+  }
+
   const slide = slides[currentIdx];
   const ringClass = accent === "emerald" ? "ring-emerald-200" : "ring-rose-200";
   const accentText = accent === "emerald" ? "text-emerald-700" : "text-rose-700";
@@ -241,10 +391,59 @@ function SlideDeck({
   const accentDot = accent === "emerald" ? "bg-emerald-500" : "bg-rose-500";
   return (
     <section className={`bg-white border border-slate-100 rounded-2xl p-5 shadow-sm ring-1 ${ringClass}`}>
-      <div className="flex items-baseline justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
         <p className={`text-[10px] font-bold uppercase tracking-wider ${accentText}`}>{label}</p>
-        <p className="text-[10px] text-slate-400">{currentIdx + 1} / {slides.length}</p>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={jumpPrev}
+            disabled={ttsLoading || segIdx === 0}
+            className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 inline-flex items-center justify-center"
+            title="Previous bullet"
+          >
+            <span className="material-symbols-outlined text-base">fast_rewind</span>
+          </button>
+          <button
+            onClick={togglePlay}
+            disabled={ttsLoading || segments.length === 0}
+            className={`w-9 h-9 rounded-full inline-flex items-center justify-center ${playing ? "bg-rose-500 text-white hover:bg-rose-600" : "bg-emerald-500 text-white hover:bg-emerald-600"} disabled:opacity-40`}
+            title={playing ? "Pause" : "Play"}
+          >
+            <span className="material-symbols-outlined text-base">{ttsLoading ? "progress_activity" : playing ? "pause" : "play_arrow"}</span>
+          </button>
+          <button
+            onClick={jumpNext}
+            disabled={ttsLoading || segIdx >= segments.length - 1}
+            className="w-8 h-8 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-40 inline-flex items-center justify-center"
+            title="Next bullet"
+          >
+            <span className="material-symbols-outlined text-base">fast_forward</span>
+          </button>
+          <button
+            onClick={() => setMuted(m => !m)}
+            className={`w-8 h-8 rounded-full inline-flex items-center justify-center ml-1 ${muted ? "bg-slate-200 text-slate-500" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+            title={muted ? "Unmute" : "Mute"}
+          >
+            <span className="material-symbols-outlined text-base">{muted ? "volume_off" : "volume_up"}</span>
+          </button>
+          {segments.length > 0 && (
+            <span className="text-[10px] text-slate-400 ml-2">
+              {segments[segIdx]?.label ?? "—"} · {segIdx + 1}/{segments.length}
+            </span>
+          )}
+          <button
+            onClick={regenerate}
+            disabled={ttsLoading}
+            className="text-[10px] text-slate-400 hover:text-slate-700 disabled:opacity-50 ml-2"
+            title="Re-generate narration (skip cache)"
+          >
+            ↻ Re-gen
+          </button>
+          <p className="text-[10px] text-slate-400 ml-3">slide {currentIdx + 1} / {slides.length}</p>
+        </div>
       </div>
+      {ttsError && (
+        <p className="text-[10px] text-rose-600 mb-2">{ttsError}</p>
+      )}
       {slide && (
         <div className="min-h-[260px] flex flex-col">
           <h2 className="text-xl lg:text-2xl font-bold text-slate-900 leading-tight">{slide.title}</h2>
