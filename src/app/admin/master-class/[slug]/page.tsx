@@ -248,7 +248,22 @@ function SlideDeck({
       {slide && (
         <div className="min-h-[260px] flex flex-col">
           <h2 className="text-xl lg:text-2xl font-bold text-slate-900 leading-tight">{slide.title}</h2>
-          {slide.body && <p className="text-sm text-slate-600 mt-2 leading-relaxed">{slide.body}</p>}
+          {slide.body && (
+            <p
+              className="text-sm text-slate-600 mt-2 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
+            />
+          )}
+          {slide.pieChart && (
+            <div className="mt-5 flex items-center gap-5">
+              <PieChart percentage={slide.pieChart.percentage} accent={accent} />
+              <div className="flex-1">
+                <p className="text-3xl font-extrabold text-slate-900">{slide.pieChart.percentage}%</p>
+                <p className="text-xs text-slate-500">{slide.pieChart.label}</p>
+                {slide.pieChart.caption && <p className="text-xs text-slate-400 mt-1">{slide.pieChart.caption}</p>}
+              </div>
+            </div>
+          )}
           {slide.bullets && slide.bullets.length > 0 && (
             <ul className="mt-4 space-y-2">
               {slide.bullets.map((b, i) => (
@@ -264,23 +279,33 @@ function SlideDeck({
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
                 Scoring example
               </p>
-              <p className="text-xs text-slate-600 italic mb-3">{slide.scoringExample.scenario}</p>
+              <p
+                className="text-xs text-slate-600 italic mb-3"
+                dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.scoringExample.scenario) }}
+              />
               <div className="space-y-2">
                 <div className="rounded-lg bg-rose-50 border border-rose-100 px-3 py-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 mr-2">{slide.scoringExample.oneMark.label}</span>
-                  <span className="text-sm text-rose-700">{slide.scoringExample.oneMark.text}</span>
+                  <span
+                    className="text-sm text-rose-700"
+                    dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.scoringExample.oneMark.text) }}
+                  />
                 </div>
                 <div className="rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mr-2">{slide.scoringExample.fullMarks.label}</span>
-                  <span className="text-sm text-emerald-700">{slide.scoringExample.fullMarks.text}</span>
+                  <span
+                    className="text-sm text-emerald-700"
+                    dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.scoringExample.fullMarks.text) }}
+                  />
                 </div>
               </div>
             </div>
           )}
           {slide.callout && (
-            <div className={`mt-4 ${accentBg} rounded-xl px-4 py-3 text-sm italic ${accentText}`}>
-              {slide.callout}
-            </div>
+            <div
+              className={`mt-4 ${accentBg} rounded-xl px-4 py-3 text-sm italic ${accentText}`}
+              dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.callout) }}
+            />
           )}
         </div>
       )}
@@ -340,4 +365,32 @@ function renderInlineMd(text: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+// SVG donut chart — single colored slice = `percentage`, grey fills
+// the rest. Stroke-based so we don't need a fill / center wedge.
+function PieChart({ percentage, accent }: { percentage: number; accent: "emerald" | "rose" }) {
+  const size = 120;
+  const stroke = 22;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = (Math.max(0, Math.min(100, percentage)) / 100) * c;
+  const strokeColor = accent === "emerald" ? "#10b981" : "#f43f5e";
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e2e8f0" strokeWidth={stroke} />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        fill="none"
+        stroke={strokeColor}
+        strokeWidth={stroke}
+        strokeDasharray={`${dash} ${c}`}
+        strokeDashoffset={c / 4}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        strokeLinecap="butt"
+      />
+    </svg>
+  );
 }

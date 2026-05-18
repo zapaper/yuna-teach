@@ -18,6 +18,14 @@ export type MasterClassSlide = {
     oneMark: { label: string; text: string };
     fullMarks: { label: string; text: string };
   };
+  /** Optional inline pie chart — renders a SVG donut showing the
+   *  highlighted % vs the rest. Used on stats slides to make the
+   *  headline number visual. */
+  pieChart?: {
+    percentage: number;
+    label: string;
+    caption?: string;
+  };
 };
 
 export type MasterClassContent = {
@@ -59,9 +67,14 @@ export const interactionsEnvironment: MasterClassContent = {
     {
       title: "How much PSLE testing on this topic",
       body: "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. A roughly even mix of MCQ and OEQ, with the OEQ carrying the heavier mark weight.",
+      pieChart: {
+        percentage: 12,
+        label: "of PSLE Science marks",
+        caption: "More than any other single Life-Science topic.",
+      },
       bullets: [
         "**28%** of PSLE Life-Science questions test this topic",
-        "**10.8%** of total PSLE Science marks come from it",
+        "**~12%** of total PSLE Science marks come from it",
         "**58%** are open-ended (OEQ), **42%** are MCQ",
         "**33%** test definitions of population / community / habitat / ecosystem · **19%** test food-web disruption · **7%** test adaptation",
       ],
