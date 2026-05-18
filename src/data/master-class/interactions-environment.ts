@@ -206,6 +206,27 @@ export const interactionsEnvironment: MasterClassContent = {
       },
       callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
     },
+    {
+      title: "7: Human Impact : trace the effects",
+      body: "Human actions like deforestation, pollution and pest control disrupt the food chain. PSLE answers must trace the cascade: **human action → environmental change → biological effect → population outcome**.",
+      bullets: [
+        "**Deforestation** — cutting down trees → fewer plants doing **photosynthesis** → less **oxygen** released, more **carbon dioxide** in the atmosphere; many animals lose their **habitat** and die.",
+        "**Water pollution** — dirt in water blocks **light** → aquatic plants can't **photosynthesise** → die → primary consumers (e.g. small fish) lose food → population decreases → predators above them also drop.",
+        "**Pesticides / pest control** — kills the target pest, but the pest's **predators** lose their food source → predator population also drops.",
+        "**Common trap** — naming only the direct effect ('fewer trees'). The marker is hunting for the **full chain**: trees → CO₂ / O₂ → habitat → other species.",
+      ],
+      scoringExample: {
+        scenario: "What is one effect of deforestation on the environment?",
+        oneMark: {
+          label: "1 mark",
+          text: "There will be fewer trees and animals.",
+        },
+        fullMarks: {
+          label: "3 marks",
+          text: "Cutting down trees reduces the number of plants doing **photosynthesis**. This decreases the **oxygen** released into the atmosphere and increases the **carbon dioxide**. It also destroys **habitats** for many species, causing their populations to decrease.",
+        },
+      },
+    },
   ],
   // Common-mistakes deck retired — the equivalent warnings are now
   // baked into the relevant Key Concept slides (e.g. "plants give food
