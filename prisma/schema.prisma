@@ -186,6 +186,12 @@ model ExamQuestion {
   marksAvailable  Float?
   markingNotes    String?
   syllabusTopic   String?
+  // Master Class sub-topic tag — finer-grained than syllabusTopic.
+  // E.g. for syllabusTopic = "Interactions within the environment",
+  // subTopic is one of: definitions / causal-chain / mutual-benefits /
+  // food-web-explaining / adaptation / decomposer / human-impact.
+  // Populated by the per-topic classifier (admin tool); null until then.
+  subTopic        String?
   studentAnswer   String?
   elaboration     String?
   flagged         Boolean @default(false)

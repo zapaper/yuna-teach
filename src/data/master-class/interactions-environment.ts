@@ -63,6 +63,17 @@ export type MasterClassContent = {
   keyConcepts: MasterClassSlide[];     // 3-4 slides
   commonMistakes: MasterClassSlide[];  // 3-4 slides
   keyWords: Array<{ word: string; definition: string }>;
+  /** Sub-topics inside this Master Class. The classifier tags each
+   *  question in the bank with one of these IDs (stored on
+   *  examQuestion.subTopic). The slideIdx links a sub-topic to the
+   *  concept slide that teaches it — used by the post-quiz replay
+   *  flow to jump straight to the weak-area slides. */
+  subTopics: Array<{
+    id: string;
+    label: string;
+    description: string;        // fed to the AI classifier
+    slideIdx: number;           // 0-based index into keyConcepts
+  }>;
 };
 
 export const interactionsEnvironment: MasterClassContent = {
@@ -273,5 +284,51 @@ export const interactionsEnvironment: MasterClassContent = {
     { word: "prey", definition: "An animal that is hunted and eaten by another animal." },
     { word: "mutualism", definition: "A relationship between two organisms where both benefit." },
     { word: "adaptation", definition: "A feature or behaviour that helps an organism survive in its environment." },
+  ],
+  // Sub-topic taxonomy for this Master Class. slideIdx is 0-based
+  // into the keyConcepts array, so e.g. slideIdx 0 = the stats /
+  // overview slide. The replay-weak-slides flow uses these to jump
+  // straight to the concept slides students missed.
+  subTopics: [
+    // "Definitions" is intentionally NOT a sub-topic — definition
+    // questions almost always appear as a 1-mark sub-part inside an
+    // OEQ on another concept. We tag the question by its primary
+    // concept (the harder sub-part), not by the definition sub-part.
+    {
+      id: "causal-chain",
+      label: "Causal Chain reasoning",
+      description: "Asks what happens to organism X's population when another organism's population changes — predator/prey or food-chain disruption. Typically OEQ that requires writing the full chain (less food → starve/move away → population decreases).",
+      slideIdx: 2,
+    },
+    {
+      id: "mutual-benefits",
+      label: "Mutual Benefits",
+      description: "Tests mutualism — two organisms benefiting from each other. Most often aquarium plants & fish (oxygen/carbon dioxide exchange), pollinator + flower (nectar / pollen), or cleaner + host. The distractor often claims plants give 'food' to fish.",
+      slideIdx: 3,
+    },
+    {
+      id: "food-web-explaining",
+      label: "Food Web reading & explaining",
+      description: "Reading a food web diagram — identifying the producer, counting predators, tracing energy flow, naming the Sun as the ultimate energy source, or drawing a food web from a paragraph description. Not a causal-decrease question; just structure / energy flow.",
+      slideIdx: 4,
+    },
+    {
+      id: "adaptation",
+      label: "Adaptation",
+      description: "Tests how a feature or behaviour helps an organism survive in its environment. Includes physical features (thick fur, webbed feet, deep tap roots), behaviours (hibernation, migration, camouflage), and tolerance-range graphs (peak temperature/light for an organism).",
+      slideIdx: 5,
+    },
+    {
+      id: "decomposer",
+      label: "Decomposer",
+      description: "Tests the role of decomposers (bacteria, fungi, mould). Common phrasings: 'What is the role of bacteria?', 'What happens to dead matter?', or aquarium questions where dead plants → decomposers respire and use up oxygen.",
+      slideIdx: 6,
+    },
+    {
+      id: "human-impact",
+      label: "Human Impact",
+      description: "Tests effects of human actions on the environment — deforestation, pollution, pest control, pesticides. Answers must trace the cascade (e.g. cut trees → less photosynthesis → more carbon dioxide / fewer habitats).",
+      slideIdx: 7,
+    },
   ],
 };

@@ -141,6 +141,13 @@ function MasterClassWorkshop() {
             </div>
           </section>
 
+          {/* ── Sub-topic classifier (admin tool) ──
+              Classifies every master-bank question on this topic into
+              one of the Master Class sub-topics. Required for the
+              Mastery Quiz flow — quizzes pull questions balanced
+              across sub-topics. */}
+          <ClassifierPanel slug={slug} subTopics={content.subTopics ?? []} />
+
           {/* ── Key words ── */}
           <section className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Must-know words</p>
@@ -619,6 +626,91 @@ function PracticeCard({ q, idx }: { q: PracticeQuestion; idx: number }) {
         <p className="text-[11px] text-emerald-700 mt-2 font-semibold">Answer: {q.answer.slice(0, 200)}</p>
       )}
     </div>
+  );
+}
+
+function ClassifierPanel({
+  slug,
+  subTopics,
+}: {
+  slug: string;
+  subTopics: Array<{ id: string; label: string; description: string }>;
+}) {
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState<null | {
+    totalCandidates: number;
+    classified: number;
+    unclassified: number;
+    distribution: Record<string, number>;
+  }>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [forceReclassify, setForceReclassify] = useState(false);
+
+  async function run() {
+    setRunning(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/master-class/${slug}/classify-subtopics${forceReclassify ? "?force=1" : ""}`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? `Failed (${res.status})`);
+      } else {
+        setResult(data);
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setRunning(false);
+    }
+  }
+
+  return (
+    <section className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <div className="flex items-baseline justify-between gap-3 mb-3">
+        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sub-topic classifier</p>
+        <label className="text-[10px] text-slate-400 flex items-center gap-1.5">
+          <input type="checkbox" checked={forceReclassify} onChange={e => setForceReclassify(e.target.checked)} />
+          Re-classify already-tagged
+        </label>
+      </div>
+      <p className="text-xs text-slate-600 mb-3">
+        Tags every master-bank question on this topic with one of these sub-topic IDs. Required for the Mastery Quiz to draw balanced questions per concept.
+      </p>
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {subTopics.map(t => (
+          <span key={t.id} title={t.description} className="bg-slate-100 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-full cursor-help">
+            {t.id}
+          </span>
+        ))}
+      </div>
+      <button
+        onClick={run}
+        disabled={running}
+        className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-bold hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400"
+      >
+        {running ? "Classifying…" : "Run classifier"}
+      </button>
+      {error && <p className="text-xs text-rose-600 mt-3">{error}</p>}
+      {result && (
+        <div className="mt-4 text-xs text-slate-700 space-y-1">
+          <p>
+            <span className="font-bold">{result.classified}</span> classified ·{" "}
+            <span className="font-bold">{result.unclassified}</span> unclassified ·{" "}
+            <span className="text-slate-400">{result.totalCandidates} candidates</span>
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {subTopics.map(t => (
+              <div key={t.id} className="flex items-baseline justify-between bg-slate-50 rounded-lg px-3 py-1.5">
+                <span className="text-slate-700">{t.label}</span>
+                <span className="font-bold text-slate-900">{result.distribution[t.id] ?? 0}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
