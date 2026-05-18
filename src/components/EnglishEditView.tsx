@@ -485,21 +485,32 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                   </div>
                 )}
 
-                {/* Re-extract section from pages */}
+                {/* Re-extract section from pages. Input is pre-filled with
+                    the section's known page indices (1-indexed) so 语文应用
+                    MCQ / 阅读理解 etc. can be re-extracted with one click —
+                    no need to look up which pages the section spans. The
+                    user can still override the value to point at a different
+                    range if the original page mapping is wrong. */}
                 <div className="p-4 bg-blue-50/50 border-b border-blue-100">
                   <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider mb-2">Re-extract from Pages</p>
                   <div className="flex items-center gap-2">
+                    {(() => {
+                      const sectionDefaultPages = sectionPageIndices.length > 0
+                        ? sectionPageIndices.map(i => i + 1).join(",")
+                        : "";
+                      const effectivePages = reextractPages[sec.name] ?? sectionDefaultPages;
+                      return <>
                     <input
                       type="text"
                       placeholder="e.g. 4,5 or 4-6"
-                      value={reextractPages[sec.name] ?? ""}
+                      value={effectivePages}
                       onChange={e => setReextractPages(prev => ({ ...prev, [sec.name]: e.target.value }))}
                       className="w-36 px-3 py-1.5 rounded-lg border border-blue-200 text-sm focus:outline-none focus:border-blue-400"
                     />
                     <button
-                      disabled={reextracting === sec.name || !(reextractPages[sec.name]?.trim())}
+                      disabled={reextracting === sec.name || !effectivePages.trim()}
                       onClick={async () => {
-                        const input = reextractPages[sec.name]?.trim();
+                        const input = effectivePages.trim();
                         if (!input) return;
                         if (!confirm(`This will re-extract questions for "${sec.name}" from the selected pages and OVERWRITE existing stems/options. Continue?`)) return;
                         // Parse page input: "4,5" or "4-6" → 0-indexed array
@@ -545,6 +556,8 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
                         <><span className="material-symbols-outlined text-sm">refresh</span> Re-extract</>
                       )}
                     </button>
+                      </>;
+                    })()}
                   </div>
                   {reextractResult[sec.name] && (
                     <p className={`text-xs mt-2 font-medium ${reextractResult[sec.name].startsWith("Error") ? "text-red-600" : "text-green-600"}`}>
