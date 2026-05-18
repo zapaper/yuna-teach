@@ -495,7 +495,7 @@ function SlideDeck({
         const scoringHl = accent === "emerald" ? "ring-2 ring-emerald-300" : "ring-2 ring-rose-300";
         const calloutHl = accent === "emerald" ? "ring-2 ring-emerald-400" : "ring-2 ring-rose-400";
         return (
-        <div className="min-h-[260px] flex flex-col">
+        <div className="min-h-[480px] flex flex-col">
           <h2 className={`text-xl lg:text-2xl font-bold text-slate-900 leading-tight transition-all ${introHl}`}>{slide.title}</h2>
           {slide.body && (
             <p
@@ -558,6 +558,17 @@ function SlideDeck({
               className={`mt-4 ${accentBg} rounded-xl px-4 py-3 text-sm italic ${accentText} transition-all ${isCalloutActive ? calloutHl : ""}`}
               dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.callout) }}
             />
+          )}
+          {slide.cta && (
+            <div className="mt-auto pt-6 flex justify-center">
+              <button
+                onClick={() => alert(`Quiz launch not wired yet — coming next phase.\n\nWill spin up a ${slide.cta!.quizSpec?.mcq ?? "?"} MCQ + ${slide.cta!.quizSpec?.oeq ?? "?"} OEQ quiz titled "${slide.cta!.quizSpec?.title ?? "?"}".`)}
+                className="px-8 py-4 rounded-2xl bg-emerald-600 text-white text-base font-bold hover:bg-emerald-700 shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined">play_circle</span>
+                {slide.cta.label}
+              </button>
+            </div>
           )}
         </div>
         );

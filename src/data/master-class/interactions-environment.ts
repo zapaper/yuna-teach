@@ -32,6 +32,17 @@ export type MasterClassSlide = {
    *  VOLUME_PATH/master-class/<slug>/slide-<idx>.jpg. The renderer
    *  loads the image lazily via the diagram GET endpoint. */
   diagramPrompt?: string;
+  /** Optional call-to-action that renders as a big primary button
+   *  on the slide. Currently used by the practice-quiz launch slide
+   *  at the end of every Master Class deck. */
+  cta?: {
+    label: string;
+    quizSpec?: {
+      title: string;
+      mcq: number;
+      oeq: number;
+    };
+  };
 };
 
 export type MasterClassContent = {
@@ -224,6 +235,23 @@ export const interactionsEnvironment: MasterClassContent = {
         fullMarks: {
           label: "3 marks",
           text: "Cutting down trees reduces the number of plants doing **photosynthesis**. This decreases the **oxygen** released into the atmosphere and increases the **carbon dioxide**. It also destroys **habitats** for many species, causing their populations to decrease.",
+        },
+      },
+    },
+    {
+      title: "Let's get some practice!",
+      body: "Time to put it all together. This quiz pulls real PSLE-style questions across every concept we just covered.",
+      bullets: [
+        "**10 MCQ** + **6 OEQ** — a mix of all 7 concepts in this Master Class.",
+        "After you submit, the AI will look at where you went wrong and suggest a follow-up focused quiz on just those concepts.",
+        "Mistakes are saved — we'll come back to them in a forced-revision session in **1 week**.",
+      ],
+      cta: {
+        label: "Click here to start your practice quiz",
+        quizSpec: {
+          title: "Mastery: Interactions with environment Quiz 1",
+          mcq: 10,
+          oeq: 6,
         },
       },
     },
