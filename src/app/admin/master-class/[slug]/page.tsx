@@ -444,9 +444,34 @@ function SlideDeck({
       {ttsError && (
         <p className="text-[10px] text-rose-600 mb-2">{ttsError}</p>
       )}
-      {slide && (
+      {slide && (() => {
+        // Map the current segment index to which content block is
+        // being narrated. Segment order in the API: intro (0), bullets
+        // (1..N), scoring example (if any), callout (if any).
+        const numBullets = slide.bullets?.length ?? 0;
+        const hasScoring = !!slide.scoringExample;
+        const hasCallout = !!slide.callout;
+        const isIntroActive = playing && segIdx === 0;
+        const activeBulletIdx = playing && segIdx >= 1 && segIdx <= numBullets ? segIdx - 1 : -1;
+        const isScoringActive = playing && hasScoring && segIdx === numBullets + 1;
+        const isCalloutActive = playing && hasCallout && segIdx === numBullets + (hasScoring ? 2 : 1);
+        // Highlight style — soft tinted ring with the deck's accent
+        // colour. Explicit class strings because Tailwind JIT can't
+        // see template-literal class names at build time.
+        const hlIntro = accent === "emerald"
+          ? "bg-emerald-50/60 ring-1 ring-emerald-200 rounded-xl px-3 py-2 -mx-3"
+          : "bg-rose-50/60 ring-1 ring-rose-200 rounded-xl px-3 py-2 -mx-3";
+        const hlBullet = accent === "emerald"
+          ? "bg-emerald-50/70 ring-1 ring-emerald-200 rounded-lg pl-2 pr-3 py-1.5 -ml-2 transition-all"
+          : "bg-rose-50/70 ring-1 ring-rose-200 rounded-lg pl-2 pr-3 py-1.5 -ml-2 transition-all";
+        const introHl = isIntroActive ? hlIntro : "";
+        const bulletHlClass = (i: number) =>
+          activeBulletIdx === i ? hlBullet : "px-0 py-1.5 transition-all";
+        const scoringHl = accent === "emerald" ? "ring-2 ring-emerald-300" : "ring-2 ring-rose-300";
+        const calloutHl = accent === "emerald" ? "ring-2 ring-emerald-400" : "ring-2 ring-rose-400";
+        return (
         <div className="min-h-[260px] flex flex-col">
-          <h2 className="text-xl lg:text-2xl font-bold text-slate-900 leading-tight">{slide.title}</h2>
+          <h2 className={`text-xl lg:text-2xl font-bold text-slate-900 leading-tight transition-all ${introHl}`}>{slide.title}</h2>
           {slide.body && (
             <p
               className="text-sm text-slate-600 mt-2 leading-relaxed"
@@ -464,17 +489,20 @@ function SlideDeck({
             </div>
           )}
           {slide.bullets && slide.bullets.length > 0 && (
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-1">
               {slide.bullets.map((b, i) => (
-                <li key={i} className="text-sm text-slate-700 flex gap-3">
-                  <span className={`w-1.5 h-1.5 rounded-full ${accentDot} mt-2 flex-shrink-0`} />
+                <li
+                  key={i}
+                  className={`text-sm text-slate-700 flex gap-3 ${bulletHlClass(i)}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${activeBulletIdx === i ? "bg-slate-900" : accentDot} mt-2 flex-shrink-0 transition-colors`} />
                   <span className="whitespace-pre-line" dangerouslySetInnerHTML={{ __html: renderInlineMd(b) }} />
                 </li>
               ))}
             </ul>
           )}
           {slide.scoringExample && (
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className={`mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 transition-all ${isScoringActive ? scoringHl : ""}`}>
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
                 Scoring example
               </p>
@@ -502,12 +530,13 @@ function SlideDeck({
           )}
           {slide.callout && (
             <div
-              className={`mt-4 ${accentBg} rounded-xl px-4 py-3 text-sm italic ${accentText}`}
+              className={`mt-4 ${accentBg} rounded-xl px-4 py-3 text-sm italic ${accentText} transition-all ${isCalloutActive ? calloutHl : ""}`}
               dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.callout) }}
             />
           )}
         </div>
-      )}
+        );
+      })()}
       <div className="mt-5 flex items-center justify-between">
         <button
           onClick={() => setIdx(Math.max(0, currentIdx - 1))}
