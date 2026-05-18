@@ -39,29 +39,29 @@ export const interactionsEnvironment: MasterClassContent = {
   topicLabel: "Interactions within the environment",
   title: "Interactions within the Environment",
   stats: {
-    psleQuestions: 11,
-    psleSubjectPercent: 26.8,
+    psleQuestions: 19,
+    psleSubjectPercent: 28.4,
     totalPracticePool: 85,
-    psleQuestionsInPool: 11,
-    schoolQuestionsInPool: 74,
-    pctOeq: 91,
-    headline: "1 in 4 PSLE Life-Science questions test this topic — 8.9% of total PSLE Science marks, and 91% of those marks are open-ended.",
+    psleQuestionsInPool: 19,
+    schoolQuestionsInPool: 66,
+    pctOeq: 58,
+    headline: "More than 1 in 4 PSLE Life-Science questions test this topic — 10.8% of total PSLE Science marks, and 58% of them are open-ended.",
   },
   keyConcepts: [
     {
       title: "How much PSLE testing on this topic",
-      body: "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. And almost all of it is open-ended, where the marker is looking for explanations, not just picks.",
+      body: "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. A roughly even mix of MCQ and OEQ, with the OEQ carrying the heavier mark weight.",
       bullets: [
-        "**27%** of PSLE Life-Science questions test this topic",
-        "**8.9%** of total PSLE Science marks come from it",
-        "**91%** of these PSLE questions are open-ended (OEQ)",
+        "**28%** of PSLE Life-Science questions test this topic",
+        "**10.8%** of total PSLE Science marks come from it",
+        "**58%** are open-ended (OEQ), **42%** are MCQ",
         "**33%** test definitions of population / community / habitat / ecosystem · **19%** test food-web disruption · **7%** test adaptation",
       ],
       callout: "If you only revise one Life-Science topic — start here.",
     },
     {
       title: "Key concept definitions",
-      body: "PSLE distractors are designed around one-word differences in these definitions. Get them character-perfect.",
+      body: "",
       bullets: [
         "**Population** — a group of living things of the **same kind** in one place",
         "**Community** — all the **different populations** living in one place",
@@ -73,7 +73,7 @@ export const interactionsEnvironment: MasterClassContent = {
     },
     {
       title: "Causal-chain reasoning — the place where most students lose marks",
-      body: "Most OEQ marks come from writing every step. PSLE markers reward each link in the **chain**.",
+      body: "Most questions will show a food web, and describe what happens when one population decreases. PSLE markers reward each link in the **chain** — writing only the endpoint earns 1 mark, the full chain earns 3-4.",
       bullets: [
         "Step 1: Name what **changes** (grass dies)",
         "Step 2: Name who has **less food** (grasshoppers have less food)",
