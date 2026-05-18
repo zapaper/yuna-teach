@@ -150,6 +150,8 @@ For EACH question, extract:
 
 CHINESE PAPER — language-specific stem rules:
 - Preserve Chinese characters EXACTLY. Do NOT translate. Keep full-width punctuation (。，、：；""「」《》！？) as printed.
+- STRIP THE LEADING QUESTION NUMBER FROM THE STEM. questionNum carries the digit already; the stem must start with the question's own text — never "1." / "1．" / "1、" / "(1)" / "Q1 …". If the OCR line reads "1．他做事很__马虎__。" the stem you emit must read "他做事很__马虎__。".
+- STRIP THE SECTION INSTRUCTION FROM EVERY STEM. The instruction line at the top of the section (e.g. for 语文应用 MCQ: "下面各题的句子里都有一个词语用横线划起来。从甲，乙，丙，丁四个答案中选出意思最相近的一个。") appears ONCE in the OCR text. It is NOT part of any individual question. Do NOT prepend it to any stem. Every question's stem starts with the question's own text only.
 - CRITICAL — EMPHASIS MARKUP PASS-THROUGH: the OCR text above has already wrapped bold / underlined phrases in markdown (**phrase** for bold, __phrase__ for underline, **__phrase__** for both). Copy these markers VERBATIM into the stem AND every option string. NEVER strip them. NEVER "clean them up". For 语文应用 MCQ (Q1-15) this is the single most important rule — the emphasised word IS what's being tested. If a Q13-15-style option contains "**马虎** 地写字", your options[2] string must read "**马虎** 地写字" character-for-character.
 - Watch for visually similar characters: 己/已/巳, 末/未, 戍/戌/戊, 千/干/于, 几/凡 etc. The OCR was done with a top-tier model — trust its character choice and copy it through.` : ""}
 
