@@ -175,6 +175,49 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     },
   }), []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  function pointerPos(e: PointerEvent): { x: number; y: number } {
+    const canvas = visibleRef.current!;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * BUFFER_W,
+      y: ((e.clientY - rect.top) / rect.height) * BUFFER_H,
+    };
+  }
+
+  // Stroke one event's worth of samples into the ink layer. Reads
+  // coalesced events so high-frequency pens (Apple Pencil 240Hz,
+  // S-Pen 120Hz) don't lose sub-frame samples between vsyncs.
+  function strokeEvent(e: PointerEvent) {
+    if (!drawing.current) return;
+    const inkCtx = inkLayerRef.current?.getContext("2d");
+    if (!inkCtx) return;
+    const t = toolRef.current;
+    inkCtx.lineCap = "round";
+    inkCtx.lineJoin = "round";
+    if (t === "eraser" || t === "eraser-large") {
+      inkCtx.globalCompositeOperation = "destination-out";
+      inkCtx.strokeStyle = "rgba(0,0,0,1)";
+      inkCtx.lineWidth = (t === "eraser-large" ? ERASER_LARGE_WIDTH : ERASER_WIDTH) * DPR;
+    } else {
+      inkCtx.globalCompositeOperation = "source-over";
+      inkCtx.strokeStyle = inkColor;
+      inkCtx.lineWidth = PEN_WIDTH * DPR;
+    }
+    const samples =
+      typeof e.getCoalescedEvents === "function" ? e.getCoalescedEvents() : null;
+    const points = samples && samples.length > 0 ? samples : [e];
+    for (const ev of points) {
+      const pos = pointerPos(ev);
+      const prev = lastPos.current ?? pos;
+      inkCtx.beginPath();
+      inkCtx.moveTo(prev.x, prev.y);
+      inkCtx.lineTo(pos.x, pos.y);
+      inkCtx.stroke();
+      lastPos.current = pos;
+    }
+    repaint();
+  }
+
   useEffect(() => {
     const visible = visibleRef.current;
     if (!visible) return;
@@ -194,6 +237,50 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     if (gridCtx) drawGrid(gridCtx);
     gridLayerRef.current = gridLayer;
 
+    // Native event listeners with { passive: false }. React's synthetic
+    // pointer events get scheduled through the React event system,
+    // which on a busy main thread can defer/batch pointermove. Native
+    // listeners on the DOM element receive events at full browser rate
+    // and let us call preventDefault() to claim ownership of the
+    // gesture so the browser doesn't waste cycles on scroll/zoom
+    // detection that touch-action: none should already block. The
+    // combined effect is fewer dropped fast-stroke samples.
+    const onDown = (e: PointerEvent) => {
+      e.preventDefault();
+      (e.target as Element).setPointerCapture(e.pointerId);
+      drawing.current = true;
+      lastPos.current = pointerPos(e);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!drawing.current) return;
+      e.preventDefault();
+      strokeEvent(e);
+    };
+    // pointerrawupdate fires for raw input samples even between
+    // vsyncs on Chrome / Edge / Android Chrome — Safari ignores it.
+    // We attach it in addition to pointermove; either one calling
+    // strokeEvent is fine since lastPos.current keeps the chain
+    // continuous and any duplicate sample produces a zero-length
+    // segment that's invisible.
+    const onRaw = (e: PointerEvent) => {
+      if (!drawing.current) return;
+      strokeEvent(e);
+    };
+    const onUp = () => {
+      if (!drawing.current) return;
+      drawing.current = false;
+      lastPos.current = null;
+      emitChange();
+    };
+
+    visible.addEventListener("pointerdown", onDown, { passive: false });
+    visible.addEventListener("pointermove", onMove, { passive: false });
+    visible.addEventListener("pointerup", onUp);
+    visible.addEventListener("pointercancel", onUp);
+    // The "as keyof HTMLElementEventMap" cast is needed because
+    // pointerrawupdate isn't yet in lib.dom.d.ts in all TS versions.
+    visible.addEventListener("pointerrawupdate" as keyof HTMLElementEventMap, onRaw as EventListener, { passive: false } as AddEventListenerOptions);
+
     // Load saved ink onto the ink-layer first so the initial repaint
     // shows previously-saved work.
     if (savedInkUrl) {
@@ -211,77 +298,16 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
       repaint();
       setReady(true);
     }
+
+    return () => {
+      visible.removeEventListener("pointerdown", onDown);
+      visible.removeEventListener("pointermove", onMove);
+      visible.removeEventListener("pointerup", onUp);
+      visible.removeEventListener("pointercancel", onUp);
+      visible.removeEventListener("pointerrawupdate" as keyof HTMLElementEventMap, onRaw as EventListener);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function pointerPos(e: React.PointerEvent | PointerEvent): { x: number; y: number } {
-    const canvas = visibleRef.current!;
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: ((e.clientX - rect.left) / rect.width) * BUFFER_W,
-      y: ((e.clientY - rect.top) / rect.height) * BUFFER_H,
-    };
-  }
-
-  function onPointerDown(e: React.PointerEvent) {
-    // The Chinese OEQ canvas is the student's PRIMARY answer surface
-    // (there's no typed-answer alternative for 田字格 character
-    // boxes), so draw regardless of the parent's tool state. Eraser
-    // modes still respect the prop.
-    (e.target as Element).setPointerCapture(e.pointerId);
-    drawing.current = true;
-    lastPos.current = pointerPos(e);
-  }
-  function onPointerMove(e: React.PointerEvent) {
-    if (!drawing.current) return;
-    const t = toolRef.current;
-    const inkCtx = inkLayerRef.current?.getContext("2d");
-    const visibleCtx = visibleRef.current?.getContext("2d");
-    if (!inkCtx || !visibleCtx) return;
-    inkCtx.lineCap = "round";
-    inkCtx.lineJoin = "round";
-    if (t === "eraser" || t === "eraser-large") {
-      inkCtx.globalCompositeOperation = "destination-out";
-      inkCtx.strokeStyle = "rgba(0,0,0,1)";
-      inkCtx.lineWidth = (t === "eraser-large" ? ERASER_LARGE_WIDTH : ERASER_WIDTH) * DPR;
-    } else {
-      // Default to pen — covers "pen", "type", undefined, null, etc.
-      inkCtx.globalCompositeOperation = "source-over";
-      inkCtx.strokeStyle = inkColor;
-      inkCtx.lineWidth = PEN_WIDTH * DPR;
-    }
-    // High-frequency pen devices (Apple Pencil, S-Pen) report at 120-
-    // 240Hz, but pointermove fires at the display's 60Hz refresh rate.
-    // The browser bundles the dropped samples into getCoalescedEvents()
-    // — reading them lets us stroke every sample point, eliminating
-    // the gaps that show up as intermittent breaks on fast strokes.
-    const native = e.nativeEvent;
-    const samples =
-      typeof native.getCoalescedEvents === "function"
-        ? native.getCoalescedEvents()
-        : null;
-    const points = samples && samples.length > 0 ? samples : [native];
-    for (const ev of points) {
-      const pos = pointerPos(ev);
-      const prev = lastPos.current ?? pos;
-      inkCtx.beginPath();
-      inkCtx.moveTo(prev.x, prev.y);
-      inkCtx.lineTo(pos.x, pos.y);
-      inkCtx.stroke();
-      lastPos.current = pos;
-    }
-    // Paint synchronously. RAF batching was tried and felt worse —
-    // the visible stroke lagged a frame behind the pen tip, which the
-    // user perceives as gaps/breaks even when no ink samples were
-    // dropped. drawImage(gridLayer) + drawImage(inkLayer) is cheap.
-    repaint();
-  }
-  function onPointerUp() {
-    if (!drawing.current) return;
-    drawing.current = false;
-    lastPos.current = null;
-    emitChange();
-  }
 
   return (
     // select-none + WebkitTouchCallout: none applied locally on the
@@ -296,12 +322,20 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
     >
       <canvas
         ref={visibleRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
         className="w-full h-full block touch-none select-none"
-        style={{ touchAction: "none", WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none", cursor: tool === "eraser" || tool === "eraser-large" ? "cell" : "crosshair" }}
+        // Pointer handlers are attached natively in useEffect (passive: false,
+        // plus pointerrawupdate on Chrome/Edge for sub-vsync samples).
+        // willChange + translateZ promote the canvas to its own GPU layer
+        // so the per-event repaint doesn't invalidate surrounding content.
+        style={{
+          touchAction: "none",
+          WebkitUserSelect: "none",
+          userSelect: "none",
+          WebkitTouchCallout: "none",
+          willChange: "contents",
+          transform: "translateZ(0)",
+          cursor: tool === "eraser" || tool === "eraser-large" ? "cell" : "crosshair",
+        }}
       />
       {!ready && (
         <div className="text-xs text-slate-400 p-2">Loading…</div>
