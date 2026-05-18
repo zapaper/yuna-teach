@@ -19,9 +19,9 @@ import { getMasterClass, type MasterClassSlide } from "@/data/master-class";
 const VOLUME_PATH = process.env.VOLUME_PATH ?? path.join(process.cwd(), ".data");
 const CACHE_DIR = path.join(VOLUME_PATH, "master-class");
 
-// "Rachel" — ElevenLabs' default English voice. We can make this
-// configurable per master-class later (e.g. a kid-friendly voice).
-const VOICE_ID = "21m00Tcm4TlvDq8ikWAM";
+// Active voice ID. Swap freely — the cache key includes the voice ID
+// below, so changing this invalidates old cached audio automatically.
+const VOICE_ID = "WZlYpi1yf6zJhNWXih74";
 
 // Strip our markdown so the TTS doesn't read out "asterisk asterisk".
 // Keeps the content, drops the formatting tokens.
@@ -139,10 +139,15 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
-    // Include a content hash in the filename so that editing the slide
-    // text invalidates the cache automatically. Old hashes become
-    // orphan files (a few KB each) — harmless until we add a janitor.
-    const contentHash = crypto.createHash("sha1").update(seg.text).digest("hex").slice(0, 10);
+    // Include both the segment text AND the active voice ID in the
+    // cache hash so that editing the script OR swapping voices both
+    // invalidate old audio automatically. Orphan files (a few KB
+    // each) accumulate on disk — harmless until we add a janitor.
+    const contentHash = crypto
+      .createHash("sha1")
+      .update(`${VOICE_ID}|${seg.text}`)
+      .digest("hex")
+      .slice(0, 10);
     const segPath = path.join(slideDir, `seg-${i}-${contentHash}.mp3`);
     let audioBuf: Buffer | null = null;
     let cacheStatus: "HIT" | "MISS" = "MISS";
