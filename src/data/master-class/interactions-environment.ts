@@ -188,7 +188,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Answer template: 'Feature: ____. How it helps: ____. This helps the organism survive in ____.'",
     },
     {
-      title: "Decomposers — the easy-to-miss scorer",
+      title: "Decomposer: easy to miss points",
       body: "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
       bullets: [
         "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
@@ -203,7 +203,7 @@ export const interactionsEnvironment: MasterClassContent = {
         },
         fullMarks: {
           label: "3 marks",
-          text: "Bacteria decompose dead organisms and waste, releasing nutrients back to the soil for plants to absorb.",
+          text: "Bacteria decompose dead organisms and waste, **releasing nutrients** back to the soil for **plants to absorb**.",
         },
       },
       callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
