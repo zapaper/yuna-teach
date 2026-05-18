@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
+import crypto from "crypto";
 import { promises as fs } from "fs";
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
@@ -138,7 +139,11 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
-    const segPath = path.join(slideDir, `seg-${i}.mp3`);
+    // Include a content hash in the filename so that editing the slide
+    // text invalidates the cache automatically. Old hashes become
+    // orphan files (a few KB each) — harmless until we add a janitor.
+    const contentHash = crypto.createHash("sha1").update(seg.text).digest("hex").slice(0, 10);
+    const segPath = path.join(slideDir, `seg-${i}-${contentHash}.mp3`);
     let audioBuf: Buffer | null = null;
     let cacheStatus: "HIT" | "MISS" = "MISS";
 
