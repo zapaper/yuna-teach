@@ -259,10 +259,21 @@ function SlideDeck({
   // closure staleness inside onended.
   const segIdxRef = useRef(0);
   segIdxRef.current = segIdx;
+  // Pause inserted between bullet segments for breathing room. Stored
+  // as a ref so pause/mute/slide-change can cancel a pending advance.
+  const INTER_SEGMENT_PAUSE_MS = 900;
+  const pendingAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  function cancelPendingAdvance() {
+    if (pendingAdvanceRef.current) {
+      clearTimeout(pendingAdvanceRef.current);
+      pendingAdvanceRef.current = null;
+    }
+  }
 
   // Fetch segments whenever the slide changes. Stop any active audio
   // first so we don't keep narrating the previous slide.
   useEffect(() => {
+    cancelPendingAdvance();
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -317,10 +328,19 @@ function SlideDeck({
     const audio = new Audio(url);
     audio.muted = muted;
     audio.onended = () => {
-      // Advance to next segment if any remain.
+      // Pause briefly between segments so bullets don't blur together.
+      // Use a ref-tracked timeout so pause/mute/slide-change can
+      // cancel a pending advance.
+      cancelPendingAdvance();
       const next = segIdxRef.current + 1;
-      if (next < segments.length) setSegIdx(next);
-      else setPlaying(false);
+      if (next < segments.length) {
+        pendingAdvanceRef.current = setTimeout(() => {
+          pendingAdvanceRef.current = null;
+          setSegIdx(next);
+        }, INTER_SEGMENT_PAUSE_MS);
+      } else {
+        setPlaying(false);
+      }
     };
     audio.onerror = () => {
       setPlaying(false);
@@ -343,18 +363,23 @@ function SlideDeck({
   function togglePlay() {
     const a = audioRef.current;
     if (!a) {
-      // Trigger initial play by re-setting segIdx to itself; the
-      // segments effect above will create a new audio element.
       if (segments.length > 0) setSegIdx(s => s);
       return;
     }
-    if (playing) { a.pause(); setPlaying(false); }
-    else { a.play().then(() => setPlaying(true)).catch(() => setPlaying(false)); }
+    if (playing) {
+      cancelPendingAdvance();
+      a.pause();
+      setPlaying(false);
+    } else {
+      a.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+    }
   }
   function jumpNext() {
+    cancelPendingAdvance();
     if (segIdx + 1 < segments.length) setSegIdx(segIdx + 1);
   }
   function jumpPrev() {
+    cancelPendingAdvance();
     if (segIdx > 0) setSegIdx(segIdx - 1);
   }
   async function regenerate() {
