@@ -121,7 +121,27 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Remember: population = same kind. Community = different kinds. This trips up most students.",
     },
     {
-      title: "2: Food Web: Causal Chain reasoning — common mistakes",
+      title: "2: Food Web: Explaining it",
+      body: "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
+      bullets: [
+        "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
+        "**Step 2** — Map the impact on each group with the change. (**↑** for increase, **↓** for decrease.)",
+        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**.",
+      ],
+      scoringExample: {
+        scenario: "The food chain shown is: grass → grasshopper → bird. Explain how energy is transferred along this chain.",
+        oneMark: {
+          label: "1 mark",
+          text: "Energy flows from grass to grasshopper to bird.",
+        },
+        fullMarks: {
+          label: "3 marks",
+          text: "Grass is the **producer** — it captures **sunlight energy through photosynthesis**. The grasshopper eats the grass, transferring energy from grass to grasshopper. The bird then eats the grasshopper, transferring the energy further along the chain. (If asked, the ultimate source of energy is always the Sun.)",
+        },
+      },
+    },
+    {
+      title: "3: Food Web: Causal Chain reasoning — common mistakes",
       body: "Many food web questions will show a food web, and ask what happens when one population decreases… PSLE markers reward points for **every step** in the explanation. How to score full marks? **Four steps.**",
       bullets: [
         "Step 1: Name what **changes** (grass dies)",
@@ -143,7 +163,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
-      title: "3: Mutual Benefits scoring pattern",
+      title: "4: Mutual benefits",
       body: "Aquarium and pond questions almost always test mutualism.",
       bullets: [
         "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
@@ -163,27 +183,6 @@ export const interactionsEnvironment: MasterClassContent = {
         },
       },
       callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
-    },
-    {
-      title: "4: Food Web: Explaining it",
-      body: "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
-      bullets: [
-        "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
-        "**Step 2** — Map the impact on each group with the change. (**↑** for increase, **↓** for decrease.)",
-        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**.",
-      ],
-      scoringExample: {
-        scenario: "The food chain shown is: grass → grasshopper → bird. Explain how energy is transferred along this chain.",
-        oneMark: {
-          label: "1 mark",
-          text: "Energy flows from grass to grasshopper to bird.",
-        },
-        fullMarks: {
-          label: "3 marks",
-          text: "Grass is the **producer** — it captures **sunlight energy through photosynthesis**. The grasshopper eats the grass, transferring energy from grass to grasshopper. The bird then eats the grasshopper, transferring the energy further along the chain. (If asked, the ultimate source of energy is always the Sun.)",
-        },
-      },
-      callout: "Map first (Step 1 + Step 2), then answer. 'WHO eats WHOM?' before any prediction.",
     },
     {
       title: "5: Adaptation: Feature → how it helps → link to environment",
@@ -295,21 +294,21 @@ export const interactionsEnvironment: MasterClassContent = {
     // OEQ on another concept. We tag the question by its primary
     // concept (the harder sub-part), not by the definition sub-part.
     {
+      id: "food-web-explaining",
+      label: "Food Web reading & explaining",
+      description: "Reading a food web diagram — identifying the producer, counting predators, tracing energy flow, naming the Sun as the ultimate energy source, or drawing a food web from a paragraph description. Not a causal-decrease question; just structure / energy flow.",
+      slideIdx: 2,
+    },
+    {
       id: "causal-chain",
       label: "Causal Chain reasoning",
       description: "Asks what happens to organism X's population when another organism's population changes — predator/prey or food-chain disruption. Typically OEQ that requires writing the full chain (less food → starve/move away → population decreases).",
-      slideIdx: 2,
+      slideIdx: 3,
     },
     {
       id: "mutual-benefits",
       label: "Mutual Benefits",
       description: "Tests mutualism — two organisms benefiting from each other. Most often aquarium plants & fish (oxygen/carbon dioxide exchange), pollinator + flower (nectar / pollen), or cleaner + host. The distractor often claims plants give 'food' to fish.",
-      slideIdx: 3,
-    },
-    {
-      id: "food-web-explaining",
-      label: "Food Web reading & explaining",
-      description: "Reading a food web diagram — identifying the producer, counting predators, tracing energy flow, naming the Sun as the ultimate energy source, or drawing a food web from a paragraph description. Not a causal-decrease question; just structure / energy flow.",
       slideIdx: 4,
     },
     {
