@@ -15,9 +15,21 @@ import { getMasterClass } from "@/data/master-class";
 //   { masterClassSlug, parentMasteryId? }
 // Returns { paperId } — the caller navigates to /quiz/<paperId>.
 
-function hasOptions(q: { transcribedOptions?: unknown }): boolean {
+/** MCQ = question has any of: 4-option text array, 4-option image
+ *  array, or a 4-row option table. Matches the focused-test detector
+ *  so the quiz UI's MCQ/OEQ classification agrees with ours. */
+function hasOptions(q: {
+  transcribedOptions?: unknown;
+  transcribedOptionImages?: unknown;
+  transcribedOptionTable?: unknown;
+}): boolean {
   const opts = q.transcribedOptions;
-  return Array.isArray(opts) && (opts as unknown[]).length === 4;
+  const imgs = q.transcribedOptionImages;
+  const tbl = q.transcribedOptionTable;
+  if (Array.isArray(opts) && opts.length === 4) return true;
+  if (Array.isArray(imgs) && imgs.some(o => !!o)) return true;
+  if (tbl && typeof tbl === "object" && Array.isArray((tbl as { rows?: unknown }).rows) && (tbl as { rows: unknown[] }).rows.length === 4) return true;
+  return false;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -67,6 +79,9 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   });
 
   // ─── Pull candidate questions ──────────────────────────────────────
+  // Same shape as the focused-test SELECT so cloned mastery questions
+  // carry every renderable field — most importantly diagramImageData,
+  // which was missing in the first cut and made diagrams disappear.
   const candidates = await prisma.examQuestion.findMany({
     where: {
       syllabusTopic: { equals: content.topicLabel, mode: "insensitive" },
@@ -88,7 +103,9 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       transcribedOptionImages: true,
       transcribedOptionTable: true,
       transcribedSubparts: true,
+      diagramImageData: true,
       diagramBounds: true,
+      elaboration: true,
     },
   });
 
@@ -212,7 +229,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
           transcribedOptionImages: q.transcribedOptionImages ?? undefined,
           transcribedOptionTable: q.transcribedOptionTable ?? undefined,
           transcribedSubparts: q.transcribedSubparts ?? undefined,
+          // Carry the diagram fields and elaboration through to the
+          // cloned question — matches the focused-test create. Without
+          // diagramImageData, charts/figures referenced by the stem
+          // never appeared on the mastery quiz page.
+          diagramImageData: q.diagramImageData ?? undefined,
           diagramBounds: q.diagramBounds ?? undefined,
+          elaboration: q.elaboration ?? undefined,
           sourceQuestionId: q.id,
         })),
       },
