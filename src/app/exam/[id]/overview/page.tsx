@@ -938,8 +938,13 @@ function ExamOverviewContent({ id }: { id: string }) {
             </div>
           </div>
         )}
-        {/* Admin-only: AI detection debug info */}
-        {isAdmin && paper.metadata ? (
+        {/* Admin-only: AI detection debug info. Only renders for
+            papers whose metadata is the extraction-pipeline shape
+            ({ answerPages, coverPages, papers, answersDetected, ... }).
+            Other paperTypes (e.g. "mastery") use metadata for their
+            own bookkeeping and DON'T have these fields — accessing
+            them would throw "undefined.length" and crash the page.*/}
+        {isAdmin && paper.metadata && Array.isArray((paper.metadata as { answerPages?: unknown }).answerPages) ? (
           <div className="mt-3 pt-3 border-t border-slate-100">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">AI Detection Details</p>
             <div className="space-y-1.5 text-xs text-slate-600">
