@@ -173,8 +173,105 @@ export default function EnglishEditView({ paper, pageImages, onSave, onDelete, o
   const [reextractingPassage, setReextractingPassage] = useState<string | null>(null);
   const [passageResult, setPassageResult] = useState<Record<string, string>>({});
 
+  // OCR audit (Chinese papers only): client kicks /api/exam/[id]/audit-ocr
+  // which re-OCRs each section's first page with 2.5-pro and asks a vision
+  // judge to list the transcription errors in the existing flash output.
+  type AuditError = { snippet: string; correction: string; note: string };
+  type AuditJudge = { winner: string; errors_in_a: AuditError[]; errors_in_b: AuditError[]; summary: string };
+  type AuditFinding = { sectionLabel: string; pageIndex: number; distance: number; skipped?: string; judge?: AuditJudge | null };
+  const [auditRunning, setAuditRunning] = useState(false);
+  const [auditFindings, setAuditFindings] = useState<AuditFinding[] | null>(null);
+  const [auditError, setAuditError] = useState<string | null>(null);
+
+  const isChinesePaper = ((paper.subject ?? "") as string).toLowerCase().includes("chinese");
+
+  async function runOcrAudit() {
+    setAuditRunning(true);
+    setAuditError(null);
+    setAuditFindings(null);
+    try {
+      const res = await fetch(`/api/exam/${paper.id}/audit-ocr`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        setAuditError(data.error ?? "Audit failed");
+      } else {
+        setAuditFindings(data.findings ?? []);
+      }
+    } catch (err) {
+      setAuditError((err as Error).message);
+    } finally {
+      setAuditRunning(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
+      {/* OCR audit panel — Chinese papers only. Shows a button that
+          runs /api/exam/[id]/audit-ocr and then surfaces the specific
+          transcription errors the vision judge identified. */}
+      {isChinesePaper && (
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-slate-800">OCR Audit (2.5-pro vs current)</p>
+              <p className="text-xs text-slate-400">Re-OCRs each section with 2.5-pro and asks a vision judge to list transcription errors in the current OCR. Read-only.</p>
+            </div>
+            <button
+              onClick={runOcrAudit}
+              disabled={auditRunning}
+              className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-400"
+            >
+              {auditRunning ? "Auditing…" : (auditFindings ? "Re-run Audit" : "Run OCR Audit")}
+            </button>
+          </div>
+          {auditError && (
+            <p className="mt-3 text-xs text-rose-600">{auditError}</p>
+          )}
+          {auditFindings && auditFindings.length > 0 && (() => {
+            const withErrors = auditFindings.filter(f => (f.judge?.errors_in_a?.length ?? 0) > 0);
+            const clean = auditFindings.length - withErrors.length;
+            return (
+              <div className="mt-4 space-y-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  {withErrors.length} section{withErrors.length === 1 ? "" : "s"} with transcription errors · {clean} clean
+                </p>
+                {withErrors.length === 0 ? (
+                  <p className="text-xs text-emerald-700 bg-emerald-50 rounded-lg px-3 py-2">No transcription errors detected by the judge.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {withErrors.map(f => (
+                      <li key={f.sectionLabel} className="border border-amber-200 bg-amber-50 rounded-xl px-4 py-3">
+                        <div className="flex items-baseline justify-between gap-3">
+                          <p className="text-sm font-bold text-amber-900">{f.sectionLabel}</p>
+                          <p className="text-[10px] text-amber-700">page {f.pageIndex + 1} · {f.judge?.errors_in_a?.length ?? 0} error{(f.judge?.errors_in_a?.length ?? 0) === 1 ? "" : "s"}</p>
+                        </div>
+                        {f.judge?.summary && (
+                          <p className="text-xs text-amber-800 mt-1">{f.judge.summary}</p>
+                        )}
+                        <ul className="mt-2 space-y-1">
+                          {(f.judge?.errors_in_a ?? []).map((e, i) => (
+                            <li key={i} className="text-xs text-slate-700">
+                              <span className="font-bold text-rose-700">{e.snippet}</span>
+                              <span className="text-slate-400"> → </span>
+                              <span className="font-bold text-emerald-700">{e.correction}</span>
+                              {e.note && <span className="text-slate-500"> · {e.note}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {auditFindings.some(f => f.skipped) && (
+                  <p className="text-[10px] text-slate-400">
+                    Skipped: {auditFindings.filter(f => f.skipped).map(f => `${f.sectionLabel} (${f.skipped})`).join(", ")}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
       {sections.map(sec => {
         // Use the section's resolved ocrKey (set by groupBySection)
         // so duplicate-name topics each get their own ocrData entry.
