@@ -26,6 +26,12 @@ export type MasterClassSlide = {
     label: string;
     caption?: string;
   };
+  /** Optional AI-generated diagram. The `diagramPrompt` is hand-
+   *  authored; the workshop view has a "Generate diagram" button that
+   *  calls Gemini image-gen and saves the result to disk under
+   *  VOLUME_PATH/master-class/<slug>/slide-<idx>.jpg. The renderer
+   *  loads the image lazily via the diagram GET endpoint. */
+  diagramPrompt?: string;
 };
 
 export type MasterClassContent = {
@@ -76,13 +82,13 @@ export const interactionsEnvironment: MasterClassContent = {
         "**28%** of PSLE Life-Science questions test this topic",
         "**~12%** of total PSLE Science marks come from it",
         "**58%** are open-ended (OEQ), **42%** are MCQ",
-        "**33%** test definitions of population / community / habitat / ecosystem · **19%** test food-web disruption · **7%** test adaptation",
+        "**We will cover the top common questions and mistakes:**\n  • Definitions\n  • Food Web\n  • Adaptation\n  • Mutualism\n  • Decomposer\n  • Human Impact",
       ],
       callout: "If you only revise one Life-Science topic — start here.",
     },
     {
-      title: "Key concept definitions",
-      body: "",
+      title: "1: Key Definitions",
+      body: "**33% of PSLE OEQ** have a definition sub-part. This is a give-away to master.",
       bullets: [
         "**Population** — a group of living things of the **same kind** in one place",
         "**Community** — all the **different populations** living in one place",
