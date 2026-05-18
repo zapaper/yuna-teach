@@ -253,7 +253,7 @@ export const interactionsEnvironment: MasterClassContent = {
       bullets: [
         "**10 MCQ** + **6 OEQ** — a mix of all 7 concepts in this Master Class.",
         "After you submit, the AI will look at where you went wrong and suggest a follow-up focused quiz on just those concepts.",
-        "Mistakes are saved — we'll come back to them in a forced-revision session in **1 week**.",
+        "Mistakes are saved — we'll come back to them in an auto-revision session in **1 week**.",
       ],
       cta: {
         label: "Click here to start your practice quiz",
