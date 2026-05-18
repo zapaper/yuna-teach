@@ -71,7 +71,7 @@ export const interactionsEnvironment: MasterClassContent = {
   },
   keyConcepts: [
     {
-      title: "How much PSLE testing on this topic",
+      title: "Interactions with environment: How important is this?",
       body: "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. A roughly even mix of MCQ and OEQ.",
       pieChart: {
         percentage: 12,
@@ -82,7 +82,7 @@ export const interactionsEnvironment: MasterClassContent = {
         "**28%** of PSLE Life-Science questions test this topic",
         "**~12%** of total PSLE Science marks come from it",
         "**58%** are open-ended (OEQ), **42%** are MCQ",
-        "**We will cover the top common questions and mistakes:**\n  • Definitions\n  • Food Web\n  • Adaptation\n  • Mutualism\n  • Decomposer\n  • Human Impact",
+        "**We will cover the top common questions and mistakes to help you ace this topic:**\n  • Definitions\n  • Food Web\n  • Adaptation\n  • Mutualism\n  • Decomposer\n  • Human Impact",
       ],
       callout: "If you only revise one Life-Science topic — start here.",
     },
