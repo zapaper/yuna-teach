@@ -37,7 +37,9 @@ function strip(text: string): string {
 
 // Mood prefix — ElevenLabs v3 audio tags. Prepended on every segment
 // so the tone stays consistent even if the user jumps mid-deck.
-const MOOD = "[Excited and professional] [fast-pace] ";
+// Dropped the explicit [fast-pace] tag — natural pacing reads more
+// clearly for students; speed-up was making it feel rushed.
+const MOOD = "[Excited and professional] ";
 
 // Split a slide into ordered narration SEGMENTS. Each segment becomes
 // its own ElevenLabs audio file so the client can do bullet-level

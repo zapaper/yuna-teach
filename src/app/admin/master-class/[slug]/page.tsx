@@ -261,7 +261,7 @@ function SlideDeck({
   segIdxRef.current = segIdx;
   // Pause inserted between bullet segments for breathing room. Stored
   // as a ref so pause/mute/slide-change can cancel a pending advance.
-  const INTER_SEGMENT_PAUSE_MS = 900;
+  const INTER_SEGMENT_PAUSE_MS = 1600;
   const pendingAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   function cancelPendingAdvance() {
     if (pendingAdvanceRef.current) {
