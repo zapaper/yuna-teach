@@ -100,7 +100,7 @@ export const interactionsEnvironment: MasterClassContent = {
     },
     {
       title: "Food Web: Causal Chain reasoning — common mistakes",
-      body: "Many food web questions will show a food web, and describe what happens when one population decreases. PSLE markers reward points for **every step** in the explanation. How to score full marks? **Four steps.**",
+      body: "Many food web questions will show a food web, and ask what happens when one population decreases… PSLE markers reward points for **every step** in the explanation. How to score full marks? **Four steps.**",
       bullets: [
         "Step 1: Name what **changes** (grass dies)",
         "Step 2: Name who has **less food** (grasshoppers have less food)",
