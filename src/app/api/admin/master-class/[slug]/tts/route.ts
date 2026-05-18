@@ -164,11 +164,26 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     if (!audioBuf) {
       // Prefer eleven_v3 (supports audio tags); fall back to v2 if
       // the account doesn't have v3 access.
-      let res = await callElevenLabs(seg.text, "eleven_v3");
-      if (!res.ok && (res.status === 400 || res.status === 403 || res.status === 404)) {
-        console.warn(`[tts] eleven_v3 returned ${res.status} for seg ${i}, falling back to multilingual_v2`);
-        res = await callElevenLabs(seg.text, "eleven_multilingual_v2");
+      async function tryGenerate(): Promise<Response> {
+        let r = await callElevenLabs(seg.text, "eleven_v3");
+        if (!r.ok && (r.status === 400 || r.status === 403 || r.status === 404)) {
+          console.warn(`[tts] eleven_v3 returned ${r.status} for seg ${i}, falling back to multilingual_v2`);
+          r = await callElevenLabs(seg.text, "eleven_multilingual_v2");
+        }
+        return r;
       }
+
+      // Retry on 429 with exponential backoff (1.5s → 3s → 6s).
+      // Concurrency limits and per-second caps both surface as 429.
+      const RETRY_DELAYS_MS = [1500, 3000, 6000];
+      let res = await tryGenerate();
+      for (let attempt = 0; attempt < RETRY_DELAYS_MS.length && res.status === 429; attempt++) {
+        const wait = RETRY_DELAYS_MS[attempt];
+        console.warn(`[tts] 429 on seg ${i}, retrying in ${wait}ms (attempt ${attempt + 1}/${RETRY_DELAYS_MS.length})`);
+        await new Promise(r => setTimeout(r, wait));
+        res = await tryGenerate();
+      }
+
       if (!res.ok) {
         const errText = await res.text().catch(() => "(no body)");
         console.error(`[tts] ElevenLabs failed ${res.status} on seg ${i}: ${errText.slice(0, 300)}`);
@@ -176,6 +191,10 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       }
       audioBuf = Buffer.from(await res.arrayBuffer());
       await fs.writeFile(segPath, audioBuf);
+      // Brief spacer between sequential segment calls so we don't
+      // run smack into the per-second rate limit on the very next
+      // call. 300ms is comfortable for most plans.
+      await new Promise(r => setTimeout(r, 300));
     }
 
     out.push({ label: seg.label, audio: audioBuf.toString("base64"), cache: cacheStatus });

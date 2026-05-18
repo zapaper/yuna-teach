@@ -99,7 +99,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Remember: population = same kind. Community = different kinds. This trips up most students.",
     },
     {
-      title: "Food Web: Causal Chain reasoning — common mistakes",
+      title: "2: Food Web: Causal Chain reasoning — common mistakes",
       body: "Many food web questions will show a food web, and ask what happens when one population decreases… PSLE markers reward points for **every step** in the explanation. How to score full marks? **Four steps.**",
       bullets: [
         "Step 1: Name what **changes** (grass dies)",
@@ -121,13 +121,13 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
-      title: "Mutual Benefits scoring pattern",
+      title: "3: Mutual Benefits scoring pattern",
       body: "Aquarium and pond questions almost always test mutualism.",
       bullets: [
         "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
         "**Pollinator + flower**: bird/insect **feeds on nectar**; **pollen sticks to body** → carried to next flower → **pollination** → **fertilisation**",
         "**Cleaner + host**: bird **feeds on parasites** of a larger animal; the animal stays **clean** and the bird gets **food**",
-        "**Common trap** — Don't say 'plants give food to fish'. Unless the fish is shown eating the plant, plants give **oxygen** (and **shelter**), NOT food. PSLE 2024 used this exact distractor.",
+        "**Common trap** — Don't say 'plants give food to fish'. Unless the fish is shown eating the plant, plants give **oxygen** (and **shelter**), NOT food.",
       ],
       scoringExample: {
         scenario: "How do aquatic plants and fish benefit each other in an aquarium?",
@@ -137,13 +137,13 @@ export const interactionsEnvironment: MasterClassContent = {
         },
         fullMarks: {
           label: "4 marks",
-          text: "Plants release oxygen during photosynthesis, which the fish use for respiration. Fish release carbon dioxide during respiration, which the plants use for photosynthesis. The plants also provide shelter for the fish.",
+          text: "Plants release **oxygen** during **photosynthesis**, which the fish use for **respiration**. Fish release **carbon dioxide** during **respiration**, which the plants use for **photosynthesis**. The plants also provide **shelter** for the fish.",
         },
       },
       callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
     },
     {
-      title: "Food Web: Explaining it",
+      title: "4: Food Web: Explaining it",
       body: "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
       bullets: [
         "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
@@ -164,7 +164,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Map first (Step 1 + Step 2), then answer. 'WHO eats WHOM?' before any prediction.",
     },
     {
-      title: "Adaptation: Feature → how it helps → link to environment",
+      title: "5: Adaptation: Feature → how it helps → link to environment",
       body: "Adaptations are **features** or **behaviours** that help an organism survive in its environment. PSLE answer template is fixed: name the **feature** / **behaviour** → explain **how it helps** → connect to the **environmental condition**.",
       bullets: [
         "**Physical features — Animals**: body parts shaped for survival (thick fur → keep warm in cold; webbed feet → swim faster; gills → take in oxygen from water).",
@@ -186,7 +186,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Answer template: 'Feature: ____. How it helps: ____. This helps the organism survive in ____.'",
     },
     {
-      title: "Decomposer: easy to miss points",
+      title: "6: Decomposer: easy to miss points",
       body: "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
       bullets: [
         "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
