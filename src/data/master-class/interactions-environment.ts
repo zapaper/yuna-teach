@@ -95,15 +95,17 @@ export const interactionsEnvironment: MasterClassContent = {
     },
     {
       title: "Food-web question shapes you'll meet",
-      body: "Aside from causal-chain OEQ, food-web questions on PSLE come in a few predictable shapes. Recognising the shape tells you exactly what kind of answer the marker wants.",
+      body: "Before tackling any food-web question, walk through these two steps. Then match the question to its shape and use the right answer template.",
       bullets: [
+        "**Step 1** — Map out the **producer**, **primary consumer** (plant eater), and **secondary consumer** (meat eater).",
+        "**Step 2** — Map out the impact on each group with the change. (**arrow up** for increase, **arrow down** for decrease.)",
         "**Match-graph MCQ (19%)** — 4 graphs showing populations of B, C, D, E over time; pick the one that matches a predicted change. **Trick**: solve in your head first, THEN match — don't read graphs first.",
         "**True-statement MCQ (19%)** — 4 statements about the food web (e.g. 'W) energy comes from Sun, X) A is a producer, Y) B has 3 predators, Z) C will increase'). Check each statement against the diagram. Eliminate the false ones.",
         "**Draw the food web (PSLE OEQ)** — given a paragraph like 'B and C feed on F; E eats both B and C', draw the web with **correct arrow direction** (energy from prey to predator). Always include the Sun if asked about energy.",
         "**Count chains / predators** — 'How many food chains are in this web?' Trace each path from producer to top predator separately; branching creates separate chains.",
         "**Source-of-energy question** — short factual answer. The ultimate source of energy for every food chain is the **Sun** — even in deep-water food chains, energy traces back through photosynthesis.",
       ],
-      callout: "When you see a food web, identify the shape FIRST. Each shape has its own answer template.",
+      callout: "Map first (Step 1+2), then identify the shape — each shape has its own answer template.",
     },
     {
       title: "Decomposers — the easy-to-miss scorer",
