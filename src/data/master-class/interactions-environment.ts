@@ -10,6 +10,14 @@ export type MasterClassSlide = {
   body: string;        // markdown-friendly; renderer can format
   bullets?: string[];
   callout?: string;    // a one-sentence emphasis
+  /** Optional 1-mark-vs-full-marks example block. Rendered as a
+   *  red/green comparison below the bullets so students see exactly
+   *  what scoring upgrade they're aiming for. */
+  scoringExample?: {
+    scenario: string;
+    oneMark: { label: string; text: string };
+    fullMarks: { label: string; text: string };
+  };
 };
 
 export type MasterClassContent = {
@@ -80,6 +88,17 @@ export const interactionsEnvironment: MasterClassContent = {
         "Step 3: Name the **outcome** (grasshoppers **starve or move away** → **population decreases**)",
         "Step 4: **Chain** to the next animal (birds now have fewer grasshoppers to eat → bird **population decreases**)",
       ],
+      scoringExample: {
+        scenario: "Disease kills the grass in habitat T (grass → grasshopper → bird → fox). What happens to the bird population?",
+        oneMark: {
+          label: "1 mark",
+          text: "The bird population will decrease.",
+        },
+        fullMarks: {
+          label: "3 marks",
+          text: "With less grass to feed on, the grasshopper population decreases as they starve or move away. Birds then have fewer grasshoppers to feed on, so the bird population also decreases.",
+        },
+      },
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
@@ -114,7 +133,19 @@ export const interactionsEnvironment: MasterClassContent = {
         "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
         "**Pollinator + flower**: bird/insect **feeds on nectar**; **pollen sticks to body** → carried to next flower → **pollination** → **fertilisation**",
         "**Cleaner + host**: bird **feeds on parasites** of a larger animal; the animal stays **clean** and the bird gets **food**",
+        "**Common trap** — Don't say 'plants give food to fish'. Unless the fish is shown eating the plant, plants give **oxygen** (and **shelter**), NOT food. PSLE 2024 used this exact distractor.",
       ],
+      scoringExample: {
+        scenario: "How do aquatic plants and fish benefit each other in an aquarium?",
+        oneMark: {
+          label: "1 mark (incomplete)",
+          text: "Plants give food to fish, and fish give carbon dioxide to plants.",
+        },
+        fullMarks: {
+          label: "4 marks",
+          text: "Plants release oxygen during photosynthesis, which the fish use for respiration. Fish release carbon dioxide during respiration, which the plants use for photosynthesis. The plants also provide shelter for the fish.",
+        },
+      },
       callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
     },
     {
@@ -124,9 +155,19 @@ export const interactionsEnvironment: MasterClassContent = {
         "**Physical features — Animals**: body parts shaped for survival (thick fur → keep warm in cold; webbed feet → swim faster; gills → take in oxygen from water).",
         "**Physical features — Plants**: deep tap roots → reach water in dry soil; broad leaves → catch sunlight on forest floor; waxy leaves → reduce water loss; floating stems → stay near the light surface in a pond.",
         "**Behaviours** — actions to survive (hibernation, migration, camouflage to hide from predators).",
-        "**1-mark vs 3-mark answer** — Polar bear adaptation, same question, different scores:\n  • **1 mark** — 'Polar bear has thick fur.' (feature only)\n  • **3 marks** — 'Polar bear has **thick fur** which **traps a layer of air to keep it warm** in the **cold Arctic environment**.' (feature + how + environment)\n  **'Link to environmental condition'** = name WHERE/WHY this helps. Without it the marker docks you 1-2 marks.",
         "**Bonus — Tolerance graphs**: when shown a graph of population vs temperature / light / water, look for the **peak range** that suits the organism. State the specific range (e.g. 'between 20°C and 25°C', 'around 60 units of water vapour'), not just 'high' or 'low'.",
       ],
+      scoringExample: {
+        scenario: "How does the polar bear's thick fur help it survive in the Arctic?",
+        oneMark: {
+          label: "1 mark",
+          text: "Polar bear has thick fur.",
+        },
+        fullMarks: {
+          label: "3 marks",
+          text: "Polar bear has thick fur which traps a layer of air to keep it warm in the cold Arctic environment.",
+        },
+      },
       callout: "Answer template: 'Feature: ____. How it helps: ____. This helps the organism survive in ____.'",
     },
     {
@@ -136,54 +177,26 @@ export const interactionsEnvironment: MasterClassContent = {
         "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
         "**Why they matter** — without decomposers, dead matter piles up and **nutrients stay trapped**. Plants can't grow → entire food chain collapses.",
         "**Aquarium trap** — when a plant dies in a pond/aquarium, decomposers **use up oxygen** as they **respire** on the dead plant. Less oxygen left for fish.",
-        "**Common PSLE phrasing** — 'What is the role of bacteria in this ecosystem?' Answer template: 'Bacteria decompose dead organisms / waste, **releasing nutrients back to soil** for **plants to absorb**.'",
       ],
+      scoringExample: {
+        scenario: "What is the role of bacteria in this ecosystem?",
+        oneMark: {
+          label: "1 mark",
+          text: "Bacteria break down dead organisms.",
+        },
+        fullMarks: {
+          label: "3 marks",
+          text: "Bacteria decompose dead organisms and waste, releasing nutrients back to the soil for plants to absorb.",
+        },
+      },
       callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
     },
   ],
-  commonMistakes: [
-    {
-      title: "Mixing up population and community",
-      body: "These two words appear in nearly every PSLE Life-Science paper. The distractor in the MCQ is always 'a group of **different** species' — that's a community, not a population.",
-      bullets: [
-        "WRONG: 'A population is a group of different species in one place.'",
-        "RIGHT: 'A population is a group of living things of the **same kind** that live together and reproduce in a particular place.'",
-        "Tip: population = **one kind**, community = **many kinds**.",
-      ],
-      callout: "Real PSLE 2023 distractor used this exact swap.",
-    },
-    {
-      title: "Skipping the 'because there is less food' step",
-      body: "If you write only the outcome without the cause, you lose 1-2 marks per question.",
-      bullets: [
-        "WRONG: 'The bird population will decrease.'",
-        "RIGHT: 'With less grass, the grasshopper population decreases. With fewer grasshoppers, birds have less food, so the bird population decreases as they die or fly away.'",
-        "Always answer the question 'WHY' — the marker is looking for the linking phrase 'because there is less food'.",
-      ],
-      callout: "OEQ marking rubric awards points per link in the chain — never write just the endpoint.",
-    },
-    {
-      title: "Saying plants give food to fish in aquariums",
-      body: "Unless the question shows the fish actually eating the plant, plants do NOT give food to fish in PSLE answers.",
-      bullets: [
-        "WRONG: 'Plants give food to fish.'",
-        "RIGHT: 'Plants give oxygen (from photosynthesis) for the fish to respire. Plants also provide shelter for the fish.'",
-        "Look at the diagram — only if a fish is shown eating algae/aquatic plant does 'food' apply.",
-      ],
-      callout: "PSLE 2024 Q5 distractor used exactly this — 'plants give food to fish' was wrong.",
-    },
-    {
-      title: "Reversing the arrow in a food web",
-      body: "Food-web arrows go from the EATEN to the EATER. 'A → B' means 'B eats A'. Many students reverse this and lose marks on every food-web question.",
-      bullets: [
-        "Read 'A → B' as: 'A is eaten by B' or 'B eats A'.",
-        "The arrow shows energy flow direction.",
-        "Producers (plants) have no incoming arrows — they make their own food.",
-        "If you can't tell which is the producer, the answer to 'which arrow is wrong' is often staring you in the face.",
-      ],
-      callout: "Always say in your head: 'A is eaten by B' before answering.",
-    },
-  ],
+  // Common-mistakes deck retired — the equivalent warnings are now
+  // baked into the relevant Key Concept slides (e.g. "plants give food
+  // to fish" lives in the Mutualism slide; arrow direction is in the
+  // Food-Web Reading slide).
+  commonMistakes: [],
   keyWords: [
     { word: "population", definition: "A group of living things of the same kind that live together and reproduce in a particular place." },
     { word: "community", definition: "All the different populations of living things living together in a particular place." },

@@ -163,14 +163,16 @@ function MasterClassWorkshop() {
             accent="emerald"
           />
 
-          {/* ── Common mistakes deck ── */}
-          <SlideDeck
+          {/* ── Common mistakes deck — only rendered if authored.
+                For Interactions the mistakes are baked into the Key
+                Concept slides so we skip this section entirely. ── */}
+          {content.commonMistakes.length > 0 && <SlideDeck
             label="Common mistakes deck"
             slides={content.commonMistakes}
             currentIdx={mistakeIdx}
             setIdx={setMistakeIdx}
             accent="rose"
-          />
+          />}
 
           {/* ── Practice set ── */}
           <section className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
@@ -246,16 +248,34 @@ function SlideDeck({
       {slide && (
         <div className="min-h-[260px] flex flex-col">
           <h2 className="text-xl lg:text-2xl font-bold text-slate-900 leading-tight">{slide.title}</h2>
-          <p className="text-sm text-slate-600 mt-2 leading-relaxed">{slide.body}</p>
+          {slide.body && <p className="text-sm text-slate-600 mt-2 leading-relaxed">{slide.body}</p>}
           {slide.bullets && slide.bullets.length > 0 && (
             <ul className="mt-4 space-y-2">
               {slide.bullets.map((b, i) => (
                 <li key={i} className="text-sm text-slate-700 flex gap-3">
                   <span className={`w-1.5 h-1.5 rounded-full ${accentDot} mt-2 flex-shrink-0`} />
-                  <span dangerouslySetInnerHTML={{ __html: renderInlineMd(b) }} />
+                  <span className="whitespace-pre-line" dangerouslySetInnerHTML={{ __html: renderInlineMd(b) }} />
                 </li>
               ))}
             </ul>
+          )}
+          {slide.scoringExample && (
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">
+                Scoring example
+              </p>
+              <p className="text-xs text-slate-600 italic mb-3">{slide.scoringExample.scenario}</p>
+              <div className="space-y-2">
+                <div className="rounded-lg bg-rose-50 border border-rose-100 px-3 py-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 mr-2">{slide.scoringExample.oneMark.label}</span>
+                  <span className="text-sm text-rose-700">{slide.scoringExample.oneMark.text}</span>
+                </div>
+                <div className="rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 mr-2">{slide.scoringExample.fullMarks.label}</span>
+                  <span className="text-sm text-emerald-700">{slide.scoringExample.fullMarks.text}</span>
+                </div>
+              </div>
+            </div>
           )}
           {slide.callout && (
             <div className={`mt-4 ${accentBg} rounded-xl px-4 py-3 text-sm italic ${accentText}`}>
