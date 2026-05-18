@@ -166,7 +166,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
     },
     {
-      title: "Adaptation: Feature + How-it-helps",
+      title: "Adaptation: Feature → how it helps → link to environment",
       body: "Adaptations are **features** or **behaviours** that help an organism survive in its environment. PSLE answer template is fixed: name the **feature** / **behaviour** → explain **how it helps** → connect to the **environmental condition**.",
       bullets: [
         "**Physical features — Animals**: body parts shaped for survival (thick fur → keep warm in cold; webbed feet → swim faster; gills → take in oxygen from water).",
