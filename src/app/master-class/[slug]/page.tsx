@@ -261,10 +261,12 @@ function SlideCard({
 
   return (
     // Slide sizing — fixed height + width on tablet/desktop so every
-    // slide feels uniform. min-h fallback on phones because long
-    // bullet lists can outgrow a fixed phone-screen height. The card
-    // body scrolls internally if content overflows (most slides fit).
-    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[520px] sm:h-[720px] flex flex-col overflow-y-auto">
+    // slide feels uniform. min-h fallback on phones. Card is a flex
+    // column: header (TTS controls) at top, scrollable body in the
+    // middle, Prev/Next nav PINNED to the bottom regardless of how
+    // much content the slide has. Without this, the Next button
+    // would jump up and down as slide content varies.
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[520px] sm:h-[720px] flex flex-col">
       {/* TTS controls */}
       <div className="flex items-center justify-between mb-4 gap-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
@@ -305,6 +307,11 @@ function SlideCard({
         </div>
       </div>
       {ttsError && <p className="text-[10px] text-rose-600 mb-2">{ttsError}</p>}
+
+      {/* Scrollable body — holds title / bullets / scoring / CTA.
+          Wrapped in flex-1 overflow-y-auto so the Prev/Next nav
+          below stays pinned to the bottom of the card. */}
+      <div className="flex-1 overflow-y-auto -mx-1 px-1">
 
       {/* Slide content — title + body both highlight together when
           the intro segment is being narrated (segIdx === 0). */}
@@ -367,8 +374,11 @@ function SlideCard({
         </div>
       )}
 
-      {/* Slide nav */}
-      <div className="mt-6 flex items-center justify-between gap-3">
+      </div>
+
+      {/* Slide nav — pinned to the bottom of the card (outside the
+          scroll area), so position is fixed regardless of content. */}
+      <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
         <button
           onClick={onPrev}
           disabled={slideIdx === 0}
