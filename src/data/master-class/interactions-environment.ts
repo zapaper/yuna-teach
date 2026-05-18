@@ -121,14 +121,12 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
-      title: "Food Web: explaining it",
-      body: "Most wrong answers come from misreading the diagram, not from misunderstanding the science. Use a fixed 2-step process for **every** food-web question.",
+      title: "Food Web: Explaining it",
+      body: "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
       bullets: [
-        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**. Say this in your head before answering.",
-        "**Find the producer first** — the **producer** has NO incoming arrows (nothing eats it; it makes its own food via photosynthesis). The **ultimate source of energy is always the Sun**.",
-        "**Step 1** — Map out the **producer**, **primary consumer** (plant eater), and **secondary consumer** (meat eater).",
-        "**Step 2** — Map the **impact on each group** with the change. (**↑** for increase, **↓** for decrease.)",
-        "**Match-graph MCQ trick** — solve the impact in your head FIRST, then match to one of the 4 graphs. Don't read the graphs first or you'll get pattern-matched into the wrong answer.",
+        "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
+        "**Step 2** — Map the impact on each group with the change. (**↑** for increase, **↓** for decrease.)",
+        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**.",
       ],
       scoringExample: {
         scenario: "The food chain shown is: grass → grasshopper → bird. Explain how energy is transferred along this chain.",
