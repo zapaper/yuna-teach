@@ -83,8 +83,13 @@ function MasterClassList() {
         {/* Explainer card — sets parent expectations on what these
             Master Classes are FOR (scoring marks, not re-teaching
             concepts students already know). */}
-        <div className="mb-6 bg-gradient-to-br from-emerald-50 to-sky-50 border border-emerald-100 rounded-2xl p-5 text-sm text-slate-700 leading-relaxed">
-          This series of Master Classes is meant to help your student ace the <strong className="font-bold text-emerald-800">scoring</strong> of topics. We have generally found that students understand the concepts, but either find it difficult to apply their understanding or answer in such a way to score full marks. These classes are meant to address this. We have deeply analysed questions and scoring patterns across years of PSLE to pull out the key topics and common mistakes, as well as tricks to score the full marks. There are also customised quizzes to ONLY practice on those scoring techniques, <strong className="font-bold text-emerald-800">personalised</strong> to each student.
+        <div className="mb-6 bg-gradient-to-br from-emerald-50 to-sky-50 border border-emerald-100 rounded-2xl p-5 text-sm text-slate-700 leading-relaxed space-y-3">
+          <p>
+            This series of Master Classes is meant to help your student ace the scoring of topics. We have generally found that students understand the concepts, but either find it difficult to apply their understanding or answer in such a way to score full marks.
+          </p>
+          <p>
+            We have deeply analysed questions and scoring patterns across years of PSLE to pull out the key topics and common mistakes, as well as techniques to score the full marks. There are also customised quizzes to <strong className="font-bold text-emerald-800">ONLY</strong> practice on those scoring techniques, <strong className="font-bold text-emerald-800">personalised</strong> to each student.
+          </p>
         </div>
 
         {/* Cards */}
