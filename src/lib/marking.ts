@@ -3675,14 +3675,24 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
           for (const sp of realSubs) {
             // Check ink PNG for blank canvases using pixel check
             let spHasInk = true;
+            const isSpDrawable = drawableSubLabels.has(sp.label.toLowerCase());
             try {
               const spInkPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}_ink.png`);
               const spInkBuffer = await fs.readFile(spInkPath);
               spHasInk = hasOpaquePixels(spInkBuffer);
               console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): ink pixel check → ${spHasInk ? "HAS INK" : "BLANK"} (${spInkBuffer.length} bytes)`);
             } catch {
-              // No ink file — assume ink exists
-              spHasInk = true;
+              // No ink file. For TEXT subparts assume ink exists —
+              // the AI reads handwriting off the composite image.
+              // For DRAWABLE subparts (shade/draw/arrow on a printed
+              // diagram), treat missing-ink as BLANK: the composite
+              // contains the printed diagram + answer-image overlay,
+              // which the AI consistently hallucinates as the student
+              // having drawn the correct answer. Safer to award 0
+              // for genuinely missing-ink than to award full marks
+              // off a non-existent submission.
+              spHasInk = !isSpDrawable;
+              console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): no ink PNG; ${isSpDrawable ? "drawable → treat as BLANK" : "text → assume HAS INK"}`);
             }
             if (!spHasInk) {
               blankSubparts.add(sp.label);
@@ -3692,7 +3702,6 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
             try {
               const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
               const spBuffer = await fs.readFile(spPath);
-              const isSpDrawable = drawableSubLabels.has(sp.label.toLowerCase());
               const labelNote = isSpDrawable
                 ? `Student's handwritten answer for part (${sp.label}) — THIS IS A DRAWING TASK (shading/arrows/marks on a diagram). Ink is confirmed present:`
                 : `Student's handwritten answer for part (${sp.label}):`;
