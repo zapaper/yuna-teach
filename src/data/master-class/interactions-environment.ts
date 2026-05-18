@@ -43,6 +43,25 @@ export type MasterClassSlide = {
       oeq: number;
     };
   };
+  /** Optional NARRATION overrides — what the voice actually reads
+   *  out loud, separate from what shows on the slide visually.
+   *
+   *  If a key is set, that segment's audio uses the override text
+   *  instead of the auto-built script from the visible content.
+   *  Lets you add teacher-style transitions ("Let's look at the
+   *  next pattern…"), longer elaborations, or different phrasing
+   *  for audio vs print — without changing what the student SEES.
+   *
+   *  If `bullets[i]` is null/undefined the auto-built script for
+   *  that bullet is used; same for `intro`, `scoringExample`,
+   *  `callout`. Per-bullet array length should match the slide's
+   *  bullets length (or be shorter; missing entries fall back). */
+  narration?: {
+    intro?: string;
+    bullets?: Array<string | null>;
+    scoringExample?: string;
+    callout?: string;
+  };
 };
 
 export type MasterClassContent = {

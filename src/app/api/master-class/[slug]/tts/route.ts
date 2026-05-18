@@ -42,38 +42,53 @@ const MOOD = "[Excited and professional] ";
 // Split a slide into ordered narration SEGMENTS. Each segment becomes
 // its own ElevenLabs audio file so the client can do bullet-level
 // navigation (>> / << jump between segments).
+//
+// slide.narration.{intro,bullets[i],scoringExample,callout} are
+// optional overrides — when set, the override text is read aloud
+// instead of the auto-built script from visible content. This lets
+// authors add teacher-style transitions ("Now let's look at…") or
+// longer audio elaborations that DON'T appear visually on the slide.
 function slideToSegments(slide: MasterClassSlide): Array<{ label: string; text: string }> {
   const segs: Array<{ label: string; text: string }> = [];
+  const nar = slide.narration;
 
-  // Intro: title + body (+ pie chart caption if any)
-  const introParts: string[] = [strip(slide.title)];
-  if (slide.body) introParts.push(strip(slide.body));
-  if (slide.pieChart) {
-    introParts.push(`${slide.pieChart.percentage} percent ${strip(slide.pieChart.label)}.`);
-    if (slide.pieChart.caption) introParts.push(strip(slide.pieChart.caption));
+  // Intro: override > (title + body + pie chart caption)
+  let introText: string;
+  if (nar?.intro) {
+    introText = strip(nar.intro);
+  } else {
+    const introParts: string[] = [strip(slide.title)];
+    if (slide.body) introParts.push(strip(slide.body));
+    if (slide.pieChart) {
+      introParts.push(`${slide.pieChart.percentage} percent ${strip(slide.pieChart.label)}.`);
+      if (slide.pieChart.caption) introParts.push(strip(slide.pieChart.caption));
+    }
+    introText = introParts.join(". ");
   }
-  segs.push({ label: "Intro", text: introParts.join(". ") });
+  segs.push({ label: "Intro", text: introText });
 
   // One segment per bullet — appended [pause] to the end so the
   // model adds a natural beat before the next segment starts.
   if (slide.bullets) {
     slide.bullets.forEach((b, i) => {
-      segs.push({ label: `Bullet ${i + 1}`, text: `${strip(b)} [pause]` });
+      const override = nar?.bullets?.[i];
+      const text = override ? strip(override) : strip(b);
+      segs.push({ label: `Bullet ${i + 1}`, text: `${text} [pause]` });
     });
   }
 
   if (slide.scoringExample) {
-    segs.push({
-      label: "Scoring example",
-      text:
-        `Here's a scoring example. ${strip(slide.scoringExample.scenario)}. ` +
+    const text = nar?.scoringExample
+      ? strip(nar.scoringExample)
+      : `Here's a scoring example. ${strip(slide.scoringExample.scenario)}. ` +
         `${strip(slide.scoringExample.oneMark.label)}: ${strip(slide.scoringExample.oneMark.text)}. ` +
-        `${strip(slide.scoringExample.fullMarks.label)}: ${strip(slide.scoringExample.fullMarks.text)}.`,
-    });
+        `${strip(slide.scoringExample.fullMarks.label)}: ${strip(slide.scoringExample.fullMarks.text)}.`;
+    segs.push({ label: "Scoring example", text });
   }
 
   if (slide.callout) {
-    segs.push({ label: "Callout", text: strip(slide.callout) });
+    const text = nar?.callout ? strip(nar.callout) : strip(slide.callout);
+    segs.push({ label: "Callout", text });
   }
 
   // Apply mood prefix to each segment.
