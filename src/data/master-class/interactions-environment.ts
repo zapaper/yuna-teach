@@ -83,14 +83,25 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
-      title: "Mutual-benefit patterns to recognise",
+      title: "Mutual-benefit patterns: master the scoring patterns",
       body: "Aquarium and pond questions almost always test mutualism. The two most common patterns:",
       bullets: [
-        "**Plant + fish**: plant releases **oxygen** (photosynthesis) → fish use for **respiration**; fish release **carbon dioxide** (respiration) → plant uses for **photosynthesis**",
-        "**Pollinator + flower**: bird/insect feeds on **nectar**; pollen sticks to body → carried to next flower → pollination → fertilisation",
-        "**Cleaner + host**: bird feeds on parasites of a larger animal; the animal stays clean and the bird gets food",
+        "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
+        "**Pollinator + flower**: bird/insect **feeds on nectar**; **pollen sticks to body** → carried to next flower → **pollination** → **fertilisation**",
+        "**Cleaner + host**: bird **feeds on parasites** of a larger animal; the animal stays **clean** and the bird gets **food**",
       ],
       callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
+    },
+    {
+      title: "Adaptation: feature + how-it-helps",
+      body: "Adaptations are **features** or **behaviours** that help an organism survive in its environment. PSLE answer template is fixed: name the **feature** → explain **how it helps** → connect to the **environmental condition**.",
+      bullets: [
+        "**Physical features** — body parts shaped for survival (thick fur → keep warm in cold; waxy leaves → reduce water loss; webbed feet → swim faster)",
+        "**Behaviours** — actions to survive (hibernation, migration, camouflage to hide from predators)",
+        "**Tolerance graphs** — when shown a graph of population vs temperature/light/water, look for the **peak range** that suits the organism. State the specific range, not just 'high' or 'low'.",
+        "**Plant adaptations to environment** — deep tap roots → reach water in dry soil; broad leaves → catch sunlight in forest floor; floating stems → stay near light surface in pond",
+      ],
+      callout: "Answer template: 'Feature: ____. How it helps: enables ____ so the organism can survive in ____.'",
     },
   ],
   commonMistakes: [
