@@ -99,7 +99,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Population = same kind. Community = different kinds. This trips up most students.",
     },
     {
-      title: "Causal-chain reasoning — the place where most students lose marks",
+      title: "Food Web: Causal Chain reasoning — common mistakes",
       body: "Most questions will show a food web, and describe what happens when one population decreases. PSLE markers reward each link in the **chain** — writing only the endpoint earns 1 mark, the full chain earns 3-4.",
       bullets: [
         "Step 1: Name what **changes** (grass dies)",
