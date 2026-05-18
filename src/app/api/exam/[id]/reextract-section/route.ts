@@ -23,6 +23,42 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
   if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
 
+  // Match the main extraction pipeline: Chinese papers go pro-first
+  // because 2.5-flash makes regular Chinese transcription errors
+  // (己/已, dropped emphasis markup, etc.). English / Math / Science
+  // stay on flash-first since flash is accurate enough on Latin
+  // scripts and the pipeline's been tuned around its latency.
+  const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
+  const MODELS = isChinese
+    ? (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const)
+    : (["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const);
+
+  // Walk the model chain manually; generateContentWithRetry only
+  // covers retries for a single model, not chain-fallback.
+  async function callWithChain(
+    parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }>,
+    label: string,
+    config: Record<string, unknown> = { temperature: 0.1 },
+  ) {
+    let lastErr: unknown = null;
+    for (let mi = 0; mi < MODELS.length; mi++) {
+      const model = MODELS[mi];
+      try {
+        const r = await generateContentWithRetry({
+          model,
+          contents: [{ role: "user", parts }],
+          config,
+        }, isChinese ? 0 : 2, 3000, `${label}:${model}`);
+        if (mi > 0) console.log(`[Re-extract] ${label}: succeeded on fallback ${model}`);
+        return r;
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[Re-extract] ${label} on ${model} failed: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
+    throw lastErr ?? new Error(`${label}: all models failed`);
+  }
+
   // Load page images from disk
   const pagesDir = path.join(VOLUME_PATH, "pages", id);
   const imagesBase64: string[] = [];
@@ -57,13 +93,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 - Exclude page headers/footers like "Score", "Please do not write in the margins", page numbers, section titles, school name, exam title.
 Output ONLY the clean passage/question text, no commentary.` });
 
-  console.log(`[Re-extract] ${secLabel}: OCR ${imagesBase64.length} page(s)`);
+  console.log(`[Re-extract] ${secLabel}: OCR ${imagesBase64.length} page(s) — model chain: ${MODELS.join(" → ")}`);
 
-  const ocrResponse = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
-    contents: [{ role: "user", parts: ocrParts }],
-    config: { temperature: 0.1 },
-  }, 2, 5000, `reextract-ocr:${secLabel}`);
+  const ocrResponse = await callWithChain(ocrParts, `reextract-ocr:${secLabel}`);
 
   const ocrText = ocrResponse.text?.trim() ?? "";
   console.log(`[Re-extract] ${secLabel}: OCR result (${ocrText.length} chars)`);
@@ -116,7 +148,12 @@ For EACH question, extract:
   "John drew a picture of his dog. Then he framed it up.\\n\\n**Instead of** ________________________________\\n________________________________"
   If the source sentence is missing from the OCR, leave a placeholder like "[source sentence]" rather than silently dropping it. Bold the keyword/joining word with **double asterisks**.` : ""}${isMcqSection ? `
 - options: array of EXACTLY 4 option strings ["option1", "option2", "option3", "option4"]. Extract the text of each option WITHOUT the numbering "(1)", "(2)", etc.` : ""}
-- syllabusTopic: "${secLabel}"
+- syllabusTopic: "${secLabel}"${isChinese ? `
+
+CHINESE PAPER — language-specific stem rules:
+- Preserve Chinese characters EXACTLY. Do NOT translate. Keep full-width punctuation (。，、：；""「」《》！？) as printed.
+- CRITICAL — EMPHASIS MARKUP PASS-THROUGH: the OCR text above has already wrapped bold / underlined phrases in markdown (**phrase** for bold, __phrase__ for underline, **__phrase__** for both). Copy these markers VERBATIM into the stem AND every option string. NEVER strip them. NEVER "clean them up". For 语文应用 MCQ (Q1-15) this is the single most important rule — the emphasised word IS what's being tested. If a Q13-15-style option contains "**马虎** 地写字", your options[2] string must read "**马虎** 地写字" character-for-character.
+- Watch for visually similar characters: 己/已/巳, 末/未, 戍/戌/戊, 千/干/于, 几/凡 etc. The OCR was done with a top-tier model — trust its character choice and copy it through.` : ""}
 
 Return ONLY valid JSON:
 {
@@ -128,11 +165,11 @@ Return ONLY valid JSON:
   ]
 }`;
 
-  const extractResponse = await generateContentWithRetry({
-    model: "gemini-2.5-flash",
-    contents: [{ role: "user", parts: [{ text: extractPrompt }] }],
-    config: { responseMimeType: "application/json", temperature: 0.1 },
-  }, 2, 5000, `reextract-questions:${secLabel}`);
+  const extractResponse = await callWithChain(
+    [{ text: extractPrompt }],
+    `reextract-questions:${secLabel}`,
+    { responseMimeType: "application/json", temperature: 0.1 },
+  );
 
   const extractText = extractResponse.text?.trim() ?? "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
