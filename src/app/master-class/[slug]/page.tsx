@@ -260,7 +260,11 @@ function SlideCard({
   const activeBulletIdx = playing && segIdx >= 1 && segIdx <= numBullets ? segIdx - 1 : -1;
 
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[640px] flex flex-col">
+    // Slide sizing — fixed height + width on tablet/desktop so every
+    // slide feels uniform. min-h fallback on phones because long
+    // bullet lists can outgrow a fixed phone-screen height. The card
+    // body scrolls internally if content overflows (most slides fit).
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[520px] sm:h-[720px] flex flex-col overflow-y-auto">
       {/* TTS controls */}
       <div className="flex items-center justify-between mb-4 gap-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
