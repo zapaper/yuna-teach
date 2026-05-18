@@ -83,6 +83,40 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
+      title: "Reading a food web — the operating manual",
+      body: "Before answering ANY food-web question, walk through these checks. Most wrong answers come from misreading the diagram, not from misunderstanding the science.",
+      bullets: [
+        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**. Say this in your head before answering.",
+        "**Find the producer first** — the **producer** has NO incoming arrows (nothing eats it for energy; it makes its own food via photosynthesis). Usually a plant or algae.",
+        "**Count the predators of each species** — a species with **many predators** is fragile; if its prey dies out, it suffers more. A predator with **many prey options** is resilient — it just switches to another food source.",
+        "**Trace energy upward** — energy flows from producer → primary consumer (eats plants) → secondary consumer (eats primary) → top predator. Apex predators have **no outgoing arrows** for predation.",
+      ],
+      callout: "Always answer the question 'WHO eats WHOM here?' before predicting population changes.",
+    },
+    {
+      title: "Food-web question shapes you'll meet",
+      body: "Aside from causal-chain OEQ, food-web questions on PSLE come in a few predictable shapes. Recognising the shape tells you exactly what kind of answer the marker wants.",
+      bullets: [
+        "**Match-graph MCQ (19%)** — 4 graphs showing populations of B, C, D, E over time; pick the one that matches a predicted change. **Trick**: solve in your head first, THEN match — don't read graphs first.",
+        "**True-statement MCQ (19%)** — 4 statements about the food web (e.g. 'W) energy comes from Sun, X) A is a producer, Y) B has 3 predators, Z) C will increase'). Check each statement against the diagram. Eliminate the false ones.",
+        "**Draw the food web (PSLE OEQ)** — given a paragraph like 'B and C feed on F; E eats both B and C', draw the web with **correct arrow direction** (energy from prey to predator). Always include the Sun if asked about energy.",
+        "**Count chains / predators** — 'How many food chains are in this web?' Trace each path from producer to top predator separately; branching creates separate chains.",
+        "**Source-of-energy question** — short factual answer. The ultimate source of energy for every food chain is the **Sun** — even in deep-water food chains, energy traces back through photosynthesis.",
+      ],
+      callout: "When you see a food web, identify the shape FIRST. Each shape has its own answer template.",
+    },
+    {
+      title: "Decomposers — the easy-to-miss scorer",
+      body: "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
+      bullets: [
+        "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down so **nutrients return to the soil**.",
+        "**Why they matter** — without decomposers, dead matter piles up and **nutrients stay trapped**. Plants can't grow → entire food chain collapses.",
+        "**Aquarium trap** — when a plant dies in a pond/aquarium, decomposers **use up oxygen** as they respire on the dead plant. Less oxygen left for fish.",
+        "**Common PSLE phrasing** — 'What is the role of bacteria in this ecosystem?' Answer template: 'Bacteria decompose dead organisms / waste, releasing nutrients back to the soil for plants to absorb.'",
+      ],
+      callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
+    },
+    {
       title: "Mutual-benefit patterns: master the scoring patterns",
       body: "Aquarium and pond questions almost always test mutualism. The two most common patterns:",
       bullets: [
