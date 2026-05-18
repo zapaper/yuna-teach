@@ -144,7 +144,7 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Map first (Step 1 + Step 2), then answer. 'WHO eats WHOM?' before any prediction.",
     },
     {
-      title: "Mutual-benefit patterns: master the scoring patterns",
+      title: "Mutual Benefits scoring pattern",
       body: "Aquarium and pond questions almost always test mutualism.",
       bullets: [
         "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
