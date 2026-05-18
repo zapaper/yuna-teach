@@ -111,10 +111,10 @@ export const interactionsEnvironment: MasterClassContent = {
       title: "Decomposers — the easy-to-miss scorer",
       body: "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
       bullets: [
-        "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down so **nutrients return to the soil**.",
+        "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
         "**Why they matter** — without decomposers, dead matter piles up and **nutrients stay trapped**. Plants can't grow → entire food chain collapses.",
-        "**Aquarium trap** — when a plant dies in a pond/aquarium, decomposers **use up oxygen** as they respire on the dead plant. Less oxygen left for fish.",
-        "**Common PSLE phrasing** — 'What is the role of bacteria in this ecosystem?' Answer template: 'Bacteria decompose dead organisms / waste, releasing nutrients back to the soil for plants to absorb.'",
+        "**Aquarium trap** — when a plant dies in a pond/aquarium, decomposers **use up oxygen** as they **respire** on the dead plant. Less oxygen left for fish.",
+        "**Common PSLE phrasing** — 'What is the role of bacteria in this ecosystem?' Answer template: 'Bacteria decompose dead organisms / waste, **releasing nutrients back to soil** for **plants to absorb**.'",
       ],
       callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
     },
