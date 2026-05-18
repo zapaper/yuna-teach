@@ -28,8 +28,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   // 2.5-flash makes transcription errors on Chinese characters. All
   // subjects now use pro-first — accuracy gain outweighs latency for
   // a one-time re-extract; flash stays at the end as last resort.
+  //
+  // 语文应用 MCQ (Chinese §1) uses 3.1-pro-preview as primary
+  // because 2.5-pro was still missing the emphasised tested phrase
+  // on character-level detail. Per-section re-extract has to match
+  // the main pipeline or fixing one section would still regenerate
+  // the same errors.
   const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
-  const MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
+  const isLangAppMcq = isChinese && (sectionName.includes("语文应用") || sectionName.includes("语文运用"));
+  const MODELS = isLangAppMcq
+    ? (["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const)
+    : (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const);
 
   // Walk the model chain manually; generateContentWithRetry only
   // covers retries for a single model, not chain-fallback.

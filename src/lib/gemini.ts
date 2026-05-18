@@ -4067,7 +4067,18 @@ Output ONLY the clean passage/question text, no commentary.` });
           // outweighs the latency hit for a one-time extraction; flash
           // stays at the end as last-resort fallback when both pro
           // tiers are 504-ing.
-          const OCR_MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
+          //
+          // EXCEPTION: 语文应用 MCQ (Chinese §1, Q1-14/15) gets
+          // gemini-3.1-pro-preview as PRIMARY. 2.5-pro was still
+          // making character-level transcription mistakes on the
+          // emphasised tested phrase (the entire point of these
+          // questions). 3.1-pro-preview is ~1.5-2× the cost per
+          // token but more accurate on Chinese characters; for one
+          // section per master paper the dollar delta is trivial.
+          const isLangAppMcq = isChineseBooklet && (secLabel.includes("语文应用") || secLabel.includes("语文运用"));
+          const OCR_MODELS = isLangAppMcq
+            ? (["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const)
+            : (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const);
           // Chinese-only: skip per-model 504 retries. The chain itself
           // is the retry — re-attempting a 504-saturated model 3x
           // burns 90-180s before falling through to the next model and
@@ -4201,7 +4212,12 @@ Return ONLY valid JSON:
           // text-extract also benefits — 2.5-flash drops bold/underline
           // markdown markers from the OCR text more often than pro,
           // and that's the data the quiz UI needs to render emphasis.
-          const TEXT_EXTRACT_MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
+          //
+          // 语文应用 MCQ uses 3.1-pro-preview first (matching OCR_MODELS
+          // above) so the emphasised tested phrase survives BOTH passes.
+          const TEXT_EXTRACT_MODELS = isLangAppMcq
+            ? (["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const)
+            : (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const);
           // Chinese-only fail-fast — see OCR_MODELS loop above.
           const textExtractRetries = isChineseBooklet ? 0 : 2;
           let extractResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
