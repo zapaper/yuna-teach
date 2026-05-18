@@ -108,17 +108,6 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Map first (Step 1+2), then identify the shape — each shape has its own answer template.",
     },
     {
-      title: "Decomposers — the easy-to-miss scorer",
-      body: "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
-      bullets: [
-        "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
-        "**Why they matter** — without decomposers, dead matter piles up and **nutrients stay trapped**. Plants can't grow → entire food chain collapses.",
-        "**Aquarium trap** — when a plant dies in a pond/aquarium, decomposers **use up oxygen** as they **respire** on the dead plant. Less oxygen left for fish.",
-        "**Common PSLE phrasing** — 'What is the role of bacteria in this ecosystem?' Answer template: 'Bacteria decompose dead organisms / waste, **releasing nutrients back to soil** for **plants to absorb**.'",
-      ],
-      callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
-    },
-    {
       title: "Mutual-benefit patterns: master the scoring patterns",
       body: "Aquarium and pond questions almost always test mutualism. The two most common patterns:",
       bullets: [
@@ -129,15 +118,27 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
     },
     {
-      title: "Adaptation: feature + how-it-helps",
-      body: "Adaptations are **features** or **behaviours** that help an organism survive in its environment. PSLE answer template is fixed: name the **feature** → explain **how it helps** → connect to the **environmental condition**.",
+      title: "Adaptation: Feature + How-it-helps",
+      body: "Adaptations are **features** or **behaviours** that help an organism survive in its environment. PSLE answer template is fixed: name the **feature** / **behaviour** → explain **how it helps** → connect to the **environmental condition**.",
       bullets: [
-        "**Physical features** — body parts shaped for survival (thick fur → keep warm in cold; waxy leaves → reduce water loss; webbed feet → swim faster)",
-        "**Behaviours** — actions to survive (hibernation, migration, camouflage to hide from predators)",
-        "**Tolerance graphs** — when shown a graph of population vs temperature/light/water, look for the **peak range** that suits the organism. State the specific range, not just 'high' or 'low'.",
-        "**Plant adaptations to environment** — deep tap roots → reach water in dry soil; broad leaves → catch sunlight in forest floor; floating stems → stay near light surface in pond",
+        "**Physical features — Animals**: body parts shaped for survival (thick fur → keep warm in cold; webbed feet → swim faster; gills → take in oxygen from water).",
+        "**Physical features — Plants**: deep tap roots → reach water in dry soil; broad leaves → catch sunlight on forest floor; waxy leaves → reduce water loss; floating stems → stay near the light surface in a pond.",
+        "**Behaviours** — actions to survive (hibernation, migration, camouflage to hide from predators).",
+        "**1-mark vs 3-mark answer** — Polar bear adaptation, same question, different scores:\n  • **1 mark** — 'Polar bear has thick fur.' (feature only)\n  • **3 marks** — 'Polar bear has **thick fur** which **traps a layer of air to keep it warm** in the **cold Arctic environment**.' (feature + how + environment)\n  **'Link to environmental condition'** = name WHERE/WHY this helps. Without it the marker docks you 1-2 marks.",
+        "**Bonus — Tolerance graphs**: when shown a graph of population vs temperature / light / water, look for the **peak range** that suits the organism. State the specific range (e.g. 'between 20°C and 25°C', 'around 60 units of water vapour'), not just 'high' or 'low'.",
       ],
-      callout: "Answer template: 'Feature: ____. How it helps: enables ____ so the organism can survive in ____.'",
+      callout: "Answer template: 'Feature: ____. How it helps: ____. This helps the organism survive in ____.'",
+    },
+    {
+      title: "Decomposers — the easy-to-miss scorer",
+      body: "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
+      bullets: [
+        "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
+        "**Why they matter** — without decomposers, dead matter piles up and **nutrients stay trapped**. Plants can't grow → entire food chain collapses.",
+        "**Aquarium trap** — when a plant dies in a pond/aquarium, decomposers **use up oxygen** as they **respire** on the dead plant. Less oxygen left for fish.",
+        "**Common PSLE phrasing** — 'What is the role of bacteria in this ecosystem?' Answer template: 'Bacteria decompose dead organisms / waste, **releasing nutrients back to soil** for **plants to absorb**.'",
+      ],
+      callout: "Decomposers are the 'invisible' link in every ecosystem question — add them to your answer.",
     },
   ],
   commonMistakes: [
