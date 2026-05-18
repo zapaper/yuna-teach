@@ -121,33 +121,31 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
-      title: "Reading a food web — the operating manual",
-      body: "Before answering ANY food-web question, walk through these checks. Most wrong answers come from misreading the diagram, not from misunderstanding the science.",
+      title: "Food Web: explaining it",
+      body: "Most wrong answers come from misreading the diagram, not from misunderstanding the science. Use a fixed 2-step process for **every** food-web question.",
       bullets: [
         "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**. Say this in your head before answering.",
-        "**Find the producer first** — the **producer** has NO incoming arrows (nothing eats it for energy; it makes its own food via photosynthesis). Usually a plant or algae.",
-        "**Count the predators of each species** — a species with **many predators** is fragile; if its prey dies out, it suffers more. A predator with **many prey options** is resilient — it just switches to another food source.",
-        "**Trace energy upward** — energy flows from producer → primary consumer (eats plants) → secondary consumer (eats primary) → top predator. Apex predators have **no outgoing arrows** for predation.",
-      ],
-      callout: "Always answer the question 'WHO eats WHOM here?' before predicting population changes.",
-    },
-    {
-      title: "Food-web question shapes you'll meet",
-      body: "Before tackling any food-web question, walk through these two steps. Then match the question to its shape and use the right answer template.",
-      bullets: [
+        "**Find the producer first** — the **producer** has NO incoming arrows (nothing eats it; it makes its own food via photosynthesis). The **ultimate source of energy is always the Sun**.",
         "**Step 1** — Map out the **producer**, **primary consumer** (plant eater), and **secondary consumer** (meat eater).",
-        "**Step 2** — Map out the impact on each group with the change. (**arrow up** for increase, **arrow down** for decrease.)",
-        "**Match-graph MCQ (19%)** — 4 graphs showing populations of B, C, D, E over time; pick the one that matches a predicted change. **Trick**: solve in your head first, THEN match — don't read graphs first.",
-        "**True-statement MCQ (19%)** — 4 statements about the food web (e.g. 'W) energy comes from Sun, X) A is a producer, Y) B has 3 predators, Z) C will increase'). Check each statement against the diagram. Eliminate the false ones.",
-        "**Draw the food web (PSLE OEQ)** — given a paragraph like 'B and C feed on F; E eats both B and C', draw the web with **correct arrow direction** (energy from prey to predator). Always include the Sun if asked about energy.",
-        "**Count chains / predators** — 'How many food chains are in this web?' Trace each path from producer to top predator separately; branching creates separate chains.",
-        "**Source-of-energy question** — short factual answer. The ultimate source of energy for every food chain is the **Sun** — even in deep-water food chains, energy traces back through photosynthesis.",
+        "**Step 2** — Map the **impact on each group** with the change. (**↑** for increase, **↓** for decrease.)",
+        "**Match-graph MCQ trick** — solve the impact in your head FIRST, then match to one of the 4 graphs. Don't read the graphs first or you'll get pattern-matched into the wrong answer.",
       ],
-      callout: "Map first (Step 1+2), then identify the shape — each shape has its own answer template.",
+      scoringExample: {
+        scenario: "The food chain shown is: grass → grasshopper → bird. Explain how energy is transferred along this chain.",
+        oneMark: {
+          label: "1 mark",
+          text: "Energy flows from grass to grasshopper to bird.",
+        },
+        fullMarks: {
+          label: "3 marks",
+          text: "Grass is the **producer** — it captures **sunlight energy through photosynthesis**. The grasshopper eats the grass, transferring energy from grass to grasshopper. The bird then eats the grasshopper, transferring the energy further along the chain. So the **ultimate source of energy is the Sun**.",
+        },
+      },
+      callout: "Map first (Step 1 + Step 2), then answer. 'WHO eats WHOM?' before any prediction.",
     },
     {
       title: "Mutual-benefit patterns: master the scoring patterns",
-      body: "Aquarium and pond questions almost always test mutualism. The two most common patterns:",
+      body: "Aquarium and pond questions almost always test mutualism.",
       bullets: [
         "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
         "**Pollinator + flower**: bird/insect **feeds on nectar**; **pollen sticks to body** → carried to next flower → **pollination** → **fertilisation**",
