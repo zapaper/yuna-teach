@@ -1,18 +1,24 @@
-// Master Class content is now authored in YAML — see
-// ./interactions-environment.yaml. This module reads + parses it
-// at server start and exports the typed object.
+// Master Class content is authored in YAML — see
+// ./interactions-environment.yaml. A pre-build step (scripts/
+// build-master-class.mjs, wired into the `prebuild` + `postinstall`
+// npm scripts) converts it to ./interactions-environment.generated.json
+// which this module imports directly.
 //
-// Edit the .yaml file to change slide content / narration.
-// Restart `next dev` (or redeploy) to pick up the changes.
+// Why JSON-via-generated-file instead of fs.readFileSync at runtime:
+//   The data module is imported by client components too (admin
+//   workshop, student player), so it must be bundleable. fs isn't
+//   available in client bundles. Importing a checked-in JSON file
+//   works in both server and client builds.
+//
+// Edit the .yaml file to change slide content / narration. Running
+// `npm install` or `npm run build` regenerates the JSON. In dev
+// you can re-run `node scripts/build-master-class.mjs` to refresh.
 //
 // The TYPE definitions stay here so authors get IDE auto-complete
 // when editing this file, plus a single source of truth for what
 // shape the YAML is expected to produce.
 
-import path from "path";
-import { promises as fs } from "fs";
-import fsSync from "fs";
-import { parse as parseYaml } from "yaml";
+import data from "./interactions-environment.generated.json";
 
 export type MasterClassSlide = {
   title: string;
@@ -72,19 +78,4 @@ export type MasterClassContent = {
   }>;
 };
 
-// Load synchronously at module-init time. The YAML file lives next
-// to this TS file in the source tree; in production builds Next.js
-// includes it via the outputFileTracingIncludes config (see
-// next.config.ts).
-const yamlPath = path.join(process.cwd(), "src/data/master-class/interactions-environment.yaml");
-const yamlText = fsSync.readFileSync(yamlPath, "utf8");
-
-export const interactionsEnvironment: MasterClassContent =
-  parseYaml(yamlText) as MasterClassContent;
-
-// Async variant exposed for future use (e.g. an admin route that
-// hot-reloads YAML edits without a process restart).
-export async function reloadInteractionsEnvironment(): Promise<MasterClassContent> {
-  const text = await fs.readFile(yamlPath, "utf8");
-  return parseYaml(text) as MasterClassContent;
-}
+export const interactionsEnvironment: MasterClassContent = data as MasterClassContent;

@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
+    "dev": "node scripts/build-master-class.mjs && next dev",
+    "build": "node scripts/build-master-class.mjs && prisma generate && next build",
     "start": "prisma migrate deploy && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static && HOSTNAME=0.0.0.0 node .next/standalone/server.js",
     "lint": "eslint",
-    "postinstall": "node scripts/copy-opencv.mjs"
+    "postinstall": "node scripts/copy-opencv.mjs && node scripts/build-master-class.mjs"
   },
   "dependencies": {
     "@capacitor/camera": "^8.2.0",
