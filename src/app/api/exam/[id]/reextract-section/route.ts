@@ -23,15 +23,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   });
   if (!paper) return NextResponse.json({ error: "Paper not found" }, { status: 404 });
 
-  // Match the main extraction pipeline: Chinese papers go pro-first
-  // because 2.5-flash makes regular Chinese transcription errors
-  // (己/已, dropped emphasis markup, etc.). English / Math / Science
-  // stay on flash-first since flash is accurate enough on Latin
-  // scripts and the pipeline's been tuned around its latency.
+  // Match the main extraction pipeline: pro-first across all subjects.
+  // Originally flash-first for speed, then Chinese flipped because
+  // 2.5-flash makes transcription errors on Chinese characters. All
+  // subjects now use pro-first — accuracy gain outweighs latency for
+  // a one-time re-extract; flash stays at the end as last resort.
   const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
-  const MODELS = isChinese
-    ? (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const)
-    : (["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const);
+  const MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
 
   // Walk the model chain manually; generateContentWithRetry only
   // covers retries for a single model, not chain-fallback.

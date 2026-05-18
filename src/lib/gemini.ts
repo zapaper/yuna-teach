@@ -3200,7 +3200,11 @@ async function runExtractionCall(
   // the 504 cascades the user reported. Replaced with 2.5-pro as the
   // second-try: different SKU, different gateway, slower but more
   // stable. 3.1-pro-preview stays as last-resort (its own gateway).
-  const QEX_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const;
+  // Pro-first across all subjects (changed from flash-first). The
+  // per-question accuracy gain from 2.5-pro outweighs its latency for
+  // a one-time extraction; flash stays at the end as a last-resort
+  // fallback when both pro tiers are 504-ing.
+  const QEX_MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
   // Chinese-only fail-fast: retrying a 504-saturated model 3x burns
   // 90-180s and starves the rest of the chain. The chain itself IS
   // the retry. Non-Chinese papers keep maxRetries=2.
@@ -3382,7 +3386,8 @@ async function extractAnswersWithWorking(
   // are saturated.
   // 3-flash-preview dropped (see QEX_MODELS rationale). 2.5-pro is
   // the new second-try.
-  const ANS_MODELS = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const;
+  // Pro-first across all subjects — same rationale as QEX_MODELS.
+  const ANS_MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
   // Chinese-only fail-fast — derived from the structure header so the
   // retry budget shrinks only for 华文 papers, leaving English / Math /
   // Science behavior unchanged.
@@ -4054,24 +4059,14 @@ CHINESE PAPER (华文) — language-specific rules:
 - For ALL sections: exclude preamble instructions (e.g. "For each question...", "Choose the best answer..."), page numbers, "--- Page N ---" markers, section titles, and any question/answer text that is NOT part of the passage or questions.
 Output ONLY the clean passage/question text, no commentary.` });
 
-          // Model fallback chain — 3-flash-preview is preferred
-          // (best table / grid handling) but 504s on large Chinese
-          // passages. 2.5-flash is the fast fallback. 3.1-pro-preview
-          // is the last-resort: different model family with separate
-          // gateway capacity, so it usually goes through when both
-          // flash tiers are saturated.
-          // 3-flash-preview dropped entirely (kept 504-ing on Chinese
-          // passage prompts). 2.5-pro is the new second-try — slower
-          // but a different gateway with separate capacity.
-          //
-          // Chinese papers go pro-first: 2.5-flash makes regular
-          // transcription errors on Chinese (similar-character swaps
-          // 己/已, missed bold/underline runs, collapsed indents). The
-          // ~5× per-page latency hit is acceptable because Chinese
-          // extraction runs once per master paper.
-          const OCR_MODELS = isChineseBooklet
-            ? (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const)
-            : (["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const);
+          // Pro-first across all subjects. Originally flash-first for
+          // speed, then Chinese flipped to pro-first when transcription
+          // errors mounted (己/已 swaps, dropped emphasis markup). All
+          // subjects now use the same pro-first chain — accuracy gain
+          // outweighs the latency hit for a one-time extraction; flash
+          // stays at the end as last-resort fallback when both pro
+          // tiers are 504-ing.
+          const OCR_MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
           // Chinese-only: skip per-model 504 retries. The chain itself
           // is the retry — re-attempting a 504-saturated model 3x
           // burns 90-180s before falling through to the next model and
@@ -4199,25 +4194,11 @@ Return ONLY valid JSON:
   ]
 }`;
 
-          // Model fallback chain. 3-flash-preview is preferred (best
-          // table handling). 2.5-flash is the fast fallback. 3.1-pro-
-          // preview is the last resort — different model family with
-          // separate gateway capacity, so it gets through when both
-          // flash tiers are 504-ing on big Chinese prompts. A whole
-          // section's text-extract failing is an extraction killer.
-          // 3-flash-preview dropped (504 cascade source). 2.5-flash
-          // is now the primary (fast, stable), 2.5-pro the second-try
-          // for when flash itself is throttled, 3.1-pro-preview the
-          // last-resort with separate gateway capacity.
-          //
-          // Chinese papers go pro-first: see OCR_MODELS comment above.
-          // The text-extract pass also benefits — 2.5-flash drops the
-          // bold/underline markdown markers in the OCR text more often
-          // than 2.5-pro does, and that's the data the quiz UI needs
-          // to render emphasis correctly.
-          const TEXT_EXTRACT_MODELS = isChineseBooklet
-            ? (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const)
-            : (["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"] as const);
+          // Pro-first across all subjects. See OCR_MODELS rationale.
+          // text-extract also benefits — 2.5-flash drops bold/underline
+          // markdown markers from the OCR text more often than pro,
+          // and that's the data the quiz UI needs to render emphasis.
+          const TEXT_EXTRACT_MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
           // Chinese-only fail-fast — see OCR_MODELS loop above.
           const textExtractRetries = isChineseBooklet ? 0 : 2;
           let extractResponse: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
