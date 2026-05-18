@@ -1,40 +1,35 @@
-// Master Class content for "Interactions within the environment".
-// Hand-authored from analysis of 41 PSLE actual Life-Science questions
-// + 74 school WA / Prelim questions in the master bank.
+// Master Class content is now authored in YAML — see
+// ./interactions-environment.yaml. This module reads + parses it
+// at server start and exports the typed object.
 //
-// Shape is intentionally serialisable so future topics can be authored
-// as plain JSON; for now TypeScript gives us type-checking + IDE.
+// Edit the .yaml file to change slide content / narration.
+// Restart `next dev` (or redeploy) to pick up the changes.
+//
+// The TYPE definitions stay here so authors get IDE auto-complete
+// when editing this file, plus a single source of truth for what
+// shape the YAML is expected to produce.
+
+import path from "path";
+import { promises as fs } from "fs";
+import fsSync from "fs";
+import { parse as parseYaml } from "yaml";
 
 export type MasterClassSlide = {
   title: string;
-  body: string;        // markdown-friendly; renderer can format
+  body: string;
   bullets?: string[];
-  callout?: string;    // a one-sentence emphasis
-  /** Optional 1-mark-vs-full-marks example block. Rendered as a
-   *  red/green comparison below the bullets so students see exactly
-   *  what scoring upgrade they're aiming for. */
+  callout?: string;
   scoringExample?: {
     scenario: string;
     oneMark: { label: string; text: string };
     fullMarks: { label: string; text: string };
   };
-  /** Optional inline pie chart — renders a SVG donut showing the
-   *  highlighted % vs the rest. Used on stats slides to make the
-   *  headline number visual. */
   pieChart?: {
     percentage: number;
     label: string;
     caption?: string;
   };
-  /** Optional AI-generated diagram. The `diagramPrompt` is hand-
-   *  authored; the workshop view has a "Generate diagram" button that
-   *  calls Gemini image-gen and saves the result to disk under
-   *  VOLUME_PATH/master-class/<slug>/slide-<idx>.jpg. The renderer
-   *  loads the image lazily via the diagram GET endpoint. */
   diagramPrompt?: string;
-  /** Optional call-to-action that renders as a big primary button
-   *  on the slide. Currently used by the practice-quiz launch slide
-   *  at the end of every Master Class deck. */
   cta?: {
     label: string;
     quizSpec?: {
@@ -43,19 +38,6 @@ export type MasterClassSlide = {
       oeq: number;
     };
   };
-  /** Optional NARRATION overrides — what the voice actually reads
-   *  out loud, separate from what shows on the slide visually.
-   *
-   *  If a key is set, that segment's audio uses the override text
-   *  instead of the auto-built script from the visible content.
-   *  Lets you add teacher-style transitions ("Let's look at the
-   *  next pattern…"), longer elaborations, or different phrasing
-   *  for audio vs print — without changing what the student SEES.
-   *
-   *  If `bullets[i]` is null/undefined the auto-built script for
-   *  that bullet is used; same for `intro`, `scoringExample`,
-   *  `callout`. Per-bullet array length should match the slide's
-   *  bullets length (or be shorter; missing entries fall back). */
   narration?: {
     intro?: string;
     bullets?: Array<string | null>;
@@ -68,284 +50,41 @@ export type MasterClassContent = {
   slug: string;
   subject: "science" | "math" | "english" | "chinese";
   level: "P5-P6" | "P3-P4";
-  topicLabel: string;          // matches examQuestion.syllabusTopic exactly
-  title: string;               // human-friendly title
+  topicLabel: string;
+  title: string;
   stats: {
     psleQuestions: number;
-    psleSubjectPercent: number;   // % of all PSLE life-science Q's
-    totalPracticePool: number;     // PSLE + school
+    psleSubjectPercent: number;
+    totalPracticePool: number;
     psleQuestionsInPool: number;
     schoolQuestionsInPool: number;
     pctOeq: number;
-    headline: string;             // big-stat sentence to put up top
+    headline: string;
   };
-  keyConcepts: MasterClassSlide[];     // 3-4 slides
-  commonMistakes: MasterClassSlide[];  // 3-4 slides
+  keyConcepts: MasterClassSlide[];
+  commonMistakes: MasterClassSlide[];
   keyWords: Array<{ word: string; definition: string }>;
-  /** Sub-topics inside this Master Class. The classifier tags each
-   *  question in the bank with one of these IDs (stored on
-   *  examQuestion.subTopic). The slideIdx links a sub-topic to the
-   *  concept slide that teaches it — used by the post-quiz replay
-   *  flow to jump straight to the weak-area slides. */
   subTopics: Array<{
     id: string;
     label: string;
-    description: string;        // fed to the AI classifier
-    slideIdx: number;           // 0-based index into keyConcepts
+    description: string;
+    slideIdx: number;
   }>;
 };
 
-export const interactionsEnvironment: MasterClassContent = {
-  slug: "interactions-environment",
-  subject: "science",
-  level: "P5-P6",
-  topicLabel: "Interactions within the environment",
-  title: "Interactions within the Environment",
-  stats: {
-    psleQuestions: 19,
-    psleSubjectPercent: 28.4,
-    totalPracticePool: 85,
-    psleQuestionsInPool: 19,
-    schoolQuestionsInPool: 66,
-    pctOeq: 58,
-    headline: "More than 1 in 4 PSLE Life-Science questions test this topic — 10.8% of total PSLE Science marks, and 58% of them are open-ended.",
-  },
-  keyConcepts: [
-    {
-      title: "Interactions with environment: How important is this?",
-      body: "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. A roughly even mix of MCQ and OEQ.",
-      pieChart: {
-        percentage: 12,
-        label: "of PSLE Science marks",
-        caption: "More than any other science topic.",
-      },
-      bullets: [
-        "**28%** of PSLE Life-Science questions test this topic",
-        "**~12%** of total PSLE Science marks come from it",
-        "**58%** are open-ended (OEQ), **42%** are MCQ",
-        "**We will cover the top common questions and mistakes to help you ace this topic:**\n  • Definitions\n  • Food Web\n  • Adaptation\n  • Mutualism\n  • Decomposer\n  • Human Impact",
-      ],
-      callout: "If you only revise one Life-Science topic — start here.",
-    },
-    {
-      title: "1: Key Definitions",
-      body: "**33% of PSLE OEQ** have a definition sub-part. This is a give-away to master. Let's go through these definitions.",
-      bullets: [
-        "**Population** — a group of living things of the **same kind** in one place",
-        "**Community** — all the **different populations** living in one place",
-        "**Habitat** — the place where an organism lives, grows and reproduces",
-        "**Ecosystem** — a community + the **non-living** factors (e.g. water, air, sunlight, soil)",
-        "**Decomposer** — feeds on **dead organisms** and waste (e.g. bacteria, fungi)",
-      ],
-      callout: "Remember: population = same kind. Community = different kinds. This trips up most students.",
-    },
-    {
-      title: "2: Food Web: Explaining it",
-      body: "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
-      bullets: [
-        "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
-        "**Step 2** — Map the impact on each group with the change. (**↑** for increase, **↓** for decrease.)",
-        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**.",
-      ],
-      scoringExample: {
-        scenario: "The food chain shown is: grass → grasshopper → bird. Explain how energy is transferred along this chain.",
-        oneMark: {
-          label: "1 mark",
-          text: "Energy flows from grass to grasshopper to bird.",
-        },
-        fullMarks: {
-          label: "3 marks",
-          text: "Grass is the **producer** — it captures **sunlight energy through photosynthesis**. The grasshopper eats the grass, transferring energy from grass to grasshopper. The bird then eats the grasshopper, transferring the energy further along the chain. (If asked, the ultimate source of energy is always the Sun.)",
-        },
-      },
-    },
-    {
-      title: "3: Food Web: Causal Chain reasoning — common mistakes",
-      body: "Many food web questions will show a food web, and ask what happens when one population decreases… PSLE markers reward points for **every step** in the explanation. How to score full marks? **Four steps.**",
-      bullets: [
-        "Step 1: Name what **changes** (grass dies)",
-        "Step 2: Name who has **less food** (grasshoppers have less food)",
-        "Step 3: Name the **outcome** (grasshoppers **starve or move away** → **population decreases**)",
-        "Step 4: **Chain** to the next animal (birds now have fewer grasshoppers to eat → bird **population decreases**)",
-      ],
-      scoringExample: {
-        scenario: "Disease kills the grass in habitat T (grass → grasshopper → bird → fox). What happens to the bird population?",
-        oneMark: {
-          label: "1 mark",
-          text: "The bird population will decrease.",
-        },
-        fullMarks: {
-          label: "3 marks",
-          text: "With less grass to **feed on**, the grasshopper population decreases as they **starve or move away**. Birds then have fewer grasshoppers to **feed on**, so the bird population also decreases.",
-        },
-      },
-      callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
-    },
-    {
-      title: "4: Mutual benefits",
-      body: "Aquarium and pond questions almost always test mutualism.",
-      bullets: [
-        "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
-        "**Pollinator + flower**: bird/insect **feeds on nectar**; **pollen sticks to body** → carried to next flower → **pollination** → **fertilisation**",
-        "**Cleaner + host**: bird **feeds on parasites** of a larger animal; the animal stays **clean** and the bird gets **food**",
-        "**Common trap** — Don't say 'plants give food to fish'. Unless the fish is shown eating the plant, plants give **oxygen** (and **shelter**), NOT food.",
-      ],
-      scoringExample: {
-        scenario: "How do aquatic plants and fish benefit each other in an aquarium?",
-        oneMark: {
-          label: "1 mark (incomplete)",
-          text: "Plants give food to fish, and fish give carbon dioxide to plants.",
-        },
-        fullMarks: {
-          label: "4 marks",
-          text: "Plants release **oxygen** during **photosynthesis**, which the fish use for **respiration**. Fish release **carbon dioxide** during **respiration**, which the plants use for **photosynthesis**. The plants also provide **shelter** for the fish.",
-        },
-      },
-      callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
-    },
-    {
-      title: "5: Adaptation: Feature → how it helps → link to environment",
-      body: "Adaptations are **features** or **behaviours** that help an organism survive in its environment. PSLE answer template is fixed: name the **feature** / **behaviour** → explain **how it helps** → connect to the **environmental condition**.",
-      bullets: [
-        "**Physical features — Animals**: body parts shaped for survival (thick fur → keep warm in cold; webbed feet → swim faster; gills → take in oxygen from water).",
-        "**Physical features — Plants**: deep tap roots → reach water in dry soil; broad leaves → catch sunlight on forest floor; waxy leaves → reduce water loss; floating stems → stay near the light surface in a pond.",
-        "**Behaviours** — actions to survive (hibernation, migration, camouflage to hide from predators).",
-        "**Bonus — Tolerance graphs**: when shown a graph of population vs temperature / light / water, look for the **peak range** that suits the organism. State the specific range (e.g. 'between 20°C and 25°C', 'around 60 units of water vapour'), not just 'high' or 'low'.",
-      ],
-      scoringExample: {
-        scenario: "How does the polar bear's thick fur help it survive in the Arctic?",
-        oneMark: {
-          label: "1 mark",
-          text: "Polar bear has thick fur.",
-        },
-        fullMarks: {
-          label: "3 marks",
-          text: "Polar bear has thick fur which traps a layer of air to keep it warm in the cold Arctic environment.",
-        },
-      },
-      callout: "Answer template: 'Feature: ____. How it helps: ____. This helps the organism survive in ____.'",
-    },
-    {
-      title: "6: Decomposer: easy to miss points",
-      body: "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
-      bullets: [
-        "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
-        "**Why they matter** — without decomposers, dead matter piles up and **nutrients stay trapped**. Plants can't grow → entire food chain collapses.",
-        "**Aquarium trap** — when a plant dies in a pond/aquarium, decomposers **use up oxygen** as they **respire** on the dead plant. Less oxygen left for fish.",
-      ],
-      scoringExample: {
-        scenario: "What is the role of bacteria in this ecosystem?",
-        oneMark: {
-          label: "1 mark",
-          text: "Bacteria break down dead organisms.",
-        },
-        fullMarks: {
-          label: "3 marks",
-          text: "Bacteria decompose dead organisms and waste, **releasing nutrients** back to the soil for **plants to absorb**.",
-        },
-      },
-    },
-    {
-      title: "7: Human Impact",
-      body: "Human actions like deforestation, pollution and pest control disrupt the food chain. PSLE answers must trace the cascade: **human action → environmental change → biological effect → population outcome**.",
-      bullets: [
-        "**Deforestation** — cutting down trees → fewer plants doing **photosynthesis** → less **oxygen** released, more **carbon dioxide** in the atmosphere; many animals lose their **habitat** and die.",
-        "**Water pollution** — dirt in water blocks **light** → aquatic plants can't **photosynthesise** → die → primary consumers (e.g. small fish) lose food → population decreases → predators above them also drop.",
-        "**Pesticides / pest control** — kills the target pest, but the pest's **predators** lose their food source → predator population also drops.",
-        "**Common trap** — naming only the direct effect ('fewer trees'). The marker is hunting for the **full chain**: trees → CO₂ / O₂ → habitat → other species.",
-      ],
-      scoringExample: {
-        scenario: "What is one effect of deforestation on the environment?",
-        oneMark: {
-          label: "1 mark",
-          text: "There will be fewer trees and animals.",
-        },
-        fullMarks: {
-          label: "3 marks",
-          text: "Cutting down trees reduces the number of plants doing **photosynthesis**. This decreases the **oxygen** released into the atmosphere and increases the **carbon dioxide**. It also destroys **habitats** for many species, causing their populations to decrease.",
-        },
-      },
-    },
-    {
-      title: "Let's get some practice!",
-      body: "Time to put it all together. This quiz pulls real PSLE-style questions across every concept we just covered.",
-      bullets: [
-        "**10 MCQ** + **6 OEQ** — a mix of all 7 concepts in this Master Class.",
-        "After you submit, the AI will look at where you went wrong and suggest a follow-up focused quiz on just those concepts.",
-        "Mistakes are saved — we'll come back to them in an auto-revision session in **1 week**.",
-      ],
-      cta: {
-        label: "Click here to start your practice quiz",
-        quizSpec: {
-          title: "Mastery: Interactions with environment Quiz 1",
-          mcq: 10,
-          oeq: 6,
-        },
-      },
-    },
-  ],
-  // Common-mistakes deck retired — the equivalent warnings are now
-  // baked into the relevant Key Concept slides (e.g. "plants give food
-  // to fish" lives in the Mutualism slide; arrow direction is in the
-  // Food-Web Reading slide).
-  commonMistakes: [],
-  keyWords: [
-    { word: "population", definition: "A group of living things of the same kind that live together and reproduce in a particular place." },
-    { word: "community", definition: "All the different populations of living things living together in a particular place." },
-    { word: "habitat", definition: "The place where an organism lives, grows and reproduces." },
-    { word: "ecosystem", definition: "A community together with the non-living factors (e.g. water, air, sunlight, soil) in their environment." },
-    { word: "producer", definition: "A living thing (usually a plant) that makes its own food via photosynthesis." },
-    { word: "consumer", definition: "A living thing that gets food by eating other living things." },
-    { word: "decomposer", definition: "A living thing (bacteria, fungi) that feeds on dead organisms and waste." },
-    { word: "predator", definition: "An animal that hunts and eats other animals." },
-    { word: "prey", definition: "An animal that is hunted and eaten by another animal." },
-    { word: "mutualism", definition: "A relationship between two organisms where both benefit." },
-    { word: "adaptation", definition: "A feature or behaviour that helps an organism survive in its environment." },
-  ],
-  // Sub-topic taxonomy for this Master Class. slideIdx is 0-based
-  // into the keyConcepts array, so e.g. slideIdx 0 = the stats /
-  // overview slide. The replay-weak-slides flow uses these to jump
-  // straight to the concept slides students missed.
-  subTopics: [
-    // "Definitions" is intentionally NOT a sub-topic — definition
-    // questions almost always appear as a 1-mark sub-part inside an
-    // OEQ on another concept. We tag the question by its primary
-    // concept (the harder sub-part), not by the definition sub-part.
-    {
-      id: "food-web-explaining",
-      label: "Food Web reading & explaining",
-      description: "Reading a food web diagram — identifying the producer, counting predators, tracing energy flow, naming the Sun as the ultimate energy source, or drawing a food web from a paragraph description. Not a causal-decrease question; just structure / energy flow.",
-      slideIdx: 2,
-    },
-    {
-      id: "causal-chain",
-      label: "Causal Chain reasoning",
-      description: "Asks what happens to organism X's population when another organism's population changes — predator/prey or food-chain disruption. Typically OEQ that requires writing the full chain (less food → starve/move away → population decreases).",
-      slideIdx: 3,
-    },
-    {
-      id: "mutual-benefits",
-      label: "Mutual Benefits",
-      description: "Tests mutualism — two organisms benefiting from each other. Most often aquarium plants & fish (oxygen/carbon dioxide exchange), pollinator + flower (nectar / pollen), or cleaner + host. The distractor often claims plants give 'food' to fish.",
-      slideIdx: 4,
-    },
-    {
-      id: "adaptation",
-      label: "Adaptation",
-      description: "Tests how a feature or behaviour helps an organism survive in its environment. Includes physical features (thick fur, webbed feet, deep tap roots), behaviours (hibernation, migration, camouflage), and tolerance-range graphs (peak temperature/light for an organism).",
-      slideIdx: 5,
-    },
-    {
-      id: "decomposer",
-      label: "Decomposer",
-      description: "Tests the role of decomposers (bacteria, fungi, mould). Common phrasings: 'What is the role of bacteria?', 'What happens to dead matter?', or aquarium questions where dead plants → decomposers respire and use up oxygen.",
-      slideIdx: 6,
-    },
-    {
-      id: "human-impact",
-      label: "Human Impact",
-      description: "Tests effects of human actions on the environment — deforestation, pollution, pest control, pesticides. Answers must trace the cascade (e.g. cut trees → less photosynthesis → more carbon dioxide / fewer habitats).",
-      slideIdx: 7,
-    },
-  ],
-};
+// Load synchronously at module-init time. The YAML file lives next
+// to this TS file in the source tree; in production builds Next.js
+// includes it via the outputFileTracingIncludes config (see
+// next.config.ts).
+const yamlPath = path.join(process.cwd(), "src/data/master-class/interactions-environment.yaml");
+const yamlText = fsSync.readFileSync(yamlPath, "utf8");
+
+export const interactionsEnvironment: MasterClassContent =
+  parseYaml(yamlText) as MasterClassContent;
+
+// Async variant exposed for future use (e.g. an admin route that
+// hot-reloads YAML edits without a process restart).
+export async function reloadInteractionsEnvironment(): Promise<MasterClassContent> {
+  const text = await fs.readFile(yamlPath, "utf8");
+  return parseYaml(text) as MasterClassContent;
+}

@@ -26,6 +26,13 @@ const nextConfig: NextConfig = {
     "/api/inbound-email/route": [
       "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
     ],
+    // Master Class content is authored in YAML alongside the loader
+    // module. The fs.readFileSync call in interactions-environment.ts
+    // is dynamic, so Next's tracer doesn't auto-include the .yaml
+    // file in the standalone output — list it explicitly.
+    "/**": [
+      "./src/data/master-class/*.yaml",
+    ],
   },
   experimental: {
     serverActions: {
