@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import type { MasterClassContent, MasterClassSlide } from "@/data/master-class";
@@ -567,15 +567,7 @@ function SlideDeck({
             />
           )}
           {slide.cta && (
-            <div className="mt-auto pt-6 flex justify-center">
-              <button
-                onClick={() => alert(`Quiz launch not wired yet — coming next phase.\n\nWill spin up a ${slide.cta!.quizSpec?.mcq ?? "?"} MCQ + ${slide.cta!.quizSpec?.oeq ?? "?"} OEQ quiz titled "${slide.cta!.quizSpec?.title ?? "?"}".`)}
-                className="px-8 py-4 rounded-2xl bg-emerald-600 text-white text-base font-bold hover:bg-emerald-700 shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-              >
-                <span className="material-symbols-outlined">play_circle</span>
-                {slide.cta.label}
-              </button>
-            </div>
+            <CtaLauncher slug={slug} label={slide.cta.label} />
           )}
         </div>
         );
@@ -625,6 +617,88 @@ function PracticeCard({ q, idx }: { q: PracticeQuestion; idx: number }) {
       {q.answer && (
         <p className="text-[11px] text-emerald-700 mt-2 font-semibold">Answer: {q.answer.slice(0, 200)}</p>
       )}
+    </div>
+  );
+}
+
+function CtaLauncher({ slug, label }: { slug: string; label: string }) {
+  const userId = useSearchParams().get("userId") ?? "";
+  const router = useRouter();
+  const [launching, setLaunching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState("");
+  const [open, setOpen] = useState(false);
+
+  async function launch() {
+    if (!studentId.trim()) {
+      setError("Please enter a student ID first.");
+      return;
+    }
+    setLaunching(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/master-class/${slug}/start-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: studentId.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? `Failed (${res.status})`);
+        return;
+      }
+      // Navigate to the quiz. userId here is the STUDENT id (the
+      // assignee), because that's whose answers the quiz collects.
+      router.push(`/quiz/${data.paperId}?userId=${studentId.trim()}`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLaunching(false);
+    }
+  }
+
+  return (
+    <div className="mt-auto pt-6 flex flex-col items-center gap-3">
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="px-8 py-4 rounded-2xl bg-emerald-600 text-white text-base font-bold hover:bg-emerald-700 shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined">play_circle</span>
+          {label}
+        </button>
+      ) : (
+        <div className="w-full max-w-md bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-3">
+          <p className="text-xs font-bold text-slate-700">Launch quiz — pick a student</p>
+          <p className="text-[10px] text-slate-400">
+            Admin: enter the student ID this quiz should be assigned to. Pulled from /home/&lt;userId&gt; URLs.
+          </p>
+          <input
+            type="text"
+            placeholder="cmnsa6bww006bgmuwflevt143"
+            value={studentId}
+            onChange={e => setStudentId(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono focus:outline-none focus:border-emerald-400"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={launch}
+              disabled={launching || !studentId.trim()}
+              className="flex-1 px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:bg-slate-300"
+            >
+              {launching ? "Spawning quiz…" : "Launch"}
+            </button>
+            <button
+              onClick={() => { setOpen(false); setError(null); }}
+              className="px-4 py-2 rounded-xl text-slate-500 text-sm font-bold hover:text-slate-700"
+            >
+              Cancel
+            </button>
+          </div>
+          {error && <p className="text-xs text-rose-600">{error}</p>}
+        </div>
+      )}
+      <p className="text-[10px] text-slate-400">Session userId: <code className="text-slate-600">{userId.slice(0, 12)}…</code></p>
     </div>
   );
 }
