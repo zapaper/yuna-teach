@@ -93,10 +93,10 @@ export const interactionsEnvironment: MasterClassContent = {
         "**Population** — a group of living things of the **same kind** in one place",
         "**Community** — all the **different populations** living in one place",
         "**Habitat** — the place where an organism lives, grows and reproduces",
-        "**Ecosystem** — a community + the **non-living** factors (water, air, sunlight, soil)",
-        "**Decomposer** — feeds on **dead organisms** and waste (bacteria, fungi)",
+        "**Ecosystem** — a community + the **non-living** factors (e.g. water, air, sunlight, soil)",
+        "**Decomposer** — feeds on **dead organisms** and waste (e.g. bacteria, fungi)",
       ],
-      callout: "Population = same kind. Community = different kinds. This trips up most students.",
+      callout: "Remember: population = same kind. Community = different kinds. This trips up most students.",
     },
     {
       title: "Food Web: Causal Chain reasoning — common mistakes",
