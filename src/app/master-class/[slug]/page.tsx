@@ -234,6 +234,19 @@ function SlideCard({
     if (audioRef.current) audioRef.current.muted = muted;
   }, [muted]);
 
+  // Stop audio on unmount — otherwise narration keeps reading after
+  // the user clicks the quiz CTA and the page navigates away.
+  useEffect(() => {
+    return () => {
+      cancelPendingAdvance();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
   function togglePlay() {
     const a = audioRef.current;
     if (!a) { if (segments.length > 0) setSegIdx(s => s); return; }

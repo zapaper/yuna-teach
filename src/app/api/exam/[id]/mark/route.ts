@@ -201,9 +201,16 @@ export async function POST(
     markQuizPaper(id).catch((err) =>
       console.error(`Quiz marking for ${id} failed:`, err)
     );
-  } else if (paper.paperType === "focused") {
+  } else if (paper.paperType === "focused" || paper.paperType === "mastery") {
+    // Mastery quizzes share the focused-test shape (cloned questions
+    // with no scanned pages, instant-feedback marking). Route them
+    // through the same marker so MCQ scores and OEQ AI marking both
+    // run. Without this branch, mastery papers fell through to
+    // markExamPaper (the master-paper / scanned-submission marker)
+    // and silently skipped marking — leading to "-%" scores and
+    // empty marking notes.
     markFocusedTest(id).catch((err) =>
-      console.error(`Focused test marking for ${id} failed:`, err)
+      console.error(`${paper.paperType} test marking for ${id} failed:`, err)
     );
   } else {
     markExamPaper(id).catch((err) =>

@@ -119,10 +119,27 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     else g.oeq.push(q);
   }
 
-  // Shuffle within each group.
+  // Dedupe each group by the first 200 chars of the transcribed
+  // stem. The master bank carries occasional near-duplicate questions
+  // (same PSLE question echoed in a school WA paper, or synthetic
+  // variants of the same parent), and the round-robin picker would
+  // otherwise pull a "repeat" pair into the same quiz.
+  function dedupeByStem<T extends { transcribedStem: string | null }>(arr: T[]): T[] {
+    const seen = new Set<string>();
+    const out: T[] = [];
+    for (const q of arr) {
+      const key = (q.transcribedStem ?? "").replace(/\s+/g, " ").trim().slice(0, 200);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(q);
+    }
+    return out;
+  }
+
+  // Shuffle within each group, then dedupe by stem.
   for (const [, g] of groups) {
-    g.mcq = shuffle(g.mcq);
-    g.oeq = shuffle(g.oeq);
+    g.mcq = dedupeByStem(shuffle(g.mcq));
+    g.oeq = dedupeByStem(shuffle(g.oeq));
   }
 
   // ─── Selection ─────────────────────────────────────────────────────
@@ -174,8 +191,14 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     return NextResponse.json({ error: "No questions available to build a quiz." }, { status: 400 });
   }
 
-  // Shuffle final order so MCQ/OEQ are interleaved, not grouped.
-  const finalPicked = shuffle(picked);
+  // Final order: MCQ block first, then OEQ block. Matches standard
+  // PSLE paper structure (Booklet A = MCQ, Booklet B = OEQ) and
+  // makes the quiz UI render cleanly without OEQ stems landing
+  // mid-MCQ.
+  const finalPicked = [
+    ...picked.filter(q => hasOptions(q)),
+    ...picked.filter(q => !hasOptions(q)),
+  ];
 
   // ─── Create the mastery paper ──────────────────────────────────────
   // Quiz number for this student on this master class (so the title

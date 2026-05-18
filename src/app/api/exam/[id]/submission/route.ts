@@ -208,9 +208,9 @@ export async function POST(
     });
 
     // Auto-mark in background — fire and forget
-    if (updatedPaper.paperType === "focused") {
+    if (updatedPaper.paperType === "focused" || updatedPaper.paperType === "mastery") {
       markFocusedTest(id).catch((err) =>
-        console.error(`[Auto-mark] Focused test marking for ${id} failed:`, err)
+        console.error(`[Auto-mark] ${updatedPaper.paperType} marking for ${id} failed:`, err)
       );
     } else {
       markExamPaper(id).catch((err) =>
