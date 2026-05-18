@@ -121,27 +121,6 @@ export const interactionsEnvironment: MasterClassContent = {
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
     },
     {
-      title: "Food Web: Explaining it",
-      body: "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
-      bullets: [
-        "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
-        "**Step 2** — Map the impact on each group with the change. (**↑** for increase, **↓** for decrease.)",
-        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**.",
-      ],
-      scoringExample: {
-        scenario: "The food chain shown is: grass → grasshopper → bird. Explain how energy is transferred along this chain.",
-        oneMark: {
-          label: "1 mark",
-          text: "Energy flows from grass to grasshopper to bird.",
-        },
-        fullMarks: {
-          label: "3 marks",
-          text: "Grass is the **producer** — it captures **sunlight energy through photosynthesis**. The grasshopper eats the grass, transferring energy from grass to grasshopper. The bird then eats the grasshopper, transferring the energy further along the chain. So the **ultimate source of energy is the Sun**.",
-        },
-      },
-      callout: "Map first (Step 1 + Step 2), then answer. 'WHO eats WHOM?' before any prediction.",
-    },
-    {
       title: "Mutual Benefits scoring pattern",
       body: "Aquarium and pond questions almost always test mutualism.",
       bullets: [
@@ -162,6 +141,27 @@ export const interactionsEnvironment: MasterClassContent = {
         },
       },
       callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism.",
+    },
+    {
+      title: "Food Web: Explaining it",
+      body: "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
+      bullets: [
+        "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
+        "**Step 2** — Map the impact on each group with the change. (**↑** for increase, **↓** for decrease.)",
+        "**Arrow direction = 'eaten by'** — 'A → B' means **B eats A**.",
+      ],
+      scoringExample: {
+        scenario: "The food chain shown is: grass → grasshopper → bird. Explain how energy is transferred along this chain.",
+        oneMark: {
+          label: "1 mark",
+          text: "Energy flows from grass to grasshopper to bird.",
+        },
+        fullMarks: {
+          label: "3 marks",
+          text: "Grass is the **producer** — it captures **sunlight energy through photosynthesis**. The grasshopper eats the grass, transferring energy from grass to grasshopper. The bird then eats the grasshopper, transferring the energy further along the chain. (If asked, the ultimate source of energy is always the Sun.)",
+        },
+      },
+      callout: "Map first (Step 1 + Step 2), then answer. 'WHO eats WHOM?' before any prediction.",
     },
     {
       title: "Adaptation: Feature → how it helps → link to environment",
