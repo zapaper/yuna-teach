@@ -72,11 +72,11 @@ export const interactionsEnvironment: MasterClassContent = {
   keyConcepts: [
     {
       title: "How much PSLE testing on this topic",
-      body: "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. A roughly even mix of MCQ and OEQ, with the OEQ carrying the heavier mark weight.",
+      body: "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. A roughly even mix of MCQ and OEQ.",
       pieChart: {
         percentage: 12,
         label: "of PSLE Science marks",
-        caption: "More than any other single Life-Science topic.",
+        caption: "More than any other science topic.",
       },
       bullets: [
         "**28%** of PSLE Life-Science questions test this topic",
