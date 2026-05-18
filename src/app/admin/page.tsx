@@ -140,6 +140,13 @@ function AdminContent() {
       href: `/admin/remask-watermarks?userId=${userId}`,
       color: "bg-sky-50 text-sky-600",
     },
+    {
+      icon: "school",
+      label: "Master Class (Workshop)",
+      description: "Deep-dive modules on the highest-tested PSLE topics. Headline stats, key concepts, common mistakes, and 5 + 5 curated practice questions per topic.",
+      href: `/admin/master-class?userId=${userId}`,
+      color: "bg-emerald-50 text-emerald-600",
+    },
   ];
 
   return (
