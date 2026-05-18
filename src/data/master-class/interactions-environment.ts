@@ -115,7 +115,7 @@ export const interactionsEnvironment: MasterClassContent = {
         },
         fullMarks: {
           label: "3 marks",
-          text: "With less grass to feed on, the grasshopper population decreases as they starve or move away. Birds then have fewer grasshoppers to feed on, so the bird population also decreases.",
+          text: "With less grass to **feed on**, the grasshopper population decreases as they **starve or move away**. Birds then have fewer grasshoppers to **feed on**, so the bird population also decreases.",
         },
       },
       callout: "Writing 'bird population decreases' alone = 1 mark. Writing the full chain = 3-4 marks.",
