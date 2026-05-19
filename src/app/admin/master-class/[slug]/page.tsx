@@ -339,13 +339,21 @@ function SlideDeck({
   //   committed[i] — drives the rendered preview; only updates when
   //                  the author presses ↻ Re-render preview or Save.
   // This keeps the preview from jumping mid-edit.
+  //
+  // Seed once via loadedRef. We do NOT re-seed when `scripts` prop
+  // changes later (e.g. after a Save round-trips and the parent
+  // updates its keyScripts). Re-seeding mid-edit caused the
+  // Re-render-preview button to lock because typed got snapped back
+  // to scripts (== committed) and typedDirty went false.
   const editable = scripts !== undefined && scripts !== null && !!onSaveScripts;
   const [typed, setTyped] = useState<string[]>(scripts ?? []);
   const [committed, setCommitted] = useState<string[]>(scripts ?? []);
+  const seededRef = useRef(false);
   useEffect(() => {
-    if (scripts) {
+    if (scripts && !seededRef.current) {
       setTyped(scripts);
       setCommitted(scripts);
+      seededRef.current = true;
     }
   }, [scripts]);
   // Preview slide = YAML slide overlaid with parsed committed script
@@ -749,13 +757,12 @@ function SlideDeck({
             <div className="flex items-center gap-2">
               <button
                 onClick={rerenderPreview}
-                disabled={!typedDirty}
-                className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 disabled:opacity-40"
+                className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200"
                 title="Apply the current text to the preview"
               >↻ Re-render preview</button>
               <button
                 onClick={handleSave}
-                disabled={!savedDirty || saveState === "saving"}
+                disabled={saveState === "saving"}
                 className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 disabled:opacity-40"
                 title="Save script changes to the database"
               >
