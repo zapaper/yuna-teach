@@ -59,14 +59,28 @@ export async function POST(request: NextRequest) {
       if (isScience) {
         const r = await transcribeScienceMcqQuestion(base64);
         console.log(`[broken-questions/transcribe] science MCQ done in ${Date.now() - t0}ms; stem chars=${r.stem.length}`);
+        if (!r.stem.trim()) {
+          console.warn(`[broken-questions/transcribe] science MCQ returned EMPTY stem — refusing to overwrite client state`);
+          return NextResponse.json({ error: "Re-extract returned empty result. Gemini may have been overloaded — try again in a few seconds." }, { status: 502 });
+        }
         return NextResponse.json({ type: "mcq", stem: r.stem, options: r.options, optionTable: r.optionTable });
       }
       const r = await transcribeMathMcqQuestion(base64);
       console.log(`[broken-questions/transcribe] math MCQ done in ${Date.now() - t0}ms; stem chars=${r.stem.length}`);
+      if (!r.stem.trim()) {
+        console.warn(`[broken-questions/transcribe] math MCQ returned EMPTY stem — refusing to overwrite client state`);
+        return NextResponse.json({ error: "Re-extract returned empty result. Try again in a few seconds." }, { status: 502 });
+      }
       return NextResponse.json({ type: "mcq", stem: r.stem, options: r.options });
     } else {
       const r = await (isScience ? transcribeScienceOpenEndedQuestion(base64) : transcribeMathOpenEndedQuestion(base64));
       console.log(`[broken-questions/transcribe] ${isScience ? "science" : "math"} OEQ done in ${Date.now() - t0}ms; stem chars=${r.stem.length}; subparts=${r.subparts?.length ?? 0}`);
+      // Empty stem AND no subparts = Gemini returned nothing useful.
+      // Refuse to overwrite the client's existing state with blanks.
+      if (!r.stem.trim() && (!r.subparts || r.subparts.length === 0)) {
+        console.warn(`[broken-questions/transcribe] OEQ returned EMPTY result — refusing to overwrite client state`);
+        return NextResponse.json({ error: "Re-extract returned empty result. Gemini may have been overloaded — try again in a few seconds." }, { status: 502 });
+      }
       return NextResponse.json({ type: "open", stem: r.stem, subparts: r.subparts });
     }
   } catch (err) {
