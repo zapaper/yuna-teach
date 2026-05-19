@@ -187,7 +187,6 @@ keyConcepts:
         **Step 2 — Compare voltages per bulb.**
            • S has the full battery voltage to itself → **bright**.
            • R and T share the same voltage → each gets half → **dim**.
-        Right now, S is brighter than R and T.
       - |-
         **Step 3 — What change equalises them?** All three bulbs need the SAME share of the battery.
            • Connect R and T in **parallel** (same as S) instead of in series with each other.

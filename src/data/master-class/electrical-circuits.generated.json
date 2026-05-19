@@ -108,7 +108,7 @@
       "diagramImage": "/master-class/circuits/psle-2020-q21-bulb-brightness.png",
       "bullets": [
         "**Step 1 — Trace the current path.** The battery powers the loop. Bulb S sits on the TOP branch (alone). Bulbs R and T sit on the BOTTOM branch (in series with each other).",
-        "**Step 2 — Compare voltages per bulb.**\n   • S has the full battery voltage to itself → **bright**.\n   • R and T share the same voltage → each gets half → **dim**.\nRight now, S is brighter than R and T.",
+        "**Step 2 — Compare voltages per bulb.**\n   • S has the full battery voltage to itself → **bright**.\n   • R and T share the same voltage → each gets half → **dim**.",
         "**Step 3 — What change equalises them?** All three bulbs need the SAME share of the battery.\n   • Connect R and T in **parallel** (same as S) instead of in series with each other.\n   • Then S, R, and T are all on their own branch, each gets the full voltage → all bright equally.",
         "**Step 4 — Answer.** Option (2): rewire R and T in parallel instead of series. ✓"
       ],
