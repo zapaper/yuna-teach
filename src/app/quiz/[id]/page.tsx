@@ -2601,7 +2601,7 @@ function OeqQuestionCard({
                     ref={(h) => { subCanvasRefs.current[sp.label] = h; }}
                     tool={tool}
                     onStrokeStart={() => { onStrokeStart(); onSubpartStrokeStart?.(sp.label); }}
-                    defaultHeight={sp.diagramBase64 ? 520 : 260}
+                    defaultHeight={sp.diagramBase64 ? 780 : 260}
                     backgroundImage={sp.diagramBase64 ?? null}
                     savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&subpart=${sp.label}&type=ink`}
                     canvasId={`${question.id}_${sp.label}`}
@@ -2619,7 +2619,7 @@ function OeqQuestionCard({
               ref={onCanvasRef}
               tool={tool}
               onStrokeStart={onStrokeStart}
-              defaultHeight={drawableDiagramBase64 ? 600 : 300}
+              defaultHeight={drawableDiagramBase64 ? 900 : 300}
               backgroundImage={drawableDiagramBase64}
               savedInkUrl={`/api/exam/${paperId}/submission?page=${oeqIndex}&type=ink`}
               canvasId={question.id}
@@ -2683,7 +2683,7 @@ const ResizableCanvas = forwardRef<
   AnswerCanvasHandle,
   { tool: DrawTool; onStrokeStart: () => void; defaultHeight: number; backgroundImage?: string | null; savedInkUrl?: string | null; canvasId?: string; savedHeight?: number; onHeightChange?: (id: string, h: number) => void; showAnsOverlay?: boolean }
 >(function ResizableCanvas({ tool, onStrokeStart, defaultHeight, backgroundImage, savedInkUrl, canvasId, savedHeight, onHeightChange, showAnsOverlay = true }, ref) {
-  const maxCanvasHeight = 600;
+  const maxCanvasHeight = 900;
   const [visibleHeight, setVisibleHeight] = useState(savedHeight ?? defaultHeight);
   const dragRef = useRef<{ startY: number; startH: number } | null>(null);
 
@@ -2759,9 +2759,12 @@ const BlankCanvas = forwardRef<
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, cw, ch);
     if (bgImageRef.current) {
-      // Draw diagram scaled to fit width, preserving aspect ratio
+      // Draw diagram scaled to fit width, preserving aspect ratio.
+      // Cap at 1.5× native size — used to be 1.0×, which left small
+      // diagrams (e.g. 300×200) tiny in the new bigger canvas. 1.5
+      // gives the asked-for "50% bigger" without losing fidelity.
       const img = bgImageRef.current;
-      const scale = Math.min(cw / img.width, ch / img.height, 1);
+      const scale = Math.min(cw / img.width, ch / img.height, 1.5);
       const w = img.width * scale;
       const h = img.height * scale;
       const x = (cw - w) / 2;
