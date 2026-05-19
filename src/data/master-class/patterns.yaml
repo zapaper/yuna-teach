@@ -158,14 +158,13 @@ keyConcepts:
       examples.
     bullets:
       - "**Pattern type A — Linear (constant difference)**. Each figure adds the SAME number of objects to the previous one. Formula: count = first + (n − 1) × d, where d is the constant difference."
-      - "**Pattern type B — Triangular numbers** (1, 3, 6, 10, 15…). Each figure adds ONE MORE than the previous one (+2, +3, +4, +5). Formula: count = n × (n + 1) ÷ 2."
-      - "**Pattern type C — Square numbers** (1, 4, 9, 16, 25…). Each figure is a perfect square. Formula: count = n². Or sometimes (n + 1)² depending on how the figures are labelled."
+      - "**Pattern type B — Increasing difference / triangular numbers** (1, 3, 6, 10, 15…). Each figure adds ONE MORE than the previous one (+2, +3, +4, +5). Formula: count = n × (n + 1) ÷ 2."
+      - "**Pattern type C — Square numbers** (1, 4, 9, 16, 25…). Differences are consecutive ODD numbers (+3, +5, +7, +9). Formula: count = n². Or sometimes (n + 1)² depending on how the figures are labelled."
       - "**Pattern type D — Two sub-counts** (e.g. dots increase by 3, lines increase by 4). Build TWO tables, find the rule for each, then add at the end if needed."
-      - "**Pattern type E — Sum of two squares** (e.g. n² + (n − 1)²). Figure n is two overlapping squares of consecutive sizes. Test it: F1 = 1 + 0 = 1, F2 = 4 + 1 = 5, F3 = 9 + 4 = 13, F4 = 16 + 9 = 25."
       - |-
         **The fixed 4-step method** for any figure question:
            • **Step 1** — Make a table: Figure no. | Count. Fill the first 3-4 rows from the diagram.
-           • **Step 2** — Look at the **differences** between consecutive counts. Constant → Type A. Growing by 1 → Type B. Differences double or grow as odd numbers → Type C or E.
+           • **Step 2** — Look at the **differences** between consecutive counts. Constant → Type A. Growing by 1 each step → Type B. Differences are consecutive odd numbers (3, 5, 7, 9) → Type C.
            • **Step 3** — Pick a formula candidate from the 5 types. Plug in n = 1, 2, 3 to **verify** it matches your table.
            • **Step 4** — Apply the formula to the target figure (Figure 10, Figure 20, Figure 50). Show the substitution clearly — markers want to see your working, not just the answer.
     callout: >-
@@ -190,65 +189,67 @@ keyConcepts:
       Pause and try each one on paper before reading the answer. The
       point isn't to memorise the result — it's to build the habit.
 
-  - title: "Worked example 1 — Beads in rows (Pattern B, growing-sum)"
+  - title: "Worked example 1 — Beads in rows (increasing difference)"
     body: >-
-      **P5 Tao Nan EOY 2023, 5 marks.** Grey + white beads form a
-      triangular arrangement. Each row n has n beads. **Odd rows are
-      grey, even rows are white.** Question: (b) how many WHITE beads
-      are in Figure 21?
+      **P5 Tao Nan EOY 2023.** Beads are arranged in rows: row n
+      contains n beads. Figure 1 is just row 1, Figure 2 is rows 1-2,
+      Figure 3 is rows 1-3, and so on. **Find the TOTAL number of
+      beads (grey + white) in Figure 10.**
     diagramImage: /master-class/patterns/pattern-b-beads.png
     bullets:
       - |-
-        **Step 1 — Build the table.** Count beads in each figure from the diagram.
-           • Figure 1: row 1 = 1 grey, 0 white
-           • Figure 2: rows 1-2 = 1 grey, 2 white
-           • Figure 3: rows 1-3 = 1+3 = 4 grey, 2 white
-           • Figure 4: rows 1-4 = 1+3 = 4 grey, 2+4 = 6 white
+        **Step 1 — Read the current table from the diagram.** Count all the beads in each figure shown.
+           • Figure 1 → 1 bead
+           • Figure 2 → 3 beads (1 + 2)
+           • Figure 3 → 6 beads (1 + 2 + 3)
+           • Figure 4 → 10 beads (1 + 2 + 3 + 4)
       - |-
-        **Step 2 — Spot the rule.** White beads only get ADDED on even-numbered figures (because only even-numbered rows are white).
-           • So white count in Figure n = sum of even numbers up to n.
-           • Figure 21 = same white count as Figure 20 (no new white row added between Fig 20 and Fig 21).
+        **Step 2 — Extend the table by working out the next rows.** Differences: 3 − 1 = **2**, 6 − 3 = **3**, 10 − 6 = **4**. **The difference INCREASES by 1 each step** (next: +5, +6, +7…).
+           • Figure 5 → 10 + 5 = **15 beads**
+           • Figure 6 → 15 + 6 = **21 beads**
+           • Figure 7 → 21 + 7 = **28 beads**
+           • Figure 8 → 28 + 8 = **36 beads**
+           • Figure 9 → 36 + 9 = **45 beads**
+           • Figure 10 → 45 + 10 = **55 beads**
       - |-
-        **Step 3 — Derive the formula.** White in Figure 20 = 2 + 4 + 6 + 8 + … + 20.
-           • Count of terms: 10 even numbers from 2 to 20.
-           • Sum = (first + last) × count / 2 = (2 + 20) × 10 / 2 = **110**.
-      - "**Step 4 — Apply.** Figure 21 has the same white-bead count as Figure 20 = **110 white beads**."
+        **Step 3 — Derive the formula.** Figure n total = 1 + 2 + 3 + … + n. Use the **sum formula** (first + last) × count ÷ 2.
+           • Total in Figure n = (1 + n) × n ÷ 2 = **n × (n + 1) ÷ 2**.
+           • Check F4: 4 × 5 ÷ 2 = 10 ✓. F10: 10 × 11 ÷ 2 = 55 ✓.
+      - "**Step 4 — Answer.** Figure 10 → 10 × 11 ÷ 2 = **55 beads**. ✓ matches the row we extended in Step 2."
     callout: >-
-      **Take-away:** when each step ADDS a different amount (and the
-      amount itself follows a sequence), you need a **sum** — not just
-      a single multiplication.
+      **Take-away:** when each step ADDS one more than the previous
+      (+2, +3, +4, +5…), the total is a **triangular number** and the
+      shortcut formula is **n × (n + 1) ÷ 2**. No need to add 10
+      numbers one at a time on the exam.
 
-  - title: "Worked example 2 — Sticks figures (P6 Raffles Girls WA1, 3m)"
+  - title: "Worked example 2 — Squares in a grid (squared differences)"
     body: >-
-      **Ahmad used sticks to form the following figures.** Each
-      figure has squares with a triangle on top and bottom.
-      **(a)** How many sticks are needed for Figure 4?
-      **(b)** Ahmad noticed that Figure N uses 2 507 sticks. Find N.
-    diagramImage: /master-class/patterns/pattern-sticks-triangles.png
+      **P6 Rosyth WA2 2023, 3 marks.** Squares form a growing n × n
+      grid (Figure 1 is 1×1, Figure 2 is 2×2, and so on). **How many
+      small squares in total are in Figure 8?**
+    diagramImage: /master-class/patterns/pattern-c-squares.png
     bullets:
       - |-
-        **Step 1 — Read the current table from the diagram.** Count the sticks in each figure shown.
-           • Figure 1 → 8 sticks
-           • Figure 2 → 15 sticks
-           • Figure 3 → 22 sticks
+        **Step 1 — Read the current table from the diagram.**
+           • Figure 1 → 1 square
+           • Figure 2 → 4 squares
+           • Figure 3 → 9 squares
+           • Figure 4 → 16 squares
+           • Figure 5 → 25 squares
       - |-
-        **Step 2 — Extend the table by working out the next rows.** Differences: 15 − 8 = **7**, 22 − 15 = **7**. Constant — every new figure adds another square + 2 triangles = **+7 sticks**.
-           • Figure 4 → 22 + 7 = **29 sticks**
-           • Figure 5 → 29 + 7 = **36 sticks**
-           • Figure 6 → 36 + 7 = **43 sticks**
+        **Step 2 — Extend the table by working out the next rows.** Differences: 4 − 1 = **3**, 9 − 4 = **5**, 16 − 9 = **7**, 25 − 16 = **9**. Differences are growing by 2 — **consecutive odd numbers**.
+           • Figure 6 → 25 + 11 = **36 squares**
+           • Figure 7 → 36 + 13 = **49 squares**
+           • Figure 8 → 49 + 15 = **64 squares**
       - |-
-        **Step 3 — Derive the formula.** From Figure 1 (= 8 sticks), each later figure adds 7 more.
-           • Sticks in Figure n = 8 + 7 × (n − 1) = **7n + 1**.
-           • Check F1: 7(1) + 1 = 8 ✓. F3: 7(3) + 1 = 22 ✓.
-      - |-
-        **Step 4 — Answer.**
-           • **(a)** Figure 4 → 7(4) + 1 = **29 sticks** ✓ (matches the row we extended in Step 2).
-           • **(b)** Solve 7n + 1 = 2 507 → 7n = 2 506 → n = 2 506 ÷ 7 = **N = 358**.
+        **Step 3 — Derive the formula.** Consecutive odd-number differences is the **fingerprint of square numbers**. Check the totals against n × n.
+           • 1 × 1 = 1 ✓, 2 × 2 = 4 ✓, 3 × 3 = 9 ✓, 4 × 4 = 16 ✓, 5 × 5 = 25 ✓.
+           • Formula: **Total in Figure n = n × n = n²**.
+      - "**Step 4 — Answer.** Figure 8 total = 8 × 8 = **64 squares**. ✓ matches the row we extended in Step 2."
     callout: >-
-      **Take-away:** when differences are constant (+7 every step
-      here), the formula is **(constant) × n + (starting offset)**.
-      In this case, 7n + 1. Always verify on a small figure before
-      plugging in big numbers like 2 507.
+      **Take-away:** when the differences are consecutive odd numbers
+      (3, 5, 7, 9…), the totals are square numbers. Differences-of-
+      differences = 2 — the calling card of n².
 
   - title: "Worked example 3 — Figure: shapes (4 triangles joined)"
     body: >-
