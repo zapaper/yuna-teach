@@ -29,9 +29,18 @@ type GenerateContentParams = Parameters<ReturnType<typeof getAI>["models"]["gene
 let _lastFallbackUsed: string | null = null;
 export function getLastFallbackUsed() { const v = _lastFallbackUsed; _lastFallbackUsed = null; return v; }
 
+// Map a preview / pro model to a stable production model. When the
+// primary is failing with retryable errors (503/504/429/transport),
+// generateContentWithRetry retries `maxRetries` times then tries the
+// fallback once more before giving up. Critical for paper transcribe
+// which uses the gemini-3-flash-preview model — Google has been
+// returning 504 DEADLINE_EXCEEDED on most calls when their preview
+// inference backend is overloaded.
 const FALLBACK_MODELS: Record<string, string> = {
   "gemini-2.5-pro": "gemini-2.5-flash",
   "gemini-3.1-pro-preview": "gemini-2.5-flash",
+  "gemini-3-flash-preview": "gemini-2.5-flash",
+  "gemini-3-pro-preview": "gemini-2.5-flash",
 };
 
 export async function generateContentWithRetry(
