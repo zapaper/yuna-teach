@@ -4,13 +4,13 @@
 // a mastery paper so per-sub-topic mastery tracking works.
 //
 // Sub-topic IDs (must match electrical-circuits.yaml):
-//   reading-diagrams       — diagram reading basics, open/closed circuit identification
 //   series-vs-parallel     — which bulb blew, fuse behaviour, series vs parallel structure
 //   bulb-brightness        — comparing brightness across circuits
 //   electromagnets         — coil + iron core OEQs (bell, buzzer, door lock, etc.)
+//   general-circuits       — catch-all: diagram reading basics, open/closed identification, junction traps
 //
-// Returns a sub-topic id or null when nothing matches (the start-
-// quiz route falls back to "reading-diagrams" via the lookup table).
+// Returns a sub-topic id, defaulting to "general-circuits" when no
+// sharper bucket matches.
 export function classifyCircuitsQuestion(stem: string | null): string | null {
   if (!stem) return null;
   const s = stem.toLowerCase();
@@ -34,7 +34,7 @@ export function classifyCircuitsQuestion(stem: string | null): string | null {
   if (/\bnot? light up\b/.test(s) && /\bbulb\b/.test(s)) return "series-vs-parallel";
   if (/\bhow many.*bulb.*light up\b/.test(s)) return "series-vs-parallel";
 
-  // Default: reading diagrams (open/closed circuit, identifying
-  // components, fault diagnosis without an explicit fuse story).
-  return "reading-diagrams";
+  // Catch-all: open/closed circuit, identifying components, junction
+  // traps, fault diagnosis without an explicit fuse story.
+  return "general-circuits";
 }

@@ -183,12 +183,6 @@
   ],
   "subTopics": [
     {
-      "id": "reading-diagrams",
-      "label": "Reading circuit diagrams",
-      "description": "Foundational diagram-reading skills — identifying batteries, bulbs, switches, junctions, and tracing the current path from + back to −. Includes questions where the answer is just 'this circuit is open / closed'.",
-      "slideIdx": 1
-    },
-    {
       "id": "series-vs-parallel",
       "label": "Series vs Parallel",
       "description": "Series vs parallel arrangement and the fuse rule. 'Which bulb was blown?' / 'When the switch closed, only N bulbs lit up' / how many bulbs go off when one fuses. Tests reading shared vs branched current paths.",
@@ -205,6 +199,12 @@
       "label": "Electromagnets",
       "description": "Electromagnet OEQs — bell ringer, buzzer, door lock, door bolt. Marking rewards naming each step: closed circuit → current → coil becomes electromagnet → attracts iron → physical motion. 4-5 marks each.",
       "slideIdx": 5
+    },
+    {
+      "id": "general-circuits",
+      "label": "General circuits",
+      "description": "Catch-all for circuit questions that don't fit the three sharper buckets — diagram reading basics, identifying components, open vs closed circuit, junction traps, and the bulb-contact wiring trap.",
+      "slideIdx": 1
     }
   ]
 }
