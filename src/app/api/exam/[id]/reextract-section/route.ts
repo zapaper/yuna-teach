@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateContentWithRetry } from "@/lib/gemini";
+import { buildChineseSections, type OcrEntry } from "@/lib/extraction";
 import fs from "fs";
 import path from "path";
 
@@ -330,10 +331,29 @@ Return ONLY valid JSON:
       }
     }
   }
+  // For Chinese papers, rebuild chineseSections so the UI picks up
+  // (a) the relabelled section (完成对话 instead of "Dialogue
+  // Completion") and (b) the passage / word-bank text we just OCR'd.
+  // Without this, the section title and the word-bank renderer stay
+  // stuck on the old metadata even though the questions + OCR were
+  // updated. Read questions FRESH from the DB so the syllabusTopic
+  // updates we just did are reflected.
+  let chineseSectionsUpdate: Record<string, unknown> = {};
+  if (isChinese) {
+    const qsForBuild = await prisma.examQuestion.findMany({
+      where: { examPaperId: id },
+      orderBy: { orderIndex: "asc" },
+      select: { pageIndex: true, syllabusTopic: true },
+    });
+    const built = buildChineseSections(qsForBuild, allOcr as Record<string, OcrEntry>);
+    chineseSectionsUpdate = { chineseSections: built };
+    console.log(`[Re-extract] rebuilt chineseSections (${built.length} sections): ${built.map(s => s.label).join(", ")}`);
+  }
+
   await prisma.examPaper.update({
     where: { id },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    data: { metadata: { ...meta, sectionOcrTexts: allOcr } as any },
+    data: { metadata: { ...meta, sectionOcrTexts: allOcr, ...chineseSectionsUpdate } as any },
   });
 
   return NextResponse.json({
