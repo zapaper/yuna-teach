@@ -36,6 +36,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   // the same errors.
   const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
   const isLangAppMcq = isChinese && (sectionName.includes("语文应用") || sectionName.includes("语文运用"));
+  // 完成对话 (word-bank dialogue cloze) — detect Chinese names AND
+  // English aliases. When true we run a specialised OCR + extract
+  // pipeline and canonicalise both the section key AND every
+  // question's syllabusTopic to "完成对话".
+  const sectionNameNorm = sectionName.toLowerCase().replace(/\s+/g, "");
+  const isDialogueCompletion = isChinese && (
+    sectionName.includes("完成对话") ||
+    sectionName.includes("对话填空") ||
+    sectionNameNorm.includes("dialoguecompletion") ||
+    sectionNameNorm.includes("completedialogue") ||
+    sectionNameNorm.includes("dialoguecloze")
+  );
+  const CANONICAL_DIALOGUE_LABEL = "完成对话";
   const MODELS = isLangAppMcq
     ? (["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const)
     : (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const);
@@ -88,7 +101,44 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (imagesBase64.length > 1) ocrParts.push({ text: `(image ${pi + 1} of ${imagesBase64.length})` });
   }
 
-  ocrParts.push({ text: `Extract ALL text from these exam paper pages as RICH TEXT. Preserve formatting:
+  ocrParts.push({ text: isDialogueCompletion ? `这是一份新加坡小学华文 (PSLE) 试卷的【完成对话】部分。
+
+这一部分包含两个核心元素：
+1. **词语表** — 一个有编号的表格，列出 8 个短语或短句 (编号 1 到 8)。学生从中挑选合适的选项。
+2. **对话** — 由 2–3 个角色之间的对话，含有 4 个编号的空格 (通常是 Q26–Q29)。
+
+【词语表布局——重要】
+原文的词语表可能是以下两种之一:
+  布局 A (横排, 较新的试卷): 1 行表头 "1 2 3 4 5 6 7 8" + 1 行选项文字。
+  布局 B (竖排, 较旧的试卷, 例如 2019 / 2020): 8 行键值对, 每行 "| N | 文字 |", 没有表头行。
+不管原文是哪一种布局, **你都必须以下面的横排格式输出**, 这是为了下游程序统一处理:
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|
+| <选项 1 文字> | <选项 2 文字> | <选项 3 文字> | <选项 4 文字> | <选项 5 文字> | <选项 6 文字> | <选项 7 文字> | <选项 8 文字> |
+
+请提取这部分并按以下精确格式输出 Markdown：
+
+四 完成对话 (4 题 8 分)
+根据上下文的意思，从表中选出适当的短语或短句，然后把代表它们的数字填写在作答簿上。
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|
+| <选项 1 文字> | ... | <选项 8 文字> |
+
+爸爸: <对话第一句>
+小明: <含有空格的对话句子, 空格写成 ______> 我们就参加这项比赛好吗？
+爸爸: 我都这把年纪了，______ 。
+...
+
+【极重要的规则】
+- 词语表无论原文是横排还是竖排, 一律输出成上面的 1×8 横排 markdown 表格。
+- 每个空格必须写成精确的 6 个连续下划线: **______** (不要写成 "Q26"、"(26)"、"[空]"、其他符号或表情)。
+- 每段对话保留发言人标识 (例: 爸爸:、妈妈:、老师:、小华:、爷爷:)。每一行只能有一个发言人。
+- 一句对话最多一个空格。
+- 不要加任何编号 (例如 Q26) 在对话里 — 编号只对应空格位置, 自动从对话顺序得出。
+- 不要加多余说明、页眉、页脚、页码。
+- 输出只包括上述 markdown 文本, 不要被三个反引号围住。` : `Extract ALL text from these exam paper pages as RICH TEXT. Preserve formatting:
 - Keep question numbers exactly as printed (e.g. "1.", "11.", "(29)")
 - Keep answer options exactly (e.g. "(1) option text", "(2) option text")
 - Keep blank lines as "___" (underscore line where student writes)
@@ -123,16 +173,53 @@ Output ONLY the clean passage/question text, no commentary.` });
     passageOcrText = ocrText;
   }
 
-  // Find existing questions for this section to get question range
-  const sectionQs = paper.questions.filter(q =>
-    (q.syllabusTopic ?? "").toLowerCase().replace(/\s+/g, "") === secLabel.toLowerCase().replace(/\s+/g, "")
-  );
+  // Find existing questions for this section to get question range.
+  // For 完成对话 we accept BOTH the Chinese canonical label AND any
+  // English alias the previous extraction may have set — the section
+  // boundary is the same content even when the label string differs.
+  const sectionQs = paper.questions.filter(q => {
+    const t = (q.syllabusTopic ?? "").toLowerCase().replace(/\s+/g, "");
+    if (t === secLabel.toLowerCase().replace(/\s+/g, "")) return true;
+    if (isDialogueCompletion) {
+      return t === "完成对话" || t === "对话填空" ||
+        t.includes("dialoguecompletion") || t.includes("completedialogue");
+    }
+    return false;
+  });
   const qNums = sectionQs.map(q => parseInt(q.questionNum)).filter(n => !isNaN(n));
   const secFirstQ = qNums.length > 0 ? Math.min(...qNums) : 1;
   const secLastQ = qNums.length > 0 ? Math.max(...qNums) : secFirstQ + 4;
 
-  // Step 2: Extract individual questions from OCR text
-  const extractPrompt = `You are extracting individual questions from an English exam paper. The text below was OCR'd from the exam pages.
+  // Step 2: Extract individual questions from OCR text.
+  // 完成对话 has its OWN extraction prompt: each question's stem is
+  // the speaker line containing that question's blank, with the
+  // ______ marker preserved.
+  const extractPrompt = isDialogueCompletion ? `你正从一份新加坡小学华文 (PSLE)【完成对话】部分提取题目。OCR 文本如下，它包含 (1) 一个 8 项词语表的 markdown 表格，和 (2) 一段含有 ${secLastQ - secFirstQ + 1} 个空格 (用 \`______\` 表示) 的对话。
+
+期望题目编号: Q${secFirstQ} 到 Q${secLastQ}
+
+OCR 文本:
+${ocrText}
+
+【任务】把对话拆分到每一个空格对应的题目。一个空格 = 一题。题目顺序对应空格在对话中出现的顺序 (从上到下)。
+
+【每题输出】
+- questionNum: 字符串, e.g. "${secFirstQ}"。从 ${secFirstQ} 开始按对话中空格出现顺序递增。
+- stem: 包含该题空格的完整发言人对话行 (保留发言人标识例如 "爸爸:"、"老师:"、"小华:")。空格写成 \`______\` (6 个下划线), 不要写成 "Q26" 或 "(26)"。
+- syllabusTopic: 必须为 "${CANONICAL_DIALOGUE_LABEL}"。
+
+【极重要】
+- 一题一个空格。不要把多个空格放在同一个 stem。
+- stem 必须保留发言人标识。例如: "爸爸: 我们就参加这项比赛好吗？______" 或 "老师: 乐文, ______ 怎么了？"。
+- 中文字符、全角标点照旧。
+
+返回纯 JSON, 不要 markdown 包围:
+{
+  "questions": [
+    {"questionNum": "${secFirstQ}", "stem": "<含 ______ 的发言行>", "syllabusTopic": "${CANONICAL_DIALOGUE_LABEL}"},
+    {"questionNum": "${secFirstQ + 1}", "stem": "<...>", "syllabusTopic": "${CANONICAL_DIALOGUE_LABEL}"}
+  ]
+}` : `You are extracting individual questions from an English exam paper. The text below was OCR'd from the exam pages.
 
 Section: ${secLabel}
 Expected questions: Q${secFirstQ} to Q${secLastQ} (${secLastQ - secFirstQ + 1} questions)
@@ -204,6 +291,11 @@ Return ONLY valid JSON:
     const updateData: Record<string, unknown> = {};
     if (eq.stem) updateData.transcribedStem = eq.stem;
     if (eq.options && Array.isArray(eq.options)) updateData.transcribedOptions = eq.options;
+    // For 完成对话, force the syllabusTopic onto the canonical
+    // Chinese label so the chinese-section builder + quiz UI
+    // recognise it. Existing questions tagged "Dialogue Completion"
+    // (English alias) get rewritten to "完成对话".
+    if (isDialogueCompletion) updateData.syllabusTopic = CANONICAL_DIALOGUE_LABEL;
 
     if (Object.keys(updateData).length > 0) {
       await prisma.examQuestion.update({
@@ -214,18 +306,30 @@ Return ONLY valid JSON:
     }
   }
 
-  // Step 4: Update sectionOcrTexts metadata
+  // Step 4: Update sectionOcrTexts metadata. Canonicalise to "完成对话"
+  // when this is a dialogue section — even if the UI passed a
+  // different label like "Dialogue Completion".
   const meta = (paper.metadata ?? {}) as Record<string, unknown>;
   const allOcr = (meta.sectionOcrTexts ?? {}) as Record<string, Record<string, unknown>>;
+  const canonicalSectionName = isDialogueCompletion ? CANONICAL_DIALOGUE_LABEL : secLabel;
   const secKey = Object.keys(allOcr).find(k =>
-    k.toLowerCase().replace(/\s+/g, "") === secLabel.toLowerCase().replace(/\s+/g, "")
-  ) ?? secLabel;
+    k.toLowerCase().replace(/\s+/g, "") === canonicalSectionName.toLowerCase().replace(/\s+/g, "")
+  ) ?? canonicalSectionName;
   allOcr[secKey] = {
     ...(allOcr[secKey] ?? {}),
     ocrText,
     pageIndices,
     ...(passageOcrText ? { passageOcrText } : {}),
   };
+  // Remove any English-aliased stale entry side by side.
+  if (isDialogueCompletion && secLabel !== canonicalSectionName) {
+    for (const k of Object.keys(allOcr)) {
+      if (k !== secKey && k.toLowerCase().replace(/\s+/g, "") === secLabel.toLowerCase().replace(/\s+/g, "")) {
+        delete allOcr[k];
+        console.log(`[Re-extract] removed stale section key "${k}" (canonicalised to "${secKey}")`);
+      }
+    }
+  }
   await prisma.examPaper.update({
     where: { id },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
