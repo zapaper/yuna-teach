@@ -3,7 +3,8 @@ import path from "path";
 import crypto from "crypto";
 import { promises as fs } from "fs";
 import { getSessionUserId } from "@/lib/session";
-import { getMasterClass, type MasterClassSlide } from "@/data/master-class";
+import { type MasterClassSlide } from "@/data/master-class";
+import { getMasterClassHydrated } from "@/lib/master-class/hydrate";
 
 // POST /api/master-class/[slug]/tts
 //   body: { slideIdx: number; force?: boolean }
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   }
 
   const { slug } = await context.params;
-  const content = getMasterClass(slug);
+  const content = await getMasterClassHydrated(slug);
   if (!content) return NextResponse.json({ error: "Master Class not found" }, { status: 404 });
 
   const body = await req.json().catch(() => ({})) as { slideIdx?: number; force?: boolean };

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { getMasterClass, type MasterClassContent, type MasterClassSlide } from "@/data/master-class";
+import { type MasterClassContent, type MasterClassSlide } from "@/data/master-class";
 
 export default function Page() {
   return (
@@ -20,13 +20,36 @@ function MasterClassPlayer() {
   const focusIds = focusParam ? focusParam.split(",").map(s => s.trim()).filter(Boolean) : [];
   const router = useRouter();
 
-  const content = getMasterClass(slug);
+  // Pull live hydrated content (YAML + any admin edits in the DB)
+  // so saved scripts show up without a redeploy.
+  const [content, setContent] = useState<MasterClassContent | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [slideIdx, setSlideIdx] = useState(0);
+  useEffect(() => {
+    if (!slug) return;
+    fetch(`/api/master-class/${slug}`)
+      .then(async r => {
+        if (!r.ok) {
+          const d = await r.json().catch(() => ({}));
+          throw new Error(d.error ?? `Failed (${r.status})`);
+        }
+        return r.json() as Promise<{ content: MasterClassContent }>;
+      })
+      .then(d => setContent(d.content))
+      .catch(e => setLoadError((e as Error).message));
+  }, [slug]);
 
-  if (!content) {
+  if (loadError) {
     return (
       <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center p-6 text-center">
-        <p className="text-sm text-slate-500">Master Class not found.</p>
+        <p className="text-sm text-slate-500">{loadError}</p>
+      </div>
+    );
+  }
+  if (!content) {
+    return (
+      <div className="min-h-screen bg-[#f8f9ff] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-slate-500" />
       </div>
     );
   }

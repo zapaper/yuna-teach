@@ -363,3 +363,23 @@ model PromoCode {
   @@index([code])
   @@map("promo_codes")
 }
+
+// Admin-editable per-slide narration scripts for a Master Class.
+// The YAML in src/data/master-class/ remains the seed / fallback.
+// When an admin saves edits in the workshop UI, the mega-textarea
+// strings (one per slide) land here. Read path: load YAML, then
+// overlay the parsed DB scripts onto the matching slide indexes.
+//
+//   keyConceptScripts: string[]      — one per keyConcepts slide
+//   commonMistakeScripts: string[]   — one per commonMistakes slide
+//
+// Inline {…} braces inside a script mark audio-only text. The parser
+// extracts them into the slide's `narration` block automatically.
+model MasterClass {
+  slug                 String   @id
+  keyConceptScripts    Json     @default("[]")
+  commonMistakeScripts Json     @default("[]")
+  updatedAt            DateTime @updatedAt
+
+  @@map("master_classes")
+}

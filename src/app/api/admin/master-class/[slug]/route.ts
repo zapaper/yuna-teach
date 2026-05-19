@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
-import { getMasterClass } from "@/data/master-class";
+import { getMasterClassHydrated } from "@/lib/master-class/hydrate";
 
 // GET /api/admin/master-class/[slug]
 //   ?excludeIds=cmp...,cmp...   — skip questions already shown (for "more practice")
@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ slug: 
   if (!isAdmin(me)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { slug } = await context.params;
-  const content = getMasterClass(slug);
+  const content = await getMasterClassHydrated(slug);
   if (!content) return NextResponse.json({ error: "Master Class not found" }, { status: 404 });
 
   const excludeParam = _req.nextUrl.searchParams.get("excludeIds") ?? "";

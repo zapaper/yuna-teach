@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import type { MasterClassContent, MasterClassSlide } from "@/data/master-class";
+import { parseSlideScript } from "@/lib/master-class/parse-script";
 
 export default function Page() {
   return (
@@ -55,6 +56,10 @@ function MasterClassWorkshop() {
   // and we don't repeat. Reset on initial load.
   const [seenIds, setSeenIds] = useState<string[]>([]);
   const [moreLoading, setMoreLoading] = useState(false);
+  // Admin-editable per-slide mega-textarea scripts. Fetched once on
+  // mount; the deck holds local draft state and pushes back via onSave.
+  const [keyScripts, setKeyScripts] = useState<string[] | null>(null);
+  const [mistakeScripts, setMistakeScripts] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (!userId) { setAllowed(false); return; }
@@ -79,7 +84,30 @@ function MasterClassWorkshop() {
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
+    // Load the per-slide scripts in parallel — the editor reads from
+    // these and Save sends them back.
+    fetch(`/api/admin/master-class/${slug}/scripts`)
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then((d: { keyConceptScripts: string[]; commonMistakeScripts: string[] }) => {
+        setKeyScripts(d.keyConceptScripts);
+        setMistakeScripts(d.commonMistakeScripts);
+      })
+      .catch(() => { /* non-fatal — editor falls back to bundled content */ });
   }, [allowed, slug]);
+
+  async function saveScripts(which: "key" | "mistake", next: string[]) {
+    const body = {
+      keyConceptScripts: which === "key" ? next : (keyScripts ?? []),
+      commonMistakeScripts: which === "mistake" ? next : (mistakeScripts ?? []),
+    };
+    const res = await fetch(`/api/admin/master-class/${slug}/scripts`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`Save failed (${res.status})`);
+    if (which === "key") setKeyScripts(next); else setMistakeScripts(next);
+  }
 
   async function loadMorePractice() {
     if (!slug) return;
@@ -212,6 +240,8 @@ function MasterClassWorkshop() {
                 accent="emerald"
                 slug={slug}
                 globalIdxOffset={0}
+                scripts={focusIds.length > 0 ? null : keyScripts}
+                onSaveScripts={focusIds.length > 0 ? undefined : (next) => saveScripts("key", next)}
               />
             );
           })()}
@@ -227,6 +257,8 @@ function MasterClassWorkshop() {
             accent="rose"
             slug={slug}
             globalIdxOffset={content.keyConcepts.length}
+            scripts={mistakeScripts}
+            onSaveScripts={(next) => saveScripts("mistake", next)}
           />}
 
           {/* ── Practice set ── */}
@@ -284,6 +316,8 @@ function SlideDeck({
   accent,
   slug,
   globalIdxOffset = 0,
+  scripts,
+  onSaveScripts,
 }: {
   label: string;
   slides: MasterClassSlide[];
@@ -292,7 +326,70 @@ function SlideDeck({
   accent: "emerald" | "rose";
   slug: string;
   globalIdxOffset?: number;
+  // Admin editor wiring. When `scripts` is provided, the deck shows
+  // the mega-textarea editor below the preview and uses the parsed
+  // draft scripts to render slides (overlaid on the structured YAML
+  // fields like pieChart / scoringExample that the textarea doesn't
+  // cover). When null/undefined, the deck is view-only.
+  scripts?: string[] | null;
+  onSaveScripts?: (next: string[]) => Promise<void>;
 }) {
+  // Editor state.
+  //   typed[i]     — live textarea value (changes on every keystroke)
+  //   committed[i] — drives the rendered preview; only updates when
+  //                  the author presses ↻ Re-render preview or Save.
+  // This keeps the preview from jumping mid-edit.
+  const editable = scripts !== undefined && scripts !== null && !!onSaveScripts;
+  const [typed, setTyped] = useState<string[]>(scripts ?? []);
+  const [committed, setCommitted] = useState<string[]>(scripts ?? []);
+  useEffect(() => {
+    if (scripts) {
+      setTyped(scripts);
+      setCommitted(scripts);
+    }
+  }, [scripts]);
+  // Preview slide = YAML slide overlaid with parsed committed script
+  // (when editable). Preserves pieChart / scoringExample / cta — those
+  // structured fields aren't in the textarea, only the YAML.
+  const previewSlides = useMemo(() => {
+    if (!editable) return slides;
+    return slides.map((s, i) => {
+      const script = committed[i];
+      if (!script || !script.trim()) return s;
+      const parsed = parseSlideScript(script);
+      return {
+        ...s,
+        title: parsed.title || s.title,
+        body: parsed.body ?? s.body,
+        bullets: parsed.bullets ?? s.bullets,
+        callout: parsed.callout ?? s.callout,
+        narration: parsed.narration ?? s.narration,
+      };
+    });
+  }, [editable, slides, committed]);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const typedDirty = editable && (typed[currentIdx] ?? "") !== (committed[currentIdx] ?? "");
+  const savedDirty = editable && JSON.stringify(typed) !== JSON.stringify(scripts);
+  function rerenderPreview() {
+    setCommitted([...typed]);
+  }
+  async function handleSave() {
+    if (!onSaveScripts) return;
+    setSaveState("saving");
+    setSaveError(null);
+    try {
+      // Commit typed → preview on save too, so what's saved matches
+      // what's shown.
+      setCommitted([...typed]);
+      await onSaveScripts(typed);
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 1800);
+    } catch (e) {
+      setSaveState("error");
+      setSaveError((e as Error).message);
+    }
+  }
   // TTS playback state — keyed on global slide idx so common-mistakes
   // deck can coexist later without colliding.
   // Per-segment TTS playback. The server returns N audio segments
@@ -460,7 +557,7 @@ function SlideDeck({
     }
   }
 
-  const slide = slides[currentIdx];
+  const slide = previewSlides[currentIdx];
   const ringClass = accent === "emerald" ? "ring-emerald-200" : "ring-rose-200";
   const accentText = accent === "emerald" ? "text-emerald-700" : "text-rose-700";
   const accentBg = accent === "emerald" ? "bg-emerald-50" : "bg-rose-50";
@@ -637,6 +734,62 @@ function SlideDeck({
           className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 disabled:opacity-40"
         >Next →</button>
       </div>
+
+      {editable && (
+        <div className="mt-6 border-t border-slate-200 pt-4">
+          <div className="flex items-baseline justify-between mb-2 gap-3 flex-wrap">
+            <div>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                Script · slide {currentIdx + 1} / {slides.length}
+              </p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                First line = title. <code className="bg-slate-100 px-1 rounded">- </code> = bullet · <code className="bg-slate-100 px-1 rounded">&gt; </code> = callout · <code className="bg-slate-100 px-1 rounded">{"{…}"}</code> = audio-only · <code className="bg-slate-100 px-1 rounded">**bold**</code>
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={rerenderPreview}
+                disabled={!typedDirty}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 disabled:opacity-40"
+                title="Apply the current text to the preview"
+              >↻ Re-render preview</button>
+              <button
+                onClick={handleSave}
+                disabled={!savedDirty || saveState === "saving"}
+                className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 disabled:opacity-40"
+                title="Save script changes to the database"
+              >
+                {saveState === "saving" ? "Saving…"
+                  : saveState === "saved" ? "✓ Saved"
+                  : saveState === "error" ? "✕ Retry"
+                  : "💾 Save"}
+              </button>
+            </div>
+          </div>
+          {saveError && <p className="text-[10px] text-rose-600 mb-1">{saveError}</p>}
+          {(slide?.pieChart || slide?.scoringExample) && (
+            <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-2">
+              📌 This slide has structured blocks (pieChart / scoringExample) that are YAML-only. The textarea controls title, body, bullets, and callout.
+            </p>
+          )}
+          <textarea
+            value={typed[currentIdx] ?? ""}
+            onChange={e => setTyped(prev => {
+              const next = [...prev];
+              while (next.length <= currentIdx) next.push("");
+              next[currentIdx] = e.target.value;
+              return next;
+            })}
+            rows={Math.min(20, Math.max(8, (typed[currentIdx] ?? "").split("\n").length + 1))}
+            spellCheck={false}
+            className="w-full font-mono text-xs leading-relaxed text-slate-800 border border-slate-200 rounded-lg p-3 focus:outline-none focus:border-slate-400 resize-y"
+            placeholder="First line is the title. Blank line then paragraphs of body. Lines starting with - become bullets. Lines starting with > become the callout. Wrap voice-only text in {curly braces} anywhere."
+          />
+          <p className="text-[10px] text-slate-400 mt-1">
+            {typedDirty ? "Unsaved typing — press ↻ to update preview." : savedDirty ? "Preview updated — press 💾 Save to persist." : "In sync with saved version."}
+          </p>
+        </div>
+      )}
     </section>
   );
 }
