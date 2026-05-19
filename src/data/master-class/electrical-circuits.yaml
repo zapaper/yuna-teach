@@ -175,10 +175,13 @@ keyConcepts:
       object names change.
 
   - title: "Worked example 1 — Bulb brightness (PSLE 2020 Q21, 2m)"
-    body: >-
-      **Identical bulbs R, S and T are used in the circuit. Which
-      change will allow all bulbs to light up with equal
-      brightness?**
+    body: |-
+      **Identical bulbs R, S and T are used in the circuit. Which change will allow all bulbs to light up with equal brightness?**
+
+      (1) Add another battery in series.
+      (2) Add a wire so that R and T are in parallel.
+      (3) Remove bulb R from the circuit.
+      (4) Replace the battery with one of higher voltage.
     diagramImage: /master-class/circuits/psle-2020-q21-bulb-brightness.png
     bullets:
       - |-
@@ -191,7 +194,8 @@ keyConcepts:
         **Step 3 — What change equalises them?** All three bulbs need the SAME share of the battery.
            • Connect R and T in **parallel** (same as S) instead of in series with each other.
            • Then S, R, and T are all on their own branch, each gets the full voltage → all bright equally.
-      - "**Step 4 — Answer.** Option (2): rewire R and T in parallel instead of series. ✓"
+      - "**Step 4 — Answer.**"
+      - "**→ Option (2): Add a wire so that R and T are in parallel. ✓**"
     callout: >-
       **Series shares voltage; parallel splits the current.** When
       bulbs need to match in brightness, give each one its own
