@@ -68,6 +68,39 @@ function MasterClassList() {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 lg:px-8 pt-5 pb-24">
+        {/* Badges — one per Master Class the student has fully
+            mastered (every sub-topic at 100% on the most recent
+            attempt). The class's generated icon serves as the
+            badge. Hidden when nothing's been earned yet. */}
+        {(() => {
+          const earned = allClasses.filter(mc => {
+            const rows = mastery[mc.slug];
+            if (!rows || rows.length === 0) return false;
+            return rows.every(r => r.state === "mastered");
+          });
+          if (earned.length === 0) return null;
+          return (
+            <div className="mb-4 bg-gradient-to-br from-amber-50 to-emerald-50 border border-amber-200 rounded-2xl p-4">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-800 mb-2">🏆 Badges earned</p>
+              <div className="flex flex-wrap gap-3">
+                {earned.map(mc => (
+                  <div key={mc.slug} className="flex flex-col items-center gap-1 w-16">
+                    <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-amber-400 bg-white shadow-md">
+                      <img
+                        src={`/api/master-class/${mc.slug}/icon`}
+                        alt={mc.title}
+                        title={mc.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-[9px] text-slate-600 text-center leading-tight line-clamp-2">{mc.title}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Subject filter — pretty pill row at the top. Only "Science"
             is currently enabled; others are disabled until we author
             content for them. */}
