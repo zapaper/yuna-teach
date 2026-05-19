@@ -14,10 +14,12 @@ export function classifyPatternQuestion(stem: string | null): string | null {
   if (/\bidentical\b.*(triangle|square|rectangle|shape)/.test(s)) return "shape-composition";
   if (/(?:made up of|formed from|formed by|composed of)\s+\d+\s+(identical\s+)?(triangle|square|rectangle|shape)/.test(s)) return "shape-composition";
 
-  // Two-colour figures.
+  // Two-colour figures — folded into figure-objects since there's no
+  // longer a dedicated slide for two-colour patterns (the beads
+  // worked example on slide 6 covers the technique).
   if (/(grey|gray|white|black|shaded|unshaded).*(tile|circle|square|bead|dot)/.test(s)
    || /(tile|circle|square|bead|dot).*(grey|gray|white|black|shaded|unshaded)/.test(s)) {
-    return "two-colour-figures";
+    return "figure-objects";
   }
 
   // nth term — "what is the 80th letter", "the 105th bead", etc.

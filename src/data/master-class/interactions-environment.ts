@@ -37,6 +37,10 @@ export type MasterClassSlide = {
     caption?: string;
   };
   diagramPrompt?: string;
+  // Optional inline diagram image — path relative to /public, e.g.
+  // "/master-class/patterns/pattern-c-squares.png". Rendered above
+  // the bullets, scaled to fit the card width.
+  diagramImage?: string;
   cta?: {
     label: string;
     quizSpec?: {

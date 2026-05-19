@@ -120,80 +120,82 @@
       "callout": "**The single most important habit:** before you do ANYTHING else, write the table. Three columns: Figure no. | Count | Difference. 90% of figure questions crack open the moment that table is on the page. The remaining 10% need you to split into TWO tables (one per colour / object) and apply the same method to each."
     },
     {
-      "title": "4b: Figure patterns — TWO worked examples on the trickiest type",
-      "body": "The single hardest sub-type is **Pattern E** — Figure n made of two overlapping or interleaved structures, where the total involves **two squares**. Here are two worked examples, both from real P6 papers. Notice how the same 4-step method cracks both, even though the formulas look different.",
+      "title": "Now let's see it in action — 3 real worked examples",
+      "body": "The theory is one thing. The marking scheme doesn't care if you know the 5 pattern types — it cares about the **working**. So we'll apply the same 4-step method to 3 real prelim / WA questions, with the original diagrams. Each one shows the **exact question**, the **table** to draw, and the **formula** that falls out.",
       "bullets": [
-        "**Worked example 1 — Lines and dots (P6 ACSJ Prelim 2024, 4m)**\nRay uses lines and dots to form figures: F1 = 1 line + 2 dots, F2 = 4 lines + 5 dots, F3 = 9 lines + 9 dots, F4 = 16 lines + 14 dots.\n   • Lines table: 1, 4, 9, 16. Differences: 3, 5, 7. Growing by 2 → **square pattern**. Check: 1², 2², 3², 4². So lines in Figure n = **n²**.\n   • Dots table: 2, 5, 9, 14. Differences: 3, 4, 5. Growing by 1 → **triangular addition**. Dots in Figure n = 2 + 3 + 4 + … + (n+1).\n   • Total in Figure 10 = 10² + (2 + 3 + 4 + … + 11) = 100 + 65 = **165**. Same procedure works on ANY two-count question.",
-        "**Worked example 2 — Black + white circles (P6 Catholic High Prelim 2024)**\nBlack and white circles form figures with total = n² + (n − 1)². For ODD n, black = n² and white = (n − 1)². For EVEN n, the colours swap.\n   • **Step 1 (table for Figure 5)** — Total = 5² + 4² = 25 + 16 = **41 circles**.\n   • **Step 2 (split by colour)** — Figure 5 is ODD → black = 5² = **25**, white = 4² = **16**.\n   • **Step 3 (verify)** — F1: black = 1, white = 0. F2: even → black = 1, white = 4. F3: odd → black = 9, white = 4. ✓",
-        "**Take-away** — when the total looks like n² + something, suspect a TWO-square decomposition. Build two tables (one per colour or per object), confirm each separately, then add."
+        "**Coming up:** growing-sum (beads in rows), square numbers (tiles in a grid), and shape composition (4 triangles joined together).",
+        "**Same recipe every time** — read the question → build the table → list the differences → derive the formula → verify → apply to the target figure."
       ],
-      "scoringExample": {
-        "scenario": "**Practice on your own.** Black and white tiles form figures with total = (n + 1)². Figure 10 total = 121. If grey tiles in Figure n = n × (n + 1), how many WHITE tiles are in Figure 10?",
-        "oneMark": {
-          "label": "1 mark",
-          "text": "121 / 2 ≈ 60. Wrong — they're NOT evenly split."
-        },
-        "fullMarks": {
-          "label": "Full marks",
-          "text": "Total Figure 10 = 11² = **121**. Grey tiles in Figure 10 = 10 × 11 = **110**. White tiles = total − grey = 121 − 110 = **11 white tiles**. Verify on Figure 1: total = 4, grey = 1 × 2 = 2, white = 4 − 2 = 2 ✓."
-        }
-      },
-      "callout": "The two-table habit is the single biggest score-saver on these questions. Even when the question only asks about ONE colour, finding both rules first makes it easier to verify your answer with a quick add-back check."
+      "callout": "Pause and try each one on paper before reading the answer. The point isn't to memorise the result — it's to build the habit."
     },
     {
-      "title": "5: Two-colour figures — split the colours, find rules separately",
-      "body": "When a figure has **two colours** (grey + white circles, black + white tiles, grey + white beads), the colours usually follow **DIFFERENT rules**. The mistake is to look at total tiles only.",
+      "title": "Worked example 1 — Beads in rows (Pattern B, growing-sum)",
+      "body": "**P5 Tao Nan EOY 2023, 5 marks.** Grey + white beads form a triangular arrangement. Each row n has n beads. **Odd rows are grey, even rows are white.** Question: (b) how many WHITE beads are in Figure 21?",
+      "diagramImage": "/master-class/patterns/pattern-b-beads.png",
       "bullets": [
-        "**Step 1** — Build TWO tables: one for grey, one for white. Don't mix them.",
-        "**Step 2** — Find the rule for each colour separately.",
-        "**Step 3** — Watch for **odd / even figure rules**: grey beads may only be added on odd-numbered figures, white only on even. So in Figure 5, the white count = the white count in Figure 4 (unchanged), and grey += 5.",
-        "**Step 4** — Bonus: if asked for **total**, find total = grey rule + white rule. Sometimes that total is a clean formula like n² or (n+1)²."
+        "**Step 1 — Build the table.** Count beads in each figure from the diagram.\n   • Figure 1: row 1 = 1 grey, 0 white\n   • Figure 2: rows 1-2 = 1 grey, 2 white\n   • Figure 3: rows 1-3 = 1+3 = 4 grey, 2 white\n   • Figure 4: rows 1-4 = 1+3 = 4 grey, 2+4 = 6 white",
+        "**Step 2 — Spot the rule.** White beads only get ADDED on even-numbered figures (because only even-numbered rows are white).\n   • So white count in Figure n = sum of even numbers up to n.\n   • Figure 21 = same white count as Figure 20 (no new white row added between Fig 20 and Fig 21).",
+        "**Step 3 — Derive the formula.** White in Figure 20 = 2 + 4 + 6 + 8 + … + 20.\n   • Count of terms: 10 even numbers from 2 to 20.\n   • Sum = (first + last) × count / 2 = (2 + 20) × 10 / 2 = **110**.",
+        "**Step 4 — Apply.** Figure 21 has the same white-bead count as Figure 20 = **110 white beads**."
       ],
       "scoringExample": {
-        "scenario": "Grey beads added on odd-numbered figures, white beads added on even-numbered figures. Pattern of grey: +1, +3, +5… Pattern of white: +2, +4, +6… **How many white beads in Figure 21?**",
+        "scenario": "Verify on a smaller figure: how many white beads in Figure 5?",
         "oneMark": {
-          "label": "1 mark",
-          "text": "21 (just guessing from the figure number)"
+          "label": "Quick check",
+          "text": "Figure 5 odd → same white count as Figure 4 → 2 + 4 = **6 white beads**. ✓ matches the table."
         },
         "fullMarks": {
-          "label": "Full marks",
-          "text": "White beads only change on EVEN figures. So Figure 21 has the same white count as Figure 20. White count = 2 + 4 + 6 + 8 + 10 + 12 + 14 + 16 + 18 + 20 = **110**."
+          "label": "Why this matters",
+          "text": "The \"sum of an arithmetic series\" formula (**first + last**) × **count** / 2 is the universal Pattern-B shortcut. Memorise it once, applies everywhere."
         }
       },
-      "callout": "Two colours = two rules. Build TWO tables side by side, never one combined table."
+      "callout": "**Take-away:** when each step ADDS a different amount (and the amount itself follows a sequence), you need a **sum** — not just a single multiplication."
     },
     {
-      "title": "6: Shape composition — inner sides cancel",
-      "body": "When a bigger figure is made from N identical triangles, squares, or rectangles, the **inner edges** that are shared between two pieces don't appear in the perimeter. Only **outer edges** count.",
+      "title": "Worked example 2 — Squares in a grid (Pattern C, square numbers)",
+      "body": "**P6 Rosyth WA2 2023, 3 marks.** Squares form a growing n × n grid. Each figure is **one row and one column larger** than the previous. Question: (a) how many squares in total in Figure 8?",
+      "diagramImage": "/master-class/patterns/pattern-c-squares.png",
       "bullets": [
-        "**Step 1** — Count how many **outer edges** are visible on the bigger figure. (Internal shared edges are hidden — ignore them.)",
-        "**Step 2** — If all pieces are identical, **every outer edge is the same length**. Total perimeter ÷ number of outer edges = length of one side.",
-        "**Step 3** — For area: total area of bigger figure = area of one small shape × number of pieces (because no area is lost or gained when shapes are joined)."
+        "**Step 1 — Build the table.** Read the totals straight off the table in the diagram.\n   • Figure 1: 1, Figure 2: 4, Figure 3: 9, Figure 4: 16, Figure 5: 25",
+        "**Step 2 — Spot the rule.** List the differences between consecutive totals.\n   • 4 − 1 = 3, 9 − 4 = 5, 16 − 9 = 7, 25 − 16 = 9.\n   • Differences are **3, 5, 7, 9** — consecutive ODD numbers. This is the fingerprint of a **square-number pattern**.",
+        "**Step 3 — Derive the formula.** Check the totals against n × n.\n   • 1 × 1 = 1 ✓, 2 × 2 = 4 ✓, 3 × 3 = 9 ✓, 4 × 4 = 16 ✓, 5 × 5 = 25 ✓.\n   • Formula: **Total in Figure n = n × n = n²**.",
+        "**Step 4 — Apply.** Figure 8 total = 8 × 8 = **64 squares**."
       ],
       "scoringExample": {
-        "scenario": "Figure 1 is one identical isosceles triangle (perimeter 40 cm). Figure 2 is made from **4** such triangles. Figure 2's perimeter is **112 cm**. Find the length of the base of one triangle.",
+        "scenario": "Bonus part (b): how many UNSHADED squares in Figure 8?",
         "oneMark": {
-          "label": "1 mark",
-          "text": "112 ÷ 4 = 28 cm (mistake: assumed perimeter divided equally)"
+          "label": "Spotting the sub-rule",
+          "text": "From the table, in EVEN-numbered figures, unshaded = total ÷ 2. F2: 2 = 4/2 ✓. F4: 8 = 16/2 ✓."
         },
         "fullMarks": {
-          "label": "Full marks",
-          "text": "Figure 2's perimeter is made of **8 equal-length sides** (the two legs of each of the 4 triangles, since the bases face inward). One side = 112 ÷ 8 = **14 cm**. Triangle perimeter = 40, two sides = 28, base = **40 − 28 = 12 cm**."
+          "label": "Apply",
+          "text": "Figure 8 is EVEN → unshaded = 64 ÷ 2 = **32 unshaded squares**. (Always check whether the sub-rule depends on odd / even before generalising.)"
         }
       },
-      "callout": "Internal edges always cancel. Count only what you can see on the outside."
+      "callout": "**Take-away:** differences that grow by 2 (i.e. consecutive odd numbers) is the calling card of n². Spot the differences first and the formula becomes a 5-second check."
     },
     {
-      "title": "7: Common pitfalls — what loses marks",
-      "body": "The five mistakes we see most often in marking. Avoiding these lifts most students by 1-3 marks across the paper.",
+      "title": "Worked example 3 — Shape composition (4 triangles joined)",
+      "body": "**P6 ACS-J Prelim 2024, 2 marks.** Figure 1 is one isosceles triangle with perimeter **40 cm**. Figure 2 is made from **4** such triangles arranged to share their bases. The perimeter of Figure 2 is **112 cm**. Find the length of the base PQ.",
+      "diagramImage": "/master-class/patterns/shape-composition-triangles.png",
       "bullets": [
-        "**Off-by-one** — for nth-term questions with remainder 0, students often pick the FIRST item of the cycle. It's the **LAST** item. (80 ÷ 8 = 10 r 0 → the 8th item, not the 1st.)",
-        "**Stopping at the next term** — the question often asks for the **20th** or **100th** term, not the next one. Read the question twice.",
-        "**Mixing the colours** — in two-colour figures, applying one rule to both colours. Always split into two tables.",
-        "**Trusting just the first 2 differences** — sometimes the rule needs 3+ terms to reveal itself. If the rule fails at the next given number, look harder.",
-        "**Forgetting units** — area answers in cm² (not cm), perimeter in cm (not cm²). Marker docks 0.5–1 mark for wrong unit."
+        "**Step 1 — Identify outer vs inner sides.** Look at Figure 2 closely.\n   • Each triangle has 3 sides: 2 equal legs + 1 base PQ.\n   • The 4 bases all face inward and are SHARED — they don't appear in the perimeter.\n   • Only the **8 legs** (2 per triangle × 4 triangles) appear on the outside.",
+        "**Step 2 — Set up the equation.** All 8 legs are equal length (the triangles are identical).\n   • Figure 2 perimeter = 8 × leg = 112 cm\n   • Solve: leg = 112 ÷ 8 = **14 cm**.",
+        "**Step 3 — Use Figure 1 to find the base.** Figure 1 is just one triangle.\n   • Perimeter = 2 legs + 1 base = 40 cm\n   • Substitute: 2(14) + base = 40 → 28 + base = 40 → **base PQ = 12 cm**.",
+        "**Step 4 — Verify.** Triangle has sides 14, 14, 12 → perimeter 40 ✓. Figure 2 has 8 outer legs of 14 → perimeter 112 ✓."
       ],
-      "callout": "Half a mark each adds up fast. The marking scheme is unforgiving on units and on incomplete final answers."
+      "scoringExample": {
+        "scenario": "Why does 112 ÷ 4 = 28 NOT work as the answer?",
+        "oneMark": {
+          "label": "The trap",
+          "text": "Dividing by 4 (number of triangles) assumes each triangle contributes one outer side to the perimeter. It doesn't — it contributes **2 outer sides** (both legs). Always count the outer edges first."
+        },
+        "fullMarks": {
+          "label": "General rule",
+          "text": "For any composite shape: number of outer edges in Figure 2 = (sides per piece × number of pieces) − (2 × number of shared internal joins). Internal sides cancel because they're counted from BOTH pieces."
+        }
+      },
+      "callout": "**Take-away:** in shape composition, the FIRST move is always \"count the outer edges\". Everything else falls out from there."
     },
     {
       "title": "Let's get some practice!",
@@ -274,16 +276,10 @@
       "slideIdx": 4
     },
     {
-      "id": "two-colour-figures",
-      "label": "Two-colour figures",
-      "description": "Figure patterns with two colours (grey + white tiles, black + white circles, grey + white beads). Each colour follows its own rule. Often the rule depends on whether the figure number is odd or even.",
-      "slideIdx": 6
-    },
-    {
       "id": "shape-composition",
       "label": "Shape composition",
       "description": "A bigger figure built from N identical triangles, squares, or rectangles. Tests perimeter and area reasoning where internal shared edges cancel out. Only outer edges contribute to perimeter.",
-      "slideIdx": 7
+      "slideIdx": 8
     }
   ]
 }

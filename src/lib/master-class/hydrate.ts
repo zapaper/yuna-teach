@@ -31,6 +31,7 @@ function overlay(yaml: MasterClassSlide, script: string | undefined): MasterClas
     scoringExample: yaml.scoringExample,
     cta: yaml.cta,
     diagramPrompt: yaml.diagramPrompt,
+    diagramImage: yaml.diagramImage,
   };
 }
 

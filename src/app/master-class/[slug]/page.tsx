@@ -358,6 +358,11 @@ function SlideCard({
           />
         )}
       </div>
+      {slide.diagramImage && (
+        <div className="mt-5 flex justify-center bg-white border border-slate-200 rounded-xl p-3">
+          <img src={slide.diagramImage} alt="" className="max-w-full max-h-80 object-contain" />
+        </div>
+      )}
       {slide.pieChart && (
         <div className="mt-5 flex items-center gap-5">
           <PieChart percentage={slide.pieChart.percentage} />

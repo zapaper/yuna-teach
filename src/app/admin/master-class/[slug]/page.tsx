@@ -384,6 +384,7 @@ function SlideDeck({
         scoringExample: s.scoringExample,
         cta: s.cta,
         diagramPrompt: s.diagramPrompt,
+        diagramImage: s.diagramImage,
       };
     });
   }, [editable, slides, committed]);
@@ -670,6 +671,11 @@ function SlideDeck({
               className="text-sm text-slate-600 mt-2 leading-relaxed whitespace-pre-line"
               dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
             />
+          )}
+          {slide.diagramImage && (
+            <div className="mt-4 flex justify-center bg-white border border-slate-200 rounded-xl p-3">
+              <img src={slide.diagramImage} alt="" className="max-w-full max-h-72 object-contain" />
+            </div>
           )}
           {slide.pieChart && (
             <div className="mt-5 flex items-center gap-5">
