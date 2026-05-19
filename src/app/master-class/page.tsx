@@ -132,8 +132,23 @@ function MasterClassList() {
                 className="w-full text-left bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-emerald-300 hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-2xl">school</span>
+                  {/* Per-class generated icon. Falls back to the
+                      generic school glyph if the file isn't there
+                      yet (e.g. a freshly-added class before the
+                      icon-gen script has been re-run). */}
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 overflow-hidden">
+                    <img
+                      src={`/master-class-icons/${mc.slug}.png`}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const t = e.currentTarget;
+                        t.style.display = "none";
+                        const sib = t.nextElementSibling as HTMLElement | null;
+                        if (sib) sib.style.display = "";
+                      }}
+                    />
+                    <span className="material-symbols-outlined text-2xl" style={{ display: "none" }}>school</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-headline font-bold text-base text-[#001e40]">{mc.title}</p>
