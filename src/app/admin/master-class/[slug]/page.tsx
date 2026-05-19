@@ -439,8 +439,11 @@ function SlideDeck({
     }
   }
 
-  // Fetch segments whenever the slide changes. Stop any active audio
-  // first so we don't keep narrating the previous slide.
+  // Reset playback state whenever the slide changes. We DO NOT
+  // auto-fetch the ElevenLabs segments in the admin workshop —
+  // editing flow involves a lot of slide flipping while finalising
+  // the script, and auto-fetching burns TTS quota on every preview.
+  // Audio is gated behind the "🔊 Generate audio" button below.
   useEffect(() => {
     cancelPendingAdvance();
     if (audioRef.current) {
@@ -451,31 +454,37 @@ function SlideDeck({
     setSegIdx(0);
     setPlaying(false);
     setTtsError(null);
-    let cancelled = false;
-    (async () => {
-      setTtsLoading(true);
-      try {
-        const globalIdx = globalIdxOffset + currentIdx;
-        const res = await fetch(`/api/master-class/${slug}/tts`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ slideIdx: globalIdx, force: false }),
-        });
-        if (!res.ok) {
-          const d = await res.json().catch(() => ({}));
-          if (!cancelled) setTtsError(d.error ?? `TTS failed (${res.status})`);
-          return;
-        }
-        const data = await res.json() as { segments: Segment[] };
-        if (!cancelled) setSegments(data.segments);
-      } catch (err) {
-        if (!cancelled) setTtsError((err as Error).message);
-      } finally {
-        if (!cancelled) setTtsLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
   }, [currentIdx, slug, globalIdxOffset]);
+
+  // Explicit on-demand fetch — wired to both "Generate audio" and
+  // "Re-gen" buttons. `force=true` invalidates the server-side cache
+  // (used when text changes); regular fetches reuse the cached MP3.
+  async function fetchSegments(force: boolean) {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setSegments([]);
+    setSegIdx(0);
+    setTtsError(null);
+    setTtsLoading(true);
+    try {
+      const globalIdx = globalIdxOffset + currentIdx;
+      const res = await fetch(`/api/master-class/${slug}/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slideIdx: globalIdx, force }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setTtsError(d.error ?? `TTS failed (${res.status})`);
+        return;
+      }
+      const data = await res.json() as { segments: Segment[] };
+      setSegments(data.segments);
+    } catch (err) {
+      setTtsError((err as Error).message);
+    } finally {
+      setTtsLoading(false);
+    }
+  }
 
   // Play the segment at segIdx whenever it changes (and segments are
   // available). Autoplay starts on initial load; manual >>/<< also
@@ -551,32 +560,8 @@ function SlideDeck({
     cancelPendingAdvance();
     if (segIdx > 0) setSegIdx(segIdx - 1);
   }
-  async function regenerate() {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
-    setSegments([]);
-    setSegIdx(0);
-    setTtsLoading(true);
-    setTtsError(null);
-    try {
-      const globalIdx = globalIdxOffset + currentIdx;
-      const res = await fetch(`/api/master-class/${slug}/tts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slideIdx: globalIdx, force: true }),
-      });
-      if (!res.ok) {
-        const d = await res.json().catch(() => ({}));
-        setTtsError(d.error ?? `TTS failed (${res.status})`);
-        return;
-      }
-      const data = await res.json() as { segments: Segment[] };
-      setSegments(data.segments);
-    } catch (err) {
-      setTtsError((err as Error).message);
-    } finally {
-      setTtsLoading(false);
-    }
-  }
+  function generateAudio() { return fetchSegments(false); }
+  function regenerate() { return fetchSegments(true); }
 
   const slide = previewSlides[currentIdx];
   const ringClass = accent === "emerald" ? "ring-emerald-200" : "ring-rose-200";
@@ -623,6 +608,20 @@ function SlideDeck({
             <span className="text-[10px] text-slate-400 ml-2">
               {segments[segIdx]?.label ?? "—"} · {segIdx + 1}/{segments.length}
             </span>
+          )}
+          {/* Generate audio button — only shown when we don't have
+              segments yet for the current slide. Burns an ElevenLabs
+              call (or hits the on-disk cache if the script hasn't
+              changed). Re-gen below it forces fresh generation. */}
+          {segments.length === 0 && (
+            <button
+              onClick={generateAudio}
+              disabled={ttsLoading}
+              className="text-[10px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 ring-1 ring-emerald-200 rounded-md px-2 py-1 ml-1 disabled:opacity-50"
+              title="Generate ElevenLabs narration for this slide (uses cache if script hasn't changed)"
+            >
+              {ttsLoading ? "Generating…" : "🔊 Generate audio"}
+            </button>
           )}
           <button
             onClick={regenerate}
