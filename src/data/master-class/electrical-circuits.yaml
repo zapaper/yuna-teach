@@ -175,13 +175,10 @@ keyConcepts:
       object names change.
 
   - title: "Worked example 1 — Bulb brightness (PSLE 2020 Q21, 2m)"
-    body: |-
-      **Identical bulbs R, S and T are used in the circuit. Which change will allow all bulbs to light up with equal brightness?**
-
-      (1) Add another battery in series.
-      (2) Add a wire so that R and T are in parallel.
-      (3) Remove bulb R from the circuit.
-      (4) Replace the battery with one of higher voltage.
+    body: >-
+      **Identical bulbs R, S and T are used in the circuit. Which
+      change will allow all bulbs to light up with equal
+      brightness?**
     diagramImage: /master-class/circuits/psle-2020-q21-bulb-brightness.png
     bullets:
       - |-
