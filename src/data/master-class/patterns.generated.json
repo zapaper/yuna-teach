@@ -130,30 +130,19 @@
       "callout": "**Take-away:** when each step ADDS a different amount (and the amount itself follows a sequence), you need a **sum** — not just a single multiplication."
     },
     {
-      "title": "Worked example 2 — Squares in a grid (Pattern C, square numbers)",
-      "body": "**P6 Rosyth WA2 2023, 3 marks.** Squares form a growing n × n grid. Each figure is **one row and one column larger** than the previous. Question: (a) how many squares in total in Figure 8?",
-      "diagramImage": "/master-class/patterns/pattern-c-squares.png",
+      "title": "Worked example 2 — Sticks figures (P6 Raffles Girls WA1, 3m)",
+      "body": "**Ahmad used sticks to form the following figures.** Each figure has squares with a triangle on top and bottom. **(a)** How many sticks are needed for Figure 4? **(b)** Ahmad noticed that Figure N uses 2 507 sticks. Find N.",
+      "diagramImage": "/master-class/patterns/pattern-sticks-triangles.png",
       "bullets": [
-        "**Step 1 — Build the table.** Read the totals straight off the table in the diagram.\n   • Figure 1: 1, Figure 2: 4, Figure 3: 9, Figure 4: 16, Figure 5: 25",
-        "**Step 2 — Spot the rule.** List the differences between consecutive totals.\n   • 4 − 1 = 3, 9 − 4 = 5, 16 − 9 = 7, 25 − 16 = 9.\n   • Differences are **3, 5, 7, 9** — consecutive ODD numbers. This is the fingerprint of a **square-number pattern**.",
-        "**Step 3 — Derive the formula.** Check the totals against n × n.\n   • 1 × 1 = 1 ✓, 2 × 2 = 4 ✓, 3 × 3 = 9 ✓, 4 × 4 = 16 ✓, 5 × 5 = 25 ✓.\n   • Formula: **Total in Figure n = n × n = n²**.",
-        "**Step 4 — Apply.** Figure 8 total = 8 × 8 = **64 squares**."
+        "**Step 1 — Read the current table from the diagram.** Count the sticks in each figure shown.\n   • Figure 1 → 8 sticks\n   • Figure 2 → 15 sticks\n   • Figure 3 → 22 sticks",
+        "**Step 2 — Extend the table by working out the next rows.** Differences: 15 − 8 = **7**, 22 − 15 = **7**. Constant — every new figure adds another square + 2 triangles = **+7 sticks**.\n   • Figure 4 → 22 + 7 = **29 sticks**\n   • Figure 5 → 29 + 7 = **36 sticks**\n   • Figure 6 → 36 + 7 = **43 sticks**",
+        "**Step 3 — Derive the formula.** From Figure 1 (= 8 sticks), each later figure adds 7 more.\n   • Sticks in Figure n = 8 + 7 × (n − 1) = **7n + 1**.\n   • Check F1: 7(1) + 1 = 8 ✓. F3: 7(3) + 1 = 22 ✓.",
+        "**Step 4 — Answer.**\n   • **(a)** Figure 4 → 7(4) + 1 = **29 sticks** ✓ (matches the row we extended in Step 2).\n   • **(b)** Solve 7n + 1 = 2 507 → 7n = 2 506 → n = 2 506 ÷ 7 = **N = 358**."
       ],
-      "scoringExample": {
-        "scenario": "Bonus part (b): how many UNSHADED squares in Figure 8?",
-        "oneMark": {
-          "label": "Spotting the sub-rule",
-          "text": "From the table, in EVEN-numbered figures, unshaded = total ÷ 2. F2: 2 = 4/2 ✓. F4: 8 = 16/2 ✓."
-        },
-        "fullMarks": {
-          "label": "Apply",
-          "text": "Figure 8 is EVEN → unshaded = 64 ÷ 2 = **32 unshaded squares**. (Always check whether the sub-rule depends on odd / even before generalising.)"
-        }
-      },
-      "callout": "**Take-away:** differences that grow by 2 (i.e. consecutive odd numbers) is the calling card of n². Spot the differences first and the formula becomes a 5-second check."
+      "callout": "**Take-away:** when differences are constant (+7 every step here), the formula is **(constant) × n + (starting offset)**. In this case, 7n + 1. Always verify on a small figure before plugging in big numbers like 2 507."
     },
     {
-      "title": "Worked example 3 — Shape composition (4 triangles joined)",
+      "title": "Worked example 3 — Figure: shapes (4 triangles joined)",
       "body": "**P6 ACS-J Prelim 2024, 2 marks.** Figure 1 is one isosceles triangle with perimeter **40 cm**. Figure 2 is made from **4** such triangles arranged to share their bases. The perimeter of Figure 2 is **112 cm**. Find the length of the base PQ.",
       "diagramImage": "/master-class/patterns/shape-composition-triangles.png",
       "bullets": [
