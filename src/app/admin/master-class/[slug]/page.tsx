@@ -6,6 +6,7 @@ import Link from "next/link";
 import AdminNav from "@/components/AdminNav";
 import type { MasterClassContent, MasterClassSlide } from "@/data/master-class";
 import { parseSlideScript } from "@/lib/master-class/parse-script";
+import { renderInlineMd } from "@/lib/master-class/render";
 
 export default function Page() {
   return (
@@ -356,9 +357,12 @@ function SlideDeck({
       seededRef.current = true;
     }
   }, [scripts]);
-  // Preview slide = YAML slide overlaid with parsed committed script
-  // (when editable). Preserves pieChart / scoringExample / cta — those
-  // structured fields aren't in the textarea, only the YAML.
+  // Preview slide = YAML slide overlaid with parsed committed script.
+  // The script is the SOURCE OF TRUTH for title/body/bullets/callout/
+  // narration — deleting any of them in the textarea must clear them
+  // in the preview (else "I removed the callout but it still shows").
+  // pieChart / scoringExample / cta / diagramPrompt are kept from the
+  // YAML since the textarea can't represent them.
   const previewSlides = useMemo(() => {
     if (!editable) return slides;
     return slides.map((s, i) => {
@@ -368,10 +372,14 @@ function SlideDeck({
       return {
         ...s,
         title: parsed.title || s.title,
-        body: parsed.body ?? s.body,
-        bullets: parsed.bullets ?? s.bullets,
-        callout: parsed.callout ?? s.callout,
-        narration: parsed.narration ?? s.narration,
+        body: parsed.body,
+        bullets: parsed.bullets,
+        callout: parsed.callout,
+        narration: parsed.narration,
+        pieChart: s.pieChart,
+        scoringExample: s.scoringExample,
+        cta: s.cta,
+        diagramPrompt: s.diagramPrompt,
       };
     });
   }, [editable, slides, committed]);
@@ -655,7 +663,7 @@ function SlideDeck({
           <h2 className={`text-xl lg:text-2xl font-bold text-slate-900 leading-tight transition-all ${introHl}`}>{slide.title}</h2>
           {slide.body && (
             <p
-              className="text-sm text-slate-600 mt-2 leading-relaxed"
+              className="text-sm text-slate-600 mt-2 leading-relaxed whitespace-pre-line"
               dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
             />
           )}
@@ -751,7 +759,7 @@ function SlideDeck({
                 Script · slide {currentIdx + 1} / {slides.length}
               </p>
               <p className="text-[10px] text-slate-400 mt-0.5">
-                First line = title. <code className="bg-slate-100 px-1 rounded">- </code> = bullet · <code className="bg-slate-100 px-1 rounded">&gt; </code> = callout · <code className="bg-slate-100 px-1 rounded">{"{…}"}</code> = audio-only · <code className="bg-slate-100 px-1 rounded">**bold**</code>
+                First line = title · <code className="bg-slate-100 px-1 rounded">- </code> bullet · <code className="bg-slate-100 px-1 rounded">-- </code> sub-bullet · <code className="bg-slate-100 px-1 rounded">&gt; </code> callout · <code className="bg-slate-100 px-1 rounded">~ </code> YAML-only note · <code className="bg-slate-100 px-1 rounded">{"{…}"}</code> audio-only · <code className="bg-slate-100 px-1 rounded">**bold**</code>
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -774,9 +782,9 @@ function SlideDeck({
             </div>
           </div>
           {saveError && <p className="text-[10px] text-rose-600 mb-1">{saveError}</p>}
-          {(slide?.pieChart || slide?.scoringExample) && (
+          {(slide?.pieChart || slide?.scoringExample || slide?.cta) && (
             <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1 mb-2">
-              📌 This slide has structured blocks (pieChart / scoringExample) that are YAML-only. The textarea controls title, body, bullets, and callout.
+              📌 This slide has YAML-only blocks attached (pieChart / scoringExample / cta) — shown as <code className="bg-amber-100 px-1 rounded">~ </code>placeholders in the script. The textarea controls title, body, bullets, callout, and narration.
             </p>
           )}
           <textarea
@@ -992,14 +1000,8 @@ function ClassifierPanel({
   );
 }
 
-// Minimal markdown — handles **bold** for emphasis in bullets.
-function renderInlineMd(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-}
+// renderInlineMd moved to @/lib/master-class/render so the student
+// player and the admin workshop share the same rendering rules.
 
 // SVG donut chart — single colored slice = `percentage`, grey fills
 // the rest. Stroke-based so we don't need a fill / center wedge.

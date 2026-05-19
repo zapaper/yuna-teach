@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
-import { getMasterClass } from "@/data/master-class";
+import { getMasterClassHydrated } from "@/lib/master-class/hydrate";
 
 // POST /api/master-class/[slug]/start-quiz
 //   body: { studentId: string, parentMasteryId?: string }
@@ -44,10 +44,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   if (!sessionUserId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { slug } = await context.params;
-  const content = getMasterClass(slug);
+  const content = await getMasterClassHydrated(slug);
   if (!content) return NextResponse.json({ error: "Master Class not found" }, { status: 404 });
   const subTopics = content.subTopics ?? [];
-  if (subTopics.length === 0) {
+  // Sub-topics only required for non-regex classes (the per-sub-topic
+  // round-robin picker uses them). Regex-mode classes do a single-pool
+  // pick instead.
+  if (!content.practiceStemRegex && subTopics.length === 0) {
     return NextResponse.json({ error: "Master Class has no sub-topics defined" }, { status: 400 });
   }
 
@@ -79,15 +82,22 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   });
 
   // ─── Pull candidate questions ──────────────────────────────────────
-  // Same shape as the focused-test SELECT so cloned mastery questions
-  // carry every renderable field — most importantly diagramImageData,
-  // which was missing in the first cut and made diagrams disappear.
-  const candidates = await prisma.examQuestion.findMany({
+  // Cross-topic master classes (with `practiceStemRegex`) filter by
+  // stem keyword instead of by syllabusTopic + subTopic. The mastery
+  // quiz then falls back to a simple MCQ/OEQ split (no per-sub-topic
+  // round robin) because those questions aren't tagged into our
+  // master-class sub-topic taxonomy yet.
+  const useRegex = !!content.practiceStemRegex;
+  const candidatesRaw = await prisma.examQuestion.findMany({
     where: {
-      syllabusTopic: { equals: content.topicLabel, mode: "insensitive" },
-      transcribedStem: { not: null },
-      subTopic: { not: null },
-      examPaper: { sourceExamId: null, paperType: null },
+      ...(useRegex
+        ? { transcribedStem: { not: null } }
+        : { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" }, transcribedStem: { not: null }, subTopic: { not: null } }),
+      examPaper: {
+        sourceExamId: null,
+        paperType: null,
+        ...(useRegex ? { subject: { contains: content.subject, mode: "insensitive" } } : {}),
+      },
     },
     select: {
       id: true,
@@ -107,16 +117,33 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       diagramBounds: true,
       elaboration: true,
     },
+    take: useRegex ? 4000 : undefined,
   });
+  const candidates = useRegex
+    ? candidatesRaw.filter(q => {
+        try { return new RegExp(content.practiceStemRegex!, "i").test(q.transcribedStem ?? ""); }
+        catch { return false; }
+      })
+    : candidatesRaw;
 
   // ─── Group by subTopic + mcq/oeq ───────────────────────────────────
+  // Regex-mode master classes (Patterns) don't have per-question
+  // sub-topic tags yet, so we lump everything into a single bucket.
   const groups = new Map<string, { mcq: typeof candidates; oeq: typeof candidates }>();
-  for (const st of subTopics) groups.set(st.id, { mcq: [], oeq: [] });
-  for (const q of candidates) {
-    if (!q.subTopic || !groups.has(q.subTopic)) continue;
-    const g = groups.get(q.subTopic)!;
-    if (hasOptions(q)) g.mcq.push(q);
-    else g.oeq.push(q);
+  if (useRegex) {
+    groups.set("_all", { mcq: [], oeq: [] });
+    for (const q of candidates) {
+      const g = groups.get("_all")!;
+      if (hasOptions(q)) g.mcq.push(q); else g.oeq.push(q);
+    }
+  } else {
+    for (const st of subTopics) groups.set(st.id, { mcq: [], oeq: [] });
+    for (const q of candidates) {
+      if (!q.subTopic || !groups.has(q.subTopic)) continue;
+      const g = groups.get(q.subTopic)!;
+      if (hasOptions(q)) g.mcq.push(q);
+      else g.oeq.push(q);
+    }
   }
 
   // Dedupe each group by the first 200 chars of the transcribed
@@ -143,48 +170,66 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   }
 
   // ─── Selection ─────────────────────────────────────────────────────
-  // Pick 1 OEQ per sub-topic first (the firm constraint).
   type Picked = typeof candidates[number];
   const picked: Picked[] = [];
-  const oeqPicked = new Set<string>();
   const warnings: string[] = [];
-  for (const st of subTopics) {
-    const g = groups.get(st.id)!;
-    if (g.oeq.length === 0) {
-      warnings.push(`No OEQ available for sub-topic "${st.label}".`);
-      continue;
+  // Per-master-class quiz size: YAML can override the defaults via
+  // the first slide's cta.quizSpec. (Patterns wants 6 + 4 instead of
+  // 10 + 6 because the pool is smaller.)
+  const allSlides = [...content.keyConcepts, ...content.commonMistakes];
+  const quizSpec = allSlides.map(s => s.cta?.quizSpec).find(Boolean);
+  const mcqTarget = quizSpec?.mcq ?? QUIZ_MCQ_COUNT;
+  const oeqTarget = quizSpec?.oeq ?? QUIZ_OEQ_COUNT;
+
+  if (useRegex) {
+    // Single-bucket pick — just take the first N OEQ then the first
+    // N MCQ from the deduped/shuffled pool.
+    const g = groups.get("_all")!;
+    picked.push(...g.oeq.slice(0, oeqTarget));
+    g.oeq = g.oeq.slice(oeqTarget);
+    picked.push(...g.mcq.slice(0, mcqTarget));
+    g.mcq = g.mcq.slice(mcqTarget);
+    if (picked.filter(p => !hasOptions(p)).length < oeqTarget) {
+      warnings.push(`Only ${picked.filter(p => !hasOptions(p)).length} OEQ available (wanted ${oeqTarget}).`);
     }
-    const q = g.oeq.shift()!;
-    picked.push(q);
-    oeqPicked.add(q.id);
-  }
-
-  // Top up to QUIZ_OEQ_COUNT total if any sub-topic was missing.
-  while (picked.filter(p => !hasOptions(p)).length < QUIZ_OEQ_COUNT) {
-    // Pick the sub-topic with the most remaining OEQ.
-    const fallback = [...groups.entries()].sort((a, b) => b[1].oeq.length - a[1].oeq.length)[0];
-    if (!fallback || fallback[1].oeq.length === 0) break;
-    picked.push(fallback[1].oeq.shift()!);
-  }
-
-  // Pick MCQ round-robin from sub-topics until we hit QUIZ_MCQ_COUNT.
-  let mcqPickedCount = 0;
-  let rounds = 0;
-  while (mcqPickedCount < QUIZ_MCQ_COUNT && rounds < 50) {
-    rounds++;
-    let progressed = false;
+    if (picked.filter(hasOptions).length < mcqTarget) {
+      warnings.push(`Only ${picked.filter(hasOptions).length} MCQ available (wanted ${mcqTarget}).`);
+    }
+  } else {
+    // Pick 1 OEQ per sub-topic first (the firm constraint).
     for (const st of subTopics) {
-      if (mcqPickedCount >= QUIZ_MCQ_COUNT) break;
       const g = groups.get(st.id)!;
-      if (g.mcq.length === 0) continue;
-      picked.push(g.mcq.shift()!);
-      mcqPickedCount++;
-      progressed = true;
+      if (g.oeq.length === 0) {
+        warnings.push(`No OEQ available for sub-topic "${st.label}".`);
+        continue;
+      }
+      picked.push(g.oeq.shift()!);
     }
-    if (!progressed) break;
-  }
-  if (mcqPickedCount < QUIZ_MCQ_COUNT) {
-    warnings.push(`Only ${mcqPickedCount} MCQ available across sub-topics (wanted ${QUIZ_MCQ_COUNT}).`);
+    // Top up to oeqTarget total if any sub-topic was missing.
+    while (picked.filter(p => !hasOptions(p)).length < oeqTarget) {
+      const fallback = [...groups.entries()].sort((a, b) => b[1].oeq.length - a[1].oeq.length)[0];
+      if (!fallback || fallback[1].oeq.length === 0) break;
+      picked.push(fallback[1].oeq.shift()!);
+    }
+    // Pick MCQ round-robin from sub-topics until we hit mcqTarget.
+    let mcqPickedCount = 0;
+    let rounds = 0;
+    while (mcqPickedCount < mcqTarget && rounds < 50) {
+      rounds++;
+      let progressed = false;
+      for (const st of subTopics) {
+        if (mcqPickedCount >= mcqTarget) break;
+        const g = groups.get(st.id)!;
+        if (g.mcq.length === 0) continue;
+        picked.push(g.mcq.shift()!);
+        mcqPickedCount++;
+        progressed = true;
+      }
+      if (!progressed) break;
+    }
+    if (mcqPickedCount < mcqTarget) {
+      warnings.push(`Only ${mcqPickedCount} MCQ available across sub-topics (wanted ${mcqTarget}).`);
+    }
   }
 
   if (picked.length === 0) {

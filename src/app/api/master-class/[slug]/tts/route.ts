@@ -24,9 +24,13 @@ const VOICE_ID = "WZlYpi1yf6zJhNWXih74";
 
 // Strip our markdown so the TTS doesn't read out "asterisk asterisk".
 // Keeps the content, drops the formatting tokens.
+//
+// Bold emphasis: ElevenLabs (both v3 and v2) naturally inflects words
+// in ALL CAPS — that's the most reliable cross-model emphasis trick.
+// So **important** in the script becomes IMPORTANT in the TTS input.
 function strip(text: string): string {
   return text
-    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, (_m, inner) => String(inner).toUpperCase())
     .replace(/__([^_\n]+?)__/g, "$1")
     .replace(/\\n/g, "\n")
     .replace(/[•·]/g, ",")

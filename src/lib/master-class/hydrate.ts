@@ -15,14 +15,18 @@ import { parseSlideScript } from "./parse-script";
 function overlay(yaml: MasterClassSlide, script: string | undefined): MasterClassSlide {
   if (!script || !script.trim()) return yaml;
   const parsed = parseSlideScript(script);
+  // Script is the source of truth — deletions in the textarea must
+  // apply (so removing a callout in the editor clears the callout).
+  // Only structured blocks the textarea can't represent fall back to
+  // the YAML. Title falls back too (it's required and an empty-title
+  // edit is almost certainly a slip).
   return {
     ...yaml,
     title: parsed.title || yaml.title,
-    body: parsed.body ?? yaml.body,
-    bullets: parsed.bullets ?? yaml.bullets,
-    callout: parsed.callout ?? yaml.callout,
-    narration: parsed.narration ?? yaml.narration,
-    // structured blocks preserved from YAML:
+    body: parsed.body,
+    bullets: parsed.bullets,
+    callout: parsed.callout,
+    narration: parsed.narration,
     pieChart: yaml.pieChart,
     scoringExample: yaml.scoringExample,
     cta: yaml.cta,

@@ -2,35 +2,50 @@
 //
 // MEGA-TEXTAREA FORMAT (one slide):
 //   First non-empty line          → title
-//   Lines starting with "- "      → bullets
+//   Lines starting with "- "      → top-level bullet
+//   Lines starting with "-- "     → sub-bullet (rendered as "  • text"
+//                                   on a new line inside the previous
+//                                   top-level bullet)
 //   Lines starting with "> "      → callout
-//   Other non-empty paragraphs    → body (joined with blank-line breaks)
-//   {anything in braces}          → audio-only — kept in narration, stripped from visible text
-//   **bold** and __underline__    → unchanged (renderer handles them)
-//
-// Braces work INLINE inside title/body/bullet/callout. The visible
-// text drops the braces (and the text inside); the narration block
-// keeps the FULL string (including the unwrapped audio bits) so the
-// TTS reads everything in context.
+//   Lines starting with "~ "      → placeholder (skipped — used to
+//                                   show YAML-only blocks like
+//                                   pieChart / scoringExample to the
+//                                   author without making them
+//                                   editable)
+//   Other non-empty paragraphs    → body. Blank lines between
+//                                   paragraphs are preserved.
+//   {anything in braces}          → audio-only text. Stripped from
+//                                   the visible slide but kept in the
+//                                   narration override.
+//   **bold** and __underline__    → unchanged (renderer handles them).
 
 import type { MasterClassSlide } from "@/data/master-class";
 
 // Strip {…} chunks from a string. Returns the visible text.
-// Brace pairs only nest one level deep — we don't try to be clever.
 export function stripBraces(s: string): string {
-  return s.replace(/\s*\{[^{}]*\}\s*/g, " ").replace(/\s+/g, " ").trim();
+  return s.replace(/\s*\{[^{}]*\}\s*/g, " ").replace(/[ \t]+/g, " ").trim();
 }
 
-// Drop the braces but keep the text inside. Used to build the
-// narration string so the voice reads the audio-only bits inline.
+// Drop the braces but keep the text inside. Used to build narration
+// strings so the voice reads the audio-only bits in context.
 export function unwrapBraces(s: string): string {
-  return s.replace(/\{([^{}]*)\}/g, "$1").replace(/\s+/g, " ").trim();
+  return s.replace(/\{([^{}]*)\}/g, "$1").replace(/[ \t]+/g, " ").trim();
 }
 
-// Does a string contain any {…} segment?
 export function hasBraces(s: string): boolean {
   return /\{[^{}]*\}/.test(s);
 }
+
+// Match a top-level bullet: -, *, • or – followed by a space.
+// Captures the bullet text.
+const TOP_BULLET_RX = /^([-*•–])\s+(.*)$/;
+// Match a sub-bullet: -- followed by a space (we only support `--`
+// as the sub-bullet marker — `**` would collide with bold).
+const SUB_BULLET_RX = /^--\s+(.*)$/;
+// Placeholder line (YAML-only block reminder) — ignored entirely.
+const PLACEHOLDER_RX = /^~\s/;
+// Callout line.
+const CALLOUT_RX = /^>\s+(.*)$/;
 
 export type ParsedScript = {
   title: string;
@@ -63,39 +78,63 @@ export function parseSlideScript(raw: string): ParsedScript {
   };
 
   for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line) {
-      flushBody();
-      continue;
-    }
+    // Don't trim leading whitespace before the bullet/callout checks
+    // (so an indented bullet doesn't accidentally become a sub-bullet),
+    // but we trim trailing whitespace for clean parsing.
+    const line = rawLine.replace(/\s+$/, "");
+    const trimmed = line.trim();
+    if (!trimmed) { flushBody(); continue; }
+    if (PLACEHOLDER_RX.test(trimmed)) { continue; }
     if (!title) {
-      titleRaw = line;
-      title = stripBraces(line);
+      titleRaw = trimmed;
+      title = stripBraces(trimmed);
       continue;
     }
-    if (line.startsWith("- ") || line.startsWith("* ")) {
+    // Sub-bullet — check before top-level (-- starts with -).
+    const subMatch = SUB_BULLET_RX.exec(trimmed);
+    if (subMatch) {
       flushBody();
-      const bulletRaw = line.slice(2).trim();
+      const subRaw = subMatch[1].trim();
+      const subVisible = stripBraces(subRaw);
+      if (bullets.length === 0) {
+        // No parent bullet yet — promote to a top-level bullet.
+        bulletsRaw.push(subRaw);
+        bullets.push(subVisible);
+      } else {
+        // Append as indented sub-bullet on the previous bullet line.
+        const last = bullets.length - 1;
+        bulletsRaw[last] = `${bulletsRaw[last]}\n   • ${subRaw}`;
+        bullets[last] = `${bullets[last]}\n   • ${subVisible}`;
+      }
+      continue;
+    }
+    const topMatch = TOP_BULLET_RX.exec(trimmed);
+    if (topMatch) {
+      flushBody();
+      const bulletRaw = topMatch[2].trim();
       bulletsRaw.push(bulletRaw);
       bullets.push(stripBraces(bulletRaw));
       continue;
     }
-    if (line.startsWith("> ")) {
+    const calloutMatch = CALLOUT_RX.exec(trimmed);
+    if (calloutMatch) {
       flushBody();
-      const calloutLineRaw = line.slice(2).trim();
+      const calloutLineRaw = calloutMatch[1].trim();
       calloutRaw = calloutRaw ? `${calloutRaw} ${calloutLineRaw}` : calloutLineRaw;
       callout = stripBraces(calloutRaw);
       continue;
     }
-    bodyBuf.push(line);
+    bodyBuf.push(trimmed);
   }
   flushBody();
 
+  // Join paragraphs with a blank line — the renderer turns \n\n into
+  // a visual paragraph break.
   const body = bodyParts.join("\n\n") || undefined;
 
-  // Build narration overrides only when the raw text differs from
-  // the visible text — i.e. there were {…} segments. Otherwise we
-  // let the TTS pipeline auto-build from visible content.
+  // Build narration overrides only when raw text differs from visible
+  // (i.e. there were {…} segments). Otherwise let the TTS pipeline
+  // auto-build from visible content.
   const narration: NonNullable<MasterClassSlide["narration"]> = {};
   const introRaw = [titleRaw, ...bodyPartsRaw].filter(Boolean).join(". ");
   if (introRaw && hasBraces(introRaw)) {
@@ -118,62 +157,87 @@ export function parseSlideScript(raw: string): ParsedScript {
 }
 
 // Serialize a slide back to mega-textarea form. Used to seed the
-// admin editor from the YAML on first load — produces text the
-// author can edit in place. Audio-only bits from the slide's
-// narration block are re-attached inline as {…} segments where
-// possible (intro override → trailing brace block on body; bullet
-// overrides → trailing brace on that bullet; callout → trailing
-// brace on callout).
+// admin editor from YAML on first load.
+//
+// pieChart and scoringExample don't have a textarea representation —
+// we emit "~ " placeholder lines so the author KNOWS the slide has
+// them attached (and the parser ignores those lines on re-parse).
 export function serializeSlideScript(slide: MasterClassSlide): string {
   const parts: string[] = [];
   parts.push(slide.title);
-  // Body — append any audio-only intro tail as {…} at the end so the
-  // author can see what's voice-only. We only attach the DIFFERENCE
-  // between narration.intro and (title + body) when both exist.
-  const visibleIntro = [slide.title, slide.body ?? ""].filter(Boolean).join(". ");
+
+  // YAML-only block reminders, surfaced as placeholder lines.
+  const placeholders: string[] = [];
+  if (slide.pieChart) {
+    const pc = slide.pieChart;
+    placeholders.push(`~ Pie chart (YAML-only): ${pc.percentage}% — ${pc.label}${pc.caption ? ` (${pc.caption})` : ""}`);
+  }
+  if (slide.scoringExample) {
+    placeholders.push(`~ Scoring example (YAML-only) — edit in interactions-environment.yaml`);
+  }
+  if (slide.cta) {
+    placeholders.push(`~ CTA button (YAML-only): "${slide.cta.label}"`);
+  }
+  if (placeholders.length) {
+    parts.push("");
+    parts.push(...placeholders);
+  }
+
+  // Body — append any audio-only intro tail as {…} if narration.intro
+  // diverges from the visible intro.
   let bodyOut = slide.body ?? "";
   const introNar = slide.narration?.intro?.trim();
-  if (introNar && introNar !== visibleIntro.trim()) {
-    const visibleNorm = visibleIntro.replace(/\s+/g, " ").trim();
+  if (introNar) {
+    const visibleIntro = [slide.title, slide.body ?? ""].filter(Boolean).join(". ").replace(/\s+/g, " ").trim();
     let audioOnly = introNar.replace(/\s+/g, " ").trim();
-    if (visibleNorm && audioOnly.startsWith(visibleNorm)) {
-      audioOnly = audioOnly.slice(visibleNorm.length).trim().replace(/^[.,;:\s]+/, "");
-    }
-    if (audioOnly) {
-      bodyOut = bodyOut ? `${bodyOut} {${audioOnly}}` : `{${audioOnly}}`;
+    if (audioOnly !== visibleIntro && visibleIntro && audioOnly.startsWith(visibleIntro)) {
+      audioOnly = audioOnly.slice(visibleIntro.length).trim().replace(/^[.,;:\s]+/, "");
+      if (audioOnly) {
+        bodyOut = bodyOut ? `${bodyOut} {${audioOnly}}` : `{${audioOnly}}`;
+      }
     }
   }
-  if (bodyOut) parts.push("", bodyOut);
+  if (bodyOut) { parts.push(""); parts.push(bodyOut); }
 
   if (slide.bullets?.length) {
     parts.push("");
     slide.bullets.forEach((b, i) => {
+      // The parser encodes sub-bullets as "\n   • text" inside the
+      // bullet string. Split those back into "-- text" lines so the
+      // author sees the same shape they typed.
+      const SUB_RX = /\n\s*•\s*/g;
+      const segments = b.split(SUB_RX);
+      const top = segments[0].trim();
+      const subs = segments.slice(1).map(s => s.trim()).filter(Boolean);
       const override = slide.narration?.bullets?.[i];
-      if (override && override.trim() && override.trim() !== stripBraces(b).trim()) {
-        const visible = b.replace(/\s+/g, " ").trim();
+      let topLine: string;
+      if (override && override.trim() && override.trim() !== stripBraces(top).trim()) {
+        const visible = top.replace(/\s+/g, " ").trim();
         let audioOnly = override.replace(/\s+/g, " ").trim();
         if (visible && audioOnly.startsWith(visible)) {
           audioOnly = audioOnly.slice(visible.length).trim().replace(/^[.,;:\s]+/, "");
         }
-        parts.push(audioOnly ? `- ${b} {${audioOnly}}` : `- ${b}`);
+        topLine = audioOnly ? `- ${top} {${audioOnly}}` : `- ${top}`;
       } else {
-        parts.push(`- ${b}`);
+        topLine = `- ${top}`;
       }
+      parts.push(topLine);
+      for (const sub of subs) parts.push(`-- ${sub}`);
     });
   }
 
   if (slide.callout) {
     parts.push("");
     const calloutNar = slide.narration?.callout?.trim();
-    if (calloutNar && calloutNar !== slide.callout.trim()) {
-      const visible = slide.callout.replace(/\s+/g, " ").trim();
+    const flatCallout = slide.callout.replace(/\s*\n\s*/g, " ").trim();
+    if (calloutNar && calloutNar !== flatCallout) {
       let audioOnly = calloutNar.replace(/\s+/g, " ").trim();
-      if (visible && audioOnly.startsWith(visible)) {
-        audioOnly = audioOnly.slice(visible.length).trim().replace(/^[.,;:\s]+/, "");
+      if (audioOnly.startsWith(flatCallout)) {
+        audioOnly = audioOnly.slice(flatCallout.length).trim().replace(/^[.,;:\s]+/, "");
       }
-      parts.push(audioOnly ? `> ${slide.callout} {${audioOnly}}` : `> ${slide.callout}`);
+      parts.push(audioOnly ? `> ${flatCallout} {${audioOnly}}` : `> ${flatCallout}`);
     } else {
-      parts.push(`> ${slide.callout}`);
+      parts.push(`> ${flatCallout}`);
     }
   }
 

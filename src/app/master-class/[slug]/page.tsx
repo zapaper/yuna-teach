@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { type MasterClassContent, type MasterClassSlide } from "@/data/master-class";
+import { renderInlineMd } from "@/lib/master-class/render";
 
 export default function Page() {
   return (
@@ -344,7 +345,7 @@ function SlideCard({
         </h2>
         {slide.body && (
           <p
-            className="text-base text-slate-700 mt-3 leading-relaxed"
+            className="text-base text-slate-700 mt-3 leading-relaxed whitespace-pre-line"
             dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
           />
         )}
@@ -498,10 +499,5 @@ function PieChart({ percentage }: { percentage: number }) {
   );
 }
 
-function renderInlineMd(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-}
+// renderInlineMd moved to @/lib/master-class/render so the student
+// player and the admin workshop share the same rendering rules.

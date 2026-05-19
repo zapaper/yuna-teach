@@ -22,7 +22,8 @@ import data from "./interactions-environment.generated.json";
 
 export type MasterClassSlide = {
   title: string;
-  body: string;
+  // Optional because the admin script editor can clear them.
+  body?: string;
   bullets?: string[];
   callout?: string;
   scoringExample?: {
@@ -55,8 +56,14 @@ export type MasterClassSlide = {
 export type MasterClassContent = {
   slug: string;
   subject: "science" | "math" | "english" | "chinese";
-  level: "P5-P6" | "P3-P4";
+  level: "P5-P6" | "P3-P4" | "P3-P6";
   topicLabel: string;
+  // Optional: when set, the admin practice-pool route filters by
+  // this regex against `transcribedStem` INSTEAD of filtering by
+  // `syllabusTopic = topicLabel`. Used for cross-topic master
+  // classes like Patterns (which spans Algebra / Basic operations /
+  // Geometry / Statistics).
+  practiceStemRegex?: string;
   title: string;
   stats: {
     psleQuestions: number;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 import { isAdmin } from "@/lib/admin";
@@ -29,21 +30,39 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ slug: 
   const excludeParam = _req.nextUrl.searchParams.get("excludeIds") ?? "";
   const excludeIds = excludeParam.split(",").map(s => s.trim()).filter(Boolean);
 
+  // Cross-topic master classes (e.g. Patterns) opt in with a regex
+  // on the stem instead of an exact syllabusTopic match. They also
+  // tend to span all P3-P6 levels rather than P6-only.
+  const useRegex = !!content.practiceStemRegex;
+  const allLevels: Prisma.ExamPaperWhereInput = {
+    OR: [
+      { level: { contains: "Primary", mode: "insensitive" } },
+      { level: { contains: "P3", mode: "insensitive" } },
+      { level: { contains: "P4", mode: "insensitive" } },
+      { level: { contains: "P5", mode: "insensitive" } },
+      { level: { contains: "P6", mode: "insensitive" } },
+      { level: { contains: "PSLE", mode: "insensitive" } },
+    ],
+  };
+  const p6Only: Prisma.ExamPaperWhereInput = {
+    OR: [
+      { level: { contains: "Primary 6", mode: "insensitive" } },
+      { level: { contains: "P6", mode: "insensitive" } },
+      { level: { contains: "PSLE", mode: "insensitive" } },
+      { level: { contains: "Primary School", mode: "insensitive" } },
+    ],
+  };
   const candidates = await prisma.examQuestion.findMany({
     where: {
-      syllabusTopic: { equals: content.topicLabel, mode: "insensitive" },
-      transcribedStem: { not: null },
+      ...(useRegex
+        ? { transcribedStem: { not: null } }
+        : { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" }, transcribedStem: { not: null } }),
       ...(excludeIds.length > 0 ? { id: { notIn: excludeIds } } : {}),
       examPaper: {
         sourceExamId: null,
         paperType: null,
         subject: { contains: content.subject, mode: "insensitive" },
-        OR: [
-          { level: { contains: "Primary 6", mode: "insensitive" } },
-          { level: { contains: "P6", mode: "insensitive" } },
-          { level: { contains: "PSLE", mode: "insensitive" } },
-          { level: { contains: "Primary School", mode: "insensitive" } },
-        ],
+        ...(useRegex ? allLevels : p6Only),
       },
     },
     select: {
@@ -55,11 +74,21 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ slug: 
       marksAvailable: true,
       examPaper: { select: { title: true, year: true } },
     },
+    take: useRegex ? 2000 : undefined,
   });
+  // Apply the stem regex in JS — Postgres regex in Prisma is awkward
+  // and the pool is small enough that filtering in code is fine.
+  const filtered = useRegex
+    ? candidates.filter(q => {
+        if (!q.transcribedStem) return false;
+        try { return new RegExp(content.practiceStemRegex!, "i").test(q.transcribedStem); }
+        catch { return false; }
+      })
+    : candidates;
 
   const isPsle = (title: string) => /\bPSLE\b/i.test(title);
-  const mcqAll = candidates.filter(q => Array.isArray(q.transcribedOptions) && (q.transcribedOptions as unknown[]).length === 4);
-  const oeqAll = candidates.filter(q => !Array.isArray(q.transcribedOptions) || (q.transcribedOptions as unknown[]).length !== 4);
+  const mcqAll = filtered.filter(q => Array.isArray(q.transcribedOptions) && (q.transcribedOptions as unknown[]).length === 4);
+  const oeqAll = filtered.filter(q => !Array.isArray(q.transcribedOptions) || (q.transcribedOptions as unknown[]).length !== 4);
 
   // Prefer a PSLE-first mix so the curated set leads with actual exam Q's
   // and then tops up from school-bank questions. Random within each tier
@@ -77,7 +106,7 @@ export async function GET(_req: NextRequest, context: { params: Promise<{ slug: 
     practice: {
       mcq,
       oeq,
-      poolSize: candidates.length,
+      poolSize: filtered.length,
       mcqPool: mcqAll.length,
       oeqPool: oeqAll.length,
     },
