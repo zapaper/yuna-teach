@@ -9,17 +9,19 @@
 //   changing-difference    — differences grow, flip, or interleave
 //   string-of-symbols      — repeating letters / beads / nth-term cycle
 //   figure-patterns        — Figure 1, 2, 3 with objects growing
-//   shape-patterns         — composed shapes (4 triangles, etc.)
 //
 // Returns a sub-topic id or null when nothing matches.
 export function classifyPatternQuestion(stem: string | null): string | null {
   if (!stem) return null;
   const s = stem.toLowerCase();
 
-  // Shape composition first: phrases like "identical right-angled
-  // triangles", "made up of N triangles" — strong signal.
-  if (/\bidentical\b.*(triangle|square|rectangle|shape)/.test(s)) return "shape-patterns";
-  if (/(?:made up of|formed from|formed by|composed of)\s+\d+\s+(identical\s+)?(triangle|square|rectangle|shape)/.test(s)) return "shape-patterns";
+  // Composed-shape questions (4 identical triangles forming a bowtie,
+  // etc.) are routed to figure-patterns — the technique (table → rule
+  // → formula) is the same as any other figure pattern. We dropped
+  // the dedicated shape-patterns sub-topic when slide 8 became the
+  // sticks worked example.
+  if (/\bidentical\b.*(triangle|square|rectangle|shape)/.test(s)) return "figure-patterns";
+  if (/(?:made up of|formed from|formed by|composed of)\s+\d+\s+(identical\s+)?(triangle|square|rectangle|shape)/.test(s)) return "figure-patterns";
 
   // Figure-based patterns with object counts. Two-colour figures
   // (grey / white / black / shaded etc.) live here too — the beads

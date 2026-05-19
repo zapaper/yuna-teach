@@ -183,7 +183,7 @@ keyConcepts:
       **exact question**, the **table** to draw, and the **formula**
       that falls out.
     bullets:
-      - "**Coming up:** growing-sum (beads in rows), square numbers (tiles in a grid), and shape composition (4 triangles joined together)."
+      - "**Coming up:** increasing difference (beads in rows), squared differences (squares in a grid), and constant difference (sticks to make figures)."
       - "**Same recipe every time** — read the question → build the table → list the differences → derive the formula → verify → apply to the target figure."
     callout: >-
       Pause and try each one on paper before reading the answer. The
@@ -251,47 +251,38 @@ keyConcepts:
       (3, 5, 7, 9…), the totals are square numbers. Differences-of-
       differences = 2 — the calling card of n².
 
-  - title: "Worked example 3 — Figure: shapes (4 triangles joined)"
+  - title: "Worked example 3 — Sticks to make the figures (constant difference)"
     body: >-
-      **P6 ACS-J Prelim 2024, 2 marks.** Figure 1 is one isosceles
-      triangle with perimeter **40 cm**. Figure 2 is made from **4**
-      such triangles arranged to share their bases. The perimeter of
-      Figure 2 is **112 cm**. Find the length of the base PQ.
-    diagramImage: /master-class/patterns/shape-composition-triangles.png
+      **P6 Raffles Girls WA1 2023, 3 marks.** Ahmad uses sticks to
+      build figures: each figure has squares with a triangle on top
+      and bottom. **(a)** How many sticks for Figure 4?
+      **(b)** Ahmad noticed that one figure uses 2 507 sticks. Which
+      figure number is it?
+    diagramImage: /master-class/patterns/pattern-sticks-triangles.png
     bullets:
       - |-
-        **Step 1 — Identify outer vs inner sides.** Look at Figure 2 closely.
-           • Each triangle has 3 sides: 2 equal legs + 1 base PQ.
-           • The 4 bases all face inward and are SHARED — they don't appear in the perimeter.
-           • Only the **8 legs** (2 per triangle × 4 triangles) appear on the outside.
+        **Step 1 — Read the current table from the diagram.** Count the sticks in each figure shown.
+           • Figure 1 → 8 sticks
+           • Figure 2 → 15 sticks
+           • Figure 3 → 22 sticks
       - |-
-        **Step 2 — Set up the equation.** All 8 legs are equal length (the triangles are identical).
-           • Figure 2 perimeter = 8 × leg = 112 cm
-           • Solve: leg = 112 ÷ 8 = **14 cm**.
+        **Step 2 — Extend the table by working out the next rows.** Differences: 15 − 8 = **7**, 22 − 15 = **7**. Constant — every new figure adds another square + 2 triangles = **+7 sticks**.
+           • Figure 4 → 22 + 7 = **29 sticks**
+           • Figure 5 → 29 + 7 = **36 sticks**
+           • Figure 6 → 36 + 7 = **43 sticks**
       - |-
-        **Step 3 — Use Figure 1 to find the base.** Figure 1 is just one triangle.
-           • Perimeter = 2 legs + 1 base = 40 cm
-           • Substitute: 2(14) + base = 40 → 28 + base = 40 → **base PQ = 12 cm**.
-      - "**Step 4 — Verify.** Triangle has sides 14, 14, 12 → perimeter 40 ✓. Figure 2 has 8 outer legs of 14 → perimeter 112 ✓."
-    scoringExample:
-      scenario: "Why does 112 ÷ 4 = 28 NOT work as the answer?"
-      oneMark:
-        label: The trap
-        text: >-
-          Dividing by 4 (number of triangles) assumes each triangle
-          contributes one outer side to the perimeter. It doesn't — it
-          contributes **2 outer sides** (both legs). Always count the
-          outer edges first.
-      fullMarks:
-        label: General rule
-        text: >-
-          For any composite shape: number of outer edges in Figure 2 =
-          (sides per piece × number of pieces) − (2 × number of shared
-          internal joins). Internal sides cancel because they're
-          counted from BOTH pieces.
+        **Step 3 — Derive the formula.** From Figure 1 (= 8 sticks), each later figure adds 7 more.
+           • Sticks in Figure n = 8 + 7 × (n − 1) = **7n + 1**.
+           • Check F1: 7(1) + 1 = 8 ✓. F3: 7(3) + 1 = 22 ✓.
+      - |-
+        **Step 4 — Answer.**
+           • **(a)** Figure 4 → 7(4) + 1 = **29 sticks** ✓ (matches the row we extended in Step 2).
+           • **(b)** Solve 7n + 1 = 2 507 → 7n = 2 506 → n = 2 506 ÷ 7 = **N = 358**.
     callout: >-
-      **Take-away:** in shape composition, the FIRST move is always
-      "count the outer edges". Everything else falls out from there.
+      **Take-away:** when each figure adds the SAME number of sticks
+      every step (here, +7), the formula is **(constant) × n +
+      (starting offset)** — in this case 7n + 1. Same 4-step recipe
+      as the bead and squares questions; just a different constant.
 
   - title: "Let's get some practice!"
     body: >-
@@ -344,7 +335,3 @@ subTopics:
     label: "Figure patterns"
     description: "'Figure 1, Figure 2, Figure 3…' with objects (tiles, dots, beads, circles, squares) growing. Asks for the count in Figure n, OR the total area / perimeter. Solved by tabling the first 3-4 figures, listing differences, and matching to a formula (linear, triangular, n², or sum of two squares)."
     slideIdx: 4
-  - id: shape-patterns
-    label: "Shape patterns"
-    description: "A bigger figure built from N identical triangles, squares, or rectangles. Tests perimeter and area reasoning where internal shared edges cancel out. Only outer edges contribute to perimeter; total area = N × (area of one piece)."
-    slideIdx: 8
