@@ -359,8 +359,11 @@ Return ONLY valid JSON (no markdown fences):
 }`;
 
   // Use a stronger model when any question on this page has expected answer "1"
-  // (thin vertical stroke — easily missed by 2.5 Flash)
-  const mcqModel = hintAnswer1QuestionIds.size > 0 ? "gemini-3-flash-preview" : "gemini-2.5-flash";
+  // (thin vertical stroke — easily missed by 2.5 Flash). Avoid the
+  // gemini-3-flash-preview tier — Google's been returning 504s on
+  // most calls when that backend is loaded; 2.5-pro is the reliable
+  // step up.
+  const mcqModel = hintAnswer1QuestionIds.size > 0 ? "gemini-2.5-pro" : "gemini-2.5-flash";
 
   try {
     const response = await withTimeout(
@@ -411,7 +414,7 @@ async function detectPrintableMcqAnswer(
   retry = false,
 ): Promise<string | null> {
   // First pass uses the layout-aware prompt; retry uses a plain-OCR
-  // prompt + the stronger gemini-3-flash-preview model. The
+  // prompt + the stronger gemini-3.1-pro-preview model. The
   // layout-aware prompt sometimes pushes the model toward null when
   // it's hedging about WHERE the ink is, even though the crop
   // clearly contains one of the eight target characters.
@@ -4412,10 +4415,12 @@ Return ONLY valid JSON:
           // Non-drawable OEQ: start cheap, escalate on each retry.
           // The previous flash→flash→lite chain just hit the same
           // JSON-malformation bug three times in a row when 2.5-flash
-          // got chatty mid-response. flash → 3-flash-preview →
-          // 3.1-pro-preview spends a little more on the rare retry
-          // path in exchange for actually getting JSON back.
-          : ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview"];
+          // got chatty mid-response. flash → 2.5-pro → 3.1-pro-preview
+          // spends a little more on the rare retry path in exchange
+          // for actually getting JSON back. Skipping gemini-3-flash-
+          // preview as the middle step — its 504 rate has been too
+          // high to be useful inside a marking loop.
+          : ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview"];
         const JSON_ONLY_REMINDER = "IMPORTANT: Your previous response could not be parsed. Return ONLY the JSON object requested. No prose, no explanation, no markdown fences — just the raw JSON starting with { and ending with }.";
         let lastErr: unknown = null;
         let lastParseFailText: string | null = null;
