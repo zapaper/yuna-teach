@@ -912,38 +912,72 @@ Rules:
 export async function transcribeMathOpenEndedQuestion(
   imageBase64: string
 ): Promise<TranscribedOpenEnded> {
-  const response = await generateContentWithRetry({
-    // See transcribeScienceOpenEndedQuestion — same reasoning
-    // for upgrading off flash: compound (a)(i)/(a)(ii) labels.
-    // Used to be gemini-3-flash-preview but Google's been returning
-    // 504s on most calls — go straight to the pro tier and let the
-    // FALLBACK_MODELS table catch any remaining transport failures.
-    model: "gemini-3.1-pro-preview",
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
-          { text: MATH_OPEN_ENDED_TRANSCRIPTION_PROMPT },
-        ],
-      },
-    ],
-    config: { responseMimeType: "application/json", temperature: 0.1 },
-  });
-
-  const text = response.text ?? "";
-  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
-  const d = parsed.diagram;
+  const parsed = await transcribeViaGeminiOrWavespeed(
+    imageBase64, MATH_OPEN_ENDED_TRANSCRIPTION_PROMPT, "math-oeq",
+    (raw) => Boolean(raw && (raw.stem || (Array.isArray(raw.subparts) && raw.subparts.length > 0))),
+  );
+  const d = parsed.diagram as Record<string, number> | null | undefined;
   return {
     stem: stripQuestionNumber(String(parsed.stem ?? "")),
     subparts: Array.isArray(parsed.subparts)
-      ? parsed.subparts.map((p: Record<string, unknown>) => ({
+      ? (parsed.subparts as Record<string, unknown>[]).map((p) => ({
           label: String(p.label ?? ""),
           text: String(p.text ?? ""),
         }))
       : [],
     diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
   };
+}
+
+// Run a transcribe prompt against Gemini-3.1-pro-preview; if the
+// model returns 200 OK with empty / unusable JSON, fall back to
+// Wavespeed (GPT-5.5). Hard-throws when both fail so the caller's
+// outer retry path can react. Logs which provider produced the
+// final answer so fallback rate is observable.
+async function transcribeViaGeminiOrWavespeed(
+  imageBase64: string,
+  prompt: string,
+  label: string,
+  isUsable: (parsed: Record<string, unknown>) => boolean,
+): Promise<Record<string, unknown>> {
+  // 1. Primary: Gemini 3.1 pro preview (already has its own retry +
+  //    2.5-flash transport fallback via generateContentWithRetry).
+  try {
+    const response = await generateContentWithRetry({
+      model: "gemini-3.1-pro-preview",
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
+            { text: prompt },
+          ],
+        },
+      ],
+      config: { responseMimeType: "application/json", temperature: 0.1 },
+    }, 2, 5000, label);
+    const text = response.text ?? "";
+    if (text.trim()) {
+      const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim())) as Record<string, unknown>;
+      if (isUsable(parsed)) {
+        console.log(`[transcribe:${label}] provider=gemini-3.1-pro-preview`);
+        return parsed;
+      }
+      console.warn(`[transcribe:${label}] Gemini returned 200 OK but content was unusable (empty stem + no subparts). Falling back to Wavespeed (GPT-5.5).`);
+    } else {
+      console.warn(`[transcribe:${label}] Gemini returned empty text. Falling back to Wavespeed (GPT-5.5).`);
+    }
+  } catch (err) {
+    console.warn(`[transcribe:${label}] Gemini threw (${(err as Error).message?.slice(0, 200)}). Falling back to Wavespeed (GPT-5.5).`);
+  }
+
+  // 2. Fallback: Wavespeed GPT-5.5. Hard-throw on failure — the
+  //    /api/admin/broken-questions/transcribe route already converts
+  //    that to a 502 + "try again" alert.
+  const { wavespeedTranscribe } = await import("./wavespeed");
+  const parsed = await wavespeedTranscribe<Record<string, unknown>>(imageBase64, prompt, label);
+  console.log(`[transcribe:${label}] provider=wavespeed:openai/gpt-5.5 (gemini was empty/failed)`);
+  return parsed;
 }
 
 // ---------------------------------------------------------------------------
@@ -1009,42 +1043,25 @@ export async function transcribeScienceMcqQuestion(
   diagram: DiagramBounds | null;
   optionBounds: (DiagramBounds | null)[] | null;
 }> {
-  const response = await generateContentWithRetry({
-    // 3-flash-preview reads table grids more reliably than 2.5-flash —
-    // 2.5 was collapsing real tables into comma-separated TEXT options
-    // when the column headers were small, especially on the bulk
-    // first-time extraction pass.
-    // Used to be gemini-3-flash-preview but Google's been returning
-    // 504s on most calls — go straight to the pro tier and let the
-    // FALLBACK_MODELS table catch any remaining transport failures.
-    model: "gemini-3.1-pro-preview",
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
-          { text: SCIENCE_MCQ_TRANSCRIPTION_PROMPT },
-        ],
-      },
-    ],
-    config: { responseMimeType: "application/json", temperature: 0.1 },
-  });
-
-  const text = response.text ?? "";
-  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
-  const d = parsed.diagram;
+  const parsed = await transcribeViaGeminiOrWavespeed(
+    imageBase64, SCIENCE_MCQ_TRANSCRIPTION_PROMPT, "science-mcq",
+    (raw) => Boolean(raw && raw.stem),
+  );
+  const d = parsed.diagram as Record<string, number> | null | undefined;
   const ob = parsed.optionBounds;
+  const optsArr = (parsed.options as unknown[] | undefined) ?? [];
   // Validate optionTable shape: 4 rows, each row length == columns.length.
   // Falls back to null when anything is off so downstream code can use the
   // text/image branches without nil-checks per cell.
   let optionTable: OptionTable | null = null;
-  if (parsed.optionTable && typeof parsed.optionTable === "object" && Array.isArray(parsed.optionTable.columns) && Array.isArray(parsed.optionTable.rows)) {
-    const columns = parsed.optionTable.columns.map((c: unknown) => String(c ?? "")).filter((c: string) => c.length > 0);
-    const rows = parsed.optionTable.rows;
+  const ot = parsed.optionTable as { columns?: unknown; rows?: unknown } | null | undefined;
+  if (ot && typeof ot === "object" && Array.isArray(ot.columns) && Array.isArray(ot.rows)) {
+    const columns = ot.columns.map((c: unknown) => String(c ?? "")).filter((c: string) => c.length > 0);
+    const rows = ot.rows;
     if (columns.length >= 1 && rows.length === 4 && rows.every((r: unknown) => Array.isArray(r) && r.length === columns.length)) {
       optionTable = {
         columns,
-        rows: rows.map((r: unknown[]) => r.map((c: unknown) => String(c ?? ""))),
+        rows: (rows as unknown[][]).map((r) => r.map((c: unknown) => String(c ?? ""))),
       };
     }
   }
@@ -1053,10 +1070,10 @@ export async function transcribeScienceMcqQuestion(
     options: optionTable
       ? null
       : [
-          String(parsed.options?.[0] ?? ""),
-          String(parsed.options?.[1] ?? ""),
-          String(parsed.options?.[2] ?? ""),
-          String(parsed.options?.[3] ?? ""),
+          String(optsArr[0] ?? ""),
+          String(optsArr[1] ?? ""),
+          String(optsArr[2] ?? ""),
+          String(optsArr[3] ?? ""),
         ],
     optionTable,
     diagram: (d && typeof d === "object") ? { top: +d.top, left: +d.left, bottom: +d.bottom, right: +d.right } : null,
@@ -1116,35 +1133,15 @@ Return ONLY valid JSON, no markdown fences:
 export async function transcribeScienceOpenEndedQuestion(
   imageBase64: string
 ): Promise<TranscribedOpenEnded> {
-  // Upgraded from gemini-2.5-flash because flash kept flattening
-  // compound sub-part labels like "(a)(i)" / "(a)(ii)" into three
-  // siblings called "a", "i", "ii" despite the prompt's explicit
-  // examples. 3-flash-preview's instruction following on the
-  // (a)/(b) ↔ (a)(i)/(a)(ii) distinction is markedly better.
-  const response = await generateContentWithRetry({
-    // Used to be gemini-3-flash-preview but Google's been returning
-    // 504s on most calls — go straight to the pro tier and let the
-    // FALLBACK_MODELS table catch any remaining transport failures.
-    model: "gemini-3.1-pro-preview",
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { inlineData: { mimeType: "image/jpeg" as const, data: imageBase64 } },
-          { text: SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT },
-        ],
-      },
-    ],
-    config: { responseMimeType: "application/json", temperature: 0.1 },
-  });
-
-  const text = response.text ?? "";
-  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
-  const d = parsed.diagram;
+  const parsed = await transcribeViaGeminiOrWavespeed(
+    imageBase64, SCIENCE_OPEN_ENDED_TRANSCRIPTION_PROMPT, "science-oeq",
+    (raw) => Boolean(raw && (raw.stem || (Array.isArray(raw.subparts) && raw.subparts.length > 0))),
+  );
+  const d = parsed.diagram as Record<string, number> | null | undefined;
   return {
     stem: stripQuestionNumber(String(parsed.stem ?? "")),
     subparts: Array.isArray(parsed.subparts)
-      ? parsed.subparts.map((p: Record<string, unknown>) => ({
+      ? (parsed.subparts as Record<string, unknown>[]).map((p) => ({
           label: String(p.label ?? ""),
           text: String(p.text ?? ""),
         }))
