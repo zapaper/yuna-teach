@@ -36,12 +36,57 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   // (no margin line numbers — 华文 papers don't print them and the
   // student never has to cite them). English keeps the line-numbered
   // markdown table because Comp OEQ answers DO reference line numbers.
+  //
+  // 完成对话 (complete dialogue / word-bank dialogue cloze) gets its
+  // OWN prompt — the section is structurally different: a numbered
+  // 8-option word bank ABOVE a multi-speaker dialogue with `______`
+  // blanks. The generic reading-passage prompt mangles it (literal
+  // "Q26" markers, missing speaker labels — see PSLE 2019 and
+  // PSLE 2020 reports). Detected by Chinese OR English aliases on
+  // the section name; result stored under the canonical 完成对话 key.
   const isChinese = (paper.subject ?? "").toLowerCase().includes("chinese");
+  const sectionNameNorm = sectionName.toLowerCase().replace(/\s+/g, "");
+  const isDialogueCompletion = isChinese && (
+    sectionName.includes("完成对话") ||
+    sectionName.includes("对话填空") ||
+    sectionNameNorm.includes("dialoguecompletion") ||
+    sectionNameNorm.includes("completedialogue") ||
+    sectionNameNorm.includes("dialoguecloze")
+  );
   const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
   for (const img of imagesBase64) {
     parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: img } });
   }
-  parts.push({ text: isChinese ? `从这些页中提取阅读理解的短文。
+  parts.push({ text: isDialogueCompletion ? `这是一份新加坡小学华文 (PSLE) 试卷的【完成对话】部分。
+
+这一部分包含两个核心元素：
+1. **词语表** — 一个有编号的表格，列出 8 个短语或短句 (编号 1 到 8)，作为学生的选择库。
+2. **对话** — 由 2–3 个角色之间的对话，含有 4 个编号的空格 (通常是 Q26–Q29)。学生从词语表中挑出合适的选项填入每个空格。
+
+请提取这部分并按以下精确格式输出 Markdown：
+
+\`\`\`
+四 完成对话 (4 题 8 分)
+根据上下文的意思，从表中选出适当的短语或短句，然后把代表它们的数字填写在作答簿上。
+
+| 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|
+| <选项 1 文字> | <选项 2 文字> | ... | <选项 8 文字> |
+
+爸爸: <对话第一句>
+小明: <含有空格的对话句子, 空格写成 ______> 我们就参加这项比赛好吗？
+爸爸: 我都这把年纪了，______ 。
+...
+\`\`\`
+
+【极重要的规则】
+- 每个空格必须写成精确的 6 个连续下划线: **______** (不要写成 "Q26"、"(26)"、"[空]"、其他符号或表情)。
+- 每段对话保留发言人标识 (例: 爸爸:、妈妈:、老师:、小华:、爷爷:)。每一行只能有一个发言人。
+- 一句对话最多一个空格。如果一题包含多句, 把多句合并成同一发言人的同一段, 然后只在空格位置写 ______ 。
+- 词语表使用 markdown 表格, 8 列, 列头为数字 1–8。文字按原文输入 (全角中文)。
+- 不要加任何编号 (例如 Q26) 在对话里 — 编号只对应空格位置, 自动从对话顺序得出。
+- 不要加多余说明、页眉、页脚、页码。
+- 输出只包括上述 markdown 文本, 不要被 \`\`\` 围住。` : isChinese ? `从这些页中提取阅读理解的短文。
 
 要求：
 - 一段一段输出，每段一行；段与段之间用一个空行隔开。
@@ -89,17 +134,32 @@ Output ONLY the table.` });
   const passageOcrText = response.text?.trim() ?? "";
   console.log(`[Re-extract Passage] ${sectionName}: result (${passageOcrText.length} chars)`);
 
-  // Update sectionOcrTexts metadata with new passageOcrText and passagePageIndices
+  // Update sectionOcrTexts metadata with new passageOcrText and passagePageIndices.
+  // For 完成对话 we canonicalize the key to the Chinese label even
+  // when the UI passed "dialogue completion" / similar English alias,
+  // so it matches the question's syllabusTopic and the quiz
+  // word-bank renderer can find it.
   const meta = (paper.metadata ?? {}) as Record<string, unknown>;
   const allOcr = (meta.sectionOcrTexts ?? {}) as Record<string, Record<string, unknown>>;
+  const canonicalSectionName = isDialogueCompletion ? "完成对话" : sectionName;
   const secKey = Object.keys(allOcr).find(k =>
-    k.toLowerCase().replace(/\s+/g, "") === sectionName.toLowerCase().replace(/\s+/g, "")
-  ) ?? sectionName;
+    k.toLowerCase().replace(/\s+/g, "") === canonicalSectionName.toLowerCase().replace(/\s+/g, "")
+  ) ?? canonicalSectionName;
   allOcr[secKey] = {
     ...(allOcr[secKey] ?? {}),
     passageOcrText,
     passagePageIndices: pageIndices,
   };
+  // If the OLD key was an English alias, remove it so we don't carry
+  // two stale entries side by side.
+  if (isDialogueCompletion && sectionName !== canonicalSectionName) {
+    for (const k of Object.keys(allOcr)) {
+      if (k !== secKey && k.toLowerCase().replace(/\s+/g, "") === sectionName.toLowerCase().replace(/\s+/g, "")) {
+        delete allOcr[k];
+        console.log(`[Re-extract Passage] removed stale section key "${k}" (canonicalised to "${secKey}")`);
+      }
+    }
+  }
 
   // For Chinese papers, rebuild chineseSections so the freshly OCR'd
   // passage immediately shows up in the quiz / edit / review UI
