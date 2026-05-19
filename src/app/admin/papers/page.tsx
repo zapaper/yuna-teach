@@ -89,6 +89,10 @@ function AdminPapersContent() {
   const examTypes = Array.from(new Set(papers.map(p => p.examType).filter(Boolean))).sort() as string[];
 
   const filtered = papers.filter(p => {
+    // Mastery quizzes (and their auto-generated reviews) are
+    // per-student artifacts — they don't belong in the global Papers
+    // list. They have their own surface in the Master Class workshop.
+    if (p.paperType === "mastery" || p.paperType === "mastery-review") return false;
     if (hideQuizzes) {
       if (p.paperType === "quiz" || p.paperType === "focused") return false;
       // Also filter by title pattern for older papers without paperType set
