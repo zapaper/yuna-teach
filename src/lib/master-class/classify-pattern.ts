@@ -4,6 +4,13 @@
 // mastery tracking works for Patterns (which doesn't have admin-
 // tagged sub-topics on its source questions).
 //
+// Sub-topic IDs (must match patterns.yaml):
+//   constant-difference    — every step adds / subtracts the same amount
+//   changing-difference    — differences grow, flip, or interleave
+//   string-of-symbols      — repeating letters / beads / nth-term cycle
+//   figure-patterns        — Figure 1, 2, 3 with objects growing
+//   shape-patterns         — composed shapes (4 triangles, etc.)
+//
 // Returns a sub-topic id or null when nothing matches.
 export function classifyPatternQuestion(stem: string | null): string | null {
   if (!stem) return null;
@@ -11,37 +18,39 @@ export function classifyPatternQuestion(stem: string | null): string | null {
 
   // Shape composition first: phrases like "identical right-angled
   // triangles", "made up of N triangles" — strong signal.
-  if (/\bidentical\b.*(triangle|square|rectangle|shape)/.test(s)) return "shape-composition";
-  if (/(?:made up of|formed from|formed by|composed of)\s+\d+\s+(identical\s+)?(triangle|square|rectangle|shape)/.test(s)) return "shape-composition";
+  if (/\bidentical\b.*(triangle|square|rectangle|shape)/.test(s)) return "shape-patterns";
+  if (/(?:made up of|formed from|formed by|composed of)\s+\d+\s+(identical\s+)?(triangle|square|rectangle|shape)/.test(s)) return "shape-patterns";
 
-  // Two-colour figures — folded into figure-objects since there's no
-  // longer a dedicated slide for two-colour patterns (the beads
-  // worked example on slide 6 covers the technique).
+  // Figure-based patterns with object counts. Two-colour figures
+  // (grey / white / black / shaded etc.) live here too — the beads
+  // worked example on slide 6 demonstrates the technique.
   if (/(grey|gray|white|black|shaded|unshaded).*(tile|circle|square|bead|dot)/.test(s)
    || /(tile|circle|square|bead|dot).*(grey|gray|white|black|shaded|unshaded)/.test(s)) {
-    return "figure-objects";
+    return "figure-patterns";
   }
 
-  // nth term — "what is the 80th letter", "the 105th bead", etc.
-  if (/the\s*\d+(st|nd|rd|th)\s*(figure|term|number|bead|letter)/.test(s)) return "nth-term";
-  if (/what\s+is\s+the\s+\d+(st|nd|rd|th)/.test(s)) return "nth-term";
-  if (/nth\s+term/.test(s)) return "nth-term";
+  // String-of-symbols / nth-term — "what is the 80th letter", "the
+  // 105th bead", etc.
+  if (/the\s*\d+(st|nd|rd|th)\s*(figure|term|number|bead|letter)/.test(s)) return "string-of-symbols";
+  if (/what\s+is\s+the\s+\d+(st|nd|rd|th)/.test(s)) return "string-of-symbols";
+  if (/nth\s+term/.test(s)) return "string-of-symbols";
+  // Pure repeating-sequence patterns (no Figure n labelling)
+  if (/repeated pattern|repeating pattern|necklace|first \d+ (letter|bead)/.test(s)) return "string-of-symbols";
 
-  // Figure-based object counting.
+  // Figure-based — generic.
   if (/figure\s*\d/.test(s) || /each\s+figure/.test(s) || /the\s+(\d+)(st|nd|rd|th)\s+figure/.test(s)) {
-    return "figure-objects";
+    return "figure-patterns";
   }
 
-  // Number sequences. Many of these will be "differences-method"
-  // (linear). If the sequence visibly mixes operations (sub-patterns),
-  // it's "hidden-subpatterns" — but that's hard to detect from the
-  // stem alone, so default to differences-method.
-  if (/missing\s+number/.test(s)) return "differences-method";
-  if (/number\s+pattern/.test(s)) return "differences-method";
-  if (/pattern\s+below/.test(s)) return "differences-method";
-  if (/sequence/.test(s)) return "differences-method";
+  // Number sequences. Most fall into "constant difference" (linear).
+  // Genuinely changing-difference sequences are hard to detect from
+  // the stem alone — they need to look at the actual numbers. We
+  // default to constant-difference and let an admin re-tag if needed.
+  if (/missing\s+number/.test(s)) return "constant-difference";
+  if (/number\s+pattern/.test(s)) return "constant-difference";
+  if (/pattern\s+below/.test(s)) return "constant-difference";
+  if (/sequence/.test(s)) return "constant-difference";
 
-  // Last-resort fallback so the question still tracks against SOME
-  // sub-topic. differences-method is the broadest catch-all.
-  return "differences-method";
+  // Last-resort fallback.
+  return "constant-difference";
 }

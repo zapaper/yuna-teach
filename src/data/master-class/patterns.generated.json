@@ -252,33 +252,33 @@
   ],
   "subTopics": [
     {
-      "id": "differences-method",
-      "label": "The Differences Method",
-      "description": "Straightforward number sequences with a constant or near-constant difference between terms. Solved by writing the differences between consecutive terms. Includes simple add/subtract patterns and place-value rebuild questions (e.g. 12 608 = 10 000 + 2000 + ? + 8).",
+      "id": "constant-difference",
+      "label": "Patterns: constant difference",
+      "description": "Number sequences where every step adds (or subtracts) the same amount. Linear add/subtract patterns plus place-value rebuilds (e.g. 12 608 = 10 000 + 2000 + ? + 8). Solved by writing the differences between consecutive terms and confirming they're all equal.",
       "slideIdx": 1
     },
     {
-      "id": "hidden-subpatterns",
-      "label": "Hidden sub-patterns",
-      "description": "Sequences that look chaotic because two or three interleaved sub-sequences are mixed together, OR the rule is a repeating set of operations (subtract, subtract, add). The trick is to find the repeating sub-rule or look at every-other term.",
+      "id": "changing-difference",
+      "label": "Patterns: changing difference",
+      "description": "Sequences where the differences themselves change — they flip sign (subtract-subtract-add repeats), grow each step (triangular / square / cubic), or hide two interleaved sub-sequences in one list. Trick is to find the repeating sub-rule or look at every-other term.",
       "slideIdx": 2
     },
     {
-      "id": "nth-term",
-      "label": "Find the nth term",
-      "description": "Questions asking for the 80th letter / 74th bead / 105th term of a repeating pattern. Solved by finding the cycle length, dividing the target position, and using the remainder.",
+      "id": "string-of-symbols",
+      "label": "Patterns: string of symbols",
+      "description": "Repeating sequences of letters / beads / shapes / colours. Questions ask 'what is the 80th letter / 74th bead / 105th term?'. Solved by finding the cycle length, dividing the target position, and using the remainder.",
       "slideIdx": 3
     },
     {
-      "id": "figure-objects",
-      "label": "Figure-based patterns (count objects)",
-      "description": "'Figure 1, Figure 2, Figure 3…' with shapes/dots/sticks growing. Asks for the count of objects (or total area / perimeter) in Figure n. Solved by tabling the first 3-4 figures and spotting the rule (linear or squared).",
+      "id": "figure-patterns",
+      "label": "Figure patterns",
+      "description": "'Figure 1, Figure 2, Figure 3…' with objects (tiles, dots, beads, circles, squares) growing. Asks for the count in Figure n, OR the total area / perimeter. Solved by tabling the first 3-4 figures, listing differences, and matching to a formula (linear, triangular, n², or sum of two squares).",
       "slideIdx": 4
     },
     {
-      "id": "shape-composition",
-      "label": "Shape composition",
-      "description": "A bigger figure built from N identical triangles, squares, or rectangles. Tests perimeter and area reasoning where internal shared edges cancel out. Only outer edges contribute to perimeter.",
+      "id": "shape-patterns",
+      "label": "Shape patterns",
+      "description": "A bigger figure built from N identical triangles, squares, or rectangles. Tests perimeter and area reasoning where internal shared edges cancel out. Only outer edges contribute to perimeter; total area = N × (area of one piece).",
       "slideIdx": 8
     }
   ]
