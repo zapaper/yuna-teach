@@ -104,7 +104,7 @@ export async function detectQuestionType(imageBase64: string): Promise<"mcq" | "
       }],
       config: { responseMimeType: "application/json", temperature: 0 },
     });
-    const parsed = JSON.parse((response.text ?? "{}").replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+    const parsed = JSON.parse(sanitizeJsonString((response.text ?? "{}").replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
     return parsed.type === "mcq" ? "mcq" : "oeq";
   } catch {
     return "oeq"; // fallback: treat as OEQ if detection fails
@@ -186,7 +186,7 @@ export async function transcribeMathMcqQuestion(
   });
 
   const text = response.text ?? "";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
   const d = parsed.diagram;
   const ob = parsed.optionBounds;
   return {
@@ -281,7 +281,7 @@ export async function classifyDifficultyBatch(
     config: { responseMimeType: "application/json", temperature: 0.1 },
   }, 1, 2000, "difficulty");
   const text = response.text ?? "{}";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()) as { ratings?: Array<{ id?: string; difficulty?: number | string; reason?: string }> };
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim())) as { ratings?: Array<{ id?: string; difficulty?: number | string; reason?: string }> };
   const out: Record<string, { difficulty: number; reason: string }> = {};
   for (const r of parsed.ratings ?? []) {
     const id = String(r.id ?? "");
@@ -503,7 +503,7 @@ ${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagr
   });
 
   const text = response.text ?? "";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
 
   function normalize(v: Record<string, unknown>): SyntheticMcqVariant {
     const opts = Array.isArray(v.options) ? v.options : [];
@@ -603,7 +603,7 @@ ${diagramBase64 ? "A diagram accompanies the stem (see image)." : "No diagram."}
   });
 
   const text = response.text ?? "";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
 
   function normalize(v: Record<string, unknown>): SyntheticOeqVariant {
     const rawSubs = Array.isArray(v.subparts) ? (v.subparts as unknown[]) : [];
@@ -758,7 +758,7 @@ ${originalAnswer}`;
   });
 
   const text = response.text ?? "";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
 
   function normalise(v: Record<string, unknown>): SyntheticSynthesisVariant {
     let stem = String(v.stem ?? "").trim();
@@ -886,7 +886,7 @@ Rules:
       config: { responseMimeType: "application/json", temperature: 0.1 },
     });
     const text = response.text ?? "";
-    const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+    const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
     const out: Record<string, number> = {};
     for (const label of labels) {
       const v = parsed?.[label];
@@ -920,7 +920,7 @@ export async function transcribeMathOpenEndedQuestion(
   });
 
   const text = response.text ?? "";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
   const d = parsed.diagram;
   return {
     stem: stripQuestionNumber(String(parsed.stem ?? "")),
@@ -1016,7 +1016,7 @@ export async function transcribeScienceMcqQuestion(
   });
 
   const text = response.text ?? "";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
   const d = parsed.diagram;
   const ob = parsed.optionBounds;
   // Validate optionTable shape: 4 rows, each row length == columns.length.
@@ -1121,7 +1121,7 @@ export async function transcribeScienceOpenEndedQuestion(
   });
 
   const text = response.text ?? "";
-  const parsed = JSON.parse(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim());
+  const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim()));
   const d = parsed.diagram;
   return {
     stem: stripQuestionNumber(String(parsed.stem ?? "")),
@@ -1554,27 +1554,39 @@ export async function extractExamAnswers(
   return JSON.parse(text) as Record<string, string>;
 }
 
-// Sanitize JSON strings that may contain unescaped newlines within string values
+// Sanitize a Gemini JSON response so JSON.parse can handle:
+//   1. literal newlines inside string values → replaced with " | "
+//   2. bad escapes like "\d" / "\$" / "\." inside string values →
+//      backslash is doubled so the next char becomes literal text
+//      (was the source of "Bad escaped character" parse failures
+//      when Gemini emitted things like \degrees or \times).
 function sanitizeJsonString(raw: string): string {
-  // Replace literal newlines inside JSON string values with " | "
-  // Strategy: walk through the string, track whether we're inside a JSON string literal,
-  // and replace any unescaped newlines found inside strings
+  // Valid JSON escape characters that may follow a backslash inside
+  // a string literal. Anything else after a backslash is a bug we
+  // need to repair before handing the text to JSON.parse.
+  const VALID_ESCAPES = new Set(["\"", "\\", "/", "b", "f", "n", "r", "t", "u"]);
   let result = "";
   let inString = false;
-  let escaped = false;
 
   for (let i = 0; i < raw.length; i++) {
     const ch = raw[i];
 
-    if (escaped) {
-      result += ch;
-      escaped = false;
-      continue;
-    }
-
     if (ch === "\\") {
-      result += ch;
-      escaped = true;
+      const next = raw[i + 1];
+      if (inString && next !== undefined && !VALID_ESCAPES.has(next)) {
+        // Bad escape inside a string — replace "\X" with "\\X" so the
+        // backslash itself is escaped and the character X stays as
+        // literal text. Two output chars produced from one input.
+        result += "\\\\";
+      } else {
+        // Valid escape (or backslash outside a string, which is rare
+        // but harmless to pass through). Emit both chars and skip.
+        result += ch;
+        if (next !== undefined) {
+          result += next;
+          i++;
+        }
+      }
       continue;
     }
 
@@ -1586,9 +1598,7 @@ function sanitizeJsonString(raw: string): string {
 
     if (inString && (ch === "\n" || ch === "\r")) {
       // Replace literal newline inside a JSON string with " | "
-      if (ch === "\r" && raw[i + 1] === "\n") {
-        i++; // skip the \n in \r\n
-      }
+      if (ch === "\r" && raw[i + 1] === "\n") i++; // skip the \n in \r\n
       result += " | ";
       continue;
     }
