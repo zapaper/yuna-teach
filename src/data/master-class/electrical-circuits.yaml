@@ -96,25 +96,28 @@ keyConcepts:
       - "**Parallel circuit** — multiple paths. Each bulb sits on its own branch. **If one bulb fuses → only THAT bulb goes dark; the others stay lit.**"
       - "**The shortcut** — when a question says 'one bulb was blown and the others did not light up', the blown bulb is on a SERIES path that ALL the others depend on. It's usually the bulb closest to the battery on a single shared wire."
       - "**Combined circuits** — most PSLE diagrams mix series and parallel. Treat each branch separately: a bulb in series WITHIN a parallel branch only kills its own branch when it fuses."
-    scoringExample:
-      scenario: >-
-        Five bulbs in a circuit. When one bulb fuses, two other
-        bulbs also go off. Where is the blown bulb?
-      oneMark:
-        label: Guess
-        text: "Pick any bulb at random — 1 in 5 chance."
-      fullMarks:
-        label: Full marks
-        text: >-
-          The blown bulb killed exactly TWO other bulbs → those two
-          were in **series WITH** the blown bulb on a shared branch.
-          The other two bulbs survived → they're on a separate
-          **parallel branch**. So the blown bulb is on the
-          3-bulb-in-series sub-circuit.
+
+  - title: "2b: Worked example — Which bulb was blown? (PSLE 2020 Q17, 2m)"
+    body: >-
+      **Study the circuit. When one bulb was blown, the OTHER
+      bulbs did not light up. Which bulb was blown?**
+    diagramImage: /master-class/circuits/psle-2020-q17-bulb-fuse.png
+    bullets:
+      - |-
+        **Step 1 — Find the bulb whose failure breaks the path for ALL the others.** Trace each candidate.
+           • Bulb A is on the top-right branch — a parallel arm. Removing it kills only that branch; others stay lit.
+           • Bulb C is on the far-left branch — a parallel arm. Removing it kills only its own branch.
+           • Bulbs B and D are on inner branches; removing either kills only its own loop.
+      - |-
+        **Step 2 — Spot the bulb on the COMMON wire.** Look for the bulb sitting on a wire that EVERY other branch's current has to flow through. That's the bulb at the bottom — it's in series with the battery, on the only wire that returns to the negative terminal.
+      - |-
+        **Step 3 — Verify.** If that bottom bulb fuses, ALL the other branches lose their return path → no current anywhere → every other bulb goes dark. ✓ matches the question.
+      - "**Step 4 — Answer.** The bulb on the **main return wire** (the bottom shared bulb) is the one that was blown."
     callout: >-
       **Series = group dies together. Parallel = each bulb stands
-      alone.** Most "which bulb blew" questions are just this rule
-      applied to a busy-looking diagram.
+      alone.** In a mixed series-parallel diagram, the bulb whose
+      failure kills EVERYTHING is the one on the SHARED wire —
+      the bottleneck every parallel branch depends on.
 
   - title: "3: Bulb brightness — when do two circuits match?"
     body: >-
@@ -195,28 +198,7 @@ keyConcepts:
       bulbs need to match in brightness, give each one its own
       branch back to the battery.
 
-  - title: "Worked example 2 — Which bulb blew (PSLE 2020 Q17, 2m)"
-    body: >-
-      **Study the circuit. When one bulb was blown, the OTHER
-      bulbs did not light up. Which bulb was blown?**
-    diagramImage: /master-class/circuits/psle-2020-q17-bulb-fuse.png
-    bullets:
-      - |-
-        **Step 1 — Find the bulb whose failure breaks the path for ALL the others.** Trace each candidate.
-           • Bulb A is on the top-right branch — a parallel arm. Removing it kills only that branch; others stay lit.
-           • Bulb C is on the far-left branch — a parallel arm. Removing it kills only its own branch.
-           • Bulbs B and D are on inner branches; removing either kills its own loop only.
-      - |-
-        **Step 2 — Bulb on the COMMON wire.** Look for the bulb sitting on a wire that EVERY other branch's current has to flow through. That's the bulb at the bottom — it's in series with the battery, on the only wire that returns to the negative terminal.
-      - |-
-        **Step 3 — Verify.** If that bottom bulb fuses, ALL the other branches lose their return path → no current anywhere → every other bulb goes dark.
-      - "**Step 4 — Answer.** The bulb on the main return wire is the one that was blown. ✓"
-    callout: >-
-      In a mixed series-parallel diagram, the bulb whose failure
-      kills EVERYTHING is the one on the **shared wire** — the
-      bottleneck that all parallel branches depend on.
-
-  - title: "Worked example 3 — Electromagnet door lock (PSLE 2020 Q39, 5m)"
+  - title: "Worked example 2 — Electromagnet door lock (PSLE 2020 Q39, 5m)"
     body: >-
       **Peter built a door lock as shown. When he closed the
       switch, the iron bolt moved to the right, away from the
@@ -286,8 +268,8 @@ subTopics:
   - id: bulb-brightness
     label: Bulb brightness
     description: "Comparing brightness across multiple circuits. 'In which circuit is L brightest?' / 'In which circuit will L = M?' Solved by counting batteries-in-series and bulbs-in-series along the loop with the named bulb."
-    slideIdx: 3
+    slideIdx: 4
   - id: electromagnets
     label: Electromagnets
     description: "Electromagnet OEQs — bell ringer, buzzer, door lock, door bolt. Marking rewards naming each step: closed circuit → current → coil becomes electromagnet → attracts iron → physical motion. 4-5 marks each."
-    slideIdx: 4
+    slideIdx: 5
