@@ -176,6 +176,10 @@ function MasterClassWorkshop() {
             </div>
           </section>
 
+          {/* ── Icon editor — regenerates the per-class artwork
+              shown on the student list page via Gemini image gen. */}
+          <IconEditor slug={slug} title={content.title} subject={content.subject} />
+
           {/* ── Sub-topic classifier (admin tool) ──
               Classifies every master-bank question on this topic into
               one of the Master Class sub-topics. Required for the
@@ -830,6 +834,95 @@ function PracticeCard({ q, idx }: { q: PracticeQuestion; idx: number }) {
         <p className="text-[11px] text-emerald-700 mt-2 font-semibold">Answer: {q.answer.slice(0, 200)}</p>
       )}
     </div>
+  );
+}
+
+function IconEditor({ slug, title, subject }: { slug: string; title: string; subject: string }) {
+  const [prompt, setPrompt] = useState("");
+  const [defaultPrompt, setDefaultPrompt] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState<string | null>(null);
+  // Cache-buster bumped on every successful regen so the <img> below
+  // refetches instead of showing a stale cached PNG.
+  const [iconVersion, setIconVersion] = useState(0);
+
+  useEffect(() => {
+    fetch(`/api/admin/master-class/${slug}/icon`)
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { prompt: string | null; defaultPrompt: string } | null) => {
+        if (!d) return;
+        setDefaultPrompt(d.defaultPrompt);
+        setPrompt(d.prompt ?? d.defaultPrompt);
+      })
+      .catch(() => { /* non-fatal */ });
+  }, [slug]);
+
+  async function regenerate() {
+    setBusy(true);
+    setErr(null);
+    setOk(null);
+    try {
+      const res = await fetch(`/api/admin/master-class/${slug}/icon`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setErr(data.error ?? `Failed (${res.status})`); return; }
+      setOk(`Updated (model: ${data.model}, ${(data.bytes / 1024).toFixed(1)} KB)`);
+      setIconVersion(v => v + 1);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  void title; void subject; // surfaced for prompt context, used server-side
+  return (
+    <section className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">Class icon</p>
+      <div className="flex gap-5 items-start flex-wrap">
+        <div className="w-28 h-28 rounded-2xl bg-slate-50 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0">
+          <img
+            src={`/api/master-class/${slug}/icon?v=${iconVersion}`}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.style.opacity = "0.3"; }}
+          />
+        </div>
+        <div className="flex-1 min-w-[260px]">
+          <textarea
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            rows={5}
+            spellCheck={false}
+            className="w-full text-xs leading-relaxed text-slate-800 border border-slate-200 rounded-lg p-3 focus:outline-none focus:border-slate-400 resize-y"
+            placeholder="Describe the icon you want — style, colours, subject…"
+          />
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
+            <button
+              onClick={regenerate}
+              disabled={busy || !prompt.trim()}
+              className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 disabled:opacity-40"
+            >
+              {busy ? "Generating…" : "🎨 Regenerate icon"}
+            </button>
+            {defaultPrompt && (
+              <button
+                onClick={() => setPrompt(defaultPrompt)}
+                disabled={busy}
+                className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200"
+                title="Reset to the default anime-style prompt"
+              >Reset to default</button>
+            )}
+            {ok && <span className="text-[10px] text-emerald-700">{ok}</span>}
+            {err && <span className="text-[10px] text-rose-600">{err}</span>}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 

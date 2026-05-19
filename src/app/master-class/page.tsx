@@ -138,7 +138,7 @@ function MasterClassList() {
                       icon-gen script has been re-run). */}
                   <div className="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 overflow-hidden">
                     <img
-                      src={`/master-class-icons/${mc.slug}.png`}
+                      src={`/api/master-class/${mc.slug}/icon`}
                       alt=""
                       className="w-full h-full object-cover"
                       onError={(e) => {

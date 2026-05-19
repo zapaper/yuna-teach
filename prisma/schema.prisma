@@ -379,6 +379,10 @@ model MasterClass {
   slug                 String   @id
   keyConceptScripts    Json     @default("[]")
   commonMistakeScripts Json     @default("[]")
+  // Last prompt used to regenerate the class icon via Gemini image
+  // generation. Persisted so the admin workshop's icon editor can
+  // show what was used and let the author iterate on it.
+  iconPrompt           String?
   updatedAt            DateTime @updatedAt
 
   @@map("master_classes")
