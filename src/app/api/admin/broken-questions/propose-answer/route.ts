@@ -58,7 +58,7 @@ Rewritten answer (canonical format only, single line):`;
 
   try {
     const response = await generateContentWithRetry({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { temperature: 0 },
     });

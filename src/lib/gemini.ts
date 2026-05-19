@@ -915,7 +915,10 @@ export async function transcribeMathOpenEndedQuestion(
   const response = await generateContentWithRetry({
     // See transcribeScienceOpenEndedQuestion — same reasoning
     // for upgrading off flash: compound (a)(i)/(a)(ii) labels.
-    model: "gemini-3-flash-preview",
+    // Used to be gemini-3-flash-preview but Google's been returning
+    // 504s on most calls — go straight to the pro tier and let the
+    // FALLBACK_MODELS table catch any remaining transport failures.
+    model: "gemini-3.1-pro-preview",
     contents: [
       {
         role: "user",
@@ -1011,7 +1014,10 @@ export async function transcribeScienceMcqQuestion(
     // 2.5 was collapsing real tables into comma-separated TEXT options
     // when the column headers were small, especially on the bulk
     // first-time extraction pass.
-    model: "gemini-3-flash-preview",
+    // Used to be gemini-3-flash-preview but Google's been returning
+    // 504s on most calls — go straight to the pro tier and let the
+    // FALLBACK_MODELS table catch any remaining transport failures.
+    model: "gemini-3.1-pro-preview",
     contents: [
       {
         role: "user",
@@ -1116,7 +1122,10 @@ export async function transcribeScienceOpenEndedQuestion(
   // examples. 3-flash-preview's instruction following on the
   // (a)/(b) ↔ (a)(i)/(a)(ii) distinction is markedly better.
   const response = await generateContentWithRetry({
-    model: "gemini-3-flash-preview",
+    // Used to be gemini-3-flash-preview but Google's been returning
+    // 504s on most calls — go straight to the pro tier and let the
+    // FALLBACK_MODELS table catch any remaining transport failures.
+    model: "gemini-3.1-pro-preview",
     contents: [
       {
         role: "user",
