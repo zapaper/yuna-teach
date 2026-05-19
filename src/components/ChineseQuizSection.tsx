@@ -663,15 +663,30 @@ function PassageWithInputs({
   onFocusInput?: () => void;
   emptyFieldIds?: Set<string>;
 }) {
-  // Always use position-based mapping: passage blank i → questions[i]
-  // This handles both renumbered and original numbering, and ignores stray markers
+  // Always use position-based mapping: passage blank i → questions[i].
+  // Handles two marker styles:
+  //   English style: **(29)________**    (e.g. Grammar Cloze, Editing)
+  //   Chinese 完成对话: plain ______       (no question number annotation)
+  // We scan both, in document order, and assign each blank to the
+  // i-th question in sorted order. For underscore-only blanks the
+  // "question number" key in qNumToId is synthetic — we use a
+  // negative sentinel `-(blankIdx+1)` so it doesn't collide with
+  // real English Q numbers in the same passage.
   const passageQNums: number[] = [];
-  const seen = new Set<number>();
-  const passageRegex = /\*\*\((\d+)\)/g;
+  const seenEng = new Set<number>();
+  const COMBINED_RX = /\*\*\((\d+)\)|_{6,}/g;
+  let blankIdx = 0;
   let pm;
-  while ((pm = passageRegex.exec(passage)) !== null) {
-    const n = parseInt(pm[1]);
-    if (!seen.has(n)) { passageQNums.push(n); seen.add(n); }
+  while ((pm = COMBINED_RX.exec(passage)) !== null) {
+    if (pm[1] !== undefined) {
+      // English **(NN) style
+      const n = parseInt(pm[1]);
+      if (!seenEng.has(n)) { passageQNums.push(n); seenEng.add(n); }
+    } else {
+      // Chinese ______ style — synthetic position-based key
+      passageQNums.push(-(blankIdx + 1));
+    }
+    blankIdx++;
   }
   const sortedQs = [...questions].sort((a, b) =>
     a.questionNum.localeCompare(b.questionNum, undefined, { numeric: true })
@@ -708,30 +723,45 @@ function PassageWithInputs({
   return (
     <div className="bg-white rounded-2xl p-5 lg:p-8 shadow-sm border border-slate-100 relative">
       {tool === "pen" && <PassageScratchOverlay />}
-      {lines.map((line, li) => {
-        // Skip table separator rows (must check before table rows)
-        if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
-        // Table rows
-        if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
-          return <TableLine key={li} line={line} usedLetters={usedLetters} />;
-        }
-        // Empty line = paragraph break
-        if (!line.trim()) return <br key={li} />;
+      {(() => {
+        // Cross-line counter for plain ______ markers — each one
+        // consumes the next synthetic key built above (negative sentinels).
+        let underscoreCounter = 0;
+        return lines.map((line, li) => {
+          // Skip table separator rows (must check before table rows)
+          if (line.match(/^\s*\|[\s-:|]+\|\s*$/)) return null;
+          // Table rows
+          if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+            return <TableLine key={li} line={line} usedLetters={usedLetters} />;
+          }
+          // Empty line = paragraph break
+          if (!line.trim()) return <br key={li} />;
 
-        return (
-          <PassageLine
-            key={li}
-            line={line}
-            sectionType={sectionType}
-            qNumToId={qNumToId}
-            qNumToDisplayNum={qNumToDisplayNum}
-            answers={answers}
-            onAnswer={onAnswer}
-            onFocusInput={onFocusInput}
-            emptyFieldIds={emptyFieldIds}
-          />
-        );
-      })}
+          // Count how many ______ this line has; pass start offset.
+          const lineUnderscoreCount = (line.match(/_{6,}/g) ?? []).length;
+          // We also need to account for ENGLISH **(NN)** markers
+          // already in the synthetic key sequence — those use the
+          // explicit qNum, not the underscore counter. The counter
+          // only advances for plain underscores.
+          const startUnderscoreIdx = underscoreCounter;
+          underscoreCounter += lineUnderscoreCount;
+
+          return (
+            <PassageLine
+              key={li}
+              line={line}
+              sectionType={sectionType}
+              qNumToId={qNumToId}
+              qNumToDisplayNum={qNumToDisplayNum}
+              answers={answers}
+              onAnswer={onAnswer}
+              onFocusInput={onFocusInput}
+              emptyFieldIds={emptyFieldIds}
+              underscoreOffset={startUnderscoreIdx}
+            />
+          );
+        });
+      })()}
     </div>
   );
 }
@@ -1050,6 +1080,7 @@ function PassageLine({
   onAnswer,
   onFocusInput,
   emptyFieldIds,
+  underscoreOffset = 0,
 }: {
   line: string;
   sectionType: "grammar-cloze" | "editing" | "comprehension-cloze";
@@ -1059,12 +1090,18 @@ function PassageLine({
   onAnswer: (questionId: string, answer: string) => void;
   onFocusInput?: () => void;
   emptyFieldIds?: Set<string>;
+  // For lines containing plain ______ markers (Chinese 完成对话), this
+  // is the cumulative count of underscore-blanks BEFORE this line.
+  // Each underscore in this line maps to qNumToId.get(-(globalIdx+1)).
+  underscoreOffset?: number;
 }) {
-  // Parse bold markers with question numbers: **(29)________** or **(39) beleive**
+  // Parse bold markers with question numbers (English): **(29)________** or **(39) beleive**
+  // AND plain ______ markers (Chinese 完成对话 dialogue blanks).
   const parts: React.ReactNode[] = [];
-  const regex = /\*\*\((\d+)\)([^*]*)\*\*/g;
+  const regex = /\*\*\((\d+)\)([^*]*)\*\*|(_{6,})/g;
   let lastIdx = 0;
   let match;
+  let lineUnderscoreIdx = 0;
 
   while ((match = regex.exec(line)) !== null) {
     // Add text before the match
@@ -1072,10 +1109,27 @@ function PassageLine({
       parts.push(<span key={`t${lastIdx}`}>{...renderInlineBold(line.slice(lastIdx, match.index))}</span>);
     }
 
-    const qNum = parseInt(match[1]);
-    const displayNum = qNumToDisplayNum.get(qNum) ?? qNum;
-    const content = match[2].trim();
-    const qId = qNumToId.get(qNum);
+    const isUnderscoreOnly = match[3] !== undefined;
+    let qNum: number;
+    let displayNum: number;
+    let content: string;
+    let qId: string | undefined;
+
+    if (isUnderscoreOnly) {
+      // Plain ______ marker (Chinese 完成对话) — keyed by the synthetic
+      // negative sentinel set up in PassageWithInputs.
+      const globalIdx = underscoreOffset + lineUnderscoreIdx;
+      lineUnderscoreIdx++;
+      qNum = -(globalIdx + 1);
+      qId = qNumToId.get(qNum);
+      displayNum = qNumToDisplayNum.get(qNum) ?? (globalIdx + 1);
+      content = "";
+    } else {
+      qNum = parseInt(match[1]);
+      displayNum = qNumToDisplayNum.get(qNum) ?? qNum;
+      content = match[2].trim();
+      qId = qNumToId.get(qNum);
+    }
 
     if (sectionType === "grammar-cloze" || sectionType === "comprehension-cloze") {
       // Cloze: show question number + text input
