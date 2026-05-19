@@ -106,17 +106,6 @@
         "**Pattern type E — Sum of two squares** (e.g. n² + (n − 1)²). Figure n is two overlapping squares of consecutive sizes. Test it: F1 = 1 + 0 = 1, F2 = 4 + 1 = 5, F3 = 9 + 4 = 13, F4 = 16 + 9 = 25.",
         "**The fixed 4-step method** for any figure question:\n   • **Step 1** — Make a table: Figure no. | Count. Fill the first 3-4 rows from the diagram.\n   • **Step 2** — Look at the **differences** between consecutive counts. Constant → Type A. Growing by 1 → Type B. Differences double or grow as odd numbers → Type C or E.\n   • **Step 3** — Pick a formula candidate from the 5 types. Plug in n = 1, 2, 3 to **verify** it matches your table.\n   • **Step 4** — Apply the formula to the target figure (Figure 10, Figure 20, Figure 50). Show the substitution clearly — markers want to see your working, not just the answer."
       ],
-      "scoringExample": {
-        "scenario": "**Worked example.** Black and white tiles form a pattern. Figure 1 has 4 tiles total, Figure 2 has 9, Figure 3 has 16, Figure 4 has 25. Find the total number of tiles in **Figure 10**.",
-        "oneMark": {
-          "label": "1 mark (guessing)",
-          "text": "Adding 11 each time → Figure 10 ≈ 4 + 9 × 11 = 103. Wrong — the differences aren't constant, this isn't a linear pattern."
-        },
-        "fullMarks": {
-          "label": "Full marks (with the 4-step method)",
-          "text": "**Step 1 (table)** — F1 = 4, F2 = 9, F3 = 16, F4 = 25. **Step 2 (differences)** — 9 − 4 = **5**, 16 − 9 = **7**, 25 − 16 = **9**. Differences are 5, 7, 9 — going up by 2 each time (consecutive odd numbers). Not linear. Try square numbers. **Step 3 (formula)** — F1 = 4 = **2²**, F2 = 9 = **3²**, F3 = 16 = **4²**, F4 = 25 = **5²**. So Figure n total = **(n + 1)²**. **Step 4 (apply)** — Figure 10 total = (10 + 1)² = **11² = 121 tiles**."
-        }
-      },
       "callout": "**The single most important habit:** before you do ANYTHING else, write the table. Three columns: Figure no. | Count | Difference. 90% of figure questions crack open the moment that table is on the page. The remaining 10% need you to split into TWO tables (one per colour / object) and apply the same method to each."
     },
     {
