@@ -3,6 +3,15 @@ import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 import { getMasterClassHydrated } from "@/lib/master-class/hydrate";
 import { classifyPatternQuestion } from "@/lib/master-class/classify-pattern";
+import { classifyCircuitsQuestion } from "@/lib/master-class/classify-circuits";
+
+// Per-slug stem classifier. When the source question has no
+// subTopic tag, we fill it in at clone time so per-sub-topic
+// mastery tracking still works.
+const STEM_CLASSIFIERS: Record<string, (stem: string | null) => string | null> = {
+  "patterns": classifyPatternQuestion,
+  "electrical-circuits": classifyCircuitsQuestion,
+};
 import { getWrongSourceQuestionIds } from "@/lib/master-class/mastery";
 
 // POST /api/master-class/[slug]/start-quiz
@@ -89,17 +98,23 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   });
 
   // ─── Pull candidate questions ──────────────────────────────────────
-  // Cross-topic master classes (with `practiceStemRegex`) filter by
-  // stem keyword instead of by syllabusTopic + subTopic. The mastery
-  // quiz then falls back to a simple MCQ/OEQ split (no per-sub-topic
-  // round robin) because those questions aren't tagged into our
-  // master-class sub-topic taxonomy yet.
+  // Three paths:
+  //   1. useRegex (Patterns) — stem regex match across subject pool.
+  //   2. useClassifier (Circuits) — match by syllabusTopic, but drop
+  //      the `subTopic: not null` filter because source questions
+  //      don't carry the master-class sub-topic IDs; we'll set those
+  //      at clone time via the stem classifier.
+  //   3. Default (Interactions) — match by syllabusTopic AND require
+  //      an admin-tagged subTopic on each candidate.
   const useRegex = !!content.practiceStemRegex;
+  const useClassifier = !useRegex && !!STEM_CLASSIFIERS[slug];
   const candidatesRaw = await prisma.examQuestion.findMany({
     where: {
       ...(useRegex
         ? { transcribedStem: { not: null } }
-        : { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" }, transcribedStem: { not: null }, subTopic: { not: null } }),
+        : useClassifier
+          ? { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" }, transcribedStem: { not: null } }
+          : { syllabusTopic: { equals: content.topicLabel, mode: "insensitive" }, transcribedStem: { not: null }, subTopic: { not: null } }),
       examPaper: {
         sourceExamId: null,
         paperType: null,
@@ -145,9 +160,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     }
   } else {
     for (const st of subTopics) groups.set(st.id, { mcq: [], oeq: [] });
+    // Classifier-based slugs (Circuits) re-tag from the stem; pure
+    // tagged slugs (Interactions) use the admin-set subTopic field.
+    const classifier = STEM_CLASSIFIERS[slug];
     for (const q of candidates) {
-      if (!q.subTopic || !groups.has(q.subTopic)) continue;
-      const g = groups.get(q.subTopic)!;
+      const subTopicId = classifier ? classifier(q.transcribedStem) : q.subTopic;
+      if (!subTopicId || !groups.has(subTopicId)) continue;
+      const g = groups.get(subTopicId)!;
       if (hasOptions(q)) g.mcq.push(q);
       else g.oeq.push(q);
     }
@@ -322,11 +341,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
           answerImageData: q.answerImageData,
           marksAvailable: hasOptions(q) ? 2 : (q.marksAvailable ?? 1),
           syllabusTopic: q.syllabusTopic,
-          // For regex-mode classes (Patterns), the source question
-          // has no admin-tagged subTopic — classify by stem at clone
-          // time so per-sub-topic mastery still works.
-          subTopic: useRegex && slug === "patterns"
-            ? classifyPatternQuestion(q.transcribedStem)
+          // For classes with a stem classifier (Patterns, Circuits…),
+          // re-tag at clone time. Source questions for these master
+          // classes don't have admin-set subTopic, so the classifier
+          // fills it from the stem keywords. Falls through to the
+          // source's subTopic for classes that don't need it.
+          subTopic: STEM_CLASSIFIERS[slug]
+            ? STEM_CLASSIFIERS[slug](q.transcribedStem)
             : q.subTopic,
           pageIndex: 0,
           orderIndex: i,

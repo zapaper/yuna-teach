@@ -1,0 +1,287 @@
+# Master Class: Electrical Systems and Circuits (Physical Science)
+# ---------------------------------------------------------------
+# Tied for #1 most-tested PSLE Science topic by marks (11.4% of
+# total marks, 2020-2024). Half of the marks live in the OEQs —
+# and 5 of 7 PSLE OEQs on this topic are electromagnet stories
+# (bell, buzzer, door lock, door bolt) that all follow the same
+# 4-step writing recipe.
+#
+# CONVENTIONS:
+#   • **bold** in any text renders as bold on screen.
+#   • __underline__ also supported.
+#   • Use the YAML `|` literal-block syntax for multi-line strings.
+#   • `narration.intro`, `narration.bullets`, `narration.scoringExample`,
+#     `narration.callout` are OPTIONAL — when set, the audio reads the
+#     override instead of the visible content.
+
+slug: electrical-circuits
+subject: science
+level: P5-P6
+topicLabel: Electrical system and circuits
+title: Electrical Systems and Circuits
+
+stats:
+  psleQuestions: 18
+  psleSubjectPercent: 11
+  totalPracticePool: 69
+  psleQuestionsInPool: 18
+  schoolQuestionsInPool: 51
+  pctOeq: 56
+  headline: >-
+    Tied for the **#1 most-tested PSLE Science topic** — **11.4% of
+    total PSLE marks** (2020–2024). More than half are open-ended,
+    and the high-mark OEQs almost ALL follow the **same 4-step
+    electromagnet recipe**.
+
+# ────────────────────────────────────────────────────────────────────
+# KEY CONCEPT SLIDES
+# ────────────────────────────────────────────────────────────────────
+keyConcepts:
+
+  - title: "Electrical Circuits: How important is this?"
+    body: >-
+      Tied with "Interaction of Forces" for the most-tested PSLE
+      Science topic. The MCQs test diagram reading; the OEQs test
+      whether you can WRITE the explanation step by step.
+    pieChart:
+      percentage: 11
+      label: of PSLE Science marks
+      caption: Joint #1 across 2020–2024 PSLE papers.
+    bullets:
+      - "**18 PSLE questions** in 2020–2024 (8 MCQ, 10 OEQ)"
+      - "**42 marks** total across those 5 papers — about one in nine PSLE Science marks"
+      - "**~56% of the questions are OEQ** — and the OEQs include the 4 and 5-mark monsters"
+      - |-
+        **We will cover the 4 concept families and 3 worked examples:**
+          • Reading the circuit diagram
+          • Series vs Parallel — the fuse rule
+          • Bulb brightness — same loop, same batteries?
+          • Electromagnets — the 4-step OEQ formula
+    callout: >-
+      If you only revise one Physical Science topic — start here.
+      The electromagnet OEQ alone is worth ~4-5 marks every year.
+
+  - title: "1: Reading the circuit diagram"
+    body: >-
+      Before you answer anything, READ the diagram. PSLE circuit
+      diagrams look complicated because of the layout, but they're
+      built from 4 ingredients: **battery, bulb(s), switch, wire**.
+      Trace the wire with your pencil to find the loops.
+    bullets:
+      - "**Battery** ▎▏ — the longer line is **+**, the shorter line is **−**. Two batteries in a row = **series** (more voltage); side-by-side facing the same way = **parallel** (same voltage but lasts longer)."
+      - "**Bulb** ⊗ — lights up only when current flows through it."
+      - "**Switch** — open = no current; closed = current flows."
+      - "**Wire** — just a path. Follow it from + terminal of battery, through every component, back to − terminal."
+      - "**The 'loop' question** — does current have a path from + back to −? **Yes → closed circuit, bulb lights up.** **No → open circuit, bulb stays dark.**"
+      - "**Common trap** — wires that LOOK separate may actually be joined at a junction (dot). Wires that LOOK joined may actually cross without touching (no dot). The dot is what matters."
+    callout: >-
+      First move on every circuit question: **trace the loop with
+      your pencil**. If you can't get from + back to − without
+      lifting your pencil, it's an open circuit.
+
+  - title: "2: Series vs Parallel — the fuse rule"
+    body: >-
+      Most PSLE circuit MCQs hinge on the difference between
+      series and parallel. There's one shortcut that handles
+      almost every "which bulb blew" or "bulb fuses, what happens"
+      question.
+    bullets:
+      - "**Series circuit** — one path. Current goes through ALL bulbs in order. **If ANY bulb fuses → ALL bulbs go dark.** (Christmas lights, classic example.)"
+      - "**Parallel circuit** — multiple paths. Each bulb sits on its own branch. **If one bulb fuses → only THAT bulb goes dark; the others stay lit.**"
+      - "**The shortcut** — when a question says 'one bulb was blown and the others did not light up', the blown bulb is on a SERIES path that ALL the others depend on. It's usually the bulb closest to the battery on a single shared wire."
+      - "**Combined circuits** — most PSLE diagrams mix series and parallel. Treat each branch separately: a bulb in series WITHIN a parallel branch only kills its own branch when it fuses."
+    scoringExample:
+      scenario: >-
+        Five bulbs in a circuit. When one bulb fuses, two other
+        bulbs also go off. Where is the blown bulb?
+      oneMark:
+        label: Guess
+        text: "Pick any bulb at random — 1 in 5 chance."
+      fullMarks:
+        label: Full marks
+        text: >-
+          The blown bulb killed exactly TWO other bulbs → those two
+          were in **series WITH** the blown bulb on a shared branch.
+          The other two bulbs survived → they're on a separate
+          **parallel branch**. So the blown bulb is on the
+          3-bulb-in-series sub-circuit.
+    callout: >-
+      **Series = group dies together. Parallel = each bulb stands
+      alone.** Most "which bulb blew" questions are just this rule
+      applied to a busy-looking diagram.
+
+  - title: "3: Bulb brightness — when do two circuits match?"
+    body: >-
+      A common MCQ type: 4 circuits drawn, "in which circuit is
+      bulb L brightest?" or "which circuit has the same brightness
+      as the one shown?" Solving by intuition fails. Use the
+      counting method.
+    bullets:
+      - "**Step 1 — Count the batteries in series along ONE path** from + back to −. More batteries in series → more voltage → brighter."
+      - "**Step 2 — Count how many bulbs share that voltage on the same loop.** If two bulbs are in series, each gets HALF the voltage → dimmer. If one bulb sits alone on its branch, it gets the full voltage → brightest."
+      - "**Step 3 — Two circuits have the SAME brightness when they have the same RATIO of batteries-in-series to bulbs-in-series on the loop containing the bulb you care about.**"
+      - "**Quick test** — 2 batteries + 1 bulb in series gives the same brightness as 1 battery + half a bulb (impossible — so brighter). 1 battery + 2 bulbs in series gives the same brightness as half a battery + 1 bulb (dimmer)."
+      - "**Common trap** — adding MORE batteries in PARALLEL does NOT make the bulb brighter. Same voltage, just lasts longer."
+    callout: >-
+      **More batteries in series = brighter. More bulbs in series
+      = dimmer.** Adding things in parallel doesn't change brightness
+      — only makes the circuit last longer (extra battery) or
+      adds independent branches (extra bulb).
+
+  - title: "4: Electromagnets — the 4-step OEQ formula"
+    body: >-
+      5 of 7 PSLE OEQs on this topic involve electromagnets —
+      bell ringers, buzzers, door locks, door bolts. They all
+      describe a device with a **coil of wire around an iron core**,
+      and ask "explain what happens when the switch is closed".
+      The marking scheme rewards naming each step in a fixed chain.
+    bullets:
+      - "**Step 1 — Closed circuit.** 'When the switch is closed, a **closed circuit** is formed and **electric current flows** through the wire coil.'"
+      - "**Step 2 — Coil becomes an electromagnet.** 'The fixed metal cylinder (with the coil around it) **becomes an electromagnet**.'"
+      - "**Step 3 — Magnetism attracts.** 'The electromagnet **attracts** the iron [bolt / bar / rod / hammer], causing it to **move** [direction].'"
+      - "**Step 4 — Physical outcome.** Connect the motion to the device's job (hammer hits the bell, bolt moves away from the catch, bar swings towards point P, etc.)."
+      - "**Step 5 — What happens when the switch OPENS?** Some questions add this. 'When the switch is opened, the circuit is broken → no current → the cylinder **loses its magnetism / demagnetises** → no longer attracts → iron [bolt / bar] returns to its original position (pulled by the spring).'"
+    scoringExample:
+      scenario: >-
+        Peter built a door lock using a switch, battery, and a
+        coil of wire around a metal cylinder. When the switch
+        closes, the iron bolt moves away from the catch and the
+        door unlocks. Explain why.
+      oneMark:
+        label: 1 mark (incomplete)
+        text: "The iron bolt moves because of magnetism."
+      fullMarks:
+        label: Full marks (the 4-step recipe)
+        text: >-
+          When the switch is closed, a **closed circuit** is
+          formed, **electricity flows** through the circuit and
+          the fixed metal cylinder **becomes an electromagnet**.
+          The electromagnet **attracts** the iron bolt, pulling
+          it to the right and **away from the catch**, so the
+          door unlocks.
+    callout: >-
+      **Closed circuit → current flows → cylinder becomes
+      electromagnet → attracts iron → motion.** Memorise that chain.
+      It's the same answer for every electromagnet OEQ — only the
+      object names change.
+
+  - title: "Worked example 1 — Bulb brightness (PSLE 2020 Q21, 2m)"
+    body: >-
+      **Identical bulbs R, S and T are used in the circuit. Which
+      change will allow all bulbs to light up with equal
+      brightness?**
+    diagramImage: /master-class/circuits/psle-2020-q21-bulb-brightness.png
+    bullets:
+      - |-
+        **Step 1 — Trace the current path.** The battery powers the loop. Bulb S sits on the TOP branch (alone). Bulbs R and T sit on the BOTTOM branch (in series with each other).
+      - |-
+        **Step 2 — Compare voltages per bulb.**
+           • S has the full battery voltage to itself → **bright**.
+           • R and T share the same voltage → each gets half → **dim**.
+        Right now, S is brighter than R and T.
+      - |-
+        **Step 3 — What change equalises them?** All three bulbs need the SAME share of the battery.
+           • Connect R and T in **parallel** (same as S) instead of in series with each other.
+           • Then S, R, and T are all on their own branch, each gets the full voltage → all bright equally.
+      - "**Step 4 — Answer.** Option (2): rewire R and T in parallel instead of series. ✓"
+    callout: >-
+      **Series shares voltage; parallel splits the current.** When
+      bulbs need to match in brightness, give each one its own
+      branch back to the battery.
+
+  - title: "Worked example 2 — Which bulb blew (PSLE 2020 Q17, 2m)"
+    body: >-
+      **Study the circuit. When one bulb was blown, the OTHER
+      bulbs did not light up. Which bulb was blown?**
+    diagramImage: /master-class/circuits/psle-2020-q17-bulb-fuse.png
+    bullets:
+      - |-
+        **Step 1 — Find the bulb whose failure breaks the path for ALL the others.** Trace each candidate.
+           • Bulb A is on the top-right branch — a parallel arm. Removing it kills only that branch; others stay lit.
+           • Bulb C is on the far-left branch — a parallel arm. Removing it kills only its own branch.
+           • Bulbs B and D are on inner branches; removing either kills its own loop only.
+      - |-
+        **Step 2 — Bulb on the COMMON wire.** Look for the bulb sitting on a wire that EVERY other branch's current has to flow through. That's the bulb at the bottom — it's in series with the battery, on the only wire that returns to the negative terminal.
+      - |-
+        **Step 3 — Verify.** If that bottom bulb fuses, ALL the other branches lose their return path → no current anywhere → every other bulb goes dark.
+      - "**Step 4 — Answer.** The bulb on the main return wire is the one that was blown. ✓"
+    callout: >-
+      In a mixed series-parallel diagram, the bulb whose failure
+      kills EVERYTHING is the one on the **shared wire** — the
+      bottleneck that all parallel branches depend on.
+
+  - title: "Worked example 3 — Electromagnet door lock (PSLE 2020 Q39, 5m)"
+    body: >-
+      **Peter built a door lock as shown. When he closed the
+      switch, the iron bolt moved to the right, away from the
+      catch and the door was unlocked. (b) Explain how the door
+      unlocks when the switch is closed. [4m]**
+    diagramImage: /master-class/circuits/psle-2020-q39-door-lock.png
+    bullets:
+      - |-
+        **Step 1 — Closed circuit.** When the switch is closed, a **closed circuit** is formed and **electric current flows** through the wire coiled around the metal cylinder.
+      - |-
+        **Step 2 — Cylinder becomes an electromagnet.** The current flowing through the coil turns the **fixed metal cylinder** into an **electromagnet**.
+      - |-
+        **Step 3 — Magnetism attracts the iron bolt.** The electromagnet **attracts the iron bolt** (because iron is a magnetic material). The bolt moves to the **right**, towards the cylinder.
+      - |-
+        **Step 4 — Physical outcome.** The iron bolt moves **away from the catch** on the door, so the catch is no longer held and the **door unlocks**.
+      - "**Bonus (Step 5) if asked about opening the switch:** when the switch opens, current stops → cylinder loses magnetism → bolt no longer attracted → **spring pushes it back** to the left, into the catch → door locks again."
+    callout: >-
+      **Closed circuit → current flows → cylinder becomes
+      electromagnet → attracts iron bolt → bolt moves away from
+      catch.** Same 4-step recipe every electromagnet question.
+      Memorise once, write it out exactly on the exam.
+
+  - title: "Let's get some practice!"
+    body: >-
+      Time to put it all together. This quiz pulls real PSLE-style
+      questions on circuits — diagram reading, series/parallel,
+      bulb brightness, and the electromagnet OEQ.
+    bullets:
+      - "**6 MCQ** + **4 OEQ** — a cross-section across all 4 sub-topics."
+      - After you submit, the AI flags the trick families you got wrong and suggests a focused follow-up quiz.
+      - "Mistakes are saved — we'll return to them in an auto-revision session in **1 week**."
+    cta:
+      label: Click here to start your practice quiz
+      quizSpec:
+        title: "Mastery: Electrical Circuits Quiz 1"
+        mcq: 6
+        oeq: 4
+
+commonMistakes: []
+
+# ────────────────────────────────────────────────────────────────────
+# KEY WORDS  (hover-for-definition pills shown above the deck)
+# ────────────────────────────────────────────────────────────────────
+keyWords:
+  - { word: closed circuit, definition: "A complete loop from the + of the battery, through every wire and component, back to the −. Current flows; bulbs light up." }
+  - { word: open circuit, definition: "A broken loop — somewhere the wire doesn't reach back to the battery. No current flows. Bulbs stay dark." }
+  - { word: series, definition: "Components on the same single wire. Current goes through ALL of them in order. If one bulb fuses, all go dark." }
+  - { word: parallel, definition: "Components on separate branches that join up at junctions. Each branch is its own loop. If one bulb fuses, the others stay lit." }
+  - { word: electromagnet, definition: "A coil of wire around an iron core that becomes magnetic ONLY when current flows through the coil." }
+  - { word: switch, definition: "A break in the wire you can open or close. Open = no current. Closed = current flows." }
+  - { word: voltage, definition: "How hard the battery pushes the current. More batteries in series = more voltage = brighter bulb." }
+  - { word: fuse / blew, definition: "A bulb has 'fused' or 'blown' when its filament has snapped — it's now an open wire and won't light up." }
+
+# ────────────────────────────────────────────────────────────────────
+# SUB-TOPICS  (used by the classifier + mastery-quiz pickers)
+# slideIdx is the 0-based position into keyConcepts.
+# ────────────────────────────────────────────────────────────────────
+subTopics:
+  - id: reading-diagrams
+    label: Reading circuit diagrams
+    description: "Foundational diagram-reading skills — identifying batteries, bulbs, switches, junctions, and tracing the current path from + back to −. Includes questions where the answer is just 'this circuit is open / closed'."
+    slideIdx: 1
+  - id: series-vs-parallel
+    label: Series vs Parallel
+    description: "Series vs parallel arrangement and the fuse rule. 'Which bulb was blown?' / 'When the switch closed, only N bulbs lit up' / how many bulbs go off when one fuses. Tests reading shared vs branched current paths."
+    slideIdx: 2
+  - id: bulb-brightness
+    label: Bulb brightness
+    description: "Comparing brightness across multiple circuits. 'In which circuit is L brightest?' / 'In which circuit will L = M?' Solved by counting batteries-in-series and bulbs-in-series along the loop with the named bulb."
+    slideIdx: 3
+  - id: electromagnets
+    label: Electromagnets
+    description: "Electromagnet OEQs — bell ringer, buzzer, door lock, door bolt. Marking rewards naming each step: closed circuit → current → coil becomes electromagnet → attracts iron → physical motion. 4-5 marks each."
+    slideIdx: 4

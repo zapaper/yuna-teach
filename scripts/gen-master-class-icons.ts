@@ -20,6 +20,7 @@ const OUT_DIR = path.join(process.cwd(), "public", "master-class-icons");
 const PROMPTS: Record<string, string> = {
   "interactions-environment": "A friendly, minimalist flat-design icon for a primary-school Science topic on Interactions within the Environment. Show a small green leafy plant with a yellow sun above and a tiny butterfly. Soft pastel emerald and sky-blue colours, thick rounded shapes, plenty of white space, no text, no human characters. Square 1:1 composition, suitable as a rounded app icon.",
   "patterns": "A friendly, minimalist flat-design icon for a primary-school Math topic on Patterns. Show three growing groups of geometric shapes (small dot, medium dot, large dot OR small square, medium square, big square) arranged in a clean step pattern. Soft pastel violet and orange colours, thick rounded shapes, plenty of white space, no text, no human characters. Square 1:1 composition, suitable as a rounded app icon.",
+  "electrical-circuits": "A cute anime / chibi-style flat illustration for a primary-school Science topic on Electrical Systems and Circuits. Show a glowing yellow lightbulb on the left and a coiled copper wire spring with sparkles around it on the right. Soft pastel yellow, sky-blue, and coral colours. Kawaii aesthetic, thick rounded shapes, plenty of white space, no text, no human characters. Square 1:1 composition, suitable as a rounded app icon.",
 };
 
 async function main() {

@@ -1,11 +1,13 @@
 import { interactionsEnvironment, type MasterClassContent } from "./interactions-environment";
 import { patterns } from "./patterns";
+import { electricalCircuits } from "./electrical-circuits";
 
 // Master Class registry. Add new topics here as they're authored.
 // The slug is what the admin route uses (/admin/master-class/[slug]).
 export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "interactions-environment": interactionsEnvironment,
   "patterns": patterns,
+  "electrical-circuits": electricalCircuits,
 };
 
 export function getMasterClass(slug: string): MasterClassContent | null {
