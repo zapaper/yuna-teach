@@ -85,11 +85,17 @@ keyConcepts:
       series and parallel. There's one shortcut that handles
       almost every "which bulb blew" or "bulb fuses, what happens"
       question.
+    diagramImage: /master-class/circuits/bulb-contact-points.png
     bullets:
       - "**Series circuit** — one path. Current goes through ALL bulbs in order. **If ANY bulb fuses → ALL bulbs go dark.** (Christmas lights, classic example.)"
       - "**Parallel circuit** — multiple paths. Each bulb sits on its own branch. **If one bulb fuses → only THAT bulb goes dark; the others stay lit.**"
       - "**The shortcut** — when a question says 'one bulb was blown and the others did not light up', the blown bulb is on a SERIES path that ALL the others depend on. It's usually the bulb closest to the battery on a single shared wire."
       - "**Combined circuits** — most PSLE diagrams mix series and parallel. Treat each branch separately: a bulb in series WITHIN a parallel branch only kills its own branch when it fuses."
+      - |-
+        **The bulb-wiring trap** — a bulb only lights up when the wires touch BOTH of its contacts:
+           • One wire on the **BOTTOM TIP** (the little dot at the base — the "foot contact").
+           • One wire on the **SIDE OF THE SCREW THREAD** (the metal barrel — the "side contact").
+        If BOTH wires touch the same place (both on the thread, or both on the tip), or if one wire touches the **glass**, the bulb stays dark — circuit is open. PSLE MCQs love this trap: "When the switch was closed, why didn't the bulb light up?" — look at where the wires connect. See diagram above (✓ left vs ✗ right).
     scoringExample:
       scenario: >-
         Five bulbs in a circuit. When one bulb fuses, two other
