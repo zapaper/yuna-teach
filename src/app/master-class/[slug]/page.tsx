@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { type MasterClassContent, type MasterClassSlide } from "@/data/master-class";
 import { renderInlineMd } from "@/lib/master-class/render";
+import type { MasteryReport, SubTopicMastery } from "@/lib/master-class/mastery";
 
 export default function Page() {
   return (
@@ -94,6 +95,13 @@ function MasterClassPlayer() {
             </button>
           </div>
         )}
+
+        {/* Mastery panel — shown only after the student has taken at
+            least one mastery quiz on this class. Colored tabs per
+            sub-topic + a focused-quiz button (max 3 weak topics) and
+            the "All sub-topics quiz" button. */}
+        <MasteryPanel slug={slug} userId={userId} />
+
 
         {slide && (
           <SlideCard
@@ -419,6 +427,107 @@ function SlideCard({
         </button>
       </div>
     </div>
+  );
+}
+
+// Mastery panel rendered above the slide deck. Only shows once the
+// student has at least one completed mastery quiz for this slug.
+function MasteryPanel({ slug, userId }: { slug: string; userId: string }) {
+  const router = useRouter();
+  const [report, setReport] = useState<MasteryReport | null>(null);
+  const [launching, setLaunching] = useState<null | "focused" | "all">(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!userId || !slug) return;
+    let cancelled = false;
+    fetch(`/api/master-class/${slug}/mastery?studentId=${userId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!cancelled && d) setReport(d as MasteryReport); })
+      .catch(() => { /* non-fatal */ });
+    return () => { cancelled = true; };
+  }, [slug, userId]);
+
+  // Don't render the panel until they've taken at least one quiz.
+  if (!report || report.totalAttempts === 0) return null;
+
+  const subTopics = report.subTopics ?? [];
+  const weakIds = report.weakSubTopicIds ?? [];
+  const weakLabels = weakIds
+    .map(id => subTopics.find(s => s.id === id)?.label)
+    .filter(Boolean) as string[];
+
+  async function launch(payload: { focusSubTopics?: string[] }, which: "focused" | "all") {
+    setLaunching(which);
+    setError(null);
+    try {
+      const res = await fetch(`/api/master-class/${slug}/start-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId: userId, ...payload }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? `Failed (${res.status})`); return; }
+      router.push(`/quiz/${data.paperId}?userId=${userId}`);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLaunching(null);
+    }
+  }
+
+  return (
+    <section className="mb-6 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+      <div className="flex items-baseline justify-between gap-3 mb-3">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mastery of topic</p>
+        <p className="text-[10px] text-slate-400">
+          {report.totalAttempts} quiz{report.totalAttempts === 1 ? "" : "es"} taken · latest score {report.latestAttemptScorePct != null ? `${Math.round(report.latestAttemptScorePct)}%` : "—"}
+        </p>
+      </div>
+      {subTopics.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {subTopics.map(st => <MasteryTabChip key={st.id} state={st.state} label={st.label} />)}
+        </div>
+      ) : (
+        <p className="text-xs text-slate-400 mb-4">Sub-topic breakdown isn&apos;t tracked for this class yet.</p>
+      )}
+      <div className="flex flex-wrap gap-2">
+        {weakIds.length > 0 && (
+          <button
+            onClick={() => launch({ focusSubTopics: weakIds }, "focused")}
+            disabled={launching !== null}
+            className="px-4 py-2.5 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 disabled:opacity-50 shadow flex items-center gap-2"
+            title={`2 MCQ + 2 OEQ from each of: ${weakLabels.join(", ")}`}
+          >
+            <span className="material-symbols-outlined text-base">target</span>
+            {launching === "focused" ? "Building quiz…" : `Master ${weakLabels.join(", ")} quiz`}
+          </button>
+        )}
+        <button
+          onClick={() => launch({}, "all")}
+          disabled={launching !== null}
+          className="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 shadow flex items-center gap-2"
+        >
+          <span className="material-symbols-outlined text-base">play_circle</span>
+          {launching === "all" ? "Building quiz…" : "All sub-topics quiz"}
+        </button>
+      </div>
+      {error && <p className="text-xs text-rose-600 mt-2">{error}</p>}
+    </section>
+  );
+}
+
+function MasteryTabChip({ state, label }: { state: SubTopicMastery["state"]; label: string }) {
+  const styles = state === "mastered"
+    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+    : state === "weak"
+      ? "bg-amber-100 text-amber-800 border-amber-200"
+      : "bg-slate-100 text-slate-500 border-slate-200";
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${styles}`}>
+      {state === "mastered" && <span className="material-symbols-outlined text-[13px] leading-none">check_circle</span>}
+      {label}
+    </span>
   );
 }
 

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getSessionUserId } from "@/lib/session";
 import { getMasterClassHydrated } from "@/lib/master-class/hydrate";
+import { classifyPatternQuestion } from "@/lib/master-class/classify-pattern";
+import { getWrongSourceQuestionIds } from "@/lib/master-class/mastery";
 
 // POST /api/master-class/[slug]/start-quiz
 //   body: { studentId: string, parentMasteryId?: string }
@@ -57,9 +59,14 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const body = await req.json().catch(() => ({})) as {
     studentId?: string;
     parentMasteryId?: string;
+    // Optional: when set, the picker pulls 2 MCQ + 1-2 OEQ from EACH
+    // of the listed sub-topics (instead of doing the all-sub-topics
+    // round-robin). Used by the "Focus on weak topics" button.
+    focusSubTopics?: string[];
   };
   const studentId = body.studentId;
   if (!studentId) return NextResponse.json({ error: "studentId required" }, { status: 400 });
+  const focusSubTopics = Array.isArray(body.focusSubTopics) ? body.focusSubTopics : [];
 
   // Auth: session user must be either an admin OR linked-as-parent
   // to the student. Mirrors the daily-quiz flow.
@@ -195,6 +202,19 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     if (picked.filter(hasOptions).length < mcqTarget) {
       warnings.push(`Only ${picked.filter(hasOptions).length} MCQ available (wanted ${mcqTarget}).`);
     }
+  } else if (focusSubTopics.length > 0) {
+    // Focused mode: 2 MCQ + 2 OEQ from each listed sub-topic.
+    for (const stId of focusSubTopics) {
+      const st = subTopics.find(s => s.id === stId);
+      if (!st) { warnings.push(`Unknown sub-topic "${stId}".`); continue; }
+      const g = groups.get(stId);
+      if (!g) { warnings.push(`No questions cached for sub-topic "${st.label}".`); continue; }
+      const oeqPick = g.oeq.splice(0, 2);  // up to 2 OEQ per sub-topic
+      const mcqPick = g.mcq.splice(0, 2);  // 2 MCQ per sub-topic
+      picked.push(...oeqPick, ...mcqPick);
+      if (oeqPick.length === 0) warnings.push(`No OEQ available for sub-topic "${st.label}".`);
+      if (mcqPick.length === 0) warnings.push(`No MCQ available for sub-topic "${st.label}".`);
+    }
   } else {
     // Pick 1 OEQ per sub-topic first (the firm constraint).
     for (const st of subTopics) {
@@ -262,9 +282,21 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     0,
   );
 
+  // Title reflects mode. Focused quizzes include the sub-topic
+  // labels so the student knows what's being targeted.
+  let title: string;
+  if (focusSubTopics.length > 0) {
+    const labels = focusSubTopics
+      .map(id => subTopics.find(s => s.id === id)?.label ?? id)
+      .filter(Boolean);
+    title = `Mastery: ${content.title} — focus on ${labels.join(", ")}`;
+  } else {
+    title = `Mastery: ${content.title} Quiz ${quizNumber}`;
+  }
+
   const paper = await prisma.examPaper.create({
     data: {
-      title: `Mastery: ${content.title} Quiz ${quizNumber}`,
+      title,
       subject: content.subject,
       level: student?.level ? `P${student.level}` : null,
       userId: sessionUserId,
@@ -278,6 +310,7 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
         masterClassSlug: slug,
         masterClassTitle: content.title,
         quizNumber,
+        ...(focusSubTopics.length > 0 ? { focusSubTopics } : {}),
         ...(body.parentMasteryId ? { parentMasteryId: body.parentMasteryId } : {}),
         warnings,
       } as never,
@@ -289,7 +322,12 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
           answerImageData: q.answerImageData,
           marksAvailable: hasOptions(q) ? 2 : (q.marksAvailable ?? 1),
           syllabusTopic: q.syllabusTopic,
-          subTopic: q.subTopic,
+          // For regex-mode classes (Patterns), the source question
+          // has no admin-tagged subTopic — classify by stem at clone
+          // time so per-sub-topic mastery still works.
+          subTopic: useRegex && slug === "patterns"
+            ? classifyPatternQuestion(q.transcribedStem)
+            : q.subTopic,
           pageIndex: 0,
           orderIndex: i,
           transcribedStem: q.transcribedStem,
@@ -311,5 +349,126 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     select: { id: true },
   });
 
+  // ─── Auto-review scheduling ────────────────────────────────────────
+  // Every new mastery quiz resets the 7-day review timer. We delete
+  // any existing PENDING (uncompleted) review paper for (student,
+  // slug), then create a fresh one with scheduledFor = now + 7 days,
+  // containing every wrong source-question from past completed quizzes.
+  // Skipped if the student has no wrong questions on record.
+  await upsertPendingReviewPaper({ slug, content, studentId, sessionUserId, studentLevel: student?.level ?? null });
+
   return NextResponse.json({ paperId: paper.id, warnings, quizNumber });
+}
+
+// Delete any uncompleted "Master Class X Review" paper for the
+// student × slug, then create a fresh one if there are wrong source
+// questions on record. Idempotent — safe to call after every quiz.
+async function upsertPendingReviewPaper(params: {
+  slug: string;
+  content: { title: string; subject: string };
+  studentId: string;
+  sessionUserId: string;
+  studentLevel: number | null;
+}) {
+  const { slug, content, studentId, sessionUserId, studentLevel } = params;
+
+  // 1. Delete pending reviews for this (student, slug) — never delete
+  //    a completed one (preserves history). "Pending" = no completedAt.
+  await prisma.examPaper.deleteMany({
+    where: {
+      assignedToId: studentId,
+      paperType: "mastery-review",
+      completedAt: null,
+      metadata: { path: ["masterClassSlug"], equals: slug } as never,
+    },
+  });
+
+  // 2. Collect wrong source-question IDs.
+  const sourceIds = await getWrongSourceQuestionIds(slug, studentId);
+  if (sourceIds.length === 0) return;
+
+  // 3. Fetch full source questions so the cloned review has the same
+  //    fields as a normal mastery quiz.
+  const sourceQuestions = await prisma.examQuestion.findMany({
+    where: { id: { in: sourceIds } },
+    select: {
+      id: true,
+      questionNum: true,
+      imageData: true,
+      answer: true,
+      answerImageData: true,
+      marksAvailable: true,
+      syllabusTopic: true,
+      subTopic: true,
+      transcribedStem: true,
+      transcribedOptions: true,
+      transcribedOptionImages: true,
+      transcribedOptionTable: true,
+      transcribedSubparts: true,
+      diagramImageData: true,
+      diagramBounds: true,
+      elaboration: true,
+    },
+  });
+  // Preserve the most-recent-wrong-first order from sourceIds.
+  const byId = new Map(sourceQuestions.map(q => [q.id, q]));
+  const orderedSources = sourceIds.map(id => byId.get(id)).filter((q): q is NonNullable<typeof q> => !!q);
+
+  // 4. Create the review paper, scheduledFor = now + 7 days.
+  const scheduledFor = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const isMcq = (q: typeof orderedSources[number]) => {
+    if (Array.isArray(q.transcribedOptions) && q.transcribedOptions.length === 4) return true;
+    if (Array.isArray(q.transcribedOptionImages) && q.transcribedOptionImages.some(o => !!o)) return true;
+    const t = q.transcribedOptionTable;
+    if (t && typeof t === "object" && Array.isArray((t as { rows?: unknown }).rows) && (t as { rows: unknown[] }).rows.length === 4) return true;
+    return false;
+  };
+  const totalMarks = orderedSources.reduce(
+    (s, q) => s + (isMcq(q) ? 2 : (q.marksAvailable ?? 1)),
+    0,
+  );
+
+  await prisma.examPaper.create({
+    data: {
+      title: `Master Class: ${content.title} — Review`,
+      subject: content.subject,
+      level: studentLevel != null ? `P${studentLevel}` : null,
+      userId: sessionUserId,
+      assignedToId: studentId,
+      paperType: "mastery-review",
+      instantFeedback: true,
+      pageCount: 0,
+      extractionStatus: "ready",
+      scheduledFor,
+      totalMarks: String(totalMarks),
+      metadata: {
+        masterClassSlug: slug,
+        masterClassTitle: content.title,
+        kind: "auto-review",
+        wrongCount: orderedSources.length,
+      } as never,
+      questions: {
+        create: orderedSources.map((q, i) => ({
+          questionNum: String(i + 1),
+          imageData: q.imageData,
+          answer: q.answer,
+          answerImageData: q.answerImageData,
+          marksAvailable: isMcq(q) ? 2 : (q.marksAvailable ?? 1),
+          syllabusTopic: q.syllabusTopic,
+          subTopic: q.subTopic,
+          pageIndex: 0,
+          orderIndex: i,
+          transcribedStem: q.transcribedStem,
+          transcribedOptions: q.transcribedOptions ?? undefined,
+          transcribedOptionImages: q.transcribedOptionImages ?? undefined,
+          transcribedOptionTable: q.transcribedOptionTable ?? undefined,
+          transcribedSubparts: q.transcribedSubparts ?? undefined,
+          diagramImageData: q.diagramImageData ?? undefined,
+          diagramBounds: q.diagramBounds ?? undefined,
+          elaboration: q.elaboration ?? undefined,
+          sourceQuestionId: q.id,
+        })),
+      },
+    },
+  });
 }

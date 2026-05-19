@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { listMasterClasses } from "@/data/master-class";
+import { listMasterClasses, type MasterClassContent } from "@/data/master-class";
+import type { SubTopicMastery } from "@/lib/master-class/mastery";
 
 const SUBJECTS = ["Science", "Math", "English", "Chinese"] as const;
 
@@ -23,6 +24,31 @@ function MasterClassList() {
   const filtered = allClasses.filter(
     mc => mc.subject.toLowerCase() === activeSubject.toLowerCase(),
   );
+
+  // Mastery state per master-class, keyed by slug. Populated by
+  // parallel fetches on mount. Map slug -> per-sub-topic mastery
+  // rows. Undefined while loading; empty array if student hasn't
+  // taken any quiz yet (all sub-topics will be "untested").
+  const [mastery, setMastery] = useState<Record<string, SubTopicMastery[]>>({});
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    Promise.all(allClasses.map(async (mc) => {
+      try {
+        const r = await fetch(`/api/master-class/${mc.slug}/mastery?studentId=${userId}`);
+        if (!r.ok) return [mc.slug, [] as SubTopicMastery[]] as const;
+        const d = await r.json() as { subTopics: SubTopicMastery[] };
+        return [mc.slug, d.subTopics] as const;
+      } catch {
+        return [mc.slug, [] as SubTopicMastery[]] as const;
+      }
+    })).then(rows => {
+      if (cancelled) return;
+      setMastery(Object.fromEntries(rows));
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
@@ -103,23 +129,70 @@ function MasterClassList() {
               <button
                 key={mc.slug}
                 onClick={() => router.push(`/master-class/${mc.slug}?userId=${userId}`)}
-                className="w-full text-left bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-emerald-300 hover:shadow-md transition-all flex items-center gap-4"
+                className="w-full text-left bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:border-emerald-300 hover:shadow-md transition-all"
               >
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-2xl">school</span>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-2xl">school</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-headline font-bold text-base text-[#001e40]">{mc.title}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {mc.level} · {renderHeadlineFraction(mc)} · {mc.keyConcepts.length} slides
+                    </p>
+                  </div>
+                  <span className="material-symbols-outlined text-slate-300 shrink-0">chevron_right</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-headline font-bold text-base text-[#001e40]">{mc.title}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {mc.level} · <strong className="font-bold text-[#001e40]">{mc.stats.psleSubjectPercent}%</strong> of PSLE Life-Science · {mc.keyConcepts.length} slides
-                  </p>
-                </div>
-                <span className="material-symbols-outlined text-slate-300 shrink-0">chevron_right</span>
+                {/* Sub-topic mastery chips. Untested = grey, mastered =
+                    green with check, weak = yellow. Only shown when
+                    the master class actually has sub-topics defined. */}
+                {(mc.subTopics?.length ?? 0) > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {(mastery[mc.slug] ?? mc.subTopics!.map(s => ({ id: s.id, label: s.label, state: "untested" as const }))).map(st => (
+                      <SubTopicChip key={st.id} state={st.state} label={st.label} />
+                    ))}
+                  </div>
+                )}
               </button>
             ))}
           </div>
         )}
       </main>
     </div>
+  );
+}
+
+// Headline fraction shown in the card subtitle. Prefer the pieChart
+// stats (percentage + label) when authored — that's the most
+// student-friendly framing. Falls back to the older
+// `psleSubjectPercent` field when no chart is set.
+function renderHeadlineFraction(mc: MasterClassContent): React.ReactNode {
+  const slideWithChart = mc.keyConcepts.find(s => s.pieChart);
+  const pc = slideWithChart?.pieChart;
+  if (pc) {
+    return (
+      <>
+        <strong className="font-bold text-[#001e40]">{pc.percentage}%</strong> {pc.label}
+      </>
+    );
+  }
+  return (
+    <>
+      <strong className="font-bold text-[#001e40]">{mc.stats.psleSubjectPercent}%</strong> of PSLE Science
+    </>
+  );
+}
+
+function SubTopicChip({ state, label }: { state: SubTopicMastery["state"]; label: string }) {
+  const styles = state === "mastered"
+    ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+    : state === "weak"
+      ? "bg-amber-100 text-amber-800 border-amber-200"
+      : "bg-slate-100 text-slate-500 border-slate-200";
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${styles}`}>
+      {state === "mastered" && <span className="material-symbols-outlined text-[12px] leading-none">check_circle</span>}
+      {label}
+    </span>
   );
 }
