@@ -213,17 +213,6 @@ keyConcepts:
            • Count of terms: 10 even numbers from 2 to 20.
            • Sum = (first + last) × count / 2 = (2 + 20) × 10 / 2 = **110**.
       - "**Step 4 — Apply.** Figure 21 has the same white-bead count as Figure 20 = **110 white beads**."
-    scoringExample:
-      scenario: "Verify on a smaller figure: how many white beads in Figure 5?"
-      oneMark:
-        label: Quick check
-        text: "Figure 5 odd → same white count as Figure 4 → 2 + 4 = **6 white beads**. ✓ matches the table."
-      fullMarks:
-        label: Why this matters
-        text: >-
-          The "sum of an arithmetic series" formula (**first + last**)
-          × **count** / 2 is the universal Pattern-B shortcut. Memorise
-          it once, applies everywhere.
     callout: >-
       **Take-away:** when each step ADDS a different amount (and the
       amount itself follows a sequence), you need a **sum** — not just
