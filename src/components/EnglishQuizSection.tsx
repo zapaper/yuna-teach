@@ -529,7 +529,10 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
     };
     for (let i = 0; i < lines.length; i++) {
       const t = lines[i].trim();
-      const isSep = !!t.match(/^\|[\s-:|]+\|$/);
+      // True separator: each cell is a run of dashes (with optional :).
+      // Reject rows like "| | |" that are just pipes + whitespace —
+      // those are empty data rows the student needs to type into.
+      const isSep = /^\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|$/.test(t);
       const isRow = t.startsWith("|") && t.endsWith("|");
       if (isSep) {
         const cells = t.replace(/\|\s*$/, "|").split("|").slice(1, -1);
@@ -553,13 +556,29 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
       {lines.map((line, li) => {
         const trimmed = line.trim();
         if (!trimmed) return <br key={li} />;
-        // Table separator — skip
-        if (trimmed.match(/^\|[\s-:|]+\|$/)) return null;
+        // Table separator — skip. Requires at least one dash per cell so
+        // we don't accidentally swallow truly-empty data rows like `| | |`.
+        if (/^\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|$/.test(trimmed)) return null;
         // Table row
         if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
           const cells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
           const ri = tableRowIdx++;
           const weights = lineWeights[li];
+          // Auto-colspan: a row with exactly one non-empty cell + N empty
+          // cells renders as a single banner spanning the whole table
+          // (useful for section headers like "Li Mei's mother" above the
+          // per-person question block).
+          const nonEmptyIndices = cells.map((c, i) => ({ c, i })).filter(x => x.c && !x.c.match(/^_{2,}$/));
+          if (cells.length >= 2 && nonEmptyIndices.length === 1) {
+            const only = nonEmptyIndices[0].c;
+            return (
+              <div key={li} className="my-1">
+                <span className="block text-center text-xs font-bold text-[#001e40] bg-[#dde7f9] rounded px-2 py-1.5 border border-[#d3e4fe]">
+                  {only}
+                </span>
+              </div>
+            );
+          }
           return (
             <div key={li} className="flex gap-1 my-1 items-stretch">
               {cells.map((cell, ci) => {
