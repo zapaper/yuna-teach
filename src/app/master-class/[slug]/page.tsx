@@ -298,7 +298,7 @@ function SlideCard({
     // middle, Prev/Next nav PINNED to the bottom regardless of how
     // much content the slide has. Without this, the Next button
     // would jump up and down as slide content varies.
-    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[520px] sm:h-[720px] flex flex-col">
+    <div className="bg-white border border-slate-100 rounded-2xl shadow-sm p-5 lg:p-7 min-h-[520px] sm:min-h-[860px] flex flex-col">
       {/* TTS controls */}
       <div className="flex items-center justify-between mb-4 gap-3">
         <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
