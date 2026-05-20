@@ -561,34 +561,45 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
         if (/^\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|$/.test(trimmed)) return null;
         // Table row
         if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
-          const cells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
+          const rawCells = trimmed.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim());
+          // Explicit colspan: a cell containing just `=` merges into the
+          // previous cell on the same row. So `| Li Mei's mother | = |`
+          // becomes a single banner spanning both columns, while
+          // `| What is 2+2? | |` keeps the empty second cell as an input.
+          type RowCell = { content: string; originalIndex: number; span: number };
+          const cells: RowCell[] = [];
+          for (let i = 0; i < rawCells.length; i++) {
+            if (rawCells[i] === "=" && cells.length > 0) {
+              cells[cells.length - 1].span += 1;
+            } else {
+              cells.push({ content: rawCells[i], originalIndex: i, span: 1 });
+            }
+          }
           const ri = tableRowIdx++;
           const weights = lineWeights[li];
-          // Auto-colspan: a row with exactly one non-empty cell + N empty
-          // cells renders as a single banner spanning the whole table
-          // (useful for section headers like "Li Mei's mother" above the
-          // per-person question block).
-          const nonEmptyIndices = cells.map((c, i) => ({ c, i })).filter(x => x.c && !x.c.match(/^_{2,}$/));
-          if (cells.length >= 2 && nonEmptyIndices.length === 1) {
-            const only = nonEmptyIndices[0].c;
-            return (
-              <div key={li} className="my-1">
-                <span className="block text-center text-xs font-bold text-[#001e40] bg-[#dde7f9] rounded px-2 py-1.5 border border-[#d3e4fe]">
-                  {only}
-                </span>
-              </div>
-            );
-          }
           return (
             <div key={li} className="flex gap-1 my-1 items-stretch">
-              {cells.map((cell, ci) => {
+              {cells.map((rc, ci) => {
+                const cell = rc.content;
                 const isBlank = !cell || cell.match(/^_{2,}$/);
                 const isFirstCol = ci === 0;
-                const cellKey = `r${ri}c${ci}`;
-                // Column weight from the separator row, falls back to the
-                // legacy "first col 80px, rest equal" behaviour when no
-                // separator widths were specified.
-                const weight = weights ? weights[ci] ?? 1 : null;
+                // Cell key uses the ORIGINAL column index so a previously
+                // stored answer doesn't get re-bound when the author tweaks
+                // layout (adding/removing a `=` merge token).
+                const cellKey = `r${ri}c${rc.originalIndex}`;
+                // Column weight from the separator row, summed across any
+                // spanned columns. Falls back to the legacy "first col
+                // 80px, rest equal" behaviour when no separator widths
+                // were specified — unless this cell is spanned, in which
+                // case we give it `flex-${span}` to make merged banners
+                // wider than a single column.
+                let weight: number | null = null;
+                if (weights) {
+                  weight = 0;
+                  for (let k = 0; k < rc.span; k++) weight += weights[rc.originalIndex + k] ?? 1;
+                } else if (rc.span > 1) {
+                  weight = rc.span;
+                }
                 const widthCls = weight !== null
                   ? "" // flex weight applied via inline style below
                   : isFirstCol ? "w-20 shrink-0" : "flex-1";
