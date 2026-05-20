@@ -1393,11 +1393,16 @@ function QuizContent({ id }: { id: string }) {
                           const stem = q.transcribedStem ?? null;
                           const transformed = isVocabCloze && stem
                             ? stem.replace(/\*\*\s*([^*_\n][^*\n]*?)\s*\*\*/g, (_full, inner: string) => {
+                                // Strip a `(N)` question-number prefix that the
+                                // transcribe step embeds inside the bold marker
+                                // for mapping purposes — students don't need to
+                                // see "(16)" next to the underlined word.
+                                let clean = inner.trim().replace(/^\(\d+\)\s*/, "");
                                 // Skip purely-underscore content (the blank variant) — leave as bold.
-                                if (/^_+$/.test(inner.trim())) return `**${inner.trim()}**`;
+                                if (/^_+$/.test(clean)) return `**${clean}**`;
                                 // Already contains __ markers — leave alone.
-                                if (inner.includes("__")) return `**${inner.trim()}**`;
-                                return `**__${inner.trim()}__**`;
+                                if (clean.includes("__")) return `**${clean}**`;
+                                return `**__${clean}__**`;
                               })
                             : stem;
                           const qForRender = transformed !== stem
