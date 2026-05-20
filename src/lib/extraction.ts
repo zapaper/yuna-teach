@@ -733,12 +733,20 @@ async function extractExamPaperCore(
 
       // Check for text content from English extraction (no image crop needed)
       const seg0 = segments[0] as { _stem?: string; _options?: string[]; _blankContext?: string; _errorWord?: string };
-      const hasTextContent = isEnglish && (seg0._stem || seg0._options || seg0._blankContext || seg0._errorWord);
+      const isVisualTextMcq = syllabusTopic === "Visual Text Comprehension MCQ";
 
       let croppedImage = "";
-      if (hasTextContent) {
-        // English text-based: no image crop needed (except Visual Text which keeps page images)
-        if (syllabusTopic === "Visual Text Comprehension MCQ" && visualTextPages.length > 0) {
+      if (isEnglish && !isVisualTextMcq) {
+        // English non-VT: never crop. Grammar / vocab / synthesis / cloze /
+        // editing / comp-OEQ are text-only — even when stem extraction
+        // failed and seg0._stem is empty, an image crop is the wrong
+        // fallback (it's just a screenshot of the page region). Admin
+        // fills missing text via the transcribe-edit page.
+        croppedImage = "";
+      } else if (isEnglish && isVisualTextMcq) {
+        // Visual Text Comprehension: stitched picture pages are the
+        // payload, not a per-question crop.
+        if (visualTextPages.length > 0) {
           try {
             const stitched = await stitchPagesVertically(visualTextPages);
             croppedImage = `data:image/jpeg;base64,${stitched.toString("base64")}`;
