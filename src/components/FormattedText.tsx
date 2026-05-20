@@ -13,14 +13,15 @@ type Segment =
   | { kind: "text"; value: string }
   | { kind: "table"; header: string[]; rows: string[][] };
 
-/** Match a Markdown GFM-style pipe table:
- *    | col1 | col2 |
- *    |------|------|   (separator: |---|---| with optional :)
- *    | a    | b    |
- *    | c    | d    |
- *  Captures the whole block (header + separator + 1+ data rows).
+/** Match a pipe table block: any run of 2+ consecutive lines that
+ *  start and end with `|`. The GFM separator row (|---|---|) is
+ *  OPTIONAL — authors often omit it when laying out exam grids, and
+ *  we don't need the alignment hints to render. When present, the row
+ *  immediately before it is the header; otherwise we render all rows
+ *  uniformly (no <thead>).
  */
-const TABLE_RE = /(^|\n)((?:\|[^\n]*\|[ \t]*\n)\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|[ \t]*\n(?:\|[^\n]*\|[ \t]*\n?)+)/g;
+const TABLE_RE = /(^|\n)((?:\|[^\n]*\|[ \t]*\n?){2,})/g;
+const SEPARATOR_RE = /^\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|[ \t]*$/;
 
 function splitCells(row: string): string[] {
   return row
@@ -41,9 +42,21 @@ function parseSegments(text: string): Segment[] {
       segments.push({ kind: "text", value: text.slice(lastIndex, matchStart) });
     }
     const lines = block.trim().split("\n");
-    // lines[0] = header, lines[1] = separator, lines[2..] = data
-    const header = splitCells(lines[0]);
-    const rows = lines.slice(2).map(splitCells);
+    // Detect a separator row anywhere in the block. When found, the
+    // line above is the header. Otherwise no <thead> — every row goes
+    // into <tbody>.
+    const sepIdx = lines.findIndex(l => SEPARATOR_RE.test(l.trim()));
+    let header: string[] = [];
+    let rows: string[][];
+    if (sepIdx >= 1) {
+      header = splitCells(lines[sepIdx - 1]);
+      rows = [
+        ...lines.slice(0, sepIdx - 1).map(splitCells),
+        ...lines.slice(sepIdx + 1).map(splitCells),
+      ];
+    } else {
+      rows = lines.map(splitCells);
+    }
     segments.push({ kind: "table", header, rows });
     lastIndex = m.index + m[0].length;
   }
@@ -85,21 +98,23 @@ export default function FormattedText({ text, className }: { text: string; class
         return (
           <div key={i} className="my-3 overflow-x-auto">
             <table className="border-collapse border-2 border-black text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  {seg.header.map((c, j) => (
-                    <th key={j} className="border-2 border-black px-3 py-2 text-left font-bold text-[#0b1c30]">
-                      <MathText text={c} />
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+              {seg.header.length > 0 && (
+                <thead className="bg-slate-50">
+                  <tr>
+                    {seg.header.map((c, j) => (
+                      <th key={j} className="border-2 border-black px-3 py-2 text-left font-bold text-[#0b1c30] min-w-[3rem]">
+                        {c ? <MathText text={c} /> : " "}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+              )}
               <tbody>
                 {seg.rows.map((row, ri) => (
                   <tr key={ri}>
                     {row.map((cell, ci) => (
-                      <td key={ci} className="border-2 border-black px-3 py-2 align-top text-[#0b1c30]">
-                        <MathText text={cell} />
+                      <td key={ci} className="border-2 border-black px-3 py-2 align-top text-[#0b1c30] min-w-[3rem]">
+                        {cell ? <MathText text={cell} /> : " "}
                       </td>
                     ))}
                   </tr>
