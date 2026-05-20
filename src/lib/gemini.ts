@@ -4390,10 +4390,33 @@ Return ONLY valid JSON:
             }
           }
 
-          // Validation: for MCQ sections, check all questions have options. If not, retry.
+          // Validation: for MCQ sections, check all questions have REAL
+          // options. Treat literal template placeholders (e.g.
+          //   ["<option 1>", "<option 2>", "<option 3>", "<option 4>"]
+          //   ["option1", "option2", "option3", "option4"])
+          // as if they were missing, so the retry path can pull real
+          // options from the OCR text. This was hitting Vocab Cloze MCQ
+          // hardest: the per-question crop showed only the sentence
+          // (options live in a separate block on the page) and the model
+          // emitted placeholders to satisfy the schema.
+          const isPlaceholderOpt = (s: string): boolean =>
+            /^<\s*option\s*\d*\s*>$/i.test(s.trim()) ||
+            /^option\s*\d+$/i.test(s.trim());
+          const hasRealOptions = (opts: string[] | undefined): boolean => {
+            if (!opts?.length) return false;
+            return !opts.every(isPlaceholderOpt);
+          };
           if (isMcqSection) {
             const allQs = pages.flatMap(p => p.questions);
-            const missingOpts = allQs.filter(q => !(q as { _options?: string[] })._options?.length);
+            const missingOpts = allQs.filter(q => !hasRealOptions((q as { _options?: string[] })._options));
+            // Wipe placeholder arrays so the merge step below doesn't
+            // skip them ("already has options").
+            for (const q of missingOpts) {
+              const cast = q as { _options?: string[] };
+              if (cast._options?.length && cast._options.every(isPlaceholderOpt)) {
+                delete cast._options;
+              }
+            }
             if (missingOpts.length > 0) {
               console.log(`[Exam Pipeline] ${secLabel}: ${missingOpts.length}/${allQs.length} questions missing options — retrying extraction for those`);
               const missingNums = missingOpts.map(q => q.questionNum).join(", ");
