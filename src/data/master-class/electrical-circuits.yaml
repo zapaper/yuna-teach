@@ -69,8 +69,8 @@ keyConcepts:
       Trace the wire with your pencil to find the loops.
     diagramImage: /master-class/circuits/bulb-contact-points.png
     bullets:
+      - "**Bulb** ⊗ — lights up only when current flows through it. See above diagram on how bulb needs to be connected for current to flow."
       - "**Battery** ▎▏ — the longer line is **+**, the shorter line is **−**. Two batteries in a row = **series** (more voltage); side-by-side facing the same way = **parallel** (same voltage but lasts longer)."
-      - "**Bulb** ⊗ — lights up only when current flows through it."
       - "**Switch** — open = no current; closed = current flows."
       - "**Wire** — just a path. Follow it from + terminal of battery, through every component, back to − terminal."
       - "**The 'loop' question** — does current have a path from + back to −? **Yes → closed circuit, bulb lights up.** **No → open circuit, bulb stays dark.**"
