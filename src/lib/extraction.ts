@@ -83,6 +83,32 @@ function coerceMarks(v: unknown): number | null {
   return null;
 }
 
+// Answer keys for English text-based sections sometimes include inline
+// explanations that belong in the marking scheme, not in the answer
+// the student should be checked against:
+//   Comp Cloze:   "elated (= very happy)" / "elated — meaning excited"
+//   Synthesis:    "Although it was raining, we went out. (concession)"
+// Strip those so marking only sees the actual answer.
+//
+// `aggressive=true` (Comp Cloze) also drops trailing "= ..." / dash /
+// punctuation tails that wouldn't appear in a legitimate one-word fill.
+// Synthesis answers can be full sentences — for those, only the
+// parentheticals come off.
+function cleanAnswerKeyExplanation(answer: string, aggressive: boolean): string {
+  if (!answer) return "";
+  let s = answer.trim();
+  // Parentheticals (always safe to strip — those are explanations).
+  s = s.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  if (aggressive) {
+    // Trailing "= ..." / em-dash / en-dash explanations.
+    s = s.replace(/\s*[=—–]\s*.+$/, "").trim();
+    s = s.replace(/\s+-\s+.+$/, "").trim();
+    // Trailing punctuation that sometimes sneaks into one-word keys.
+    s = s.replace(/[.!?;:,]+$/, "").trim();
+  }
+  return s;
+}
+
 export async function cropQuestionServer(
   imageBuffer: Buffer,
   yStartPct: number,
@@ -385,6 +411,15 @@ async function extractExamPaperCore(
           // For Visual Text: store stitched visual page images
           let qImageData = "";
           const qTopic = (q.syllabusTopic ?? result.syllabusTopics?.[qNum] ?? "").toLowerCase();
+          // Strip inline explanations from the answer key — see helper
+          // comment for the formats this handles.
+          if (answer) {
+            const isCompCloze_ = qTopic.includes("comprehension") && qTopic.includes("cloze");
+            const isSynth_ = qTopic.includes("synthesis");
+            if (isCompCloze_ || isSynth_) {
+              answer = cleanAnswerKeyExplanation(answer, isCompCloze_);
+            }
+          }
           if (qTopic.includes("visual") && qTopic.includes("text") && visualTextPages.length > 0) {
             try {
               const stitched = await stitchPagesVertically(visualTextPages);
@@ -688,6 +723,15 @@ async function extractExamPaperCore(
               entry.yEndPct
             );
           }
+        }
+      }
+      // Strip inline explanations from the answer key — Comp Cloze and
+      // Synthesis answer keys sometimes carry "(explanation)" tails
+      // that belong in the marking scheme, not in the student-facing
+      // answer. See helper comment for the formats handled.
+      if (fullAnswer) {
+        if (isCompCloze || isSynthesis) {
+          fullAnswer = cleanAnswerKeyExplanation(fullAnswer, isCompCloze);
         }
       }
 
