@@ -1344,9 +1344,14 @@ function OcrRichText({ text, isMcq }: { text: string; isMcq?: boolean }) {
         tableLines.push(lines[i]);
         i++;
       }
-      // Parse table
+      // Parse table.
+      // Real separator rows have dashes in each cell (|---|---|).
+      // We must NOT skip empty data rows like `| | |` — those are
+      // student-input cells in the live quiz, and the admin preview
+      // should show them so authors see what they're shipping.
+      const SEP_RE = /^\s*\|[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)+\|\s*$/;
       const rows = tableLines
-        .filter(l => !l.match(/^\s*\|[\s-|]+\|\s*$/)) // skip separator rows
+        .filter(l => !SEP_RE.test(l))
         .map(l => l.trim().replace(/\|\s*$/, "|").split("|").slice(1, -1).map(c => c.trim()));
 
       if (rows.length > 0) {
@@ -1380,17 +1385,33 @@ function OcrRichText({ text, isMcq }: { text: string; isMcq?: boolean }) {
             </table>
           );
         } else {
-          // Regular table
+          // Regular table.
+          // Apply the same `=` colspan rule used in the live quiz so the
+          // preview matches what students will see. A cell containing
+          // just `=` merges into the previous cell on that row.
           elements.push(
             <table key={`table-${i}`} className="border-collapse border border-slate-300 text-xs my-2 w-full">
               <tbody>
-                {rows.map((row, ri) => (
-                  <tr key={ri} className={ri === 0 ? "bg-slate-100 font-bold" : ""}>
-                    {row.map((cell, ci) => (
-                      <td key={ci} className="border border-slate-200 px-2 py-1 text-center">{cell}</td>
-                    ))}
-                  </tr>
-                ))}
+                {rows.map((row, ri) => {
+                  const merged: { content: string; span: number }[] = [];
+                  for (const c of row) {
+                    if (c === "=" && merged.length > 0) merged[merged.length - 1].span += 1;
+                    else merged.push({ content: c, span: 1 });
+                  }
+                  return (
+                    <tr key={ri} className={ri === 0 ? "bg-slate-100 font-bold" : ""}>
+                      {merged.map((m, ci) => (
+                        <td
+                          key={ci}
+                          colSpan={m.span > 1 ? m.span : undefined}
+                          className="border border-slate-200 px-2 py-1 text-center min-w-[3rem]"
+                        >
+                          {m.content || " "}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           );
