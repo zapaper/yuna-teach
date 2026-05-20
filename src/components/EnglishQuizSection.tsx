@@ -538,8 +538,10 @@ function RichStemText({ text, answers, questionId, onAnswer }: {
         const cells = t.replace(/\|\s*$/, "|").split("|").slice(1, -1);
         const w = cells.map(c => Math.max(1, (c.match(/-/g) || []).length));
         if (blockStart === -1) blockStart = i;
-        // Only set weights if at least one column differs from the rest.
-        if (w.some(x => x !== w[0])) blockWeights = w;
+        // Any explicit separator turns OFF the legacy "first col 80px,
+        // rest equal" fallback. Equal dashes (|---|---|) → equal flex
+        // weights. Unequal dashes (|---|---------|) → weighted columns.
+        blockWeights = w;
       } else if (isRow) {
         if (blockStart === -1) blockStart = i;
       } else {
