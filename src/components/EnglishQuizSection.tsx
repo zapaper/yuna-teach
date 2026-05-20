@@ -159,22 +159,30 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
 
             // For synthesis: split into question text and answer segments
             // Answer line can be: "**Instead of** ___" or "___ **although** ___"
+            // or "She **had** ___" (text + keyword + input).
             let synthQuestion = "";
-            const synthAnswerParts: { type: "input" | "keyword"; content: string; key: string }[] = [];
+            const synthAnswerParts: { type: "input" | "keyword" | "text"; content: string; key: string }[] = [];
             if (sectionType === "synthesis") {
               const lines = cleanStem.split("\n");
               // Find the answer line(s): contain **bold** and/or ___
               const answerLineIdx = lines.findIndex(l => /\*\*[^*]+\*\*/.test(l) && /_{3,}/.test(l) || /^_{3,}/.test(l.trim()));
               if (answerLineIdx >= 0) {
                 synthQuestion = lines.slice(0, answerLineIdx).join("\n").trim();
-                // Parse answer line into segments: blanks become inputs, **bold** become keywords
+                // Parse answer line into segments: blanks become inputs,
+                // **bold** become keywords, plain text between them is
+                // preserved as "text" so words around the keyword still
+                // render (e.g. "She" in "She **had** ___").
                 const answerLine = lines.slice(answerLineIdx).join("\n");
                 const segRegex = /\*\*([^*]+)\*\*|_{3,}/g;
                 let lastEnd = 0;
                 let seg;
                 let inputIdx = 0;
+                let textIdx = 0;
+                const pushText = (raw: string) => {
+                  if (raw.trim()) synthAnswerParts.push({ type: "text", content: raw.trim(), key: `tx${textIdx++}` });
+                };
                 while ((seg = segRegex.exec(answerLine)) !== null) {
-                  // Skip plain text between segments
+                  if (seg.index > lastEnd) pushText(answerLine.slice(lastEnd, seg.index));
                   if (seg[1]) {
                     synthAnswerParts.push({ type: "keyword", content: seg[1].trim(), key: `kw${seg.index}` });
                   } else {
@@ -182,11 +190,15 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                   }
                   lastEnd = seg.index + seg[0].length;
                 }
+                if (lastEnd < answerLine.length) pushText(answerLine.slice(lastEnd));
                 // If no parts found, add a single input
                 if (synthAnswerParts.length === 0) {
                   synthAnswerParts.push({ type: "input", content: "", key: "in0" });
                 }
-                // Starting word pattern: keyword first → only need 1 input after it
+                // Starting-word optimisation: when the answer line is
+                // literally "**Keyword** ___ ___ …", collapse to one
+                // wide textarea after the keyword. Only fires when the
+                // FIRST part is a keyword (no leading text/blank).
                 if (synthAnswerParts[0]?.type === "keyword") {
                   const kwPart = synthAnswerParts[0];
                   synthAnswerParts.length = 0;
@@ -287,6 +299,12 @@ export default function EnglishQuizSection({ sectionLabel, passage, questions, s
                       {synthAnswerParts.map((part) => {
                         if (part.type === "keyword") {
                           return <span key={part.key} className="font-bold text-base text-[#001e40] shrink-0 sm:pt-2">{part.content}</span>;
+                        }
+                        if (part.type === "text") {
+                          // Plain words around the keyword (e.g. "She"
+                          // in "She **had** ___"). Render same size,
+                          // non-bold, so the sentence reads naturally.
+                          return <span key={part.key} className="text-base text-[#001e40] shrink-0 sm:pt-2">{part.content}</span>;
                         }
                         const idx = inputIdx++;
                         return makeInput(idx, part.key);
