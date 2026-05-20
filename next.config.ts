@@ -3,6 +3,11 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Pin Next's workspace-root inference to this project. Without it,
+  // both Turbopack and the standalone tracer can walk up the tree and
+  // pick "C:\Users\peter\Yuna teach" (the parent folder) as the root,
+  // causing module-resolution failures like "Can't resolve 'tailwindcss'".
+  outputFileTracingRoot: path.resolve(__dirname),
   turbopack: {
     root: path.resolve(__dirname),
   },
