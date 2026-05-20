@@ -391,23 +391,13 @@ async function extractExamPaperCore(
               qImageData = `data:image/jpeg;base64,${stitched.toString("base64")}`;
             } catch { /* ignore */ }
           }
-          // Per-question crop from the source page image — English
-          // text-extraction only. Chinese skips this entirely; if a
-          // 长 OEQ (e.g. 五-A Q33) needs a picture / 短信 diagram
-          // attached, the admin uploads it via /edit's Upload Image
-          // button. Auto-cropping every question created clutter the
-          // user explicitly didn't want.
-          if (!qImageData && !isChineseEarly && q.yStartPct != null && q.yEndPct != null && imageBuffers[page.pageIndex]) {
-            try {
-              qImageData = await cropQuestionServer(
-                imageBuffers[page.pageIndex],
-                q.yStartPct,
-                q.yEndPct,
-                0.005, // tight top pad — coordinates come from structure analysis already
-                0.005,
-              );
-            } catch { /* leave empty, edit view will degrade gracefully */ }
-          }
+          // Text-based extraction (English + Chinese) skips per-question
+          // image crops. Grammar / vocab / synthesis MCQs are pure text;
+          // long OEQs that genuinely need a picture (Visual Text,
+          // 短信 diagrams, etc.) either come through the dedicated VTC
+          // stitched-image branch above OR are uploaded by the admin via
+          // /edit's Upload Image button. Auto-cropping every question
+          // clutters the question list with screenshots no one needs.
 
           questions.push({
             questionNum: qNum,
