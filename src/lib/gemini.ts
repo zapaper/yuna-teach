@@ -3564,6 +3564,33 @@ export function normalizeAnswer(entry: string | AnswerEntry): AnswerEntry {
   return entry;
 }
 
+// Strip the leading section instruction header and the trailing Q&A
+// block from a Vocab Cloze OCR text, leaving just the passage.
+// Heuristics:
+//   - Leading: drop everything before the first line that contains a
+//     `**bold**` marker. The passage's underlined/bold words ALWAYS use
+//     this marker; instruction headers never do.
+//   - Trailing: walk back from the end, dropping question-number lines
+//     ("16."), options lists ("(1) keenly (2) silently …"), and blanks.
+//     Stop at the first line that doesn't match those — that's the last
+//     prose line of the passage.
+export function cleanVocabClozePassageOcr(text: string): string {
+  if (!text) return "";
+  const lines = text.split("\n");
+  const firstMarkerIdx = lines.findIndex(l => /\*\*[^*]*\*\*/.test(l));
+  if (firstMarkerIdx === -1) return text.trim();
+  let end = lines.length;
+  for (let i = lines.length - 1; i >= firstMarkerIdx; i--) {
+    const l = lines[i].trim();
+    if (!l) { end = i; continue; }
+    const looksLikeOptions = /\(\d+\)\s*\S/.test(l);
+    const looksLikeQNumber = /^\d+[.)]?\s/.test(l);
+    if (looksLikeOptions || looksLikeQNumber) { end = i; continue; }
+    break;
+  }
+  return lines.slice(firstMarkerIdx, end).join("\n").trim();
+}
+
 export interface BatchAnalysisResult {
   header: ExamHeaderInfo;
   pages: Array<{
@@ -4130,8 +4157,18 @@ Output ONLY the clean passage/question text, no commentary.` });
           }
           if (!ocrResponse) throw lastOcrErr ?? new Error("ocr: all fallback models failed");
 
-          const ocrText = ocrResponse.text?.trim() ?? "";
+          let ocrText = ocrResponse.text?.trim() ?? "";
           console.log(`[Exam Pipeline] ${secLabel}: OCR result (${ocrText.length} chars, first 300):`, ocrText.slice(0, 300));
+          // Vocab Cloze passage: drop the leading instruction header
+          // and the trailing question/options block so only the passage
+          // text reaches the quiz UI. See cleanVocabClozePassageOcr.
+          if (secLabel.toLowerCase().includes("vocab") && secLabel.toLowerCase().includes("cloze")) {
+            const beforeLen = ocrText.length;
+            ocrText = cleanVocabClozePassageOcr(ocrText);
+            if (ocrText.length !== beforeLen) {
+              console.log(`[Exam Pipeline] ${secLabel}: cleaned vocab-cloze passage (${beforeLen} → ${ocrText.length} chars)`);
+            }
+          }
 
           // Step 2: Extract individual questions with content from OCR text
           const secTypeLower = (sec.type ?? "").toLowerCase();

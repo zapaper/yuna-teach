@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { generateContentWithRetry } from "@/lib/gemini";
+import { generateContentWithRetry, cleanVocabClozePassageOcr } from "@/lib/gemini";
 import { buildChineseSections, type OcrEntry } from "@/lib/extraction";
 import fs from "fs";
 import path from "path";
@@ -155,8 +155,17 @@ Output ONLY the clean passage/question text, no commentary.` });
 
   const ocrResponse = await callWithChain(ocrParts, `reextract-ocr:${secLabel}`);
 
-  const ocrText = ocrResponse.text?.trim() ?? "";
+  let ocrText = ocrResponse.text?.trim() ?? "";
   console.log(`[Re-extract] ${secLabel}: OCR result (${ocrText.length} chars)`);
+  // Vocab Cloze passage: strip leading instruction header + trailing
+  // Q&A block so only the passage reaches the quiz UI.
+  if (secLabel.toLowerCase().includes("vocab") && secLabel.toLowerCase().includes("cloze")) {
+    const beforeLen = ocrText.length;
+    ocrText = cleanVocabClozePassageOcr(ocrText);
+    if (ocrText.length !== beforeLen) {
+      console.log(`[Re-extract] ${secLabel}: cleaned vocab-cloze passage (${beforeLen} → ${ocrText.length} chars)`);
+    }
+  }
 
   // Step 1b: For sections with passages (vocab cloze, grammar cloze, editing, comp cloze),
   // also extract the passage as a separate passageOcrText

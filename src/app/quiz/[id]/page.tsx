@@ -1348,21 +1348,20 @@ function QuizContent({ id }: { id: string }) {
                               if (m.index > lastIdx2) parts.push(<span key={`t${lastIdx2}`}>{renderUnderline(line.slice(lastIdx2, m.index))}</span>);
                               const key = numMatch ? numMatch[1] : `p${blankCount++}`;
                               const highlightedWord = !isUnderscoreBlank ? inner : null;
+                              // Plain <span> (not inline-flex) so the
+                              // word sits flush against surrounding text
+                              // without the half-em gap the flex+mx-0.5
+                              // wrapper used to insert.
                               parts.push(
-                                <span key={`q${key}`} className="inline-flex items-center mx-0.5">
-                                  {highlightedWord ? (
-                                    // Highlighted word in passage —
-                                    // bold + underline so it stands
-                                    // out as the focus of the question.
-                                    <span className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] px-0.5">{highlightedWord}</span>
-                                  ) : (
-                                    // Blank — render the underscores
-                                    // themselves bold and underlined,
-                                    // so the eye lands on it the same
-                                    // way as the underlined-word variant.
-                                    <span className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] px-1 tracking-widest">________</span>
-                                  )}
-                                </span>
+                                highlightedWord ? (
+                                  <span key={`q${key}`} className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40]">
+                                    {highlightedWord}
+                                  </span>
+                                ) : (
+                                  <span key={`q${key}`} className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] tracking-widest">
+                                    ________
+                                  </span>
+                                )
                               );
                               lastIdx2 = m.index + m[0].length;
                             }
