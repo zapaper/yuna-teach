@@ -84,7 +84,14 @@ function AdminPapersContent() {
     }
   }
 
-  const subjects = Array.from(new Set(papers.map(p => p.subject).filter(Boolean))).sort() as string[];
+  // Hide redundant subject aliases from the filter chip row — only
+  // the canonical pill should appear for each subject. The aliases
+  // are still present on papers in the DB; we just don't render a
+  // duplicate filter button for them.
+  const SUBJECT_ALIASES_TO_HIDE = new Set(["English Language", "Math", "science"]);
+  const subjects = (Array.from(new Set(papers.map(p => p.subject).filter(Boolean))) as string[])
+    .filter(s => !SUBJECT_ALIASES_TO_HIDE.has(s))
+    .sort();
   const years = Array.from(new Set(papers.map(p => p.year).filter(Boolean))).sort((a, b) => b!.localeCompare(a!)) as string[];
   const examTypes = Array.from(new Set(papers.map(p => p.examType).filter(Boolean))).sort() as string[];
 
