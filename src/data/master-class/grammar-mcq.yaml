@@ -31,15 +31,15 @@ keyConcepts:
       - |-
         **1. Tag questions** — "…, isn't he?" / "…, shall we?"
       - |-
-        **2. Noun number rules** — subject-verb agreement + *few/little/many/much*
+        **2. Noun number rules** — subject-verb agreement + **few/little/many/much**
       - |-
         **3. Pronouns** — reflexive, possessive standalone, relative
       - |-
         **4. Verb forms** — gerund vs infinitive, causative bare infinitive
       - |-
-        **5. Connectors & tenses** — *since / although / in spite of* + perfect tenses
+        **5. Connectors & tenses** — **since / although / in spite of** + perfect tenses
       - |-
-        **6. Idiomatic prepositions** — *congratulate on*, *robbed of*, *under the impression*
+        **6. Idiomatic prepositions** — **congratulate on**, **robbed of**, **under the impression**
     callout: >-
       The pattern in PSLE Booklet A: **one question per rule**, in
       roughly the order above. Recognise the rule type from the
@@ -49,16 +49,16 @@ keyConcepts:
   - title: "1: Tag questions — the mirror rule"
     body: >-
       A tag question is the little check at the end of a statement:
-      *isn't he?*, *would she?*, *shall we?*
+      **isn't he?**, **would she?**, **shall we?**
       The tag must **mirror** the verb/auxiliary of the main
       statement and **flip the polarity**.
     bullets:
       - |-
-        **Step 1 — Find the main verb/auxiliary.** "She **has** been busy" → tag uses *has*. "He **gave up**" (past simple) → tag uses *did*.
+        **Step 1 — Find the main verb/auxiliary.** "She **has** been busy" → tag uses **has**. "He **gave up**" (past simple) → tag uses **did**.
       - |-
         **Step 2 — Flip the polarity.** Positive statement → **negative** tag ("She is busy, **isn't** she?"). Negative statement → **positive** tag ("He hasn't called, **has** he?").
       - |-
-        **Step 3 — Match the pronoun.** "Tom" → *he*. "Mary" → *she*. "The team" → *it* (or *they* depending on context).
+        **Step 3 — Match the pronoun.** "Tom" → **he**. "Mary" → **she**. "The team" → **it** (or **they** depending on context).
       - |-
         **Three special cases that catch most students:**
            • **"Let's"** → always **"shall we?"** (not "will we?")
@@ -77,34 +77,34 @@ keyConcepts:
         **Example B — PSLE 2024 Q8** (the negative-stem polarity flip)
         "She **never ever** visits the museum, ___?" asked Mrs Lee.
         (1) hasn't she   (2) won't she   (3) does she   (4) will she
-           • Verb "visits" = present simple → tag uses **do/does**, eliminates *hasn't / won't / will*.
-           • "**never ever**" makes the statement NEGATIVE → tag flips to POSITIVE → *does she* (not *doesn't she*).
+           • Verb "visits" = present simple → tag uses **do/does**, eliminates **hasn't / won't / will**.
+           • "**never ever**" makes the statement NEGATIVE → tag flips to POSITIVE → **does she** (not **doesn't she**).
            • **→ Option (3): does she ✓**
     callout: >-
       **Mirror the verb, flip the polarity.** Watch for "never /
       hardly / seldom / scarcely" — they make the statement
-      negative even though it doesn't contain *not*.
+      negative even though it doesn't contain **not**.
 
   # ─── 2. NOUN NUMBER RULES ────────────────────────────────────────
   - title: "2: Noun number — countable vs uncountable"
     body: >-
       English splits nouns into **countable** (you can count them:
-      *3 books, 5 ideas*) and **uncountable** (you can't: *water,
-      advice, luck*). Each takes a different family of quantifiers.
+      **3 books, 5 ideas**) and **uncountable** (you can't: **water,
+      advice, luck**). Each takes a different family of quantifiers.
     bullets:
       - |-
-        **Countable + plural:** *few, many, several, each, a number of, fewer*
+        **Countable + plural:** **few, many, several, each, a number of, fewer**
       - |-
-        **Uncountable:** *little, much, a great deal of, a large amount of, less*
+        **Uncountable:** **little, much, a great deal of, a large amount of, less**
       - |-
-        **Either:** *some, any, enough, more, most, all*
+        **Either:** **some, any, enough, more, most, all**
       - |-
         **The treacherous "mass" nouns** — these LOOK countable but are uncountable:
            • **time, effort, trouble, advice, luck, news, information**
            • **equipment, furniture, luggage, money, knowledge, work**
-        For these, always use *little / much / a great deal of*.
+        For these, always use **little / much / a great deal of**.
       - |-
-        **"a great DEAL of" (uncountable)** vs **"a large NUMBER of" (countable)** — the noun *deal* attaches to uncountables, *number* to countables.
+        **"a great DEAL of" (uncountable)** vs **"a large NUMBER of" (countable)** — the noun **deal** attaches to uncountables, **number** to countables.
 
   - title: "2: Noun number — subject-verb agreement traps"
     body: >-
@@ -112,7 +112,7 @@ keyConcepts:
       shapes** where the real subject isn't obvious.
     bullets:
       - |-
-        **Plural-looking but singular**: *news, luggage, mathematics, athletics* → use *is / has*. Example: "The news **has** been circulating since yesterday."
+        **Plural-looking but singular**: **news, luggage, mathematics, athletics** → use **is / has**. Example: "The news **has** been circulating since yesterday."
       - |-
         **"The number of X" (singular)** vs **"A number of X" (plural)**. "**The** number of pupils **is** rising." vs "**A** number of pupils **are** absent."
       - |-
@@ -128,21 +128,21 @@ keyConcepts:
         **Example A — PSLE 2023 Q5** (uncountable quantifier)
         He must have ___ luck as he has won the top prize for the past two years.
         (1) many   (2) enough   (3) a great deal of   (4) a large number of
-           • "luck" = UNCOUNTABLE → reject *many* (countable) and *a large **number** of* (countable).
-           • Between *enough* and *a great deal of* → he won twice, so we need "a lot" not "just sufficient".
+           • "luck" = UNCOUNTABLE → reject **many** (countable) and *a large **number** of* (countable).
+           • Between **enough** and **a great deal of** → he won twice, so we need "a lot" not "just sufficient".
            • **→ Option (3): a great deal of ✓**
       - |-
         **Example B — PSLE 2024 Q9** (interrupter subject-verb agreement)
         Everyone, except Sanjay and Aidan, ___ in their homework.
         (1) hand   (2) handing   (3) has handed   (4) have handed
            • Subject = "Everyone" (singular indefinite pronoun). The "except Sanjay and Aidan" is an INTERRUPTER — it doesn't change the subject.
-           • Singular subject → singular verb "**has** handed" (not *have* handed).
+           • Singular subject → singular verb "**has** handed" (not **have** handed).
            • **→ Option (3): has handed ✓**
     callout: >-
       **Test the noun, ignore the interrupter.** For quantifiers,
       ask "can I count this?" first. For SVA, find the REAL subject
-      and ignore phrases starting with *except / as well as /
-      together with / along with*.
+      and ignore phrases starting with **except / as well as /
+      together with / along with**.
 
   # ─── 3. PRONOUNS ─────────────────────────────────────────────────
   - title: "3: Pronouns — three families to keep separate"
@@ -151,7 +151,10 @@ keyConcepts:
       choosing the right form for the role in the sentence.
     bullets:
       - |-
-        **Personal vs reflexive.** Use the reflexive form (**himself, herself, themselves**) when the action loops back to the SUBJECT. "Mary ate the cake by **herself**." Don't use reflexive when the subject and object are different people.
+        **Personal vs reflexive.** Use the reflexive form (**himself, herself, themselves, myself, yourself**) ONLY when the subject and object of the action are the SAME person.
+           • ✓ "Mary ate the cake by **herself**." → Mary did + Mary ate alone (same person).
+           • ✓ "Tom hurt **himself**." → Tom did + Tom got hurt (same person).
+           • ✗ When the object is a DIFFERENT person, use a regular pronoun (him, her, them): "John gave the book to **her**" — not "to herself".
       - |-
         **Possessive — "his" / "her" vs "hers".** Two forms:
            • **Adjective form** (in front of a noun): *my, your, his, **her**, our, their* → "**her** car"
@@ -164,7 +167,9 @@ keyConcepts:
            • **whose** — possessive ("the boy **whose** bag is missing")
            • **which** — things, not people
       - |-
-        **Indefinite pronouns** *everyone, anybody, nobody, someone* are always SINGULAR (they take *is / has*).
+        **Indefinite pronouns** like **everyone, anybody, nobody, someone** are always SINGULAR — they take **is / has** (not *are / have*).
+           • ✓ "**Everyone** **is** here." → singular verb.
+           • ✗ "Everyone **are** here." → wrong, plural verb.
 
   - title: Worked examples — Pronouns
     bullets:
@@ -173,18 +178,18 @@ keyConcepts:
         Mrs Phua is someone ___ opinions I truly value.
         (1) who   (2) which   (3) whom   (4) whose
            • The blank comes right BEFORE "opinions" — the opinions BELONG to Mrs Phua → POSSESSIVE relative.
-           • *who* (subject) ✗, *whom* (object) ✗, *which* (things only) ✗, **whose** (possessive) ✓
+           • **who** (subject) ✗, **whom** (object) ✗, **which** (things only) ✗, **whose** (possessive) ✓
            • **→ Option (4): whose ✓**
       - |-
         **Example B — PSLE 2020 Q2** (reflexive — must match the SUBJECT)
         Trixie was tickled when she caught **Mr Loh** looking at his reflection in the mirror, smiling at ___.
         (1) her   (2) him   (3) herself   (4) himself
            • Who is doing the smiling? Mr Loh. Who is being smiled at? Also Mr Loh (his reflection). When the subject = object → REFLEXIVE.
-           • Mr Loh is male → **himself** (not *herself*, which would match Trixie).
+           • Mr Loh is male → **himself** (not **herself**, which would match Trixie).
            • **→ Option (4): himself ✓**
     callout: >-
       **For relative pronouns**, substitute mentally — if "of him/
-      her/them" fits, the answer is *whose*. **For reflexives**,
+      her/them" fits, the answer is **whose**. **For reflexives**,
       identify WHO is doing the action — the reflexive must match
       that person, not the bystander.
 
@@ -203,9 +208,9 @@ keyConcepts:
            want, hope, decide, agree, plan, learn, refuse, manage, expect, seem
            → "Mohan seems **to have lost** weight."
       - |-
-        **The PREPOSITION trap.** When "to" is a preposition (NOT the infinitive *to*), the next verb is a **gerund**:
-           • *object **to** going*, *look forward **to** seeing*
-           • *be used **to** working*, *be accustomed **to** doing*
+        **The PREPOSITION trap.** When "to" is a preposition (NOT the infinitive **to**), the next verb is a **gerund**:
+           • *object **to** going**, **look forward **to** seeing*
+           • *be used **to** working**, **be accustomed **to** doing*
            ⚠️ Students see "to" and pick the base form by reflex — that's wrong here.
       - |-
         **Causative / sensory verbs + BARE infinitive (no "to"):**
@@ -219,7 +224,7 @@ keyConcepts:
         **Example A — PSLE 2021 Q7** (the "to + gerund" preposition trap)
         Tom **objected to** ___ on a camping trip as he did not like outdoor activities.
         (1) go   (2) going   (3) be going   (4) having gone
-           • "object **to**" looks like the infinitive *to go* — but "to" here is a PREPOSITION.
+           • "object **to**" looks like the infinitive **to go** — but "to" here is a PREPOSITION.
            • Test: replace with a noun → "objected to **the trip**" ✓ → preposition confirmed.
            • Preposition + verb → **GERUND** (-ing form).
            • **→ Option (2): going ✓**
@@ -227,7 +232,7 @@ keyConcepts:
         **Example B — PSLE 2022 Q5** (causative bare infinitive)
         Judy **witnessed** a boy ___ the game cards into his bag, so she reported it to the store manager.
         (1) slip   (2) slips   (3) slipped   (4) has slipped
-           • "witness" is a SENSORY verb (like *see, watch, hear, notice*) — these take the **bare infinitive** (no "to", no "-ing", no past tense).
+           • "witness" is a SENSORY verb (like **see, watch, hear, notice**) — these take the **bare infinitive** (no "to", no "-ing", no past tense).
            • **→ Option (1): slip ✓**
     callout: >-
       **Two rules to remember:** "to + verb" can be EITHER an
@@ -243,13 +248,13 @@ keyConcepts:
       Read the SECOND clause to figure out which one fits.
     bullets:
       - |-
-        **Cause:** *since, because, as, owing to, due to, because of, in response to*. → "**Since** the concert was cancelled, the organiser refunded us."
+        **Cause:** **since, because, as, owing to, due to, because of, in response to**. → "**Since** the concert was cancelled, the organiser refunded us."
       - |-
-        **Concession (contradiction)**: *although, even though, despite, in spite of*. The two clauses contradict. → "**In spite of** the continual support, the family is unable to make ends meet."
+        **Concession (contradiction)**: **although, even though, despite, in spite of**. The two clauses contradict. → "**In spite of** the continual support, the family is unable to make ends meet."
       - |-
-        **Contrast:** *other than, on the other hand, whereas, but*. → "Li Shan does not eat seafood. **Other than** that, she will eat anything."
+        **Contrast:** **other than, on the other hand, whereas, but**. → "Li Shan does not eat seafood. **Other than** that, she will eat anything."
       - |-
-        **Time:** *as soon as, when, while, before, after, until, by the time*. These often dictate the TENSE of the next clause.
+        **Time:** **as soon as, when, while, before, after, until, by the time**. These often dictate the TENSE of the next clause.
       - |-
         **"In spite of / Despite"** must be followed by a NOUN or GERUND, not a clause. "In spite of **being late**" ✓, "In spite of **she was late**" ✗ (use "although" instead).
 
@@ -276,16 +281,16 @@ keyConcepts:
         ___ the continual support from the villagers, the family is unable to make ends meet.
         (1) Amid   (2) Owing to   (3) In spite of   (4) With regard to
            • Clause 1 "continual support" is HELPFUL. Clause 2 "unable to make ends meet" is the OPPOSITE result.
-           • Contradiction → CONCESSION connector → *In spite of* (or *despite*, *although*).
-           • *Owing to* signals cause (wrong direction). *Amid* / *With regard to* don't match the meaning.
+           • Contradiction → CONCESSION connector → **In spite of** (or **despite**, **although**).
+           • **Owing to** signals cause (wrong direction). **Amid** / **With regard to** don't match the meaning.
            • **→ Option (3): In spite of ✓**
       - |-
         **Example B — PSLE 2024 Q6** (conditional inversion)
         '___ James put the compass in his bag, we would not be lost in the forest,' grumbled Ai Ling.
         (1) Did   (2) Had   (3) Might   (4) Should
            • Consequence "**would not be lost**" = past conditional → protasis must be **past perfect**.
-           • "If James had put" → drop *if* and invert → "**Had** James put".
-           • Only *Had* triggers this past-perfect inversion. *Did* gives past simple; *Might/Should* don't form a valid conditional with the given consequence.
+           • "If James had put" → drop **if** and invert → "**Had** James put".
+           • Only **Had** triggers this past-perfect inversion. **Did** gives past simple; **Might/Should** don't form a valid conditional with the given consequence.
            • **→ Option (2): Had ✓**
     callout: >-
       **For connectors**, read the SECOND clause and ask "does it
@@ -319,7 +324,7 @@ keyConcepts:
            • **against** the current, **against** the rules
            • **out of** breath, **out of** stock
       - |-
-        **Movement vs position:** *into* (movement) vs *in* (position). "He walked **into** the room" vs "He is **in** the room". Same for *onto / on*, *off of / off*.
+        **Movement vs position:** **into** (movement) vs **in** (position). "He walked **into** the room" vs "He is **in** the room". Same for **onto / on**, **off of / off**.
       - |-
         **"X minutes into the game"** — "into" with a duration marks a point in time.
 
@@ -330,19 +335,19 @@ keyConcepts:
         The police officers were looking for the man who **robbed the tourists** ___ their possessions.
         (1) of   (2) for   (3) off   (4) with
            • Verb "rob" → fixed idiom **"rob someone OF something"**.
-           • *for* (used with *blame*), *off* (slang), *with* (used with weapons) — all wrong.
+           • **for** (used with **blame**), **off** (slang), **with** (used with weapons) — all wrong.
            • **→ Option (1): of ✓**
       - |-
         **Example B — PSLE 2021 Q9** (idiomatic phrase preposition)
         As the guard was ___ the impression that the hall was empty, he locked it up, not realising that someone was still in it.
         (1) in   (2) on   (3) with   (4) under
            • "___ the impression" is a fixed phrase — the correct preposition is **"under"** (under the impression that…).
-           • *in*, *on*, *with* don't combine with "impression" in this idiom.
+           • **in**, **on**, **with** don't combine with "impression" in this idiom.
            • **→ Option (4): under ✓**
     callout: >-
-      **Memorise as chunks.** *rob someone OF, accuse someone OF,
+      **Memorise as chunks.** **rob someone OF, accuse someone OF,
       congratulate someone ON, blame someone FOR, under the impression,
-      in someone's face, against the current, by accident.* Don't
+      in someone's face, against the current, by accident.** Don't
       reason them out — they're fixed by usage.
 
   # ─── PRACTICE CTA ─────────────────────────────────────────────────
