@@ -77,13 +77,21 @@ export function parseSlideScript(raw: string): ParsedScript {
     if (visible) bodyParts.push(visible);
   };
 
+  // Track whether the most recent non-empty line was a bullet/sub-bullet
+  // or a callout. Unprefixed continuation lines (no -, --, >, ~ prefix)
+  // belong to whatever block was most recently open, separated by a
+  // newline so multi-line worked examples render correctly. A blank
+  // line closes the open block.
+  type OpenBlock = "bullet" | "callout" | "none";
+  let openBlock: OpenBlock = "none";
+
   for (const rawLine of lines) {
     // Don't trim leading whitespace before the bullet/callout checks
     // (so an indented bullet doesn't accidentally become a sub-bullet),
     // but we trim trailing whitespace for clean parsing.
     const line = rawLine.replace(/\s+$/, "");
     const trimmed = line.trim();
-    if (!trimmed) { flushBody(); continue; }
+    if (!trimmed) { flushBody(); openBlock = "none"; continue; }
     if (PLACEHOLDER_RX.test(trimmed)) { continue; }
     if (!title) {
       titleRaw = trimmed;
@@ -106,6 +114,7 @@ export function parseSlideScript(raw: string): ParsedScript {
         bulletsRaw[last] = `${bulletsRaw[last]}\n   • ${subRaw}`;
         bullets[last] = `${bullets[last]}\n   • ${subVisible}`;
       }
+      openBlock = "bullet";
       continue;
     }
     const topMatch = TOP_BULLET_RX.exec(trimmed);
@@ -114,6 +123,7 @@ export function parseSlideScript(raw: string): ParsedScript {
       const bulletRaw = topMatch[2].trim();
       bulletsRaw.push(bulletRaw);
       bullets.push(stripBraces(bulletRaw));
+      openBlock = "bullet";
       continue;
     }
     const calloutMatch = CALLOUT_RX.exec(trimmed);
@@ -121,6 +131,21 @@ export function parseSlideScript(raw: string): ParsedScript {
       flushBody();
       const calloutLineRaw = calloutMatch[1].trim();
       calloutRaw = calloutRaw ? `${calloutRaw} ${calloutLineRaw}` : calloutLineRaw;
+      callout = stripBraces(calloutRaw);
+      openBlock = "callout";
+      continue;
+    }
+    // Unprefixed line. If the most recent block was a bullet or
+    // callout (no blank line since), append this line to it as a
+    // continuation. Otherwise it's part of the body paragraph.
+    if (openBlock === "bullet" && bullets.length > 0) {
+      const last = bullets.length - 1;
+      bulletsRaw[last] = `${bulletsRaw[last]}\n${trimmed}`;
+      bullets[last] = `${bullets[last]}\n${stripBraces(trimmed)}`;
+      continue;
+    }
+    if (openBlock === "callout") {
+      calloutRaw = `${calloutRaw}\n${trimmed}`;
       callout = stripBraces(calloutRaw);
       continue;
     }
