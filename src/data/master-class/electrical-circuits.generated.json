@@ -5,30 +5,30 @@
   "topicLabel": "Electrical system and circuits",
   "title": "Electrical Systems and Circuits",
   "stats": {
-    "psleQuestions": 18,
-    "psleSubjectPercent": 11,
+    "psleQuestions": 11,
+    "psleSubjectPercent": 9,
     "totalPracticePool": 69,
-    "psleQuestionsInPool": 18,
-    "schoolQuestionsInPool": 51,
-    "pctOeq": 56,
-    "headline": "Tied for the **#1 most-tested PSLE Science topic** — **11.4% of total PSLE marks** (2020–2024). More than half are open-ended, and the high-mark OEQs almost ALL follow the **same 4-step electromagnet recipe**."
+    "psleQuestionsInPool": 11,
+    "schoolQuestionsInPool": 58,
+    "pctOeq": 36,
+    "headline": "A **top-5 most-tested PSLE Science topic** — **9.4% of total PSLE Science marks** (2022–2024). The high-mark OEQs almost ALL follow the **same 4-step electromagnet recipe**."
   },
   "keyConcepts": [
     {
       "title": "Electrical Circuits: How important is this?",
-      "body": "Tied with \"Interaction of Forces\" for the most-tested PSLE Science topic. The MCQs test diagram reading; the OEQs test whether you can WRITE the explanation step by step.",
+      "body": "A top-5 most-tested PSLE Science topic. The MCQs test diagram reading; the OEQs test whether you can WRITE the explanation step by step.",
       "pieChart": {
-        "percentage": 11,
+        "percentage": 9,
         "label": "of PSLE Science marks",
-        "caption": "Joint"
+        "caption": "9.4% across PSLE 2022–2024 papers."
       },
       "bullets": [
-        "**18 PSLE questions** in 2020–2024 (8 MCQ, 10 OEQ)",
-        "**42 marks** total across those 5 papers — about one in nine PSLE Science marks",
-        "**~56% of the questions are OEQ** — and the OEQs include the 4 and 5-mark monsters",
+        "**11 PSLE questions** in 2022–2024 (7 MCQ, 4 OEQ)",
+        "**24 marks** total across those 3 years — about 1 in 11 PSLE Science marks",
+        "**OEQs include the 4 and 5-mark monsters** — almost all are electromagnet stories",
         "**We will cover the 4 concept families and 3 worked examples:**\n  • Reading the circuit diagram\n  • Series vs Parallel — the fuse rule\n  • Bulb brightness — same loop, same batteries?\n  • Electromagnets — the 4-step OEQ formula"
       ],
-      "callout": "If you only revise one Physical Science topic — start here. The electromagnet OEQ alone is worth ~4-5 marks every year."
+      "callout": "The electromagnet OEQ alone is worth ~4-5 marks every year — a fixed recipe you can memorise once and reuse every time."
     },
     {
       "title": "1: Reading the circuit diagram",

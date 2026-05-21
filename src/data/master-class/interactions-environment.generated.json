@@ -5,30 +5,30 @@
   "topicLabel": "Interactions within the environment",
   "title": "Interactions within the Environment",
   "stats": {
-    "psleQuestions": 19,
-    "psleSubjectPercent": 28.4,
-    "totalPracticePool": 85,
-    "psleQuestionsInPool": 19,
+    "psleQuestions": 15,
+    "psleSubjectPercent": 15,
+    "totalPracticePool": 81,
+    "psleQuestionsInPool": 15,
     "schoolQuestionsInPool": 66,
-    "pctOeq": 58,
-    "headline": "More than 1 in 4 PSLE Life-Science questions test this topic — 10.8% of total PSLE Science marks, and 58% of them are open-ended."
+    "pctOeq": 47,
+    "headline": "The **#1 most-tested PSLE Science topic (2022–2024)** — **15.3% of total PSLE Science marks**, with a near-even split of MCQ and open-ended questions."
   },
   "keyConcepts": [
     {
       "title": "Interactions with environment: How important is this?",
-      "body": "This is by far the most-tested Life-Science topic on PSLE — both in question count and in total marks. A roughly even mix of MCQ and OEQ.",
+      "body": "This is the **#1 most-tested PSLE Science topic** across PSLE 2022–2024 — beating Electrical Circuits, Heat Energy and every other topic in both question count and total marks.",
       "pieChart": {
-        "percentage": 12,
+        "percentage": 15,
         "label": "of PSLE Science marks",
-        "caption": "More than any other science topic."
+        "caption": "More than any other science topic (PSLE 2022–2024)."
       },
       "bullets": [
-        "**28%** of PSLE Life-Science questions test this topic",
-        "**~12%** of total PSLE Science marks come from it",
-        "**58%** are open-ended (OEQ), **42%** are MCQ",
+        "**15.3%** of total PSLE Science marks come from it",
+        "**15 questions** across PSLE 2022–2024 — **8 MCQ + 7 OEQ**",
+        "**39 marks** total — almost 1 in 6.5 PSLE Science marks",
         "**We will cover the top common questions and mistakes to help you ace this topic:**\n  • Definitions\n  • Food Web\n  • Adaptation\n  • Mutualism\n  • Decomposer\n  • Human Impact"
       ],
-      "callout": "If you only revise one Life-Science topic — start here."
+      "callout": "If you only revise one PSLE Science topic — start here."
     },
     {
       "title": "1: Key Definitions",
