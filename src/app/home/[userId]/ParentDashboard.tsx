@@ -54,6 +54,21 @@ type AdminNotif = { questionId: string; questionNum: string; adminReply: string;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Print + Scan-back are temporarily disabled for English and Chinese
+// papers — the writing / 完成对话 layouts don't translate cleanly to
+// lined A4 yet, and the scan-mark loop assumes a clean fillable layout.
+// Single helper keeps the gate consistent across the three UI spots
+// (Set Papers list, scheduler popup, per-paper card scan icon).
+function subjectBlocksPrintScan(subject: string | null | undefined): boolean {
+  const s = (subject ?? "").toLowerCase();
+  if (s.includes("english")) return true;
+  if (s.includes("chinese")) return true;
+  // Chinese-script subject strings sometimes survive normalisation.
+  const raw = subject ?? "";
+  if (raw.includes("华文") || raw.includes("中文") || raw.includes("华语")) return true;
+  return false;
+}
+
 function initials(name: string) {
   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
@@ -2429,7 +2444,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             disabled={isAssigning}
                             className="text-xs font-bold text-[#003366] bg-[#dce9ff] px-3 py-1.5 rounded-xl hover:bg-[#c6dbff] transition-colors disabled:opacity-50 shrink-0"
                           >Assign</button>
-                          {p.paperType !== "quiz" && p.paperType !== "focused" && (
+                          {p.paperType !== "quiz" && p.paperType !== "focused" && !subjectBlocksPrintScan(p.subject) && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -2544,7 +2559,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                             clean-extract content with bounds, the
                             scan-back marking flow works uniformly
                             for regular / quiz / focused. */}
-                        {paper.assignedToId && !(paper.subject ?? "").toLowerCase().includes("english") && (
+                        {paper.assignedToId && !subjectBlocksPrintScan(paper.subject) && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -3430,17 +3445,18 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         // with lg:hidden. Both depend on knowing which student the
         // scheduler is currently filtered to (selectedStudentId).
         const popup = schedulerPopup;
-        // English printable is disabled for now (the writing-comprehension
-        // layout doesn't translate cleanly to lined/boxed A4) — hide
-        // both Print and Scan in the popup for English papers.
-        const isEnglishPopup = (popup.subject ?? "").toLowerCase().includes("english");
+        // English + Chinese printables are disabled for now — the
+        // writing-comprehension / 短文填空 layouts don't translate
+        // cleanly to lined/boxed A4. Hide both Print and Scan in the
+        // popup for those subjects.
+        const popupBlocked = subjectBlocksPrintScan(popup.subject);
         return (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[100] p-4" onClick={() => setSchedulerPopup(null)}>
           <div className="bg-white rounded-2xl p-5 max-w-xs w-full shadow-xl" onClick={e => e.stopPropagation()}>
             <p className="font-bold text-[#001e40] text-sm mb-4 truncate">{popup.title}</p>
             {!popup.completed && selectedStudentId && (
               <div className="flex flex-col gap-2 mb-3">
-                {!isEnglishPopup && (
+                {!popupBlocked && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
