@@ -1245,7 +1245,11 @@ function ExamReviewContent({ id }: { id: string }) {
 
           function reviewWeakSlides() {
             const focus = weakRanked.map(([k]) => k).join(",");
-            router.push(`/admin/master-class/${masterClassSlug}?userId=${userId}&focus=${focus}`);
+            // Students land on the public master class page (not the
+            // admin one) — admins can still use the admin route via
+            // their nav. The /admin/* route is gated by isAdmin and
+            // 403s for everyone else.
+            router.push(`/master-class/${masterClassSlug}?userId=${userId}&focus=${focus}`);
           }
 
           return (
@@ -1256,7 +1260,7 @@ function ExamReviewContent({ id }: { id: string }) {
                     Mastery Quiz · {masterClassTitle ?? "Master Class"}
                   </p>
                   <button
-                    onClick={() => router.push(`/admin/master-class/${masterClassSlug}?userId=${userId}`)}
+                    onClick={() => router.push(`/master-class/${masterClassSlug}?userId=${userId}`)}
                     className="text-[11px] font-bold text-slate-700 hover:text-slate-900 underline"
                   >
                     ← Back to Master Class
