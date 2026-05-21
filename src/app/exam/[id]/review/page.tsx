@@ -2603,12 +2603,26 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const [before, after] = studentAns.split("|||");
                                             combined = `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
                                           } else if (keyword) {
-                                            // Starting-word format: only one input, the
-                                            // keyword goes at the start of the rewrite
-                                            // (e.g. 'Although ___'). Prepend it so the
-                                            // reader sees the full sentence.
-                                            const stripped = studentAns.trim().replace(new RegExp(`^${keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*`, "i"), "");
-                                            combined = stripped ? `${keyword} ${stripped}`.replace(/\s+/g, " ").trim() : keyword;
+                                            // Single-input format. Two sub-cases:
+                                            //   - "**Instead of** ___" → prepend keyword
+                                            //   - "She **had** ___"    → prepend "She " + keyword
+                                            // Pull any text that sits before the keyword
+                                            // on the answer-template line so the reader
+                                            // sees the full transformed sentence.
+                                            const lines = stemRaw.split("\n");
+                                            let leadingText = "";
+                                            for (let i = lines.length - 1; i >= 0; i--) {
+                                              const m = lines[i].match(/^(.*?)\*\*[^*]+\*\*/);
+                                              if (m) { leadingText = m[1].trim(); break; }
+                                            }
+                                            const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                                            // Strip a leaked keyword from the student's
+                                            // typed answer (old quiz UI sometimes hid the
+                                            // keyword so students re-typed it).
+                                            const stripped = studentAns.trim().replace(new RegExp(`^${escape(keyword)}\\s*`, "i"), "");
+                                            const segs = [leadingText, keyword, stripped].map(s => s.trim()).filter(Boolean);
+                                            combined = segs.join(" ").replace(/\s+/g, " ").trim();
+                                            if (!combined) combined = keyword;
                                           } else {
                                             combined = studentAns;
                                           }
