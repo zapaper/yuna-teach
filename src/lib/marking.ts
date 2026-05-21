@@ -3484,9 +3484,22 @@ ${expectedAnswer}
                 const after = afterRaw.trim().replace(new RegExp(`^\\s*\\b${kwEsc}\\b\\s*`, "i"), "").trim();
                 fullStudentAnswer = `${before} ${keyword} ${after}`.replace(/\s+/g, " ").trim();
               } else {
-                // Starting-word synthesis: strip a duplicated keyword from the start
+                // Single-input synthesis. Pull any text that sits before
+                // the keyword on the answer-template line so the marker
+                // sees the full reconstructed sentence:
+                //   "**Instead of** ___"  → leadingText=""    → "Instead of <answer>"
+                //   "She **had** ___"     → leadingText="She" → "She had <answer>"
+                // Without this prefix, the marker sees "had <answer>"
+                // and dings the answer for missing the subject.
+                const stemLines = q.transcribedStem.split("\n");
+                let leadingText = "";
+                for (let i = stemLines.length - 1; i >= 0; i--) {
+                  const m = stemLines[i].match(/^(.*?)\*\*[^*]+\*\*/);
+                  if (m) { leadingText = m[1].trim(); break; }
+                }
                 const after = q.studentAnswer.trim().replace(new RegExp(`^\\s*\\b${kwEsc}\\b\\s*`, "i"), "").trim();
-                fullStudentAnswer = `${keyword} ${after}`.replace(/\s+/g, " ").trim();
+                const segs = [leadingText, keyword, after].map(s => s.trim()).filter(Boolean);
+                fullStudentAnswer = segs.join(" ").replace(/\s+/g, " ").trim();
               }
             }
           }
