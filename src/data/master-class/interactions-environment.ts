@@ -47,6 +47,13 @@ export type MasterClassSlide = {
       title: string;
       mcq: number;
       oeq: number;
+      // Per-sub-topic minimum OEQ count — forces the quiz builder
+      // to allocate at least N OEQs from a given sub-topic before
+      // the round-robin top-up. E.g. `{ electromagnets: 2 }` on
+      // Electrical Circuits guarantees 2 electromagnet OEQs in
+      // every quiz (which dominate the PSLE OEQ marks for that
+      // topic). Keys are sub-topic IDs from subTopics[].
+      subTopicOeqMin?: Record<string, number>;
     };
   };
   narration?: {

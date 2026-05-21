@@ -235,6 +235,12 @@ keyConcepts:
         title: "Mastery: Electrical Circuits Quiz 1"
         mcq: 6
         oeq: 4
+        # Electromagnets dominate the PSLE OEQ marks for this topic
+        # (4-5 mark OEQs every year, 5 of 7 follow the bell/buzzer/door
+        # lock pattern). Force at least 2 electromagnet OEQs in every
+        # quiz so students always practice the formula.
+        subTopicOeqMin:
+          electromagnets: 2
 
 commonMistakes: []
 

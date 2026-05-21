@@ -235,14 +235,24 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       if (mcqPick.length === 0) warnings.push(`No MCQ available for sub-topic "${st.label}".`);
     }
   } else {
-    // Pick 1 OEQ per sub-topic first (the firm constraint).
+    // Pick the per-sub-topic minimum OEQs first. quizSpec.subTopicOeqMin
+    // lets a class enforce more than 1 OEQ from a particular topic
+    // (Electrical Circuits forces 2 electromagnet OEQs because they
+    // dominate the PSLE OEQ marks). Defaults to 1 per sub-topic when
+    // not overridden.
+    const subTopicOeqMin = quizSpec?.subTopicOeqMin ?? {};
     for (const st of subTopics) {
       const g = groups.get(st.id)!;
+      const minN = Math.max(1, subTopicOeqMin[st.id] ?? 1);
       if (g.oeq.length === 0) {
         warnings.push(`No OEQ available for sub-topic "${st.label}".`);
         continue;
       }
-      picked.push(g.oeq.shift()!);
+      const takeN = Math.min(minN, g.oeq.length);
+      picked.push(...g.oeq.splice(0, takeN));
+      if (takeN < minN) {
+        warnings.push(`Only ${takeN} OEQ available for sub-topic "${st.label}" (wanted ${minN}).`);
+      }
     }
     // Top up to oeqTarget total if any sub-topic was missing.
     while (picked.filter(p => !hasOptions(p)).length < oeqTarget) {

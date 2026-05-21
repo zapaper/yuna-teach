@@ -141,7 +141,10 @@
         "quizSpec": {
           "title": "Mastery: Electrical Circuits Quiz 1",
           "mcq": 6,
-          "oeq": 4
+          "oeq": 4,
+          "subTopicOeqMin": {
+            "electromagnets": 2
+          }
         }
       }
     }
