@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import FormattedText from "./FormattedText";
+import MathText from "./MathText";
 
 interface QuizQuestion {
   id: string;
@@ -1074,7 +1075,7 @@ function ReadingPassage({ text }: { text: string }) {
             return (
               <div key={ri} className="flex gap-2 min-h-[1.3rem]">
                 <p className={`flex-1 text-[#0b1c30] leading-relaxed text-justify ${isIndented ? "pl-8" : ""}`} style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(11px, 0.95vw, 13.5px)" }}>
-                  {textContent.replace(/^\s+/, "")}
+                  <MathText text={textContent.replace(/^\s+/, "")} />
                 </p>
                 {marginNum ? <span className="w-5 text-right text-[#003366] font-bold font-mono shrink-0 pt-0.5" style={{ fontSize: "clamp(10px, 0.78vw, 12px)" }}>{marginNum}</span> : <span className="w-5 shrink-0" />}
               </div>
@@ -1088,7 +1089,9 @@ function ReadingPassage({ text }: { text: string }) {
   // Plain text fallback
   return (
     <div className="mb-8 bg-white rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-100 max-h-[600px] overflow-y-auto overflow-x-hidden w-full lg:max-h-none lg:overflow-visible">
-      <p className="text-[#0b1c30] leading-relaxed whitespace-pre-wrap text-justify" style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(12px, 1vw, 14px)" }}>{text}</p>
+      <p className="text-[#0b1c30] leading-relaxed whitespace-pre-wrap text-justify" style={{ overflowWrap: "break-word", wordBreak: "break-word", hyphens: "auto", fontSize: "clamp(12px, 1vw, 14px)" }}>
+        <MathText text={text} />
+      </p>
     </div>
   );
 }
