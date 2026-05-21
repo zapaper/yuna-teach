@@ -1143,7 +1143,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
             {/* Master Class — gated to a small allow-list for now
                 (admin + student666 test account) until we ship to all
                 students. */}
-            {(["admin", "student666"].includes(user.name?.toLowerCase() ?? "")) && (
+            {(["admin", "student666", "mark lim", "david lim"].includes(user.name?.toLowerCase() ?? "")) && (
               <button onClick={() => router.push(`/master-class?userId=${userId}`)} className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-blue-50 transition-colors">
                 <span className="material-symbols-outlined">school</span>Master Class
               </button>
@@ -1857,7 +1857,7 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
         )}
         {/* Master Class — admin + student666 only for now. Mirrors
             the desktop nav gate. */}
-        {(["admin", "student666"].includes(user.name?.toLowerCase() ?? "")) && (
+        {(["admin", "student666", "mark lim", "david lim"].includes(user.name?.toLowerCase() ?? "")) && (
           <button
             onClick={() => { setActiveNav("master"); router.push(`/master-class?userId=${userId}`); }}
             className={`flex flex-col items-center gap-0.5 transition-all ${activeNav === "master" ? "text-[#006c49]" : "text-slate-400"}`}

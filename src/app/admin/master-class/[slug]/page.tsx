@@ -626,10 +626,10 @@ function SlideDeck({
           <button
             onClick={regenerate}
             disabled={ttsLoading}
-            className="text-[10px] text-slate-400 hover:text-slate-700 disabled:opacity-50 ml-2"
-            title="Re-generate narration (skip cache)"
+            className="text-[10px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 ring-1 ring-amber-200 rounded-md px-2 py-1 ml-2 disabled:opacity-50"
+            title="Re-generate narration from scratch (skip the cached MP3 — use after editing the script)"
           >
-            ↻ Re-gen
+            {ttsLoading ? "Re-generating…" : "↻ Re-generate voice"}
           </button>
           <p className="text-[10px] text-slate-400 ml-3">slide {currentIdx + 1} / {slides.length}</p>
         </div>
