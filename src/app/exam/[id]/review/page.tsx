@@ -2045,6 +2045,47 @@ function ExamReviewContent({ id }: { id: string }) {
                             return <p key={li} className="text-sm text-[#0b1c30] leading-loose my-1" style={indent ? { textIndent: "2em" } : { textIndent: "2em" }}>{parts.length > 0 ? parts : line}</p>;
                           });
                         }
+                        // English Vocab Cloze passage — same shape the
+                        // quiz player renders: every **bold** chunk is
+                        // either an underlined keyword (bold + underline)
+                        // or a blank (bold underscores). Strip an
+                        // optional leading "(N) " prefix and surrounding
+                        // __ markers so the eye lands on the word, not
+                        // the markdown.
+                        if (isVocabCloze) {
+                          return pLines.map((line: string, li: number) => {
+                            if (!line.trim()) return <br key={li} />;
+                            const parts: React.ReactNode[] = [];
+                            const re = /\*\*([^*]+)\*\*/g;
+                            let lastEnd = 0;
+                            let m: RegExpExecArray | null;
+                            while ((m = re.exec(line)) !== null) {
+                              if (m.index > lastEnd) parts.push(<span key={`t${lastEnd}`}>{line.slice(lastEnd, m.index)}</span>);
+                              const raw = m[1] ?? "";
+                              const numMatch = raw.match(/^\s*\((\d+)\)\s*/);
+                              const trimmed = (numMatch ? raw.slice(numMatch[0].length) : raw).trim();
+                              const inner = trimmed.replace(/^__|__$/g, "");
+                              const isUnderscoreBlank = /^_{2,}$/.test(inner);
+                              if (inner) {
+                                parts.push(
+                                  isUnderscoreBlank ? (
+                                    <span key={`b${m.index}`} className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40] tracking-widest">________</span>
+                                  ) : (
+                                    <span key={`w${m.index}`} className="font-bold underline decoration-2 decoration-[#001e40] underline-offset-2 text-[#001e40]">{inner}</span>
+                                  )
+                                );
+                              }
+                              lastEnd = m.index + m[0].length;
+                            }
+                            if (lastEnd < line.length) parts.push(<span key="end">{line.slice(lastEnd)}</span>);
+                            const indent = line.match(/^(\s{2,}|\t)/);
+                            return (
+                              <p key={li} className="leading-relaxed text-base text-[#001e40] my-1" style={indent ? { textIndent: "2em" } : undefined}>
+                                {parts.length > 0 ? parts : line}
+                              </p>
+                            );
+                          });
+                        }
                         // Standard passage (grammar cloze, editing, comp cloze)
                         return pLines.map((line: string, li: number) => {
                           if (!line.trim()) return <br key={li} />;
