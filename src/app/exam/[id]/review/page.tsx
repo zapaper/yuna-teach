@@ -12,6 +12,23 @@ import { playClick } from "@/lib/sfx";
 import { formatSubpartLabel } from "@/lib/subpart-label";
 import React from "react";
 
+/** Strip explanation tails from a one-word answer key so the review
+ *  shows just the word (e.g. "Exhilaration | (spelling)" → "Exhilaration",
+ *  "elated (= very happy)" → "elated"). Applied at display time so
+ *  already-extracted dirty answers also render cleanly. Mirrors the
+ *  extraction-time cleaner in src/lib/extraction.ts. */
+function cleanOneWordAnswer(answer: string): string {
+  if (!answer) return "";
+  let s = answer.trim();
+  const pipeIdx = s.indexOf("|");
+  if (pipeIdx >= 0) s = s.slice(0, pipeIdx).trim();
+  s = s.replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  s = s.replace(/\s*[=—–]\s*.+$/, "").trim();
+  s = s.replace(/\s+-\s+.+$/, "").trim();
+  s = s.replace(/[.!?;:,]+$/, "").trim();
+  return s;
+}
+
 /** Speak a Chinese MCQ sentence with the correct option substituted
  *  for the blank / underlined phrase. Browser TTS only — no network
  *  call. Used by the speaker button in the Chinese review path. */
@@ -2122,7 +2139,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               // rendering for parent and student.
                               const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
                               const studentAns = (q?.studentAnswer ?? "").trim();
-                              const correctAns = (q?.answer ?? "").trim();
+                              const correctAns = cleanOneWordAnswer(q?.answer ?? "");
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
                               const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
                               // Trust the AI marker: full marks earned means
@@ -2178,7 +2195,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               // they left it blank.
                               const q = mappedQ ?? sectionQuestions.find(sq => sq.questionNum === num);
                               const studentAns = (q?.studentAnswer ?? "").trim();
-                              const correctAns = (q?.answer ?? "").trim();
+                              const correctAns = cleanOneWordAnswer(q?.answer ?? "");
                               const isBlank = !studentAns || studentAns === "__SKIPPED__";
                               const earned = q?.marksAwarded ?? 0;
                               const available = q?.marksAvailable ?? 1;
@@ -2333,7 +2350,16 @@ function ExamReviewContent({ id }: { id: string }) {
                       const rawStudent = q.studentAnswer ?? "";
                       const rawCorrect = q.answer ?? "";
                       const studentAns = isGrammarCloze ? extractClozeLetter(rawStudent) : rawStudent;
-                      const correctAns = isGrammarCloze ? extractClozeLetter(rawCorrect) : rawCorrect;
+                      // Comp Cloze + Editing answer keys may carry an
+                      // inline explanation that we don't want to render
+                      // ("Exhilaration | (spelling)", "elated (=happy)").
+                      // Strip it here so already-extracted dirty answers
+                      // still display the clean one-word answer.
+                      const correctAns = isGrammarCloze
+                        ? extractClozeLetter(rawCorrect)
+                        : (isEditing || isCompCloze)
+                          ? cleanOneWordAnswer(rawCorrect)
+                          : rawCorrect;
                       const studentWord = wordBank.get(studentAns.toUpperCase()) ?? "";
                       const correctWord = wordBank.get(correctAns.toUpperCase()) ?? "";
                       const displayNum = parseInt(q.questionNum);
