@@ -87,16 +87,21 @@ function coerceMarks(v: unknown): number | null {
 // explanations that belong in the marking scheme, not in the answer
 // the student should be checked against:
 //   Comp Cloze:   "elated (= very happy)" / "elated — meaning excited"
+//   Editing:      "Exhilaration | (This is a spelling error)"
 //   Synthesis:    "Although it was raining, we went out. (concession)"
 // Strip those so marking only sees the actual answer.
 //
-// `aggressive=true` (Comp Cloze) also drops trailing "= ..." / dash /
-// punctuation tails that wouldn't appear in a legitimate one-word fill.
-// Synthesis answers can be full sentences — for those, only the
-// parentheticals come off.
+// `aggressive=true` (Comp Cloze, Editing) also drops trailing
+// "= ..." / dash / punctuation tails that wouldn't appear in a
+// legitimate one-word fill. Synthesis answers can be full sentences —
+// for those, only the parentheticals and pipe-explanation come off.
 function cleanAnswerKeyExplanation(answer: string, aggressive: boolean): string {
   if (!answer) return "";
   let s = answer.trim();
+  // Pipe separator: "Exhilaration | (This is a spelling error)" → take
+  // only the part before the first pipe.
+  const pipeIdx = s.indexOf("|");
+  if (pipeIdx >= 0) s = s.slice(0, pipeIdx).trim();
   // Parentheticals (always safe to strip — those are explanations).
   s = s.replace(/\s*\([^)]*\)\s*/g, " ").trim();
   if (aggressive) {
@@ -416,8 +421,9 @@ async function extractExamPaperCore(
           if (answer) {
             const isCompCloze_ = qTopic.includes("comprehension") && qTopic.includes("cloze");
             const isSynth_ = qTopic.includes("synthesis");
-            if (isCompCloze_ || isSynth_) {
-              answer = cleanAnswerKeyExplanation(answer, isCompCloze_);
+            const isEditing_ = qTopic.includes("editing");
+            if (isCompCloze_ || isSynth_ || isEditing_) {
+              answer = cleanAnswerKeyExplanation(answer, isCompCloze_ || isEditing_);
             }
           }
           if (qTopic.includes("visual") && qTopic.includes("text") && visualTextPages.length > 0) {
@@ -725,13 +731,13 @@ async function extractExamPaperCore(
           }
         }
       }
-      // Strip inline explanations from the answer key — Comp Cloze and
-      // Synthesis answer keys sometimes carry "(explanation)" tails
-      // that belong in the marking scheme, not in the student-facing
-      // answer. See helper comment for the formats handled.
+      // Strip inline explanations from the answer key — Comp Cloze /
+      // Editing / Synthesis answer keys sometimes carry "(explanation)"
+      // or "| explanation" tails that belong in the marking scheme,
+      // not in the student-facing answer.
       if (fullAnswer) {
-        if (isCompCloze || isSynthesis) {
-          fullAnswer = cleanAnswerKeyExplanation(fullAnswer, isCompCloze);
+        if (isCompCloze || isSynthesis || isEditing) {
+          fullAnswer = cleanAnswerKeyExplanation(fullAnswer, isCompCloze || isEditing);
         }
       }
 
