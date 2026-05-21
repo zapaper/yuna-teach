@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { generateContentWithRetry, cleanVocabClozePassageOcr } from "@/lib/gemini";
+import { generateContentWithRetry, cleanVocabClozePassageOcr, cleanGrammarClozePassageOcr } from "@/lib/gemini";
 import { buildChineseSections, type OcrEntry } from "@/lib/extraction";
 import fs from "fs";
 import path from "path";
@@ -164,6 +164,14 @@ Output ONLY the clean passage/question text, no commentary.` });
     ocrText = cleanVocabClozePassageOcr(ocrText);
     if (ocrText.length !== beforeLen) {
       console.log(`[Re-extract] ${secLabel}: cleaned vocab-cloze passage (${beforeLen} → ${ocrText.length} chars)`);
+    }
+  }
+  // Grammar Cloze: strip leading instruction banner (keep word bank + passage).
+  if (secLabel.toLowerCase().includes("grammar") && secLabel.toLowerCase().includes("cloze")) {
+    const beforeLen = ocrText.length;
+    ocrText = cleanGrammarClozePassageOcr(ocrText);
+    if (ocrText.length !== beforeLen) {
+      console.log(`[Re-extract] ${secLabel}: cleaned grammar-cloze instruction (${beforeLen} → ${ocrText.length} chars)`);
     }
   }
 

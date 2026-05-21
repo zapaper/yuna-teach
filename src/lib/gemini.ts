@@ -3574,6 +3574,36 @@ export function normalizeAnswer(entry: string | AnswerEntry): AnswerEntry {
 //     ("16."), options lists ("(1) keenly (2) silently …"), and blanks.
 //     Stop at the first line that doesn't match those — that's the last
 //     prose line of the passage.
+// Strip the leading section instruction from a Grammar Cloze OCR text.
+// Grammar Cloze structure is:
+//   [section instruction]
+//   [word bank: (A) word (B) word ...]
+//   [passage with **(29)________** numbered blanks]
+// We want to keep the word bank + passage and drop only the instruction
+// banner above. Walk down from the top, skipping lines that look like
+// instructions until we hit either a `**...**` marker (passage) or a
+// word-bank entry (letter-bracket prefix like "A.", "(A)", "A)").
+export function cleanGrammarClozePassageOcr(text: string): string {
+  if (!text) return "";
+  const lines = text.split("\n");
+  const isWordBankLine = (l: string) => /^\s*[(\[]?[A-Z][.)\]]\s+\S/.test(l);
+  const hasMarker = (l: string) => /\*\*[^*]*\*\*/.test(l);
+  const looksLikeInstruction = (l: string) => {
+    const t = l.trim();
+    if (!t) return false;
+    if (hasMarker(t) || isWordBankLine(t)) return false;
+    return /\b(choose|select|from the|given|the blank|fill in|write\s+(?:its|the)|list of|each of the|complete the|word bank|words given|suitable word)\b/i.test(t);
+  };
+  let start = 0;
+  while (start < lines.length && (looksLikeInstruction(lines[start]) || !lines[start].trim())) {
+    if (hasMarker(lines[start]) || isWordBankLine(lines[start])) break;
+    start++;
+  }
+  // Safety: never strip the entire OCR.
+  if (start >= lines.length) return text.trim();
+  return lines.slice(start).join("\n").trim();
+}
+
 export function cleanVocabClozePassageOcr(text: string): string {
   if (!text) return "";
   const lines = text.split("\n");
@@ -4167,6 +4197,15 @@ Output ONLY the clean passage/question text, no commentary.` });
             ocrText = cleanVocabClozePassageOcr(ocrText);
             if (ocrText.length !== beforeLen) {
               console.log(`[Exam Pipeline] ${secLabel}: cleaned vocab-cloze passage (${beforeLen} → ${ocrText.length} chars)`);
+            }
+          }
+          // Grammar Cloze: strip leading section instruction banner
+          // while keeping the word bank + numbered-blank passage.
+          if (secLabel.toLowerCase().includes("grammar") && secLabel.toLowerCase().includes("cloze")) {
+            const beforeLen = ocrText.length;
+            ocrText = cleanGrammarClozePassageOcr(ocrText);
+            if (ocrText.length !== beforeLen) {
+              console.log(`[Exam Pipeline] ${secLabel}: cleaned grammar-cloze instruction (${beforeLen} → ${ocrText.length} chars)`);
             }
           }
 
