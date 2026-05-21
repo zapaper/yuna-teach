@@ -126,7 +126,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
   const avatarVideos = parentAvatarType ? (avatarTypeMap[parentAvatarType] ?? null) : null;
   const hasAvatar = !!avatarVideos;
   const [showParentAvatarPicker, setShowParentAvatarPicker] = useState(false);
-  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null; subject: string | null } | null>(null);
+  const [schedulerPopup, setSchedulerPopup] = useState<{ id: string; title: string; completed: boolean; paperType: string | null; subject: string | null; cleanExtracted: boolean } | null>(null);
   const [quizTargetDay, setQuizTargetDay] = useState<Date | null>(null);
 
   async function reschedulePaper(paperId: string, newDay: Date) {
@@ -2538,7 +2538,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                   {unstartedPapers.map(paper => (
                     <div
                       key={paper.id}
-                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType, subject: paper.subject ?? null })}
+                      onClick={() => setSchedulerPopup({ id: paper.id, title: paper.title, completed: false, paperType: paper.paperType, subject: paper.subject ?? null, cleanExtracted: paper.cleanExtracted })}
                       className="bg-white p-4 rounded-2xl shadow-[0_4px_20px_rgba(11,28,48,0.05)] flex items-center gap-3 cursor-pointer hover:shadow-md transition-shadow"
                     >
                       <div className="w-11 h-11 rounded-2xl bg-[#ffddb4]/40 flex items-center justify-center text-[#d58d00] shrink-0">
@@ -2796,7 +2796,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted });
                               }} className={`rounded-lg px-1.5 py-1 text-[9px] font-semibold truncate flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "9px" }}>check_circle</span>
@@ -3129,7 +3129,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                               onDragStart={e => { if (!p.completedAt) e.dataTransfer.setData("text/plain", p.id); }}
                               onClick={() => {
                                 if (p.completedAt) router.push(`/exam/${p.id}/review?userId=${userId}`);
-                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null });
+                                else setSchedulerPopup({ id: p.id, title: p.title, completed: !!p.completedAt, paperType: p.paperType, subject: p.subject ?? null, cleanExtracted: p.cleanExtracted });
                               }} className={`rounded-lg px-2 py-1.5 text-[10px] font-semibold truncate hover:opacity-80 transition-opacity flex items-center gap-1 ${p.completedAt ? "bg-[#d1fae5] text-[#006c49] cursor-pointer" : "bg-[#eff4ff] text-[#001e40] shadow-sm cursor-grab active:cursor-grabbing"}`}>
                               {p.markingStatus === "released" && (
                                 <span className="material-symbols-outlined text-[10px] shrink-0 leading-none" style={{ fontVariationSettings: "'FILL' 1", fontSize: "10px" }}>check_circle</span>
@@ -3495,14 +3495,24 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                 )}
                 {/* Open in child's tab — quiz/focused take place at
                     /quiz/<id> (canvas workspace), regular papers
-                    open the /exam/<id> overview/review. iOS branch
-                    logs the parent out and bounces to /login because
+                    open the /exam/<id> overview/review. Mirror the
+                    StudentDashboard rule: English / Chinese master
+                    clones go to /quiz too because their marker is
+                    wired to the typed-answer flow. iOS branch logs
+                    the parent out and bounces to /login because
                     WebView can't open a new tab. */}
                 <button
                   onClick={async () => {
                     setSchedulerPopup(null);
                     const isQuizOrFocused = popup.paperType === "quiz" || popup.paperType === "focused";
-                    const childPath = isQuizOrFocused ? `/quiz/${popup.id}` : `/exam/${popup.id}`;
+                    const rawSubj = popup.subject ?? "";
+                    const subjLower = rawSubj.toLowerCase();
+                    const isTextBasedSubject =
+                      subjLower.includes("english") ||
+                      subjLower.includes("chinese") ||
+                      rawSubj.includes("华文") || rawSubj.includes("中文") || rawSubj.includes("华语");
+                    const useQuiz = isQuizOrFocused || (isTextBasedSubject && popup.cleanExtracted);
+                    const childPath = useQuiz ? `/quiz/${popup.id}` : `/exam/${popup.id}`;
                     if (isNative()) {
                       try { await fetch("/api/auth", { method: "DELETE" }); } catch { /* non-fatal */ }
                       window.location.href = `/login?next=${encodeURIComponent(childPath)}`;
