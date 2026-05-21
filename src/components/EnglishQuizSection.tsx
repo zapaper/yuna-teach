@@ -1048,10 +1048,14 @@ function ReadingPassage({ text }: { text: string }) {
     const hasThirdCol = dataRows.some(cells => cells.length >= 3 && cells[2]?.trim());
     let nonBlankCount = 0;
     const marginNums = dataRows.map(cells => {
-      if (hasThirdCol) return cells[2]?.trim() ?? "";
       const textContent = cells[1]?.trim() ?? "";
+      // Blank rows never get a margin number, even if the OCR put one
+      // in the third (printed-number) column — paragraph breaks aren't
+      // counted as lines.
+      if (!textContent) return "";
+      if (hasThirdCol) return cells[2]?.trim() ?? "";
       const lineNum = cells[0]?.trim() ?? "";
-      if (textContent && lineNum) {
+      if (lineNum) {
         nonBlankCount++;
         return nonBlankCount % 5 === 0 ? String(nonBlankCount) : "";
       }
@@ -1063,14 +1067,20 @@ function ReadingPassage({ text }: { text: string }) {
           {dataRows.map((cells, ri) => {
             const textContent = cells[1]?.trim() ?? "";
             const rawText = dataRawRows[ri]?.[1] ?? "";
-            const isEmpty = !textContent && !cells[0]?.trim();
+            // A row is blank when the passage text is empty. OCR
+            // sometimes still emits a line-counter in column 1 for a
+            // paragraph-break row; ignore col-0 here so blank rows
+            // render as a spacer regardless of stray numbering.
+            const isEmpty = !textContent;
             // Detect indentation from the RAW cell — trim() would have
             // erased leading whitespace already. Lines starting with 2+
             // spaces or a tab are paragraph starts and get a hanging indent
             // BUT no extra top margin (lines stay flush with the rest of
             // the passage, only the first-line position changes).
             const isIndented = /^(\s{2,}|\t+)/.test(rawText);
-            const marginNum = marginNums[ri];
+            // Suppress the printed line-number on blank rows even if OCR
+            // mis-attributed one (e.g. "| 5 | | |" for a paragraph break).
+            const marginNum = isEmpty ? "" : marginNums[ri];
             if (isEmpty) return <div key={ri} className="h-6" />;
             return (
               <div key={ri} className="flex gap-2 min-h-[1.3rem]">
