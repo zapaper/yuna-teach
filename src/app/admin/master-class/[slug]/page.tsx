@@ -663,7 +663,7 @@ function SlideDeck({
         const scoringHl = accent === "emerald" ? "ring-2 ring-emerald-300" : "ring-2 ring-rose-300";
         const calloutHl = accent === "emerald" ? "ring-2 ring-emerald-400" : "ring-2 ring-rose-400";
         return (
-        <div className="min-h-[480px] flex flex-col">
+        <div className="min-h-[520px] sm:min-h-[860px] flex flex-col">
           <h2 className={`text-xl lg:text-2xl font-bold text-slate-900 leading-tight transition-all ${introHl}`}>{slide.title}</h2>
           {slide.body && (
             <p
