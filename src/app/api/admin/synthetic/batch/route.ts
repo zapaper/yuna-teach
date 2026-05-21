@@ -29,8 +29,16 @@ export async function GET(request: NextRequest) {
     ],
   };
 
+  // For "P6" also pull PSLE papers — PSLE is the P6 national exam and
+  // its grammar / vocab MCQ pool is the most authoritative source for
+  // English synthetic generation.
   const levelVariants = levelParam
-    ? [levelParam, `Primary ${levelParam.replace(/^P/i, "")}`, levelParam.replace(/^P/i, "")]
+    ? (() => {
+        const stripped = levelParam.replace(/^P/i, "");
+        const base = [levelParam, `Primary ${stripped}`, stripped];
+        if (stripped === "6") base.push("PSLE");
+        return base;
+      })()
     : null;
   const examTypes = examTypesParam
     ? examTypesParam.split(",").map(s => s.trim()).filter(Boolean)
