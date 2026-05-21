@@ -337,9 +337,11 @@ Return ONLY valid JSON:
   ) ?? canonicalSectionName;
   allOcr[secKey] = {
     ...(allOcr[secKey] ?? {}),
-    // Store the cleaned passage-display version; the full OCR was
-    // already consumed by question extraction above.
-    ocrText: displayOcrText,
+    // Preserve the FULL ocrText; store the cleaned passage in a
+    // separate field so the quiz UI can render a passage-only view
+    // without losing the original source.
+    ocrText,
+    ...(displayOcrText !== ocrText ? { passageDisplayText: displayOcrText } : { passageDisplayText: undefined }),
     pageIndices,
     ...(passageOcrText ? { passageOcrText } : {}),
   };

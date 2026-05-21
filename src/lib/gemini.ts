@@ -3642,7 +3642,7 @@ export interface BatchAnalysisResult {
   answers: Record<string, AnswerEntry>;
   marksPerQuestion?: Record<string, number | null>;
   syllabusTopics?: Record<string, string | null>;
-  sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[]; passagePageIndices?: number[]; passageOcrText?: string }>;
+  sectionOcrTexts?: Record<string, { ocrText: string; pageIndices: number[]; passagePageIndices?: number[]; passageOcrText?: string; passageDisplayText?: string }>;
   _debug?: {
     papers: Array<{
       label: string;
@@ -4549,10 +4549,16 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
           }
 
           return { pages, _sectionOcr: {
-            // Store the DISPLAY version (cleaned passage for vocab /
-            // grammar cloze, raw otherwise). Extraction has already
-            // consumed the full ocrText above.
-            name: secLabel, ocrText: displayOcrText, pageIndices: secPageIndices,
+            // ocrText keeps the FULL OCR (with instruction header and
+            // Q&A block) so re-extracting questions from the stored
+            // text later doesn't lose source material.
+            // passageDisplayText holds the cleaned passage-only version
+            // used by the quiz UI; it's set only when the cleaner
+            // actually changed something.
+            name: secLabel,
+            ocrText,
+            ...(displayOcrText !== ocrText ? { passageDisplayText: displayOcrText } : {}),
+            pageIndices: secPageIndices,
             ...(needsPassageOcr && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
             ...(isVisualTextSec && visualPagesForVT.length > 0 ? { passagePageIndices: visualPagesForVT } : {}),
             ...(passageOcrText ? { passageOcrText } : {}),
@@ -4591,9 +4597,9 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
       // Collect OCR texts from each section
       extractionTasks.push(
         Promise.all(sectionTasks).then(results => {
-          const ocrTexts: Record<string, { ocrText: string; pageIndices: number[] }> = {};
+          const ocrTexts: Record<string, { ocrText: string; pageIndices: number[]; passageDisplayText?: string }> = {};
           for (const r of results) {
-            const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[]; passagePageIndices?: number[]; passageOcrText?: string } })._sectionOcr;
+            const ocr = (r as unknown as { _sectionOcr?: { name: string; ocrText: string; pageIndices: number[]; passagePageIndices?: number[]; passageOcrText?: string; passageDisplayText?: string } })._sectionOcr;
             if (!ocr) continue;
             // Multiple sections can share the same NORMALISED name (e.g. the
             // Chinese 五 阅读理解二 split produces TWO "阅读理解 MCQ"
@@ -4610,7 +4616,7 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
                 : `dup${Math.random().toString(36).slice(2, 6)}`;
               key = `${ocr.name} (${range})`;
             }
-            ocrTexts[key] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}), ...(ocr.passageOcrText ? { passageOcrText: ocr.passageOcrText } : {}) };
+            ocrTexts[key] = { ocrText: ocr.ocrText, pageIndices: ocr.pageIndices, ...(ocr.passagePageIndices ? { passagePageIndices: ocr.passagePageIndices } : {}), ...(ocr.passageOcrText ? { passageOcrText: ocr.passageOcrText } : {}), ...(ocr.passageDisplayText ? { passageDisplayText: ocr.passageDisplayText } : {}) };
           }
           // Sort pages by question number to maintain section order (parallel tasks finish in random order)
           const allPages = results.flatMap(r => r.pages);

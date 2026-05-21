@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
       englishSectionsMeta = [];
       let idx = 0;
-      const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string; passagePageIndices?: number[] }> | undefined;
+      const ocrTexts = (paper.metadata as Record<string, unknown>)?.sectionOcrTexts as Record<string, { ocrText?: string; passageOcrText?: string; passageDisplayText?: string; passagePageIndices?: number[] }> | undefined;
       for (const [topic, qs] of sectionMap) {
         const topicLower = topic.toLowerCase();
         // Don't set passage for standalone MCQ sections (Grammar MCQ, Vocabulary MCQ)
@@ -129,7 +129,12 @@ export async function POST(request: NextRequest) {
           // Comp OEQ: prefer passageOcrText (reading passage), NOT ocrText (question text)
           passage = sectionOcr?.passageOcrText ?? sectionOcr?.ocrText;
         } else {
-          passage = sectionOcr?.ocrText ?? sectionOcr?.passageOcrText;
+          // For cloze sections we now store a cleaned passage-only
+          // copy in passageDisplayText (no instruction header, no
+          // trailing Q&A block). Prefer that for the quiz UI; fall
+          // back to the full ocrText when the cleaner left the OCR
+          // unchanged.
+          passage = sectionOcr?.passageDisplayText ?? sectionOcr?.ocrText ?? sectionOcr?.passageOcrText;
         }
         englishSectionsMeta.push({
           label: topic,
