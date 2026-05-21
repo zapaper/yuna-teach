@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
     select: {
       id: true,
       syllabusTopic: true,
+      subTopic: true,
       transcribedSubparts: true,
       examPaper: { select: { subject: true, level: true, examType: true } },
     },
@@ -124,6 +125,7 @@ export async function POST(request: NextRequest) {
           marksAvailable: 2,
           examPaperId: bankPaperId,
           syllabusTopic: source.syllabusTopic ?? null,
+          subTopic: source.subTopic ?? null,
           transcribedStem: v.stem,
           transcribedOptions: hasImgOpts ? ["", "", "", ""] : (v.options as unknown as string[]),
           transcribedOptionImages: hasImgOpts ? opts : undefined,
@@ -169,6 +171,7 @@ export async function POST(request: NextRequest) {
           marksAvailable: v.marksAvailable ?? null,
           examPaperId: bankPaperId,
           syllabusTopic: source.syllabusTopic ?? null,
+          subTopic: source.subTopic ?? null,
           transcribedStem: v.stem,
           transcribedSubparts: (subpartsWithSentinel as unknown) as Prisma.InputJsonValue,
           diagramImageData: v.diagramImageData ?? null,

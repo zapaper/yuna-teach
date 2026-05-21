@@ -217,7 +217,7 @@ export async function GET(request: NextRequest) {
       examPaper: { select: { id: true, title: true, year: true, school: true, level: true, examType: true } },
     },
     orderBy: [{ syntheticSkipped: "asc" }, { id: "asc" }],
-    take: 20, // fetch a few extra in case some have invalid answer format
+    take: 200, // fetch wide so PSLE papers (newer CUIDs) aren't excluded
   });
 
   function parseMcqAnswer(a: string | null): number | null {
@@ -227,7 +227,26 @@ export async function GET(request: NextRequest) {
     return n >= 1 && n <= 4 ? n : null;
   }
 
-  const filtered = questions.filter(q => parseMcqAnswer(q.answer) !== null).slice(0, 10);
+  // Sort PSLE-source questions first so the synthetic seed prioritises
+  // them. Within each tier, newer papers (year desc) come first.
+  function sourcePriority(q: { examPaper: { title?: string | null; level?: string | null } }): number {
+    const title = q.examPaper.title ?? "";
+    const level = q.examPaper.level ?? "";
+    if (/\bPSLE\b/i.test(title) || /^psle$/i.test(level)) return 0;
+    return 1;
+  }
+  function yearNum(q: { examPaper: { year?: string | null } }): number {
+    const y = (q.examPaper.year ?? "").match(/\d{4}/)?.[0];
+    return y ? parseInt(y, 10) : 0;
+  }
+  const filtered = questions
+    .filter(q => parseMcqAnswer(q.answer) !== null)
+    .sort((a, b) => {
+      const pa = sourcePriority(a); const pb = sourcePriority(b);
+      if (pa !== pb) return pa - pb;
+      return yearNum(b) - yearNum(a);
+    })
+    .slice(0, 10);
 
   return NextResponse.json({
     type: "mcq",
