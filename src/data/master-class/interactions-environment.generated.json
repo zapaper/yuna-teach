@@ -6,26 +6,26 @@
   "title": "Interactions within the Environment",
   "stats": {
     "psleQuestions": 15,
-    "psleSubjectPercent": 15,
+    "psleSubjectPercent": 13,
     "totalPracticePool": 81,
     "psleQuestionsInPool": 15,
     "schoolQuestionsInPool": 66,
     "pctOeq": 47,
-    "headline": "The **#1 most-tested PSLE Science topic (2022–2024)** — **15.3% of total PSLE Science marks**, with a near-even split of MCQ and open-ended questions."
+    "headline": "The **#1 most-tested PSLE Science topic (2022–2024)** — **13.1% of total PSLE Science marks**, with a near-even split of MCQ and open-ended questions."
   },
   "keyConcepts": [
     {
       "title": "Interactions with environment: How important is this?",
       "body": "This is the **#1 most-tested PSLE Science topic** across PSLE 2022–2024 — beating Electrical Circuits, Heat Energy and every other topic in both question count and total marks.",
       "pieChart": {
-        "percentage": 15,
+        "percentage": 13,
         "label": "of PSLE Science marks",
         "caption": "More than any other science topic (PSLE 2022–2024)."
       },
       "bullets": [
-        "**15.3%** of total PSLE Science marks come from it",
+        "**13.1%** of total PSLE Science marks come from it",
         "**15 questions** across PSLE 2022–2024 — **8 MCQ + 7 OEQ**",
-        "**39 marks** total — almost 1 in 6.5 PSLE Science marks",
+        "**39 marks** total — about 1 in 7.5 PSLE Science marks",
         "**We will cover the top common questions and mistakes to help you ace this topic:**\n  • Definitions\n  • Food Web\n  • Adaptation\n  • Mutualism\n  • Decomposer\n  • Human Impact"
       ],
       "callout": "If you only revise one PSLE Science topic — start here."

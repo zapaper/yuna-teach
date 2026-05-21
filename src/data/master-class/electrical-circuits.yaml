@@ -22,13 +22,13 @@ title: Electrical Systems and Circuits
 
 stats:
   psleQuestions: 11
-  psleSubjectPercent: 9
+  psleSubjectPercent: 10
   totalPracticePool: 69
   psleQuestionsInPool: 11
   schoolQuestionsInPool: 58
   pctOeq: 36
   headline: >-
-    A **top-5 most-tested PSLE Science topic** — **9.4% of total
+    The **#2 most-tested PSLE Science topic** — **10.4% of total
     PSLE Science marks** (2022–2024). The high-mark OEQs almost ALL
     follow the **same 4-step electromagnet recipe**.
 
@@ -43,12 +43,12 @@ keyConcepts:
       reading; the OEQs test whether you can WRITE the explanation
       step by step.
     pieChart:
-      percentage: 9
+      percentage: 10
       label: of PSLE Science marks
-      caption: 9.4% across PSLE 2022–2024 papers.
+      caption: 10.4% across PSLE 2022–2024 papers.
     bullets:
       - "**11 PSLE questions** in 2022–2024 (7 MCQ, 4 OEQ)"
-      - "**24 marks** total across those 3 years — about 1 in 11 PSLE Science marks"
+      - "**31 marks** total across those 3 years — about 1 in 10 PSLE Science marks"
       - "**OEQs include the 4 and 5-mark monsters** — almost all are electromagnet stories"
       - |-
         **We will cover the 4 concept families and 3 worked examples:**
