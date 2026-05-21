@@ -155,9 +155,10 @@
     },
     {
       "title": "Let's get some practice!",
-      "body": "Time to put the six rules together. This quiz pulls real PSLE-style Grammar MCQ questions across all 6 sub-topics.",
+      "body": "Time to put the six rules together. This quiz pulls real PSLE-style Grammar MCQ questions across all 6 sub-topics — with PSLE source questions prioritised first so you're practising the trickiest patterns.",
       "bullets": [
-        "**10 questions** — at least one from each sub-topic.",
+        "**30 questions** — **5 questions per sub-topic**.",
+        "PSLE questions come first, then top-up from school exam papers.",
         "After you submit, the AI flags which rule families you got wrong and suggests a focused follow-up quiz.",
         "**Mistakes are saved** — we'll return to them in an auto-revision session in **1 week**."
       ],
@@ -165,7 +166,7 @@
         "label": "Click here to start your practice quiz",
         "quizSpec": {
           "title": "Mastery: Grammar MCQ Quiz 1",
-          "mcq": 10,
+          "mcq": 30,
           "oeq": 0
         }
       }

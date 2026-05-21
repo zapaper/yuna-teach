@@ -138,6 +138,9 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       diagramImageData: true,
       diagramBounds: true,
       elaboration: true,
+      // Paper context for source-aware prioritisation (PSLE > recent
+      // school > synthetic bank) inside the per-sub-topic picker.
+      examPaper: { select: { title: true, year: true, level: true, examType: true } },
     },
     take: useRegex ? 4000 : undefined,
   });
@@ -189,9 +192,33 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     return out;
   }
 
-  // Shuffle within each group, then dedupe by stem.
+  // Source-aware priority: PSLE first (newest year first), then
+  // school papers (newest year first), then synthetic-bank questions.
+  // Inside each tier we still shuffle so different students get
+  // different mixes. This favours PSLE for the trickier real-paper
+  // questions when the bank has more candidates than the quiz needs.
+  function sourcePriority(q: { examPaper?: { title?: string | null; year?: string | null; level?: string | null; examType?: string | null } | null }): number {
+    const title = q.examPaper?.title ?? "";
+    const examType = q.examPaper?.examType ?? "";
+    if (/\bPSLE\b/i.test(title) || /^psle$/i.test(q.examPaper?.level ?? "")) return 0; // PSLE first
+    if (examType === "Synthetic" || /\[Synthetic Bank\]/i.test(title)) return 2;        // Synthetic last
+    return 1;                                                                            // School papers in between
+  }
+  function yearNum(q: { examPaper?: { year?: string | null } | null }): number {
+    const y = (q.examPaper?.year ?? "").match(/\d{4}/)?.[0];
+    return y ? parseInt(y, 10) : 0;
+  }
+  function sortByPriority<T extends { examPaper?: { title?: string | null; year?: string | null; level?: string | null; examType?: string | null } | null }>(arr: T[]): T[] {
+    // Stable sort: priority asc, then year desc (newer first).
+    return [...arr].sort((a, b) => {
+      const pa = sourcePriority(a); const pb = sourcePriority(b);
+      if (pa !== pb) return pa - pb;
+      return yearNum(b) - yearNum(a);
+    });
+  }
+  // Shuffle within each group, then dedupe by stem, then sort by source priority.
   for (const [, g] of groups) {
-    g.mcq = dedupeByStem(shuffle(g.mcq));
+    g.mcq = sortByPriority(dedupeByStem(shuffle(g.mcq)));
     g.oeq = dedupeByStem(shuffle(g.oeq));
   }
 
