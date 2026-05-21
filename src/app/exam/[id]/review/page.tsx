@@ -2603,24 +2603,35 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const [before, after] = studentAns.split("|||");
                                             combined = `${before.trim()} ${keyword || "…"} ${after.trim()}`.replace(/\s+/g, " ").trim();
                                           } else if (keyword) {
-                                            // Single-input format. Two sub-cases:
-                                            //   - "**Instead of** ___" → prepend keyword
-                                            //   - "She **had** ___"    → prepend "She " + keyword
-                                            // Pull any text that sits before the keyword
-                                            // on the answer-template line so the reader
-                                            // sees the full transformed sentence.
+                                            // Single-input format. Only prepend the parts
+                                            // the student didn't already type — otherwise
+                                            // a student who typed the full sentence ends
+                                            // up with the prefix duplicated.
                                             const lines = stemRaw.split("\n");
                                             let leadingText = "";
                                             for (let i = lines.length - 1; i >= 0; i--) {
                                               const m = lines[i].match(/^(.*?)\*\*[^*]+\*\*/);
                                               if (m) { leadingText = m[1].trim(); break; }
                                             }
-                                            const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                                            // Strip a leaked keyword from the student's
-                                            // typed answer (old quiz UI sometimes hid the
-                                            // keyword so students re-typed it).
-                                            const stripped = studentAns.trim().replace(new RegExp(`^${escape(keyword)}\\s*`, "i"), "");
-                                            const segs = [leadingText, keyword, stripped].map(s => s.trim()).filter(Boolean);
+                                            const fullPrefix = [leadingText, keyword].filter(Boolean).join(" ");
+                                            const stuRaw = studentAns.trim();
+                                            const stuLower = stuRaw.toLowerCase();
+                                            let core = stuRaw;
+                                            let prependLeading = !!leadingText;
+                                            let prependKeyword = true;
+                                            if (fullPrefix && stuLower.startsWith(fullPrefix.toLowerCase())) {
+                                              core = stuRaw.slice(fullPrefix.length).trim();
+                                              prependLeading = false;
+                                              prependKeyword = false;
+                                            } else if (stuLower.startsWith(keyword.toLowerCase())) {
+                                              core = stuRaw.slice(keyword.length).trim();
+                                              prependKeyword = false;
+                                            }
+                                            const segs = [
+                                              prependLeading ? leadingText : "",
+                                              prependKeyword ? keyword : "",
+                                              core,
+                                            ].map(s => s.trim()).filter(Boolean);
                                             combined = segs.join(" ").replace(/\s+/g, " ").trim();
                                             if (!combined) combined = keyword;
                                           } else {
@@ -2687,10 +2698,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                       )}
                                     </div>
                                   )}
-                                  {/* Marking notes for synthesis/comp OEQ */}
-                                  {q.markingNotes && (
-                                    <p className="text-xs text-[#43474f] mt-1">{q.markingNotes.split("|").pop()?.trim()}</p>
-                                  )}
+                                  {/* Marking notes render once at the
+                                      bottom of the question card (outside
+                                      this branch) — no per-branch copy
+                                      here, otherwise synthesis / comp OEQ
+                                      showed the feedback twice. */}
                                 </div>
                               ) : (isVocabCloze || isVisualText) && q.transcribedOptions && q.transcribedOptions.length > 0 ? (
                                 /* Vocab Cloze / Visual Text — MCQ-style with stem + options */

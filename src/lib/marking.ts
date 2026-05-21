@@ -3486,19 +3486,37 @@ ${expectedAnswer}
               } else {
                 // Single-input synthesis. Pull any text that sits before
                 // the keyword on the answer-template line so the marker
-                // sees the full reconstructed sentence:
-                //   "**Instead of** ___"  → leadingText=""    → "Instead of <answer>"
-                //   "She **had** ___"     → leadingText="She" → "She had <answer>"
-                // Without this prefix, the marker sees "had <answer>"
-                // and dings the answer for missing the subject.
+                // sees the full reconstructed sentence. Critically, only
+                // prepend the parts the student DIDN'T already type
+                // — otherwise an over-eager student who typed the full
+                // sentence ("Jane would rather complete her work …")
+                // ends up with the prefix duplicated:
+                //   "Jane would rather Jane would rather complete her work …"
                 const stemLines = q.transcribedStem.split("\n");
                 let leadingText = "";
                 for (let i = stemLines.length - 1; i >= 0; i--) {
                   const m = stemLines[i].match(/^(.*?)\*\*[^*]+\*\*/);
                   if (m) { leadingText = m[1].trim(); break; }
                 }
-                const after = q.studentAnswer.trim().replace(new RegExp(`^\\s*\\b${kwEsc}\\b\\s*`, "i"), "").trim();
-                const segs = [leadingText, keyword, after].map(s => s.trim()).filter(Boolean);
+                const fullPrefix = [leadingText, keyword].filter(Boolean).join(" ");
+                const stuRaw = q.studentAnswer.trim();
+                const stuLower = stuRaw.toLowerCase();
+                let core = stuRaw;
+                let prependLeading = !!leadingText;
+                let prependKeyword = true;
+                if (fullPrefix && stuLower.startsWith(fullPrefix.toLowerCase())) {
+                  core = stuRaw.slice(fullPrefix.length).trim();
+                  prependLeading = false;
+                  prependKeyword = false;
+                } else if (stuLower.startsWith(keyword.toLowerCase())) {
+                  core = stuRaw.slice(keyword.length).trim();
+                  prependKeyword = false;
+                }
+                const segs = [
+                  prependLeading ? leadingText : "",
+                  prependKeyword ? keyword : "",
+                  core,
+                ].map(s => s.trim()).filter(Boolean);
                 fullStudentAnswer = segs.join(" ").replace(/\s+/g, " ").trim();
               }
             }
