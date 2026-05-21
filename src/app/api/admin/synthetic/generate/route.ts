@@ -8,6 +8,7 @@ import {
 } from "@/lib/gemini";
 
 import { isSessionAdmin } from "@/lib/session";
+import { resolveSubTopic } from "@/data/master-class";
 
 // POST { userId, questionId, subject, type } → runs AI and returns
 // { simple, similar } draft variants. Not saved to SyntheticQuestion here —
@@ -34,6 +35,7 @@ export async function POST(request: NextRequest) {
       transcribedSubparts: true,
       marksAvailable: true,
       syllabusTopic: true,
+      subTopic: true,
       answer: true,
       diagramImageData: true,
     },
@@ -41,6 +43,11 @@ export async function POST(request: NextRequest) {
   if (!q || !q.transcribedStem) {
     return NextResponse.json({ error: "Question not found or not cleanly transcribed" }, { status: 404 });
   }
+
+  // Steer the AI toward the same sub-topic when the parent has one.
+  // We look up the human-readable label + description from the
+  // matching master class so the prompt can quote it back to Gemini.
+  const subTopicInfo = resolveSubTopic(q.syllabusTopic, q.subTopic);
 
   // OEQ branch: multi-subpart, command-word-aware. Much simpler than MCQ —
   // no image options and no MCQ answer-index validation.
@@ -63,6 +70,7 @@ export async function POST(request: NextRequest) {
         q.marksAvailable ?? 0,
         q.syllabusTopic ?? null,
         q.diagramImageData ?? null,
+        subTopicInfo,
       );
 
       // Generate a fresh diagram/table for each variant if the AI returned a
@@ -109,6 +117,7 @@ export async function POST(request: NextRequest) {
       q.diagramImageData ?? null,
       subj,
       hasImageOpts ? imageOptions : null,
+      subTopicInfo,
     );
 
     // Fresh diagram image (stem-adjacent), if the source had one. Run in parallel

@@ -144,12 +144,41 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     },
     take: useRegex ? 4000 : undefined,
   });
-  const candidates = useRegex
+  const candidatesAfterRegex = useRegex
     ? candidatesRaw.filter(q => {
         try { return new RegExp(content.practiceStemRegex!, "i").test(q.transcribedStem ?? ""); }
         catch { return false; }
       })
     : candidatesRaw;
+
+  // Drop questions that already appear on the master class slides
+  // (interactive quiz cards) so the practice quiz doesn't repeat them.
+  // We match by a normalised stem prefix: strip markdown bold, collapse
+  // blanks/whitespace, lowercase, take the first 60 chars. That's
+  // tolerant of small punctuation/blank-length differences between the
+  // YAML stem and the OCR'd version in the DB.
+  function normaliseStem(s: string): string {
+    return s
+      .replace(/\*\*|__/g, "")
+      .replace(/[_\-]{2,}/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase()
+      .slice(0, 60);
+  }
+  const slideStemKeys = new Set<string>();
+  for (const slide of content.keyConcepts) {
+    for (const iq of slide.interactiveQuiz ?? []) {
+      const key = normaliseStem(iq.stem ?? "");
+      if (key) slideStemKeys.add(key);
+    }
+  }
+  const candidates = slideStemKeys.size === 0
+    ? candidatesAfterRegex
+    : candidatesAfterRegex.filter(q => {
+        const key = normaliseStem(q.transcribedStem ?? "");
+        return !key || !slideStemKeys.has(key);
+      });
 
   // ─── Group by subTopic + mcq/oeq ───────────────────────────────────
   // Regex-mode master classes (Patterns) don't have per-question

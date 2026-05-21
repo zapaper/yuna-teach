@@ -22,4 +22,23 @@ export function listMasterClasses(): MasterClassContent[] {
   return Object.values(MASTER_CLASSES);
 }
 
+// Resolve a sub-topic by (syllabusTopic, subTopicId) to its full
+// definition. Multiple master classes can share a topicLabel (English
+// Grammar MCQ is split into Part 1 / Part 2), so we scan every
+// registered class looking for a matching topicLabel + subTopic id.
+// Returns null when nothing matches.
+export function resolveSubTopic(
+  syllabusTopic: string | null | undefined,
+  subTopicId: string | null | undefined,
+): { id: string; label: string; description: string } | null {
+  if (!syllabusTopic || !subTopicId) return null;
+  const topicLower = syllabusTopic.toLowerCase();
+  for (const mc of Object.values(MASTER_CLASSES)) {
+    if (mc.topicLabel.toLowerCase() !== topicLower) continue;
+    const hit = mc.subTopics?.find(s => s.id === subTopicId);
+    if (hit) return { id: hit.id, label: hit.label, description: hit.description };
+  }
+  return null;
+}
+
 export type { MasterClassContent, MasterClassSlide } from "./interactions-environment";

@@ -472,15 +472,24 @@ export async function generateSyntheticMathMcq(
   diagramBase64: string | null,
   subject: "math" | "science" | "english" = "math",
   optionImagesBase64: (string | null)[] | null = null,
+  subTopicInfo: { id: string; label: string; description: string } | null = null,
 ): Promise<{ simple: SyntheticMcqVariant; similar: SyntheticMcqVariant }> {
   const hasImageOptions = Array.isArray(optionImagesBase64) && optionImagesBase64.some(o => !!o);
+
+  // When the parent has a tagged sub-topic, lock both variants to it so
+  // (e.g.) a tag-question parent yields tag-question variants — not a
+  // pronouns or SVA cousin. Without this the AI sometimes drifts to a
+  // neighbouring rule family that happens to share surface features.
+  const subTopicBlock = subTopicInfo
+    ? `\n\nSub-topic constraint:\nThis question tests the sub-topic "${subTopicInfo.label}" — ${subTopicInfo.description}\nBOTH variants ("simple" and "similar") MUST test the same sub-topic.`
+    : "";
 
   const contextText = hasImageOptions
     ? `Original question:
 Stem: ${stem}
 Options: FOUR images follow this text, in order (1)(2)(3)(4). Analyse each image to understand what is being shown.
 Correct answer: (${correctAnswer})
-${diagramBase64 ? "A diagram next to the stem is also provided (see first image)." : ""}`
+${diagramBase64 ? "A diagram next to the stem is also provided (see first image)." : ""}${subTopicBlock}`
     : `Original question:
 Stem: ${stem}
 Options:
@@ -489,7 +498,7 @@ Options:
 (3) ${options[2]}
 (4) ${options[3]}
 Correct answer: (${correctAnswer})
-${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagram."}`;
+${diagramBase64 ? "A diagram accompanies this question (see image)." : "No diagram."}${subTopicBlock}`;
 
   const parts: Array<{ text: string } | { inlineData: { mimeType: "image/jpeg" | "image/png"; data: string } }> = [];
   if (diagramBase64) {
@@ -588,9 +597,18 @@ export async function generateSyntheticScienceOeq(
   marksAvailable: number,
   syllabusTopic: string | null,
   diagramBase64: string | null,
+  subTopicInfo: { id: string; label: string; description: string } | null = null,
 ): Promise<{ simple: SyntheticOeqVariant; similar: SyntheticOeqVariant }> {
+  // Lock both variants to the parent's sub-topic when available, so
+  // (e.g.) a "Heat transfer" parent stays in Heat transfer instead of
+  // drifting into a neighbouring Energy concept. The taxonomy quote
+  // gives the model concrete language to match against.
+  const subTopicBlock = subTopicInfo
+    ? `\nSub-topic: "${subTopicInfo.label}" — ${subTopicInfo.description}\nBOTH variants ("simple" and "similar") MUST test the same sub-topic.`
+    : "";
+
   const sourceDesc = `Original question:
-Topic: ${syllabusTopic ?? "(not specified)"}
+Topic: ${syllabusTopic ?? "(not specified)"}${subTopicBlock}
 Total marks: ${marksAvailable}
 Stem / scenario: ${stem}
 Subparts:
