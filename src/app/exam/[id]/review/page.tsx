@@ -2334,7 +2334,23 @@ function ExamReviewContent({ id }: { id: string }) {
                   {/* Question results */}
                   <div className="space-y-3">
                     {sectionQuestions.map((q, qi) => {
-                      const qCorrect = q.marksAwarded !== null && q.marksAwarded >= (q.marksAvailable ?? 1);
+                      // Marker says correct?
+                      const markerCorrect = q.marksAwarded !== null && q.marksAwarded >= (q.marksAvailable ?? 1);
+                      // For one-word topics (Editing / Comp Cloze) also accept
+                      // a string match against the CLEANED answer key. Existing
+                      // papers extracted before the explanation-stripper had
+                      // dirty keys ("Exhilaration | (spelling)") that caused
+                      // the AI marker to score correct answers as wrong; the
+                      // inline passage already accepts a string match so the
+                      // tick was green there but the per-question card was
+                      // red. Keep both in agreement.
+                      const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, "");
+                      const stringMatchOk = (isEditing || isCompCloze) && (() => {
+                        const stu = (q.studentAnswer ?? "").trim();
+                        if (!stu || stu === "__SKIPPED__") return false;
+                        return norm(stu) === norm(cleanOneWordAnswer(q.answer ?? ""));
+                      })();
+                      const qCorrect = markerCorrect || stringMatchOk;
                       const isPartialQ = !qCorrect && (q.marksAwarded ?? 0) > 0;
                       // For Grammar Cloze the answer key is sometimes stored
                       // as "(C)" or "(C) HIS" instead of the bare letter "C".
