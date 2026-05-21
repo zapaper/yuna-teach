@@ -11,6 +11,12 @@ topicLabel: Grammar MCQ
 title: PSLE Grammar MCQ Mastery
 
 stats:
+  psleQuestions: 60
+  psleSubjectPercent: 12
+  totalPracticePool: 131
+  psleQuestionsInPool: 60
+  schoolQuestionsInPool: 71
+  pctOeq: 0
   headline: >-
     Six grammar rules that show up in **almost every PSLE English
     Booklet A** Grammar MCQ. Master these and you have a strong
