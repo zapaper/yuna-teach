@@ -32,15 +32,12 @@
       ]
     },
     {
-      "title": "Worked example 1 — Tag questions (PSLE 2024 Q8)",
-      "body": "**\\\"She **never ever** visits the museum, ___?\\\" asked Mrs Lee.**",
+      "title": "Worked examples — Tag questions",
       "bullets": [
-        "**(1) hasn't she &nbsp;&nbsp;(2) won't she &nbsp;&nbsp;(3) does she &nbsp;&nbsp;(4) will she**",
-        "**Step 1 — Identify the verb.** \\\"visits\\\" = present simple. Auxiliary for present simple = **does**. So the tag uses *do/does/doesn't*. That rules out *hasn't* (has/have) and *won't / will* (future).",
-        "**Step 2 — Check polarity.** \\\"never ever\\\" makes the statement **negative**. A negative statement needs a **positive** tag. *doesn't she* would be negative → wrong; *does she* is positive → correct.",
-        "**Step 3 — Answer.** **→ Option (3): does she ✓**"
+        "**Example A — PSLE 2023 Q1** &nbsp;(the \\\"Let's\\\" special case)\n\\\"Let's play a game of hide-and-seek, ___?\\\" my sister suggested.\n(1) shall we &nbsp;&nbsp;(2) may we &nbsp;&nbsp;(3) can we &nbsp;&nbsp;(4) will we\n   • \\\"**Let's**\\\" is a fixed idiom — the tag is ALWAYS **\\\"shall we?\\\"** (not \\\"will we?\\\" or \\\"can we?\\\")\n   • **→ Option (1): shall we ✓**",
+        "**Example B — PSLE 2024 Q8** &nbsp;(the negative-stem polarity flip)\n\\\"She **never ever** visits the museum, ___?\\\" asked Mrs Lee.\n(1) hasn't she &nbsp;&nbsp;(2) won't she &nbsp;&nbsp;(3) does she &nbsp;&nbsp;(4) will she\n   • Verb \\\"visits\\\" = present simple → tag uses **do/does**, eliminates *hasn't / won't / will*.\n   • \\\"**never ever**\\\" makes the statement NEGATIVE → tag flips to POSITIVE → *does she* (not *doesn't she*).\n   • **→ Option (3): does she ✓**"
       ],
-      "callout": "**Mirror the verb, flip the polarity.** When you see *never / hardly / seldom*, the tag flips to positive — even though the statement \\\"sounds\\\" positive without a *not*."
+      "callout": "**Mirror the verb, flip the polarity.** Watch for \\\"never / hardly / seldom / scarcely\\\" — they make the statement negative even though it doesn't contain *not*."
     },
     {
       "title": "2: Noun number — countable vs uncountable",
@@ -65,16 +62,12 @@
       ]
     },
     {
-      "title": "Worked example 2 — Noun number (PSLE 2023 Q5)",
-      "body": "**He must have ___ luck as he has won the top prize in the annual lucky draw for the past two years.**",
+      "title": "Worked examples — Noun number",
       "bullets": [
-        "**(1) many &nbsp;&nbsp;(2) enough &nbsp;&nbsp;(3) a great deal of &nbsp;&nbsp;(4) a large number of**",
-        "**Step 1 — Is \"luck\" countable or uncountable?** UNCOUNTABLE. You can't say *one luck, two lucks*. So we need an uncountable quantifier.",
-        "**Step 2 — Eliminate the countable options:**\n   • *many* → countable, ✗\n   • *a large **number** of* → \\\"number of\\\" goes with countables, ✗",
-        "**Step 3 — Between *enough* and *a great deal of*:** The sentence implies he won the lucky draw twice — that's clearly **a lot** of luck. *enough* means \\\"just sufficient\\\"; *a great deal of* means \\\"a lot\\\". \\\"A great deal of\\\" fits the meaning.",
-        "**Step 4 — Answer.** **→ Option (3): a great deal of ✓**"
+        "**Example A — PSLE 2023 Q5** &nbsp;(uncountable quantifier)\nHe must have ___ luck as he has won the top prize for the past two years.\n(1) many &nbsp;&nbsp;(2) enough &nbsp;&nbsp;(3) a great deal of &nbsp;&nbsp;(4) a large number of\n   • \\\"luck\\\" = UNCOUNTABLE → reject *many* (countable) and *a large **number** of* (countable).\n   • Between *enough* and *a great deal of* → he won twice, so we need \\\"a lot\\\" not \\\"just sufficient\\\".\n   • **→ Option (3): a great deal of ✓**",
+        "**Example B — PSLE 2024 Q9** &nbsp;(interrupter subject-verb agreement)\nEveryone, except Sanjay and Aidan, ___ in their homework.\n(1) hand &nbsp;&nbsp;(2) handing &nbsp;&nbsp;(3) has handed &nbsp;&nbsp;(4) have handed\n   • Subject = \\\"Everyone\\\" (singular indefinite pronoun). The \\\"except Sanjay and Aidan\\\" is an INTERRUPTER — it doesn't change the subject.\n   • Singular subject → singular verb \\\"**has** handed\\\" (not *have* handed).\n   • **→ Option (3): has handed ✓**"
       ],
-      "callout": "**Test the noun first.** If it's *luck, news, advice, time, trouble, effort* — it's uncountable, so reject *many / few / a number of*. Pick from *little / much / a great deal of*."
+      "callout": "**Test the noun, ignore the interrupter.** For quantifiers, ask \\\"can I count this?\\\" first. For SVA, find the REAL subject and ignore phrases starting with *except / as well as / together with / along with*."
     },
     {
       "title": "3: Pronouns — three families to keep separate",
@@ -87,15 +80,12 @@
       ]
     },
     {
-      "title": "Worked example 3 — Pronouns (PSLE 2023 Q4)",
-      "body": "**Mrs Phua is someone ___ opinions I truly value.**",
+      "title": "Worked examples — Pronouns",
       "bullets": [
-        "**(1) who &nbsp;&nbsp;(2) which &nbsp;&nbsp;(3) whom &nbsp;&nbsp;(4) whose**",
-        "**Step 1 — What role does the pronoun play?** It comes right before \"opinions\" — the opinions BELONG to Mrs Phua. So it's a **possessive** relative pronoun.",
-        "**Step 2 — Eliminate:**\n   • *who* — subject (\\\"who runs\\\"), ✗\n   • *whom* — object (\\\"to whom I gave\\\"), ✗\n   • *which* — for things, not people, ✗\n   • *whose* — possessive ✓",
-        "**Step 3 — Answer.** **→ Option (4): whose ✓**"
+        "**Example A — PSLE 2023 Q4** &nbsp;(relative possessive)\nMrs Phua is someone ___ opinions I truly value.\n(1) who &nbsp;&nbsp;(2) which &nbsp;&nbsp;(3) whom &nbsp;&nbsp;(4) whose\n   • The blank comes right BEFORE \\\"opinions\\\" — the opinions BELONG to Mrs Phua → POSSESSIVE relative.\n   • *who* (subject) ✗, *whom* (object) ✗, *which* (things only) ✗, **whose** (possessive) ✓\n   • **→ Option (4): whose ✓**",
+        "**Example B — PSLE 2020 Q2** &nbsp;(reflexive — must match the SUBJECT)\nTrixie was tickled when she caught **Mr Loh** looking at his reflection in the mirror, smiling at ___.\n(1) her &nbsp;&nbsp;(2) him &nbsp;&nbsp;(3) herself &nbsp;&nbsp;(4) himself\n   • Who is doing the smiling? Mr Loh. Who is being smiled at? Also Mr Loh (his reflection). When the subject = object → REFLEXIVE.\n   • Mr Loh is male → **himself** (not *herself*, which would match Trixie).\n   • **→ Option (4): himself ✓**"
       ],
-      "callout": "**Substitute mentally.** \\\"Mrs Phua is someone **whose** opinions I value\\\" = \\\"the opinions OF Mrs Phua, which I value\\\". When you can replace the relative with *of him/her/them*, it's *whose*."
+      "callout": "**For relative pronouns**, substitute mentally — if \\\"of him/ her/them\\\" fits, the answer is *whose*. **For reflexives**, identify WHO is doing the action — the reflexive must match that person, not the bystander."
     },
     {
       "title": "4: Verb forms — gerund vs infinitive vs bare",
@@ -108,16 +98,12 @@
       ]
     },
     {
-      "title": "Worked example 4 — Verb forms (PSLE 2021 Q7)",
-      "body": "**Tom **objected to** ___ on a camping trip as he did not like outdoor activities.**",
+      "title": "Worked examples — Verb forms",
       "bullets": [
-        "**(1) go &nbsp;&nbsp;(2) going &nbsp;&nbsp;(3) be going &nbsp;&nbsp;(4) having gone**",
-        "**Step 1 — The trap.** \\\"object **to**\\\" looks like the infinitive *to go*. But \\\"to\\\" here is a **preposition** (the noun-style \\\"to something\\\"), NOT the infinitive marker.",
-        "**Step 2 — Test for preposition.** Replace what follows with a NOUN: \\\"Tom objected to **the trip**.\\\" Works → \\\"to\\\" is a preposition.",
-        "**Step 3 — Preposition + verb requires GERUND (-ing).** Pick *going*.",
-        "**Step 4 — Answer.** **→ Option (2): going ✓**"
+        "**Example A — PSLE 2021 Q7** &nbsp;(the \\\"to + gerund\\\" preposition trap)\nTom **objected to** ___ on a camping trip as he did not like outdoor activities.\n(1) go &nbsp;&nbsp;(2) going &nbsp;&nbsp;(3) be going &nbsp;&nbsp;(4) having gone\n   • \\\"object **to**\\\" looks like the infinitive *to go* — but \\\"to\\\" here is a PREPOSITION.\n   • Test: replace with a noun → \\\"objected to **the trip**\\\" ✓ → preposition confirmed.\n   • Preposition + verb → **GERUND** (-ing form).\n   • **→ Option (2): going ✓**",
+        "**Example B — PSLE 2022 Q5** &nbsp;(causative bare infinitive)\nJudy **witnessed** a boy ___ the game cards into his bag, so she reported it to the store manager.\n(1) slip &nbsp;&nbsp;(2) slips &nbsp;&nbsp;(3) slipped &nbsp;&nbsp;(4) has slipped\n   • \\\"witness\\\" is a SENSORY verb (like *see, watch, hear, notice*) — these take the **bare infinitive** (no \\\"to\\\", no \\\"-ing\\\", no past tense).\n   • **→ Option (1): slip ✓**"
       ],
-      "callout": "**Memorise the \\\"to + gerund\\\" verbs:** *object to, look forward to, be used to, be accustomed to, confess to, admit to*. These five verbs account for almost every \\\"to + gerund\\\" PSLE question."
+      "callout": "**Two rules to remember:** \\\"to + verb\\\" can be EITHER an infinitive OR a preposition — test by trying a noun in its place. **Causative / sensory verbs** (let, make, help, see, watch, hear, witness, feel, notice) take the **bare base form** of the next verb."
     },
     {
       "title": "5: Connectors — cause / concession / time",
@@ -142,15 +128,12 @@
       ]
     },
     {
-      "title": "Worked example 5 — Inversion (PSLE 2024 Q6)",
-      "body": "**'___ James put the compass in his bag, we would not be lost in the forest,' grumbled Ai Ling.**",
+      "title": "Worked examples — Connectors & tenses",
       "bullets": [
-        "**(1) Did &nbsp;&nbsp;(2) Had &nbsp;&nbsp;(3) Might &nbsp;&nbsp;(4) Should**",
-        "**Step 1 — Spot the consequence.** \\\"we **would not be lost**\\\" = past conditional consequence (a hypothetical missed alternative). This means the protasis (\\\"if…\\\") must be in the **past perfect** (\\\"if James **had put**\\\").",
-        "**Step 2 — Inversion rule.** Formal English drops \\\"if\\\" and inverts the auxiliary: \\\"If James had put\\\" → \\\"**Had** James put\\\". Only **Had** triggers this inversion with past perfect.",
-        "**Step 3 — Answer.** **→ Option (2): Had ✓**"
+        "**Example A — PSLE 2022 Q6** &nbsp;(concession connector — watch the contradiction)\n___ the continual support from the villagers, the family is unable to make ends meet.\n(1) Amid &nbsp;&nbsp;(2) Owing to &nbsp;&nbsp;(3) In spite of &nbsp;&nbsp;(4) With regard to\n   • Clause 1 \\\"continual support\\\" is HELPFUL. Clause 2 \\\"unable to make ends meet\\\" is the OPPOSITE result.\n   • Contradiction → CONCESSION connector → *In spite of* (or *despite*, *although*).\n   • *Owing to* signals cause (wrong direction). *Amid* / *With regard to* don't match the meaning.\n   • **→ Option (3): In spite of ✓**",
+        "**Example B — PSLE 2024 Q6** &nbsp;(conditional inversion)\n'___ James put the compass in his bag, we would not be lost in the forest,' grumbled Ai Ling.\n(1) Did &nbsp;&nbsp;(2) Had &nbsp;&nbsp;(3) Might &nbsp;&nbsp;(4) Should\n   • Consequence \\\"**would not be lost**\\\" = past conditional → protasis must be **past perfect**.\n   • \\\"If James had put\\\" → drop *if* and invert → \\\"**Had** James put\\\".\n   • Only *Had* triggers this past-perfect inversion. *Did* gives past simple; *Might/Should* don't form a valid conditional with the given consequence.\n   • **→ Option (2): Had ✓**"
       ],
-      "callout": "**Trigger phrases for past-perfect inversion:** *Had X done…, Had it not been for…, No sooner had X done…*. When the consequence is \\\"would (not) have done\\\" or \\\"would (not) be\\\", look for **Had**."
+      "callout": "**For connectors**, read the SECOND clause and ask \\\"does it support or contradict the first?\\\" — that picks cause vs concession. **For inversion**, the consequence (\\\"would have / would be\\\") tells you the protasis tense: \\\"would have\\\" → past perfect → **Had X done**."
     },
     {
       "title": "6: Idiomatic prepositions — fixed combinations",
@@ -163,15 +146,12 @@
       ]
     },
     {
-      "title": "Worked example 6 — Idiomatic preposition (PSLE 2024 Q10)",
-      "body": "**The police officers were looking for the man who robbed the tourists ___ their possessions.**",
+      "title": "Worked examples — Idiomatic prepositions",
       "bullets": [
-        "**(1) of &nbsp;&nbsp;(2) for &nbsp;&nbsp;(3) off &nbsp;&nbsp;(4) with**",
-        "**Step 1 — Spot the fixed phrase.** The verb is **rob**. The idiom is **\"rob someone OF something\"** — a fixed pairing.",
-        "**Step 2 — Check the others:**\n   • *for* — used with *blame* (\\\"blame him for\\\"), not *rob*\n   • *off* — informal robbery slang, not PSLE-correct\n   • *with* — used with weapons (\\\"robbed with a knife\\\"), not the stolen item",
-        "**Step 3 — Answer.** **→ Option (1): of ✓**"
+        "**Example A — PSLE 2024 Q10** &nbsp;(verb + preposition fixed pair)\nThe police officers were looking for the man who **robbed the tourists** ___ their possessions.\n(1) of &nbsp;&nbsp;(2) for &nbsp;&nbsp;(3) off &nbsp;&nbsp;(4) with\n   • Verb \\\"rob\\\" → fixed idiom **\\\"rob someone OF something\\\"**.\n   • *for* (used with *blame*), *off* (slang), *with* (used with weapons) — all wrong.\n   • **→ Option (1): of ✓**",
+        "**Example B — PSLE 2021 Q9** &nbsp;(idiomatic phrase preposition)\nAs the guard was ___ the impression that the hall was empty, he locked it up, not realising that someone was still in it.\n(1) in &nbsp;&nbsp;(2) on &nbsp;&nbsp;(3) with &nbsp;&nbsp;(4) under\n   • \\\"___ the impression\\\" is a fixed phrase — the correct preposition is **\\\"under**\\\" (under the impression that…).\n   • *in*, *on*, *with* don't combine with \\\"impression\\\" in this idiom.\n   • **→ Option (4): under ✓**"
       ],
-      "callout": "**Memorise as chunks.** *rob someone OF, accuse someone OF, congratulate someone ON, blame someone FOR.* Don't try to reason them out — they're fixed."
+      "callout": "**Memorise as chunks.** *rob someone OF, accuse someone OF, congratulate someone ON, blame someone FOR, under the impression, in someone's face, against the current, by accident.* Don't reason them out — they're fixed by usage."
     },
     {
       "title": "Let's get some practice!",
