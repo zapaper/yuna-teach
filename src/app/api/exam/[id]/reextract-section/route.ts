@@ -155,24 +155,26 @@ Output ONLY the clean passage/question text, no commentary.` });
 
   const ocrResponse = await callWithChain(ocrParts, `reextract-ocr:${secLabel}`);
 
-  let ocrText = ocrResponse.text?.trim() ?? "";
+  const ocrText = ocrResponse.text?.trim() ?? "";
   console.log(`[Re-extract] ${secLabel}: OCR result (${ocrText.length} chars)`);
-  // Vocab Cloze passage: strip leading instruction header + trailing
-  // Q&A block so only the passage reaches the quiz UI.
+  // Passage-display version of the OCR. CRITICAL: question extraction
+  // below must still see the FULL ocrText — stripping the Q&A block
+  // before extraction makes the model hallucinate options. Only the
+  // version we store in metadata for the quiz UI gets cleaned.
+  let displayOcrText = ocrText;
   if (secLabel.toLowerCase().includes("vocab") && secLabel.toLowerCase().includes("cloze")) {
-    const beforeLen = ocrText.length;
-    ocrText = cleanVocabClozePassageOcr(ocrText);
-    if (ocrText.length !== beforeLen) {
-      console.log(`[Re-extract] ${secLabel}: cleaned vocab-cloze passage (${beforeLen} → ${ocrText.length} chars)`);
+    const cleaned = cleanVocabClozePassageOcr(ocrText);
+    if (cleaned.length !== ocrText.length) {
+      console.log(`[Re-extract] ${secLabel}: cleaned vocab-cloze passage for display (${ocrText.length} → ${cleaned.length} chars; extraction still uses full ${ocrText.length})`);
     }
+    displayOcrText = cleaned;
   }
-  // Grammar Cloze: strip leading instruction banner (keep word bank + passage).
   if (secLabel.toLowerCase().includes("grammar") && secLabel.toLowerCase().includes("cloze")) {
-    const beforeLen = ocrText.length;
-    ocrText = cleanGrammarClozePassageOcr(ocrText);
-    if (ocrText.length !== beforeLen) {
-      console.log(`[Re-extract] ${secLabel}: cleaned grammar-cloze instruction (${beforeLen} → ${ocrText.length} chars)`);
+    const cleaned = cleanGrammarClozePassageOcr(ocrText);
+    if (cleaned.length !== ocrText.length) {
+      console.log(`[Re-extract] ${secLabel}: cleaned grammar-cloze instruction for display (${ocrText.length} → ${cleaned.length})`);
     }
+    displayOcrText = cleaned;
   }
 
   // Step 1b: For sections with passages (vocab cloze, grammar cloze, editing, comp cloze),
@@ -335,7 +337,9 @@ Return ONLY valid JSON:
   ) ?? canonicalSectionName;
   allOcr[secKey] = {
     ...(allOcr[secKey] ?? {}),
-    ocrText,
+    // Store the cleaned passage-display version; the full OCR was
+    // already consumed by question extraction above.
+    ocrText: displayOcrText,
     pageIndices,
     ...(passageOcrText ? { passageOcrText } : {}),
   };

@@ -4187,26 +4187,30 @@ Output ONLY the clean passage/question text, no commentary.` });
           }
           if (!ocrResponse) throw lastOcrErr ?? new Error("ocr: all fallback models failed");
 
-          let ocrText = ocrResponse.text?.trim() ?? "";
+          const ocrText = ocrResponse.text?.trim() ?? "";
           console.log(`[Exam Pipeline] ${secLabel}: OCR result (${ocrText.length} chars, first 300):`, ocrText.slice(0, 300));
-          // Vocab Cloze passage: drop the leading instruction header
-          // and the trailing question/options block so only the passage
-          // text reaches the quiz UI. See cleanVocabClozePassageOcr.
+          // Passage-display version of the OCR text. For Vocab Cloze
+          // we strip the trailing Q&A block (and leading instruction)
+          // so the quiz UI doesn't repeat the options inside the
+          // passage. For Grammar Cloze we just strip the instruction
+          // banner. CRITICAL: extraction below MUST still see the
+          // ORIGINAL ocrText, otherwise the model loses the options
+          // block and hallucinates them. Only the stored display
+          // version gets cleaned.
+          let displayOcrText = ocrText;
           if (secLabel.toLowerCase().includes("vocab") && secLabel.toLowerCase().includes("cloze")) {
-            const beforeLen = ocrText.length;
-            ocrText = cleanVocabClozePassageOcr(ocrText);
-            if (ocrText.length !== beforeLen) {
-              console.log(`[Exam Pipeline] ${secLabel}: cleaned vocab-cloze passage (${beforeLen} → ${ocrText.length} chars)`);
+            const cleaned = cleanVocabClozePassageOcr(ocrText);
+            if (cleaned.length !== ocrText.length) {
+              console.log(`[Exam Pipeline] ${secLabel}: cleaned vocab-cloze passage for display (${ocrText.length} → ${cleaned.length} chars; extraction still uses full ${ocrText.length})`);
             }
+            displayOcrText = cleaned;
           }
-          // Grammar Cloze: strip leading section instruction banner
-          // while keeping the word bank + numbered-blank passage.
           if (secLabel.toLowerCase().includes("grammar") && secLabel.toLowerCase().includes("cloze")) {
-            const beforeLen = ocrText.length;
-            ocrText = cleanGrammarClozePassageOcr(ocrText);
-            if (ocrText.length !== beforeLen) {
-              console.log(`[Exam Pipeline] ${secLabel}: cleaned grammar-cloze instruction (${beforeLen} → ${ocrText.length} chars)`);
+            const cleaned = cleanGrammarClozePassageOcr(ocrText);
+            if (cleaned.length !== ocrText.length) {
+              console.log(`[Exam Pipeline] ${secLabel}: cleaned grammar-cloze instruction for display (${ocrText.length} → ${cleaned.length})`);
             }
+            displayOcrText = cleaned;
           }
 
           // Step 2: Extract individual questions with content from OCR text
@@ -4545,7 +4549,10 @@ ${isChineseBooklet ? `CRITICAL: The OCR text wraps emphasised words in markdown 
           }
 
           return { pages, _sectionOcr: {
-            name: secLabel, ocrText, pageIndices: secPageIndices,
+            // Store the DISPLAY version (cleaned passage for vocab /
+            // grammar cloze, raw otherwise). Extraction has already
+            // consumed the full ocrText above.
+            name: secLabel, ocrText: displayOcrText, pageIndices: secPageIndices,
             ...(needsPassageOcr && passagePagesForOEQ.length > 0 ? { passagePageIndices: passagePagesForOEQ } : {}),
             ...(isVisualTextSec && visualPagesForVT.length > 0 ? { passagePageIndices: visualPagesForVT } : {}),
             ...(passageOcrText ? { passageOcrText } : {}),
