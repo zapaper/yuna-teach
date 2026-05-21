@@ -32,6 +32,7 @@ function overlay(yaml: MasterClassSlide, script: string | undefined): MasterClas
     cta: yaml.cta,
     diagramPrompt: yaml.diagramPrompt,
     diagramImage: yaml.diagramImage,
+    interactiveQuiz: yaml.interactiveQuiz,
   };
 }
 

@@ -1,0 +1,290 @@
+# Master Class: PSLE Grammar MCQ — Part 2
+# --------------------------------------------------------------
+# Part 2 of two split decks. Covers three rule families that
+# appear in almost every PSLE English Booklet A:
+#   4. Verb forms (gerund / infinitive / bare)
+#   5. Connectors & tenses
+#   6. Idiomatic prepositions
+# Worked examples replaced with interactive quiz cards — student
+# picks an answer + Submit to reveal correct/wrong + explanation.
+
+slug: grammar-mcq-2
+subject: english
+level: P5-P6
+topicLabel: Grammar MCQ
+title: "PSLE Grammar MCQ — Part 2"
+
+stats:
+  psleQuestions: 30
+  psleSubjectPercent: 6
+  totalPracticePool: 58
+  psleQuestionsInPool: 30
+  schoolQuestionsInPool: 28
+  pctOeq: 0
+  headline: >-
+    Part 2 of two: **three grammar rule families** tested in
+    almost every PSLE English Booklet A — verb forms,
+    connectors & tenses, and idiomatic prepositions.
+
+keyConcepts:
+
+  # ─── INTRO ────────────────────────────────────────────────────────
+  - title: Welcome to Grammar MCQ — Part 2
+    body: >-
+      We'll cover the **next three grammar rule families** that
+      show up in almost every PSLE English Booklet A. After each
+      rule, you get an interactive question to try — pick an
+      answer, hit Submit, and see if you're right.
+    bullets:
+      - |-
+        **4. Verb forms** — gerund vs infinitive, causative bare infinitive
+      - |-
+        **5. Connectors & tenses** — **since / although / in spite of** + perfect tenses
+      - |-
+        **6. Idiomatic prepositions** — **congratulate on**, **robbed of**, **under the impression**
+    callout: >-
+      Recognise the rule type from the options, then apply.
+
+  # ─── 4. VERB FORMS ───────────────────────────────────────────────
+  - title: "4: Verb forms — gerund vs infinitive vs bare"
+    body: >-
+      The form of the SECOND verb in a sentence depends on what
+      comes before it. Three main patterns to know.
+    bullets:
+      - |-
+        **Verbs followed by GERUND (-ing):**
+           enjoy, avoid, mind, consider, suggest, finish, dislike, **have trouble**, **have difficulty**, object to, look forward to, be used to
+           → "Bella enjoys **interacting** with her neighbours."
+      - |-
+        **Verbs followed by INFINITIVE (to + base):**
+           want, hope, decide, agree, plan, learn, refuse, manage, expect, seem
+           → "Mohan seems **to have lost** weight."
+      - |-
+        **The PREPOSITION trap.** When "to" is a preposition (NOT the infinitive **to**), the next verb is a **gerund**:
+           • *object **to** going*, *look forward **to** seeing*
+           • *be used **to** working*, *be accustomed **to** doing*
+           ⚠️ Students see "to" and pick the base form by reflex — that's wrong here.
+      - |-
+        **Causative / sensory verbs + BARE infinitive (no "to"):**
+           let, make, help, watch, see, hear, witness, feel, notice
+           → "Kamal **made** his baby sister **giggle**."
+           → "Judy **witnessed** a boy **slip** the cards into his bag."
+
+  - title: Try it — Verb forms
+    interactiveQuiz:
+      - label: "PSLE 2021 Q7 — the \"to + gerund\" preposition trap"
+        stem: |-
+          Tom **objected to** ___ on a camping trip as he did not like outdoor activities.
+        options:
+          - go
+          - going
+          - be going
+          - having gone
+        correctAnswer: 2
+        explanation: >-
+          "object **to**" LOOKS like the infinitive "to go" — but
+          "to" here is a PREPOSITION. Test: try a noun → "objected
+          to **the trip**" ✓ → preposition confirmed. Preposition
+          + verb → **GERUND** (-ing form) → **going**.
+      - label: "PSLE 2022 Q5 — causative bare infinitive"
+        stem: |-
+          Judy **witnessed** a boy ___ the game cards into his bag, so she reported it to the store manager.
+        options:
+          - slip
+          - slips
+          - slipped
+          - has slipped
+        correctAnswer: 1
+        explanation: >-
+          **"witness"** is a SENSORY verb (like **see, watch, hear,
+          notice**) — these take the **bare infinitive** (no "to",
+          no "-ing", no past tense). → **slip**.
+    callout: >-
+      **Two rules:** "to + verb" can be EITHER an infinitive OR a
+      preposition — test by trying a noun in its place. **Causative
+      / sensory verbs** (let, make, help, see, watch, hear, witness,
+      feel, notice) take the **bare base form** of the next verb.
+
+  # ─── 5. CONNECTORS & TENSES ──────────────────────────────────────
+  - title: "5: Connectors — cause / concession / time"
+    body: >-
+      Each connector signals a specific logical relationship.
+      Read the SECOND clause to figure out which one fits.
+    bullets:
+      - |-
+        **Cause:** **since, because, as, owing to, due to, because of, in response to**. → "**Since** the concert was cancelled, the organiser refunded us."
+      - |-
+        **Concession (contradiction):** **although, even though, despite, in spite of**. The two clauses contradict. → "**In spite of** the continual support, the family is unable to make ends meet."
+      - |-
+        **Contrast:** **other than, on the other hand, whereas, but**. → "Li Shan does not eat seafood. **Other than** that, she will eat anything."
+      - |-
+        **Time:** **as soon as, when, while, before, after, until, by the time**. These often dictate the TENSE of the next clause.
+      - |-
+        **"In spite of / Despite"** must be followed by a NOUN or GERUND, not a clause. "In spite of **being late**" ✓, "In spite of **she was late**" ✗ (use "although" instead).
+
+  - title: "5: Tense triggers — words that force a tense"
+    body: >-
+      Some grammar questions test **tense triggers** — words that
+      force a specific tense in the next clause.
+    bullets:
+      - |-
+        **"Had + subject + past participle"** = a formal way of saying "if X had…". → "**Had James put** the compass in his bag, we would not be lost" = "If James **had put** the compass in his bag…"
+      - |-
+        **"wish / if only" + past perfect** for regret. → "Muthu **wished** he **had heeded** his mother's advice."
+      - |-
+        **"since / for the past N"** + present perfect (continuous). → "The news **has been circulating** since yesterday."
+      - |-
+        **"by the end of [future time]"** + future perfect. → "By next year, my brother **will have become** a trained instructor."
+      - |-
+        **"No sooner had X done than Y…"** — past perfect + past simple, with the auxiliary in front of the subject.
+
+  - title: Try it — Connectors & tenses
+    interactiveQuiz:
+      - label: "PSLE 2022 Q6 — concession connector"
+        stem: |-
+          ___ the continual support from the villagers, the family is unable to make ends meet.
+        options:
+          - Amid
+          - Owing to
+          - In spite of
+          - With regard to
+        correctAnswer: 3
+        explanation: >-
+          Clause 1 "continual support" is HELPFUL. Clause 2 "unable
+          to make ends meet" is the OPPOSITE result. Contradiction →
+          CONCESSION connector → **In spite of**. **Owing to**
+          signals cause (wrong direction). **Amid** / **With regard
+          to** don't match the meaning.
+      - label: "PSLE 2024 Q6 — conditional inversion (flipped \"if\")"
+        stem: |-
+          '___ James put the compass in his bag, we would not be lost in the forest,' grumbled Ai Ling.
+        options:
+          - Did
+          - Had
+          - Might
+          - Should
+        correctAnswer: 2
+        explanation: >-
+          The consequence "**would not be lost**" tells us the
+          first clause must be **past perfect**. Start from "If
+          James **had put**…" then drop **if** and flip the order →
+          "**Had** James put…". Only **Had** triggers this flip.
+          **Did** gives past simple; **Might/Should** don't form a
+          valid conditional with the given consequence.
+    callout: >-
+      **For connectors**, read the SECOND clause and ask "does it
+      support or contradict the first?" — that picks cause vs
+      concession. **For tense triggers**, the consequence ("would
+      have / would be") tells you the first clause needs past
+      perfect → **Had X done**.
+
+  # ─── 6. IDIOMATIC PREPOSITIONS ───────────────────────────────────
+  - title: "6: Idiomatic prepositions — fixed combinations"
+    body: >-
+      There's no rule — these are FIXED idioms you have to
+      memorise. PSLE picks pairs where multiple options sound
+      vaguely OK.
+    bullets:
+      - |-
+        **Verb + preposition pairs** (commit these as a single chunk):
+           • congratulate someone **on** something
+           • accuse someone **of** something
+           • blame X **for** Y
+           • rob someone **of** something
+           • suspect someone **of** something
+           • depend / rely **on** someone
+           • succeed **in** doing
+      - |-
+        **Idiomatic phrases with a fixed preposition:**
+           • **under** the impression
+           • **in** someone's face ("shut the door in her face")
+           • **on** purpose, **on** time, **on** behalf of
+           • **at** risk, **at** a loss, **at** stake
+           • **by** accident, **by** chance, **by** mistake
+           • **against** the current, **against** the rules
+           • **out of** breath, **out of** stock
+      - |-
+        **Movement vs position:** **into** (movement) vs **in** (position). "He walked **into** the room" vs "He is **in** the room". Same for **onto / on**, **off of / off**.
+      - |-
+        **"X minutes into the game"** — "into" with a duration marks a point in time.
+
+  - title: Try it — Idiomatic prepositions
+    interactiveQuiz:
+      - label: "PSLE 2024 Q10 — verb + preposition fixed pair"
+        stem: |-
+          The police officers were looking for the man who **robbed the tourists** ___ their possessions.
+        options:
+          - of
+          - for
+          - off
+          - with
+        correctAnswer: 1
+        explanation: >-
+          The verb **"rob"** has a fixed idiom: **"rob someone OF
+          something"**. **for** is used with **blame** ("blame him
+          for it"), **off** is informal/wrong here, **with** is for
+          weapons ("robbed him with a knife"). → **of**.
+      - label: "PSLE 2021 Q9 — idiomatic phrase preposition"
+        stem: |-
+          As the guard was ___ the impression that the hall was empty, he locked it up, not realising that someone was still in it.
+        options:
+          - in
+          - on
+          - with
+          - under
+        correctAnswer: 4
+        explanation: >-
+          "___ the impression" is a fixed phrase — the correct
+          preposition is **"under the impression that…"**. **in**,
+          **on**, **with** don't combine with "impression" in this
+          idiom.
+    callout: >-
+      **Memorise as chunks.** **rob someone OF, accuse someone OF,
+      congratulate someone ON, blame someone FOR, under the
+      impression, in someone's face, against the current, by
+      accident.** Don't reason them out — they're fixed by usage.
+
+  # ─── PRACTICE CTA ─────────────────────────────────────────────────
+  - title: Let's get some practice!
+    body: >-
+      Time to put the three Part 2 rules together. This quiz pulls
+      real PSLE-style Grammar MCQ questions across all 3 sub-topics
+      — with PSLE source questions prioritised first.
+    bullets:
+      - |-
+        **15 questions** — **5 questions per sub-topic**.
+      - |-
+        PSLE questions come first, then top-up from school exam papers.
+      - |-
+        After you submit, the AI flags which rule families you got wrong and suggests a focused follow-up quiz.
+      - |-
+        **Mistakes are saved** — we'll return to them in an auto-revision session in **1 week**.
+    cta:
+      label: Click here to start your practice quiz
+      quizSpec:
+        title: "Mastery: Grammar MCQ — Part 2 Quiz"
+        mcq: 15
+        oeq: 0
+
+commonMistakes: []
+
+keyWords:
+  - { word: gerund, definition: "The -ing form of a verb used as a noun (running, swimming). Comes after prepositions and certain verbs (enjoy, avoid)." }
+  - { word: infinitive, definition: "The 'to + base' form (to go, to see). Used after verbs like want, hope, decide, plan." }
+  - { word: bare infinitive, definition: "The base form WITHOUT 'to' (go, see). Used after causative verbs (let, make, help, watch)." }
+  - { word: conditional inversion, definition: "Formal way of writing 'if X had…' — flip the auxiliary to the front: 'Had X done…'" }
+  - { word: subordinating conjunction, definition: "Connects a dependent clause to a main clause: since, although, when, unless, while." }
+
+subTopics:
+  - id: verb-forms
+    label: Verb forms
+    description: "Gerund vs infinitive vs bare infinitive after a verb. Includes the 'to + gerund' preposition trap (object to going, look forward to seeing) and causative bare infinitive (made her giggle, witnessed him slip)."
+    slideIdx: 1
+  - id: connectors-tenses
+    label: Connectors & tense markers
+    description: "Cause / concession / contrast / time connectors (since, although, in spite of, when) plus tense triggers — conditional inversion ('Had X done…'), wish + past perfect, since + present perfect continuous."
+    slideIdx: 3
+  - id: idiomatic-prepositions
+    label: Idiomatic prepositions
+    description: "Fixed verb + preposition combinations (congratulate ON, rob OF, accuse OF, blame FOR) and idiomatic phrases (under the impression, in someone's face, against the current, by accident)."
+    slideIdx: 6

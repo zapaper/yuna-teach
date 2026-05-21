@@ -402,6 +402,16 @@ function SlideCard({
           </div>
         </div>
       )}
+      {slide.interactiveQuiz && slide.interactiveQuiz.length > 0 && (
+        <div className="mt-5 space-y-5">
+          {slide.interactiveQuiz.map((iq, qi) => (
+            <InteractiveQuizCard
+              key={`${slideIdx}-${qi}`}
+              data={iq}
+            />
+          ))}
+        </div>
+      )}
       {slide.callout && (
         <div className="mt-5 bg-emerald-50 text-emerald-800 rounded-xl px-4 py-3 text-sm italic" dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.callout) }} />
       )}
@@ -536,6 +546,90 @@ function MasteryTabChip({ state, label }: { state: SubTopicMastery["state"]; lab
   );
 }
 
+function InteractiveQuizCard({
+  data,
+}: {
+  data: {
+    label?: string;
+    stem: string;
+    options: string[];
+    correctAnswer: number;
+    explanation: string;
+  };
+}) {
+  const [selected, setSelected] = useState<number | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const isCorrect = selected === data.correctAnswer;
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 lg:p-5">
+      {data.label && (
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+          Try this: {data.label}
+        </p>
+      )}
+      <p
+        className="text-sm lg:text-base text-slate-800 mb-3 whitespace-pre-line"
+        dangerouslySetInnerHTML={{ __html: renderInlineMd(data.stem) }}
+      />
+      <div className="space-y-2 mb-3">
+        {data.options.map((opt, i) => {
+          const optNum = i + 1;
+          const isChosen = selected === optNum;
+          const isCorrectOpt = optNum === data.correctAnswer;
+          let cls = "border-slate-200 hover:bg-slate-50";
+          if (submitted) {
+            if (isCorrectOpt) cls = "border-emerald-400 bg-emerald-50 ring-2 ring-emerald-300";
+            else if (isChosen) cls = "border-rose-400 bg-rose-50 ring-2 ring-rose-300";
+            else cls = "border-slate-200 opacity-60";
+          } else if (isChosen) {
+            cls = "border-[#003366] bg-[#eff4ff] ring-2 ring-[#003366]";
+          }
+          return (
+            <button
+              key={i}
+              onClick={() => { if (!submitted) setSelected(optNum); }}
+              disabled={submitted}
+              className={`w-full text-left px-3 py-2.5 rounded-xl border-2 transition-colors flex items-center gap-3 disabled:cursor-default ${cls}`}
+            >
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 ${
+                submitted && isCorrectOpt ? "bg-emerald-500 text-white" :
+                submitted && isChosen ? "bg-rose-500 text-white" :
+                isChosen ? "bg-[#003366] text-white" :
+                "bg-slate-100 text-slate-600"
+              }`}>{optNum}</span>
+              <span
+                className="text-sm text-slate-800 flex-1"
+                dangerouslySetInnerHTML={{ __html: renderInlineMd(opt) }}
+              />
+              {submitted && isCorrectOpt && <span className="material-symbols-outlined text-emerald-600 text-sm">check_circle</span>}
+              {submitted && isChosen && !isCorrectOpt && <span className="material-symbols-outlined text-rose-600 text-sm">cancel</span>}
+            </button>
+          );
+        })}
+      </div>
+      {!submitted && (
+        <button
+          onClick={() => { if (selected != null) setSubmitted(true); }}
+          disabled={selected == null}
+          className="px-4 py-2 rounded-xl bg-[#003366] text-white text-sm font-bold disabled:bg-slate-300"
+        >
+          Submit answer
+        </button>
+      )}
+      {submitted && (
+        <div className={`mt-2 rounded-xl px-4 py-3 text-sm ${isCorrect ? "bg-emerald-50 text-emerald-900 border border-emerald-200" : "bg-rose-50 text-rose-900 border border-rose-200"}`}>
+          <p className="font-bold mb-1">
+            {isCorrect ? `✓ Correct! Option (${data.correctAnswer}) is right.` : `✗ Not quite. The correct answer is option (${data.correctAnswer}).`}
+          </p>
+          <p
+            className="text-slate-800"
+            dangerouslySetInnerHTML={{ __html: renderInlineMd(data.explanation) }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 function CtaLauncher({
   slug,
   label,

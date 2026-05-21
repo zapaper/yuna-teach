@@ -41,6 +41,18 @@ export type MasterClassSlide = {
   // "/master-class/patterns/pattern-c-squares.png". Rendered above
   // the bullets, scaled to fit the card width.
   diagramImage?: string;
+  // Interactive quiz cards rendered INSIDE the slide. Each card shows
+  // the stem + 4 radio options + a Submit button; on submit the slide
+  // reveals correct/wrong + explanation. Used for worked-example
+  // slides where students should attempt the question before seeing
+  // the answer (rather than reading a pre-solved walkthrough).
+  interactiveQuiz?: Array<{
+    label?: string;        // e.g. "PSLE 2024 Q8 — negative-stem trap"
+    stem: string;
+    options: string[];     // exactly 4
+    correctAnswer: number; // 1-4
+    explanation: string;
+  }>;
   cta?: {
     label: string;
     quizSpec?: {

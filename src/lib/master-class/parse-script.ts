@@ -203,6 +203,9 @@ export function serializeSlideScript(slide: MasterClassSlide): string {
   if (slide.cta) {
     placeholders.push(`~ CTA button (YAML-only): "${slide.cta.label}"`);
   }
+  if (slide.interactiveQuiz?.length) {
+    placeholders.push(`~ Interactive quiz (YAML-only): ${slide.interactiveQuiz.length} question(s) — edit in the YAML file`);
+  }
   if (placeholders.length) {
     parts.push("");
     parts.push(...placeholders);

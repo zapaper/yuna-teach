@@ -1,0 +1,283 @@
+# Master Class: PSLE Grammar MCQ — Part 1
+# --------------------------------------------------------------
+# Part 1 of two split decks. Covers three rule families that
+# appear in almost every PSLE English Booklet A:
+#   1. Tag questions
+#   2. Noun number rules
+#   3. Pronouns
+# Worked examples replaced with interactive quiz cards — student
+# picks an answer + Submit to reveal correct/wrong + explanation.
+
+slug: grammar-mcq-1
+subject: english
+level: P5-P6
+topicLabel: Grammar MCQ
+title: "PSLE Grammar MCQ — Part 1"
+
+stats:
+  psleQuestions: 30
+  psleSubjectPercent: 6
+  totalPracticePool: 73
+  psleQuestionsInPool: 30
+  schoolQuestionsInPool: 43
+  pctOeq: 0
+  headline: >-
+    Part 1 of two: **three grammar rule families** tested in
+    almost every PSLE English Booklet A — tag questions, noun
+    number rules, and pronouns.
+
+keyConcepts:
+
+  # ─── INTRO ────────────────────────────────────────────────────────
+  - title: Welcome to Grammar MCQ — Part 1
+    body: >-
+      We'll cover **three grammar rule families** that show up in
+      almost every PSLE English Booklet A. After each rule, you
+      get an interactive question to try — pick an answer, hit
+      Submit, and see if you're right.
+    bullets:
+      - |-
+        **1. Tag questions** — "…, isn't he?" / "…, shall we?"
+      - |-
+        **2. Noun number rules** — subject-verb agreement + **few/little/many/much**
+      - |-
+        **3. Pronouns** — reflexive, possessive standalone, relative
+    callout: >-
+      Recognise the rule type from the options, then apply.
+
+  # ─── 1. TAG QUESTIONS ────────────────────────────────────────────
+  - title: "1: Tag questions — the mirror rule"
+    body: >-
+      A tag question is the little check at the end of a statement:
+      **isn't he?**, **would she?**, **shall we?**
+      The tag must **mirror** the verb/auxiliary of the main
+      statement and **flip the polarity**.
+    bullets:
+      - |-
+        **Step 1 — Find the main verb/auxiliary.** "She **has** been busy" → tag uses **has**. "He **gave up**" (past simple) → tag uses **did**.
+      - |-
+        **Step 2 — Flip the polarity.** Positive statement → **negative** tag ("She is busy, **isn't** she?"). Negative statement → **positive** tag ("He hasn't called, **has** he?").
+      - |-
+        **Step 3 — Match the pronoun.** "Tom" → **he**. "Mary" → **she**. "The team" → **it** (or **they** depending on context).
+      - |-
+        **Three special cases that catch most students:**
+           • **"Let's"** → always **"shall we?"** (not "will we?")
+           • **"I am"** → **"aren't I?"** (irregular)
+           • **Negative-meaning words** (never, hardly, seldom, scarcely, nothing) make the statement NEGATIVE → use a **positive** tag
+
+  - title: Try it — Tag questions
+    interactiveQuiz:
+      - label: "PSLE 2023 Q1 — the \"Let's\" special case"
+        stem: |-
+          "Let's play a game of hide-and-seek, ___?" my sister suggested.
+        options:
+          - shall we
+          - may we
+          - can we
+          - will we
+        correctAnswer: 1
+        explanation: >-
+          **"Let's"** is a fixed idiom — the tag is ALWAYS
+          **"shall we?"**. The other options don't pair with
+          "Let's" in English.
+      - label: "PSLE 2024 Q8 — negative-stem polarity flip"
+        stem: |-
+          "She **never ever** visits the museum, ___?" asked Mrs Lee.
+        options:
+          - hasn't she
+          - won't she
+          - does she
+          - will she
+        correctAnswer: 3
+        explanation: >-
+          The verb **"visits"** is present simple → the tag uses
+          **do/does** (eliminates *hasn't / won't / will*). The
+          word **"never"** makes the statement NEGATIVE, so the
+          tag flips to POSITIVE → **"does she"** (not "doesn't she").
+    callout: >-
+      **Mirror the verb, flip the polarity.** Watch for "never /
+      hardly / seldom" — they make a statement negative even
+      without the word "not".
+
+  # ─── 2. NOUN NUMBER RULES ────────────────────────────────────────
+  - title: "2: Noun number — countable vs uncountable"
+    body: >-
+      English splits nouns into **countable** (you can count them:
+      **3 books, 5 ideas**) and **uncountable** (you can't:
+      **water, advice, luck**). Each takes a different family of
+      quantifiers.
+    bullets:
+      - |-
+        **Countable + plural:** **few, many, several, each, a number of, fewer**
+      - |-
+        **Uncountable:** **little, much, a great deal of, a large amount of, less**
+      - |-
+        **Either:** **some, any, enough, more, most, all**
+      - |-
+        **The treacherous "mass" nouns** — these LOOK countable but are uncountable:
+           • **time, effort, trouble, advice, luck, news, information**
+           • **equipment, furniture, luggage, money, knowledge, work**
+        For these, always use **little / much / a great deal of**.
+      - |-
+        **"a great DEAL of" (uncountable)** vs **"a large NUMBER of" (countable)** — the noun **deal** attaches to uncountables, **number** to countables.
+
+  - title: "2: Noun number — subject-verb agreement traps"
+    body: >-
+      The verb must match the subject's number. PSLE tests **four
+      shapes** where the real subject isn't obvious.
+    bullets:
+      - |-
+        **Plural-looking but singular**: **news, luggage, mathematics, athletics** → use **is / has**. Example: "The news **has** been circulating since yesterday."
+      - |-
+        **"The number of X" (singular)** vs **"A number of X" (plural)**. "**The** number of pupils **is** rising." vs "**A** number of pupils **are** absent."
+      - |-
+        **Interrupters with "as well as / except / together with":** The verb still matches the main subject. "Everyone, except Sanjay and Aidan, **has** handed in their homework."
+      - |-
+        **An -ing verb used as a "thing" (the subject) is always SINGULAR.** Even when it sounds plural. "**Reading** different types of books **helps** me improve."
+      - |-
+        **"Neither X nor Y"** matches the noun CLOSEST to the verb. "Neither Jack **nor I** **am** going."
+
+  - title: Try it — Noun number
+    interactiveQuiz:
+      - label: "PSLE 2023 Q5 — uncountable quantifier"
+        stem: |-
+          He must have ___ luck as he has won the top prize for the past two years.
+        options:
+          - many
+          - enough
+          - a great deal of
+          - a large number of
+        correctAnswer: 3
+        explanation: >-
+          **"Luck"** is UNCOUNTABLE → reject **many** and **a large
+          number of** (both go with countables). Between **enough**
+          and **a great deal of**, the sentence implies "a lot" not
+          "just sufficient" → **a great deal of luck**.
+      - label: "PSLE 2024 Q9 — interrupter subject-verb agreement"
+        stem: |-
+          Everyone, except Sanjay and Aidan, ___ in their homework.
+        options:
+          - hand
+          - handing
+          - has handed
+          - have handed
+        correctAnswer: 3
+        explanation: >-
+          The real subject is **"Everyone"** — a singular indefinite
+          pronoun. The "except Sanjay and Aidan" part is an
+          INTERRUPTER — it doesn't change the subject. Singular
+          subject → singular verb → **has handed**.
+    callout: >-
+      **Test the noun, ignore the interrupter.** For quantifiers,
+      ask "can I count this?" first. For SVA, find the REAL subject
+      and ignore phrases starting with **except / as well as /
+      together with / along with**.
+
+  # ─── 3. PRONOUNS ─────────────────────────────────────────────────
+  - title: "3: Pronouns — three families to keep separate"
+    body: >-
+      Pronouns get tested in three forms; the trap is usually
+      choosing the right form for the role in the sentence.
+    bullets:
+      - |-
+        **Personal vs reflexive.** Use the reflexive form (**himself, herself, themselves, myself, yourself**) ONLY when the subject and object of the action are the SAME person.
+           • ✓ "Mary ate the cake by **herself**." → Mary is the doer AND she ate alone (same person).
+           • ✓ "Tom hurt **himself**." → Tom is the doer AND Tom got hurt (same person).
+           • ✗ When the object is a DIFFERENT person, use a regular pronoun (him, her, them): "John gave the book to **her**" — not "to herself".
+      - |-
+        **Possessive — "his" / "her" vs "hers".** Two forms:
+           • **Adjective form** (in front of a noun): **my, your, his, her, our, their** → "**her** car"
+           • **Standalone form** (replaces the noun): **mine, yours, his, hers, ours, theirs** → "That car is **hers**."
+           ⚠️ No apostrophe ever. "It's" = "it is". The possessive is **its**.
+      - |-
+        **Relative pronouns:**
+           • **who** — subject ("the boy **who** is running")
+           • **whom** — object ("the boy to **whom** I gave the book")
+           • **whose** — possessive ("the boy **whose** bag is missing")
+           • **which** — things, not people
+      - |-
+        **Indefinite pronouns** like **everyone, anybody, nobody, someone** are always SINGULAR — they take **is / has** (not are / have).
+           • ✓ "**Everyone is** here."
+           • ✗ "Everyone **are** here." → wrong.
+
+  - title: Try it — Pronouns
+    interactiveQuiz:
+      - label: "PSLE 2023 Q4 — relative possessive"
+        stem: |-
+          Mrs Phua is someone ___ opinions I truly value.
+        options:
+          - who
+          - which
+          - whom
+          - whose
+        correctAnswer: 4
+        explanation: >-
+          The blank comes right BEFORE "opinions" — the opinions
+          BELONG to Mrs Phua → POSSESSIVE relative. **who** is
+          subject (wrong), **whom** is object (wrong), **which** is
+          for things (wrong). **whose** is the possessive relative.
+      - label: "PSLE 2020 Q2 — reflexive must match the SUBJECT"
+        stem: |-
+          Trixie was tickled when she caught **Mr Loh** looking at his reflection in the mirror, smiling at ___.
+        options:
+          - her
+          - him
+          - herself
+          - himself
+        correctAnswer: 4
+        explanation: >-
+          Who is doing the smiling? **Mr Loh**. Who is being smiled
+          at? Also Mr Loh (his reflection). Subject = object →
+          REFLEXIVE. Mr Loh is male → **himself** (not "herself",
+          which would match Trixie — but Trixie isn't the one
+          smiling).
+    callout: >-
+      **For relative pronouns**, substitute mentally — if "of him /
+      her / them" fits, the answer is **whose**. **For reflexives**,
+      identify WHO is doing the action — the reflexive must match
+      that person, not the bystander.
+
+  # ─── PRACTICE CTA ─────────────────────────────────────────────────
+  - title: Let's get some practice!
+    body: >-
+      Time to put the three Part 1 rules together. This quiz pulls
+      real PSLE-style Grammar MCQ questions across all 3 sub-topics
+      — with PSLE source questions prioritised first.
+    bullets:
+      - |-
+        **15 questions** — **5 questions per sub-topic**.
+      - |-
+        PSLE questions come first, then top-up from school exam papers.
+      - |-
+        After you submit, the AI flags which rule families you got wrong and suggests a focused follow-up quiz.
+      - |-
+        **Mistakes are saved** — we'll return to them in an auto-revision session in **1 week**.
+    cta:
+      label: Click here to start your practice quiz
+      quizSpec:
+        title: "Mastery: Grammar MCQ — Part 1 Quiz"
+        mcq: 15
+        oeq: 0
+
+commonMistakes: []
+
+keyWords:
+  - { word: tag question, definition: "A short check at the end of a statement (isn't he? / shall we?) that mirrors the main verb and flips the polarity." }
+  - { word: countable noun, definition: "A noun you can count: book/books, idea/ideas. Takes few/many/several." }
+  - { word: uncountable noun, definition: "A noun that has no plural: water, advice, luck. Takes little/much/a great deal of." }
+  - { word: reflexive pronoun, definition: "A pronoun that loops back to the subject: himself, herself, themselves. Use when subject = object." }
+  - { word: relative pronoun, definition: "who / whom / whose / which — links a noun to a description (the boy who runs)." }
+
+subTopics:
+  - id: tag-questions
+    label: Tag questions
+    description: "Tag question structure ('isn't he?', 'shall we?') — mirroring the main verb and flipping the polarity. Includes negative-word traps (never, hardly, seldom) and irregular cases ('Let's…' → shall we, 'I am' → aren't I)."
+    slideIdx: 1
+  - id: noun-number-rules
+    label: Noun number rules
+    description: "Subject-verb agreement plus countable / uncountable quantifiers. Handles mass nouns (news, luggage, advice), 'the number of' vs 'a number of', interrupters (everyone except…), gerund subjects."
+    slideIdx: 3
+  - id: pronouns
+    label: Pronouns
+    description: "Reflexive (himself, herself), possessive standalone (his, hers), and relative pronouns (who/whom/whose/which). Tests when each form is required by the role of the pronoun in the sentence."
+    slideIdx: 6
