@@ -226,14 +226,14 @@ keyConcepts:
       questions on circuits — diagram reading, series/parallel,
       bulb brightness, and the electromagnet OEQ.
     bullets:
-      - "**6 MCQ** + **4 OEQ** — a cross-section across all 4 sub-topics."
+      - "**8 MCQ** + **OEQs** — a cross-section across all 4 sub-topics, with at least 2 electromagnet OEQs."
       - After you submit, the AI flags the trick families you got wrong and suggests a focused follow-up quiz.
       - "Mistakes are saved — we'll return to them in an auto-revision session in **1 week**."
     cta:
       label: Click here to start your practice quiz
       quizSpec:
         title: "Mastery: Electrical Circuits Quiz 1"
-        mcq: 6
+        mcq: 8
         oeq: 4
         # Electromagnets dominate the PSLE OEQ marks for this topic
         # (4-5 mark OEQs every year, 5 of 7 follow the bell/buzzer/door
