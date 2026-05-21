@@ -768,8 +768,26 @@ export default function StudentDashboard({ userId, user, firstQuiz }: { userId: 
 
   function goToPaper(p: ExamPaperSummary) {
     playClick();
-    if (p.paperType === "quiz" || p.paperType === "focused") router.push(`/quiz/${p.id}?userId=${userId}`);
-    else router.push(`/exam/${p.id}?userId=${userId}`);
+    if (p.paperType === "quiz" || p.paperType === "focused") {
+      router.push(`/quiz/${p.id}?userId=${userId}`);
+      return;
+    }
+    // English + Chinese master clones use the clean-extract quiz UI
+    // even though they have no paperType — the marker is tied to the
+    // text-based answer flow (not the scan-back path that other
+    // subjects use). Falls back to the image-based /exam view if the
+    // paper hasn't been clean-extracted yet.
+    const raw = p.subject ?? "";
+    const s = raw.toLowerCase();
+    const isTextBasedSubject =
+      s.includes("english") ||
+      s.includes("chinese") ||
+      raw.includes("华文") || raw.includes("中文") || raw.includes("华语");
+    if (isTextBasedSubject && p.cleanExtracted) {
+      router.push(`/quiz/${p.id}?userId=${userId}`);
+      return;
+    }
+    router.push(`/exam/${p.id}?userId=${userId}`);
   }
   function paperIcon(p: ExamPaperSummary) {
     if (p.paperType === "quiz") return "quiz";
