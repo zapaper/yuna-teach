@@ -1214,7 +1214,15 @@ function ExamReviewContent({ id }: { id: string }) {
             .filter(([, v]) => v.lost > 0)
             .sort((a, b) => b[1].lost - a[1].lost)
             .slice(0, 3);
-          const fullMarks = weakRanked.length === 0;
+          // Real full-marks check: every question scored full marks,
+          // regardless of whether it was sub-topic tagged. Previously
+          // we used weakRanked.length === 0 which only counted losses
+          // on TAGGED questions — students who got an untagged
+          // question wrong (e.g. a grammar MCQ in the "other" bucket
+          // of the classifier) were falsely shown "Full marks".
+          const totalAwarded = data.questions.reduce((s, q) => s + (q.marksAwarded ?? 0), 0);
+          const totalAvailable = data.questions.reduce((s, q) => s + (q.marksAvailable ?? 0), 0);
+          const fullMarks = totalAvailable > 0 && totalAwarded >= totalAvailable;
           // Pretty label lookup — keep it simple: kebab-case → Title Case.
           const prettify = (id: string) =>
             id.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
@@ -1269,20 +1277,40 @@ function ExamReviewContent({ id }: { id: string }) {
                 ) : (
                   <>
                     <h2 className="text-xl lg:text-2xl font-extrabold text-amber-900">Great job!</h2>
-                    <p className="text-sm text-amber-900 mt-1">
-                      Let&apos;s review {weakRanked.map(([, v], i) => (
-                        <span key={v.label}>
-                          <strong className="font-bold">{prettify(v.label)}</strong>
-                          {i < weakRanked.length - 1 ? (i === weakRanked.length - 2 ? " and " : ", ") : ""}
-                        </span>
-                      ))} again. I&apos;ll bring you back to just those slides.
-                    </p>
-                    <button
-                      onClick={reviewWeakSlides}
-                      className="mt-4 px-5 py-2.5 rounded-2xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700"
-                    >
-                      Re-watch these concepts →
-                    </button>
+                    {weakRanked.length > 0 ? (
+                      <>
+                        <p className="text-sm text-amber-900 mt-1">
+                          Let&apos;s review {weakRanked.map(([, v], i) => (
+                            <span key={v.label}>
+                              <strong className="font-bold">{prettify(v.label)}</strong>
+                              {i < weakRanked.length - 1 ? (i === weakRanked.length - 2 ? " and " : ", ") : ""}
+                            </span>
+                          ))} again. I&apos;ll bring you back to just those slides.
+                        </p>
+                        <button
+                          onClick={reviewWeakSlides}
+                          className="mt-4 px-5 py-2.5 rounded-2xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700"
+                        >
+                          Re-watch these concepts →
+                        </button>
+                      </>
+                    ) : (
+                      // Marks lost on untagged questions only — no specific
+                      // sub-topic to point at. Show a generic next-quiz prompt
+                      // so the student can keep practising.
+                      <>
+                        <p className="text-sm text-amber-900 mt-1">
+                          You scored {totalAvailable > 0 ? Math.round((totalAwarded / totalAvailable) * 100) : 0}% on this quiz. Want to try another one to push toward full marks?
+                        </p>
+                        <button
+                          onClick={tryAnotherQuiz}
+                          disabled={masteryQuizLaunching || !assignedToId}
+                          className="mt-4 px-5 py-2.5 rounded-2xl bg-amber-600 text-white text-sm font-bold hover:bg-amber-700 disabled:bg-slate-300"
+                        >
+                          {masteryQuizLaunching ? "Spawning next quiz…" : "Try another quiz →"}
+                        </button>
+                      </>
+                    )}
                   </>
                 )}
               </div>
