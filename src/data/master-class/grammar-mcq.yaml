@@ -1,0 +1,347 @@
+# Master Class: Grammar MCQ (English)
+# --------------------------------------------------------------
+# Six grammar rules that appear in almost every PSLE English
+# Booklet A Grammar MCQ section. Each rule has 1-2 teaching
+# slides plus 1 worked example drawn from an actual PSLE paper.
+
+slug: grammar-mcq
+subject: english
+level: P5-P6
+topicLabel: Grammar MCQ
+title: PSLE Grammar MCQ Mastery
+
+stats:
+  headline: >-
+    Six grammar rules that show up in **almost every PSLE English
+    Booklet A** Grammar MCQ. Master these and you have a strong
+    shot at all 10 marks.
+
+# ────────────────────────────────────────────────────────────────────
+# KEY CONCEPT SLIDES
+# ────────────────────────────────────────────────────────────────────
+keyConcepts:
+
+  # ─── INTRO ────────────────────────────────────────────────────────
+  - title: "Welcome to Grammar MCQ Mastery"
+    body: >-
+      We'll cover the **six grammar rule families** that PSLE
+      tests every single year. If you internalise these, the
+      Grammar MCQ section becomes mostly mechanical.
+    bullets:
+      - "**1. Tag questions** — \"…, isn't he?\" / \"…, shall we?\""
+      - "**2. Noun number rules** — subject-verb agreement + *few/little/many/much*"
+      - "**3. Pronouns** — reflexive, possessive standalone, relative"
+      - "**4. Verb forms** — gerund vs infinitive, causative bare infinitive"
+      - "**5. Connectors & tenses** — *since / although / in spite of* + perfect tenses"
+      - "**6. Idiomatic prepositions** — *congratulate on*, *robbed of*, *under the impression*"
+    callout: >-
+      The pattern in PSLE Booklet A: **one question per rule**, in
+      roughly the order above. Recognise the rule type from the
+      options, then apply.
+
+  # ─── 1. TAG QUESTIONS ────────────────────────────────────────────
+  - title: "1: Tag questions — the mirror rule"
+    body: >-
+      A tag question is the little check at the end of a statement:
+      *isn't he?*, *would she?*, *shall we?*
+      The tag must **mirror** the verb/auxiliary of the main
+      statement and **flip the polarity**.
+    bullets:
+      - "**Step 1 — Find the main verb/auxiliary.** \"She **has** been busy\" → tag uses *has*. \"He **gave up**\" (past simple) → tag uses *did*."
+      - "**Step 2 — Flip the polarity.** Positive statement → **negative** tag (\"She is busy, **isn't** she?\"). Negative statement → **positive** tag (\"He hasn't called, **has** he?\")."
+      - "**Step 3 — Match the pronoun.** \"Tom\" → *he*. \"Mary\" → *she*. \"The team\" → *it* (or *they* depending on context)."
+      - |-
+        **Three special cases that catch most students:**
+           • **\"Let's\"** → always **\"shall we?\"** (not \"will we?\")
+           • **\"I am\"** → **\"aren't I?\"** (irregular)
+           • **Negative-meaning words** (never, hardly, seldom, scarcely, nothing) make the statement NEGATIVE → use a **positive** tag
+
+  - title: "Worked example 1 — Tag questions (PSLE 2024 Q8)"
+    body: >-
+      **\"She **never ever** visits the museum, ___?\" asked Mrs Lee.**
+    bullets:
+      - "**(1) hasn't she &nbsp;&nbsp;(2) won't she &nbsp;&nbsp;(3) does she &nbsp;&nbsp;(4) will she**"
+      - |-
+        **Step 1 — Identify the verb.** \"visits\" = present simple. Auxiliary for present simple = **does**. So the tag uses *do/does/doesn't*. That rules out *hasn't* (has/have) and *won't / will* (future).
+      - |-
+        **Step 2 — Check polarity.** \"never ever\" makes the statement **negative**. A negative statement needs a **positive** tag. *doesn't she* would be negative → wrong; *does she* is positive → correct.
+      - "**Step 3 — Answer.** **→ Option (3): does she ✓**"
+    callout: >-
+      **Mirror the verb, flip the polarity.** When you see *never /
+      hardly / seldom*, the tag flips to positive — even though the
+      statement \"sounds\" positive without a *not*.
+
+  # ─── 2. NOUN NUMBER RULES ────────────────────────────────────────
+  - title: "2: Noun number — countable vs uncountable"
+    body: >-
+      English splits nouns into **countable** (you can count them:
+      *3 books, 5 ideas*) and **uncountable** (you can't: *water,
+      advice, luck*). Each takes a different family of quantifiers.
+    bullets:
+      - "**Countable + plural:** *few, many, several, each, a number of, fewer*"
+      - "**Uncountable:** *little, much, a great deal of, a large amount of, less*"
+      - "**Either:** *some, any, enough, more, most, all*"
+      - |-
+        **The treacherous \"mass\" nouns** — these LOOK countable but are uncountable:
+           • **time, effort, trouble, advice, luck, news, information**
+           • **equipment, furniture, luggage, money, knowledge, work**
+        For these, always use *little / much / a great deal of*.
+      - "**\"a great DEAL of\" (uncountable)** vs **\"a large NUMBER of\" (countable)** — the noun *deal* attaches to uncountables, *number* to countables."
+
+  - title: "2: Noun number — subject-verb agreement traps"
+    body: >-
+      The verb must match the subject's number. PSLE tests **four
+      shapes** where the real subject isn't obvious.
+    bullets:
+      - "**Plural-looking but singular**: *news, luggage, mathematics, athletics* → use *is / has*. Example: \"The news **has** been circulating since yesterday.\""
+      - "**\"The number of X\" (singular)** vs **\"A number of X\" (plural)**. \"**The** number of pupils **is** rising.\" vs \"**A** number of pupils **are** absent.\""
+      - "**Interrupters with \"as well as / except / together with\":** The verb still matches the main subject. \"Everyone, except Sanjay and Aidan, **has** handed in their homework.\""
+      - "**Gerund subjects** (verb +ing acting as noun) are always singular: \"Reading different types of books **helps** me improve.\""
+      - "**\"Neither X nor Y\"** matches the noun CLOSEST to the verb. \"Neither Jack **nor I** **am** going.\""
+
+  - title: "Worked example 2 — Noun number (PSLE 2023 Q5)"
+    body: >-
+      **He must have ___ luck as he has won the top prize in
+      the annual lucky draw for the past two years.**
+    bullets:
+      - "**(1) many &nbsp;&nbsp;(2) enough &nbsp;&nbsp;(3) a great deal of &nbsp;&nbsp;(4) a large number of**"
+      - "**Step 1 — Is \"luck\" countable or uncountable?** UNCOUNTABLE. You can't say *one luck, two lucks*. So we need an uncountable quantifier."
+      - |-
+        **Step 2 — Eliminate the countable options:**
+           • *many* → countable, ✗
+           • *a large **number** of* → \"number of\" goes with countables, ✗
+      - |-
+        **Step 3 — Between *enough* and *a great deal of*:** The sentence implies he won the lucky draw twice — that's clearly **a lot** of luck. *enough* means \"just sufficient\"; *a great deal of* means \"a lot\". \"A great deal of\" fits the meaning.
+      - "**Step 4 — Answer.** **→ Option (3): a great deal of ✓**"
+    callout: >-
+      **Test the noun first.** If it's *luck, news, advice, time,
+      trouble, effort* — it's uncountable, so reject *many / few /
+      a number of*. Pick from *little / much / a great deal of*.
+
+  # ─── 3. PRONOUNS ─────────────────────────────────────────────────
+  - title: "3: Pronouns — three families to keep separate"
+    body: >-
+      Pronouns get tested in three forms; the trap is usually
+      choosing the right form for the role in the sentence.
+    bullets:
+      - "**Personal vs reflexive.** Use the reflexive form (**himself, herself, themselves**) when the action loops back to the SUBJECT. \"Mary ate the cake by **herself**.\" Don't use reflexive when the subject and object are different people."
+      - |-
+        **Possessive — \"his\" / \"her\" vs \"hers\".** Two forms:
+           • **Adjective form** (in front of a noun): *my, your, his, **her**, our, their* → \"**her** car\"
+           • **Standalone form** (replaces the noun): *mine, yours, his, **hers**, ours, theirs* → \"That car is **hers**.\"
+           ⚠️ No apostrophe ever. \"It's\" = \"it is\". The possessive is \"its\".
+      - |-
+        **Relative pronouns:**
+           • **who** — subject (\"the boy **who** is running\")
+           • **whom** — object (\"the boy to **whom** I gave the book\")
+           • **whose** — possessive (\"the boy **whose** bag is missing\")
+           • **which** — things, not people
+      - "**Indefinite pronouns** *everyone, anybody, nobody, someone* are always SINGULAR (they take *is / has*)."
+
+  - title: "Worked example 3 — Pronouns (PSLE 2023 Q4)"
+    body: >-
+      **Mrs Phua is someone ___ opinions I truly value.**
+    bullets:
+      - "**(1) who &nbsp;&nbsp;(2) which &nbsp;&nbsp;(3) whom &nbsp;&nbsp;(4) whose**"
+      - "**Step 1 — What role does the pronoun play?** It comes right before \"opinions\" — the opinions BELONG to Mrs Phua. So it's a **possessive** relative pronoun."
+      - |-
+        **Step 2 — Eliminate:**
+           • *who* — subject (\"who runs\"), ✗
+           • *whom* — object (\"to whom I gave\"), ✗
+           • *which* — for things, not people, ✗
+           • *whose* — possessive ✓
+      - "**Step 3 — Answer.** **→ Option (4): whose ✓**"
+    callout: >-
+      **Substitute mentally.** \"Mrs Phua is someone **whose** opinions
+      I value\" = \"the opinions OF Mrs Phua, which I value\". When
+      you can replace the relative with *of him/her/them*, it's *whose*.
+
+  # ─── 4. VERB FORMS ───────────────────────────────────────────────
+  - title: "4: Verb forms — gerund vs infinitive vs bare"
+    body: >-
+      The form of the SECOND verb in a sentence depends on what
+      comes before it. Three main patterns to know.
+    bullets:
+      - |-
+        **Verbs followed by GERUND (-ing):**
+           enjoy, avoid, mind, consider, suggest, finish, dislike, **have trouble**, **have difficulty**, object to, look forward to, be used to
+           → \"Bella enjoys **interacting** with her neighbours.\"
+      - |-
+        **Verbs followed by INFINITIVE (to + base):**
+           want, hope, decide, agree, plan, learn, refuse, manage, expect, seem
+           → \"Mohan seems **to have lost** weight.\"
+      - |-
+        **The PREPOSITION trap.** When \"to\" is a preposition (NOT the infinitive *to*), the next verb is a **gerund**:
+           • *object **to** going*, *look forward **to** seeing*
+           • *be used **to** working*, *be accustomed **to** doing*
+           ⚠️ Students see \"to\" and pick the base form by reflex — that's wrong here.
+      - |-
+        **Causative / sensory verbs + BARE infinitive (no \"to\"):**
+           let, make, help, watch, see, hear, witness, feel, notice
+           → \"Kamal **made** his baby sister **giggle**.\"
+           → \"Judy **witnessed** a boy **slip** the cards into his bag.\"
+
+  - title: "Worked example 4 — Verb forms (PSLE 2021 Q7)"
+    body: >-
+      **Tom **objected to** ___ on a camping trip as he did not
+      like outdoor activities.**
+    bullets:
+      - "**(1) go &nbsp;&nbsp;(2) going &nbsp;&nbsp;(3) be going &nbsp;&nbsp;(4) having gone**"
+      - |-
+        **Step 1 — The trap.** \"object **to**\" looks like the infinitive *to go*. But \"to\" here is a **preposition** (the noun-style \"to something\"), NOT the infinitive marker.
+      - |-
+        **Step 2 — Test for preposition.** Replace what follows with a NOUN: \"Tom objected to **the trip**.\" Works → \"to\" is a preposition.
+      - "**Step 3 — Preposition + verb requires GERUND (-ing).** Pick *going*."
+      - "**Step 4 — Answer.** **→ Option (2): going ✓**"
+    callout: >-
+      **Memorise the \"to + gerund\" verbs:** *object to, look forward to,
+      be used to, be accustomed to, confess to, admit to*. These five
+      verbs account for almost every \"to + gerund\" PSLE question.
+
+  # ─── 5. CONNECTORS & TENSES ──────────────────────────────────────
+  - title: "5: Connectors — cause / concession / time"
+    body: >-
+      Each connector signals a specific logical relationship.
+      Read the SECOND clause to figure out which one fits.
+    bullets:
+      - "**Cause:** *since, because, as, owing to, due to, because of, in response to*. → \"**Since** the concert was cancelled, the organiser refunded us.\""
+      - "**Concession (contradiction)**: *although, even though, despite, in spite of*. The two clauses contradict. → \"**In spite of** the continual support, the family is unable to make ends meet.\""
+      - "**Contrast:** *other than, on the other hand, whereas, but*. → \"Li Shan does not eat seafood. **Other than** that, she will eat anything.\""
+      - "**Time:** *as soon as, when, while, before, after, until, by the time*. These often dictate the TENSE of the next clause."
+      - "**\"In spite of / Despite\"** must be followed by a NOUN or GERUND, not a clause. \"In spite of **being late**\" ✓, \"In spite of **she was late**\" ✗ (use \"although\" instead)."
+
+  - title: "5: Conditional inversion & perfect tense triggers"
+    body: >-
+      Some grammar questions test **tense triggers** — words that
+      force a specific tense in the next clause.
+    bullets:
+      - "**\"Had + subject + past participle\"** = formal inversion of \"if X had…\". → \"**Had James put** the compass in his bag, we would not be lost\" = \"If James **had put** the compass in his bag…\""
+      - "**\"wish / if only\" + past perfect** for regret. → \"Muthu **wished** he **had heeded** his mother's advice.\""
+      - "**\"since / for the past N\"** + present perfect (continuous). → \"The news **has been circulating** since yesterday.\""
+      - "**\"by the end of [future time]\"** + future perfect. → \"By next year, my brother **will have become** a trained instructor.\""
+      - "**\"No sooner had X done than Y…\"** — past perfect + past simple, with inversion."
+
+  - title: "Worked example 5 — Inversion (PSLE 2024 Q6)"
+    body: >-
+      **'___ James put the compass in his bag, we would not be
+      lost in the forest,' grumbled Ai Ling.**
+    bullets:
+      - "**(1) Did &nbsp;&nbsp;(2) Had &nbsp;&nbsp;(3) Might &nbsp;&nbsp;(4) Should**"
+      - |-
+        **Step 1 — Spot the consequence.** \"we **would not be lost**\" = past conditional consequence (a hypothetical missed alternative). This means the protasis (\"if…\") must be in the **past perfect** (\"if James **had put**\").
+      - |-
+        **Step 2 — Inversion rule.** Formal English drops \"if\" and inverts the auxiliary: \"If James had put\" → \"**Had** James put\". Only **Had** triggers this inversion with past perfect.
+      - "**Step 3 — Answer.** **→ Option (2): Had ✓**"
+    callout: >-
+      **Trigger phrases for past-perfect inversion:** *Had X done…,
+      Had it not been for…, No sooner had X done…*. When the
+      consequence is \"would (not) have done\" or \"would (not) be\",
+      look for **Had**.
+
+  # ─── 6. IDIOMATIC PREPOSITIONS ───────────────────────────────────
+  - title: "6: Idiomatic prepositions — fixed combinations"
+    body: >-
+      There's no rule — these are FIXED idioms you have to memorise.
+      PSLE picks pairs where multiple options sound vaguely OK.
+    bullets:
+      - |-
+        **Verb + preposition pairs** (commit these as a single chunk):
+           • congratulate someone **on** something
+           • accuse someone **of** something
+           • blame someone **for** something
+           • rob someone **of** something
+           • suspect someone **of** something
+           • depend / rely **on** someone
+           • succeed **in** doing
+      - |-
+        **Idiomatic phrases with a fixed preposition:**
+           • **under** the impression
+           • **in** someone's face (\"shut the door in her face\")
+           • **on** purpose, **on** time, **on** behalf of
+           • **at** risk, **at** a loss, **at** stake
+           • **by** accident, **by** chance, **by** mistake
+           • **against** the current, **against** the rules
+           • **out of** breath, **out of** stock
+      - "**Movement vs position:** *into* (movement) vs *in* (position). \"He walked **into** the room\" vs \"He is **in** the room\". Same for *onto / on*, *off of / off*."
+      - "**\"X minutes into the game\"** — \"into\" with a duration marks a point in time."
+
+  - title: "Worked example 6 — Idiomatic preposition (PSLE 2024 Q10)"
+    body: >-
+      **The police officers were looking for the man who robbed
+      the tourists ___ their possessions.**
+    bullets:
+      - "**(1) of &nbsp;&nbsp;(2) for &nbsp;&nbsp;(3) off &nbsp;&nbsp;(4) with**"
+      - "**Step 1 — Spot the fixed phrase.** The verb is **rob**. The idiom is **\"rob someone OF something\"** — a fixed pairing."
+      - |-
+        **Step 2 — Check the others:**
+           • *for* — used with *blame* (\"blame him for\"), not *rob*
+           • *off* — informal robbery slang, not PSLE-correct
+           • *with* — used with weapons (\"robbed with a knife\"), not the stolen item
+      - "**Step 3 — Answer.** **→ Option (1): of ✓**"
+    callout: >-
+      **Memorise as chunks.** *rob someone OF, accuse someone OF,
+      congratulate someone ON, blame someone FOR.* Don't try to
+      reason them out — they're fixed.
+
+  # ─── PRACTICE CTA ─────────────────────────────────────────────────
+  - title: "Let's get some practice!"
+    body: >-
+      Time to put the six rules together. This quiz pulls real
+      PSLE-style Grammar MCQ questions across all 6 sub-topics.
+    bullets:
+      - "**10 questions** — at least one from each sub-topic."
+      - "After you submit, the AI flags which rule families you got wrong and suggests a focused follow-up quiz."
+      - "**Mistakes are saved** — we'll return to them in an auto-revision session in **1 week**."
+    cta:
+      label: Click here to start your practice quiz
+      quizSpec:
+        title: "Mastery: Grammar MCQ Quiz 1"
+        mcq: 10
+        oeq: 0
+
+commonMistakes: []
+
+# ────────────────────────────────────────────────────────────────────
+# KEY WORDS
+# ────────────────────────────────────────────────────────────────────
+keyWords:
+  - { word: tag question, definition: "A short check at the end of a statement (isn't he? / shall we?) that mirrors the main verb and flips the polarity." }
+  - { word: countable noun, definition: "A noun you can count: book/books, idea/ideas. Takes few/many/several." }
+  - { word: uncountable noun, definition: "A noun that has no plural: water, advice, luck. Takes little/much/a great deal of." }
+  - { word: reflexive pronoun, definition: "A pronoun that loops back to the subject: himself, herself, themselves. Use when subject = object." }
+  - { word: relative pronoun, definition: "who / whom / whose / which — links a noun to a description (the boy who runs)." }
+  - { word: gerund, definition: "The -ing form of a verb used as a noun (running, swimming). Comes after prepositions and certain verbs (enjoy, avoid)." }
+  - { word: infinitive, definition: "The 'to + base' form (to go, to see). Used after verbs like want, hope, decide, plan." }
+  - { word: bare infinitive, definition: "The base form WITHOUT 'to' (go, see). Used after causative verbs (let, make, help, watch)." }
+  - { word: conditional inversion, definition: "Formal alternative to 'if X had…' — flip auxiliary and subject: 'Had X done…'" }
+  - { word: subordinating conjunction, definition: "Connects a dependent clause to a main clause: since, although, when, unless, while." }
+
+# ────────────────────────────────────────────────────────────────────
+# SUB-TOPICS (slideIdx = 0-based position into keyConcepts of the
+# FIRST teaching slide for that sub-topic)
+# ────────────────────────────────────────────────────────────────────
+subTopics:
+  - id: tag-questions
+    label: Tag questions
+    description: "Tag question structure (\"isn't he?\", \"shall we?\") — mirroring the main verb and flipping the polarity. Includes negative-word traps (never, hardly, seldom) and irregular cases (\"Let's…\" → shall we, \"I am\" → aren't I)."
+    slideIdx: 1
+  - id: noun-number-rules
+    label: Noun number rules
+    description: "Subject-verb agreement plus countable / uncountable quantifiers. Handles mass nouns (news, luggage, advice), \"the number of\" vs \"a number of\", interrupters (everyone except…), gerund subjects."
+    slideIdx: 3
+  - id: pronouns
+    label: Pronouns
+    description: "Reflexive (himself, herself), possessive standalone (his, hers), and relative pronouns (who/whom/whose/which). Tests when each form is required by the role of the pronoun in the sentence."
+    slideIdx: 6
+  - id: verb-forms
+    label: Verb forms
+    description: "Gerund vs infinitive vs bare infinitive after a verb. Includes the \"to + gerund\" preposition trap (object to going, look forward to seeing) and causative bare infinitive (made her giggle, witnessed him slip)."
+    slideIdx: 8
+  - id: connectors-tenses
+    label: Connectors & tense markers
+    description: "Cause / concession / contrast / time connectors (since, although, in spite of, when) plus tense triggers — conditional inversion (\"Had X done…\"), wish + past perfect, since + present perfect continuous."
+    slideIdx: 10
+  - id: idiomatic-prepositions
+    label: Idiomatic prepositions
+    description: "Fixed verb + preposition combinations (congratulate ON, rob OF, accuse OF, blame FOR) and idiomatic phrases (under the impression, in someone's face, against the current, by accident)."
+    slideIdx: 13

@@ -77,12 +77,17 @@ export type MasterClassContent = {
   practiceStemRegex?: string;
   title: string;
   stats: {
-    psleQuestions: number;
-    psleSubjectPercent: number;
-    totalPracticePool: number;
-    psleQuestionsInPool: number;
-    schoolQuestionsInPool: number;
-    pctOeq: number;
+    // Optional numeric stats — only used by classes that show a
+    // frequency cover slide. English Grammar MCQ skips this slide
+    // entirely (the master class opens with the 6-rule overview),
+    // so all numeric fields are optional and only headline is
+    // required.
+    psleQuestions?: number;
+    psleSubjectPercent?: number;
+    totalPracticePool?: number;
+    psleQuestionsInPool?: number;
+    schoolQuestionsInPool?: number;
+    pctOeq?: number;
     headline: string;
   };
   keyConcepts: MasterClassSlide[];
