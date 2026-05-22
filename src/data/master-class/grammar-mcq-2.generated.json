@@ -16,6 +16,7 @@
   "keyConcepts": [
     {
       "title": "Welcome to Grammar MCQ — Part 2",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-welcome.png",
       "body": "We'll cover the **next three grammar rule families** that show up in almost every PSLE English Booklet A. After each rule, you get an interactive question to try — pick an answer, hit Submit, and see if you're right.",
       "bullets": [
         "**4. Verb forms** — gerund vs infinitive, causative bare infinitive",
@@ -26,6 +27,7 @@
     },
     {
       "title": "4: Verb forms — gerund vs infinitive vs bare",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-teaching-verb-forms.png",
       "body": "The form of the SECOND verb in a sentence depends on what comes before it. Three main patterns to know.",
       "bullets": [
         "**Verbs followed by GERUND (-ing):**\n   enjoy, avoid, mind, consider, suggest, finish, dislike, **have trouble**, **have difficulty**, object to, look forward to, be used to\n   → \"Bella enjoys **interacting** with her neighbours.\"",
@@ -36,6 +38,7 @@
     },
     {
       "title": "Try it — Verb forms",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-thinking.png",
       "interactiveQuiz": [
         {
           "label": "PSLE 2021 Q7 — the \"to + gerund\" preposition trap",
@@ -47,7 +50,9 @@
             "having gone"
           ],
           "correctAnswer": 2,
-          "explanation": "\"object **to**\" LOOKS like the infinitive \"to go\" — but \"to\" here is a PREPOSITION. Test: try a noun → \"objected to **the trip**\" ✓ → preposition confirmed. Preposition + verb → **GERUND** (-ing form) → **going**."
+          "explanation": "\"object **to**\" LOOKS like the infinitive \"to go\" — but \"to\" here is a PREPOSITION. Test: try a noun → \"objected to **the trip**\" ✓ → preposition confirmed. Preposition + verb → **GERUND** (-ing form) → **going**.",
+          "mascotCorrect": "/master-class/grammar-mcq-2/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-2/panda-wrong.png"
         },
         {
           "label": "PSLE 2022 Q5 — causative bare infinitive",
@@ -59,13 +64,16 @@
             "has slipped"
           ],
           "correctAnswer": 1,
-          "explanation": "**\"witness\"** is a SENSORY verb (like **see, watch, hear, notice**) — these take the **bare infinitive** (no \"to\", no \"-ing\", no past tense). → **slip**."
+          "explanation": "**\"witness\"** is a SENSORY verb (like **see, watch, hear, notice**) — these take the **bare infinitive** (no \"to\", no \"-ing\", no past tense). → **slip**.",
+          "mascotCorrect": "/master-class/grammar-mcq-2/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-2/panda-wrong.png"
         }
       ],
       "callout": "**Two rules:** \"to + verb\" can be EITHER an infinitive OR a preposition — test by trying a noun in its place. **Causative / sensory verbs** (let, make, help, see, watch, hear, witness, feel, notice) take the **bare base form** of the next verb."
     },
     {
       "title": "5: Connectors — cause / concession / time",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-teaching-connectors.png",
       "body": "Each connector signals a specific logical relationship. Read the SECOND clause to figure out which one fits.",
       "bullets": [
         "**Cause:** **since, because, as, owing to, due to, because of, in response to**. → \"**Since** the concert was cancelled, the organiser refunded us.\"",
@@ -77,6 +85,7 @@
     },
     {
       "title": "5: Tense triggers — words that force a tense",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-teaching-tense.png",
       "body": "Some grammar questions test **tense triggers** — words that force a specific tense in the next clause.",
       "bullets": [
         "**\"Had + subject + past participle\"** = a formal way of saying \"if X had…\". → \"**Had James put** the compass in his bag, we would not be lost\" = \"If James **had put** the compass in his bag…\"",
@@ -88,6 +97,7 @@
     },
     {
       "title": "Try it — Connectors & tenses",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-thinking.png",
       "interactiveQuiz": [
         {
           "label": "PSLE 2022 Q6 — concession connector",
@@ -99,7 +109,9 @@
             "With regard to"
           ],
           "correctAnswer": 3,
-          "explanation": "Clause 1 \"continual support\" is HELPFUL. Clause 2 \"unable to make ends meet\" is the OPPOSITE result. Contradiction → CONCESSION connector → **In spite of**. **Owing to** signals cause (wrong direction). **Amid** / **With regard to** don't match the meaning."
+          "explanation": "Clause 1 \"continual support\" is HELPFUL. Clause 2 \"unable to make ends meet\" is the OPPOSITE result. Contradiction → CONCESSION connector → **In spite of**. **Owing to** signals cause (wrong direction). **Amid** / **With regard to** don't match the meaning.",
+          "mascotCorrect": "/master-class/grammar-mcq-2/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-2/panda-wrong.png"
         },
         {
           "label": "PSLE 2024 Q6 — conditional inversion (flipped \"if\")",
@@ -111,13 +123,16 @@
             "Should"
           ],
           "correctAnswer": 2,
-          "explanation": "The consequence \"**would not be lost**\" tells us the first clause must be **past perfect**. Start from \"If James **had put**…\" then drop **if** and flip the order → \"**Had** James put…\". Only **Had** triggers this flip. **Did** gives past simple; **Might/Should** don't form a valid conditional with the given consequence."
+          "explanation": "The consequence \"**would not be lost**\" tells us the first clause must be **past perfect**. Start from \"If James **had put**…\" then drop **if** and flip the order → \"**Had** James put…\". Only **Had** triggers this flip. **Did** gives past simple; **Might/Should** don't form a valid conditional with the given consequence.",
+          "mascotCorrect": "/master-class/grammar-mcq-2/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-2/panda-wrong.png"
         }
       ],
       "callout": "**For connectors**, read the SECOND clause and ask \"does it support or contradict the first?\" — that picks cause vs concession. **For tense triggers**, the consequence (\"would have / would be\") tells you the first clause needs past perfect → **Had X done**."
     },
     {
       "title": "6: Idiomatic prepositions — fixed combinations",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-teaching-prepositions.png",
       "body": "There's no rule — these are FIXED idioms you have to memorise. PSLE picks pairs where multiple options sound vaguely OK.",
       "bullets": [
         "**Verb + preposition pairs** (commit these as a single chunk):\n   • congratulate someone **on** something\n   • accuse someone **of** something\n   • blame X **for** Y\n   • rob someone **of** something\n   • suspect someone **of** something\n   • depend / rely **on** someone\n   • succeed **in** doing",
@@ -128,6 +143,7 @@
     },
     {
       "title": "Try it — Idiomatic prepositions",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-thinking.png",
       "interactiveQuiz": [
         {
           "label": "PSLE 2024 Q10 — verb + preposition fixed pair",
@@ -139,7 +155,9 @@
             "with"
           ],
           "correctAnswer": 1,
-          "explanation": "The verb **\"rob\"** has a fixed idiom: **\"rob someone OF something\"**. **for** is used with **blame** (\"blame him for it\"), **off** is informal/wrong here, **with** is for weapons (\"robbed him with a knife\"). → **of**."
+          "explanation": "The verb **\"rob\"** has a fixed idiom: **\"rob someone OF something\"**. **for** is used with **blame** (\"blame him for it\"), **off** is informal/wrong here, **with** is for weapons (\"robbed him with a knife\"). → **of**.",
+          "mascotCorrect": "/master-class/grammar-mcq-2/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-2/panda-wrong.png"
         },
         {
           "label": "PSLE 2021 Q9 — idiomatic phrase preposition",
@@ -151,13 +169,16 @@
             "under"
           ],
           "correctAnswer": 4,
-          "explanation": "\"___ the impression\" is a fixed phrase — the correct preposition is **\"under the impression that…\"**. **in**, **on**, **with** don't combine with \"impression\" in this idiom."
+          "explanation": "\"___ the impression\" is a fixed phrase — the correct preposition is **\"under the impression that…\"**. **in**, **on**, **with** don't combine with \"impression\" in this idiom.",
+          "mascotCorrect": "/master-class/grammar-mcq-2/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-2/panda-wrong.png"
         }
       ],
       "callout": "**Memorise as chunks.** **rob someone OF, accuse someone OF, congratulate someone ON, blame someone FOR, under the impression, in someone's face, against the current, by accident.** Don't reason them out — they're fixed by usage."
     },
     {
       "title": "Let's get some practice!",
+      "mascotImage": "/master-class/grammar-mcq-2/panda-cta.png",
       "body": "Time to put the three Part 2 rules together. This quiz pulls real PSLE-style Grammar MCQ questions across all 3 sub-topics — with PSLE source questions prioritised first.",
       "bullets": [
         "**15 questions** — **5 questions per sub-topic**.",

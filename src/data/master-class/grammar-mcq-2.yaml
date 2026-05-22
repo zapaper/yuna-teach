@@ -30,6 +30,7 @@ keyConcepts:
 
   # ─── INTRO ────────────────────────────────────────────────────────
   - title: Welcome to Grammar MCQ — Part 2
+    mascotImage: /master-class/grammar-mcq-2/panda-welcome.png
     body: >-
       We'll cover the **next three grammar rule families** that
       show up in almost every PSLE English Booklet A. After each
@@ -47,6 +48,7 @@ keyConcepts:
 
   # ─── 4. VERB FORMS ───────────────────────────────────────────────
   - title: "4: Verb forms — gerund vs infinitive vs bare"
+    mascotImage: /master-class/grammar-mcq-2/panda-teaching-verb-forms.png
     body: >-
       The form of the SECOND verb in a sentence depends on what
       comes before it. Three main patterns to know.
@@ -71,6 +73,7 @@ keyConcepts:
            → "Judy **witnessed** a boy **slip** the cards into his bag."
 
   - title: Try it — Verb forms
+    mascotImage: /master-class/grammar-mcq-2/panda-thinking.png
     interactiveQuiz:
       - label: "PSLE 2021 Q7 — the \"to + gerund\" preposition trap"
         stem: |-
@@ -86,6 +89,8 @@ keyConcepts:
           "to" here is a PREPOSITION. Test: try a noun → "objected
           to **the trip**" ✓ → preposition confirmed. Preposition
           + verb → **GERUND** (-ing form) → **going**.
+        mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
       - label: "PSLE 2022 Q5 — causative bare infinitive"
         stem: |-
           Judy **witnessed** a boy ___ the game cards into his bag, so she reported it to the store manager.
@@ -99,6 +104,8 @@ keyConcepts:
           **"witness"** is a SENSORY verb (like **see, watch, hear,
           notice**) — these take the **bare infinitive** (no "to",
           no "-ing", no past tense). → **slip**.
+        mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
     callout: >-
       **Two rules:** "to + verb" can be EITHER an infinitive OR a
       preposition — test by trying a noun in its place. **Causative
@@ -107,6 +114,7 @@ keyConcepts:
 
   # ─── 5. CONNECTORS & TENSES ──────────────────────────────────────
   - title: "5: Connectors — cause / concession / time"
+    mascotImage: /master-class/grammar-mcq-2/panda-teaching-connectors.png
     body: >-
       Each connector signals a specific logical relationship.
       Read the SECOND clause to figure out which one fits.
@@ -123,6 +131,7 @@ keyConcepts:
         **"In spite of / Despite"** must be followed by a NOUN or GERUND, not a clause. "In spite of **being late**" ✓, "In spite of **she was late**" ✗ (use "although" instead).
 
   - title: "5: Tense triggers — words that force a tense"
+    mascotImage: /master-class/grammar-mcq-2/panda-teaching-tense.png
     body: >-
       Some grammar questions test **tense triggers** — words that
       force a specific tense in the next clause.
@@ -139,6 +148,7 @@ keyConcepts:
         **"No sooner had X done than Y…"** — a fancy way of saying "as soon as X happened, Y happened". The first half starts with **"had"** in front of the person, then a **"done"** verb (had arrived, had eaten); the second half is normal past tense. → "**No sooner had** I **arrived** home **than** it started to rain."
 
   - title: Try it — Connectors & tenses
+    mascotImage: /master-class/grammar-mcq-2/panda-thinking.png
     interactiveQuiz:
       - label: "PSLE 2022 Q6 — concession connector"
         stem: |-
@@ -155,6 +165,8 @@ keyConcepts:
           CONCESSION connector → **In spite of**. **Owing to**
           signals cause (wrong direction). **Amid** / **With regard
           to** don't match the meaning.
+        mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
       - label: "PSLE 2024 Q6 — conditional inversion (flipped \"if\")"
         stem: |-
           '___ James put the compass in his bag, we would not be lost in the forest,' grumbled Ai Ling.
@@ -171,6 +183,8 @@ keyConcepts:
           "**Had** James put…". Only **Had** triggers this flip.
           **Did** gives past simple; **Might/Should** don't form a
           valid conditional with the given consequence.
+        mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
     callout: >-
       **For connectors**, read the SECOND clause and ask "does it
       support or contradict the first?" — that picks cause vs
@@ -180,6 +194,7 @@ keyConcepts:
 
   # ─── 6. IDIOMATIC PREPOSITIONS ───────────────────────────────────
   - title: "6: Idiomatic prepositions — fixed combinations"
+    mascotImage: /master-class/grammar-mcq-2/panda-teaching-prepositions.png
     body: >-
       There's no rule — these are FIXED idioms you have to
       memorise. PSLE picks pairs where multiple options sound
@@ -209,6 +224,7 @@ keyConcepts:
         **"X minutes into the game"** — "into" with a duration marks a point in time.
 
   - title: Try it — Idiomatic prepositions
+    mascotImage: /master-class/grammar-mcq-2/panda-thinking.png
     interactiveQuiz:
       - label: "PSLE 2024 Q10 — verb + preposition fixed pair"
         stem: |-
@@ -224,6 +240,8 @@ keyConcepts:
           something"**. **for** is used with **blame** ("blame him
           for it"), **off** is informal/wrong here, **with** is for
           weapons ("robbed him with a knife"). → **of**.
+        mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
       - label: "PSLE 2021 Q9 — idiomatic phrase preposition"
         stem: |-
           As the guard was ___ the impression that the hall was empty, he locked it up, not realising that someone was still in it.
@@ -238,6 +256,8 @@ keyConcepts:
           preposition is **"under the impression that…"**. **in**,
           **on**, **with** don't combine with "impression" in this
           idiom.
+        mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
     callout: >-
       **Memorise as chunks.** **rob someone OF, accuse someone OF,
       congratulate someone ON, blame someone FOR, under the
@@ -246,6 +266,7 @@ keyConcepts:
 
   # ─── PRACTICE CTA ─────────────────────────────────────────────────
   - title: Let's get some practice!
+    mascotImage: /master-class/grammar-mcq-2/panda-cta.png
     body: >-
       Time to put the three Part 2 rules together. This quiz pulls
       real PSLE-style Grammar MCQ questions across all 3 sub-topics
