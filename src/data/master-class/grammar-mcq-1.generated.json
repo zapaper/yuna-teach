@@ -23,7 +23,14 @@
         "**2. Noun number rules** — subject-verb agreement + **few/little/many/much**",
         "**3. Pronouns** — reflexive, possessive standalone, relative"
       ],
-      "callout": "Recognise the rule type from the options, then apply."
+      "callout": "Recognise the rule type from the options, then apply.",
+      "narration": {
+        "bullets": [
+          "First are **1. Tag questions** — like \"…, isn't he?\" / or \"…, shall we?\"",
+          "Next up, **2. Noun number rules** — covering subject-verb agreement + words like **few/little/many/much**",
+          "Finally, **3. Pronouns** — including reflexive, possessive standalone, and relative ones."
+        ]
+      }
     },
     {
       "title": "1: Tag questions — the mirror rule",
@@ -34,7 +41,15 @@
         "**Step 2 — Flip the polarity.** Positive statement → **negative** tag (\"She is busy, **isn't** she?\"). Negative statement → **positive** tag (\"He hasn't called, **has** he?\").",
         "**Step 3 — Match the pronoun.** \"Tom\" → **he**. \"Mary\" → **she**. \"The team\" → **it** (or **they** depending on context).",
         "**Three special cases that catch most students:**\n   • **\"Let's\"** → always **\"shall we?\"** (not \"will we?\")\n   • **\"I am\"** → **\"aren't I?\"** (irregular)\n   • **Negative-meaning words** (never, hardly, seldom, scarcely, nothing) make the statement NEGATIVE → use a **positive** tag"
-      ]
+      ],
+      "narration": {
+        "bullets": [
+          null,
+          null,
+          "Finally, **Step 3 — Match the pronoun.** The name \"Tom\" becomes → **he**. The name \"Mary\" becomes → **she**. And \"The team\" becomes → **it** (or **they** depending on context).",
+          null
+        ]
+      }
     },
     {
       "title": "Try it — Tag questions",
@@ -81,7 +96,16 @@
         "**Either:** **some, any, enough, more, most, all**",
         "**The treacherous \"mass\" nouns** — these LOOK countable but are uncountable:\n   • **time, effort, trouble, advice, luck, news, information**\n   • **equipment, furniture, luggage, money, knowledge, work**\nFor these, always use **little / much / a great deal of**.",
         "**\"a great DEAL of\" (uncountable)** vs **\"a large NUMBER of\" (countable)** — the noun **deal** attaches to uncountables, **number** to countables."
-      ]
+      ],
+      "narration": {
+        "bullets": [
+          "For **Countable + plural:** nouns, use words like **few, many, several, each, a number of, and fewer**.",
+          "For **Uncountable:** nouns, use **little, much, a great deal of, a large amount of, and less**.",
+          "For **Either:** type, you can use **some, any, enough, more, most, and all**.",
+          null,
+          "Now, **\"a great DEAL of\" (uncountable)** vs the phrase **\"a large NUMBER of\" (countable)** — the noun **deal** attaches to uncountables, while **number** attaches to countables."
+        ]
+      }
     },
     {
       "title": "2: Noun number — subject-verb agreement traps",
@@ -93,7 +117,16 @@
         "**Interrupters with \"as well as / except / together with\":** The verb still matches the main subject. \"Everyone, except Sanjay and Aidan, **has** handed in their homework.\"",
         "**An -ing verb used as a \"thing\" (the subject) is always SINGULAR.** Even when it sounds plural. \"**Reading** different types of books **helps** me improve.\"",
         "**\"Neither X nor Y\"** matches the noun CLOSEST to the verb. \"Neither Jack **nor I** **am** going.\""
-      ]
+      ],
+      "narration": {
+        "bullets": [
+          null,
+          null,
+          "Third, beware of **Interrupters with \"as well as / except / or together with\":** Here, The verb still matches the main subject. For example, \"Everyone, except Sanjay and Aidan, **has** handed in their homework.\"",
+          "Fourth, **An -ing verb used as a \"thing\" (the subject) is always SINGULAR.** This is true Even when it sounds plural. For instance, \"**Reading** different types of books **helps** me improve.\"",
+          "Finally, the rule for **\"Neither X nor Y\"** is that the verb matches the noun CLOSEST to the verb. So we say, \"Neither Jack **nor I** **am** going.\""
+        ]
+      }
     },
     {
       "title": "Try it — Noun number",
@@ -193,6 +226,14 @@
           "mcq": 15,
           "oeq": 0
         }
+      },
+      "narration": {
+        "bullets": [
+          "You will face **15 questions** — which is **5 questions per sub-topic**.",
+          "The PSLE questions come first, then we top-up from school exam papers.",
+          "Note that After you submit, the AI flags which rule families you got wrong and suggests a focused follow-up quiz.",
+          "Your **Mistakes are saved** — and we'll return to them in an auto-revision session in **1 week**."
+        ]
       }
     }
   ],

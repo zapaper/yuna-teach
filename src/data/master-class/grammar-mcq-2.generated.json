@@ -23,7 +23,14 @@
         "**5. Connectors & tenses** — **since / although / in spite of** + perfect tenses",
         "**6. Idiomatic prepositions** — **congratulate on**, **robbed of**, **under the impression**"
       ],
-      "callout": "Recognise the rule type from the options, then apply."
+      "callout": "Recognise the rule type from the options, then apply.",
+      "narration": {
+        "bullets": [
+          "First is rule **4. Verb forms** — we'll look at the gerund vs infinitive, and the causative bare infinitive.",
+          "Next is rule **5. Connectors & tenses** — focusing on **since / although / in spite of** + the perfect tenses.",
+          "Finally, rule **6. Idiomatic prepositions** — such as **congratulate on**, **robbed of**, and **under the impression**."
+        ]
+      }
     },
     {
       "title": "4: Verb forms — gerund vs infinitive vs bare",
@@ -81,7 +88,16 @@
         "**Contrast:** **other than, on the other hand, whereas, but**. → \"Li Shan does not eat seafood. **Other than** that, she will eat anything.\"",
         "**Time:** **as soon as, when, while, before, after, until, by the time**. These often dictate the TENSE of the next clause.",
         "**\"In spite of / Despite\"** must be followed by a NOUN or GERUND, not a clause. \"In spite of **being late**\" ✓, \"In spite of **she was late**\" ✗ (use \"although\" instead)."
-      ]
+      ],
+      "narration": {
+        "bullets": [
+          "First, **Cause:** These include **since, because, as, owing to, due to, because of, and in response to**. For example, → \"**Since** the concert was cancelled, the organiser refunded us.\"",
+          null,
+          "Then there's **Contrast:** Using **other than, on the other hand, whereas, and but**. Like this: → \"Li Shan does not eat seafood. **Other than** that, she will eat anything.\"",
+          "We also have **Time:** Such as **as soon as, when, while, before, after, until, and by the time**. Note that These often dictate the TENSE of the next clause.",
+          null
+        ]
+      }
     },
     {
       "title": "5: Tense triggers — words that force a tense",
@@ -93,7 +109,16 @@
         "**\"since / for the past N\"** + present perfect (continuous). → \"The news **has been circulating** since yesterday.\"",
         "**\"by the end of [future time]\"** + future perfect. → \"By next year, my brother **will have become** a trained instructor.\"",
         "**\"No sooner had X done than Y…\"** — a fancy way of saying \"as soon as X happened, Y happened\". The first half starts with **\"had\"** in front of the person, then a **\"done\"** verb (had arrived, had eaten); the second half is normal past tense. → \"**No sooner had** I **arrived** home **than** it started to rain.\""
-      ]
+      ],
+      "narration": {
+        "bullets": [
+          "First, **\"Had + subject + past participle\"** = a formal way of saying \"if X had…\". Take this example: → \"**Had James put** the compass in his bag, we would not be lost\" = or simply, \"If James **had put** the compass in his bag…\"",
+          "Next, **\"wish / if only\" + past perfect** is used for regret. For instance, → \"Muthu **wished** he **had heeded** his mother's advice.\"",
+          "Third, we have **\"since / for the past N\"** + present perfect (continuous). For example, → \"The news **has been circulating** since yesterday.\"",
+          null,
+          "Finally, the phrase **\"No sooner had X done than Y…\"** — which is a fancy way of saying \"as soon as X happened, Y happened\". Notice how The first half starts with **\"had\"** in front of the person, then a **\"done\"** verb (had arrived, had eaten); while the second half is normal past tense. For example, → \"**No sooner had** I **arrived** home **than** it started to rain.\""
+        ]
+      }
     },
     {
       "title": "Try it — Connectors & tenses",
@@ -193,6 +218,14 @@
           "mcq": 15,
           "oeq": 0
         }
+      },
+      "narration": {
+        "bullets": [
+          "There will be **15 questions** — that's **5 questions per sub-topic**.",
+          "The PSLE questions come first, then we top-up the rest from school exam papers.",
+          "Note that After you submit, the AI flags which rule families you got wrong and suggests a focused follow-up quiz.",
+          "Any **Mistakes are saved** — and we'll return to them in an auto-revision session in **1 week**."
+        ]
       }
     }
   ],

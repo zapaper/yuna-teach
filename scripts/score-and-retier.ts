@@ -23,7 +23,24 @@ type Entry = {
   pscore?: number;   // 1-5 PSLE-likelihood score (NEW)
 };
 
-const TIER1_CANDIDATE_TARGET = 30;  // how many P4/P5/P6 candidates to promote to Tier 1 (top by score)
+// Tier 1 leans on PREDICTIVE candidates rather than historical PSLE
+// because PSLE rarely repeats vocabulary. Historical Q5-Q6 / Q13-Q15
+// / 短文填空 correct answers go to Tier 2 (exposure, not must-know).
+// Tier 1 PSLE-history is limited to the SMALL FIXED pools that
+// actually recur: 关联词 (~26 forms cover Q9-Q10 every year) and
+// 成语 (the 10 historical idioms — worth memorising even though
+// they rotate, because idioms are dense info).
+//
+// Candidate slots are allocated PER CATEGORY so the deck stays
+// balanced across PSLE question shapes (otherwise idioms crowd out
+// the 二字词语 that drive Q5-Q6 / Q13-Q15, which are the biggest
+// mark contributors).
+const TIER1_CANDIDATE_BY_CAT: Record<string, number> = {
+  "2字词语": 60,        // Q5-Q6 and Q13-Q15 stem-fill, biggest PSLE share
+  "成语": 30,           // Q7-Q8 + Q13-Q15 idiom slots
+  "关联词": 999,        // small fixed pool — take all candidates we have
+  "短文填空": 20,       // Q16-Q20 cloze, mostly 2-char verbs/adj
+};
 
 (async () => {
   const jsonPath = path.join(__dirname, "psle-chinese-study-bank.json");
@@ -68,40 +85,43 @@ ${words.map(w => `- ${w.word} (${w.category}${w.meaningZh ? `: ${w.meaningZh}` :
     try { return JSON.parse(m ? m[0] : text); } catch { return {}; }
   }
 
-  const BATCH = 25;
-  for (let i = 0; i < candidates.length; i += BATCH) {
-    const batch = candidates.slice(i, i + BATCH);
-    try {
-      const scores = await scoreBatch(batch);
-      for (const e of batch) {
-        const s = parseInt(String(scores[e.word] ?? 3), 10);
-        e.pscore = Math.max(1, Math.min(5, isNaN(s) ? 3 : s));
+  const needsScoring = candidates.filter(c => c.pscore === undefined);
+  if (needsScoring.length === 0) {
+    console.log("All candidates already scored — skipping Gemini and re-tiering only.");
+  } else {
+    const BATCH = 25;
+    for (let i = 0; i < needsScoring.length; i += BATCH) {
+      const batch = needsScoring.slice(i, i + BATCH);
+      try {
+        const scores = await scoreBatch(batch);
+        for (const e of batch) {
+          const s = parseInt(String(scores[e.word] ?? 3), 10);
+          e.pscore = Math.max(1, Math.min(5, isNaN(s) ? 3 : s));
+        }
+        process.stdout.write(`  ${Math.min(i + BATCH, needsScoring.length)}/${needsScoring.length}\r`);
+      } catch (err) {
+        console.error(`\n  batch ${i} failed:`, (err as Error).message);
+        for (const e of batch) e.pscore = e.pscore ?? 3;
       }
-      process.stdout.write(`  ${Math.min(i + BATCH, candidates.length)}/${candidates.length}\r`);
-    } catch (err) {
-      console.error(`\n  batch ${i} failed:`, (err as Error).message);
-      for (const e of batch) e.pscore = e.pscore ?? 3;
     }
+    console.log();
   }
-  console.log();
 
-  // Tier 1 inclusion rules — TIGHTER than before. Each PSLE-history
-  // entry is now evaluated on whether PSLE has REWARDED knowing it
-  // (correct answer) or whether it lives in a small fixed pool
-  // (connectors / Q7-Q8 idioms / Q13-Q15 targets / cloze answers).
-  // PSLE distractors that only ever appeared as wrong options get
-  // demoted to Tier 2 — they're "good to know" exposure, not "must
-  // know".
+  // Tier 1 PSLE-history inclusion — VERY restrictive. PSLE rotates
+  // vocabulary every year (only ~5-17% of test-position words repeat
+  // across 2+ papers), so historical correct answers are NOT
+  // particularly predictive of next year's questions. We keep only
+  // the two small pools that genuinely DO recur:
+  //   - 关联词 (Q9-Q10): ~26 forms cover every paper
+  //   - 成语 (Q7-Q8 / Q13-Q15): worth memorising even though they
+  //     rotate, because idioms are dense info and small in number
+  // Everything else from PSLE history (Q5-Q6 / Q13-Q15 targets /
+  // 短文填空 correct answers) moves to Tier 2 — useful exposure but
+  // not "must-know" since PSLE won't pick the same word again.
   function isTier1PsleHistory(e: Entry): boolean {
     if (e.source !== "PSLE") return false;
-    // Small fixed pools always Tier 1
     if (e.category === "关联词") return true;
-    if (e.category === "短文填空") return true;
-    if (e.category === "成语") return true;  // all PSLE idioms (Q7-Q8 + Q13-Q15)
-    // psleHistory tags include "correct" / "distractor" / "考解释" / "用法考查" etc.
-    const hist = e.psleHistory ?? [];
-    if (hist.some(h => /correct/i.test(h))) return true;
-    if (hist.some(h => /考解释|用法考查/.test(h))) return true;
+    if (e.category === "成语") return true;
     return false;
   }
 
@@ -110,25 +130,32 @@ ${words.map(w => `- ${w.word} (${w.category}${w.meaningZh ? `: ${w.meaningZh}` :
     e.tier = isTier1PsleHistory(e) ? 1 : 2;
   }
 
-  // Sort candidates by score desc, then char-length (4-char idioms first
-  // within same score because idioms are dense info), then alphabetical.
-  const sorted = candidates.slice().sort((a, b) => {
-    if ((b.pscore ?? 0) !== (a.pscore ?? 0)) return (b.pscore ?? 0) - (a.pscore ?? 0);
-    if (b.chars !== a.chars) return b.chars - a.chars;
-    return a.word.localeCompare(b.word);
-  });
+  // Default everyone to Tier 2, then promote top-N PER CATEGORY by score.
+  for (const c of candidates) c.tier = 2;
 
-  for (let i = 0; i < sorted.length; i++) {
-    sorted[i].tier = i < TIER1_CANDIDATE_TARGET ? 1 : 2;
+  for (const [cat, limit] of Object.entries(TIER1_CANDIDATE_BY_CAT)) {
+    const inCat = candidates
+      .filter(c => c.category === cat)
+      .sort((a, b) => {
+        if ((b.pscore ?? 0) !== (a.pscore ?? 0)) return (b.pscore ?? 0) - (a.pscore ?? 0);
+        return a.word.localeCompare(b.word);
+      });
+    for (let i = 0; i < Math.min(limit, inCat.length); i++) {
+      inCat[i].tier = 1;
+    }
   }
 
   fs.writeFileSync(jsonPath, JSON.stringify(bank, null, 2), "utf8");
 
   const tier1 = bank.filter(e => e.tier === 1);
   const tier2 = bank.filter(e => e.tier === 2);
-  const psleN = bank.filter(e => e.source === "PSLE").length;
-  console.log(`\nTier 1: ${tier1.length} (${psleN} PSLE + ${tier1.length - psleN} top-scoring candidates)`);
+  const psleT1 = tier1.filter(e => e.source === "PSLE").length;
+  const candT1 = tier1.length - psleT1;
+  console.log(`\nTier 1: ${tier1.length} (${psleT1} PSLE history + ${candT1} top-scoring candidates)`);
   console.log(`Tier 2: ${tier2.length}`);
+  const t1ByCat: Record<string, number> = {};
+  for (const e of tier1) t1ByCat[e.category] = (t1ByCat[e.category] ?? 0) + 1;
+  console.log("Tier 1 by category:", t1ByCat);
 
   // Score distribution print
   const scoreDist: Record<number, number> = {};
