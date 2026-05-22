@@ -1102,16 +1102,51 @@ function QuestionEditCard({
           <span className="text-[11px] text-amber-700 font-medium">No page index — use Redo extract or Select area</span>
         </div>
       )}
-      {/* ── Question image ── */}
+      {/* ── Question image ──
+          Synthetic questions store imageData as "" (there's no scanned
+          page to crop from). For them, the AI-generated diagram lives
+          in diagramImageData. Fall back to that so the admin sees the
+          generated diagram instead of a broken-image icon. If neither
+          is present, show a clean empty-state. */}
       <div className="bg-slate-50">
-        <Image
-          src={question.imageData}
-          alt={`Question ${question.questionNum}`}
-          width={800}
-          height={400}
-          className="w-full h-auto object-contain"
-          unoptimized
-        />
+        {(() => {
+          const hasImage = !!question.imageData && question.imageData.length > 0;
+          const hasDiagram = !!question.diagramImageData && question.diagramImageData.length > 0;
+          if (hasImage) {
+            return (
+              <Image
+                src={question.imageData}
+                alt={`Question ${question.questionNum}`}
+                width={800}
+                height={400}
+                className="w-full h-auto object-contain"
+                unoptimized
+              />
+            );
+          }
+          if (hasDiagram) {
+            return (
+              <>
+                <Image
+                  src={question.diagramImageData as string}
+                  alt={`Question ${question.questionNum} diagram`}
+                  width={800}
+                  height={400}
+                  className="w-full h-auto object-contain"
+                  unoptimized
+                />
+                <p className="px-3 py-1 text-[10px] text-slate-500 italic">
+                  Synthetic question — showing AI-generated diagram (no scanned page image)
+                </p>
+              </>
+            );
+          }
+          return (
+            <div className="px-4 py-6 text-center text-xs text-slate-400 italic">
+              No image attached (text-only question)
+            </div>
+          );
+        })()}
         <p className="px-3 py-0.5 text-[10px] text-blue-500 font-mono">
           page {question.pageIndex ?? "—"} · yStart {question.yStartPct != null ? `${question.yStartPct.toFixed(1)}%` : "—"} · yEnd {question.yEndPct != null ? `${question.yEndPct.toFixed(1)}%` : "—"}
         </p>

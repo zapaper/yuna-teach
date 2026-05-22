@@ -166,6 +166,11 @@ export interface ExamQuestionItem {
   id: string;
   questionNum: string;
   imageData: string;
+  // Synthetic questions store the AI-generated stem diagram here (the
+  // scanned `imageData` is empty for them). The editor renderer falls
+  // back to this when `imageData` is empty, so the admin can see the
+  // diagram instead of a broken-image icon.
+  diagramImageData?: string | null;
   answer: string | null;
   answerImageData: string | null;
   pageIndex: number;
