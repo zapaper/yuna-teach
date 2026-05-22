@@ -1,7 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+
+export default function Page() {
+  return (
+    <Suspense>
+      <ChineseDraftsPage />
+    </Suspense>
+  );
+}
 
 type Draft = {
   id: string;
@@ -31,7 +39,7 @@ const SHAPE_LABEL: Record<string, string> = {
   "Q9-Q10": "Q9-Q10 关联词",
 };
 
-export default function ChineseDraftsPage() {
+function ChineseDraftsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userId = searchParams.get("userId");
