@@ -3052,17 +3052,41 @@ const BlankCanvas = forwardRef<
 
     function handleContextMenu(e: Event) { e.preventDefault(); }
 
+    // pointerrawupdate fires for raw input samples even between vsyncs
+    // on Chrome / Edge / Android Chrome — Safari ignores it. We attach
+    // it in addition to pointermove; either one calling handlePointerMove
+    // is fine because lastPos.current keeps the chain continuous, and
+    // any duplicate sample produces a zero-length segment that's
+    // invisible. Without this, fast strokes drop samples between
+    // vsyncs and produce intermittent gaps in the line — the same
+    // bug the Chinese canvas fixed in commit d47c433f.
+    function handlePointerRaw(e: PointerEvent) {
+      if (!isDrawing.current || !lastPos.current) return;
+      handlePointerMove(e);
+    }
+
     canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
     canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
     canvas.addEventListener("pointerup", handlePointerUp);
     canvas.addEventListener("pointercancel", handlePointerUp);
     canvas.addEventListener("contextmenu", handleContextMenu);
+    // The "as keyof HTMLElementEventMap" cast is needed because
+    // pointerrawupdate isn't yet in lib.dom.d.ts in all TS versions.
+    canvas.addEventListener(
+      "pointerrawupdate" as keyof HTMLElementEventMap,
+      handlePointerRaw as EventListener,
+      { passive: false } as AddEventListenerOptions,
+    );
     return () => {
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
       canvas.removeEventListener("pointercancel", handlePointerUp);
       canvas.removeEventListener("contextmenu", handleContextMenu);
+      canvas.removeEventListener(
+        "pointerrawupdate" as keyof HTMLElementEventMap,
+        handlePointerRaw as EventListener,
+      );
       cancelPendingCapture();
     };
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps

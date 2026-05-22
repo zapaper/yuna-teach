@@ -137,8 +137,17 @@ function FlaggedContent() {
                   <button
                     onClick={() => {
                       const examId = item.cloneId ?? item.paperId;
+                      const isMastery = item.paperType === "mastery" || item.paperType === "mastery-review";
                       const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
-                      const path = isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`;
+                      // Mastery flags route to the live quiz so admin can
+                      // attempt the question themselves. Quiz / focused
+                      // route to the marked review. Everything else goes
+                      // to the paper overview.
+                      const path = isMastery
+                        ? `/quiz/${examId}`
+                        : isQuizOrFocused
+                          ? `/exam/${examId}/review`
+                          : `/exam/${examId}/overview`;
                       window.open(`${path}?userId=${userId}`, "_blank");
                     }}
                     className="text-sm font-bold text-primary-600 hover:text-primary-800 underline underline-offset-2"
@@ -172,14 +181,23 @@ function FlaggedContent() {
                     <button
                       onClick={() => {
                         const examId = item.cloneId ?? item.paperId;
+                        const isMastery = item.paperType === "mastery" || item.paperType === "mastery-review";
                         const isQuizOrFocused = item.paperType === "quiz" || item.paperType === "focused";
-                        const path = isQuizOrFocused ? `/exam/${examId}/review` : `/exam/${examId}/overview`;
+                        const path = isMastery
+                          ? `/quiz/${examId}`
+                          : isQuizOrFocused
+                            ? `/exam/${examId}/review`
+                            : `/exam/${examId}/overview`;
                         window.open(`${path}?userId=${userId}`, "_blank");
                       }}
                       className="text-[10px] font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 px-1.5 py-0.5 rounded underline underline-offset-2"
                       title="Open this flag's paper"
                     >
-                      {item.paperType === "focused" ? "Focused ↗" : item.paperType === "quiz" ? "Quiz ↗" : "Paper ↗"}
+                      {item.paperType === "mastery" || item.paperType === "mastery-review"
+                        ? "Mastery ↗"
+                        : item.paperType === "focused" ? "Focused ↗"
+                        : item.paperType === "quiz" ? "Quiz ↗"
+                        : "Paper ↗"}
                     </button>
                     {item.year && (
                       <span className="text-[10px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
