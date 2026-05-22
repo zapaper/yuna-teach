@@ -670,14 +670,18 @@ function PassageWithInputs({
   onFocusInput?: () => void;
   emptyFieldIds?: Set<string>;
 }) {
-  // Normalize OCR-split markers. The OCR occasionally preserves the
-  // printed-page layout for 完成对话 / Grammar Cloze blanks — the
-  // blank renders on one line, "(26)" on the next, the closing **
-  // on a third. That breaks the line-by-line marker regex below, so
-  // collapse any **(N)...** that spans newlines back into the canonical
-  // single-line form **(N)________** before splitting on \n.
+  // Normalize OCR-split markers + strip the spurious "Q" prefix the
+  // model occasionally emits inside the marker — e.g. "**(Q26)________**"
+  // instead of "**(26)________**". Without this the regexes below
+  // (which expect digit-only) don't match, the asterisks render as
+  // literal text and the blank never becomes an input field.
+  //
+  // Also collapses multi-line **(N)...** markers back into the canonical
+  // single-line form **(N)________** before splitting on \n, in case
+  // the OCR preserved the printed-page layout (blank on one line, "(26)"
+  // on the next, closing ** on a third).
   const passage = rawPassage.replace(
-    /\*\*\((\d+)\)[\s\S]*?\*\*/g,
+    /\*\*\(Q?(\d+)\)[\s\S]*?\*\*/g,
     (_m, n) => `**(${n})________**`
   );
 
