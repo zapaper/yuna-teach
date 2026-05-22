@@ -339,10 +339,23 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
       emitChange();
     };
 
+    // Defensive: pointercancel was treated as end-of-stroke. iPadOS
+    // recently started firing spurious pointercancel mid-stroke for
+    // Apple Pencil ("stylus gaps started 1-2 days ago across all
+    // subjects; finger still works"). The cancel reset drawing/lastPos
+    // so subsequent pointermove samples were dropped. Treat the
+    // cancel as a no-op + re-acquire pointer capture so the stroke
+    // continues. Real cancels still end naturally on the next
+    // pointerdown.
+    const onCancel = (e: PointerEvent) => {
+      if (!drawing.current) return;
+      try { (e.target as Element).setPointerCapture(e.pointerId); } catch { /* capture lost */ }
+    };
+
     visible.addEventListener("pointerdown", onDown, { passive: false });
     visible.addEventListener("pointermove", onMove, { passive: false });
     visible.addEventListener("pointerup", onUp);
-    visible.addEventListener("pointercancel", onUp);
+    visible.addEventListener("pointercancel", onCancel);
     // The "as keyof HTMLElementEventMap" cast is needed because
     // pointerrawupdate isn't yet in lib.dom.d.ts in all TS versions.
     visible.addEventListener("pointerrawupdate" as keyof HTMLElementEventMap, onRaw as EventListener, { passive: false } as AddEventListenerOptions);
@@ -373,7 +386,7 @@ export const ChineseHandwritingCanvas = forwardRef<ChineseHandwritingCanvasHandl
       visible.removeEventListener("pointerdown", onDown);
       visible.removeEventListener("pointermove", onMove);
       visible.removeEventListener("pointerup", onUp);
-      visible.removeEventListener("pointercancel", onUp);
+      visible.removeEventListener("pointercancel", onCancel);
       visible.removeEventListener("pointerrawupdate" as keyof HTMLElementEventMap, onRaw as EventListener);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

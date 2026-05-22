@@ -3070,10 +3070,25 @@ const BlankCanvas = forwardRef<
       handlePointerMove(e);
     }
 
+    // Defensive: pointercancel was treated as an end-of-stroke signal.
+    // iPadOS recently started firing spurious pointercancel mid-stroke
+    // for Apple Pencil ("stylus gaps started 1-2 days ago for both
+    // Math/Science and Chinese, finger still works"). The cancel reset
+    // isDrawing/lastPos so subsequent pointermove samples were dropped
+    // → visible gap, then drawing resumes when the user lifts and
+    // touches again. Treat pointercancel as a no-op: re-acquire
+    // pointer capture if possible and keep lastPos so the next
+    // pointermove continues the stroke. Real cancels (3-finger swipe
+    // etc.) end naturally on the next pointerdown.
+    function handlePointerCancel(e: PointerEvent) {
+      if (!isDrawing.current) return;
+      try { canvas!.setPointerCapture(e.pointerId); } catch { /* capture lost */ }
+    }
+
     canvas.addEventListener("pointerdown", handlePointerDown, { passive: false });
     canvas.addEventListener("pointermove", handlePointerMove, { passive: false });
     canvas.addEventListener("pointerup", handlePointerUp);
-    canvas.addEventListener("pointercancel", handlePointerUp);
+    canvas.addEventListener("pointercancel", handlePointerCancel);
     canvas.addEventListener("contextmenu", handleContextMenu);
     // The "as keyof HTMLElementEventMap" cast is needed because
     // pointerrawupdate isn't yet in lib.dom.d.ts in all TS versions.
@@ -3086,7 +3101,7 @@ const BlankCanvas = forwardRef<
       canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerup", handlePointerUp);
-      canvas.removeEventListener("pointercancel", handlePointerUp);
+      canvas.removeEventListener("pointercancel", handlePointerCancel);
       canvas.removeEventListener("contextmenu", handleContextMenu);
       canvas.removeEventListener(
         "pointerrawupdate" as keyof HTMLElementEventMap,
