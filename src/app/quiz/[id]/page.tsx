@@ -2706,8 +2706,8 @@ const ResizableCanvas = forwardRef<
   }
 
   return (
-    <div className="relative">
-      <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative" style={{ height: visibleHeight }}>
+    <div className="relative select-none" style={{ WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none" }}>
+      <div className="bg-white rounded-2xl lg:rounded-3xl overflow-hidden shadow-sm ring-1 ring-[#c3c6d1]/20 relative select-none" style={{ height: visibleHeight, WebkitUserSelect: "none", userSelect: "none", WebkitTouchCallout: "none", touchAction: "none" }}>
         <div className="absolute top-0 left-12 h-full w-px bg-[#ba1a1a]/10" />
         <BlankCanvas
           ref={ref}
@@ -3046,6 +3046,11 @@ const BlankCanvas = forwardRef<
       if (!isDrawing.current) return;
       isDrawing.current = false;
       lastPos.current = null;
+      // Reset smoothing midpoint so the next stroke's first segment
+      // doesn't pick up the previous stroke's midpoint. Matches the
+      // Chinese onUp handler.
+      lastMid.x = 0;
+      lastMid.y = 0;
       if (toolRef.current === "eraser" || toolRef.current === "eraser-large") redrawComposite();
       scheduleSnapshotCapture();
     }
@@ -3092,22 +3097,27 @@ const BlankCanvas = forwardRef<
   }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ touchAction: "none" }}>
+    // Wrapper + canvas styles mirror ChineseHandwritingCanvas exactly.
+    // iOS Safari fires pointercancel mid-stroke if ANY ancestor leaves
+    // the selection / callout machinery armed — locking the wrapper as
+    // well as the canvas closes that hole.
+    <div
+      className="select-none"
+      style={{
+        touchAction: "none",
+        WebkitUserSelect: "none",
+        userSelect: "none",
+        WebkitTouchCallout: "none",
+      }}
+    >
       <canvas
         ref={canvasRef}
-        // Pointer handlers attach natively in useEffect.
-        //
-        // iOS Safari particulars (ported from ChineseHandwritingCanvas
-        // which fixed the same intermittent-gap bug on iPad+Apple
-        // Pencil): without these properties the browser fires
-        // pointercancel mid-stroke whenever its text-selection /
-        // callout machinery decides the gesture might be a selection
-        // drag. The result is a swallowed segment, a brief gap, then
-        // a new stroke starts. willChange + translateZ promote the
-        // canvas to its own GPU layer so per-stroke repaints don't
-        // invalidate surrounding content, which helps keep iOS from
-        // throttling pointer events under render pressure.
-        className="w-full border-0 select-none"
+        // Pointer handlers attach natively in useEffect (passive: false,
+        // plus pointerrawupdate on Chrome/Edge for sub-vsync samples).
+        // willChange + translateZ promote the canvas to its own GPU
+        // layer so per-stroke repaints don't invalidate surrounding
+        // content and trigger iOS render throttling.
+        className="w-full border-0 block touch-none select-none"
         style={{
           height: `${height}px`,
           cursor: tool === "pen" ? PEN_CURSOR : "cell",
