@@ -16,6 +16,7 @@
   "keyConcepts": [
     {
       "title": "Electrical Circuits: How important is this?",
+      "mascotImage": "/master-class/electrical-circuits/panda-welcome.png",
       "body": "A top-5 most-tested PSLE Science topic. The MCQs test diagram reading; the OEQs test whether you can WRITE the explanation step by step.",
       "pieChart": {
         "percentage": 10,
@@ -32,6 +33,7 @@
     },
     {
       "title": "1: Reading the circuit diagram",
+      "mascotImage": "/master-class/electrical-circuits/panda-teaching-circuit-diagram.png",
       "body": "Before you answer anything, READ the diagram. PSLE circuit diagrams look complicated because of the layout, but they're built from 4 ingredients: **battery, bulb(s), switch, wire**. Trace the wire with your pencil to find the loops.",
       "diagramImage": "/master-class/circuits/bulb-contact-points.png",
       "bullets": [
@@ -47,6 +49,7 @@
     },
     {
       "title": "2: Series vs Parallel — the fuse rule",
+      "mascotImage": "/master-class/electrical-circuits/panda-teaching-fuse.png",
       "body": "Most PSLE circuit MCQs hinge on the difference between series and parallel. There's one shortcut that handles almost every \"which bulb blew\" or \"bulb fuses, what happens\" question.",
       "bullets": [
         "**Series circuit** — one path. Current goes through ALL bulbs in order. **If ANY bulb fuses → ALL bulbs go dark.** (Christmas lights, classic example.)",
@@ -69,6 +72,7 @@
     },
     {
       "title": "3: Bulb brightness — when do two circuits match?",
+      "mascotImage": "/master-class/electrical-circuits/panda-teaching-brightness.png",
       "body": "A common MCQ type: 4 circuits drawn, \"in which circuit is bulb L brightest?\" or \"which circuit has the same brightness as the one shown?\" Solving by intuition fails. Use the counting method.",
       "bullets": [
         "**Step 1 — Count the batteries in series along ONE path** from + back to −. More batteries in series → more voltage → brighter.",
@@ -81,6 +85,7 @@
     },
     {
       "title": "4: Electromagnets — the 4-step OEQ formula",
+      "mascotImage": "/master-class/electrical-circuits/panda-teaching-electromagnet.png",
       "body": "5 of 7 PSLE OEQs on this topic involve electromagnets — bell ringers, buzzers, door locks, door bolts. They all describe a device with a **coil of wire around an iron core**, and ask \"explain what happens when the switch is closed\". The marking scheme rewards naming each step in a fixed chain.",
       "bullets": [
         "**Step 1 — Closed circuit.** 'When the switch is closed, a **closed circuit** is formed and **electric current flows** through the wire coil.'",
@@ -130,6 +135,7 @@
     },
     {
       "title": "Let's get some practice!",
+      "mascotImage": "/master-class/electrical-circuits/panda-cta.png",
       "body": "Time to put it all together. This quiz pulls real PSLE-style questions on circuits — diagram reading, series/parallel, bulb brightness, and the electromagnet OEQ.",
       "bullets": [
         "**8 MCQ** + **OEQs** — a cross-section across all 4 sub-topics, with at least 2 electromagnet OEQs.",

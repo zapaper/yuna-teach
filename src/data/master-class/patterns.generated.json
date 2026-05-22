@@ -17,6 +17,7 @@
   "keyConcepts": [
     {
       "title": "Patterns: How important is this?",
+      "mascotImage": "/master-class/patterns/panda-welcome.png",
       "body": "We tracked **38 unique pattern questions** across P3–P6 WA, EOY, and Prelim papers in our bank. Even split between MCQ and OEQ, averaging **2.3 marks per question**.",
       "pieChart": {
         "percentage": 50,
@@ -33,6 +34,7 @@
     },
     {
       "title": "1: The Differences Method — always start here",
+      "mascotImage": "/master-class/patterns/panda-teaching-differences.png",
       "body": "For ANY number sequence question, the first move is the same: **write the difference between each pair of consecutive numbers**. The rule almost always reveals itself.",
       "bullets": [
         "**Step 1** — Subtract: each term minus the previous term. Write the differences below the sequence.",
@@ -55,6 +57,7 @@
     },
     {
       "title": "2: Hidden sub-patterns — when the differences DON'T behave",
+      "mascotImage": "/master-class/patterns/panda-teaching-subpatterns.png",
       "body": "Some sequences look chaotic at first because **two or three different rules** are interleaved into ONE list. The PSLE / WA trick is to find the sub-pattern.",
       "bullets": [
         "**Clue 1** — If the differences flip between negative AND positive (e.g. −2, −4, **+6**, −8, −10, **+12**), the rule is **'subtract, subtract, add'** that repeats.",
@@ -76,6 +79,7 @@
     },
     {
       "title": "3: Find the nth term — divide, then look at the remainder",
+      "mascotImage": "/master-class/patterns/panda-teaching-nth-term.png",
       "body": "\"What is the **80th letter**?\" or \"What is the **74th bead**?\" These questions look impossible because you'd have to write out 80 things. You don't. There's a 3-step shortcut.",
       "bullets": [
         "**Step 1** — Find the **cycle length**. How many items make up ONE repeat of the pattern?",
@@ -97,6 +101,7 @@
     },
     {
       "title": "4: Figure-based patterns — the longest section, because this is the hardest",
+      "mascotImage": "/master-class/patterns/panda-teaching-figures.png",
       "body": "Figure-based patterns are the trickiest pattern questions on the paper. The diagram is full of dots / sticks / tiles / circles and it's easy to panic. The cure is a single discipline: **stop counting from the diagram. Build a TABLE.** Once the first 3-4 rows of the table are filled in, the formula reveals itself. Here are the 5 patterns you'll see most often, with worked examples.",
       "bullets": [
         "**Pattern type A — Linear (constant difference)**. Each figure adds the SAME number of objects to the previous one. Formula: count = first + (n − 1) × d, where d is the constant difference.",
@@ -109,6 +114,7 @@
     },
     {
       "title": "Now let's see it in action — 3 real worked examples",
+      "mascotImage": "/master-class/patterns/panda-teaching-action.png",
       "body": "The theory is one thing. The marking scheme doesn't care if you know the 5 pattern types — it cares about the **working**. So we'll apply the same 4-step method to 3 real prelim / WA questions, with the original diagrams. Each one shows the **exact question**, the **table** to draw, and the **formula** that falls out.",
       "bullets": [
         "**Coming up:** increasing difference (beads in rows), squared differences (squares in a grid), and constant difference (sticks to make figures).",
@@ -154,6 +160,7 @@
     },
     {
       "title": "Let's get some practice!",
+      "mascotImage": "/master-class/patterns/panda-cta.png",
       "body": "Time to try some real pattern questions from P4–P6 school papers. Mix of MCQ and OEQ across every flavour we just covered.",
       "bullets": [
         "**6 MCQ** + **4 OEQ** — a real cross-section of pattern questions from the bank.",

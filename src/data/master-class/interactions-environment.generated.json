@@ -16,6 +16,7 @@
   "keyConcepts": [
     {
       "title": "Interactions with environment: How important is this?",
+      "mascotImage": "/master-class/interactions-environment/panda-welcome.png",
       "body": "This is the **#1 most-tested PSLE Science topic** across PSLE 2022–2024 — beating Electrical Circuits, Heat Energy and every other topic in both question count and total marks.",
       "pieChart": {
         "percentage": 13,
@@ -32,6 +33,7 @@
     },
     {
       "title": "1: Key Definitions",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-definitions.png",
       "body": "**33% of PSLE OEQ** have a definition sub-part. This is a give-away to master. Let's go through these definitions.",
       "bullets": [
         "**Population** — a group of living things of the **same kind** in one place",
@@ -44,6 +46,7 @@
     },
     {
       "title": "2: Food Web: Explaining it",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-food-web.png",
       "body": "Most wrong answers come from misreading the diagram. Use a fixed 2-step process for **every** food-web question.",
       "bullets": [
         "**Step 1** — Map out the **producer** (e.g. plant), **primary consumer** (plant eater), and **secondary consumer** (meat eater). Producer has no **incoming arrows** (it makes its own food via **photosynthesis**).",
@@ -64,6 +67,7 @@
     },
     {
       "title": "3: Food Web: Causal Chain reasoning — common mistakes",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-causal-chain.png",
       "body": "Many food web questions will show a food web, and ask what happens when one population decreases… PSLE markers reward points for **every step** in the explanation. How to score full marks? **Four steps.**",
       "bullets": [
         "Step 1: Name what **changes** (grass dies)",
@@ -86,6 +90,7 @@
     },
     {
       "title": "4: Mutual benefits",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-mutual-benefits.png",
       "body": "Aquarium and pond questions almost always test mutualism.",
       "bullets": [
         "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**",
@@ -108,6 +113,7 @@
     },
     {
       "title": "5: Adaptation: Feature → how it helps → link to environment",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-adaptation.png",
       "body": "Adaptations are **features** or **behaviours** that help an organism survive in its environment. PSLE answer template is fixed: name the **feature** / **behaviour** → explain **how it helps** → connect to the **environmental condition**.",
       "bullets": [
         "**Physical features — Animals**: body parts shaped for survival (thick fur → keep warm in cold; webbed feet → swim faster; gills → take in oxygen from water).",
@@ -130,6 +136,7 @@
     },
     {
       "title": "6: Decomposer: easy to miss points",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-decomposer.png",
       "body": "Decomposers (**bacteria** and **fungi**, including **mould**) don't usually appear in the food-web diagram, but they're often the missing piece in OEQ answers. Knowing their role unlocks 1-2 mark bonuses that most students leave on the table.",
       "bullets": [
         "**What they do** — feed on **dead organisms** and waste; **respire** (use up **oxygen**, release **carbon dioxide**); break dead matter down, **releasing nutrients back to soil**.",
@@ -150,6 +157,7 @@
     },
     {
       "title": "7: Human Impact",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-human-impact.png",
       "body": "Human actions like deforestation, pollution and pest control disrupt the food chain. PSLE answers must trace the cascade: **human action → environmental change → biological effect → population outcome**.",
       "bullets": [
         "**Deforestation** — cutting down trees → fewer plants doing **photosynthesis** → less **oxygen** released, more **carbon dioxide** in the atmosphere; many animals lose their **habitat** and die.",
@@ -171,6 +179,7 @@
     },
     {
       "title": "Let's get some practice!",
+      "mascotImage": "/master-class/interactions-environment/panda-cta.png",
       "body": "Time to put it all together. This quiz pulls real PSLE-style questions across every concept we just covered.",
       "bullets": [
         "**10 MCQ** + **6 OEQ** — a mix of all 7 concepts in this Master Class.",

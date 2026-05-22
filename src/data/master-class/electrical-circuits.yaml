@@ -38,6 +38,7 @@ stats:
 keyConcepts:
 
   - title: "Electrical Circuits: How important is this?"
+    mascotImage: /master-class/electrical-circuits/panda-welcome.png
     body: >-
       A top-5 most-tested PSLE Science topic. The MCQs test diagram
       reading; the OEQs test whether you can WRITE the explanation
@@ -61,6 +62,7 @@ keyConcepts:
       a fixed recipe you can memorise once and reuse every time.
 
   - title: "1: Reading the circuit diagram"
+    mascotImage: /master-class/electrical-circuits/panda-teaching-circuit-diagram.png
     body: >-
       Before you answer anything, READ the diagram. PSLE circuit
       diagrams look complicated because of the layout, but they're
@@ -85,6 +87,7 @@ keyConcepts:
       lifting your pencil, it's an open circuit.
 
   - title: "2: Series vs Parallel — the fuse rule"
+    mascotImage: /master-class/electrical-circuits/panda-teaching-fuse.png
     body: >-
       Most PSLE circuit MCQs hinge on the difference between
       series and parallel. There's one shortcut that handles
@@ -119,6 +122,7 @@ keyConcepts:
       the bottleneck every parallel branch depends on.
 
   - title: "3: Bulb brightness — when do two circuits match?"
+    mascotImage: /master-class/electrical-circuits/panda-teaching-brightness.png
     body: >-
       A common MCQ type: 4 circuits drawn, "in which circuit is
       bulb L brightest?" or "which circuit has the same brightness
@@ -137,6 +141,7 @@ keyConcepts:
       adds independent branches (extra bulb).
 
   - title: "4: Electromagnets — the 4-step OEQ formula"
+    mascotImage: /master-class/electrical-circuits/panda-teaching-electromagnet.png
     body: >-
       5 of 7 PSLE OEQs on this topic involve electromagnets —
       bell ringers, buzzers, door locks, door bolts. They all
@@ -221,6 +226,7 @@ keyConcepts:
       Memorise once, write it out exactly on the exam.
 
   - title: "Let's get some practice!"
+    mascotImage: /master-class/electrical-circuits/panda-cta.png
     body: >-
       Time to put it all together. This quiz pulls real PSLE-style
       questions on circuits — diagram reading, series/parallel,

@@ -44,6 +44,7 @@ stats:
 keyConcepts:
 
   - title: "Patterns: How important is this?"
+    mascotImage: /master-class/patterns/panda-welcome.png
     body: >-
       We tracked **38 unique pattern questions** across P3–P6 WA, EOY,
       and Prelim papers in our bank. Even split between MCQ and OEQ,
@@ -70,6 +71,7 @@ keyConcepts:
       them easy to under-revise.
 
   - title: "1: The Differences Method — always start here"
+    mascotImage: /master-class/patterns/panda-teaching-differences.png
     body: >-
       For ANY number sequence question, the first move is the same:
       **write the difference between each pair of consecutive numbers**.
@@ -96,6 +98,7 @@ keyConcepts:
       Method. Always start there.
 
   - title: "2: Hidden sub-patterns — when the differences DON'T behave"
+    mascotImage: /master-class/patterns/panda-teaching-subpatterns.png
     body: >-
       Some sequences look chaotic at first because **two or three
       different rules** are interleaved into ONE list. The PSLE / WA
@@ -123,6 +126,7 @@ keyConcepts:
       REPEATING set of operations, not a single rule.
 
   - title: "3: Find the nth term — divide, then look at the remainder"
+    mascotImage: /master-class/patterns/panda-teaching-nth-term.png
     body: >-
       "What is the **80th letter**?" or "What is the **74th bead**?"
       These questions look impossible because you'd have to write out
@@ -148,6 +152,7 @@ keyConcepts:
       The most common off-by-one mistake on nth-term questions.
 
   - title: "4: Figure-based patterns — the longest section, because this is the hardest"
+    mascotImage: /master-class/patterns/panda-teaching-figures.png
     body: >-
       Figure-based patterns are the trickiest pattern questions on the
       paper. The diagram is full of dots / sticks / tiles / circles and
@@ -175,6 +180,7 @@ keyConcepts:
       (one per colour / object) and apply the same method to each.
 
   - title: "Now let's see it in action — 3 real worked examples"
+    mascotImage: /master-class/patterns/panda-teaching-action.png
     body: >-
       The theory is one thing. The marking scheme doesn't care if you
       know the 5 pattern types — it cares about the **working**. So
@@ -285,6 +291,7 @@ keyConcepts:
       as the bead and squares questions; just a different constant.
 
   - title: "Let's get some practice!"
+    mascotImage: /master-class/patterns/panda-cta.png
     body: >-
       Time to try some real pattern questions from P4–P6 school papers.
       Mix of MCQ and OEQ across every flavour we just covered.

@@ -60,6 +60,7 @@ stats:
 keyConcepts:
 
   - title: "Interactions with environment: How important is this?"
+    mascotImage: /master-class/interactions-environment/panda-welcome.png
     body: >-
       This is the **#1 most-tested PSLE Science topic** across PSLE
       2022–2024 — beating Electrical Circuits, Heat Energy and every
@@ -83,6 +84,7 @@ keyConcepts:
     callout: If you only revise one PSLE Science topic — start here.
 
   - title: "1: Key Definitions"
+    mascotImage: /master-class/interactions-environment/panda-teaching-definitions.png
     body: >-
       **33% of PSLE OEQ** have a definition sub-part. This is a give-away
       to master. Let's go through these definitions.
@@ -97,6 +99,7 @@ keyConcepts:
       This trips up most students.
 
   - title: "2: Food Web: Explaining it"
+    mascotImage: /master-class/interactions-environment/panda-teaching-food-web.png
     body: >-
       Most wrong answers come from misreading the diagram. Use a fixed
       2-step process for **every** food-web question.
@@ -122,6 +125,7 @@ keyConcepts:
           the Sun.)
 
   - title: "3: Food Web: Causal Chain reasoning — common mistakes"
+    mascotImage: /master-class/interactions-environment/panda-teaching-causal-chain.png
     body: >-
       Many food web questions will show a food web, and ask what happens
       when one population decreases… PSLE markers reward points for
@@ -151,6 +155,7 @@ keyConcepts:
       full chain = 3-4 marks.
 
   - title: "4: Mutual benefits"
+    mascotImage: /master-class/interactions-environment/panda-teaching-mutual-benefits.png
     body: Aquarium and pond questions almost always test mutualism.
     bullets:
       - "**Plant + fish**: plant releases **oxygen** (**photosynthesis**) → fish use for **respiration**; fish release **carbon dioxide** (**respiration**) → plant uses for **photosynthesis**"
@@ -173,6 +178,7 @@ keyConcepts:
     callout: "Both organisms must benefit — if one is harmed, it's NOT mutualism."
 
   - title: "5: Adaptation: Feature → how it helps → link to environment"
+    mascotImage: /master-class/interactions-environment/panda-teaching-adaptation.png
     body: >-
       Adaptations are **features** or **behaviours** that help an organism
       survive in its environment. PSLE answer template is fixed: name the
@@ -196,6 +202,7 @@ keyConcepts:
     callout: "Answer template: 'Feature: ____. How it helps: ____. This helps the organism survive in ____.'"
 
   - title: "6: Decomposer: easy to miss points"
+    mascotImage: /master-class/interactions-environment/panda-teaching-decomposer.png
     body: >-
       Decomposers (**bacteria** and **fungi**, including **mould**) don't
       usually appear in the food-web diagram, but they're often the
@@ -217,6 +224,7 @@ keyConcepts:
           nutrients** back to the soil for **plants to absorb**.
 
   - title: "7: Human Impact"
+    mascotImage: /master-class/interactions-environment/panda-teaching-human-impact.png
     body: >-
       Human actions like deforestation, pollution and pest control
       disrupt the food chain. PSLE answers must trace the cascade:
@@ -242,6 +250,7 @@ keyConcepts:
           their populations to decrease.
 
   - title: "Let's get some practice!"
+    mascotImage: /master-class/interactions-environment/panda-cta.png
     body: >-
       Time to put it all together. This quiz pulls real PSLE-style
       questions across every concept we just covered.
