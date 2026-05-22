@@ -1,0 +1,321 @@
+# Master Class: PSLE 华文 — 字音字形词语 (Part 1)
+# --------------------------------------------------------------
+# 涵盖 PSLE 华文 Booklet A 第 1-8 题:
+#   1. 拼音 (Q1-Q2)
+#   2. 同音字 / 形近字 (Q3-Q4)
+#   3. 词语 (Q5-Q6)
+#   4. 成语 / 词语解释 (Q7-Q8)
+#
+# Authored in Chinese for P5-P6 (~10-12 yo) students.
+
+slug: chinese-mcq-1
+subject: chinese
+level: P5-P6
+topicLabel: 语文应用 MCQ
+title: "PSLE 华文 — 字音字形词语 (Part 1)"
+
+stats:
+  headline: >-
+    PSLE 华文 Booklet A 的前 8 道题, 覆盖 **拼音 / 同音字 / 词语 /
+    成语** 4 个题型。每年题目都换, 但题型一样。
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ─────────────────────────────────────────────
+  - title: 欢迎来到《字音字形词语》第一课
+    mascotImage: /master-class/chinese-mcq-1/panda-welcome.png
+    body: >-
+      PSLE 华文的前 8 道题 (Q1-Q8) 全在测试同一件事:你**会不会用这个字、
+      这个词**。把这 4 种题型掌握好, 8 分稳拿。
+    bullets:
+      - |-
+        **1. 拼音 (Q1-Q2)** — 看准声母 + 韵母 + 声调
+      - |-
+        **2. 字 (Q3-Q4)** — 同音字 / 形近字
+      - |-
+        **3. 词语 (Q5-Q6)** — 选最适合的那个词
+      - |-
+        **4. 成语 (Q7-Q8)** — 不要被字面意思骗了
+    callout: >-
+      PSLE 每一年都换新的词、新的成语, 靠"猜下一年考什么"是没用的。
+      要靠平时积累。
+
+  # ─── 1. 拼音 ───────────────────────────────────────────────────────
+  - title: "1: 拼音 — 三大陷阱"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-pinyin.png
+    body: >-
+      每年的 Q1-Q2 都是要你读出 2 个加粗的词语, 然后从 4 个看起来很像的
+      拼音里选对的。差别只在 1-2 个字母或声调。
+    bullets:
+      - |-
+        **陷阱一:卷舌音 vs 平舌音**
+           • **zh / z** — 稍 = shāo (不是 sāo);诚 = chéng (不是 ceng)
+           • **sh / s** — 着 = zháo (不是 zhāo);适 = shì (不是 sì)
+           • **ch / c** — 诚 = chéng (不是 chen)
+      - |-
+        **陷阱二:前鼻音 vs 后鼻音**
+           • **n / ng** — 灵 = líng (不是 lín);兴 = xīng (不是 xīn)
+      - |-
+        **陷阱三:声调容易看错**
+           • 1 声 ˉ、2 声 ´、3 声 ˇ、4 声 ˋ
+           • 选项有时候只有声调不同, 需要看清楚
+      - |-
+        **解题小窍门:** 先用"声母 + 韵母"排除 2-3 个选项, 最后再比较声调。
+        这比一上来就盯着声调看快多了。
+    callout: >-
+      新加坡同学最常错的是这四对:**zh/z、sh/s、n/l、in/ing**。要刻意多练。
+
+  - title: 试一试 — 拼音 (2 道真题)
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2024 Q1 — 卷舌音陷阱"
+        stem: |-
+          国强只是**稍微**用力一拉, 椅子的脚竟然断了。
+        options:
+          - sāo wēi
+          - sāo wéi
+          - shāo wēi
+          - shāo wéi
+        correctAnswer: 3
+        explanation: >-
+          **稍** = sh- (不是 s-), 所以排除 (1)(2)。**微** = 1 声 wēi
+          (不是 2 声 wéi), 所以选 (3)。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2024 Q2 — 前后鼻音"
+        stem: |-
+          奶奶用**灵巧**的双手, 给我做了个漂亮的洋娃娃。
+        options:
+          - lín jiǎo
+          - lín qiáo
+          - líng jiǎo
+          - líng qiǎo
+        correctAnswer: 4
+        explanation: >-
+          **灵** = 后鼻音 líng (不是 lín);**巧** = qiǎo (不是 jiǎo)。→ (4)。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── 2. 同音字 / 形近字 ───────────────────────────────────────────
+  - title: "2: 同音字 / 形近字 — \"我认识这个词\"才能选对字"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
+    body: >-
+      Q3-Q4 是给你一个 2 字词语, 挖掉其中 1 个字让你填。4 个选项发音相同
+      (同音字) 或样子相像 (形近字)。
+    bullets:
+      - |-
+        **关键思路:** 不要单看那一个字, 要想"完整的词是什么"。
+           • 例:脸上 ___ 现 → 完整的词是 **浮现** → 选 **浮**
+           • 例:好几 ___ → 完整的词是 **几遍** → 选 **遍**
+           • 例:不理 ___ → 完整的词是 **理睬** → 选 **睬**
+      - |-
+        **常见同音字坑:**
+           • 浮 / 服 / 付 / 复 (fú)
+           • 遍 / 篇 / 编 / 扁 (biān/biàn)
+           • 睬 / 采 / 踩 / 彩 (cǎi)
+           • 祥 / 详 / 样 / 洋 (xiáng)
+      - |-
+        **练习法:** 平时背词语时, 注意"这个字常和哪些字组合"。比如学到
+        **浮现**, 也顺便记 **浮力 / 漂浮 / 浮云**, 下次见到带 fú 的填空就
+        胸有成竹。
+    callout: >-
+      答案不在字本身, 而在词。先想完整词, 再选字。
+
+  - title: 试一试 — 同音字 (2 道真题)
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2024 Q3 — 同音字"
+        stem: |-
+          看着妹妹在台上表演, 妈妈的脸上 ___ 现出了幸福的笑容。
+        options:
+          - 服
+          - 浮
+          - 付
+          - 复
+        correctAnswer: 2
+        explanation: >-
+          完整的词是 **浮现** (出现、显露)。服 / 付 / 复 都不能和"现"
+          组成有意义的词。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2024 Q4 — 形近字"
+        stem: |-
+          这句话我已经说了好几 ___ , 你怎么还是记不住?
+        options:
+          - 编
+          - 篇
+          - 遍
+          - 扁
+        correctAnswer: 3
+        explanation: >-
+          **几遍** = 做了几次。编 / 篇 / 扁 都不是次数的量词。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── 3. 词语 ───────────────────────────────────────────────────────
+  - title: "3: 词语 — 选最贴切的那个词"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocabulary.png
+    body: >-
+      Q5-Q6 给你 4 个意思有点像的词, 要你选最适合空格的那个。
+    bullets:
+      - |-
+        **关键思路:先读整句, 找出空格要表达的感觉或动作。**
+           • 例:"如果不是奶奶的 ___, 我可能早就放弃了" → 空格是"奶奶的某种
+             行为帮我没放弃" → 应该是 **支持** 或 **鼓励**, 不是 **贡献**
+             (太大词) 或 **细心** (不是行为)
+      - |-
+        **常考词类型:**
+           • 情感动词:**后悔、害羞、激动、惊奇、抱怨、妒忌、欣赏**
+           • 行为动词:**遵守、保护、解释、支持、讨论、迅速、模仿、控制**
+           • 形容词:**充足、适合、合理、紧张、巧妙**
+      - |-
+        **排除法:** 4 个选项里通常有 2 个"明显不对"。先把它们划掉, 剩下
+        2 个再细比。
+      - |-
+        **重要提醒:** PSLE Q5-Q6 喜欢考"普通话日常词", 而不是课文里那些独特
+        的词。所以背书时不只要背"火山、长江"这种, 也要把"保护、遵守、支持、
+        讨论"这些当成必背词。
+    callout: >-
+      这些词不在 P6 词语单里——但 PSLE 每年都考。说明:词语单只是参考,
+      还要靠平时阅读积累。
+
+  - title: 试一试 — 词语 (2 道真题)
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2024 Q5 — 情感动词"
+        stem: |-
+          伟明知道自己的行为伤了妈妈的心, 感到十分 ___ 。
+        options:
+          - 后悔
+          - 害羞
+          - 激动
+          - 惊奇
+        correctAnswer: 1
+        explanation: >-
+          "伤了妈妈的心"表示自己做错了事 → 应该感到 **后悔**。**害羞 /
+          激动 / 惊奇** 都和"做错事"无关。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2023 Q5 — 行为动词"
+        stem: |-
+          你不要再 ___ 了, 赶快想办法解决这个问题吧!
+        options:
+          - 抱怨
+          - 劝告
+          - 控制
+          - 选择
+        correctAnswer: 1
+        explanation: >-
+          "想办法解决问题"表示对方一直在说不满 → 是 **抱怨**。其他三个
+          都不符合"被劝阻"的语境。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── 4. 成语 ───────────────────────────────────────────────────────
+  - title: "4: 成语 — 不能从字面意思猜"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      Q7-Q8 给你一个加粗的词或成语, 4 个选项是它的解释, 你要选意思最对的
+      那个。最大的陷阱是"字面意思"——很多成语的真正意思和它的 4 个字
+      不直接相关。
+    bullets:
+      - |-
+        **典型陷阱:**
+           • **目不转睛** ≠ "看得很仔细", 真正意思是 **形容注意力集中**
+           • **一言为定** = **说过的话不再改变** (不是"我们说定了"那么简单)
+           • **恍然大悟** = **忽然明白** (不是"突然解决问题")
+      - |-
+        **靠"语境推理"补强:** 即使不记得成语, 也可以看上下文。
+           • 例:"弟弟看动画片 ___ 地盯着电视" → 描述看得入神 → 选 **形容
+             注意力集中**
+      - |-
+        **PSLE 6 年用过的 16 个成语 (要全部认识):**
+           目不转睛、一言为定、神机妙算、异口同声、恍然大悟、垂头丧气、
+           左思右想、不慌不忙、五彩缤纷、津津有味、眉开眼笑、手舞足蹈、
+           齐心协力、获益不浅、加油打气、反败为胜
+      - |-
+        **背成语的方法:** 不要只背 4 个字 → 背"它形容什么样的人 / 什么
+        场景"。比如 **垂头丧气** = 失败后、难过的样子 (不是身体不舒服)。
+    callout: >-
+      平均每年 PSLE 考 2-3 个不同的成语, 所以掌握 50-80 个高频成语很重要。
+      光靠"猜下一年考什么"不行。
+
+  - title: 试一试 — 成语 (2 道真题)
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2024 Q8 — 成语含义"
+        stem: |-
+          弟弟是个动画迷, 常常 **目不转睛** 地盯着动画片。
+        options:
+          - 形容看得很仔细
+          - 形容视力有问题
+          - 形容一时呆住了
+          - 形容注意力集中
+        correctAnswer: 4
+        explanation: >-
+          看动画看入迷 → 形容注意力集中。"看得仔细"(1) 字面上对, 但成语
+          的真正意思是 (4)。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2023 Q7 — 成语含义"
+        stem: |-
+          大家都同意这么做, 那就 **一言为定**, 我们明天就行动。
+        options:
+          - 说过的话不再改变
+          - 答应的事要马上去做
+          - 讨论的结果让人很满意
+          - 计划好的事不能半途而废
+        correctAnswer: 1
+        explanation: >-
+          "一言" = 一句话, "为定" = 当作决定 → **说定了不改**。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── 练习 CTA ─────────────────────────────────────────────────────
+  - title: 来做几道练习题吧!
+    mascotImage: /master-class/chinese-mcq-1/panda-cta.png
+    body: >-
+      把 4 种题型都过了一遍, 现在来真刀真枪练一练。这套练习用的是 PSLE 真题
+      + 学校模拟题, 每个小主题 5 道, 共 20 道。
+    bullets:
+      - |-
+        **20 题** — 每个小主题 5 道
+      - |-
+        优先用 PSLE 真题, 不够再用学校模拟题补
+      - |-
+        交卷后, AI 会告诉你哪个小主题需要再加强
+      - |-
+        **做错的题会记下来** — 一周后自动复习
+    cta:
+      label: 点这里开始练习
+      quizSpec:
+        title: "Mastery: 华文字音字形词语练习"
+        mcq: 20
+        oeq: 0
+
+commonMistakes: []
+
+keyWords:
+  - { word: 拼音, definition: "用拉丁字母 + 声调标出汉字的读音。要记声母、韵母、声调三部分。" }
+  - { word: 同音字, definition: "发音完全相同但意思和写法不同的字。要靠词义区分。" }
+  - { word: 形近字, definition: "样子相像但意思不同的字。容易看错的字组。" }
+  - { word: 成语, definition: "由 4 个字组成的固定短语, 有特定的意思, 不能从字面直接猜出。" }
+  - { word: 关键词, definition: "句子中起决定作用的词, 帮你判断正确选项。" }
+
+subTopics:
+  - id: pinyin
+    label: 拼音
+    description: "Q1-Q2 考查 2 字词语的拼音。要看准声母 (zh/z, sh/s, ch/c)、韵母 (in/ing, n/ng) 和声调。"
+    slideIdx: 1
+  - id: character
+    label: 同音字 / 形近字
+    description: "Q3-Q4 填一个字。关键是想到完整的 2 字词, 然后从 4 个选项里选对的字。"
+    slideIdx: 3
+  - id: vocabulary
+    label: 词语
+    description: "Q5-Q6 从 4 个意思相近的词里选最适合的。关键是读懂整句的语境。"
+    slideIdx: 5
+  - id: idiom
+    label: 成语 / 词语解释
+    description: "Q7-Q8 给一个成语或词语, 从 4 个解释里选对的。不要被字面意思骗了。"
+    slideIdx: 7

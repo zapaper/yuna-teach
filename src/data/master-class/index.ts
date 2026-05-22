@@ -3,6 +3,8 @@ import { patterns } from "./patterns";
 import { electricalCircuits } from "./electrical-circuits";
 import { grammarMcq1 } from "./grammar-mcq-1";
 import { grammarMcq2 } from "./grammar-mcq-2";
+import { chineseMcq1 } from "./chinese-mcq-1";
+import { chineseMcq2 } from "./chinese-mcq-2";
 
 // Master Class registry. Add new topics here as they're authored.
 // The slug is what the admin route uses (/admin/master-class/[slug]).
@@ -12,6 +14,8 @@ export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "electrical-circuits": electricalCircuits,
   "grammar-mcq-1": grammarMcq1,
   "grammar-mcq-2": grammarMcq2,
+  "chinese-mcq-1": chineseMcq1,
+  "chinese-mcq-2": chineseMcq2,
 };
 
 export function getMasterClass(slug: string): MasterClassContent | null {
