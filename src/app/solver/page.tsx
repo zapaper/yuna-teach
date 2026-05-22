@@ -237,6 +237,23 @@ function SolverContent() {
       // picture is at least readable instead of leaking
       // "$\frac{1}{18}$" gibberish. Lossy — fractions render as
       // "1/18", roots as "√16" etc. — but legible.
+      // Unicode super/subscript tables for digits — Canvas 2D fillText
+      // can't position a real superscript, but the Unicode codepoints
+      // render inline at the right baseline in any system font.
+      const SUP_DIGITS: Record<string, string> = {
+        "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴",
+        "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹",
+        "+": "⁺", "-": "⁻",
+      };
+      const SUB_DIGITS: Record<string, string> = {
+        "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄",
+        "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉",
+        "+": "₊", "-": "₋",
+      };
+      const toSuperscript = (s: string): string =>
+        s.split("").map(c => SUP_DIGITS[c] ?? c).join("");
+      const toSubscript = (s: string): string =>
+        s.split("").map(c => SUB_DIGITS[c] ?? c).join("");
       const flattenLatex = (s: string): string => s
         .replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, "$1/$2")
         .replace(/\\sqrt\s*\{([^{}]+)\}/g, "√$1")
@@ -248,6 +265,14 @@ function SolverContent() {
         .replace(/\\le(?![a-z])/gi, "≤")
         .replace(/\\ge(?![a-z])/gi, "≥")
         .replace(/\\ne(?![a-z])/gi, "≠")
+        // Super/subscript with braces — convert content to Unicode.
+        .replace(/\^\{([0-9+\-]+)\}/g, (_m, inner) => toSuperscript(inner))
+        .replace(/_\{([0-9+\-]+)\}/g, (_m, inner) => toSubscript(inner))
+        // Single-character super/subscript without braces — e.g. cm^2, x_n.
+        .replace(/\^([0-9+\-])/g, (_m, c) => toSuperscript(c))
+        .replace(/_([0-9+\-])/g, (_m, c) => toSubscript(c))
+        // Strip remaining brace-only super/subscript markers we can't
+        // convert (alphabetic content like x^n).
         .replace(/\^\{([^{}]+)\}/g, "^$1")
         .replace(/_\{([^{}]+)\}/g, "_$1")
         .replace(/\$([^$]+)\$/g, "$1")

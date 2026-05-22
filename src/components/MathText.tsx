@@ -15,9 +15,12 @@ import "katex/dist/katex.min.css";
 // nesting like "**The fraction $\frac{1}{2}$ is half**" where the
 // bold spans the math.
 
-// Math segment: `$...$` containing at least one `\command` so plain
-// currency ("$5", "$27") is left alone.
-const MATH_SEGMENT_RE = /\$([^$\n]*\\[a-zA-Z][^$\n]*)\$/;
+// Math segment: `$...$` containing at least one math-only character —
+// a LaTeX `\command`, OR a superscript `^`, subscript `_`, or brace
+// `{ }`. The triggers exist to leave plain currency ("$5", "$27")
+// alone while still picking up cases like "cm$^2$" or "$x_n$" that
+// don't carry a backslash-command.
+const MATH_SEGMENT_RE = /\$([^$\n]*[\\^_{}][^$\n]*)\$/;
 // Bold and underline — non-greedy, content cannot contain newlines.
 // Underline requires the two surrounding underscores to be ISOLATED:
 // no `_` immediately before the opening pair, none immediately after
