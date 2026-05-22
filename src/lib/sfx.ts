@@ -21,7 +21,7 @@ export function playPointChime(volume = 0.35): void {
  * experience bar on the home page. Tries /sounds/exp.mp3, no synth fallback
  * (bubbles should stay silent if the asset is missing).
  */
-export function playExp(volume = 0.25): void {
+export function playExp(volume = 0.125): void {
   try {
     const audio = new Audio("/sounds/exp.mp3");
     audio.volume = volume;
