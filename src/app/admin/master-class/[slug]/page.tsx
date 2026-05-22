@@ -439,11 +439,12 @@ function SlideDeck({
     }
   }
 
-  // Reset playback state whenever the slide changes. We DO NOT
-  // auto-fetch the ElevenLabs segments in the admin workshop —
-  // editing flow involves a lot of slide flipping while finalising
-  // the script, and auto-fetching burns TTS quota on every preview.
-  // Audio is gated behind the "🔊 Generate audio" button below.
+  // Reset playback state whenever the slide changes. We don't trigger
+  // ElevenLabs generation here (editing flow involves a lot of slide
+  // flipping), but we DO call the TTS endpoint with `cacheOnly:true`
+  // — that's a file-existence check, no API call. If every segment
+  // is on disk, segments populate and the "Generate" button hides;
+  // if anything is missing, segments stay empty and the button shows.
   useEffect(() => {
     cancelPendingAdvance();
     if (audioRef.current) {
@@ -454,6 +455,25 @@ function SlideDeck({
     setSegIdx(0);
     setPlaying(false);
     setTtsError(null);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const globalIdx = globalIdxOffset + currentIdx;
+        const res = await fetch(`/api/master-class/${slug}/tts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slideIdx: globalIdx, cacheOnly: true }),
+        });
+        if (!res.ok || cancelled) return;
+        const data = await res.json() as { cached?: boolean; segments?: Segment[] };
+        if (cancelled) return;
+        if (data.cached && Array.isArray(data.segments) && data.segments.length > 0) {
+          setSegments(data.segments);
+        }
+      } catch { /* ignore — leaves button in "Generate" state */ }
+    })();
+    return () => { cancelled = true; };
   }, [currentIdx, slug, globalIdxOffset]);
 
   // Explicit on-demand fetch — wired to both "Generate audio" and

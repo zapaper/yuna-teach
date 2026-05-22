@@ -16,6 +16,7 @@
   "keyConcepts": [
     {
       "title": "Welcome to Grammar MCQ — Part 1",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-welcome.png",
       "body": "We'll cover **three grammar rule families** that show up in almost every PSLE English Booklet A. After each rule, you get an interactive question to try — pick an answer, hit Submit, and see if you're right.",
       "bullets": [
         "**1. Tag questions** — \"…, isn't he?\" / \"…, shall we?\"",
@@ -26,6 +27,7 @@
     },
     {
       "title": "1: Tag questions — the mirror rule",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
       "body": "A tag question is the little check at the end of a statement: **isn't he?**, **would she?**, **shall we?** The tag must **mirror** the verb/auxiliary of the main statement and **flip the polarity**.",
       "bullets": [
         "**Step 1 — Find the main verb/auxiliary.** \"She **has** been busy\" → tag uses **has**. \"He **gave up**\" (past simple) → tag uses **did**.",
@@ -36,6 +38,7 @@
     },
     {
       "title": "Try it — Tag questions",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
         {
           "label": "PSLE 2023 Q1 — the \"Let's\" special case",
@@ -47,7 +50,9 @@
             "will we"
           ],
           "correctAnswer": 1,
-          "explanation": "**\"Let's\"** is a fixed idiom — the tag is ALWAYS **\"shall we?\"**. The other options don't pair with \"Let's\" in English."
+          "explanation": "**\"Let's\"** is a fixed idiom — the tag is ALWAYS **\"shall we?\"**. The other options don't pair with \"Let's\" in English.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
         {
           "label": "PSLE 2024 Q8 — negative-stem polarity flip",
@@ -59,13 +64,16 @@
             "will she"
           ],
           "correctAnswer": 3,
-          "explanation": "The verb **\"visits\"** is present simple → the tag uses **do/does** (eliminates *hasn't / won't / will*). The word **\"never\"** makes the statement NEGATIVE, so the tag flips to POSITIVE → **\"does she\"** (not \"doesn't she\")."
+          "explanation": "The verb **\"visits\"** is present simple → the tag uses **do/does** (eliminates *hasn't / won't / will*). The word **\"never\"** makes the statement NEGATIVE, so the tag flips to POSITIVE → **\"does she\"** (not \"doesn't she\").",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
       ],
       "callout": "**Mirror the verb, flip the polarity.** Watch for \"never / hardly / seldom\" — they make a statement negative even without the word \"not\"."
     },
     {
       "title": "2: Noun number — countable vs uncountable",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
       "body": "English splits nouns into **countable** (you can count them: **3 books, 5 ideas**) and **uncountable** (you can't: **water, advice, luck**). Each takes a different family of quantifiers.",
       "bullets": [
         "**Countable + plural:** **few, many, several, each, a number of, fewer**",
@@ -77,6 +85,7 @@
     },
     {
       "title": "2: Noun number — subject-verb agreement traps",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
       "body": "The verb must match the subject's number. PSLE tests **four shapes** where the real subject isn't obvious.",
       "bullets": [
         "**Plural-looking but singular**: **news, luggage, mathematics, athletics** → use **is / has**. Example: \"The news **has** been circulating since yesterday.\"",
@@ -88,6 +97,7 @@
     },
     {
       "title": "Try it — Noun number",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
         {
           "label": "PSLE 2023 Q5 — uncountable quantifier",
@@ -99,7 +109,9 @@
             "a large number of"
           ],
           "correctAnswer": 3,
-          "explanation": "**\"Luck\"** is UNCOUNTABLE → reject **many** and **a large number of** (both go with countables). Between **enough** and **a great deal of**, the sentence implies \"a lot\" not \"just sufficient\" → **a great deal of luck**."
+          "explanation": "**\"Luck\"** is UNCOUNTABLE → reject **many** and **a large number of** (both go with countables). Between **enough** and **a great deal of**, the sentence implies \"a lot\" not \"just sufficient\" → **a great deal of luck**.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
         {
           "label": "PSLE 2024 Q9 — interrupter subject-verb agreement",
@@ -111,13 +123,16 @@
             "have handed"
           ],
           "correctAnswer": 3,
-          "explanation": "The real subject is **\"Everyone\"** — a singular indefinite pronoun. The \"except Sanjay and Aidan\" part is an INTERRUPTER — it doesn't change the subject. Singular subject → singular verb → **has handed**."
+          "explanation": "The real subject is **\"Everyone\"** — a singular indefinite pronoun. The \"except Sanjay and Aidan\" part is an INTERRUPTER — it doesn't change the subject. Singular subject → singular verb → **has handed**.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
       ],
       "callout": "**Test the noun, ignore the interrupter.** For quantifiers, ask \"can I count this?\" first. For SVA, find the REAL subject and ignore phrases starting with **except / as well as / together with / along with**."
     },
     {
       "title": "3: Pronouns — three families to keep separate",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
       "body": "Pronouns get tested in three forms; the trap is usually choosing the right form for the role in the sentence.",
       "bullets": [
         "**Personal vs reflexive.** Use the reflexive form (**himself, herself, themselves, myself, yourself**) ONLY when the subject and object of the action are the SAME person.\n   • ✓ \"Mary ate the cake by **herself**.\" → Mary is the doer AND she ate alone (same person).\n   • ✓ \"Tom hurt **himself**.\" → Tom is the doer AND Tom got hurt (same person).\n   • ✗ When the object is a DIFFERENT person, use a regular pronoun (him, her, them): \"John gave the book to **her**\" — not \"to herself\".",
@@ -128,6 +143,7 @@
     },
     {
       "title": "Try it — Pronouns",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-thinking.png",
       "interactiveQuiz": [
         {
           "label": "PSLE 2023 Q4 — relative possessive",
@@ -139,7 +155,9 @@
             "whose"
           ],
           "correctAnswer": 4,
-          "explanation": "The blank comes right BEFORE \"opinions\" — the opinions BELONG to Mrs Phua → POSSESSIVE relative. **who** is subject (wrong), **whom** is object (wrong), **which** is for things (wrong). **whose** is the possessive relative."
+          "explanation": "The blank comes right BEFORE \"opinions\" — the opinions BELONG to Mrs Phua → POSSESSIVE relative. **who** is subject (wrong), **whom** is object (wrong), **which** is for things (wrong). **whose** is the possessive relative.",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         },
         {
           "label": "PSLE 2020 Q2 — reflexive must match the SUBJECT",
@@ -151,13 +169,16 @@
             "himself"
           ],
           "correctAnswer": 4,
-          "explanation": "Who is doing the smiling? **Mr Loh**. Who is being smiled at? Also Mr Loh (his reflection). Subject = object → REFLEXIVE. Mr Loh is male → **himself** (not \"herself\", which would match Trixie — but Trixie isn't the one smiling)."
+          "explanation": "Who is doing the smiling? **Mr Loh**. Who is being smiled at? Also Mr Loh (his reflection). Subject = object → REFLEXIVE. Mr Loh is male → **himself** (not \"herself\", which would match Trixie — but Trixie isn't the one smiling).",
+          "mascotCorrect": "/master-class/grammar-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/grammar-mcq-1/panda-wrong.png"
         }
       ],
       "callout": "**For relative pronouns**, substitute mentally — if \"of him / her / them\" fits, the answer is **whose**. **For reflexives**, identify WHO is doing the action — the reflexive must match that person, not the bystander."
     },
     {
       "title": "Let's get some practice!",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-cta.png",
       "body": "Time to put the three Part 1 rules together. This quiz pulls real PSLE-style Grammar MCQ questions across all 3 sub-topics — with PSLE source questions prioritised first.",
       "bullets": [
         "**15 questions** — **5 questions per sub-topic**.",

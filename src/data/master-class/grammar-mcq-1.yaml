@@ -30,6 +30,7 @@ keyConcepts:
 
   # ─── INTRO ────────────────────────────────────────────────────────
   - title: Welcome to Grammar MCQ — Part 1
+    mascotImage: /master-class/grammar-mcq-1/panda-welcome.png
     body: >-
       We'll cover **three grammar rule families** that show up in
       almost every PSLE English Booklet A. After each rule, you
@@ -47,6 +48,7 @@ keyConcepts:
 
   # ─── 1. TAG QUESTIONS ────────────────────────────────────────────
   - title: "1: Tag questions — the mirror rule"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching.png
     body: >-
       A tag question is the little check at the end of a statement:
       **isn't he?**, **would she?**, **shall we?**
@@ -66,6 +68,7 @@ keyConcepts:
            • **Negative-meaning words** (never, hardly, seldom, scarcely, nothing) make the statement NEGATIVE → use a **positive** tag
 
   - title: Try it — Tag questions
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
     interactiveQuiz:
       - label: "PSLE 2023 Q1 — the \"Let's\" special case"
         stem: |-
@@ -80,6 +83,8 @@ keyConcepts:
           **"Let's"** is a fixed idiom — the tag is ALWAYS
           **"shall we?"**. The other options don't pair with
           "Let's" in English.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
       - label: "PSLE 2024 Q8 — negative-stem polarity flip"
         stem: |-
           "She **never ever** visits the museum, ___?" asked Mrs Lee.
@@ -94,6 +99,8 @@ keyConcepts:
           **do/does** (eliminates *hasn't / won't / will*). The
           word **"never"** makes the statement NEGATIVE, so the
           tag flips to POSITIVE → **"does she"** (not "doesn't she").
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
     callout: >-
       **Mirror the verb, flip the polarity.** Watch for "never /
       hardly / seldom" — they make a statement negative even
@@ -101,6 +108,7 @@ keyConcepts:
 
   # ─── 2. NOUN NUMBER RULES ────────────────────────────────────────
   - title: "2: Noun number — countable vs uncountable"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching.png
     body: >-
       English splits nouns into **countable** (you can count them:
       **3 books, 5 ideas**) and **uncountable** (you can't:
@@ -122,6 +130,7 @@ keyConcepts:
         **"a great DEAL of" (uncountable)** vs **"a large NUMBER of" (countable)** — the noun **deal** attaches to uncountables, **number** to countables.
 
   - title: "2: Noun number — subject-verb agreement traps"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching.png
     body: >-
       The verb must match the subject's number. PSLE tests **four
       shapes** where the real subject isn't obvious.
@@ -138,6 +147,7 @@ keyConcepts:
         **"Neither X nor Y"** matches the noun CLOSEST to the verb. "Neither Jack **nor I** **am** going."
 
   - title: Try it — Noun number
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
     interactiveQuiz:
       - label: "PSLE 2023 Q5 — uncountable quantifier"
         stem: |-
@@ -153,6 +163,8 @@ keyConcepts:
           number of** (both go with countables). Between **enough**
           and **a great deal of**, the sentence implies "a lot" not
           "just sufficient" → **a great deal of luck**.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
       - label: "PSLE 2024 Q9 — interrupter subject-verb agreement"
         stem: |-
           Everyone, except Sanjay and Aidan, ___ in their homework.
@@ -167,6 +179,8 @@ keyConcepts:
           pronoun. The "except Sanjay and Aidan" part is an
           INTERRUPTER — it doesn't change the subject. Singular
           subject → singular verb → **has handed**.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
     callout: >-
       **Test the noun, ignore the interrupter.** For quantifiers,
       ask "can I count this?" first. For SVA, find the REAL subject
@@ -175,6 +189,7 @@ keyConcepts:
 
   # ─── 3. PRONOUNS ─────────────────────────────────────────────────
   - title: "3: Pronouns — three families to keep separate"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching.png
     body: >-
       Pronouns get tested in three forms; the trap is usually
       choosing the right form for the role in the sentence.
@@ -201,6 +216,7 @@ keyConcepts:
            • ✗ "Everyone **are** here." → wrong.
 
   - title: Try it — Pronouns
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
     interactiveQuiz:
       - label: "PSLE 2023 Q4 — relative possessive"
         stem: |-
@@ -216,6 +232,8 @@ keyConcepts:
           BELONG to Mrs Phua → POSSESSIVE relative. **who** is
           subject (wrong), **whom** is object (wrong), **which** is
           for things (wrong). **whose** is the possessive relative.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
       - label: "PSLE 2020 Q2 — reflexive must match the SUBJECT"
         stem: |-
           Trixie was tickled when she caught **Mr Loh** looking at his reflection in the mirror, smiling at ___.
@@ -231,6 +249,8 @@ keyConcepts:
           REFLEXIVE. Mr Loh is male → **himself** (not "herself",
           which would match Trixie — but Trixie isn't the one
           smiling).
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
     callout: >-
       **For relative pronouns**, substitute mentally — if "of him /
       her / them" fits, the answer is **whose**. **For reflexives**,
@@ -239,6 +259,7 @@ keyConcepts:
 
   # ─── PRACTICE CTA ─────────────────────────────────────────────────
   - title: Let's get some practice!
+    mascotImage: /master-class/grammar-mcq-1/panda-cta.png
     body: >-
       Time to put the three Part 1 rules together. This quiz pulls
       real PSLE-style Grammar MCQ questions across all 3 sub-topics

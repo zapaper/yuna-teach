@@ -116,9 +116,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
   const content = await getMasterClassHydrated(slug);
   if (!content) return NextResponse.json({ error: "Master Class not found" }, { status: 404 });
 
-  const body = await req.json().catch(() => ({})) as { slideIdx?: number; force?: boolean };
+  const body = await req.json().catch(() => ({})) as { slideIdx?: number; force?: boolean; cacheOnly?: boolean };
   const slideIdx = typeof body.slideIdx === "number" ? body.slideIdx : -1;
   const force = !!body.force;
+  // cacheOnly: return segments ONLY if every segment is already on disk
+  // (no ElevenLabs calls). Lets the admin / player check "is voice
+  // ready?" on mount without burning generation calls.
+  const cacheOnly = !!body.cacheOnly;
 
   // Combined deck index: 0..N keyConcepts, then N..N+M commonMistakes.
   // For simplicity we treat all slides as one flat list keyConcepts ++ commonMistakes.
@@ -177,6 +181,13 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
       } catch { /* miss */ }
     }
 
+    // cacheOnly: bail with cached:false the moment we hit a missing
+    // segment — we won't call ElevenLabs for any segment. The caller
+    // sees no segments and can show a "Generate" button.
+    if (cacheOnly && !audioBuf) {
+      return NextResponse.json({ cached: false, segments: [] });
+    }
+
     if (!audioBuf) {
       // Prefer eleven_v3 (supports audio tags); fall back to v2 if
       // the account doesn't have v3 access.
@@ -216,5 +227,5 @@ export async function POST(req: NextRequest, context: { params: Promise<{ slug: 
     out.push({ label: seg.label, audio: audioBuf.toString("base64"), cache: cacheStatus });
   }
 
-  return NextResponse.json({ segments: out });
+  return NextResponse.json({ cached: out.every(s => s.cache === "HIT"), segments: out });
 }

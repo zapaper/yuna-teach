@@ -346,17 +346,31 @@ function SlideCard({
       <div className="flex-1 overflow-y-auto -mx-1 px-1">
 
       {/* Slide content — title + body both highlight together when
-          the intro segment is being narrated (segIdx === 0). */}
+          the intro segment is being narrated (segIdx === 0).
+          Mascot floats top-right on wider screens to soften visual
+          density without taking room from the lesson text. */}
       <div className={isIntroActive ? "bg-emerald-50/60 ring-1 ring-emerald-200 rounded-xl px-3 py-2 -mx-3 transition-all" : "transition-all"}>
-        <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 leading-tight">
-          {slide.title}
-        </h2>
-        {slide.body && (
-          <p
-            className="text-base text-slate-700 mt-3 leading-relaxed whitespace-pre-line"
-            dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
-          />
-        )}
+        <div className="flex items-start gap-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 leading-tight">
+              {slide.title}
+            </h2>
+            {slide.body && (
+              <p
+                className="text-base text-slate-700 mt-3 leading-relaxed whitespace-pre-line"
+                dangerouslySetInnerHTML={{ __html: renderInlineMd(slide.body) }}
+              />
+            )}
+          </div>
+          {slide.mascotImage && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={slide.mascotImage}
+              alt=""
+              className="hidden sm:block flex-shrink-0 w-32 lg:w-40 select-none pointer-events-none"
+            />
+          )}
+        </div>
       </div>
       {slide.diagramImage && (
         <div className="mt-5 flex justify-center bg-white border border-slate-200 rounded-xl p-3">
@@ -555,6 +569,9 @@ function InteractiveQuizCard({
     options: string[];
     correctAnswer: number;
     explanation: string;
+    mascotThinking?: string;
+    mascotCorrect?: string;
+    mascotWrong?: string;
   };
 }) {
   const [selected, setSelected] = useState<number | null>(null);
@@ -617,14 +634,26 @@ function InteractiveQuizCard({
         </button>
       )}
       {submitted && (
-        <div className={`mt-2 rounded-xl px-4 py-3 text-sm ${isCorrect ? "bg-emerald-50 text-emerald-900 border border-emerald-200" : "bg-rose-50 text-rose-900 border border-rose-200"}`}>
-          <p className="font-bold mb-1">
-            {isCorrect ? `✓ Correct! Option (${data.correctAnswer}) is right.` : `✗ Not quite. The correct answer is option (${data.correctAnswer}).`}
-          </p>
-          <p
-            className="text-slate-800"
-            dangerouslySetInnerHTML={{ __html: renderInlineMd(data.explanation) }}
-          />
+        <div className={`mt-2 rounded-xl px-4 py-3 text-sm flex items-start gap-3 ${isCorrect ? "bg-emerald-50 text-emerald-900 border border-emerald-200" : "bg-rose-50 text-rose-900 border border-rose-200"}`}>
+          {/* Reaction mascot — inline with the explanation. Falls
+              back gracefully when the YAML doesn't supply one. */}
+          {(isCorrect ? data.mascotCorrect : data.mascotWrong) && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={(isCorrect ? data.mascotCorrect : data.mascotWrong) as string}
+              alt=""
+              className="w-16 lg:w-20 flex-shrink-0 select-none pointer-events-none"
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-bold mb-1">
+              {isCorrect ? `✓ Correct! Option (${data.correctAnswer}) is right.` : `✗ Not quite. The correct answer is option (${data.correctAnswer}).`}
+            </p>
+            <p
+              className="text-slate-800"
+              dangerouslySetInnerHTML={{ __html: renderInlineMd(data.explanation) }}
+            />
+          </div>
         </div>
       )}
     </div>

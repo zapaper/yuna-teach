@@ -41,17 +41,30 @@ export type MasterClassSlide = {
   // "/master-class/patterns/pattern-c-squares.png". Rendered above
   // the bullets, scaled to fit the card width.
   diagramImage?: string;
+  // Optional mascot illustration — path relative to /public, e.g.
+  // "/master-class/grammar-mcq-1/panda-welcome.png". Rendered at
+  // the top-right of the slide as a small (~180px) friendly
+  // character. Used to soften text-heavy slides for primary-school
+  // students. Doesn't interfere with diagramImage; both can co-exist.
+  mascotImage?: string;
   // Interactive quiz cards rendered INSIDE the slide. Each card shows
   // the stem + 4 radio options + a Submit button; on submit the slide
   // reveals correct/wrong + explanation. Used for worked-example
   // slides where students should attempt the question before seeing
   // the answer (rather than reading a pre-solved walkthrough).
+  //
+  // mascotThinking / mascotCorrect / mascotWrong let each quiz card
+  // show a friendly reaction mascot. Falls back to the slide-level
+  // mascotImage in the pre-submit state if mascotThinking is omitted.
   interactiveQuiz?: Array<{
     label?: string;        // e.g. "PSLE 2024 Q8 — negative-stem trap"
     stem: string;
     options: string[];     // exactly 4
     correctAnswer: number; // 1-4
     explanation: string;
+    mascotThinking?: string;
+    mascotCorrect?: string;
+    mascotWrong?: string;
   }>;
   cta?: {
     label: string;
