@@ -388,3 +388,30 @@ model MasterClass {
 
   @@map("master_classes")
 }
+
+// Pre-generated PSLE-style Chinese MCQ drafts seeded from the Tier 1
+// wordlist (see scripts/generate-chinese-mcq-drafts.ts). Admin reviews
+// each draft and clicks Keep → row's status flips to "kept" and the
+// draft is materialised as an ExamQuestion in the Chinese synthetic
+// bank. Dropped drafts stay in this table for audit but won't be
+// re-shown.
+model ChineseMcqDraft {
+  id                  String   @id @default(cuid())
+  seedWord            String
+  seedMeaning         String?
+  shape               String   // "Q5-Q6" | "Q7-Q8" | "Q9-Q10"
+  stem                String
+  options             Json     // string[4]
+  correctAnswer       Int      // 1-4 (1-indexed)
+  explanation         String
+  syllabusTopic       String
+  subTopic            String?
+  priority            Int      // 0 = PSLE correct-ans history (highest), 3 = lowest
+  status              String   @default("pending")  // "pending" | "kept" | "dropped"
+  promotedQuestionId  String?  // ExamQuestion.id once the draft is materialised
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([status, priority])
+  @@map("chinese_mcq_drafts")
+}
