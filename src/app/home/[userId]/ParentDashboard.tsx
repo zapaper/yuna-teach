@@ -1414,6 +1414,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
     const sSettings = (student.settings ?? {}) as Record<string, unknown>;
     const skipReviewPerfect = sSettings.skipReviewPerfect === true;
     const studentQuizMode = (sSettings.studentQuizMode as string) ?? "all";
+    const chineseReadingAssist = sSettings.chineseReadingAssist === true;
 
     async function updateStudentSetting(key: string, value: unknown) {
       await fetch("/api/users", {
@@ -1443,6 +1444,22 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
               className={`w-12 h-7 rounded-full transition-colors relative ${skipReviewPerfect ? "bg-[#006c49]" : "bg-[#c3c6d1]"}`}
             >
               <div className={`w-5 h-5 rounded-full bg-white shadow absolute top-1 transition-transform ${skipReviewPerfect ? "translate-x-6" : "translate-x-1"}`} />
+            </button>
+          </div>
+
+          {/* Chinese reading assistance — gates the speaker button
+              on Chinese MCQ stems. Default OFF so students aren't
+              tempted to lean on TTS instead of reading. */}
+          <div className="flex items-center justify-between py-3 border-b border-[#e5eeff]">
+            <div>
+              <p className="text-sm font-bold text-[#001e40]">Chinese reading assistance</p>
+              <p className="text-xs text-[#43474f]">Show the 🔊 speaker button on Chinese stems</p>
+            </div>
+            <button
+              onClick={() => updateStudentSetting("chineseReadingAssist", !chineseReadingAssist)}
+              className={`w-12 h-7 rounded-full transition-colors relative ${chineseReadingAssist ? "bg-[#006c49]" : "bg-[#c3c6d1]"}`}
+            >
+              <div className={`w-5 h-5 rounded-full bg-white shadow absolute top-1 transition-transform ${chineseReadingAssist ? "translate-x-6" : "translate-x-1"}`} />
             </button>
           </div>
 

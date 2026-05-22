@@ -71,7 +71,7 @@ export async function GET(
           ? { id: true, questionNum: true, answer: true, orderIndex: true, pageIndex: true, yStartPct: true, yEndPct: true, marksAwarded: true, marksAvailable: true, markingNotes: true, syllabusTopic: true }
           : undefined,
       },
-      assignedTo: { select: { id: true, name: true } },
+      assignedTo: { select: { id: true, name: true, settings: true } },
       clones: {
         select: {
           id: true,
@@ -82,7 +82,7 @@ export async function GET(
           feedbackSummary: true,
           timeSpentSeconds: true,
           instantFeedback: true,
-          assignedTo: { select: { id: true, name: true } },
+          assignedTo: { select: { id: true, name: true, settings: true } },
         },
         orderBy: { createdAt: "asc" },
       },

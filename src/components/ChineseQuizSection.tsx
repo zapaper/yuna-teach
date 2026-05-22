@@ -55,6 +55,10 @@ interface Props {
   // Each pane scrolls independently. Below lg falls back to the
   // single-column stacked layout.
   splitScreen?: boolean;
+  // Parent-controlled flag. When false (default), the 🔊 speaker
+  // button on Chinese MCQ stems is hidden. Parents enable it under
+  // student settings → "Chinese reading assistance".
+  readingAssist?: boolean;
 }
 
 /**
@@ -70,7 +74,7 @@ interface Props {
  * Editing and Synthesis renderers are present but unused for Chinese
  * (no equivalent sections in 华文); kept for shape compatibility.
  */
-export default function ChineseQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen }: Props) {
+export default function ChineseQuizSection({ sectionLabel, passage, questions, sectionType, answers, onAnswer, tool = "type", onToolChange, emptyFieldIds, flaggedIds, onToggleFlag, splitScreen, readingAssist }: Props) {
   // Split-screen renders the passage column and the questions column
   // side-by-side in a 50/50 grid that fills the viewport on lg+
   // (tablet/desktop). Each column scrolls independently. Only applied
@@ -544,8 +548,11 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
                   {/* Speaker — Chinese MCQ only. Reads the stem
                       with markup stripped; cloze blanks get a
                       placeholder so the sentence is grammatical
-                      without leaking the answer. */}
-                  {hasOptions && (
+                      without leaking the answer.
+                      Gated on the parent-controlled `readingAssist`
+                      flag (default OFF, set under student settings
+                      → "Chinese reading assistance"). */}
+                  {hasOptions && readingAssist && (
                     <button
                       type="button"
                       onClick={() => speakChineseMcq(q.transcribedStem ?? "", (q.transcribedOptions as string[]) ?? [])}

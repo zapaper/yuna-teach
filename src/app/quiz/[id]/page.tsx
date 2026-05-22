@@ -45,6 +45,9 @@ interface QuizPaper {
   timeSpentSeconds: number;
   questions: QuizQuestion[];
   requesterIsAdmin?: boolean;
+  // Assigned student. Settings carries parent-controlled flags like
+  // chineseReadingAssist (gates the 🔊 speaker button on Chinese stems).
+  assignedTo?: { id: string; name: string | null; settings?: unknown } | null;
 }
 
 type DrawTool = "type" | "pen" | "eraser" | "eraser-large";
@@ -1520,6 +1523,9 @@ function QuizContent({ id }: { id: string }) {
                           flaggedIds={flaggedIds}
                           onToggleFlag={(qId) => toggleFlag(qId)}
                           splitScreen={wantsSplit && isEntered}
+                          readingAssist={
+                            (paper?.assignedTo?.settings as { chineseReadingAssist?: boolean } | null | undefined)?.chineseReadingAssist === true
+                          }
                         />
                       </div>
                     </Fragment>
