@@ -2,7 +2,7 @@
 # --------------------------------------------------------------
 # Part 2 of two split decks. Covers three rule families that
 # appear in almost every PSLE English Booklet A:
-#   4. Verb forms (gerund / infinitive / bare)
+#   4. Verb forms (-ing form / to-form / base verb)
 #   5. Connectors & tenses
 #   6. Idiomatic prepositions
 # Worked examples replaced with interactive quiz cards — student
@@ -38,7 +38,7 @@ keyConcepts:
       answer, hit Submit, and see if you're right.
     bullets:
       - |-
-        {First is rule }**4. Verb forms** — {we'll look at the }gerund vs infinitive, {and the }causative bare infinitive{.}
+        {First is rule }**4. Verb forms** — {we'll look at when the next verb takes }-ing, "to", {or }just the base verb{.}
       - |-
         {Next is rule }**5. Connectors & tenses** — {focusing on }**since / although / in spite of** + {the }perfect tenses{.}
       - |-
@@ -47,35 +47,33 @@ keyConcepts:
       Recognise the rule type from the options, then apply.
 
   # ─── 4. VERB FORMS ───────────────────────────────────────────────
-  - title: "4: Verb forms — gerund vs infinitive vs bare"
+  - title: "4: Verb forms — what shape does the next verb take?"
     mascotImage: /master-class/grammar-mcq-2/panda-teaching-verb-forms.png
     body: >-
-      The form of the SECOND verb in a sentence depends on what
-      comes before it. Three main patterns to know.
+      The shape of the SECOND verb in a sentence depends on what
+      comes before it. Three patterns to know.
     bullets:
       - |-
-        **Verbs followed by GERUND (-ing):**
-           enjoy, avoid, mind, consider, suggest, finish, dislike, **have trouble**, **have difficulty**, object to, look forward to, be used to
+        **Use the -ing form** after these verbs: enjoy, avoid, mind, consider, suggest, finish, dislike, **have trouble**, **have difficulty**.
            → "Bella enjoys **interacting** with her neighbours."
       - |-
-        **Verbs followed by INFINITIVE (to + base):**
-           want, hope, decide, agree, plan, learn, refuse, manage, expect, seem
+        **Use "to + verb"** after these verbs: want, hope, decide, agree, plan, learn, refuse, manage, expect, seem.
            → "Mohan seems **to have lost** weight."
       - |-
-        **The PREPOSITION trap.** When "to" is a preposition (NOT the infinitive **to**), the next verb is a **gerund**:
+        **The "to" trap.** Sometimes "to" is just a small connector word, NOT part of "to + verb". After connector "to", the next verb still takes **-ing**:
            • *object **to** going*, *look forward **to** seeing*
            • *be used **to** working*, *be accustomed **to** doing*
-           ⚠️ Students see "to" and pick the base form by reflex — that's wrong here.
+           ⚠️ Quick test: if you can put a noun after "to" (e.g. "object to **the trip**"), it's a connector — use -ing.
       - |-
-        **Causative / sensory verbs + BARE infinitive (no "to"):**
-           let, make, help, watch, see, hear, witness, feel, notice
+        **After "make / let / see / watch" verbs, the next verb is the base verb** — no "to", no "-ing", no past tense.
+           This family: let, make, help, watch, see, hear, witness, feel, notice.
            → "Kamal **made** his baby sister **giggle**."
            → "Judy **witnessed** a boy **slip** the cards into his bag."
 
   - title: Try it — Verb forms
     mascotImage: /master-class/grammar-mcq-2/panda-thinking.png
     interactiveQuiz:
-      - label: "PSLE 2021 Q7 — the \"to + gerund\" preposition trap"
+      - label: "PSLE 2021 Q7 — the \"to\" trap"
         stem: |-
           Tom **objected to** ___ on a camping trip as he did not like outdoor activities.
         options:
@@ -85,13 +83,14 @@ keyConcepts:
           - having gone
         correctAnswer: 2
         explanation: >-
-          "object **to**" LOOKS like the infinitive "to go" — but
-          "to" here is a PREPOSITION. Test: try a noun → "objected
-          to **the trip**" ✓ → preposition confirmed. Preposition
-          + verb → **GERUND** (-ing form) → **going**.
+          "object **to**" LOOKS like "to + verb" (like "to go") —
+          but here "to" is just a small connector word. Test: try a
+          noun → "objected to **the trip**" ✓ — that works, so "to"
+          is a connector. After connector "to", use the **-ing form**
+          → **going**.
         mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
-      - label: "PSLE 2022 Q5 — causative bare infinitive"
+      - label: "PSLE 2022 Q5 — watch / witness verbs"
         stem: |-
           Judy **witnessed** a boy ___ the game cards into his bag, so she reported it to the store manager.
         options:
@@ -101,16 +100,16 @@ keyConcepts:
           - has slipped
         correctAnswer: 1
         explanation: >-
-          **"witness"** is a SENSORY verb (like **see, watch, hear,
-          notice**) — these take the **bare infinitive** (no "to",
-          no "-ing", no past tense). → **slip**.
+          **"witness"** is in the **see / watch / hear / notice**
+          family — these are followed by the **base verb**, with no
+          "to", no "-ing", and no past tense. → **slip**.
         mascotCorrect: /master-class/grammar-mcq-2/panda-correct.png
         mascotWrong: /master-class/grammar-mcq-2/panda-wrong.png
     callout: >-
-      **Two rules:** "to + verb" can be EITHER an infinitive OR a
-      preposition — test by trying a noun in its place. **Causative
-      / sensory verbs** (let, make, help, see, watch, hear, witness,
-      feel, notice) take the **bare base form** of the next verb.
+      **Two rules:** "to" can be part of "to + verb" OR just a
+      connector — test by trying a noun in its place. After **make,
+      let, help, see, watch, hear, witness, feel, notice**, the
+      next verb is the **base verb** (no "to", no "-ing").
 
   # ─── 5. CONNECTORS & TENSES ──────────────────────────────────────
   - title: "5: Connectors — cause / concession / time"
@@ -128,7 +127,7 @@ keyConcepts:
       - |-
         {We also have }**Time:** {Such as }**as soon as, when, while, before, after, until, {and }by the time**. {Note that }These often dictate the TENSE of the next clause.
       - |-
-        **"In spite of / Despite"** must be followed by a NOUN or GERUND, not a clause. "In spite of **being late**" ✓, "In spite of **she was late**" ✗ (use "although" instead).
+        **"In spite of / Despite"** must be followed by a NOUN or an **-ing form**, not a full clause. "In spite of **being late**" ✓, "In spite of **she was late**" ✗ (use "although" instead).
 
   - title: "5: Tense triggers — words that force a tense"
     mascotImage: /master-class/grammar-mcq-2/panda-teaching-tense.png
@@ -290,20 +289,21 @@ keyConcepts:
 commonMistakes: []
 
 keyWords:
-  - { word: gerund, definition: "The -ing form of a verb used as a noun (running, swimming). Comes after prepositions and certain verbs (enjoy, avoid)." }
-  - { word: infinitive, definition: "The 'to + base' form (to go, to see). Used after verbs like want, hope, decide, plan." }
-  - { word: bare infinitive, definition: "The base form WITHOUT 'to' (go, see). Used after causative verbs (let, make, help, watch)." }
-  - { word: conditional inversion, definition: "Formal way of writing 'if X had…' — flip the auxiliary to the front: 'Had X done…'" }
-  - { word: subordinating conjunction, definition: "Connects a dependent clause to a main clause: since, although, when, unless, while." }
+  - { word: "-ing form", definition: "A verb ending in -ing (running, swimming) used as a noun. Comes after certain verbs (enjoy, avoid) and after a connector 'to' (object to going)." }
+  - { word: "to + verb", definition: "The 'to + verb' shape (to go, to see). Used after verbs like want, hope, decide, plan." }
+  - { word: base verb, definition: "The verb with no 'to' and no '-ing' (go, see). Used after make, let, help, see, watch, hear, witness, feel, notice." }
+  - { word: "connector 'to'", definition: "'to' acting as a small linking word (not part of 'to + verb'). Test: if a noun fits after it ('look forward to the trip'), it's a connector — use -ing." }
+  - { word: "'Had + person + verb' form", definition: "Formal way of writing 'if X had…' — flip 'had' to the front: 'Had X done…'" }
+  - { word: linking word, definition: "Connects two parts of a sentence: since, although, when, unless, while." }
 
 subTopics:
   - id: verb-forms
     label: Verb forms
-    description: "Gerund vs infinitive vs bare infinitive after a verb. Includes the 'to + gerund' preposition trap (object to going, look forward to seeing) and causative bare infinitive (made her giggle, witnessed him slip)."
+    description: "When the next verb takes -ing, 'to + verb', or just the base verb. Includes the 'to' trap (object to going, look forward to seeing) and the make/let/see/watch family (made her giggle, witnessed him slip)."
     slideIdx: 1
   - id: connectors-tenses
     label: Connectors & tense markers
-    description: "Cause / concession / contrast / time connectors (since, although, in spite of, when) plus tense triggers — conditional inversion ('Had X done…'), wish + past perfect, since + present perfect continuous."
+    description: "Cause / contradiction / contrast / time linking words (since, although, in spite of, when) plus tense triggers — 'Had X done…' formal form, wish + past perfect, since + present perfect continuous."
     slideIdx: 3
   - id: idiomatic-prepositions
     label: Idiomatic prepositions

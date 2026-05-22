@@ -270,7 +270,7 @@
     {
       "id": "noun-number-rules",
       "label": "Noun number rules",
-      "description": "Subject-verb agreement plus countable / uncountable quantifiers. Handles mass nouns (news, luggage, advice), 'the number of' vs 'a number of', interrupters (everyone except…), gerund subjects.",
+      "description": "Subject-verb agreement plus countable / uncountable rules. Handles mass nouns (news, luggage, advice), 'the number of' vs 'a number of', interrupters (everyone except…), -ing-form subjects (Reading is fun).",
       "slideIdx": 3
     },
     {
