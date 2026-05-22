@@ -3095,11 +3095,28 @@ const BlankCanvas = forwardRef<
     <div style={{ touchAction: "none" }}>
       <canvas
         ref={canvasRef}
-        className="w-full border-0"
+        // Pointer handlers attach natively in useEffect.
+        //
+        // iOS Safari particulars (ported from ChineseHandwritingCanvas
+        // which fixed the same intermittent-gap bug on iPad+Apple
+        // Pencil): without these properties the browser fires
+        // pointercancel mid-stroke whenever its text-selection /
+        // callout machinery decides the gesture might be a selection
+        // drag. The result is a swallowed segment, a brief gap, then
+        // a new stroke starts. willChange + translateZ promote the
+        // canvas to its own GPU layer so per-stroke repaints don't
+        // invalidate surrounding content, which helps keep iOS from
+        // throttling pointer events under render pressure.
+        className="w-full border-0 select-none"
         style={{
           height: `${height}px`,
           cursor: tool === "pen" ? PEN_CURSOR : "cell",
           touchAction: "none",
+          WebkitUserSelect: "none",
+          userSelect: "none",
+          WebkitTouchCallout: "none",
+          willChange: "contents",
+          transform: "translateZ(0)",
         }}
       />
     </div>
