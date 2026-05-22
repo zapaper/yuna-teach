@@ -652,7 +652,7 @@ export default function ChineseQuizSection({ sectionLabel, passage, questions, s
 
 /** Renders a passage with inline text inputs for each question */
 function PassageWithInputs({
-  passage,
+  passage: rawPassage,
   questions,
   sectionType,
   answers,
@@ -670,6 +670,17 @@ function PassageWithInputs({
   onFocusInput?: () => void;
   emptyFieldIds?: Set<string>;
 }) {
+  // Normalize OCR-split markers. The OCR occasionally preserves the
+  // printed-page layout for 完成对话 / Grammar Cloze blanks — the
+  // blank renders on one line, "(26)" on the next, the closing **
+  // on a third. That breaks the line-by-line marker regex below, so
+  // collapse any **(N)...** that spans newlines back into the canonical
+  // single-line form **(N)________** before splitting on \n.
+  const passage = rawPassage.replace(
+    /\*\*\((\d+)\)[\s\S]*?\*\*/g,
+    (_m, n) => `**(${n})________**`
+  );
+
   // Always use position-based mapping: passage blank i → questions[i].
   // Handles two marker styles:
   //   English style: **(29)________**    (e.g. Grammar Cloze, Editing)
