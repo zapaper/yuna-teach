@@ -27,7 +27,7 @@
     },
     {
       "title": "1: Tag questions — the mirror rule",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-mirror.png",
       "body": "A tag question is the little check at the end of a statement: **isn't he?**, **would she?**, **shall we?** The tag must **mirror** the verb/auxiliary of the main statement and **flip the polarity**.",
       "bullets": [
         "**Step 1 — Find the main verb/auxiliary.** \"She **has** been busy\" → tag uses **has**. \"He **gave up**\" (past simple) → tag uses **did**.",
@@ -73,7 +73,7 @@
     },
     {
       "title": "2: Noun number — countable vs uncountable",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-infinity.png",
       "body": "English splits nouns into **countable** (you can count them: **3 books, 5 ideas**) and **uncountable** (you can't: **water, advice, luck**). Each takes a different family of quantifiers.",
       "bullets": [
         "**Countable + plural:** **few, many, several, each, a number of, fewer**",
@@ -85,7 +85,7 @@
     },
     {
       "title": "2: Noun number — subject-verb agreement traps",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-sva.png",
       "body": "The verb must match the subject's number. PSLE tests **four shapes** where the real subject isn't obvious.",
       "bullets": [
         "**Plural-looking but singular**: **news, luggage, mathematics, athletics** → use **is / has**. Example: \"The news **has** been circulating since yesterday.\"",
@@ -132,7 +132,7 @@
     },
     {
       "title": "3: Pronouns — three families to keep separate",
-      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching.png",
+      "mascotImage": "/master-class/grammar-mcq-1/panda-teaching-pronouns.png",
       "body": "Pronouns get tested in three forms; the trap is usually choosing the right form for the role in the sentence.",
       "bullets": [
         "**Personal vs reflexive.** Use the reflexive form (**himself, herself, themselves, myself, yourself**) ONLY when the subject and object of the action are the SAME person.\n   • ✓ \"Mary ate the cake by **herself**.\" → Mary is the doer AND she ate alone (same person).\n   • ✓ \"Tom hurt **himself**.\" → Tom is the doer AND Tom got hurt (same person).\n   • ✗ When the object is a DIFFERENT person, use a regular pronoun (him, her, them): \"John gave the book to **her**\" — not \"to herself\".",
