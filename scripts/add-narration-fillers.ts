@@ -118,22 +118,15 @@ function isFaithful(original: string, enhanced: string): boolean {
   return normalize(stripBraces(enhanced)) === normalize(original);
 }
 
-(async () => {
-  const target = process.argv[2];
-  if (!target) {
-    console.error(`Usage: tsx add-narration-fillers.ts <yaml-filename>`);
-    console.error(`Available: ${TARGET_YAMLS.join(", ")}`);
-    process.exit(1);
-  }
+async function processOne(target: string): Promise<{ touched: number; skipped: number; ok: boolean }> {
   const yamlPath = path.join(__dirname, "..", "src", "data", "master-class", target);
   if (!fs.existsSync(yamlPath)) {
     console.error(`Not found: ${yamlPath}`);
-    process.exit(1);
+    return { touched: 0, skipped: 0, ok: false };
   }
   const lang = detectLanguage(target);
-  console.log(`Enhancing ${target} (lang=${lang})...`);
+  console.log(`\n=== Enhancing ${target} (lang=${lang}) ===`);
 
-  // Round-trip via yaml library to preserve formatting where possible.
   const raw = fs.readFileSync(yamlPath, "utf8");
   const doc = parseYaml(raw) as { keyConcepts?: Slide[] };
   const slides: Slide[] = doc.keyConcepts ?? [];
@@ -143,9 +136,6 @@ function isFaithful(original: string, enhanced: string): boolean {
   let touched = 0;
   let skipped = 0;
 
-  // Process slide-by-slide. For each slide, get enhancement, then
-  // ONLY apply faithful replacements (where stripping braces yields
-  // the original).
   for (let i = 0; i < slides.length; i++) {
     const slide = slides[i];
     process.stdout.write(`  slide ${i + 1}/${slides.length}: ${slide.title?.slice(0, 30) ?? ""}... `);
@@ -153,14 +143,11 @@ function isFaithful(original: string, enhanced: string): boolean {
       const enhanced = await enhanceSlide(slide, lang);
       if (!enhanced) { console.log("(empty)"); skipped++; continue; }
 
-      // Apply faithful replacements only.
       let slideEdited = 0;
-      // Body
       if (slide.body && enhanced.body && enhanced.body !== slide.body && isFaithful(slide.body, enhanced.body)) {
         edited = edited.replace(slide.body, enhanced.body);
         slideEdited++;
       }
-      // Bullets
       if (slide.bullets && enhanced.bullets) {
         for (let bi = 0; bi < slide.bullets.length; bi++) {
           const orig = slide.bullets[bi];
@@ -171,7 +158,6 @@ function isFaithful(original: string, enhanced: string): boolean {
           }
         }
       }
-      // Callout
       if (slide.callout && enhanced.callout && enhanced.callout !== slide.callout && isFaithful(slide.callout, enhanced.callout)) {
         edited = edited.replace(slide.callout, enhanced.callout);
         slideEdited++;
@@ -184,17 +170,27 @@ function isFaithful(original: string, enhanced: string): boolean {
     }
   }
 
-  // Sanity-check: re-parse the edited YAML to make sure it's still valid.
-  try {
-    parseYaml(edited);
-  } catch (err) {
-    console.error(`\nYAML invalid after edits — NOT writing. Error: ${(err as Error).message}`);
-    process.exit(1);
+  try { parseYaml(edited); } catch (err) {
+    console.error(`  YAML invalid after edits — NOT writing. Error: ${(err as Error).message}`);
+    return { touched: 0, skipped: slides.length, ok: false };
   }
 
   fs.writeFileSync(yamlPath, edited, "utf8");
-  console.log(`\nDone. ${touched} replacements applied, ${skipped} slides skipped.`);
-  console.log(`Wrote ${yamlPath}`);
-  // Silence unused
+  console.log(`  Done. ${touched} replacements, ${skipped} skipped. Wrote ${target}`);
+  return { touched, skipped, ok: true };
+}
+
+(async () => {
+  console.log(`Target classes: ${TARGET_YAMLS.length}`);
+  console.log(TARGET_YAMLS.map(y => `  - ${y}`).join("\n"));
+  let totalTouched = 0;
+  let totalSkipped = 0;
+  for (const target of TARGET_YAMLS) {
+    const r = await processOne(target);
+    totalTouched += r.touched;
+    totalSkipped += r.skipped;
+  }
+  console.log(`\n========================================`);
+  console.log(`All done: ${totalTouched} total replacements, ${totalSkipped} slides skipped across ${TARGET_YAMLS.length} files.`);
   void Document; void isMap; void isScalar; void isSeq; void stringifyYaml;
 })();

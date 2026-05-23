@@ -31,15 +31,15 @@ keyConcepts:
       The hardest part isn't grammar — it's not changing meaning or adding info.
     bullets:
       - |-
-        **Pattern A: Concession** — Although / Despite / In spite of
+        {First, }**Pattern A: Concession** — {using }Although / Despite / In spite of{.}
       - |-
-        **Pattern B: Cause/Effect** — Because / Due to / Owing to / Since
+        {Next is }**Pattern B: Cause/Effect** — {such as }Because / Due to / Owing to / Since{.}
       - |-
-        **Pattern C: Condition** — If / Unless / Provided that
+        {Then, }**Pattern C: Condition** — {using }If / Unless / Provided that{.}
       - |-
-        **Pattern D: Word transformation** — noun ↔ verb / active ↔ passive
+        {Fourth is }**Pattern D: Word transformation** — {like }noun ↔ verb / {or }active ↔ passive{.}
       - |-
-        **Pattern E: Reported Speech** — direct ↔ indirect (with backshift)
+        {Finally, }**Pattern E: Reported Speech** — {going from }direct ↔ indirect (with backshift){.}
       - |-
         **The 3 rules of synthesis:**
         ① Don't change the meaning. ② Don't change the tense. ③ Don't add info.
@@ -312,11 +312,11 @@ keyConcepts:
       checking "same tense, same info, same meaning."
     bullets:
       - |-
-        **15 questions** — Concession (4) + Cause (3) + Condition (3) + Transform (5)
+        {You'll tackle }**15 questions** —{ comprising } Concession (4) + Cause (3) + Condition (3) + Transform (5){.}
       - |-
-        Wrong answers auto-saved, reviewed in 1 week
+        {Any }Wrong answers {are }auto-saved, {and }reviewed in 1 week{.}
       - |-
-        AI marks word-for-word — partial credit if you almost got it but missed tense/info
+        {The }AI marks {your answers }word-for-word —{ giving } partial credit if you almost got it but missed {the }tense/info{.}
     cta:
       label: Click here to start practice
       quizSpec:

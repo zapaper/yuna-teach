@@ -19,7 +19,17 @@
         "**Pattern D: Word transformation** — noun ↔ verb / active ↔ passive",
         "**Pattern E: Reported Speech** — direct ↔ indirect (with backshift)",
         "**The 3 rules of synthesis:**\n① Don't change the meaning. ② Don't change the tense. ③ Don't add info."
-      ]
+      ],
+      "narration": {
+        "bullets": [
+          "First, **Pattern A: Concession** — using Although / Despite / In spite of.",
+          "Next is **Pattern B: Cause/Effect** — such as Because / Due to / Owing to / Since.",
+          "Then, **Pattern C: Condition** — using If / Unless / Provided that.",
+          "Fourth is **Pattern D: Word transformation** — like noun ↔ verb / or active ↔ passive.",
+          "Finally, **Pattern E: Reported Speech** — going from direct ↔ indirect (with backshift).",
+          null
+        ]
+      }
     },
     {
       "title": "Pattern A — Concession (Although / Despite / In spite of)",
@@ -191,6 +201,13 @@
           "mcq": 15,
           "oeq": 0
         }
+      },
+      "narration": {
+        "bullets": [
+          "You'll tackle **15 questions** — comprising Concession (4) + Cause (3) + Condition (3) + Transform (5).",
+          "Any Wrong answers are auto-saved, and reviewed in 1 week.",
+          "The AI marks your answers word-for-word — giving partial credit if you almost got it but missed the tense/info."
+        ]
       }
     }
   ],

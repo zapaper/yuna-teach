@@ -33,9 +33,9 @@ keyConcepts:
       PSLE almost never tests the obvious — they test edge cases.
     bullets:
       - |-
-        **Block 1: Living Things** — characteristics + animal/plant groups + flow charts
+        {First up is }**Block 1: Living Things** — {covering }characteristics + animal/plant groups + flow charts{.}
       - |-
-        **Block 2: Materials** — 6 properties + matching property to use
+        {Next is }**Block 2: Materials** — {focusing on the }6 properties + matching {a }property to {its }use{.}
       - |-
         **Shared skill**: "What characteristics does X have? Which group does that put it in?"
 
@@ -63,7 +63,7 @@ keyConcepts:
         -- **Eggs** — same logic; the organism inside is alive
         -- **Mushroom (fungi)** — alive! NOT a plant (no chlorophyll) but living
       - |-
-        **Trick**: If something doesn't REPRODUCE on its own, it's not living. This single test eliminates most traps.
+        {Here's a quick }**Trick**: If something doesn't REPRODUCE on its own, it's not living. This single test eliminates most traps.
 
   # ─── Slide 2: Practice 1 — Living vs Non-Living ──────────
   - title: "Try it — Living vs Non-Living traps"
@@ -267,7 +267,7 @@ keyConcepts:
         **Full answer (3 sentences):**
         "The umbrella fabric is waterproof **(a)**. The table shows fabric Y absorbs no water **(b)**. This means rain cannot soak through, keeping the person dry **(c)**."
       - |-
-        **Common mistake**: only doing (a) — naming the property without explaining WHY it fits the use. That's a 1-mark answer when the question gave 2-3 marks.
+        {Watch out for this }**Common mistake**: only doing {step }(a) — {just }naming the property without explaining WHY it fits the use. That's a 1-mark answer when the question gave 2-3 marks.
 
   # ─── Slide: Worked Example — Materials OEQ ──────────────
   - title: "Worked example — Material OEQ (3 marks)"
@@ -349,11 +349,11 @@ keyConcepts:
       Living things + materials, with the trap-heavy patterns we just covered.
     bullets:
       - |-
-        **15 questions** — Living vs Non-Living (4) + Classification (4) + Key (3) + Materials (4)
+        {You will get }**15 questions** — {broken down into }Living vs Non-Living (4) + Classification (4) + Key (3) + Materials (4){.}
       - |-
-        Wrong answers auto-saved, reviewed in 1 week
+        {Any }Wrong answers {will be }auto-saved, {and }reviewed in 1 week{.}
       - |-
-        Focus on the TRAP TYPES — that's where most marks are lost
+        {Remember to }Focus on the TRAP TYPES — {because }that's where most marks are lost{.}
     cta:
       label: Click here to start practice
       quizSpec:
