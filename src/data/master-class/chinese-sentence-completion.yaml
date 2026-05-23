@@ -1,0 +1,309 @@
+# Master Class: PSLE 华文 — Sentence Completion (关联词 + 完成句子 + 完成对话)
+# --------------------------------------------------------------
+# 涵盖 PSLE 华文 Booklet B 的 16 分:
+#   - Q9-Q10  (4m):  关联词 (connectors — single + paired)
+#   - Q11-Q12 (4m):  完成句子 (pick the half-sentence that completes logic)
+#   - Q26-Q29 (8m):  完成对话 (word-bank dialogue cloze, digit 1-8)
+#
+# All three test ONE skill: matching the LOGIC of two parts of a
+# sentence/dialogue. Connectors and dialogue have small fixed pools
+# — memorise once, score every year.
+#
+# Source: PSLE Chinese 2016-2025 actual questions + model answers.
+
+slug: chinese-sentence-completion
+subject: chinese
+level: P5-P6
+topicLabel: 语文应用 MCQ
+title: "PSLE 华文 — Sentence Completion (16 分)"
+
+stats:
+  headline: >-
+    PSLE 华文 Q9-Q10 + Q11-Q12 + Q26-Q29 = 16 分。三个题型考的是同一件事:
+    把句子两半的**逻辑**对上。关联词和对话都是小固定池, 背熟就稳。
+
+keyConcepts:
+
+  # ─── Welcome ───────────────────────────────────────────────
+  - title: 欢迎来到《Sentence Completion》— 一项技能, 16 分
+    mascotImage: /master-class/chinese-mcq-1/panda-welcome.png
+    body: >-
+      PSLE 华文有 3 个题型, 都在测试同一件事: 把句子或对话**两半的逻辑**对上。
+      关联词 + 对话是**小固定池** — 背熟就拿分。
+      Three PSLE Chinese question types all test ONE skill: matching
+      the LOGIC of two halves of a sentence or dialogue. Connectors
+      and dialogue use SMALL FIXED POOLS — memorise once, score every year.
+    bullets:
+      - |-
+        **Q9-Q10 (4 分)** — 关联词: 单个 + 一对
+      - |-
+        **Q11-Q12 (4 分)** — 完成句子: 选出逻辑通的另一半
+      - |-
+        **Q26-Q29 (8 分)** — 完成对话: 8 个短句组成的词库, 选数字 1-8
+
+  # ─── Q9-Q10 Section Opener + Scoring ─────────────────────
+  - title: "Q9-Q10: Connectors (关联词) — 评分 / Scoring (4 分)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
+    body: >-
+      Q9 是单个关联词, Q10 是一对关联词。每题 2 分, 共 4 分。
+      整个 PSLE 关联词池只有 **~26 个固定形式** — 全背熟可一题没错。
+      Q9 = single connector, Q10 = paired connectors. 2 marks each = 4 total.
+      The entire pool is only ~26 fixed forms — fully memorisable.
+    bullets:
+      - |-
+        **看 2 句话的关系**: 因果 / 转折 / 条件 / 时间 / 让步 / 选择 / 递进
+      - |-
+        **关键: 句意先, 关联词后** — 先想 "这两句是什么关系", 再挑词
+      - |-
+        **小固定池**: 单连词 ~10 个 + 双连词 ~15 个 = ~26 总数
+
+  # ─── Q9 — Single Connectors ──────────────────────────────
+  - title: "Q9 — 单个关联词 (固定池约 10 个)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      Q9 在前句开头填 1 个连词, 表明两句的关系。PSLE 2016-2025 常考这 10 个:
+      Q9 fills ONE connector at the start of a sentence, marking the
+      relationship between two clauses. 10 most-tested in 2016-2025:
+    bullets:
+      - |-
+        **由于** — 因果 (cause)。例: **由于**下雨, 比赛取消了。
+      - |-
+        **只要** — 条件 (condition)。例: **只要**你努力, 就会成功。
+      - |-
+        **不管** — 让步 (regardless)。例: **不管**天气如何, 我都去。
+      - |-
+        **无论** — 让步 (regardless)。例: **无论**多远, 我都送你。
+      - |-
+        **自从** — 时间起点 (since)。例: **自从**搬家后, 我们少见面了。
+      - |-
+        **如果** — 假设 (if)。例: **如果**下雨, 就取消。
+      - |-
+        **既然** — 因果 (since/given)。例: **既然**你来了, 就留下吧。
+      - |-
+        **即使** — 让步 (even if)。例: **即使**很难, 我也要试。
+      - |-
+        **虽然** — 转折 (although)。例: **虽然**累, 但很开心。
+      - |-
+        **除了** — 除外 (besides)。例: **除了**他, 大家都去了。
+
+  # ─── Q10 — Paired Connectors ─────────────────────────────
+  - title: "Q10 — 一对关联词 (固定池约 15 对)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      Q10 在前后两句各填一个连词, 必须配对。PSLE 2016-2025 常考的 15 对:
+      Q10 fills TWO connectors that must pair correctly. 15 pairs
+      most-tested in 2016-2025:
+    bullets:
+      - |-
+        **不但 ___, 而且 ___** — 递进 (not only … but also)
+      - |-
+        **不但 ___, 还 ___** — 递进
+      - |-
+        **不但 ___, 反而 ___** — 反向递进 (not only … on the contrary)
+      - |-
+        **不仅 ___, 也 ___** — 同 "不但...而且"
+      - |-
+        **虽然 ___, 但是 ___** — 转折 (although … but)
+      - |-
+        **尽管 ___, 还是 ___** — 强转折 (even though … still)
+      - |-
+        **如果 ___, 就 ___** — 假设 (if … then)
+      - |-
+        **要是 ___, 就 ___** — 同 "如果...就"
+      - |-
+        **只要 ___, 就 ___** — 条件 (as long as … then)
+      - |-
+        **只有 ___, 才 ___** — 必要条件 (only when … can)
+      - |-
+        **因为 ___, 所以 ___** — 因果 (because … therefore)
+      - |-
+        **由于 ___, 所以 ___** — 同 "因为...所以"
+      - |-
+        **即使 ___, 也 ___** — 让步 (even if … still)
+      - |-
+        **无论 ___, 都 ___** — 让步 (no matter … all)
+      - |-
+        **除了 ___, 还 ___** — 除外 + 加上 (besides … also)
+
+  # ─── Q9-Q10 Worked Example ───────────────────────────────
+  - title: "Q9-Q10 解题示范 — PSLE 2025 真题"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-pinyin.png
+    body: >-
+      看 2 道 PSLE 2025 真题, 用"先想关系, 再挑词"的方法解题:
+      Two PSLE 2025 questions worked through with the "think relation
+      first, then pick word" method:
+    bullets:
+      - |-
+        **Q9 (2025):** "______ 事情多么糟糕, 我都会和你一起面对。"
+        **第 1 步**: 看两句关系 → "无论 / 不管事情如何 → 我都做"。让步关系。
+        **第 2 步**: 让步类单连词 → **不管** ✓ (PSLE 2025 标答)
+      - |-
+        **Q10 (2025):** "______ 平时多吃有营养的食物, ______ 不会那么容易生病。"
+        **第 1 步**: 关系 → 条件 + 结果。
+        **第 2 步**: 条件类双连词 → **只要 ___, 就 ___** ✓ (PSLE 2025 标答)
+      - |-
+        **错题陷阱**: "如果...就" 也是条件, 但语气是"假设可能", 不像"只要...就" 那样肯定。
+        Q10 真题里如果句意是"只要做到 X 必然 Y", 用 **只要 ___, 就 ___**。
+
+  # ─── Q11-Q12 Section Opener ───────────────────────────────
+  - title: "Q11-Q12: Sentence Completion (完成句子) — 评分 / Scoring (4 分)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
+    body: >-
+      Q11-Q12 给半句话, 让你选另一半完成逻辑。4 个选项**只有 1 个逻辑对**。
+      每题 2 分, 共 4 分。秘诀: 看关键词 + 看情绪方向。
+      Q11-Q12 give half a sentence; pick the half that completes the
+      logic. Only 1 of 4 options matches. 2 marks each. Trick: spot
+      keywords + emotional direction.
+    bullets:
+      - |-
+        **8 种常见逻辑模板** (背熟, 看到题型立刻知道选哪类):
+      - |-
+        **① 原因 → 情绪**: "______, 我感到非常委屈。" → 选不公平的事
+      - |-
+        **② 努力 → 成果**: "经过许多年的努力, ______。" → 选成功的结果
+      - |-
+        **③ 时间过 → 里程碑**: "时间过得真快, ______。" → 选快毕业 / 快结束
+      - |-
+        **④ 提议 → 后续行动**: "______, 我们就参加这项比赛好吗？" → 选提议或同意
+      - |-
+        **⑤ 矛盾 / 转折**: "事情都已经解决了, ______。" → 选"别在意 / 放下"
+      - |-
+        **⑥ 行为 → 后果**: "小英做事很负责, ______。" → 选好结果 ("大家都赞成她当班长")
+      - |-
+        **⑦ 描述 → 总结评价**: "老师讲的故事生动有趣, ______。" → 选受欢迎 ("听得津津有味")
+      - |-
+        **⑧ 决定 → 解释**: "志文突然有事不能来, ______。" → 选独自行动 / 改计划
+
+  # ─── Q11-Q12 Worked Example ───────────────────────────────
+  - title: "Q11-Q12 解题示范 — PSLE 2024 真题"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-pinyin.png
+    body: >-
+      PSLE 2024 Q11 + Q12 — 用 "看半句的情绪/方向, 选完整逻辑" 的方法:
+      PSLE 2024 Q11 and Q12 — match each fragment's tone/direction:
+    bullets:
+      - |-
+        **Q11 (2024):** "______, 那是我最开心的一天。"
+        **思路**: 半句是"那是我最开心的一天" (强烈正面 + 回忆), 前半应是
+        **一件特定开心事**, 不是普通陈述。
+        **标答**: 老师带我们全班去海边野餐。 (模板 ① / ⑥: 事件 → 情绪结果)
+      - |-
+        **Q12 (2024):** "忙了一个星期, ______。"
+        **思路**: 半句是"忙了一个星期", 后半应是**渴望休息 / 期待结束**。
+        **标答**: 大家都盼望周末的到来。 (模板 ③: 时间过 → 期待)
+      - |-
+        **关键秘诀**: **先把半句的情绪写出来** (积极/消极/期待/失望), 再看 4 个选项里哪个匹配。
+
+  # ─── Q26-Q29 Section Opener ───────────────────────────────
+  - title: "Q26-Q29: Dialogue Completion (完成对话) — 评分 / Scoring (8 分)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
+    body: >-
+      Q26-Q29 是 4 个空, 每空 2 分, 共 8 分。词库有 8 个短句, 你填数字 1-8。
+      8 个短句往往属于 **8 种对话功能**之一 — 看上下文找匹配。
+      Q26-Q29: 4 blanks × 2 marks = 8 total. Word bank has 8 short
+      phrases; fill digits 1-8. The 8 phrases usually belong to 8
+      DIFFERENT conversational functions — match by context.
+    bullets:
+      - |-
+        **8 种对话功能** (词库里几乎一定有这几类):
+      - |-
+        **① 表示感谢**: 谢谢您 / 太感谢了
+      - |-
+        **② 表示道歉 / 解释**: 对不起 / 我没有故意 / 实在很抱歉
+      - |-
+        **③ 提议 / 邀请**: 不如 ___ / 你要不要 ___
+      - |-
+        **④ 拒绝 / 推辞**: 不用了 / 我不太方便
+      - |-
+        **⑤ 答应 / 同意**: 好的 / 我答应你
+      - |-
+        **⑥ 表示惊讶**: 真没想到 / 真的吗
+      - |-
+        **⑦ 安慰 / 鼓励**: 别担心 / 你一定可以
+      - |-
+        **⑧ 总结 / 决定**: 那就这么决定 / 看来 ___
+
+  # ─── Q26-Q29 Strategy ────────────────────────────────────
+  - title: "Q26-Q29 解题秘诀 — 看上下文 3 步走"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      完成对话的"3 步法":
+      Dialogue completion in 3 steps:
+    bullets:
+      - |-
+        **第 1 步**: 读 4 个空的**前一句**和**后一句**, 推断空里要表达什么"功能"
+      - |-
+        **第 2 步**: 在 8 个词库短句里找对应功能的那一句
+      - |-
+        **第 3 步**: 把数字填进空里。**已用过的数字打勾**, 避免重复
+      - |-
+        **关键陷阱**: 8 个短句中**只有 4 个用得上** (题目只有 4 个空)。
+        多出 4 个是干扰项 — 别因为某句"听起来对"就乱选。
+      - |-
+        **加分点**: 4 个数字填完后, 把对话从头读一遍, 检查是否流畅。
+
+  # ─── Q26-Q29 Worked Example ───────────────────────────────
+  - title: "Q26-Q29 解题示范 — 用 3 步法"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-pinyin.png
+    body: >-
+      简化示例: 假设词库有 8 句 (功能见上一张), 对话有 4 个空。
+      用 3 步法逐个解:
+      Simplified example: word bank has 8 sentences (functions above),
+      dialogue has 4 blanks. Apply the 3-step method to each:
+    bullets:
+      - |-
+        **对话**: 小华: 听说你周末要去爬山？
+        小明: 是啊, **(26) ______**。
+      - |-
+        **第 1 步**: 小华问问题, 小明肯定回答。空里需要"提议或邀请功能"
+      - |-
+        **第 2 步**: 词库里"提议类" — "你要不要一起去？" → 编号 **3**
+      - |-
+        **第 3 步**: 填 **3**。打勾, 继续下一空。
+      - |-
+        **熟练后 4 个空 1 分钟做完** — 这 8 分是最容易拿满分的部分。
+
+  # ─── Wrap-up CTA ────────────────────────────────────────────
+  - title: 开始练习吧！
+    mascotImage: /master-class/chinese-mcq-1/panda-cta.png
+    body: >-
+      这套练习用 PSLE 真题 2016-2025 的 Q9-Q12 + Q26-Q29 改编。
+      混合三个题型, 让你练熟 "看关系 → 挑连词 / 选半句 / 选数字" 的反射动作。
+      Practice mixes Q9-Q12 + Q26-Q29 from PSLE 2016-2025. Builds
+      the reflex: "see relation → pick connector / half-sentence /
+      dialogue phrase".
+    bullets:
+      - |-
+        **15 题** — Q9-Q10 (5) + Q11-Q12 (5) + Q26-Q29 (5)
+      - |-
+        做错的题一周后自动复习
+      - |-
+        优先用 PSLE 真题, 不够再用学校模拟题补
+    cta:
+      label: 点这里开始练习
+      quizSpec:
+        title: "Mastery: 华文 Sentence Completion"
+        mcq: 15
+        oeq: 0
+
+commonMistakes: []
+
+keyWords:
+  - { word: 关联词, definition: "Connector — links two clauses logically. Includes single connectors (由于, 如果, 自从) and paired connectors (不但…而且, 虽然…但是). Small fixed pool (~26 forms)." }
+  - { word: 完成句子, definition: "Sentence Completion — given half a sentence, pick the other half that completes the logical relationship. Tests cause-effect, contrast, time, agreement reasoning." }
+  - { word: 完成对话, definition: "Dialogue Completion — word-bank cloze where you fill in digit 1-8 from an 8-phrase bank into 4 dialogue blanks. Functions tested: thanks, apology, suggest, decline, agree, surprise, comfort, conclude." }
+  - { word: 因果关系, definition: "Cause-effect relationship — signaled by 因为/由于/所以 / 既然/那么. The most common connector type tested." }
+  - { word: 让步关系, definition: "Concession relationship — 'even though X, still Y'. Signaled by 虽然/尽管/不管/无论/即使/即便. Second most common in PSLE." }
+
+subTopics:
+  - id: q9-q10-connectors
+    label: Q9-Q10 关联词
+    description: "Single connectors (Q9) and paired connectors (Q10). Small fixed pool of ~26 forms. Tests cause-effect, condition, contrast, concession, time, addition relationships."
+    slideIdx: 1
+  - id: q11-q12-completion
+    label: Q11-Q12 完成句子
+    description: "Pick the half-sentence that completes the logic. 8 common patterns: reason→emotion, effort→outcome, time→milestone, suggest→action, contradiction, behavior→consequence, description→evaluation, decision→explanation."
+    slideIdx: 5
+  - id: q26-q29-dialogue
+    label: Q26-Q29 完成对话
+    description: "Word-bank dialogue cloze. 8-phrase bank with 4 blanks; fill digit 1-8. 8 conversational functions: thanks, apology, suggest, decline, agree, surprise, comfort, conclude. 3-step method: identify function from context → match phrase → fill digit."
+    slideIdx: 7
