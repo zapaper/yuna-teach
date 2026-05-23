@@ -23,12 +23,12 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
       "body": "10 年 PSLE 错题分析: 这 4 类陷阱占 ~90% 失分。先排除声母 → 再排除韵母 → 最后看声调。 10-year analysis: these 4 trap types account for ~90% of mistakes. Order: eliminate by initial → final → tone.",
       "bullets": [
-        "**核心方法 — 把 4 个选项都\"读出来\"代入句子**:\n在心里慢慢念每个选项, 一个一个代入句子里。\n哪个**听起来不对 / 读起来很别扭**, 就排除。\nRead each option aloud in your head and slot it into the sentence.\nWhichever sounds wrong → eliminate. Then look at what's left.",
-        "**① 卷舌 vs 平舌** — zh/z, sh/s, ch/c\n例: 稍 = **sh**āo (不是 sāo) · 适 = **sh**ì · 着急 = **zh**áo",
-        "**② 前 vs 后鼻音** — in/ing, en/eng, an/ang\n例: 灵 = lí**ng** (不是 lín) · 整 = zhě**ng** · 兴 = xī**ng**",
-        "**③ 声调易看错** — 1声 ˉ / 2声 ´ / 3声 ˇ / 4声 ˋ\n例: 紧 jǐn (3声) vs 近 jìn (4声) — 只差声调",
-        "**④ 多音字 (2023+ 新趋势)** — 同字有 2-3 个读音\n例: 着 zháo (急) / zhāo (招) / zhe (轻) · 行 háng (银行) / xíng (行走)",
-        "**解题顺序**: 先读出来排除明显错的 → 再用陷阱表精排 (声母 → 韵母 → 声调)"
+        "**核心方法 — 把 4 个选项\"读出来\"代入句子, 不顺的排除。**\nRead each option aloud into the sentence; eliminate ones that sound wrong.",
+        "**① 卷舌 vs 平舌** (zh/z, sh/s, ch/c) — 稍 shāo · 适 shì · 着 zháo",
+        "**② 前 vs 后鼻音** (in/ing, en/eng) — 灵 líng · 整 zhěng · 兴 xīng",
+        "**③ 声调** — 紧 jǐn (3声) vs 近 jìn (4声), 只差声调",
+        "**④ 多音字 (2023+)** — 着 zháo/zhāo/zhe · 行 háng/xíng",
+        "**顺序**: 读出来排除 → 声母 → 韵母 → 声调"
       ]
     },
     {
@@ -70,11 +70,10 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
       "body": "Q3-Q4 是从 4 个相像的字里选 1 个填空。诀窍: **题目里已经给了另外一个字**, 你的任务是认出整个 2 字词。 Q3-Q4 picks 1 character from 4 lookalikes to fill a blank. Trick: the OTHER character in the compound is ALREADY in the stem — your job is to mentally complete the 2-character word.",
       "bullets": [
-        "**核心方法 — 这通常是一个 2 字词**, 题目里已经给了另一个字。\n有时候**偏旁部首** (the radical / side character) 会给你提示词义类别 —\n比如 \"扌\"(手字旁) 多和**动作**有关; \"氵\"(三点水) 多和**水**有关;\n\"亻\"(单人旁) 多和**人**有关。看选项的偏旁也能排除一些。\nIt's usually a 2-character word — one character is already\nin the stem. The radical (偏旁) of the missing character\noften hints at the meaning category: 扌 = action, 氵 = water,\n亻 = person. Eliminate options whose radical doesn't fit.",
-        "**三步走:**\n1. 看 stem, 找出空位旁边的字 (例: \"______ 生\" → 旁边是 \"生\")\n2. 在脑里想出整个 2 字词 (例: \"陌生\" — 我学过这个词)\n3. 在 4 个选项里找匹配那个字 (例: 陌 / 茉 / 末 → 选 **陌**)",
-        "**常见 2 字词 (10 年 PSLE 考过):**\n陌生 · 截止 · 教导 · 慈祥 · 克服 · 嘉宾 · 分享 · 理睬 · 浮现 · 烦恼\n加倍 · 异口 · 痕迹 · 避免 · 编号 · 攻击 · 有限 · 合作 · 多遍 · 户外",
-        "**陷阱: 形近字** (长得像但意思不同)\n陌 vs 末/茉 · 截 vs 接/节 · 享 vs 想/响 · 编 vs 偏/扁 · 痕 vs 狼/恨",
-        "**关键提醒**: 别凭\"这个字看起来对\"乱猜 — 一定要先确认整个 2 字词。"
+        "**核心方法 — 通常是 2 字词, 题目给了另一个字。看选项的偏旁部首**:\n扌 = 动作 · 氵 = 水 · 亻 = 人 · 心/忄 = 情绪。偏旁不对就排除。\nUsually a 2-char compound; stem has the other character.\nCheck the radical: 扌 = action, 氵 = water, 亻 = person, 心/忄 = emotion.\nWrong radical → eliminate.",
+        "**三步走**: 看旁边的字 → 想整个 2 字词 → 选项里找匹配\n例: \"___ 生\" → 想 \"陌生\" → 选 **陌**",
+        "**常见 2 字词** (10 年 PSLE 考过):\n陌生 · 截止 · 教导 · 慈祥 · 克服 · 嘉宾 · 分享 · 理睬 · 浮现 · 烦恼\n加倍 · 异口 · 痕迹 · 避免 · 编号 · 攻击 · 有限 · 合作 · 多遍 · 户外",
+        "**陷阱**: 形近字 — 陌 vs 末/茉 · 截 vs 接/节 · 享 vs 想/响 · 编 vs 偏/扁"
       ]
     },
     {
@@ -116,11 +115,11 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-vocab.png",
       "body": "Q5-Q6 给 4 个**意思相近**的词, 让你选最合适那个。诀窍不是\"哪个意思最对\", 而是\"哪个最贴合这句话的**场景**\"。 Q5-Q6 gives 4 near-synonyms. The trick is NOT \"which meaning is closest\" — it's \"which one matches this sentence's SCENE\".",
       "bullets": [
-        "**核心方法 — 先读完整个句子, 弄清在讲什么意思**, 再去看选项。\n别一看到空就盯着 4 个选项 — 没有上下文, 4 个近义词长得都对。\nRead the WHOLE sentence first to grasp the meaning. Don't\nstare at the 4 options first — without context, all 4\nnear-synonyms look plausible.",
-        "**关键事实**: PSLE 10 年统计, **从不考具体名词** (桌子、电脑、苹果...)\n只考**抽象动词 / 抽象形容词**: 克服 / 推动 / 惭愧 / 遵守 / 保护 / 后悔 / 妒忌",
-        "**解题秘诀**: 读完句子后, 先**遮住选项**, 自己想\"这空里应该填什么类型的词\"。\n然后看 4 个选项, 哪个最贴近**你想到的场景**就选哪个。",
-        "**示范** (PSLE 2024 Q6): \"救护车 ___ 赶到现场, 把受伤的人送去医院。\"\n想: 救护车赶现场 → 应该\"快\"。\n4 个选项: 急切 / 迅速 / 紧急 / 立刻 → 都和\"快\"有关, 但救护车的\n\"快\"配 **迅速** (rapid / swift) 最自然。",
-        "**常见陷阱**: 4 个选项里有**1-2 个是和\"对的词\"近义**但搭配不上\n(例: \"迅速\" 对, \"立刻\" 也快, 但 \"救护车立刻赶到\" 比 \"救护车迅速赶到\"\n听起来不自然)。"
+        "**核心方法 — 先读完整句, 弄清意思, 再看选项。** 没有上下文, 4 个近义词长得都对。\nRead the whole sentence first to grasp the meaning.\nWithout context, all 4 near-synonyms look plausible.",
+        "**关键事实**: PSLE 从不考具体名词 — 只考抽象动词 / 形容词\n例: 克服 / 推动 / 惭愧 / 遵守 / 保护 / 后悔 / 妒忌",
+        "**解题秘诀**: 遮住选项, 先想\"应该填什么词\"。再看选项, 选最贴近你想到的。",
+        "**示范** (PSLE 2024 Q6): \"救护车 ___ 赶到现场...\" → 想\"应该快\"\n选项: 急切/迅速/紧急/立刻 — 都\"快\", 但 \"救护车 + 迅速\" 最自然 → **迅速**",
+        "**陷阱**: 1-2 个选项是近义词, 但搭配不上 — 听起来不自然 = 不对"
       ]
     },
     {

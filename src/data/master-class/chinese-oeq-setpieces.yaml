@@ -188,45 +188,6 @@ keyConcepts:
       - |-
         **总分: 4 × 0.5 = 2 分内容 ✓ + 5 步格式 = 2 分语言 ✓ = 4 分满分**
 
-  # ─── Q33 Practice ──────────────────────────────────────────
-  - title: 试一试 — 选最佳开头
-    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
-    interactiveQuiz:
-      - label: "PSLE 2025 风格 — 写给表哥分享清理海滩活动"
-        stem: |-
-          题目: 写电邮给表哥, 分享你刚报名参加的"清理海滩活动"。
-          下面 4 个开头哪一个**最贴近 PSLE 标答风格**？
-        options:
-          - 表哥, 关于清理海滩活动, 我有话想说。
-          - 国文表哥, 你好！我好兴奋, 因为我刚报名参加了"清理海滩活动"。
-          - 嗨, 表哥, 海滩活动你知道吗？
-          - 国文哥, 学校要我们去清理海滩。
-        correctAnswer: 2
-        explanation: >-
-          标答开头格式是: **称呼 + "你好"+ 兴奋 / 起因句**。"我刚报名参加了 ___"
-          是标答最常用的起因句。其他选项都太随意或缺少模板要素。
-          Model answer format: greeting + "你好" + excited/hook sentence.
-          "我刚报名参加了…" is the most-used opening in PSLE answers.
-        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
-        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
-      - label: "结尾 — 哪一句最像 PSLE 标答？"
-        stem: |-
-          一封写给外婆推荐"慢慢动起来"运动短片的短信, 结尾用哪句话**最好**？
-        options:
-          - 外婆, 拜拜。
-          - 希望您喜欢看。
-          - 外婆, 我们都希望您有健康的身体, 所以您要记得收看短片和做运动哦！
-          - 这就是我想说的。
-        correctAnswer: 3
-        explanation: >-
-          PSLE 2022 真题标答原句。结尾要做到两件事: 关心对方 + 催促行动。
-          "我们都希望您有 ___" + "您要记得 ___ 哦"是高频套句。
-          PSLE 2022 model answer. Closing must do two things: show care +
-          urge action. "We all hope you…" + "remember to …!" is the
-          stock pattern for letters to elders.
-        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
-        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
-
   # ─── Q40 section opener: 2 formats + scoring ──────────────
   - title: "Q40: Comprehension Conclusion (阅读理解 OEQ 收尾题) — 2 种格式 + 评分"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png

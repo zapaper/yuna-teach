@@ -48,25 +48,18 @@ keyConcepts:
       mistakes. Order: eliminate by initial → final → tone.
     bullets:
       - |-
-        **核心方法 — 把 4 个选项都"读出来"代入句子**:
-        在心里慢慢念每个选项, 一个一个代入句子里。
-        哪个**听起来不对 / 读起来很别扭**, 就排除。
-        Read each option aloud in your head and slot it into the sentence.
-        Whichever sounds wrong → eliminate. Then look at what's left.
+        **核心方法 — 把 4 个选项"读出来"代入句子, 不顺的排除。**
+        Read each option aloud into the sentence; eliminate ones that sound wrong.
       - |-
-        **① 卷舌 vs 平舌** — zh/z, sh/s, ch/c
-        例: 稍 = **sh**āo (不是 sāo) · 适 = **sh**ì · 着急 = **zh**áo
+        **① 卷舌 vs 平舌** (zh/z, sh/s, ch/c) — 稍 shāo · 适 shì · 着 zháo
       - |-
-        **② 前 vs 后鼻音** — in/ing, en/eng, an/ang
-        例: 灵 = lí**ng** (不是 lín) · 整 = zhě**ng** · 兴 = xī**ng**
+        **② 前 vs 后鼻音** (in/ing, en/eng) — 灵 líng · 整 zhěng · 兴 xīng
       - |-
-        **③ 声调易看错** — 1声 ˉ / 2声 ´ / 3声 ˇ / 4声 ˋ
-        例: 紧 jǐn (3声) vs 近 jìn (4声) — 只差声调
+        **③ 声调** — 紧 jǐn (3声) vs 近 jìn (4声), 只差声调
       - |-
-        **④ 多音字 (2023+ 新趋势)** — 同字有 2-3 个读音
-        例: 着 zháo (急) / zhāo (招) / zhe (轻) · 行 háng (银行) / xíng (行走)
+        **④ 多音字 (2023+)** — 着 zháo/zhāo/zhe · 行 háng/xíng
       - |-
-        **解题顺序**: 先读出来排除明显错的 → 再用陷阱表精排 (声母 → 韵母 → 声调)
+        **顺序**: 读出来排除 → 声母 → 韵母 → 声调
 
   # ─── Q1-Q2 拼音: Practice ─────────────────────────────────
   - title: 试一试 — 拼音 (PSLE 2024 + 2025 真题)
@@ -113,28 +106,20 @@ keyConcepts:
       stem — your job is to mentally complete the 2-character word.
     bullets:
       - |-
-        **核心方法 — 这通常是一个 2 字词**, 题目里已经给了另一个字。
-        有时候**偏旁部首** (the radical / side character) 会给你提示词义类别 —
-        比如 "扌"(手字旁) 多和**动作**有关; "氵"(三点水) 多和**水**有关;
-        "亻"(单人旁) 多和**人**有关。看选项的偏旁也能排除一些。
-        It's usually a 2-character word — one character is already
-        in the stem. The radical (偏旁) of the missing character
-        often hints at the meaning category: 扌 = action, 氵 = water,
-        亻 = person. Eliminate options whose radical doesn't fit.
+        **核心方法 — 通常是 2 字词, 题目给了另一个字。看选项的偏旁部首**:
+        扌 = 动作 · 氵 = 水 · 亻 = 人 · 心/忄 = 情绪。偏旁不对就排除。
+        Usually a 2-char compound; stem has the other character.
+        Check the radical: 扌 = action, 氵 = water, 亻 = person, 心/忄 = emotion.
+        Wrong radical → eliminate.
       - |-
-        **三步走:**
-        1. 看 stem, 找出空位旁边的字 (例: "______ 生" → 旁边是 "生")
-        2. 在脑里想出整个 2 字词 (例: "陌生" — 我学过这个词)
-        3. 在 4 个选项里找匹配那个字 (例: 陌 / 茉 / 末 → 选 **陌**)
+        **三步走**: 看旁边的字 → 想整个 2 字词 → 选项里找匹配
+        例: "___ 生" → 想 "陌生" → 选 **陌**
       - |-
-        **常见 2 字词 (10 年 PSLE 考过):**
+        **常见 2 字词** (10 年 PSLE 考过):
         陌生 · 截止 · 教导 · 慈祥 · 克服 · 嘉宾 · 分享 · 理睬 · 浮现 · 烦恼
         加倍 · 异口 · 痕迹 · 避免 · 编号 · 攻击 · 有限 · 合作 · 多遍 · 户外
       - |-
-        **陷阱: 形近字** (长得像但意思不同)
-        陌 vs 末/茉 · 截 vs 接/节 · 享 vs 想/响 · 编 vs 偏/扁 · 痕 vs 狼/恨
-      - |-
-        **关键提醒**: 别凭"这个字看起来对"乱猜 — 一定要先确认整个 2 字词。
+        **陷阱**: 形近字 — 陌 vs 末/茉 · 截 vs 接/节 · 享 vs 想/响 · 编 vs 偏/扁
 
   # ─── Q3-Q4 Practice ─────────────────────────────────────
   - title: 试一试 — 单字 (PSLE 2023 + 2025 真题)
@@ -181,26 +166,19 @@ keyConcepts:
       is closest" — it's "which one matches this sentence's SCENE".
     bullets:
       - |-
-        **核心方法 — 先读完整个句子, 弄清在讲什么意思**, 再去看选项。
-        别一看到空就盯着 4 个选项 — 没有上下文, 4 个近义词长得都对。
-        Read the WHOLE sentence first to grasp the meaning. Don't
-        stare at the 4 options first — without context, all 4
-        near-synonyms look plausible.
+        **核心方法 — 先读完整句, 弄清意思, 再看选项。** 没有上下文, 4 个近义词长得都对。
+        Read the whole sentence first to grasp the meaning.
+        Without context, all 4 near-synonyms look plausible.
       - |-
-        **关键事实**: PSLE 10 年统计, **从不考具体名词** (桌子、电脑、苹果...)
-        只考**抽象动词 / 抽象形容词**: 克服 / 推动 / 惭愧 / 遵守 / 保护 / 后悔 / 妒忌
+        **关键事实**: PSLE 从不考具体名词 — 只考抽象动词 / 形容词
+        例: 克服 / 推动 / 惭愧 / 遵守 / 保护 / 后悔 / 妒忌
       - |-
-        **解题秘诀**: 读完句子后, 先**遮住选项**, 自己想"这空里应该填什么类型的词"。
-        然后看 4 个选项, 哪个最贴近**你想到的场景**就选哪个。
+        **解题秘诀**: 遮住选项, 先想"应该填什么词"。再看选项, 选最贴近你想到的。
       - |-
-        **示范** (PSLE 2024 Q6): "救护车 ___ 赶到现场, 把受伤的人送去医院。"
-        想: 救护车赶现场 → 应该"快"。
-        4 个选项: 急切 / 迅速 / 紧急 / 立刻 → 都和"快"有关, 但救护车的
-        "快"配 **迅速** (rapid / swift) 最自然。
+        **示范** (PSLE 2024 Q6): "救护车 ___ 赶到现场..." → 想"应该快"
+        选项: 急切/迅速/紧急/立刻 — 都"快", 但 "救护车 + 迅速" 最自然 → **迅速**
       - |-
-        **常见陷阱**: 4 个选项里有**1-2 个是和"对的词"近义**但搭配不上
-        (例: "迅速" 对, "立刻" 也快, 但 "救护车立刻赶到" 比 "救护车迅速赶到"
-        听起来不自然)。
+        **陷阱**: 1-2 个选项是近义词, 但搭配不上 — 听起来不自然 = 不对
 
   # ─── Q5-Q6 Practice ─────────────────────────────────────
   - title: 试一试 — 词语 (PSLE 2024 + 2025 真题)
