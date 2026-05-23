@@ -62,8 +62,8 @@ export async function GET(req: NextRequest) {
     const studentName = student.name ?? "Student";
     const levelStr = student.level ? `Primary ${student.level}` : "";
 
-    // Run all 3 DB queries for this student in parallel
-    const [markedPapers, recentFocused, recentQuizCount] = await Promise.all([
+    // Run all 4 DB queries for this student in parallel
+    const [markedPapers, recentFocused, recentQuizCount, pendingReviewPapers] = await Promise.all([
       prisma.examPaper.findMany({
         where: {
           assignedToId: student.id,
@@ -83,7 +83,21 @@ export async function GET(req: NextRequest) {
       prisma.examPaper.count({
         where: { assignedToId: student.id, paperType: "quiz", completedAt: { not: null }, createdAt: { gte: new Date(Date.now() - 7 * 86400000) } },
       }),
+      // Pending Review = AI-marked papers parent hasn't acknowledged yet.
+      // Mirrors ParentDashboard.pendingRelease: completed + markingStatus=complete + not a revision paper.
+      prisma.examPaper.findMany({
+        where: {
+          assignedToId: student.id,
+          completedAt: { not: null },
+          markingStatus: "complete",
+        },
+        select: { metadata: true },
+      }),
     ]);
+    const pendingReviewCount = pendingReviewPapers.filter(p => {
+      const meta = p.metadata as { revisionMode?: string } | null;
+      return !meta?.revisionMode;
+    }).length;
 
     const recentFocusedTopics = new Set(
       recentFocused.map(f => f.title.replace(/^P\d+\s+Focused:\s*/, "").replace(/^Focused:\s*/, ""))
@@ -134,7 +148,7 @@ export async function GET(req: NextRequest) {
     if (strongTopics.length > 0) summary += ` Strong in: ${strongTopics.join(", ")}.`;
     if (allWeakBySubject.length > 0) summary += ` Weak topics: ${allWeakBySubject.map(g => `${g.subject}: ${g.topics.join(", ")}`).join("; ")}.`;
     else summary += " No significant gaps.";
-    summary += ` ${recentQuizCount} quizzes this week.`;
+    summary += ` ${recentQuizCount} quizzes this week. ${pendingReviewCount} papers pending review.`;
     if (recentFocused.length > 0) {
       const focusedLines = recentFocused.map(f => {
         const topic = f.title.replace(/^P\d+ Focused: /, "").replace(/^Focused: /, "");
@@ -193,43 +207,32 @@ export async function GET(req: NextRequest) {
   const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
   let greeting = "";
   try {
-    const isStudentSpecific = studentIdFilter && linkedStudents.length === 1;
-    const prompt = isStudentSpecific
-      ? `You are a warm AI tutor assistant. Write a concise 2-3 sentence insight for ${parentName} about their child.
+    const prompt = `You are a warm AI coaching assistant for ${parentName}, a Singapore primary school parent.
 
 Student diagnostic:
 ${studentSummaries.join("\n")}
 ${examContext ? `Note: ${examContext}` : ""}
 
-Rules:
-- 2-3 sentences only — no greetings, no sign-offs
-- If the student recently completed focused practice, call it out personally and specifically using the verdict in parentheses in the diagnostic — the verdict is one of: (did well), (improving — pulled the topic average up from X% to Y%), or (needs more practice).
-- Verdict "did well": celebrate and tell the parent to praise the child
-- Verdict "improving — pulled the topic average up …": say the practice lifted the topic average and encourage more of the same; do NOT describe this as "needs more practice"
-- Verdict "needs more practice": say they need more practice on this topic and suggest another focused test
-- Do NOT claim "improving" unless the diagnostic verdict explicitly says "improving"
-- If there are weak topics not yet practised, name them and suggest focused practice
-- If performing well overall, acknowledge it and suggest a daily quiz to maintain momentum
-- Use **double asterisks** to bold: the child's name, topic names, percentages (e.g. **80%**), and key summary phrases (e.g. **performing well**, **needs more practice**, **no significant gaps**)
-- No bullet points, no numbered lists, no markdown other than **bold**`
-      : `You are a warm AI tutor assistant for ${parentName}, a Singapore primary school parent.
+Output 2-3 SHORT bullet points coaching the parent on the next move. Each bullet starts with "• " and is one short sentence (max ~20 words). No greetings, no intros, no sign-offs. Output ONLY the bullets, separated by newlines.
 
-Student diagnostic:
-${studentSummaries.join("\n")}
-${examContext ? `Note: ${examContext}` : ""}
+The bullets, in this order:
 
-Write a warm, conversational check-in message of 3-4 flowing sentences. Do NOT number the sentences.
+BULLET 1 (always include — PRAISE/ENCOURAGE):
+- If any student recently completed a focused test, name student + topic + verdict and tell the parent to praise/encourage. Verdicts come from the diagnostic in parentheses: (did well) → celebrate; (improving — pulled the topic average up from X% to Y%) → say the practice lifted the average, keep going; (needs more practice) → acknowledge effort, more practice needed.
+- If no recent focused test, give a brief warm note about overall progress or a strong topic.
+- Do NOT claim "improving" unless the diagnostic verdict says "improving".
 
-Start by greeting ${parentName} with "Good ${timeOfDay}". If any student recently completed focused practice, call it out specifically and personally — e.g. "Emily recently did a focused test on Fractions and did well! Encourage her on her improvement." Use the actual student name, topic name, and result. Naturally mention BY NAME which student(s) and WHICH specific topics they're finding difficult. Then offer two options: focused practice tests for the weak topics, or a daily quiz for general review.
+BULLET 2 (include ONLY if any student has 3+ papers pending review):
+- Prompt parent to clear the backlog using the **Revise Work** function. Mention the number pending and the student name.
 
-Rules:
-- No bullet points, no numbered lists
-- If recent focused practice results are available, ALWAYS call out performance personally (student name + topic + verdict from the diagnostic) and tell the parent to praise/encourage the child
-- Verdicts come from the diagnostic in parentheses: (did well) → celebrate; (improving — pulled the topic average up …) → say they lifted the topic average and encourage more; (needs more practice) → suggest another focused test
-- Do NOT claim "improving" unless the diagnostic verdict explicitly says "improving"
-- Mention specific topic names from the diagnostic — do not be vague
-- Use **double asterisks** to bold: student names, topic names, percentages (e.g. **80%**), and key summary phrases (e.g. **performing well**, **needs more practice**, **no significant gaps**)
-- No other markdown or formatting`;
+BULLET 3 (always include — NEXT ACTION):
+- If there are weak topics not yet practised, name 1-2 and suggest **Focused Practice**.
+- Otherwise suggest a **Daily Quiz** to maintain momentum.
+
+Formatting rules:
+- Use **double asterisks** to bold: student names, topic names, percentages (e.g. **80%**), and key actions (**Revise Work**, **Focused Practice**, **Daily Quiz**).
+- Use • (bullet character) at the start of each line, followed by a space.
+- One bullet per line. No other markdown.`;
 
     const response = await getAI().models.generateContent({
       model: "gemini-2.5-flash",
@@ -240,17 +243,19 @@ Rules:
     greeting = response.text.trim();
   } catch (e) {
     console.error("[recommendations] Gemini greeting failed:", e instanceof Error ? e.message : e);
-    // Build a specific fallback from the structured data
-    const gapLines = (actions as Action[])
-      .filter((a): a is Extract<Action, { type: "focused-gap" }> => a.type === "focused-gap")
-      .map(a => `${a.studentName} on ${a.gaps.flatMap(g => g.topics).slice(0, 2).join(" and ")} (${a.gaps[0]?.subject ?? ""})`);
-    if (gapLines.length > 0) {
-      greeting = `Good ${timeOfDay}, ${parentName}! I've been looking at the recent results and noticed some gaps for ${gapLines.join(", ")}. Would you like to set up some focused practice tests, or assign a daily quiz to keep things moving?`;
+    // Build a bullet fallback from the structured data
+    const gapAction = (actions as Action[]).find((a): a is Extract<Action, { type: "focused-gap" }> => a.type === "focused-gap");
+    const bullets: string[] = [];
+    bullets.push(`• Keep encouraging **${linkedStudents[0]?.name ?? "your child"}** — every quiz is progress.`);
+    if (gapAction) {
+      const topics = gapAction.gaps.flatMap(g => g.topics).slice(0, 2).map(t => `**${t}**`).join(" and ");
+      bullets.push(`• Try **Focused Practice** on ${topics} for **${gapAction.studentName}**.`);
     } else if (examType) {
-      greeting = `Good ${timeOfDay}, ${parentName}! ${examType} exams are coming up — would you like to assign some past-year paper practice, or set up a daily quiz to review key topics?`;
+      bullets.push(`• **${examType}** is coming — assign a past-year paper or **Daily Quiz** to revise key topics.`);
     } else {
-      greeting = `Good ${timeOfDay}, ${parentName}! Things are looking good — want to keep the momentum going with a daily quiz today?`;
+      bullets.push(`• Keep momentum with a **Daily Quiz** today.`);
     }
+    greeting = bullets.join("\n");
   }
 
   return NextResponse.json({ greeting, actions, summaries: studentSummaries.join(" ") });

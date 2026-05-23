@@ -79,6 +79,46 @@ function renderBold(text: string) {
   );
 }
 
+// Renders insight text. Lines starting with "•", "-", or "*" become bullet
+// items; other non-empty lines render as paragraphs above/between bullets.
+// Tolerant of mixed content (Gemini sometimes adds a preamble line).
+// Bold (**…**) is applied inline.
+function renderInsight(text: string) {
+  const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  const bulletRe = /^[•\-*]\s+/;
+  if (lines.length === 0) return null;
+  // Group consecutive bullet/non-bullet lines so paragraphs render as <p> and
+  // bullet runs render as a single <ul>.
+  type Block = { type: "p"; text: string } | { type: "ul"; items: string[] };
+  const blocks: Block[] = [];
+  for (const line of lines) {
+    if (bulletRe.test(line)) {
+      const item = line.replace(bulletRe, "");
+      const last = blocks[blocks.length - 1];
+      if (last && last.type === "ul") last.items.push(item);
+      else blocks.push({ type: "ul", items: [item] });
+    } else {
+      blocks.push({ type: "p", text: line });
+    }
+  }
+  return (
+    <div className="space-y-2">
+      {blocks.map((b, i) => b.type === "ul" ? (
+        <ul key={i} className="space-y-2 list-none">
+          {b.items.map((item, j) => (
+            <li key={j} className="flex gap-2">
+              <span className="text-[#4edea3] mt-[2px]">•</span>
+              <span className="flex-1">{renderBold(item)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p key={i}>{renderBold(b.text)}</p>
+      ))}
+    </div>
+  );
+}
+
 function relativeDate(dateStr: string) {
   const d = new Date(dateStr);
   const now = new Date();
@@ -1656,9 +1696,9 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
         <h3 className="font-headline font-bold text-xl mb-3 pr-8 leading-tight">
           {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
         </h3>
-        <p className="text-[#799dd6] text-sm leading-relaxed mb-4 flex-1">
-          {recLoading ? "" : renderBold(aiInsight || insightForCard)}
-        </p>
+        <div className="text-[#799dd6] text-sm leading-relaxed mb-4 flex-1">
+          {recLoading ? null : renderInsight(aiInsight || insightForCard)}
+        </div>
         {!recLoading && (
           <div className="space-y-2 mb-5">
             {/* Quiz activity */}
@@ -2979,7 +3019,7 @@ export default function ParentDashboard({ userId, user, initialStudentId, initia
                     <h2 className="font-headline text-3xl font-extrabold mb-4 leading-tight">
                       {recLoading ? "Analysing performance…" : `${selectedStudent?.name ?? "Your child"}'s snapshot`}
                     </h2>
-                    <p className="text-[#799dd6] text-base leading-relaxed flex-1">{renderBold(aiInsight || insightForCard)}</p>
+                    <div className="text-[#799dd6] text-base leading-relaxed flex-1">{renderInsight(aiInsight || insightForCard)}</div>
                   </div>
                   <div className="mt-8 flex gap-3">
                     <button

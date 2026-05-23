@@ -84,25 +84,41 @@ Return JSON:
 {"answer": "<answer key value, including working / rubric>"}`,
   });
 
-  try {
-    const response = await generateContentWithRetry({
-      model: "gemini-2.5-flash",
-      contents: [{ role: "user", parts }],
-      config: { responseMimeType: "application/json", temperature: 0.1 },
-    }, 1, 3000, `reextract-answer:q${qNum}`);
-    const text = response.text?.trim() ?? "";
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) return NextResponse.json({ error: "no JSON in response", raw: text.slice(0, 200) }, { status: 502 });
-    const parsed = JSON.parse(m[0]) as { answer?: string };
-    const answer = (parsed.answer ?? "").trim();
-    if (!answer) return NextResponse.json({ error: "empty answer in response" }, { status: 502 });
-    await prisma.examQuestion.update({
-      where: { id: questionId },
-      data: { answer },
-    });
-    return NextResponse.json({ answer });
-  } catch (err) {
-    console.error(`[reextract-answer] q${qNum} failed:`, err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "lookup failed" }, { status: 500 });
+  // Lead with 3.1-pro-preview for accuracy on long OEQs / rubric pages;
+  // fall back to 2.5-pro then 2.5-flash if upstream 504s.
+  const REEXTRACT_MODELS = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const;
+  let lastErr: unknown = null;
+  for (let mi = 0; mi < REEXTRACT_MODELS.length; mi++) {
+    const model = REEXTRACT_MODELS[mi];
+    try {
+      const response = await generateContentWithRetry({
+        model,
+        contents: [{ role: "user", parts }],
+        config: { responseMimeType: "application/json", temperature: 0.1 },
+      }, 0, 3000, `reextract-answer:q${qNum}:${model}`);
+      const text = response.text?.trim() ?? "";
+      const m = text.match(/\{[\s\S]*\}/);
+      if (!m) {
+        lastErr = new Error("no JSON in response");
+        continue;
+      }
+      const parsed = JSON.parse(m[0]) as { answer?: string };
+      const answer = (parsed.answer ?? "").trim();
+      if (!answer) {
+        lastErr = new Error("empty answer in response");
+        continue;
+      }
+      if (mi > 0) console.log(`[reextract-answer] q${qNum}: succeeded on fallback model ${model}`);
+      await prisma.examQuestion.update({
+        where: { id: questionId },
+        data: { answer },
+      });
+      return NextResponse.json({ answer });
+    } catch (err) {
+      lastErr = err;
+      console.warn(`[reextract-answer] q${qNum} on ${model} failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
   }
+  console.error(`[reextract-answer] q${qNum} failed on all models:`, lastErr);
+  return NextResponse.json({ error: lastErr instanceof Error ? lastErr.message : "lookup failed" }, { status: 500 });
 }

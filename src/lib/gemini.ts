@@ -3479,22 +3479,13 @@ async function extractAnswersWithWorking(
   // page + the long answer-extraction prompt. Same 504 risk as the
   // question-extraction call above.
   //
-  // Chinese papers get 3.1-pro-preview FIRST. The 阅读理解 A/B sections
-  // (长 OEQ + multi-paragraph rubric) were producing answer-key errors
-  // on 2.5-pro — character-level slips on long passages where the rubric
-  // and the model student answer interleave. Same accuracy/cost
-  // trade-off as the 语文应用 OCR upgrade: one-shot extraction, the
-  // dollar delta per paper is trivial against avoided manual
-  // corrections.
-  //
-  // English / Math / Science keep pro-first on 2.5-pro (3.1-pro-preview
-  // remains the second-try gateway for 504s).
-  const subjLower = (structure.header.subject ?? "").toLowerCase();
-  const isChineseForAns = subjLower.includes("chinese") || subjLower.includes("华文") || subjLower.includes("中文") || subjLower.includes("华语");
-  const ANS_MODELS = isChineseForAns
-    ? (["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const)
-    : (["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const);
-  const ansRetries = isChineseForAns ? 0 : 2;
+  // All subjects lead with 3.1-pro-preview. Chinese 阅读理解 A/B (长 OEQ +
+  // multi-paragraph rubric) was producing answer-key errors on 2.5-pro;
+  // English / Math / Science had occasional slips too (sub-part mis-assignment,
+  // mid-row rubric truncation). One-shot extraction, dollar delta is
+  // trivial against avoided manual corrections.
+  const ANS_MODELS = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const;
+  const ansRetries = 0;
   let response: Awaited<ReturnType<typeof generateContentWithRetry>> | null = null;
   let lastErr: unknown = null;
   for (let mi = 0; mi < ANS_MODELS.length; mi++) {
