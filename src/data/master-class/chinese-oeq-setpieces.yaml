@@ -361,30 +361,11 @@ keyConcepts:
     mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
     body: >-
       答"是怎样的人？"题的关键是: 看到英文意思能马上写出中文词。
-      下面 3 道反向小测试:
+      下面 2 道反向小测试:
       For "what kind of person?" questions, the key skill is: when you
       see an English meaning, instantly recall the Chinese word.
-      3 reverse-recall quizzes:
+      2 reverse-recall quizzes:
     interactiveQuiz:
-      - label: "GENEROUS — 中文是哪一个？"
-        stem: |-
-          想形容卖花的阿姨"自掏腰包帮小男孩送花" → 应该用哪个 4 字词？
-          To describe the flower-shop lady who paid out of her own
-          pocket to deliver flowers — which Chinese trait fits best?
-          (English: GENEROUS)
-        options:
-          - 慷慨
-          - 严格
-          - 难为情
-          - 退缩
-        correctAnswer: 1
-        explanation: >-
-          慷慨 = generous (PSLE 2021 标答用词)。"严格" = strict, "难为情" =
-          embarrassed, "退缩" = shrink back — 都不是 "generous"。
-          慷慨 = generous (PSLE 2021 official answer). 严格 = strict, 难为情
-          = embarrassed, 退缩 = shrink back — none mean "generous".
-        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
-        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
       - label: "CONSIDERATE / TOLERANT — 中文是哪一个？"
         stem: |-
           想形容好朋友"原谅我犯的错, 不计较" → 哪个组合最贴近 PSLE 标答？
