@@ -4378,7 +4378,14 @@ For EACH question, extract:
   - 拼音读音 questions (typically Q1-Q2 of 语文应用): the stem must contain EXACTLY ONE character wrapped in __ __ — the character whose pronunciation is being tested (the OCR marked it as underline because the original printed page shows a 着重号 dot below that character). The 4 options are pinyin strings with tone marks. Copy the pinyin verbatim including the tone diacritics (ā á ǎ à etc.) — do NOT normalise to plain ASCII (do NOT write "zhen3" or "zhen"). If you see options like "(1) zhēn (2) zhèn (3) chèn (4) chēn", emit options exactly as ["zhēn", "zhèn", "chèn", "chēn"].
   - For 短文填空 questions: each question's stem is the SENTENCE from the passage containing the relevant blank (so the student can read it in context). Mark the blank as "______" (six underscores). The 4 options go in the options array.
   - For 阅读理解 OEQ questions: include the FULL question text. Tables stay as markdown pipe tables; checkbox lists keep one per line. When the section is supposed to have EXACTLY ONE question (e.g. the 长 OEQ in 五-A: Q${secFirstQ}, single question) and the OCR text doesn't carry an explicit "Q${secFirstQ}" or "${secFirstQ}." marker, emit ONE entry with questionNum "${prefix}${secFirstQ}" and stem = the WHOLE OCR text (minus instruction headers like "请把答案写在作答簿上"). The long-OEQ stem is a multi-sentence instruction (e.g. 邀请短信 / 写一段话) — never return an empty stem or zero questions for a section that's expected to have one.
-  - For 完成对话 questions: stem is the LINE from the dialogue containing the blank. The word bank is stored in the section's passage data, not duplicated per-question.` : ""}
+  - For 完成对话 questions: stem is the LINE from the dialogue containing the blank. The word bank is stored in the section's passage data, not duplicated per-question.
+  - CHINESE PAPER 2 — default marks per question when not explicitly printed:
+      * 语文应用 MCQ (Q1-Q15):       **2 marks each** (section total ~30m)
+      * 短文填空 (Q16-Q20):           **2 marks each** (section total ~10m)
+      * 阅读理解 MCQ (Q21-Q25 + A 组 MCQ Q30-Q32):  **2 marks each**
+      * 完成对话 (Q26-Q29):           **2 marks each** (section total ~8m)
+      * 阅读理解 OEQ (Q33 in A 组, Q34-Q40 in B 组): variable, follow the per-question [N] markers printed on the page
+    The MCQ sections are uniformly 2 marks each across every PSLE Chinese paper since at least 2010 — when no explicit [N] marker is visible on the printed page for an MCQ question, OUTPUT marksAvailable: 2, never 1 and never null. Only OEQ questions use the printed per-question marks.` : ""}
 - answer: the correct answer from the answer key if known, null otherwise
 - marksAvailable: marks if shown (e.g. from [2] brackets), null otherwise
 - pageIndex: the 0-based page index (from "--- Page N ---" markers)
