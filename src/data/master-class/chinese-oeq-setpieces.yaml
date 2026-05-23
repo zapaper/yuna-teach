@@ -267,63 +267,24 @@ keyConcepts:
         mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
         mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
 
-  # ─── Q40: Question Types ───────────────────────────────────
-  - title: "Q40: Comprehension Conclusion (阅读理解 OEQ 收尾题) — 2 种主要问法"
-    mascotImage: /master-class/chinese-mcq-1/panda-teaching-pinyin.png
-    body: >-
-      近 4 年 (2022-2025) Comprehension Conclusion (4 分) 只考 2 种题型,
-      每种的"答题套路"不同。把这 2 个练熟, 就能稳拿 4 分。
-      Last 4 years (2022-2025) Comprehension Conclusion (4m) has used
-      ONLY 2 formats. Master these 2 templates → solid 4 marks.
-    bullets:
-      - |-
-        **格式 (a): 你同意吗？** (2022, 2023, 2024, 2025 — **几乎每年都考**)
-        **Format (a) — Do you agree?** (2022, 2023, 2024, 2025 — **almost every year**)
-        例: "你认为他这么做对吗？" / "你同意 X 的做法吗？" / "如果你是 X, 你还会 ___ 吗？"
-        Examples: "Was he right to…?" / "Do you agree with X's approach?"
-        / "If you were X, would you still…?" (all variations of yes/no + why)
-      - |-
-        **格式 (b): X 是怎样的人？** (2021 — **偶尔考, 但 2017 也考过**)
-        **Format (b) — What kind of person is X?** (2021 — **occasional**, also 2017)
-        例: "卖花的阿姨是个怎样的人？从哪里看出？"
-        Example: "What kind of person is the flower-shop lady? How do you know?"
-      - |-
-        **其他罕见题型** (10 年里只各出过 1-2 次, 不用深练):
-        **Other rare formats** (each appeared only 1-2 times in 10 years —
-        don't spend study time on these):
-        • 比较类: "X 和 Y, 谁更 ___?" (2018)
-        • 解释类: "这种方式指的是什么? 为什么 ___?" (2020)
-        Compare-type / Explain-type — if these appear, use the same
-        "(1) per specific point" rule.
-
-  # ─── Q40: Marking convention ──────────────────────────────
-  - title: "评分 — 每个要点 (1) 分, 共 4 分"
+  # ─── Q40 section opener: 2 formats + scoring ──────────────
+  - title: "Q40: Comprehension Conclusion (阅读理解 OEQ 收尾题) — 2 种格式 + 评分"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
     body: >-
-      标答里你会看到 (1)(1)(1)(1) 这样的标记 — 每一个**具体、明确的要点**
-      给 1 分。共 4 个要点 = 4 分满分。
-      Model answers show (1)(1)(1)(1) marks — each SPECIFIC, CLEAR point
-      earns 1 mark. Four points = full 4 marks.
+      近 4 年只考 2 种格式。每一个**具体、明确的要点** = 1 分。共 4 个要点 = 4 分满分。
+      Last 4 years has used 2 formats only. Each SPECIFIC, CLEAR point = 1 mark.
+      4 points = full 4 marks.
     bullets:
       - |-
-        **格式 (a) — 你同意吗？** 4 个要点是:
+        **格式 (a): 你同意吗？(~60%)** — 4 个要点:
         **(1) 表态** + **(1) 理由 1** + **(1) 理由 2** + **(1) 理由 3 / 额外角度**
-        Format (a) Agree — four points:
-        position + reason 1 + reason 2 + reason 3 / extra angle
       - |-
-        **格式 (b) — 是怎样的人？** 4 个要点是:
-        **(1) 性格词 1** + **(1) 性格词 2** + **(1) 具体行为证据 1** + **(1) 具体行为证据 2**
-        Format (b) Character — four points:
-        trait 1 + trait 2 + specific evidence 1 + specific evidence 2
-      - |-
-        **2025 真题 (格式 a 例子):** 我同意妈妈教育孩子的方法 (1)。
-        把做好事和放糖果连接, 让孩子愿意主动帮忙 (1)。这样不仅能减少吵架,
-        还能让他们学会关心家人 (1)。用"圣诞老人会来"作为鼓励, 让过程变得有趣又有效 (1)。
-        2025 model (Format a): position + mechanism + outcome + bonus angle.
-      - |-
-        **2021 真题 (格式 b 例子):** 卖花的阿姨是个**慷慨**(1)且**好心**(1)的人。
-        虽然小男孩给的钱不够 (1), 但她还是每年自掏腰包帮他送花 (1)。
-        2021 model (Format b): 2 traits + 2 passage-evidence points.
+        **格式 (b): X 是怎样的人？(~30%)** — 4 个要点:
+        **(1) 性格词 1** + **(1) 性格词 2** + **(1) 证据 1** + **(1) 证据 2**
+    callout: >-
+      规律: 每个要点必须**具体**。"他是好人" (X 0 分) vs "他慷慨且好心" (✓ 1 分)。
+      Rule: each point must be SPECIFIC. "He is good" (0 marks) vs
+      "He is generous and kind-hearted" (1 mark).
 
   # ─── Q40: Universal template ──────────────────────────────
   - title: "通用模板 — 4 句话 = 4 分"
