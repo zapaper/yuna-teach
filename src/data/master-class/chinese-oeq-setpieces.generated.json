@@ -137,30 +137,40 @@
       "callout": "规律: 每个要点必须**具体**。\"他是好人\" (X 0 分) vs \"他慷慨且好心\" (✓ 1 分)。 Rule: each point must be SPECIFIC. \"He is good\" (0 marks) vs \"He is generous and kind-hearted\" (1 mark)."
     },
     {
-      "title": "通用模板 — 4 句话 = 4 分",
+      "title": "格式 (a) — 你同意吗？模板 — 4 句话 = 4 分",
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
-      "body": "格式 (a) 和 (b) 都可以用同一个 4 句话模板, 只换内容词: Both Format (a) and (b) use the SAME 4-sentence skeleton — just swap the content words:",
+      "body": "格式 (a) 用 4 句话, 每句 1 分: Format (a) uses 4 sentences, 1 mark each:",
       "bullets": [
-        "**第 1 句 (1 分): 立场** — \"我同意\" / \"我不认同\" / \"我认为他是 ___ 的人\"\nSentence 1 (1m): take a stance — \"I agree\" / \"I think he is ___\"",
-        "**第 2 句 (1 分): 主要理由 / 第一个证据** — 引文中具体情节 + 评价\nSentence 2 (1m): main reason / first evidence — cite passage + evaluate",
-        "**第 3 句 (1 分): 第二个证据 / 进一步说明** — 用 \"另外\" / \"再说\" / \"因为\"\nSentence 3 (1m): second evidence / deeper reasoning — use connectors",
-        "**第 4 句 (1 分): 总结 / 个人方案** — 用 \"因此\" / \"我希望\" / \"我会\"\nSentence 4 (1m): wrap-up / personal action — use \"therefore\" / \"I hope\" / \"I would\""
+        "**第 1 句 (1 分): 立场** — \"我同意\" / \"我不认同\"\nSentence 1: take a stance",
+        "**第 2 句 (1 分): 理由 1** — 引文中具体情节 + 评价\nSentence 2: reason 1 — cite passage + evaluate",
+        "**第 3 句 (1 分): 理由 2** — 用 \"另外\" / \"再说\" / \"因为\"\nSentence 3: reason 2 — use connectors",
+        "**第 4 句 (1 分): 理由 3 / 额外角度** — 用 \"这样不仅 ___ 还 ___\"\nSentence 4: reason 3 / extra angle — use \"not only … but also …\""
       ]
     },
     {
-      "title": "套话 ① — 表态 (同意/不同意/评价)",
-      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-vocab.png",
-      "body": "开头要直接表态, **不要绕弯子**。3 种最常见的开头: Open with a direct stance — don't wander. 3 most-common starters:",
+      "title": "格式 (a) 解题示范 — PSLE 2025 妈妈糖果瓶教育",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
+      "body": "文章摘要: 妈妈让吵架的两个哥哥相亲相爱 — 每做一件好事就放一颗糖果进瓶子, 瓶子装满了\"圣诞老人\"才会来。 题目: 你同意文中妈妈教育孩子的方法吗？(4 分) Summary: Mom got fighting brothers to be loving — each good deed adds a candy to the jar; when full, \"Santa\" comes. Question: Do you agree with the mom's teaching method? (4m)",
       "bullets": [
-        "**我同意 / 我赞成 ___ 的做法。**\nI agree with / I support ___'s approach.",
-        "**我不认同 / 我不赞成 ___ 的做法。**\nI disagree with / I don't support ___'s approach.",
-        "**我认为 / 我觉得 ___ 是 ___ 的人。**\nI think / I feel ___ is a ___ kind of person.",
-        "**如果我是 ___, 我会 / 不会 ___。**\nIf I were ___, I would / wouldn't ___.",
-        "**通过 ___ , 我认为他们是 ___ 的人。**\nBased on ___, I think they are ___ kind of people."
+        "**(1) 第 1 句 — 立场:** 我同意妈妈教育孩子的方法。",
+        "**(1) 第 2 句 — 理由 1 (机制):** 把做好事和放糖果连接起来, 会让孩子更愿意主动帮忙, 也能让他们觉得有成就感。",
+        "**(1) 第 3 句 — 理由 2 (结果, 用\"不仅 ___ 还 ___\"):** 这样不仅能减少两兄弟吵架, 还能让他们学会关心家人。",
+        "**(1) 第 4 句 — 理由 3 (额外角度):** 用\"圣诞老人会来\"作为鼓励, 也让整个过程变得有趣又有效。",
+        "**⚠️ 陷阱:** 第 4 句不能只是\"所以我同意\" — 必须多加一个新点。\nTrap: sentence 4 must add a NEW point, not just restate."
       ]
     },
     {
-      "title": "套话 ② — 正面性格词 (背熟 12 个就够)",
+      "title": "格式 (b) — X 是怎样的人？(What Kind of Person?) 模板 — 2 句话 = 4 分",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
+      "body": "格式 (b) 用 2 句话, 每句装 2 个分点: Format (b) uses 2 sentences, each carrying 2 marks:",
+      "bullets": [
+        "**第 1 句 (1 + 1 分): 性格词 1 + 性格词 2**\nSentence 1 (2m): name two SPECIFIC traits\n套句: \"X 是个 **(1) 性格词 1** 且 **(1) 性格词 2** 的人。\"\nPattern: \"X is a [trait 1] and [trait 2] kind of person.\"",
+        "**第 2 句 (1 + 1 分): 证据 1 + 证据 2** (用文中具体行为)\nSentence 2 (2m): two SPECIFIC passage behaviours\n套句: \"虽然 ___, 但 ___ (1)。另外, ___ (1)。\"\nPattern: \"Although ___, [behaviour] (1). Also, [behaviour] (1).\"",
+        "**关键: 性格词必须**和文章寓意一致**, 不能\"看脸挑词\"。\nKey: traits MUST match the passage's MORAL, not just any\npositive word that loosely fits."
+      ]
+    },
+    {
+      "title": "格式 (b) — 12 个正面性格词 (背熟就够)",
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-vocab.png",
       "body": "\"X 是怎样的人？\" 题目你只需要 12 个正面词就够用。背熟英文意思, 下次看到题目就能秒选。 For \"what kind of person?\" questions, just 12 positive trait words cover most cases. Memorise the English meaning — when a question arrives, you can match instantly.",
       "bullets": [
@@ -179,58 +189,7 @@
       ]
     },
     {
-      "title": "套话 ③ — 评价人物 (反面性格)",
-      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-idiom.png",
-      "body": "碰到批评型问题, 用这些\"负面评价词\": For criticism-type questions, use these negative trait phrases:",
-      "bullets": [
-        "**傲慢无礼** / **看不起他人**\nArrogant and rude / looks down on others",
-        "**以金钱至上**\nPuts money above all else",
-        "**不肯原谅别人** / **不体谅别人**\nWon't forgive others / inconsiderate",
-        "**不尊重孩子的兴趣和选择**\nDoesn't respect the child's interests and choices",
-        "**强迫 ___ 做不喜欢的事**\nForces ___ to do what they don't like"
-      ]
-    },
-    {
-      "title": "套话 ④ — 引用证据 (从文中找理由)",
-      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
-      "body": "光\"表态\"还不够, 必须从文中找证据支持。这些套句把证据\"串\"进答案: Position alone isn't enough — back it up with passage evidence using these stitch phrases:",
-      "bullets": [
-        "**从 X 可以看出 ___。**\nFrom X we can see that ___.",
-        "**这说明了 ___。** / **这让我们看出 ___。**\nThis shows that ___ / This lets us see ___.",
-        "**比如 / 例如, X ___。**\nFor example, X ___.",
-        "**虽然 X, 但是 Y。**\nAlthough X, but Y.",
-        "**即使 X, 也 Y。**\nEven if X, also Y.",
-        "**因为 ___, 所以 ___。**\nBecause ___, therefore ___."
-      ]
-    },
-    {
-      "title": "套话 ⑤ — 收尾 + 加分关联词",
-      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-vocab.png",
-      "body": "最后一句要\"扣题\": 重申立场或下结论。多用关联词显得有逻辑。 Final sentence circles back to your stance. Connectors add polish.",
-      "bullets": [
-        "**因此 / 所以, 我 ___。**\nTherefore / so, I ___.",
-        "**这样不仅能 ___, 还能 ___。**\nThis way you can not only ___, but also ___.",
-        "**由此可见, ___。**\nFrom this we can see that ___.",
-        "**我希望我的 X 是 ___ 的人。** (适用于\"还会把他当朋友吗\"型)\nI hope my X is the kind of person who ___. (for \"would you still…\" qs)",
-        "**答案合理即可** — PSLE 允许各种合理观点, 同意和不同意**都可以得满分**, 关键看理由是否合理。\nPSLE accepts ANY reasonable stance — agree OR disagree both score\nfull marks if reasoning holds."
-      ]
-    },
-    {
-      "title": "格式 (a) — '你同意吗?' (标出 (1)(1)(1)(1) 评分)",
-      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
-      "body": "格式 (a) 评分规律: **(1) 表态 + (1)(1)(1) 三个不同的理由 = 4 分**。 \"结论\"不另算分 — 必须**多加一个理由**才有第 4 分。 Format (a) scoring: (1) Position + (1)(1)(1) three distinct reasons = 4 marks. A pure restatement at the end earns 0 marks — the \"wrap-up\" must ADD a NEW POINT to score.",
-      "bullets": [
-        "**PSLE 2025 真题:** 你同意文中妈妈教育孩子的方法吗？(4 分)\nQuestion: Do you agree with the mom's teaching method? (4m)",
-        "**文章摘要 (中文):** 妈妈让吵架的两个哥哥相亲相爱: 每做一件好事,\n就放一颗糖果进瓶子里。瓶子装满了, \"圣诞老人\"才会来。\nSummary: Mom got fighting brothers to be loving — for each\ngood deed, a candy in the jar. When full, \"Santa\" will come.",
-        "**(1) 第 1 句 — 表态:** 我同意妈妈教育孩子的方法。\n(1) Sentence 1 — Position: I agree with the mom's method.",
-        "**(1) 第 2 句 — 理由 ① (机制 / 怎么起作用):** 把做好事和放糖果连接起来,\n会让孩子更愿意主动帮忙, 也能让他们觉得有成就感。\n(1) Sentence 2 — Reason 1 (mechanism): Linking good deeds to\ncandy makes kids willingly help and feel achievement.",
-        "**(1) 第 3 句 — 理由 ② (结果 / 带来什么好处, 用\"不仅 ___ 还 ___\"):**\n这样不仅能减少两兄弟吵架, 还能让他们学会关心家人。\n(1) Sentence 3 — Reason 2 (outcome, use \"not only…but also\"):\nNot only reduces fighting, but also teaches caring for family.",
-        "**(1) 第 4 句 — 理由 ③ (额外角度, 不要只是\"重复立场\"):**\n用\"圣诞老人会来\"作为鼓励, 也让整个过程变得有趣又有效。\n(1) Sentence 4 — Reason 3 (bonus angle, NOT just restating\nposition): Using \"Santa will come\" makes the process fun and\neffective.",
-        "**⚠️ 结论的陷阱:** 如果第 4 句只是\"所以我同意\" — 0 分。必须**多加一个新点**。\n⚠️ Conclusion trap: if sentence 4 is just \"so I agree\" → 0 marks.\nMust add a NEW reasoning point. The connector \"不仅 …, 还 …\" or\n\"用 …, 也 …\" is the typical signal of \"I'm adding one more point\"."
-      ]
-    },
-    {
-      "title": "格式 (b) — 'X 是怎样的人?' (标出 (1)(1)(1)(1) 评分)",
+      "title": "格式 (b) 解题示范 — PSLE 2021 卖花阿姨",
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
       "body": "格式 (b) 评分规律: **(1) 性格词 1 + (1) 性格词 2 + (1) 证据 1 + (1) 证据 2**。 性格词必须**和文章中心 / 寓意一致** — 不能随便挑一个适合的。 Format (b) scoring: (1) trait 1 + (1) trait 2 + (1) evidence 1 + (1) evidence 2 = 4 marks. Traits MUST match the passage's MORAL — not just any positive word that loosely fits.",
       "bullets": [
