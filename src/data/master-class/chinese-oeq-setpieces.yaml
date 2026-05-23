@@ -128,144 +128,170 @@ keyConcepts:
       reason the question asks for → bank 2 content marks. (2) write the
       greeting + hook + closing properly per format → bank 2 language marks.
 
-  # ─── Q33 Set Piece 1: Greetings + Hooks ─────────────────────
-  - title: "Q33 套话 ① — 问候 + 起因 (开头句)"
+  # ─── Q33 步骤 ① + ② 开头 (问候 + 起因) ─────────────────────
+  - title: "Q33 步骤 ①② — 开头 (问候 + 起因)"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
     body: >-
-      电邮和短信开头, 用这几句**百搭**。把 "X" 换成对方的名字就行。
-      Opening lines that work for any topic. Swap "X" for the name.
+      开头 = **问候 + 起因**, 两句话搞定。这两步**不给内容分, 但写不好扣语言分**。
+      Opening = **greeting + hook**, two sentences max. These two
+      steps don't carry CONTENT marks, but skipping/messing them
+      DOCKS the 2 language marks.
     bullets:
       - |-
-        **X, 你好！** / **X：**
-        Hi X! / X: (formal)
+        **① 问候 — 用名字直接称呼:**
+        Step 1 — greet by name:
+        **小文,** / **国文表哥:** / **妈妈:** / **外婆,**
+        Xiaowen, / Cousin Guowen: / Mom: / Grandma,
       - |-
-        **我刚报名参加了"___"活动。**
-        I just signed up for the "___" activity.
+        **② 起因 — 一句话讲明"我为什么写这封信":**
+        Step 2 — one sentence stating why you're writing:
       - |-
-        **你不是对 ___ 很有兴趣吗？**
-        Aren't you interested in ___?
+        (邀请类) **我想邀请你一起 ___。**
+        (Invite) I want to invite you to ___.
       - |-
-        **您知道吗？就算 ___, 您也能 ___。**
-        Did you know? Even if ___, you can still ___.
+        (分享类) **我好兴奋, 因为我刚报名参加了"___"活动。**
+        (Share) I'm excited because I just signed up for "___".
       - |-
-        **我看到学校的通告/广告, 想 ___。**
-        I saw the school notice/ad, and want to ___.
+        (提醒类) **明天我们要去 ___, 我想提醒你 ___。**
+        (Remind) Tomorrow we're going to ___, I want to remind you ___.
       - |-
-        **我想邀请你 / 提醒你 / 告诉你**
-        I want to invite you / remind you / tell you
+        (请求类) **请帮我 ___。**  *(便条向爸妈求帮忙)*
+        (Ask) Please help me ___. *(notes asking parents for help)*
+      - |-
+        (推荐类) **您知道吗？就算 ___, 您也能 ___。**
+        (Recommend) Did you know? Even if ___, you can still ___.
     callout: >-
-      告诉自己: 开头不用想太多, 直接套这几句。1 分到手。
-      Don't overthink openings — slot one of these in. Easy 1 mark.
+      开头超过 2 句话 = 浪费时间。直接 1 句问候 + 1 句起因 → 跳到详情和理由。
+      More than 2 sentences in the opening = wasted time. 1 greeting +
+      1 hook → jump straight to details + reasons (where the marks live).
 
-  # ─── Q33 Set Piece 2: Hooks + Purpose ───────────────────────
-  - title: "Q33 套话 ② — 写信的目的"
-    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
-    body: >-
-      说清楚"我为什么写这封信"。一句话讲明白。
-      State why you're writing — in one sentence.
-    bullets:
-      - |-
-        **所以特意写此电邮告诉你这个好消息。**
-        That's why I'm specially writing to tell you this good news.
-      - |-
-        **我觉得这个 ___ 会对你有帮助。**
-        I think this ___ would be helpful to you.
-      - |-
-        **我想请你/你帮我 ___。** (注: 用于便条向爸妈求帮忙)
-        I want to ask you to help me ___. (for notes asking parents)
-      - |-
-        **请你 ___ , 并告诉 ___。** (用于复杂请求)
-        Please ___, and tell ___. (for compound requests)
-    callout: >-
-      "起因句"是给整篇文章定调的, 不能省。
-      The "purpose" line sets the tone of the whole letter — don't skip it.
-
-  # ─── Q33 Set Piece 3: Details (when/where/what) ─────────────
-  - title: "Q33 套话 ③ — 详情 (时间、地点、活动)"
+  # ─── Q33 步骤 ③ Details (with concrete date/time examples) ──
+  - title: "Q33 步骤 ③ — 详情 (时间、地点、活动) — 内容 1 分"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
     body: >-
-      这是 Q33 拿分的关键: 从通告中抄出**时间 + 地点 + 内容**。
-      用下面的句式串起来。
-      This is where Q33 marks live: lift time + place + activity
-      from the notice, glue them together with these patterns.
+      详情 = 从通告里抄出**具体事实**。每个事实 0.5 分。下面分别给你
+      **时间、地点、活动**的写法模板:
+      Details = lift SPECIFIC facts from the notice. Each fact = 0.5 mark.
+      Below are write-out templates for time / place / activity:
     bullets:
       - |-
-        **这个活动将在 X 月 X 日 上午/下午 X 点 在 ___ 举行。**
+        **时间 (WHEN) 写法 — PSLE 标答最爱的格式:**
+        Time format — PSLE's favourite patterns:
+        **X 月 X 日** (date) — e.g. 11 月 29 日, 10 月 28 日
+        **上午 / 下午 X 点** (am/pm) — e.g. 上午十点, 下午三点
+        **上午 X 点到下午 X 点** (span) — e.g. 上午十点到下午三点
+        **X 月 X 日之前** (before / deadline) — e.g. 10 月 7 日之前
+        **每个星期 X** (every X) — e.g. 每个星期五上午九点到十点
+      - |-
+        **地点 (WHERE) 写法:**
+        Place format:
+        **在 ___ (地点) 举行 / 举办。** — e.g. 在东海岸海滩举行 (2025)
+        **在 ___ 集合。** — e.g. 在交通公园门口集合 (2018)
+      - |-
+        **活动 (WHAT) 写法 — 把"做什么"写清楚:**
+        Activity format — make "what we'll do" concrete:
+        **可以 ___, 还可以 ___。** — e.g. 可以表演舞蹈, 还可以参观展览 (2024)
+        **将提供 ___。** — e.g. 将提供各种各样的故事书 (2017)
+      - |-
+        **完整句式 (一句话装下时间+地点+活动):**
+        Full pattern (one sentence with time+place+activity):
+        **这个活动将在 X 月 X 日 上午/下午 X 点, 在 ___ 举行。**
         The activity will be held on [date] at [time] at [place].
       - |-
-        **时间是上午 X 点到下午 X 点。**
-        The time is X to X.
-      - |-
-        **报名的方法是 ___ , 收费 X 元。**
-        Register by ___, fee is X dollars.
-      - |-
-        **当天我们/你可以 ___, 还可以 ___。**
-        On the day we/you can ___, and also ___.
-      - |-
-        **学校将在 ___ 举办 ___。**
-        The school will hold ___ at ___.
+        **报名 / 费用 (HOW) 写法:** **报名的方法是 ___**, **收费是 X 元**, **需在 ___ 付费**
+        Registration / cost: "the way to register is ___", "fee is X dollars", "pay by ___"
     callout: >-
-      通告里 80% 的信息都可以直接抄进作文。这是合法的"抄答案"!
-      80% of the info from the notice can be copy-pasted in — totally legit.
+      通告里 80% 的信息都可以**直接抄**进作文。这是合法的"抄答案"!
+      80% of the info from the notice can be COPIED into your answer.
+      Lifting from the notice is the official strategy.
 
-  # ─── Q33 Set Piece 4: Reasons / Value ───────────────────────
-  - title: "Q33 套话 ④ — 理由 (为什么对方应该参加)"
+  # ─── Q33 步骤 ④ Reason (with examples) ─────────────────────
+  - title: "Q33 步骤 ④ — 理由 (为什么参加) — 内容 1 分"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
     body: >-
-      光列详情不够 — 要给对方一个"参加的理由"。这些套话最常用:
-      Listing details isn't enough — give the recipient a reason
-      to act. These phrases pull double duty:
+      理由 = 解释**为什么对方应该关心**。每个理由 0.5 分。下面给你 3 种最常用的写法:
+      Reasons = explain WHY the recipient should care. Each reason
+      = 0.5 mark. 3 most-used patterns below:
     bullets:
       - |-
-        **你一向喜欢 ___。** / **你对 ___ 很有兴趣。**
-        You've always liked ___ / You're interested in ___.
+        **写法 1: "不仅能 ___, 也能 ___。" (双理由, PSLE 最爱)**
+        Pattern 1: "Not only can …, but also …" (double reason — PSLE favourite)
+        例: 我不仅能学习保护环境, 也能了解小海龟出生的条件 (2025)
+        Ex: "I can not only learn to protect the environment, but also
+        understand sea turtle hatching" (2025 model)
       - |-
-        **完全符合 ___ 的要求。**
-        You completely meet ___'s requirements.
+        **写法 2: "因为 ___, 所以 ___。" (单理由, 直白)**
+        Pattern 2: "Because …, so …" (single reason — direct)
+        例: 因为这是一项有意义的活动, 所以我想报名参加。
+        Ex: "Because this is a meaningful activity, I want to register."
       - |-
-        **不仅能 ___, 也能 ___。** / **不但能 ___, 还能 ___。**
-        Not only can you ___, but also ___.
+        **写法 3: 个人化的理由 (针对收件人)**
+        Pattern 3: personalised reason (tailored to the recipient)
+        例: 你一向喜欢看书, 这个"阅读角落"将提供各种书籍 (2017)
+        Ex: "You've always liked reading — this 'reading corner' will
+        provide all kinds of books" (2017 model)
       - |-
-        **一举两得, 何乐而不为呢？**
-        Two birds with one stone — why not?
+        **写给长辈时的额外套话:**
+        Bonus phrases when writing to elders:
+        **我们都希望您有健康的身体。** — We all hope you stay healthy.
+        **这是一项非常有意义的活动。** — This is a very meaningful activity.
       - |-
-        **我们都希望您有 ___ 的身体。** (写给长辈)
-        We all hope you have a healthy ___ (when writing to elders).
-      - |-
-        **这是一项非常有意义的活动。**
-        This is a very meaningful activity.
+        **加分关联词:**
+        Bonus connectors:
+        **不仅 ___, 也 ___** / **不但 ___, 还 ___** / **不只 ___, 而且 ___**
+        "Not only X, but also Y" — three interchangeable forms.
     callout: >-
-      "不但 ___, 还 ___" 是 PSLE 标答最爱用的关联词, 几乎每年都出现。
-      "Not only … but also …" appears in nearly every model answer.
+      "不仅 ___, 也 ___"几乎每年都出现 — 它一句话就拿 2 个 0.5 分。背熟!
+      "Not only … but also …" appears almost every year — it earns TWO
+      0.5 marks in a single sentence. Memorise it.
 
-  # ─── Q33 Set Piece 5: Closings ──────────────────────────────
-  - title: "Q33 套话 ⑤ — 结尾 (号召 + 落款)"
+  # ─── Q33 步骤 ⑤ Closing (with format-by-format breakdown) ───
+  - title: "Q33 步骤 ⑤ — 结尾 (3 种格式, 一定要写对)"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
     body: >-
-      结尾要"催"对方行动。最后再加"祝身体健康"和签名。
-      Closing should "nudge" the recipient. Add sign-off.
+      结尾**格式因写信类型而不同**。写错格式 = 扣语言分。
+      看 PSLE 真题里 3 种格式的差异:
+      Closing format DEPENDS on the type of letter. Wrong format =
+      language marks docked. The 3 formats from PSLE actual papers:
     bullets:
       - |-
-        **机不可失, 记得 ___。**
-        Don't miss this chance — remember to ___.
+        **格式 A — 电邮 (Email) [2017, 2020, 2021, 2025]:**
+        Format A — Email:
+        最后一句 (号召行动) — e.g. 待我参加活动后再跟你分享！
+        Last sentence (call to action)
+        **祝** *(空一行)*
+        **身体健康** *(缩进, 单独一行)*
+        **[你的名字]** *(单独一行)*
+        Wishing / good health / [your name] — each on its own line.
       - |-
-        **快快行动吧！**
-        Hurry, take action!
+        **格式 B — 短信 (SMS) [2018, 2019, 2022, 2024]:**
+        Format B — SMS:
+        最后一句直接结尾 — e.g. 您要记得收看哦！(2022) / 快快行动吧！(2019)
+        Final sentence ends the message — no formal sign-off.
+        **没有"祝身体健康", 也没有单独签名。**
+        NO "祝 / 身体健康", NO separate sign-off line.
       - |-
-        **我们 X 月 X 日一起去吧！**
-        Let's go together on [date]!
+        **格式 C — 便条 (Note) [2023]:**
+        Format C — Note:
+        最后一句结尾 — e.g. 请您一定要在 ___ 之前报名。
+        **[你的名字]** *(单独一行)*
+        **[日期]** *(单独一行, e.g. 10 月 3 日)*
+        **[时间]** *(单独一行, e.g. 晚上 9 点)*
+        Name / Date / Time — each on its own line, like a memo footer.
       - |-
-        **您要记得 ___ 哦！** (写给长辈)
-        Please remember to ___! (to elder)
-      - |-
-        **待我参加活动后回来, 再跟你分享。**
-        I'll share with you when I'm back from the activity.
-      - |-
-        **祝 / 身体健康 / [你的名字]**
-        Sign-off: Wishing you good health / [your name]
+        **3 种格式的"号召行动"句式 (任选 1 句, 放在结尾前):**
+        Call-to-action phrases (pick one, place BEFORE the sign-off):
+        **机不可失, 记得 ___。** Don't miss this — remember to ___.
+        **快快行动吧！** Hurry, take action!
+        **我们 X 月 X 日一起去吧！** Let's go together on [date]!
+        **您要记得 ___ 哦！** *(对长辈)* Remember to ___! (to elder)
     callout: >-
-      落款"祝身体健康"是固定格式, 必须写。漏掉这一句就丢 0.5 分。
-      "祝 身体健康" is a fixed sign-off — skipping it loses 0.5 marks.
+      看题目里给你的"格式提示":
+      电邮有"发件人/收件人/主题" → 用电邮格式。
+      短信只有称呼 → 用短信格式。
+      便条会说"留下一张便条" → 用便条格式。
+      Read the question's format hint: email has sender/recipient/subject,
+      SMS just has a greeting, note says "leave a note" — match the format.
 
   # ─── Q33 Worked Example ────────────────────────────────────
   - title: "Q33 解题示范 — 2024 年校庆短信 (标出 4 × 0.5)"
