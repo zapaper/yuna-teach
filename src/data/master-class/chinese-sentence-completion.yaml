@@ -58,72 +58,59 @@ keyConcepts:
         **小固定池**: 单连词 ~10 个 + 双连词 ~15 个 = ~26 总数
 
   # ─── Q9 — Single Connectors ──────────────────────────────
-  - title: "Q9 — 单个关联词 (固定池约 10 个)"
+  - title: "Q9 — 单个关联词 (按关系分组)"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
     body: >-
-      Q9 在前句开头填 1 个连词, 表明两句的关系。PSLE 2016-2025 常考这 10 个:
-      Q9 fills ONE connector at the start of a sentence, marking the
-      relationship between two clauses. 10 most-tested in 2016-2025:
+      Q9 在前句开头填 1 个连词。**先想两句话的关系**, 再挑那一类的词。
+      Q9 fills ONE connector at the start of a sentence. **Identify
+      the relationship first**, then pick from that category.
     bullets:
       - |-
-        **由于** — 因果 (cause)。例: **由于**下雨, 比赛取消了。
+        **因果 (CAUSE)** — 由于 · 既然
+        例: **由于**下雨, 比赛取消了。
       - |-
-        **只要** — 条件 (condition)。例: **只要**你努力, 就会成功。
+        **条件/假设 (CONDITION / IF)** — 如果 · 只要
+        例: **只要**你努力, 就会成功。
       - |-
-        **不管** — 让步 (regardless)。例: **不管**天气如何, 我都去。
+        **让步 (CONCESSION / EVEN IF)** — 即使 · 不管 · 无论 · 虽然
+        例: **不管**天气如何, 我都去。
       - |-
-        **无论** — 让步 (regardless)。例: **无论**多远, 我都送你。
+        **时间起点 (SINCE-TIME)** — 自从
+        例: **自从**搬家后, 我们少见面了。
       - |-
-        **自从** — 时间起点 (since)。例: **自从**搬家后, 我们少见面了。
-      - |-
-        **如果** — 假设 (if)。例: **如果**下雨, 就取消。
-      - |-
-        **既然** — 因果 (since/given)。例: **既然**你来了, 就留下吧。
-      - |-
-        **即使** — 让步 (even if)。例: **即使**很难, 我也要试。
-      - |-
-        **虽然** — 转折 (although)。例: **虽然**累, 但很开心。
-      - |-
-        **除了** — 除外 (besides)。例: **除了**他, 大家都去了。
+        **除外 (BESIDES)** — 除了
+        例: **除了**他, 大家都去了。
 
   # ─── Q10 — Paired Connectors ─────────────────────────────
-  - title: "Q10 — 一对关联词 (固定池约 15 对)"
+  - title: "Q10 — 一对关联词 (按关系分组)"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
     body: >-
-      Q10 在前后两句各填一个连词, 必须配对。PSLE 2016-2025 常考的 15 对:
-      Q10 fills TWO connectors that must pair correctly. 15 pairs
-      most-tested in 2016-2025:
+      Q10 在前后两句各填一个连词。同一类关系**有 2-4 个写法可选** — 看
+      句意挑最合适那对。
+      Q10 fills TWO connectors that must pair. Each relationship has
+      2-4 valid pair patterns — pick whichever fits the sentence best.
     bullets:
       - |-
-        **不但 ___, 而且 ___** — 递进 (not only … but also)
+        **递进 (ALSO / MOREOVER)** — 不但…而且 · 不但…还 · 不仅…也
+        例: 妈妈**不但**聪明, **而且**勤奋。
       - |-
-        **不但 ___, 还 ___** — 递进
+        **反向递进 (NOT ONLY … ON CONTRARY)** — 不但…反而
+        例: 他**不但**不道歉, **反而**还骂人。
       - |-
-        **不但 ___, 反而 ___** — 反向递进 (not only … on the contrary)
+        **转折 / 让步 (ALTHOUGH / EVEN THOUGH)** — 虽然…但是 · 尽管…还是 · 即使…也
+        例: **虽然**累, **但是**很开心。
       - |-
-        **不仅 ___, 也 ___** — 同 "不但...而且"
+        **条件 (IF / AS LONG AS / ONLY WHEN)** — 如果…就 · 要是…就 · 只要…就 · 只有…才
+        例: **只有**努力, **才**能成功。
       - |-
-        **虽然 ___, 但是 ___** — 转折 (although … but)
+        **因果 (BECAUSE … SO)** — 因为…所以 · 由于…所以
+        例: **因为**下雨, **所以**取消了。
       - |-
-        **尽管 ___, 还是 ___** — 强转折 (even though … still)
+        **让步 — 无条件 (NO MATTER … ALL)** — 无论…都
+        例: **无论**多远, 我**都**去。
       - |-
-        **如果 ___, 就 ___** — 假设 (if … then)
-      - |-
-        **要是 ___, 就 ___** — 同 "如果...就"
-      - |-
-        **只要 ___, 就 ___** — 条件 (as long as … then)
-      - |-
-        **只有 ___, 才 ___** — 必要条件 (only when … can)
-      - |-
-        **因为 ___, 所以 ___** — 因果 (because … therefore)
-      - |-
-        **由于 ___, 所以 ___** — 同 "因为...所以"
-      - |-
-        **即使 ___, 也 ___** — 让步 (even if … still)
-      - |-
-        **无论 ___, 都 ___** — 让步 (no matter … all)
-      - |-
-        **除了 ___, 还 ___** — 除外 + 加上 (besides … also)
+        **除外 (BESIDES … ALSO)** — 除了…还
+        例: **除了**打球, 我**还**游泳。
 
   # ─── Q9-Q10 Worked Example ───────────────────────────────
   - title: "Q9-Q10 解题示范 — PSLE 2025 真题"
