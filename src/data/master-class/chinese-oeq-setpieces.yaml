@@ -73,48 +73,9 @@ keyConcepts:
       - |-
         **5. 结尾** — 号召行动 + "祝身体健康"
         Closing — call to action + sign-off
-
-  # ─── Q33 Marking Breakdown ──────────────────────────────────
-  - title: "评分 — 5 步对应 2 分语言 + 2 分内容"
-    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
-    body: >-
-      Short Note 总分 4 分。把上一张的 5 步对应到评分:
-      **① 问候 + ② 起因 + ⑤ 结尾 = 语言 2 分**;
-      **③ 详情 + ④ 理由 = 内容 2 分** (4 个 0.5)。
-      Short Note = 4 marks. Mapping the 5 steps to the marking:
-      **Steps 1+2+5 (greeting + hook + closing) → 2 LANGUAGE marks.**
-      **Steps 3+4 (details + reasons) → 2 CONTENT marks (4 × 0.5).**
-    bullets:
       - |-
-        **语言 2 分** = 步骤 ①②⑤ 写得齐全 + 通顺
-        Language 2m = steps 1+2+5 (greeting / hook / closing) are present
-        and smooth. Skip the sign-off, wrong greeting, abrupt ending →
-        language marks docked.
-      - |-
-        **内容 2 分** = 步骤 ③④ 里**抄出 4 个具体事实**, 每个 0.5 分
-        Content 2m = lift 4 specific facts from steps 3+4 — each fact
-        worth 0.5. Vague paraphrasing doesn't score.
-      - |-
-        **4 个 0.5 永远是这几类的某 4 个组合:** WHEN (时间) / WHERE (地点)
-        / WHAT (做什么) / WHY (为什么) / HOW (怎么做、多少钱)
-        The four 0.5s are always some combo of: WHEN / WHERE / WHAT / WHY / HOW
-      - |-
-        **2024 真题:** ① 10 月 28 日回学校 (WHEN ✓0.5) ② 表演舞蹈 (WHAT ✓0.5)
-        ③ 参观照片展览 (WHAT ✓0.5) ④ 了解母校 (WHY ✓0.5)
-        2024 model: date + activity 1 + activity 2 + reason
-      - |-
-        **2025 真题:** ① 11 月 29 日十点到三点 (WHEN ✓0.5) ② 在东海岸海滩 (WHERE ✓0.5)
-        ③ 学习保护环境 (WHY ✓0.5) ④ 了解小海龟 (WHY ✓0.5)
-        2025 model: time + place + reason 1 + reason 2
-      - |-
-        **2023 真题:** ① 10 月 7 日之前 (WHEN ✓0.5) ② 网站报名 (HOW ✓0.5)
-        ③ 收费 20 元 (HOW/COST ✓0.5) ④ 报名时付费 (WHEN ✓0.5)
-        2023 model: deadline + how + cost + when to pay
-      - |-
-        **历史说明:** PSLE 官方从 2023 年开始才公开标 (0.5) 标记。
-        2016-2022 年没有公开细标, 但评分标准 (2m + 2m) 是一致的。
-        Note: PSLE has only published per-fact (0.5) annotations since 2023.
-        Older years used the same 2m+2m rubric but without itemised breakdowns.
+        **评分:** 步骤 ③+④ = **2 分内容** (4 × 0.5 个事实) · 步骤 ①+②+⑤ = **2 分语言**
+        Marking: Steps 3+4 = 2 content marks (4 × 0.5 per fact); Steps 1+2+5 = 2 language marks
 
   # ─── Q33 步骤 ① + ② 开头 (问候 + 起因) ─────────────────────
   - title: "步骤 ①② — 开头 (问候 + 起因)"
