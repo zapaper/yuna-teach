@@ -23,11 +23,12 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
       "body": "10 年 PSLE 错题分析: 这 4 类陷阱占 ~90% 失分。先排除声母 → 再排除韵母 → 最后看声调。 10-year analysis: these 4 trap types account for ~90% of mistakes. Order: eliminate by initial → final → tone.",
       "bullets": [
+        "**核心方法 — 把 4 个选项都\"读出来\"代入句子**:\n在心里慢慢念每个选项, 一个一个代入句子里。\n哪个**听起来不对 / 读起来很别扭**, 就排除。\nRead each option aloud in your head and slot it into the sentence.\nWhichever sounds wrong → eliminate. Then look at what's left.",
         "**① 卷舌 vs 平舌** — zh/z, sh/s, ch/c\n例: 稍 = **sh**āo (不是 sāo) · 适 = **sh**ì · 着急 = **zh**áo",
         "**② 前 vs 后鼻音** — in/ing, en/eng, an/ang\n例: 灵 = lí**ng** (不是 lín) · 整 = zhě**ng** · 兴 = xī**ng**",
         "**③ 声调易看错** — 1声 ˉ / 2声 ´ / 3声 ˇ / 4声 ˋ\n例: 紧 jǐn (3声) vs 近 jìn (4声) — 只差声调",
         "**④ 多音字 (2023+ 新趋势)** — 同字有 2-3 个读音\n例: 着 zháo (急) / zhāo (招) / zhe (轻) · 行 háng (银行) / xíng (行走)",
-        "**解题顺序**: 排除声母 → 排除韵母 → 比声调 (最后)。**别一上来就看声调**。"
+        "**解题顺序**: 先读出来排除明显错的 → 再用陷阱表精排 (声母 → 韵母 → 声调)"
       ]
     },
     {
@@ -69,6 +70,7 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
       "body": "Q3-Q4 是从 4 个相像的字里选 1 个填空。诀窍: **题目里已经给了另外一个字**, 你的任务是认出整个 2 字词。 Q3-Q4 picks 1 character from 4 lookalikes to fill a blank. Trick: the OTHER character in the compound is ALREADY in the stem — your job is to mentally complete the 2-character word.",
       "bullets": [
+        "**核心方法 — 这通常是一个 2 字词**, 题目里已经给了另一个字。\n有时候**偏旁部首** (the radical / side character) 会给你提示词义类别 —\n比如 \"扌\"(手字旁) 多和**动作**有关; \"氵\"(三点水) 多和**水**有关;\n\"亻\"(单人旁) 多和**人**有关。看选项的偏旁也能排除一些。",
         "**三步走:**\n1. 看 stem, 找出空位旁边的字 (例: \"______ 生\" → 旁边是 \"生\")\n2. 在脑里想出整个 2 字词 (例: \"陌生\" — 我学过这个词)\n3. 在 4 个选项里找匹配那个字 (例: 陌 / 茉 / 末 → 选 **陌**)",
         "**常见 2 字词 (10 年 PSLE 考过):**\n陌生 · 截止 · 教导 · 慈祥 · 克服 · 嘉宾 · 分享 · 理睬 · 浮现 · 烦恼\n加倍 · 异口 · 痕迹 · 避免 · 编号 · 攻击 · 有限 · 合作 · 多遍 · 户外",
         "**陷阱: 形近字** (长得像但意思不同)\n陌 vs 末/茉 · 截 vs 接/节 · 享 vs 想/响 · 编 vs 偏/扁 · 痕 vs 狼/恨",

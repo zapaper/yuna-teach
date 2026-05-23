@@ -48,6 +48,12 @@ keyConcepts:
       mistakes. Order: eliminate by initial → final → tone.
     bullets:
       - |-
+        **核心方法 — 把 4 个选项都"读出来"代入句子**:
+        在心里慢慢念每个选项, 一个一个代入句子里。
+        哪个**听起来不对 / 读起来很别扭**, 就排除。
+        Read each option aloud in your head and slot it into the sentence.
+        Whichever sounds wrong → eliminate. Then look at what's left.
+      - |-
         **① 卷舌 vs 平舌** — zh/z, sh/s, ch/c
         例: 稍 = **sh**āo (不是 sāo) · 适 = **sh**ì · 着急 = **zh**áo
       - |-
@@ -60,7 +66,7 @@ keyConcepts:
         **④ 多音字 (2023+ 新趋势)** — 同字有 2-3 个读音
         例: 着 zháo (急) / zhāo (招) / zhe (轻) · 行 háng (银行) / xíng (行走)
       - |-
-        **解题顺序**: 排除声母 → 排除韵母 → 比声调 (最后)。**别一上来就看声调**。
+        **解题顺序**: 先读出来排除明显错的 → 再用陷阱表精排 (声母 → 韵母 → 声调)
 
   # ─── Q1-Q2 拼音: Practice ─────────────────────────────────
   - title: 试一试 — 拼音 (PSLE 2024 + 2025 真题)
@@ -106,6 +112,11 @@ keyConcepts:
       Trick: the OTHER character in the compound is ALREADY in the
       stem — your job is to mentally complete the 2-character word.
     bullets:
+      - |-
+        **核心方法 — 这通常是一个 2 字词**, 题目里已经给了另一个字。
+        有时候**偏旁部首** (the radical / side character) 会给你提示词义类别 —
+        比如 "扌"(手字旁) 多和**动作**有关; "氵"(三点水) 多和**水**有关;
+        "亻"(单人旁) 多和**人**有关。看选项的偏旁也能排除一些。
       - |-
         **三步走:**
         1. 看 stem, 找出空位旁边的字 (例: "______ 生" → 旁边是 "生")
