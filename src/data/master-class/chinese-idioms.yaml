@@ -1,0 +1,463 @@
+# Master Class: PSLE 华文 — 词义 + 成语 (Idioms & Word Meanings)
+# --------------------------------------------------------------
+# 涵盖 PSLE 华文 Booklet B 的 14 分:
+#   - Q7-Q8 (4m):  词义理解 (idiom in stem → pick definition)
+#   - Q13-Q15 (6m): 词语用法 (pick the sentence that uses the word correctly)
+#   - Q34-Q35 (4m): 阅读理解词义 (definition in question → find word in passage)
+#
+# All three test ONE skill: knowing common idiom + 2-char vocab meanings.
+# One memorised deck of ~80 idioms covers all 14 marks.
+#
+# Source: PSLE Chinese 2016-2025 tested words + official explanations.
+
+slug: chinese-idioms
+subject: chinese
+level: P5-P6
+topicLabel: 阅读理解 OEQ
+title: "PSLE 华文 — 词义 + 成语 (14 分)"
+
+stats:
+  headline: >-
+    PSLE 华文 Q7-Q8 + Q13-Q15 + Q34-Q35 = 14 分。三个题型考的是同一件事:
+    词语和成语的**意思**。一份背好的"成语卡"可以一次解决全部 14 分。
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: 欢迎来到《词义 + 成语》— 一份卡片, 拿 14 分
+    mascotImage: /master-class/chinese-mcq-1/panda-welcome.png
+    body: >-
+      PSLE 华文有 3 个题型, 表面看起来不一样, 其实考的是同一件事:
+      你**知不知道这个词/成语是什么意思**。背一份"高频成语卡", 三个题型一次搞定。
+      Three PSLE Chinese question types look different but test ONE
+      skill: knowing what common words/idioms MEAN. One memorised
+      deck answers all three.
+    bullets:
+      - |-
+        **Q7-Q8 (4 分)** — 题目给成语, 你选意思
+        Q7-Q8: stem has the idiom, you pick its meaning
+      - |-
+        **Q13-Q15 (6 分)** — 4 个句子, 选出"用对了"的那一句
+        Q13-Q15: 4 sentences, pick the one that uses the word correctly
+      - |-
+        **Q34-Q35 (4 分)** — 题目给意思, 你从短文里找词
+        Q34-Q35: definition given, find the word in the passage
+    callout: >-
+      共 14 分。背 80 个高频词 (~30 分钟一天 × 4 周), 这 14 分基本到手。
+      14 marks total. Memorise ~80 high-frequency words (30 min/day × 4 weeks).
+
+  # ─── 3 Question Patterns ─────────────────────────────────────
+  - title: "三种题型 — 同一个技能"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      看清楚每个题型的"问法"。技能完全相同, 只是问法不同。
+      Recognise each question's wording. The skill is identical — only
+      the asking direction differs.
+    bullets:
+      - |-
+        **Q7-Q8 (词 → 意)**: "**__恍然大悟__**" 是什么意思？→ 4 个意思中选
+        Q7-Q8 (word → meaning): "What does X mean?" → pick from 4 definitions
+      - |-
+        **Q13-Q15 (用法测试)**: "下面哪一句使用 **__异口同声__** 是正确的？"
+        Q13-Q15 (usage test): "Which sentence uses X correctly?"
+      - |-
+        **Q34-Q35 (意 → 词)**: "文中表示'忽然明白'的词语是 ___" → 在短文里找
+        Q34-Q35 (meaning → word): "The word in the passage that means X is ___"
+      - |-
+        共同的技能: 看到词 ⇄ 想到意思 ⇄ 知道用在什么场景
+        Shared skill: see word ⇄ recall meaning ⇄ know where it's used
+    callout: >-
+      记一个成语必须记 3 样: **意思** + **例句** + **常用场景**。光记字面不够。
+      Memorise each idiom 3 ways: meaning + example + context.
+      Just memorising the surface is not enough.
+
+  # ─── Deck 1: Emotion / Mood (2-char) ─────────────────────────
+  - title: "成语卡 ① — 情绪 / 心情 (2 字词)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      PSLE 最爱考的是描写心情的词。这 8 个都在 2016-2025 出过:
+      PSLE loves testing mood/emotion words. These 8 all appeared in 2016-2025:
+    bullets:
+      - |-
+        **惭愧** (cán kuì) — 因做错事而感到不安
+        Feel guilty (about wronging someone). Tested 3 times (2018, 2020, 2022).
+      - |-
+        **入迷** (rù mí) — 对事物有浓厚的兴趣，专心不停
+        Fascinated, deeply absorbed. E.g. 小朋友看表演看得入迷了。
+      - |-
+        **退缩** (tuì suō) — 因为害怕而不敢向前
+        Shrink back from fear. E.g. 遇到困难就退缩的人不值得学习。
+      - |-
+        **闷闷不乐** (mèn mèn bù lè) — 因心里有事而难过
+        Down / sulky. E.g. 文中表示"心情不好"的词语 (2024 Q35 真题).
+      - |-
+        **难为情** (nán wéi qíng) — 不好意思
+        Embarrassed. E.g. 同学们把我夸得太好了，真让我难为情。
+      - |-
+        **委屈** (wěi qū) — 受到不公平的对待, 心里难过
+        Wronged / unfairly treated. E.g. 小袋鼠心里觉得很委屈。
+      - |-
+        **耐心** (nài xīn) — 不急躁, 能等待
+        Patient. E.g. 请大家耐心等待 (2025 真题).
+      - |-
+        **舒服** (shū fú) — 身体和精神都很放松, 感到愉快
+        Comfortable / at ease. E.g. 小男孩躺在床上舒服地睡着了。
+    callout: >-
+      记心情词的秘诀: 配一个"什么时候会有这种感觉"的小故事。
+      Trick: pair each mood word with a "when would I feel this?" mini-story.
+
+  # ─── Deck 2: Action / Behavior (2-char) ──────────────────────
+  - title: "成语卡 ② — 行为 / 动作 (2 字词)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      行为类词语。重点不是字面意思, 而是"用在什么场景":
+      Action / behavior words. The trick isn't the literal meaning —
+      it's WHEN you'd use this word:
+    bullets:
+      - |-
+        **模仿** (mó fǎng) — 按照相同的样子去做
+        Imitate / copy. E.g. 弟弟模仿鸭子走路。 Tested 2020 Q8 + 2023 Q5.
+      - |-
+        **催促** (cuī cù) — 叫人赶快去做事
+        Urge / push to act fast. E.g. 爸爸催促我做作业。
+      - |-
+        **表扬** (biǎo yáng) — 公开称赞
+        Publicly praise. E.g. 校长在周会上表扬文聪。
+      - |-
+        **重视** (zhòng shì) — 认真对待
+        Take seriously. E.g. 子明很重视家伟这个朋友。
+      - |-
+        **预防** (yù fáng) — 提前做好准备以避免受到伤害
+        Prevent / take precautions. E.g. 为了预防火灾, 出门要检查电器。
+      - |-
+        **控制** (kòng zhì) — 管住, 不让发展
+        Control / hold back. E.g. 控制不了脾气 / 控制不住情绪。
+      - |-
+        **吩咐** (fēn fù) — 告诉对方应该或不应该怎样做
+        Instruct / tell. E.g. 国华按照黄老师的吩咐...
+      - |-
+        **安慰** (ān wèi) — 使人心情平静, 感到舒服
+        Comfort / reassure. E.g. 大卫安慰爸爸说"我很快就会好的"。
+    callout: >-
+      Q34-Q35 最爱从这堆词里出题: 题目给"意思", 你从短文找词。
+      Q34-Q35 lifts heavily from this list — definition given, find the word.
+
+  # ─── Deck 3: 4-char idioms — Positive ─────────────────────
+  - title: "成语卡 ③ — 4 字成语 (正面)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      正面意思的高频 4 字成语。背时联想"心情"+"画面":
+      High-frequency positive idioms. Memorise mood + visual image:
+    bullets:
+      - |-
+        **兴高采烈** (xīng gāo cǎi liè) — 形容心情非常愉快
+        Cheerful, in high spirits. Tested 2018+2020.
+      - |-
+        **眉开眼笑** (méi kāi yǎn xiào) — 形容高兴的表情
+        Beaming with joy. E.g. 妈妈眉开眼笑 (2021+2025).
+      - |-
+        **一言为定** (yī yán wéi dìng) — 说过的话不再改变
+        Settled with one word / it's a deal. Tested 2023 Q7.
+      - |-
+        **目不转睛** (mù bù zhuǎn jīng) — 形容注意力集中
+        Eyes fixed, unwavering attention. Tested 2024 Q8.
+      - |-
+        **不慌不忙** (bù huāng bù máng) — 形容态度镇定, 不着急
+        Calm and unhurried. Tested 2020 Q13.
+      - |-
+        **异口同声** (yì kǒu tóng shēng) — 大家说出同一句话
+        Speaking in unison. Tested 2017 Q4 + 2021 Q13.
+      - |-
+        **不约而同** (bù yuē ér tóng) — 没有约定但行动一致
+        Acting together without prior agreement. Tested 2016 Q9.
+      - |-
+        **神机妙算** (shén jī miào suàn) — 计谋高明, 善于预料
+        Clever planning, ability to foresee. Tested 2023 Q15.
+    callout: >-
+      正面成语题目 = 描写人物正面行为。看到 "好心人 / 聪明人 / 高兴", 想这堆词。
+      Positive idioms describe positive behaviour. Trigger: "kind / clever / happy".
+
+  # ─── Deck 4: 4-char idioms — Negative / Dramatic ─────────────
+  - title: "成语卡 ④ — 4 字成语 (负面 / 戏剧性)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      负面、突发、夸张的成语。重点是"什么场景下会用":
+      Negative, sudden, or dramatic idioms. Focus on the SCENE they apply to:
+    bullets:
+      - |-
+        **恍然大悟** (huǎng rán dà wù) — 忽然明白
+        Suddenly understand it all. Tested 2019 Q8, 2021 Q35, 2022 Q20.
+      - |-
+        **垂头丧气** (chuí tóu sàng qì) — 形容失望, 没有信心
+        Dejected, head hanging. E.g. 子明被对手打败后, 垂头丧气地离开。
+      - |-
+        **左思右想** (zuǒ sī yòu xiǎng) — 反复地思考
+        Thinking it over and over. E.g. 爸爸左思右想, 最后做出决定。
+      - |-
+        **洋洋得意** (yáng yáng dé yì) — 形容很得意的样子
+        Smug / self-satisfied. E.g. 他考到第一名, 难怪洋洋得意。
+      - |-
+        **千辛万苦** (qiān xīn wàn kǔ) — 经历很多艰难困苦
+        Through countless hardships. E.g. 经过千辛万苦, 终于把桥建好了。
+      - |-
+        **不管三七二十一** (bù guǎn sān qī èr shí yī) — 不顾一切, 立刻行动
+        Without thinking twice. E.g. 妹妹掉进河, 姐姐不管三七二十一跳下去。
+      - |-
+        **东摇西摆** (dōng yáo xī bǎi) — 来回摇晃
+        Swaying back and forth. Tested 2024 Q20 (花儿在风雨中东摇西摆).
+      - |-
+        **一言不发** (yī yán bù fā) — 一句话也不说
+        Not saying a word. Tested 2017 Q34.
+    callout: >-
+      4 字成语题最容易记的方法: 把每个成语和"画面"绑在一起。
+      Hardest-to-memorise idioms become easy when tied to a mental IMAGE.
+
+  # ─── Deck 5: Common 2-char verbs (mid-frequency) ──────────────
+  - title: "成语卡 ⑤ — 其他高频词 (Q34-Q35 常考)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      Q34-Q35 (找词题) 经常考这些"动作 / 状态"词:
+      Q34-Q35 (find-word) frequently tests these action / state words:
+    bullets:
+      - |-
+        **制止 / 阻止** (zhì zhǐ / zǔ zhǐ) — 不让人继续做下去
+        Stop / prevent (someone doing something). Tested 2018 + 2022.
+      - |-
+        **拒绝** (jù jué) — 不接受
+        Refuse. Tested 2021 Q34.
+      - |-
+        **沉默** (chén mò) — 不说话
+        Silent. Tested 2023 Q35.
+      - |-
+        **熟悉** (shú xī) — 清楚地知道, 不感到陌生
+        Familiar (with). Tested 2025 Q35.
+      - |-
+        **插嘴** (chā zuǐ) — 不等别人说完就抢着说
+        Interrupt. Tested 2025 Q34.
+      - |-
+        **顿时** (dùn shí) — 立刻
+        Immediately. Tested 2018 Q35.
+      - |-
+        **疑问** (yí wèn) — 对事情不能肯定或不能理解
+        Doubt / question. Tested 2020 Q34.
+      - |-
+        **回报** (huí bào) — 用行动或金钱来表示感谢
+        Repay / return a favour. Tested 2017 Q35.
+    callout: >-
+      Q34-Q35 是"翻字典"题: 题目给意思, 你从短文找词。背熟这些 = 一眼能找到。
+      Q34-Q35 is "reverse dictionary" — definition given, find the word.
+      Memorise these = spot them at a glance.
+
+  # ─── Pattern A: Q7-Q8 strategy ─────────────────────────────
+  - title: "Q7-Q8 解题法 — 词 → 意"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      Q7-Q8 的 4 个选项都是**短定义**。看到不熟的成语怎么办？
+      Q7-Q8 options are SHORT DEFINITIONS. What if you don't know the idiom?
+    bullets:
+      - |-
+        **第 1 步:** 把成语拆开看每个字的意思
+        Step 1: break the idiom apart, look at each character's meaning
+      - |-
+        **第 2 步:** 看上下文 (整句话) 推测可能的意思
+        Step 2: use the sentence context to guess
+      - |-
+        **第 3 步:** 用排除法 — 删掉明显不对的 2 个选项
+        Step 3: eliminate the 2 obviously-wrong options
+      - |-
+        **陷阱:** 不要按字面意思! 成语意思 ≠ 字面意思
+        Trap: don't go by literal meaning! Idiom meaning ≠ surface meaning.
+      - |-
+        **例:** 恍然大悟 字面是"突然清楚地明白", 意思是"忽然明白"
+        E.g. 恍然大悟 literally means "sudden clear understanding" but idiomatically just "suddenly understand"
+    callout: >-
+      已经背好成语 = 一秒选。没背好 = 拆字 + 上下文 + 排除法, 也能选 50%-75%。
+      Memorised the idiom = 1-second pick. Didn't = decompose + context + eliminate = 50-75% odds.
+
+  # ─── Pattern B: Q13-Q15 strategy ───────────────────────────
+  - title: "Q13-Q15 解题法 — 用法测试"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      "下面哪一句正确？" 4 个选项, 同一个词用在 4 个不同场景。错的句子 = "用错地方"。
+      "Which sentence is correct?" The same word appears in 4 different scenes;
+      wrong sentences = used in the WRONG scene.
+    bullets:
+      - |-
+        **第 1 步:** 想清楚这个词只能用在什么场景
+        Step 1: think about what scene this word ONLY fits
+      - |-
+        **第 2 步:** 检查每个句子的"情绪 / 场景"是否搭配
+        Step 2: check each sentence's mood/scene matches the word
+      - |-
+        **第 3 步:** 选最自然、最常见的搭配
+        Step 3: pick the most natural, common usage
+      - |-
+        **最常见的错误:** 把"正面词"用在负面情境, 反之亦然
+        Most common error: positive words in negative situations (or vice versa)
+      - |-
+        **例 (2024 Q13):** "不管做什么事情都要认真, 不能马虎。"
+        ✓ "不管"用法正确, 表示"无论 / 任何情况下"。
+        E.g. (2024 Q13): "No matter what you do, be careful, don't be careless."
+        "不管" correctly means "no matter what / regardless".
+    callout: >-
+      Q13-Q15 必考 4 字成语。光知道意思不够, 必须能想出"什么时候用"。
+      Q13-Q15 always tests 4-char idioms. Knowing meaning isn't enough —
+      know WHEN to use it.
+
+  # ─── Pattern C: Q34-Q35 strategy ───────────────────────────
+  - title: "Q34-Q35 解题法 — 意 → 词"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
+    body: >-
+      Q34-Q35 题目: "文中表示 ___ 的词语是 ___"。答案就在短文里, 你要"翻字典"找词。
+      Q34-Q35: "The word in the passage that means ___ is ___". Answer is in
+      the passage — you "reverse-dictionary" find it.
+    bullets:
+      - |-
+        **第 1 步:** 读题目的"意思", 想 3-5 个可能的对应词
+        Step 1: read the definition, brainstorm 3-5 possible words
+      - |-
+        **第 2 步:** 回到短文, 在题目暗示的段落里找 (题目下面常注"见第 X 段")
+        Step 2: scan the passage (the question often hints "see paragraph X")
+      - |-
+        **第 3 步:** 找到的词必须是 2-4 字的常用词, 不会是罕见字
+        Step 3: the answer should be a common 2-4 char word, not a rare one
+      - |-
+        **加分技巧:** 答案的词性要和题目意思一致 (动词配动词, 形容词配形容词)
+        Bonus: word class should match (verb→verb, adjective→adjective)
+    callout: >-
+      背熟"成语卡" = 一眼看到题目就想到答案在短文哪个段落。
+      Memorised cards → instantly know which paragraph holds the answer.
+
+  # ─── Practice 1: Q7-Q8 style ───────────────────────────────
+  - title: 试一试 — Q7-Q8 词义题
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2024 Q8 真题 — 4 字成语"
+        stem: |-
+          弟弟是个动画迷, 常常 **__目不转睛__** 地盯着动画片。
+          "目不转睛"的意思是: ?
+        options:
+          - 形容看得很仔细
+          - 形容视力有问题
+          - 形容一时呆住了
+          - 形容注意力集中
+        correctAnswer: 4
+        explanation: >-
+          目不转睛 = "眼睛 (目) + 不转动 (不转睛)" → 注意力非常集中。"看得很仔细"
+          是相关但不准确; 重点是"集中精神不转移"。
+          目不转睛 literally = "eyes that don't turn away" → highly focused
+          attention. Option 1 ("careful looking") is close but misses the
+          KEY meaning (focused, not distracted).
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2023 Q8 真题 — 心情词"
+        stem: |-
+          遇到困难就 **__退缩__** 的人, 不值得我们学习。
+          "退缩"的意思是: ?
+        options:
+          - 因为害怕而不敢向前
+          - 慢慢地走回去
+          - 想了很久才决定
+          - 大声地哭出来
+        correctAnswer: 1
+        explanation: >-
+          退缩 = 退 (back away) + 缩 (shrink) → 因为害怕而不敢向前。这是
+          典型的心情/态度词, 不是物理动作。
+          退缩 = back + shrink → mentally back away from fear. It's a
+          mood/attitude word, not a physical action.
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── Practice 2: Q13-Q15 style ─────────────────────────────
+  - title: 试一试 — Q13-Q15 用法测试
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2020 Q13 真题 — 选用法正确的句子"
+        stem: |-
+          以下哪一个句子是正确的?
+        options:
+          - 姐姐**不慌不忙**地走上台, 看来一点儿也不紧张。
+          - 哥哥**不慌不忙**地跑回家, 因为快下雨了。
+          - 妈妈**不慌不忙**地骂弟弟, 因为他做错事了。
+          - 弟弟**不慌不忙**地大叫起来, 看到了大蜘蛛。
+        correctAnswer: 1
+        explanation: >-
+          不慌不忙 = 镇定、不着急。只能用在"应该会紧张但保持冷静"的场景, 不能用在
+          "应该急 / 应该叫"的场景。选 (1) 因为台前可能紧张, 但姐姐保持冷静。
+          不慌不忙 = calm, unhurried. Only fits "could be tense but stayed
+          calm" scenes. Wrong for "should be in a hurry / should panic"
+          scenes. (1) fits because going on stage CAN be nerve-wracking
+          but the sister stayed composed.
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── Practice 3: Q34-Q35 style ─────────────────────────────
+  - title: 试一试 — Q34-Q35 翻字典题
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2024 Q34 风格 — 从意思找词"
+        stem: |-
+          假设短文第 3 段有这一句: "妈妈轻声地跟生病的小明说话, 让他不要害怕。"
+          题目: 文中表示"使人心情平静, 感到舒服"的词语是 ___ 。
+        options:
+          - 轻声
+          - 安慰
+          - 说话
+          - 害怕
+        correctAnswer: 2
+        explanation: >-
+          "使人心情平静"= 安慰 (comfort)。这个意思就是 PSLE 2024 Q34 标答原句。
+          其他选项都不是"动作 + 让人平静"的关系。
+          "Making someone feel at peace" = 安慰 (comfort). This is the
+          exact 2024 PSLE official answer wording. Other options don't fit
+          the action-and-calming relationship.
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── Wrap-up CTA ────────────────────────────────────────────
+  - title: 开始练习吧！
+    mascotImage: /master-class/chinese-mcq-1/panda-cta.png
+    body: >-
+      练习用 PSLE 真题 2016-2025 的 Q7-Q8 + Q13-Q15 + Q34-Q35 改编。
+      混合题型, 让你练熟"看到词 → 想到意思"的反射动作。
+      Practice mixes Q7-Q8, Q13-Q15, Q34-Q35 from PSLE 2016-2025.
+      Builds the reflex: "see word → recall meaning".
+    bullets:
+      - |-
+        **15 题** — Q7-Q8 (5) + Q13-Q15 (5) + Q34-Q35 (5)
+        15 items — 5 from each pattern
+      - |-
+        做错的题一周后自动复习
+        Wrong items auto-saved, reviewed in 1 week
+      - |-
+        把"成语卡" 5 张反复看 3 遍, 再来做题
+        Read the 5 idiom cards 3 times before practicing
+    cta:
+      label: 点这里开始练习
+      quizSpec:
+        title: "Mastery: 华文词义 + 成语"
+        mcq: 15
+        oeq: 0
+
+commonMistakes: []
+
+keyWords:
+  - { word: 成语, definition: "4-character idiom. Has a fixed meaning that usually CAN'T be guessed from the characters alone. E.g. 恍然大悟 ≠ 'suddenly big understanding' but 'suddenly grasp it'." }
+  - { word: 词义, definition: "The meaning of a word/idiom. PSLE Q7-Q8 and Q34-Q35 test this directly; Q13-Q15 tests whether you know the correct USAGE context." }
+  - { word: 字面意思, definition: "Literal/surface meaning — the sum of each character's meaning. Often DIFFERENT from the idiom's actual meaning. PSLE traps test this difference." }
+  - { word: 搭配, definition: "Collocation — which contexts a word fits. E.g. 不慌不忙 only fits 'cool under pressure' scenes, never 'should panic' scenes." }
+  - { word: 上下文, definition: "Context — the sentences before and after. Even if you don't know an idiom, the surrounding context narrows down possible meanings." }
+
+subTopics:
+  - id: q7q8-meaning
+    label: Q7-Q8 词义理解
+    description: "Q7-Q8 (4 marks): stem contains an idiom in context, 4 options are short definitions. Pick the right meaning. Trap: literal vs idiomatic meaning."
+    slideIdx: 7
+  - id: q13q15-usage
+    label: Q13-Q15 词语用法
+    description: "Q13-Q15 (6 marks): pick the sentence that uses the tested word correctly. 4 options use the same word in 4 different scenes; 3 are wrong usages."
+    slideIdx: 8
+  - id: q34q35-find
+    label: Q34-Q35 阅读理解找词
+    description: "Q34-Q35 (4 marks): reverse-dictionary. Question gives a definition, you find the matching 2-4 char word in the reading passage."
+    slideIdx: 9
