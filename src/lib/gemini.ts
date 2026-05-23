@@ -1838,6 +1838,24 @@ For 阅读理解 MCQ / 阅读理解 OEQ, include "passagePages" — pages where 
 
 作文 (composition) and 听力 (listening) sections: mark the parent paper with "skipExtraction": true — they cannot be auto-graded.
 
+#### CHINESE FULL-PAPER UPLOADS — CRITICAL paper-boundary detection:
+Chinese papers are often uploaded as a single PDF containing FOUR distinct sub-papers stitched together. ONLY Paper 2 (语文应用 + 短文填空 + 阅读理解 + 完成对话) is gradable; the other three are storage-only.
+
+Typical layout (page ranges vary by paper — DO NOT assume the indices below; read the cover pages):
+1. **试卷一 / Paper 1 (作文 / Composition)** — typically pages 1-4. Has a cover page titled "试卷一" or "Paper 1" with topic prompts and lined answer space. Some papers offer 2-3 题目 (topics) to choose from.
+2. **试卷二 / Paper 2 (语文应用 etc.)** — the main written paper. Cover page titled "试卷二" or "Paper 2". Starts with 语文应用 MCQ (Q1-15) and ends after 阅读理解 OEQ. THIS is the only paper to extract.
+3. **口试 / Oral / 口语** — typically 5-10 pages near the back. Cover page titled "口试" or "Oral". Contains a picture-description prompt (看图说话), a passage to read aloud (朗读), and 会话 (conversation) topics. NOT GRADABLE — spoken.
+4. **听力理解 / 听力 / Listening Comprehension** — the remaining pages, usually at the very back. Cover page titled "听力" or "听力理解". MCQ questions but the source audio isn't in the PDF, so the questions are unanswerable without the recording. NOT GRADABLE.
+
+For Chinese full papers you MUST:
+- Detect ALL FOUR cover pages and emit one entry per sub-paper in the papers array, with labels e.g. "Paper 1 - 作文", "Paper 2", "Oral - 口试", "Listening - 听力理解".
+- Mark Paper 1, Oral, and Listening with **"skipExtraction": true**. Mark Paper 2 with skipExtraction false (or omit it — defaults to extracted).
+- Mark EVERY page belonging to a skipped sub-paper with **"isCoverPage": true** so the question-extraction stage drops them entirely. (We keep the JPGs on disk for reference but no Q-extract runs over them.)
+- Inside Paper 2, run the normal Chinese-section detection (语文应用 / 短文填空 / 阅读理解 / 完成对话) — these are SECTIONS within Paper 2, not separate papers.
+- If the upload contains ONLY Paper 2 (no 作文 / Oral / 听力 cover pages anywhere), treat the whole PDF as a single Paper 2 — this is the historical upload format and must keep working.
+
+Naming convention: labels for skipped papers should start with "Paper 1 -", "Oral -", or "Listening -" so downstream tooling can identify them by prefix.
+
 ### P4 ENGLISH PAPERS — Important differences:
 - P4 English papers are typically shorter with fewer questions per section
 - The paper may NOT be split into Booklet A + Booklet B — all sections may be in a single booklet
