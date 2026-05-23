@@ -261,18 +261,34 @@
       "callout": "Q40 没有\"标准答案\", 只有\"标准结构\"。立场可以选, 但套话要规范。 Q40 has no \"correct\" stance — only a \"correct\" structure. Pick either side, but use the phrasing."
     },
     {
-      "title": "Q40 解题示范 — 2022 云吞面孝顺儿子",
+      "title": "Q40 格式 (a) — '你同意吗?' (标出 (1)(1)(1)(1) 评分)",
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
-      "body": "不用读全文! 这里直接给你**文章摘要**, 然后看怎么套上套话答题。 You don't need to read the full passage! Here's the summary followed by how to slot in the set pieces:",
+      "body": "格式 (a) 评分规律: **(1) 表态 + (1)(1)(1) 三个不同的理由 = 4 分**。 \"结论\"不另算分 — 必须**多加一个理由**才有第 4 分。 Format (a) scoring: (1) Position + (1)(1)(1) three distinct reasons = 4 marks. A pure restatement at the end earns 0 marks — the \"wrap-up\" must ADD a NEW POINT to score.",
       "bullets": [
-        "**文章摘要 (英文):** A blind father and his son share noodle.\nThe son loudly orders 2 bowls of expensive wonton noodles,\nbut secretly tells the waiter he only has money for ONE bowl\nof plain noodles + an empty bowl — so dad thinks they both\ngot noodles. Son does this out of love for his dad.",
-        "**题目:** 你认为儿子\"骗\"父亲, 这么做对吗？为什么？(4 分)\nQuestion: Do you think the son was right to \"trick\" his dad? Why? (4m)",
-        "**第 1 句 (表态):** 我认为儿子这么做是对的。\nSentence 1 (position): I think the son was right.",
-        "**第 2 句 (理由 — 用\"出自 ___ 之心\"套话):** 儿子这么做, 是出自于孝顺之心。\nSentence 2 (reason — \"out of … heart\"): The son did this out of a filial heart.",
-        "**第 3 句 (证据 — 串两个要点):** 他希望能让父亲吃到好吃的云吞, 同时又能让父亲以为自己也吃到了好吃的云吞。\nSentence 3 (evidence — stitches two points): He wanted dad to taste the wonton, and let dad think he also had some.",
-        "**第 4 句 (结论):** 这样父亲就能吃得安心自在。\nSentence 4 (conclusion): This way dad could eat with peace of mind."
+        "**PSLE 2025 真题:** 你同意文中妈妈教育孩子的方法吗？(4 分)\nQuestion: Do you agree with the mom's teaching method? (4m)",
+        "**文章摘要 (中文):** 妈妈让吵架的两个哥哥相亲相爱: 每做一件好事,\n就放一颗糖果进瓶子里。瓶子装满了, \"圣诞老人\"才会来。\nSummary: Mom got fighting brothers to be loving — for each\ngood deed, a candy in the jar. When full, \"Santa\" will come.",
+        "**(1) 第 1 句 — 表态:** 我同意妈妈教育孩子的方法。\n(1) Sentence 1 — Position: I agree with the mom's method.",
+        "**(1) 第 2 句 — 理由 ① (机制 / 怎么起作用):** 把做好事和放糖果连接起来,\n会让孩子更愿意主动帮忙, 也能让他们觉得有成就感。\n(1) Sentence 2 — Reason 1 (mechanism): Linking good deeds to\ncandy makes kids willingly help and feel achievement.",
+        "**(1) 第 3 句 — 理由 ② (结果 / 带来什么好处, 用\"不仅 ___ 还 ___\"):**\n这样不仅能减少两兄弟吵架, 还能让他们学会关心家人。\n(1) Sentence 3 — Reason 2 (outcome, use \"not only…but also\"):\nNot only reduces fighting, but also teaches caring for family.",
+        "**(1) 第 4 句 — 理由 ③ (额外角度, 不要只是\"重复立场\"):**\n用\"圣诞老人会来\"作为鼓励, 也让整个过程变得有趣又有效。\n(1) Sentence 4 — Reason 3 (bonus angle, NOT just restating\nposition): Using \"Santa will come\" makes the process fun and\neffective.",
+        "**⚠️ 结论的陷阱:** 如果第 4 句只是\"所以我同意\" — 0 分。必须**多加一个新点**。\n⚠️ Conclusion trap: if sentence 4 is just \"so I agree\" → 0 marks.\nMust add a NEW reasoning point. The connector \"不仅 …, 还 …\" or\n\"用 …, 也 …\" is the typical signal of \"I'm adding one more point\"."
       ],
-      "callout": "4 句话, 4 分到手。每句一个套话 + 文中事实。 4 sentences = 4 marks. Each sentence = one stock phrase + one passage fact."
+      "callout": "4 句话 = 1 表态 + 3 理由 = 4 分。**每句一个独立的理由, 不重复。** 4 sentences = 1 position + 3 reasons = 4 marks. Each sentence MUST be a distinct reason — don't repeat or just restate."
+    },
+    {
+      "title": "Q40 格式 (b) — 'X 是怎样的人?' (标出 (1)(1)(1)(1) 评分)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
+      "body": "格式 (b) 评分规律: **(1) 性格词 1 + (1) 性格词 2 + (1) 证据 1 + (1) 证据 2**。 性格词必须**和文章中心 / 寓意一致** — 不能随便挑一个适合的。 Format (b) scoring: (1) trait 1 + (1) trait 2 + (1) evidence 1 + (1) evidence 2 = 4 marks. Traits MUST match the passage's MORAL — not just any positive word that loosely fits.",
+      "bullets": [
+        "**PSLE 2021 真题:** 卖花的阿姨是个怎样的人？从哪里可以看得出来？(4 分)\nQuestion: What kind of person is the flower-shop lady? Where do you see it?",
+        "**文章摘要 (中文):** 小男孩去花店买兰花送给老师, 钱不够。卖花的阿姨\n没说什么, 在接下来好几年都自掏腰包, 帮小男孩送花给老师, 完成他的心愿。\nSummary: A boy buys orchids for teacher; not enough money. The\nflower-lady silently funds the delivery every year, fulfilling\nhis wish.",
+        "**第 1 步 — 看文章寓意:** 这篇文章的中心是\"善良 / 帮助他人\"\nStep 1 — read the passage's MORAL: \"kindness / helping others\"",
+        "**第 2 步 — 选 12 个性格词里和寓意最近的 1-2 个:** 慷慨 + 好心\n(从\"正面性格词\"卡片里选, 不是凭空想!)\nStep 2 — pick 1-2 traits from the 12-trait deck that match the\nmoral. Generous (慷慨) + kind-hearted (好心). **Pick from the\nmemorised deck — don't invent words.**",
+        "**(1)(1) 第 1 句 — 性格词:** 卖花的阿姨是个 **慷慨**(1) 且 **好心**(1) 的人。\n(1)(1) Sentence 1 — name TWO traits: She is generous + kind-hearted.",
+        "**(1)(1) 第 2 句 — 证据 (必须用文中具体行为):**\n虽然小男孩给她的钱不够 (1), 但她还是在每年的教师节自掏腰包,\n帮小男孩送花给李老师, 完成小男孩的心愿 (1)。\n(1)(1) Sentence 2 — Evidence with SPECIFIC passage behaviours:\nEven though the boy didn't have enough money, she paid out of\nher own pocket every Teacher's Day to deliver flowers.",
+        "**⚠️ 性格词的陷阱:** 写\"好\"、\"善\"、\"不错\" — 0 分。\n必须用 12 个具体性格词之一: 慷慨 / 善良 / 宽容大量 / 懂得体谅别人 / 孝顺 / 有爱心 /\n诚实 / 勇敢 / 聪明 / 温柔 / 乐于助人 / 有责任感。\n⚠️ Trait trap: writing \"good\" / \"nice\" → 0 marks. Must use one\nof the 12 specific traits: GENEROUS / KIND / TOLERANT /\nCONSIDERATE / FILIAL / LOVING / HONEST / BRAVE / CLEVER /\nGENTLE / HELPFUL / RESPONSIBLE."
+      ],
+      "callout": "性格题 = 2 性格词 + 2 具体证据。性格词必须**对应文章寓意**, 不能\"看脸挑词\"。 Character questions = 2 traits + 2 specific evidence. Traits must MATCH the passage's overall moral — don't pick traits based on surface impressions."
     },
     {
       "title": "试一试 — Q40 (2024 小袋鼠强迫练拳)",
