@@ -457,10 +457,24 @@ async function extractExamPaperCore(
         }
       }
 
-      // Sort questions by question number to maintain paper order
+      // Sort questions by question number to maintain paper order.
+      //
+      // The old regex (/^[A-Z]\d*-/) stripped prefixes like "P2-" but
+      // NOT a bare "Q" prefix. Gemini occasionally emits "Q30"/"Q31"
+      // instead of "30"/"31" for some sections (e.g. the 阅读理解
+      // A 组 MCQ block) — parseInt("Q30") → NaN → (aNum || 0) → 0 →
+      // those questions all sort to the TOP of the list, ahead of
+      // Q1-Q29. New regex covers both shapes:
+      //   "P2-15" → strip "P2-" → "15"
+      //   "Q30"   → strip "Q"   → "30"
+      //   "15"    → unchanged   → "15"
+      // Also normalise the stored questionNum so the bare "Q" prefix
+      // doesn't appear in the UI or in answer-key lookups.
+      const stripPrefix = (qn: string) => qn.replace(/^[A-Za-z]+\d*[-:_]?/, "").trim() || qn;
+      for (const q of questions) q.questionNum = stripPrefix(q.questionNum);
       questions.sort((a, b) => {
-        const aNum = parseInt(a.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
-        const bNum = parseInt(b.questionNum.replace(/^[A-Z]\d*-/, ""), 10);
+        const aNum = parseInt(a.questionNum, 10);
+        const bNum = parseInt(b.questionNum, 10);
         return (aNum || 0) - (bNum || 0);
       });
 

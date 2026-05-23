@@ -1,7 +1,7 @@
 import { prisma } from "../src/lib/db";
 
 (async () => {
-  const id = "cmphofdc80001hqjexjvvngxt";
+  const id = "cmphozav10001zlwc4eez751s";
   const paper = await prisma.examPaper.findUnique({
     where: { id },
     select: {

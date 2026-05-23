@@ -2903,6 +2903,30 @@ export async function analyzeExamStructure(
     console.log(`[Exam Pipeline] Forcing questionPrefix="" for single-paper upload (was "${parsed.papers[0].questionPrefix}")`);
     parsed.papers[0].questionPrefix = "";
   }
+
+  // Defensive: auto-force skipExtraction:true on non-gradable sub-papers
+  // even when the AI forgot to set the flag. Required because all
+  // sub-papers within a single PDF share questionPrefix="" — without
+  // skipExtraction on Paper 1/Oral/Listening, their expectedQuestionCount
+  // accumulates into Paper 2's expected-key range, generating phantom
+  // expected keys (e.g. Paper 1 = 2 prompts → Paper 2 keys become "3"-
+  // "42" instead of "1"-"40", asking the answer-extractor for Q41/Q42
+  // that don't exist).
+  //
+  // Detection by label prefix: "Paper 1 -" / "Paper 1 –" / "Paper 1 :"
+  // (composition), "Oral" / "口试" / "口语", "Listening" / "听力".
+  for (const paper of parsed.papers) {
+    if (paper.skipExtraction) continue;
+    const labelLower = paper.label.toLowerCase();
+    const isComposition = /^paper\s*1\s*[-–—:]/.test(labelLower) || labelLower.includes("作文") || labelLower.includes("composition");
+    const isOral = labelLower.startsWith("oral") || labelLower.includes("口试") || labelLower.includes("口语");
+    const isListening = labelLower.includes("listening") || labelLower.includes("听力");
+    if (isComposition || isOral || isListening) {
+      console.log(`[Exam Pipeline] Forcing skipExtraction:true on "${paper.label}" (non-gradable sub-paper — AI omitted the flag)`);
+      paper.skipExtraction = true;
+    }
+  }
+
   return parsed;
 }
 
