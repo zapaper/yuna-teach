@@ -117,6 +117,10 @@ keyConcepts:
         有时候**偏旁部首** (the radical / side character) 会给你提示词义类别 —
         比如 "扌"(手字旁) 多和**动作**有关; "氵"(三点水) 多和**水**有关;
         "亻"(单人旁) 多和**人**有关。看选项的偏旁也能排除一些。
+        It's usually a 2-character word — one character is already
+        in the stem. The radical (偏旁) of the missing character
+        often hints at the meaning category: 扌 = action, 氵 = water,
+        亻 = person. Eliminate options whose radical doesn't fit.
       - |-
         **三步走:**
         1. 看 stem, 找出空位旁边的字 (例: "______ 生" → 旁边是 "生")
@@ -177,10 +181,16 @@ keyConcepts:
       is closest" — it's "which one matches this sentence's SCENE".
     bullets:
       - |-
+        **核心方法 — 先读完整个句子, 弄清在讲什么意思**, 再去看选项。
+        别一看到空就盯着 4 个选项 — 没有上下文, 4 个近义词长得都对。
+        Read the WHOLE sentence first to grasp the meaning. Don't
+        stare at the 4 options first — without context, all 4
+        near-synonyms look plausible.
+      - |-
         **关键事实**: PSLE 10 年统计, **从不考具体名词** (桌子、电脑、苹果...)
         只考**抽象动词 / 抽象形容词**: 克服 / 推动 / 惭愧 / 遵守 / 保护 / 后悔 / 妒忌
       - |-
-        **解题秘诀**: 先**遮住选项**, 自己想"这空里应该填什么类型的词"。
+        **解题秘诀**: 读完句子后, 先**遮住选项**, 自己想"这空里应该填什么类型的词"。
         然后看 4 个选项, 哪个最贴近**你想到的场景**就选哪个。
       - |-
         **示范** (PSLE 2024 Q6): "救护车 ___ 赶到现场, 把受伤的人送去医院。"
