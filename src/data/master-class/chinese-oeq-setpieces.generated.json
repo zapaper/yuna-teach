@@ -50,11 +50,10 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-idiom.png",
       "body": "详情 = 从通告里抄出**具体事实**。每个事实 0.5 分。下面分别给你 **时间、地点、活动**的写法模板: Details = lift SPECIFIC facts from the notice. Each fact = 0.5 mark. Below are write-out templates for time / place / activity:",
       "bullets": [
-        "**时间 (WHEN) 写法 — PSLE 标答最爱的格式:**\nTime format — PSLE's favourite patterns:\n**X 月 X 日** (date) — e.g. 11 月 29 日, 10 月 28 日\n**上午 / 下午 X 点** (am/pm) — e.g. 上午十点, 下午三点\n**上午 X 点到下午 X 点** (span) — e.g. 上午十点到下午三点\n**X 月 X 日之前** (before / deadline) — e.g. 10 月 7 日之前\n**每个星期 X** (every X) — e.g. 每个星期五上午九点到十点",
-        "**地点 (WHERE) 写法:**\nPlace format:\n**在 ___ (地点) 举行 / 举办。** — e.g. 在东海岸海滩举行 (2025)\n**在 ___ 集合。** — e.g. 在交通公园门口集合 (2018)",
-        "**活动 (WHAT) 写法 — 把\"做什么\"写清楚:**\nActivity format — make \"what we'll do\" concrete:\n**可以 ___, 还可以 ___。** — e.g. 可以表演舞蹈, 还可以参观展览 (2024)\n**将提供 ___。** — e.g. 将提供各种各样的故事书 (2017)",
-        "**完整句式 (一句话装下时间+地点+活动):**\nFull pattern (one sentence with time+place+activity):\n**这个活动将在 X 月 X 日 上午/下午 X 点, 在 ___ 举行。**\nThe activity will be held on [date] at [time] at [place].",
-        "**报名 / 费用 (HOW) 写法:** **报名的方法是 ___**, **收费是 X 元**, **需在 ___ 付费**\nRegistration / cost: \"the way to register is ___\", \"fee is X dollars\", \"pay by ___\""
+        "**时间 (WHEN):** **在 X 月 X 日 上午/下午 X 点到 X 点**\nTime: \"on [date], [time] to [time]\"\n例 (2025): 在 11 月 29 日上午十点到下午三点\nEx (2025): on Nov 29, 10am to 3pm",
+        "**地点 (WHERE):** **在 ___ 举行**\nPlace: \"to be held at ___\"\n例 (2025): 在东海岸海滩举行\nEx (2025): held at East Coast Beach",
+        "**活动 (WHAT):** **可以 ___, 还可以 ___**\nActivity: \"you can ___, and also ___\"\n例 (2024): 可以表演舞蹈, 还可以参观历史照片展览\nEx (2024): you can perform dance, and also visit a photo exhibition",
+        "**报名 / 费用 (HOW):** **报名的方法是 ___**, **收费是 X 元**\nRegistration / cost: \"register by ___\", \"fee is X dollars\"\n例 (2023): 上网站 www.xgyishu.com 报名, 收费 20 元\nEx (2023): register at the website www.xgyishu.com, fee is $20"
       ]
     },
     {
