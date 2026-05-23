@@ -73,10 +73,10 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-idiom.png",
       "body": "结尾**格式因写信类型而不同**。写错格式 = 扣语言分。 看 PSLE 真题里 3 种格式的差异: Closing format DEPENDS on the type of letter. Wrong format = language marks docked. The 3 formats from PSLE actual papers:",
       "bullets": [
-        "**格式 A — 电邮 (Email) [2017, 2020, 2021, 2025]:**\nFormat A — Email:\n最后一句 (号召行动) — e.g. 待我参加活动后再跟你分享！\nLast sentence (call to action)\n**祝** *(空一行)*\n**身体健康** *(缩进, 单独一行)*\n**[你的名字]** *(单独一行)*\nWishing / good health / [your name] — each on its own line.",
-        "**格式 B — 短信 (SMS) [2018, 2019, 2022, 2024]:**\nFormat B — SMS:\n最后一句直接结尾 — e.g. 您要记得收看哦！(2022) / 快快行动吧！(2019)\nFinal sentence ends the message — no formal sign-off.\n**没有\"祝身体健康\", 也没有单独签名。**\nNO \"祝 / 身体健康\", NO separate sign-off line.",
-        "**格式 C — 便条 (Note) [2023]:**\nFormat C — Note:\n最后一句结尾 — e.g. 请您一定要在 ___ 之前报名。\n**[你的名字]** *(单独一行)*\n**[日期]** *(单独一行, e.g. 10 月 3 日)*\n**[时间]** *(单独一行, e.g. 晚上 9 点)*\nName / Date / Time — each on its own line, like a memo footer.",
-        "**3 种格式的\"号召行动\"句式 (任选 1 句, 放在结尾前):**\nCall-to-action phrases (pick one, place BEFORE the sign-off):\n**机不可失, 记得 ___。** Don't miss this — remember to ___.\n**快快行动吧！** Hurry, take action!\n**我们 X 月 X 日一起去吧！** Let's go together on [date]!\n**您要记得 ___ 哦！** *(对长辈)* Remember to ___! (to elder)"
+        "**格式 A — 电邮 (Email) [2017, 2020, 2021, 2025]:**\n待我参加活动后再跟你分享！\n祝\n身体健康\n[你的名字]",
+        "**格式 B — 短信 (SMS) [2018, 2019, 2022, 2024]:**\n您要记得收看哦！\n(无签名)",
+        "**格式 C — 便条 (Note) [2023]:**\n请您一定要在 ___ 之前报名。\n[你的名字]\n[日期]\n[时间]",
+        "**号召行动句 (任选一句, 放在落款前):**\n机不可失, 记得 ___。/ 快快行动吧！/ 我们 X 月 X 日一起去吧！/ 您要记得 ___ 哦！\nPick one call-to-action sentence; place it before the sign-off."
       ]
     },
     {
