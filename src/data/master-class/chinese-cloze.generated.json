@@ -1,0 +1,224 @@
+{
+  "slug": "chinese-cloze",
+  "subject": "chinese",
+  "level": "P5-P6",
+  "topicLabel": "短文填空",
+  "title": "PSLE 华文 — Cloze 短文填空 (Q16-Q20, 10 分)",
+  "stats": {
+    "headline": "PSLE 华文 Q16-Q20 = 10 分。一段短文 + 5 个空。词语类型和 Q5-Q6 一样 — 背好抽象动词卡, 这 10 分稳。"
+  },
+  "keyConcepts": [
+    {
+      "title": "欢迎来到《Cloze 短文填空》— Q16-Q20 (10 分)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-welcome.png",
+      "body": "Q16-Q20 是一段短文 + 5 个空。词语类型和 Q5-Q6 高度重叠: 抽象动词 + 抽象 形容词 + 偶尔 4 字成语。关键技能不是认词 — 是**用上下文锁定哪个词**。 Q16-Q20: one passage + 5 blanks. Word types overlap heavily with Q5-Q6 — abstract verbs/adjectives + occasional idioms. The skill isn't word recognition; it's USING CONTEXT to lock down which one fits.",
+      "bullets": [
+        "**10 年统计**: 80% 的空考**抽象 2 字词** (动词或形容词)",
+        "**20% 的空考 4 字成语** — 多是高频成语 (兴高采烈、恍然大悟等)",
+        "**没有考过具体名词** (桌子、电脑、苹果) — 这点和 Q5-Q6 一样"
+      ]
+    },
+    {
+      "title": "解题秘诀 — 先读完全文, 再回头填",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-character.png",
+      "body": "最常见的错: 边读边填。这会丢分, 因为后面的句子常常给你前面那个空的提示。 Most common mistake: filling as you read. This loses marks because later sentences often hint at earlier blanks' answers.",
+      "bullets": [
+        "**第 1 步: 通读全文** — 先看 3 遍, **不填**, 弄清这段在讲什么",
+        "**第 2 步: 标出空的\"词类\"** — 每个空旁边写: 动词 / 形容词 / 名词 / 成语",
+        "**第 3 步: 一个空一个空填** — 从最有把握的先填, 难的留最后",
+        "**第 4 步: 检查** — 全部填完后, 把短文再读一遍, 看是否流畅",
+        "**常见陷阱**: 4 个选项都是近义词, 但**搭配**只有 1 个对\n(例: 急切 / 迅速 / 紧急 / 立刻 — 都\"快\", 但搭配的场景不同)"
+      ]
+    },
+    {
+      "title": "Cloze 常考的 4 种词类 (10 年统计)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-vocab.png",
+      "body": "看到空, 先问\"这里应该是哪类词?\" 锁定词类 → 排除一半选项。 Spot the word type first → eliminate half the options instantly.",
+      "bullets": [
+        "**① 抽象动词 (~40%)** — 动作 / 心理活动\n例: 克服 / 实现 / 期盼 / 教导 / 安慰 / 决定 / 培养 / 了解",
+        "**② 抽象形容词 (~30%)** — 形容心情 / 状态\n例: 自信 / 充足 / 放松 / 兴奋 / 强壮 / 慌张 / 阴凉 / 积极",
+        "**③ 4 字成语 (~20%)** — 高频成语\n例: 兴高采烈 / 恍然大悟 / 闷闷不乐 / 凹凸不平 / 东摇西摆",
+        "**④ 其他 (~10%)** — 副词 / 连词 / 程度词\n例: 尤其 / 简直 / 顿时 / 禁不住"
+      ]
+    },
+    {
+      "title": "试一试 — 第一组 (PSLE 2025 + 2024 真题)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "PSLE 2025 Q16 — 找'动词' (克服)",
+          "stem": "短文背景: 大卫怕水, 爸爸帮他练游泳。\n句子: \"爸爸想尽办法, 帮助大卫 ___ 了这个困难, 终于让他不再怕水。\"\n应该填哪个词?",
+          "options": [
+            "接受",
+            "克服",
+            "解决",
+            "摆脱"
+          ],
+          "correctAnswer": 2,
+          "explanation": "先锁定词类 = **动词**。4 个选项都是动词, 但和**\"困难\"**搭配: **克服困难** (overcome difficulty) 最自然。 接受困难 / 解决问题 / 摆脱困境 — 配 \"困难\" 都没 克服 自然。",
+          "mascotCorrect": "/master-class/chinese-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/chinese-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "PSLE 2024 Q16 — 找'动词' (期盼)",
+          "stem": "短文背景: 洋洋摔伤了腿不能去公园, 终于今天可以去了。\n句子: \"这是洋洋 ___ 已久的一天, 因为他之前摔伤了腿, 哪里都不能去。\"\n应该填哪个词?",
+          "options": [
+            "想象",
+            "计划",
+            "等待",
+            "期盼"
+          ],
+          "correctAnswer": 4,
+          "explanation": "关键词 \"已久\" (long-awaited) 暗示**长时间盼望**。 想象 = 凭空想 / 计划 = 安排 / 等待 = 中性的等 / **期盼** = 带着希望和期待的等。最贴合\"摔伤了腿之后终于能去\"的心情。",
+          "mascotCorrect": "/master-class/chinese-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/chinese-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "陷阱 1 — 近义词陷阱 (靠搭配排除)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-idiom.png",
+      "body": "Cloze 最常见的陷阱: 4 个选项都是近义词, 意思相近但**搭配习惯不同**。 记住: 不要选\"意思最近\"的, 要选\"搭配最自然\"的。 Most common cloze trap: 4 near-synonyms with similar meanings but different collocation habits. Don't pick \"closest meaning\"; pick \"most natural pairing\".",
+      "bullets": [
+        "**经典搭配组 (背熟):**\n克服 + 困难 / 实现 + 愿望 / 培养 + 习惯 / 增进 + 友谊\n期盼 + 已久 / 充满 + 信心 / 改变 + 主意 / 接受 + 建议",
+        "**常见错搭配 (要避免):**\n✗ 解决困难 (应该是: 解决问题 / 克服困难)\n✗ 完成愿望 (应该是: 实现愿望)\n✗ 学习习惯 (应该是: 培养习惯)",
+        "**判断秘诀**: 先想\"老师 / 大人会怎么说这件事?\", 想到的那个词通常对。"
+      ]
+    },
+    {
+      "title": "试一试 — 第二组 (搭配陷阱)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "PSLE 2019 Q17 — 形容词搭配",
+          "stem": "短文背景: 一位科学家带学生在森林里, 靠星星指引走出来。\n句子: \"最后, 这个乐观的科学家靠着星星指引的方向, 以及和家人团聚的 ___,\n成功地带领学生走出了森林。\"\n应该填哪个词?",
+          "options": [
+            "心情",
+            "目标",
+            "想法",
+            "愿望"
+          ],
+          "correctAnswer": 4,
+          "explanation": "搭配 \"和家人团聚的 ___\" — **愿望** (wish/hope to reunite) 最自然。 心情 = 描述当下感觉, 目标 = 较正式的目的, 想法 = 中性念头。 只有 \"愿望\" 表达\"渴望团聚\"的强烈情感。",
+          "mascotCorrect": "/master-class/chinese-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/chinese-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "PSLE 2021 Q18 — 动词搭配",
+          "stem": "短文背景: 动物收容中心办课程, 教领养的人怎么照顾小动物。\n句子: \"中心希望通过这个课程, ___ 领养的人对小动物的爱心。\"\n应该填哪个词?",
+          "options": [
+            "培养",
+            "教导",
+            "训练",
+            "教育"
+          ],
+          "correctAnswer": 1,
+          "explanation": "搭配 \"___ 爱心\" — **培养爱心** (cultivate compassion) 是固定搭配。 教导 = 通过道理教 / 训练 = 反复练习 / 教育 = 通过课程教。 只有 \"培养\" 可以配抽象的\"爱心 / 兴趣 / 习惯\"。",
+          "mascotCorrect": "/master-class/chinese-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/chinese-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "陷阱 2 — 4 字成语 (靠场景匹配)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-idiom.png",
+      "body": "每 5 个空里通常有 1 个成语。秘诀: 看**整段在讲什么场景**, 不要光看那一句。 成语只能用在特定场景, 用错了句子读起来就不通。 Roughly 1 in 5 cloze blanks is an idiom. Trick: read the WHOLE PASSAGE'S SCENE, not just the sentence. Idioms only fit specific scenes — wrong scene = jarring sentence.",
+      "bullets": [
+        "**PSLE Cloze 常考的 8 个成语**:\n兴高采烈 (高兴) / 恍然大悟 (突然明白) / 闷闷不乐 (心情不好)\n凹凸不平 (路面起伏) / 东摇西摆 (左右晃) / 千辛万苦 (经历困难)\n津津有味 (听得入迷) / 一举两得 (做一件事得两好处)",
+        "**场景对照表 (背熟):**\n过节 / 比赛赢了 → **兴高采烈**\n被批评 / 受委屈 → **闷闷不乐**\n想了好久才明白 → **恍然大悟**\n风雨中的物体 → **东摇西摆**",
+        "**陷阱**: 4 个选项常常都是成语, 但只有 1 个的\"场景\"对。\n别选\"我认识这个成语\"的那个, 要选\"和这段场景对上\"的那个。"
+      ]
+    },
+    {
+      "title": "试一试 — 第三组 (成语 + 综合)",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "PSLE 2022 Q20 — 成语在场景中",
+          "stem": "短文背景: 黄老师终于让国华明白了一个道理。\n句子: \"国华听了, ___。\"\n应该填哪个成语?",
+          "options": [
+            "心满意足",
+            "兴高采烈",
+            "灵机一动",
+            "恍然大悟"
+          ],
+          "correctAnswer": 4,
+          "explanation": "\"国华听了\" + 之前讲老师让他**明白道理** → **恍然大悟** (suddenly understand)。 心满意足 = 满足感, 兴高采烈 = 很开心, 灵机一动 = 突然有主意 — 都不是 \"听了之后明白\" 的反应。",
+          "mascotCorrect": "/master-class/chinese-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/chinese-mcq-1/panda-wrong.png"
+        },
+        {
+          "label": "PSLE 2024 Q20 — 成语描写动作",
+          "stem": "短文背景: 妈妈和洋洋在风雨中, 洋洋蹲下来护着花。\n句子: \"用塑料布遮着几朵在风雨中 ___ 的小花儿。\"\n应该填哪个成语?",
+          "options": [
+            "兴高采烈",
+            "千辛万苦",
+            "东摇西摆",
+            "五颜六色"
+          ],
+          "correctAnswer": 3,
+          "explanation": "关键词 \"风雨中\" + \"小花儿\" → 风雨吹得花儿**左右晃** → **东摇西摆**。 兴高采烈 = 心情, 千辛万苦 = 困难, 五颜六色 = 颜色 — 都和\"风雨晃动\" 不对。",
+          "mascotCorrect": "/master-class/chinese-mcq-1/panda-correct.png",
+          "mascotWrong": "/master-class/chinese-mcq-1/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "开始练习吧！",
+      "mascotImage": "/master-class/chinese-mcq-1/panda-cta.png",
+      "body": "用 PSLE 2016-2025 真题改编。每次练 1 整段短文 + 5 个空, 模拟考试压力。 Practice with full passages from PSLE 2016-2025 — 1 passage + 5 blanks each, simulating exam conditions.",
+      "bullets": [
+        "**15 题** — 3 段短文, 每段 5 个空",
+        "做错的题一周后自动复习",
+        "重点复习: **搭配错的题**, AI 会标出来"
+      ],
+      "cta": {
+        "label": "点这里开始练习",
+        "quizSpec": {
+          "title": "Mastery: 华文 Cloze 短文填空",
+          "mcq": 15,
+          "oeq": 0
+        }
+      }
+    }
+  ],
+  "commonMistakes": [],
+  "keyWords": [
+    {
+      "word": "搭配",
+      "definition": "Collocation — which words naturally pair together. Cloze marks are decided by collocation: 'overcome difficulty' (克服困难) is right; 'solve difficulty' (解决困难) sounds wrong even though both verbs mean similar things."
+    },
+    {
+      "word": "词类",
+      "definition": "Word type — verb (动词), adjective (形容词), noun (名词), idiom (成语). Identify what TYPE the blank wants before looking at options. Eliminates half the choices instantly."
+    },
+    {
+      "word": "上下文",
+      "definition": "Context — sentences before AND after the blank. Cloze answers always have clues in surrounding text. Read the full passage twice before filling anything."
+    },
+    {
+      "word": "场景",
+      "definition": "Scene / situation — for idiom blanks, the WHOLE passage's scene decides which idiom fits. Idioms only work in specific scenes."
+    }
+  ],
+  "subTopics": [
+    {
+      "id": "cloze-verbs",
+      "label": "抽象动词 (~40% of blanks)",
+      "description": "Most-common cloze category. Verbs of action or thought: 克服, 实现, 期盼, 教导, 安慰, 决定, 培养, 了解. Decided by collocation (which other words it pairs with), not literal meaning.",
+      "slideIdx": 2
+    },
+    {
+      "id": "cloze-adjectives",
+      "label": "抽象形容词 (~30% of blanks)",
+      "description": "Mood/state words: 自信, 充足, 放松, 兴奋, 强壮, 慌张, 阴凉, 积极. Same collocation logic — decide by what other words it naturally pairs with.",
+      "slideIdx": 2
+    },
+    {
+      "id": "cloze-idioms",
+      "label": "4 字成语 (~20% of blanks)",
+      "description": "Idioms tested in cloze: 兴高采烈, 恍然大悟, 闷闷不乐, 凹凸不平, 东摇西摆, 千辛万苦, 津津有味, 一举两得. Match by scene, not by recognising the idiom — wrong scene loses the mark.",
+      "slideIdx": 6
+    }
+  ]
+}

@@ -1,0 +1,344 @@
+# Master Class: PSLE 华文 — Comprehension 阅读理解 (Q21-Q25 + Q30-Q32 + Q36-Q39)
+# --------------------------------------------------------------
+# 涵盖 PSLE 华文 阅读理解的 3 大块 (~28 分):
+#   - Q21-Q25 (10m):  叙事文 MCQ — narrative comprehension
+#   - Q30-Q32 (6m):   通告 / 广告 MCQ — notice / poster
+#   - Q36-Q39 (12-14m): 长 OEQ — open-ended on narrative
+#
+# Q40 (个人意见 4m) 在 chinese-oeq-setpieces 模块, 不在这里。
+# Q33 (写作 4m) 也在 setpieces 模块。
+# Q34-Q35 (找词 4m) 在 chinese-idioms 模块。
+#
+# 关键观察: 3 大块都考"5 种问法" — 同样的回答策略可以套到 MCQ 和 OEQ。
+#
+# Bilingual: body has Chinese + English; bullets are Chinese-only.
+# Source: PSLE Chinese 2016-2025 narrative passages + model answers.
+
+slug: chinese-comprehension
+subject: chinese
+level: P5-P6
+topicLabel: 阅读理解 MCQ
+title: "PSLE 华文 — Comprehension 阅读理解 (~28 分)"
+
+stats:
+  headline: >-
+    阅读理解的 MCQ 和 OEQ 都考 **5 种固定问法**: 找原因 / 找动作 / 找性格 /
+    解释引文 / 总结道理。把这 5 种问法练熟, 答题套路一样。
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: 欢迎来到《Comprehension 阅读理解》— 3 大块 (~28 分)
+    mascotImage: /master-class/chinese-mcq-1/panda-welcome.png
+    body: >-
+      阅读理解占 PSLE 华文 ~28 分。Q21-Q25 (narrative MCQ) 和 Q36-Q39 (OEQ)
+      考的是**同一组 5 种问法**, 只是一个填涂答案一个写句子。
+      Comprehension is ~28 marks of PSLE Chinese. Q21-Q25 (MCQ) and
+      Q36-Q39 (OEQ) both test the SAME 5 question types — only the
+      answer format differs.
+    bullets:
+      - |-
+        **Q21-Q25 (10 分)** — 5 道 MCQ, 关于一段叙事文 (narrative)
+      - |-
+        **Q30-Q32 (6 分)** — 3 道 MCQ, 关于一则通告 / 广告 (notice / poster)
+      - |-
+        **Q36-Q39 (12-14 分)** — 4 道 OEQ, 关于一段叙事文, 写句子答
+      - |-
+        **共同问法 (5 类)**: 后面 5 张片讲细节
+
+  # ─── Slide 1: The 5 question types ─────────────────────────
+  - title: "Q21-Q25 + Q36-Q39 共同的 5 种问法"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
+    body: >-
+      看一道题, 第一件事: 判断这是哪种问法。每种问法的"答题套路"不同。
+      First thing when you see a question: identify which of the 5
+      types it is. Each type has its own answer strategy.
+    bullets:
+      - |-
+        **① 找原因 (Why)** — "X 为什么 ___?" / "为什么 X 会 ___?"
+        答: 找文中**直接说出原因**的那一句, 重写一下
+      - |-
+        **② 找动作 (What X did)** — "X 做了什么?" / "X 说了什么?"
+        答: 找文中**X 的具体行为**, 总结成一句
+      - |-
+        **③ 找性格 (Character)** — "X 是怎样的人? 从哪里看出?"
+        答: **1 个性格词** + **2 个文中具体行为** (套用 Q40 格式 b 模板)
+      - |-
+        **④ 解释引文 (Quote meaning)** — "这句话/这个动作说明了什么?"
+        答: 看引文**前后文**, 解释作者想表达什么
+      - |-
+        **⑤ 总结道理 (Theme / moral)** — "这个故事告诉我们什么?"
+        答: 找故事的**寓意**, 通常是文章最后一段的暗示
+
+  # ─── Slide 2: Where each type appears ──────────────────────
+  - title: "5 种问法在 Q21-Q25 和 Q36-Q39 出现的位置"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      10 年统计显示 5 种问法在不同 Q 位置出现的概率非常规律 — 知道位置 = 知道
+      该用哪种答题套路。
+      10-year data shows each type appears at fairly fixed Q-positions.
+      Spot the position → know which strategy to use.
+    bullets:
+      - |-
+        **Q21 / Q36** — 通常是 **① 找原因** (动机/原因题)
+      - |-
+        **Q22 / Q37** — 通常是 **② 找动作** (recall) 或 **④ 解释引文**
+      - |-
+        **Q23 / Q38** — 通常是 **③ 找性格** 或 **② 找动作**
+      - |-
+        **Q24 / Q39** — 通常是 **④ 解释引文** 或 **③ 找性格**
+      - |-
+        **Q25** (只在 MCQ) — 通常是 **⑤ 总结道理** (theme of story)
+      - |-
+        **写题前**: 看清楚 Q 号 → 用对的策略 → 答案更准
+
+  # ─── Slide 3: Practice 1 (Identify question type) ─────────
+  - title: 试一试 — 第一组 (判断问法类型)
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2025 Q21 — 这是哪种问法?"
+        stem: |-
+          题目: "年轻人的动作为什么非常轻？"
+          这是 5 种问法的哪一种?
+        options:
+          - ① 找原因
+          - ② 找动作
+          - ③ 找性格
+          - ⑤ 总结道理
+        correctAnswer: 1
+        explanation: >-
+          "**为什么** ___?" 是经典的 ① 找原因题。答案要找文中**直接说出原因**的
+          那一句。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2024 Q24 — 这是哪种问法?"
+        stem: |-
+          题目: "文中的园丁叔叔是一个怎样的人？"
+          这是 5 种问法的哪一种?
+        options:
+          - ① 找原因
+          - ③ 找性格
+          - ④ 解释引文
+          - ⑤ 总结道理
+        correctAnswer: 2
+        explanation: >-
+          "X 是怎样的人?" = ③ 找性格题。答题套路: **1 个性格词 + 2 个文中
+          具体行为** (和 Q40 格式 b 完全一样)。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── Slide 4: Strategy for ① 找原因 ─────────────────────
+  - title: "策略 ① 找原因 — \"为什么\"题"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
+    body: >-
+      "为什么 X 做 Y?" 类题型。答案 90% 在文中**已经说出来了**, 你的任务是找到 +
+      重写。不需要自己"创造"原因。
+      "Why did X do Y?" — answer is 90% already in the passage. Your
+      job is to FIND it and rewrite. Don't invent reasons.
+    bullets:
+      - |-
+        **步骤 1**: 在题目里圈出**关键词** (例: "为什么年轻人的动作非常轻?"
+        关键词 = "动作非常轻")
+      - |-
+        **步骤 2**: 回去短文里, 找**关键词附近**的句子 (动作非常轻一定在描述
+        年轻人的段落里)
+      - |-
+        **步骤 3**: 找到 "**因为** ___ / **为了** ___ / **由于** ___" 这种因果
+        关联词 — 那一句就是答案
+      - |-
+        **答题套句**: "他这么做是**为了** ___" / "**因为** ___, 所以他 ___"
+      - |-
+        **陷阱**: MCQ 选项里常有"听起来对但不是文中说的"的选项 — 一定要
+        **回文中找证据**, 别凭印象选。
+
+  # ─── Slide 5: Strategy for ③ 找性格 ─────────────────────
+  - title: "策略 ③ 找性格 — \"X 是怎样的人\"题"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
+    body: >-
+      和 Q40 格式 (b) 完全相同的策略 — 1 个性格词 + 2 个文中证据 + 扣回性格。
+      Identical to Q40 Format (b) strategy: trait + 2 evidence + link back.
+    bullets:
+      - |-
+        **MCQ (Q23/Q24)**: 4 个选项是 1-2 个性格词的组合
+        (例: 温柔聪明 / 严格认真 / 顽皮调皮 / 害羞胆小)
+      - |-
+        **OEQ (Q38/Q39)**: 自己写 — 用 **Idioms 模块**里那 12 个性格词:
+        慷慨 / 善良 / 宽容大量 / 懂得体谅 / 孝顺 / 有爱心 / 诚实 / 勇敢 /
+        聪明 / 温柔 / 乐于助人 / 有责任感
+      - |-
+        **OEQ 套路**:
+        第 1 句: X 是个 **___ 且 ___** 的人。
+        第 2 句: 虽然 ___ , 但 ___ 。
+        第 3 句: 另外, ___ 。
+        第 4 句: 由此可见, X 真的是个 ___ 的人。
+      - |-
+        **陷阱**: 性格词必须和**文章寓意**一致, 不能凭印象。
+
+  # ─── Slide 6: Strategy for ④ 解释引文 ─────────────────────
+  - title: "策略 ④ 解释引文 — \"这句话说明什么\"题"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      "X 说了 Y, 这说明什么?" / "'这一幕' 指的是什么?" 题。答案在引文的**前后文**里,
+      不是引文本身。
+      "What does X saying Y mean?" / "What does 'this scene' refer
+      to?" — answer is in the BEFORE/AFTER, not in the quote itself.
+    bullets:
+      - |-
+        **步骤 1**: 找到引文在文中的位置, 用手指标出来
+      - |-
+        **步骤 2**: 读引文**前一句**和**后一句** (通常 2 句之内有答案)
+      - |-
+        **步骤 3**: 总结成一句话 — 不要原句照抄, 要换种说法
+      - |-
+        **答题套句**:
+        "这句话说明 ___" / "这一幕指的是 ___" / "这表达了 X 的 ___ (心情/想法)"
+      - |-
+        **示范 (PSLE 2025 Q25)**: "'脸上挤出了一丝笑容', 这句话说明什么?"
+        看前后文 — 年轻人被发现做错事时强装镇定 → "说明他感到不自在"。
+
+  # ─── Slide 7: Practice 2 (Apply ① 找原因) ─────────────────
+  - title: 试一试 — 第二组 (找原因策略)
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2025 Q21 风格 — 找原因 MCQ"
+        stem: |-
+          短文背景: 一位年轻人在街上看到一位女子掉了钱包, 他偷偷捡起来,
+          做出"非常轻"的动作。
+          题目: 年轻人的动作为什么非常轻？
+          (用步骤 1-3: 找关键词 → 回文中 → 找因果)
+        options:
+          - 因为他想锻炼平衡力。
+          - 因为他不想让女子发现他。
+          - 因为他怕被警察看见。
+          - 因为他在练习舞蹈动作。
+        correctAnswer: 2
+        explanation: >-
+          关键词 = "动作非常轻"。回到文中, "轻" 的原因 = 不想被发现 (他偷偷捡了钱包)。
+          PSLE 2025 标答原句。
+          其他选项: 锻炼 / 警察 / 舞蹈 都是文中没说的"额外推测", 是陷阱。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2024 Q21 风格 — 找原因 (短文里有证据)"
+        stem: |-
+          短文背景: 学生们经常摘花、踩花。学校请园丁叔叔来教大家。
+          题目: 从哪里可以看出学生不爱惜花？
+          (用步骤 2: 关键词"不爱惜" → 回文中找证据)
+        options:
+          - 学生不浇水。
+          - 学生踩到花和摘花。
+          - 学生忘记关花园门。
+          - 学生不知道花名。
+        correctAnswer: 2
+        explanation: >-
+          关键词 = "不爱惜花"。文中**直接说**: 学生 "又摘花又踩到花" → 选 (2)。
+          其他选项: 不浇水 / 关门 / 不知道花名 都是文中**没提的猜测**。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── Slide 8: Q30-Q32 Notice/Poster ───────────────────────
+  - title: "Q30-Q32 通告 / 广告 (6 分) — 3 种问法"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-pinyin.png
+    body: >-
+      Q30-Q32 看一则**通告或广告**, 答 3 道 MCQ。和 Q21-Q25 不同的是: 不是叙事文,
+      没有"性格 / 道理"问法。只考 3 类: **目的 / 行动方法 / 详情**。
+      Q30-Q32 reads a notice or poster (not narrative). Only 3
+      question types: purpose / how-to-act / specific details.
+    bullets:
+      - |-
+        **① 目的题** (Q30) — "举办这个活动的主要目的是什么?"
+        答: 看通告**开头**或**标题** — 主要目的通常是 1 句话
+      - |-
+        **② 行动方法题** (Q31) — "想参加的人应该怎么做? / 怎么报名?"
+        答: 看通告**末尾**的报名信息 — 时间、地点、网站、电话
+      - |-
+        **③ 详情题** (Q32) — "活动当天/参与者必须做什么?"
+        答: 看通告**中间**的活动详情 — 时间表、规则、注意事项
+      - |-
+        **关键秘诀**: 通告 80% 信息可以**直接抄**到答案里 (和 Q33 写作一样的逻辑)
+
+  # ─── Slide 9: Practice 3 (Mixed — Q30-Q32 + Q39) ───────────
+  - title: 试一试 — 第三组 (通告 + OEQ 综合)
+    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "PSLE 2025 Q30 风格 — 通告 '目的' 题"
+        stem: |-
+          通告背景: 学校举办"清理海滩活动", 邀请学生参加, 让海龟有更好的环境下蛋。
+          题目: 学校举办清理海滩活动的主要目的是?
+        options:
+          - 让学生学习游泳。
+          - 让海龟有更好的环境下蛋。
+          - 让学生收集垃圾换奖品。
+          - 让学生认识同学。
+        correctAnswer: 2
+        explanation: >-
+          通告**直接说**了主要目的 = 让海龟有更好的环境下蛋。PSLE 2025 标答原句。
+          其他选项是"听起来合理但通告没说"的陷阱。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+      - label: "PSLE 2023 Q39 风格 — OEQ 找原因 (写句子)"
+        stem: |-
+          短文背景: 作者借了篮球给好友子平, 后来弄丢了, 作者很生气责怪子平,
+          甚至以妈妈的名义威胁。子平默默走了。
+          题目: 看着子平的背影, 作者为什么有点儿后悔?
+          下面哪个答案**最贴近 PSLE 标答**?
+        options:
+          - 因为他想念子平, 想叫他回来。
+          - 因为子平是认识多年的好友, 自己却为了篮球和他吵架, 甚至以妈妈
+            威胁他, 觉得对不起朋友。
+          - 因为他怕子平不会赔篮球。
+          - 因为爸爸会骂他丢球。
+        correctAnswer: 2
+        explanation: >-
+          ① 找原因策略: 找文中的因果关键词。子平和作者**多年好友**, 作者**为
+          篮球吵架 + 以妈妈威胁** → 这些事让他**后悔**。
+          (1) 太简略, (3)(4) 是错误推测 — 文中没说作者怕赔钱或被爸爸骂。
+          标答要点: 多年好友 + 为篮球吵 + 以妈妈威胁。
+        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
+        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
+
+  # ─── Wrap-up CTA ────────────────────────────────────────────
+  - title: 开始练习吧！
+    mascotImage: /master-class/chinese-mcq-1/panda-cta.png
+    body: >-
+      用 PSLE 2016-2025 真题混合练习。每次给一段短文或通告 + 多道题, 模拟考试。
+      Mixed practice from PSLE 2016-2025. Each set includes a
+      passage + multiple questions, simulating exam conditions.
+    bullets:
+      - |-
+        **20 题** — Q21-Q25 (8) + Q30-Q32 (6) + Q36-Q39 (6)
+      - |-
+        做错的题一周后自动复习
+      - |-
+        OEQ 题 AI 会评分并指出"漏掉的要点"
+    cta:
+      label: 点这里开始练习
+      quizSpec:
+        title: "Mastery: 华文 Comprehension 阅读理解"
+        mcq: 14
+        oeq: 6
+
+commonMistakes: []
+
+keyWords:
+  - { word: 因果题, definition: "Why-question (① 找原因). Answer is in the passage; find the 因为/为了/由于 sentence near the keyword. Don't invent reasons — find the one PSLE put there." }
+  - { word: 性格题, definition: "Character question (③ 找性格). Same strategy as Q40 Format (b): trait + 2 passage evidence + link back. Use the 12 trait words from the Idioms module." }
+  - { word: 引文解释题, definition: "Quote interpretation (④ 解释引文). Answer is in the sentences IMMEDIATELY BEFORE AND AFTER the quoted line — not in the quote itself. Rephrase in your own words." }
+  - { word: 通告 / 广告, definition: "Notice/poster (Q30-Q32). Tests 3 things only: purpose (look at title/intro), how-to-act (look at end), specific details (look in middle). 80% can be lifted directly into answer." }
+
+subTopics:
+  - id: comp-why
+    label: ① 找原因 (Why)
+    description: "Q21/Q36 typically. Question form: 'Why did X do Y?' Answer strategy: find keyword in question → locate in passage → look for 因为/为了/由于 sentence nearby. Don't invent — find what PSLE already wrote."
+    slideIdx: 4
+  - id: comp-character
+    label: ③ 找性格 (Character)
+    description: "Q23/Q24/Q38. Question form: 'What kind of person is X?' Same strategy as Q40 Format (b): 1 trait + 2 specific passage behaviors + link back. Pick from the 12-trait deck (Idioms module)."
+    slideIdx: 5
+  - id: comp-quote
+    label: ④ 解释引文 (Quote)
+    description: "Q22/Q24/Q25 OEQ Q39. Question form: 'What does this line/scene mean?' Answer is in the immediate BEFORE/AFTER context, not in the quote itself. Rephrase, don't copy."
+    slideIdx: 6
+  - id: comp-notice
+    label: Q30-Q32 通告 / 广告
+    description: "3 MCQ on a notice/poster. Only 3 types: purpose (title/intro), how-to-register (end), specific details (middle). Lift answers directly from notice — same as Q33 strategy."
+    slideIdx: 8

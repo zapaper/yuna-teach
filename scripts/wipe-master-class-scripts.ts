@@ -4,7 +4,7 @@
 
 import { prisma } from "../src/lib/db";
 
-const SLUGS = ["grammar-mcq-1", "grammar-mcq-2", "chinese-mcq-1", "chinese-oeq-setpieces", "chinese-idioms", "chinese-sentence-completion"];
+const SLUGS = ["grammar-mcq-1", "grammar-mcq-2", "chinese-mcq-1", "chinese-oeq-setpieces", "chinese-idioms", "chinese-sentence-completion", "chinese-cloze", "chinese-comprehension"];
 
 (async () => {
   for (const slug of SLUGS) {
