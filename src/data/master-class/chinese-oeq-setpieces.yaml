@@ -285,16 +285,18 @@ keyConcepts:
         **第 4 句 (1 分): 理由 3 / 额外角度** — 用 "这样不仅 ___ 还 ___"
         Sentence 4: reason 3 / extra angle — use "not only … but also …"
 
-  # ─── Q40 Format (a): Worked Example (immediately after template) ─
-  - title: "格式 (a) 解题示范 — PSLE 2025 妈妈糖果瓶教育"
+  # ─── Q40 Format (a): Worked Example with real PSLE key ────
+  - title: "你同意吗？解题示范 (Do You Agree? — Worked Example) — PSLE 2025 真题 + 官方评分"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-pinyin.png
     body: >-
+      **下面是 PSLE 2025 真题的官方标答 (含每个 (1) 标记)。**
       文章摘要: 妈妈让吵架的两个哥哥相亲相爱 — 每做一件好事就放一颗糖果进瓶子,
       瓶子装满了"圣诞老人"才会来。
       题目: 你同意文中妈妈教育孩子的方法吗？(4 分)
+      **Below: PSLE 2025 official model answer with the actual (1)(1)(1)(1) marks.**
       Summary: Mom got fighting brothers to be loving — each good deed
-      adds a candy to the jar; when full, "Santa" comes.
-      Question: Do you agree with the mom's teaching method? (4m)
+      adds a candy; when jar is full, "Santa" comes.
+      Question: Do you agree with the mom's teaching method? (4 marks)
     bullets:
       - |-
         **(1) 第 1 句 — 立场:** 我同意妈妈教育孩子的方法。
@@ -305,33 +307,33 @@ keyConcepts:
       - |-
         **(1) 第 4 句 — 理由 3 (额外角度):** 用"圣诞老人会来"作为鼓励, 也让整个过程变得有趣又有效。
       - |-
+        **总分: (1)+(1)+(1)+(1) = 4 分** ✓
+      - |-
         **⚠️ 陷阱:** 第 4 句不能只是"所以我同意" — 必须多加一个新点。
-        Trap: sentence 4 must add a NEW point, not just restate.
 
-  # ─── Q40 Format (b): Section Header + Template ────────────
-  - title: "格式 (b) — X 是怎样的人？(What Kind of Person?) 模板 — 2 句话 = 4 分"
+  # ─── Q40 Format (b): Section Header + Scoring ────────────
+  - title: "格式 (b) — X 是怎样的人？(What Kind of Person?) — 评分 / Scoring (2 句话 = 4 分)"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
     body: >-
-      格式 (b) 用 2 句话, 每句装 2 个分点:
-      Format (b) uses 2 sentences, each carrying 2 marks:
+      格式 (b) 用 2 句话, 每句装 2 个分点 = 共 4 分。
+      Format (b): 2 sentences, each carrying 2 marks = 4 marks total.
     bullets:
       - |-
-        **第 1 句 (1 + 1 分): 性格词 1 + 性格词 2**
-        Sentence 1 (2m): name two SPECIFIC traits
+        **第 1 句 (1 + 1 = 2 分): 两个性格词**
         套句: "X 是个 **(1) 性格词 1** 且 **(1) 性格词 2** 的人。"
+        Sentence 1 (2m): name two specific traits.
         Pattern: "X is a [trait 1] and [trait 2] kind of person."
       - |-
-        **第 2 句 (1 + 1 分): 证据 1 + 证据 2** (用文中具体行为)
-        Sentence 2 (2m): two SPECIFIC passage behaviours
+        **第 2 句 (1 + 1 = 2 分): 两个文中具体证据**
         套句: "虽然 ___, 但 ___ (1)。另外, ___ (1)。"
+        Sentence 2 (2m): two specific passage behaviours.
         Pattern: "Although ___, [behaviour] (1). Also, [behaviour] (1)."
       - |-
         **关键: 性格词必须**和文章寓意一致**, 不能"看脸挑词"。
-        Key: traits MUST match the passage's MORAL, not just any
-        positive word that loosely fits.
+        Key: traits must match the passage's MORAL, not just loosely fit.
 
-  # ─── Q40 Format (b): 12-trait deck ──────────────────────────
-  - title: "格式 (b) — 12 个正面性格词 (背熟就够)"
+  # ─── Q40 Format (b): Positive trait deck ───────────────────
+  - title: "格式 (b) — 12 个正面性格词 (POSITIVE traits)"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-vocab.png
     body: >-
       "X 是怎样的人？" 题目你只需要 12 个正面词就够用。背熟英文意思,
@@ -376,6 +378,36 @@ keyConcepts:
       - |-
         **有责任感** (yǒu zé rèn gǎn) — 做事认真负责
         **RESPONSIBLE** — takes duties seriously
+
+  # ─── Q40 Format (b): Negative trait deck ─────────────────
+  - title: "格式 (b) — 反面性格词 (NEGATIVE traits)"
+    mascotImage: /master-class/chinese-mcq-1/panda-teaching-idiom.png
+    body: >-
+      碰到批评型问题 (如 PSLE 2017 "傲慢的男女"), 用这些**反面性格词**:
+      For criticism-type questions (e.g. PSLE 2017 arrogant couple),
+      use these NEGATIVE trait words:
+    bullets:
+      - |-
+        **傲慢无礼** (ào màn wú lǐ) — 看不起人, 不礼貌
+        **ARROGANT / RUDE** — looks down on others, no manners
+      - |-
+        **以金钱至上** (yǐ jīn qián zhì shàng) — 把钱看得比一切都重要
+        **MONEY-OBSESSED** — puts money above all else
+      - |-
+        **看不起他人** (kàn bù qǐ tā rén) — 觉得别人不如自己
+        **CONDESCENDING** — thinks others are beneath them
+      - |-
+        **不肯原谅别人** (bù kěn yuán liàng bié rén) — 心胸狭窄
+        **UNFORGIVING** — narrow-hearted, holds grudges
+      - |-
+        **不体谅别人** (bù tǐ liàng bié rén) — 不考虑他人感受
+        **INCONSIDERATE** — doesn't think about others' feelings
+      - |-
+        **自私** (zì sī) — 只想着自己
+        **SELFISH** — only thinks of self
+      - |-
+        **强迫别人 / 不尊重别人的选择** (qiáng pò / bù zūn zhòng) — 把自己的想法强加给别人
+        **CONTROLLING / DISRESPECTFUL OF CHOICE** — imposes own wishes
 
   # ─── Q40 格式 (b) "X 是怎样的人?" — Worked Example ──────────
   - title: "格式 (b) 解题示范 — PSLE 2021 卖花阿姨"
@@ -424,77 +456,7 @@ keyConcepts:
         CONSIDERATE / FILIAL / LOVING / HONEST / BRAVE / CLEVER /
         GENTLE / HELPFUL / RESPONSIBLE.
 
-  # ─── Q40 Practice 1 — with passage scaffold ────────────────
-  - title: 试一试 — 2024 小袋鼠强迫练拳
-    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
-    interactiveQuiz:
-      - label: "题目 + 文章重点都给你, 选最贴近 PSLE 标答的开头"
-        stem: |-
-          **文章重点 (中文):** 袋鼠爸妈强迫小袋鼠练拳。袋鼠不喜欢练拳, 他想学魔术。
-          外公看出小袋鼠很委屈, 把他带回家, 让他学魔术。妈妈最后明白了, 让小袋鼠
-          追逐自己的兴趣。
-          **题目:** 小袋鼠的父母坚持要他练拳。你同意他们的做法吗？为什么？(4 分)
-          下面哪个开头**最贴近 PSLE 标答风格**？
-        options:
-          - 我觉得袋鼠爸妈不太好, 因为他们太凶了。
-          - 我不认同他们的做法。他们应该尊重孩子的兴趣和选择, 而不是逼他们做不愿做的事。
-          - 这件事很难说, 因为父母也是为孩子好。
-          - 袋鼠爸妈错了, 不应该打孩子。
-        correctAnswer: 2
-        explanation: >-
-          PSLE 2024 标答原句。要点: ① 直接表态 ("我不认同") ② 给出原则性理由
-          ("应该尊重 ___ 而不是 ___")。其他选项太口语化或缺少 4 字句结构。
-          PSLE 2024 official answer. Key moves: ① direct stance ② principled
-          reason using "should respect … rather than …". Other options are
-          too colloquial or missing the 4-char structure.
-        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
-        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
-      - label: "继续这道题 — 接下来该用哪句套话？"
-        stem: |-
-          你已经写了 "我不认同他们的做法。" 接下来题目还问: "如果你的父母要求你
-          做不喜欢的事, 你会怎么做？" 接下来该用哪一句**最像标答**？
-        options:
-          - 我会跟他们吵架, 让他们知道我不开心。
-          - 我会偷偷不做, 让他们以为我做了。
-          - 我会用平和的语气表达自己的感受, 说明为什么不喜欢做这件事。
-          - 我没办法, 只能听他们的。
-        correctAnswer: 3
-        explanation: >-
-          PSLE 2024 标答原句。要点: 用"平和的语气""表达自己的感受""说明为什么"
-          三个高级短语, 同时不顶撞父母。这就是 PSLE 喜欢的"成熟孩子"答法。
-          PSLE 2024 official answer. Key phrases: "calm tone", "express my
-          feelings", "explain why" — mature, non-confrontational tone.
-          This is the "model student" voice PSLE rewards.
-        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
-        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
-
-  # ─── Q40 Practice 2 — agree, character trait ───────────────
-  - title: 再试一题 — 2025 妈妈的糖果瓶教育
-    mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
-    interactiveQuiz:
-      - label: "收尾句 — 哪一句最像 PSLE 标答？"
-        stem: |-
-          **文章重点 (中文):** 妈妈让两个吵架的哥哥相亲相爱: 每做一件好事, 就放一颗
-          糖果进瓶子里。瓶子装满了, "圣诞老人"才会来。哥哥们不再吵架, 还会一起讨论
-          怎么帮助家人。
-          **题目:** 你同意文中妈妈教育孩子的方法吗？试加以说明。(4 分)
-          你已经写了: "我同意妈妈教育孩子的方法。把做好事和放糖果连接起来, 会让孩子
-          愿意主动帮忙。" 收尾该用哪一句？
-        options:
-          - 反正最后两个哥哥变好了。
-          - 这样不仅能减少吵架的次数, 还能让他们学会关心家人。
-          - 我也觉得糖果很好吃。
-          - 我喜欢圣诞老人。
-        correctAnswer: 2
-        explanation: >-
-          PSLE 2025 标答风格。"这样不仅能 ___, 还能 ___" 是 Comprehension Conclusion 最爱的收尾关联词。
-          能多带一个要点 + 显出逻辑层次。其他选项要么离题, 要么不像答题。
-          PSLE 2025 style. "This way you can not only … but also …" is THE
-          favourite closing connector — adds one more point AND signals logic.
-        mascotCorrect: /master-class/chinese-mcq-1/panda-correct.png
-        mascotWrong: /master-class/chinese-mcq-1/panda-wrong.png
-
-  # ─── Q40 Practice 3 — English → Chinese trait recall ────────
+  # ─── Q40 Practice — English → Chinese trait recall ────────
   - title: 性格词测试 — 看英文写中文
     mascotImage: /master-class/chinese-mcq-1/panda-thinking.png
     body: >-
