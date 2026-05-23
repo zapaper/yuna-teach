@@ -3,6 +3,15 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Next.js 16 caps incoming request bodies at 10MB by default. The
+  // exam upload route (/api/exam/extract-background) sends an array of
+  // base64-encoded JPG pages — for a full Chinese paper (P1 + P2 + Oral
+  // + Listening = 30+ pages) the JSON payload routinely hits 15-25MB
+  // and was silently truncating at exactly 10MB, leaving the body
+  // unterminated and JSON.parse throwing "Unterminated string in JSON
+  // at position 10480000". Bumping to 50MB covers full PSLE papers
+  // with headroom; legit exam uploads won't realistically exceed that.
+  middlewareClientMaxBodySize: "50mb",
   // Pin Next's workspace-root inference to this project. Without it,
   // both Turbopack and the standalone tracer can walk up the tree and
   // pick "C:\Users\peter\Yuna teach" (the parent folder) as the root,
