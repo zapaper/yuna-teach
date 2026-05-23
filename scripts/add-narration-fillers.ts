@@ -17,12 +17,24 @@ import * as path from "path";
 import { parse as parseYaml, stringify as stringifyYaml, Document, isMap, isScalar, isSeq } from "yaml";
 import { generateContentWithRetry } from "../src/lib/gemini";
 
-const TARGET_YAMLS = [
+// CLI: pass YAML filenames as args to target specific files; default = ALL
+// master-class YAMLs (idempotent — won't double-add filler to existing braces).
+// Run with: npx tsx -r dotenv/config scripts/add-narration-fillers.ts dotenv_config_path=.env
+const ARG_YAMLS = process.argv.slice(2).filter(a => a.endsWith(".yaml"));
+// Modules WITHOUT existing filler — running on these adds braces from scratch.
+// grammar-mcq-1/2 already have ~45-50 filler braces from an earlier pass —
+// excluded to avoid double-adding.
+const DEFAULT_YAMLS = [
   "chinese-mcq-1.yaml",
-  "chinese-mcq-2.yaml",
-  "grammar-mcq-1.yaml",
-  "grammar-mcq-2.yaml",
+  "chinese-oeq-setpieces.yaml",
+  "chinese-idioms.yaml",
+  "chinese-sentence-completion.yaml",
+  "chinese-cloze.yaml",
+  "chinese-comprehension.yaml",
+  "english-synthesis-tricks.yaml",
+  "science-diversity.yaml",
 ];
+const TARGET_YAMLS = ARG_YAMLS.length > 0 ? ARG_YAMLS : DEFAULT_YAMLS;
 
 type Slide = {
   title?: string;
@@ -32,7 +44,7 @@ type Slide = {
 };
 
 function detectLanguage(yamlPath: string): "zh" | "en" {
-  return yamlPath.includes("chinese-mcq") ? "zh" : "en";
+  return yamlPath.includes("chinese") ? "zh" : "en";
 }
 
 // Prompt asks Gemini to ADD {...} filler around each unit so the audio

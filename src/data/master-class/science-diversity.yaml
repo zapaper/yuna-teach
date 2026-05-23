@@ -33,7 +33,7 @@ keyConcepts:
       PSLE almost never tests the obvious — they test edge cases.
     bullets:
       - |-
-        **Block 1: Living Things** — characteristics + animal/plant groups + dichotomous keys
+        **Block 1: Living Things** — characteristics + animal/plant groups + flow charts
       - |-
         **Block 2: Materials** — 6 properties + matching property to use
       - |-
@@ -167,12 +167,12 @@ keyConcepts:
         mascotCorrect: /master-class/interactions-environment/panda-correct.png
         mascotWrong: /master-class/interactions-environment/panda-wrong.png
 
-  # ─── Slide 5: Dichotomous Keys ────────────────────────────
-  - title: "Dichotomous Keys — read top-down, one yes/no at a time"
+  # ─── Slide 5: Flow Charts ────────────────────────────────
+  - title: "Flow Charts — read top-down, one yes/no at a time"
     mascotImage: /master-class/interactions-environment/panda-teaching-causal.png
     body: >-
-      Almost every PSLE Diversity paper has 1 dichotomous key question.
-      Pattern: a flowchart of yes/no questions. Strategy: start at the top,
+      Almost every PSLE Diversity paper has 1 flow chart question.
+      Pattern: a chart of yes/no questions. Strategy: start at the top,
       answer ONE question, follow the arrow, never skip.
     bullets:
       - |-
@@ -187,8 +187,8 @@ keyConcepts:
       - |-
         **PSLE 2024 example**: Key with "Has feathers?" → YES → "Can fly?" → NO → Penguin. Student must recognise penguin is still a bird despite not flying.
 
-  # ─── Slide 6: Practice 3 — Dichotomous Key ────────────────
-  - title: "Try it — Using a dichotomous key"
+  # ─── Slide 6: Practice 3 — Flow Chart ────────────────────
+  - title: "Try it — Using a flow chart"
     mascotImage: /master-class/interactions-environment/panda-thinking.png
     interactiveQuiz:
       - label: "Read the key correctly"
@@ -222,13 +222,13 @@ keyConcepts:
       then pick the matching property.
     bullets:
       - |-
-        **6 properties + opposite pairs:**
-        -- Strong ↔ Weak
-        -- Flexible ↔ Rigid (stiff)
-        -- Transparent ↔ Opaque (translucent in between)
-        -- Waterproof ↔ Absorbent
-        -- Good heat conductor ↔ Poor heat conductor (insulator)
-        -- Good electrical conductor ↔ Poor electrical conductor (insulator)
+        **6 properties + opposite pairs (with definitions):**
+        -- **Strong** = can hold heavy weight without breaking ↔ **Weak** = breaks easily under load
+        -- **Flexible** = can bend without breaking ↔ **Rigid (stiff)** = cannot bend; holds its shape
+        -- **Transparent** = light passes through, you can see clearly ↔ **Opaque** = no light passes; cannot see through · (**Translucent** = some light passes; cannot see clearly, like frosted glass)
+        -- **Waterproof** = water cannot pass through ↔ **Absorbent** = soaks water in
+        -- **Good heat conductor** = heat flows through easily (gets hot fast) ↔ **Poor heat conductor / insulator** = heat does NOT flow through (stays cool to touch)
+        -- **Good electrical conductor** = electricity flows through ↔ **Poor electrical conductor / insulator** = electricity does NOT flow through
       - |-
         **Common materials and their key properties:**
         -- **Metal**: strong, rigid, good conductor (heat + electricity)
@@ -244,6 +244,64 @@ keyConcepts:
         -- Step 3: What materials have that property? (plastic, rubber, treated fabric)
       - |-
         **Trap**: Multi-property objects (e.g. saucepan handle needs to be a HEAT INSULATOR even though the pan itself is a heat conductor). PSLE loves these.
+
+  # ─── Slide: Materials OEQ — answering technique ───────────
+  - title: "Materials OEQ — 3-step answering technique"
+    mascotImage: /master-class/electrical-circuits/panda-teaching-bulbs.png
+    body: >-
+      OEQ questions on materials (e.g. "Explain why the umbrella fabric
+      is suitable for keeping rain out") want a 3-part answer. Miss any
+      part → lose a mark. Follow this template every time.
+    bullets:
+      - |-
+        **(a) State the right material / property** — name what the object SHOULD be made of (or what property it has).
+        Example: "The umbrella fabric is waterproof."
+      - |-
+        **(b) Use data from the question / chart** — quote the specific evidence given (table values, observation, image).
+        Example: "From the table, fabric Y does not absorb any water." OR
+        "The diagram shows water beads rolling off the surface."
+      - |-
+        **(c) Explain how it fits the context** — link the property to the object's USE / FUNCTION in plain words.
+        Example: "This means rain cannot soak through, so the person staying under the umbrella will not get wet."
+      - |-
+        **Full answer (3 sentences):**
+        "The umbrella fabric is waterproof **(a)**. The table shows fabric Y absorbs no water **(b)**. This means rain cannot soak through, keeping the person dry **(c)**."
+      - |-
+        **Common mistake**: only doing (a) — naming the property without explaining WHY it fits the use. That's a 1-mark answer when the question gave 2-3 marks.
+
+  # ─── Slide: Worked Example — Materials OEQ ──────────────
+  - title: "Worked example — Material OEQ (3 marks)"
+    mascotImage: /master-class/electrical-circuits/panda-teaching-bulbs.png
+    body: >-
+      A real PSLE-style table + question. Watch how the (a)+(b)+(c)
+      structure earns all 3 marks. Most students stop after (a) and
+      lose 2 marks.
+    bullets:
+      - |-
+        **The table:**
+        Material P → strong, rigid, absorbs water
+        Material Q → weak, flexible, absorbs water
+        Material R → strong, flexible, waterproof
+        Material S → weak, rigid, waterproof
+      - |-
+        **The question (3 marks):** A toy umbrella needs to be **flexible**
+        (so it can fold) and **waterproof** (so it keeps rain out).
+        Which material should it be made of? Explain.
+      - |-
+        **What MOST students write (1 mark only):**
+        ✗ "Material R." — missing (b) and (c). Only 1 mark out of 3.
+      - |-
+        **Full-marks answer (3 marks):**
+        **(a)** Material R should be used.
+        **(b)** From the table, R is **flexible** AND **waterproof** (does not absorb water).
+        **(c)** This means the umbrella can be folded and unfolded easily, AND will keep the rain out so the user stays dry.
+      - |-
+        **Mark allocation**:
+        ✓ Name the material (a) → 1 mark
+        ✓ Quote data showing it has BOTH needed properties (b) → 1 mark
+        ✓ Link both properties to umbrella's function (c) → 1 mark
+      - |-
+        **Trick**: when the question lists **2 properties needed**, your (b) and (c) MUST address BOTH. Mentioning only one = lose half.
 
   # ─── Slide 8: Practice 4 — Materials ──────────────────────
   - title: "Try it — Materials and properties"
@@ -307,7 +365,7 @@ commonMistakes: []
 
 keyWords:
   - { word: "7 characteristics of living things", definition: "Move, breathe, grow, reproduce, respond, need food/water, excrete. ALL must be true for an organism to be 'living'. The reproduce test is the sharpest single check." }
-  - { word: "dichotomous key", definition: "A yes/no flowchart for identifying organisms. Strategy: start at top, answer one question, follow the arrow. Never skip ahead or read bottom-up." }
+  - { word: "flow chart", definition: "A yes/no chart for identifying organisms. Strategy: start at top, answer one question, follow the arrow. Never skip ahead or read bottom-up." }
   - { word: "property vs use", definition: "Materials are tested by USE: what does the object need to do? Pick the property that fits, then the material. Designed-role beats general-truth answers on PSLE." }
   - { word: "heat conductor / insulator", definition: "Metals are good heat conductors (heat flows through). Wood, plastic, rubber are poor heat conductors (insulators — keep things cool to touch). Most PSLE handle/grip questions test this." }
   - { word: "fungi", definition: "Mushrooms, mould, yeast. ALIVE but NOT plants (no chlorophyll, can't photosynthesise). Reproduce by spores. PSLE trap word." }
@@ -321,9 +379,9 @@ subTopics:
     label: Animal & Plant Groups
     description: "6 animal groups (mammals, birds, reptiles, amphibians, fish, insects) + plant types (with flowers/seeds vs spore-reproducers). Each group has ONE diagnostic question. Common traps: whale (mammal not fish), spider (arachnid not insect), penguin (bird), mushroom (fungi)."
     slideIdx: 3
-  - id: dichotomous-keys
-    label: Dichotomous Keys
-    description: "Yes/no identification flowchart. Strategy: top-down, one question at a time, never skip. Common trap is multi-criterion questions where students answer the wrong part."
+  - id: flow-charts
+    label: Flow Charts
+    description: "Yes/no identification chart. Strategy: top-down, one question at a time, never skip. Common trap is multi-criterion questions where students answer the wrong part."
     slideIdx: 5
   - id: materials
     label: Materials & Properties

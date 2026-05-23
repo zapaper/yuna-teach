@@ -27,7 +27,7 @@ keyConcepts:
     mascotImage: /master-class/grammar-mcq-1/panda-welcome.png
     body: >-
       Synthesis asks you to REWRITE a sentence using a given keyword,
-      keeping the meaning. 4 patterns cover ~80% of past PSLE questions.
+      keeping the meaning. 5 patterns cover ~90% of past PSLE questions.
       The hardest part isn't grammar — it's not changing meaning or adding info.
     bullets:
       - |-
@@ -38,6 +38,8 @@ keyConcepts:
         **Pattern C: Condition** — If / Unless / Provided that
       - |-
         **Pattern D: Word transformation** — noun ↔ verb / active ↔ passive
+      - |-
+        **Pattern E: Reported Speech** — direct ↔ indirect (with backshift)
       - |-
         **The 3 rules of synthesis:**
         ① Don't change the meaning. ② Don't change the tense. ③ Don't add info.
@@ -174,6 +176,44 @@ keyConcepts:
         "Nothing is more delicious than mum's cooking." → "Mum's cooking is the most delicious."
       - |-
         **Trap**: don't change the TENSE. If original is past, the rewrite must also be past.
+
+  # ─── Slide: Pattern E — Reported Speech ──────────────────
+  - title: "Pattern E — Reported Speech (Direct ↔ Indirect) + the past-past trap"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Convert direct speech (with quotes) to indirect (no quotes).
+      The KEY rule is BACKSHIFT — tenses shift one step into the past
+      when the reporting verb (said / told / asked) is in past tense.
+    bullets:
+      - |-
+        **Backshift table** (reporting verb is past):
+        -- present → past:        "I am happy" → he said he **was** happy
+        -- present continuous → past continuous: "I am eating" → he said he **was eating**
+        -- past → past perfect:   "I went home" → he said he **had gone** home
+        -- will → would:          "I will help" → he said he **would help**
+        -- can → could:           "I can swim" → he said he **could swim**
+      - |-
+        **⚠️ THE PAST-PAST TRAP** (most common mistake)
+        When the event happened **BEFORE** the speech, AND the speech was
+        in past tense → the event must be **past perfect** (had + past
+        participle). Not just simple past.
+        Direct: "I **broke** the window," John said.
+        ✗ John said that he **broke** the window. (loses time-ordering)
+        ✓ John said that he **had broken** the window. (past perfect = before "said")
+      - |-
+        **Pronoun + time/place shifts:**
+        -- I → he/she · you → I/me · we → they
+        -- today → that day · tomorrow → the next day · here → there · this → that
+      - |-
+        **Questions in reported speech** — use `asked if / whether`:
+        -- Direct: "Are you coming?" she asked.
+        -- Reported: She asked **if/whether** I **was** coming.
+        -- Direct: "Where do you live?" he asked.
+        -- Reported: He asked **where** I **lived**.   (NO question mark)
+      - |-
+        **Commands** — use `told [person] to + verb`:
+        -- Direct: "Sit down!" the teacher said.
+        -- Reported: The teacher **told** us **to sit down**.
 
   # ─── Slide 6: Practice 2 — Conditional & Transform ──────────
   - title: "Try it — Conditional & Transformation"

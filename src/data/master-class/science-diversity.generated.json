@@ -13,7 +13,7 @@
       "mascotImage": "/master-class/interactions-environment/panda-welcome.png",
       "body": "Diversity tests ONE skill in two contexts: **classify things by their characteristics**. Either organisms (alive vs not, then by group) or materials (by properties, then matched to uses). PSLE almost never tests the obvious — they test edge cases.",
       "bullets": [
-        "**Block 1: Living Things** — characteristics + animal/plant groups + dichotomous keys",
+        "**Block 1: Living Things** — characteristics + animal/plant groups + flow charts",
         "**Block 2: Materials** — 6 properties + matching property to use",
         "**Shared skill**: \"What characteristics does X have? Which group does that put it in?\""
       ]
@@ -109,9 +109,9 @@
       ]
     },
     {
-      "title": "Dichotomous Keys — read top-down, one yes/no at a time",
+      "title": "Flow Charts — read top-down, one yes/no at a time",
       "mascotImage": "/master-class/interactions-environment/panda-teaching-causal.png",
-      "body": "Almost every PSLE Diversity paper has 1 dichotomous key question. Pattern: a flowchart of yes/no questions. Strategy: start at the top, answer ONE question, follow the arrow, never skip.",
+      "body": "Almost every PSLE Diversity paper has 1 flow chart question. Pattern: a chart of yes/no questions. Strategy: start at the top, answer ONE question, follow the arrow, never skip.",
       "bullets": [
         "**3-step strategy:**\n-- Step 1: Start at the **top question only**. Ignore the rest of the key for now.\n-- Step 2: Answer YES or NO based on the organism's characteristic.\n-- Step 3: Follow the arrow. Repeat until you hit a name.",
         "**Common trap**: Students try to \"shortcut\" by reading the bottom answers first and working backwards. This always fails on PSLE — questions are designed so the WRONG answer also makes sense at the bottom.",
@@ -120,7 +120,7 @@
       ]
     },
     {
-      "title": "Try it — Using a dichotomous key",
+      "title": "Try it — Using a flow chart",
       "mascotImage": "/master-class/interactions-environment/panda-thinking.png",
       "interactiveQuiz": [
         {
@@ -144,10 +144,35 @@
       "mascotImage": "/master-class/electrical-circuits/panda-teaching-bulbs.png",
       "body": "PSLE rarely asks \"what is plastic?\" Instead: \"What property does the umbrella fabric need?\" Strategy: think about the OBJECT'S USE first, then pick the matching property.",
       "bullets": [
-        "**6 properties + opposite pairs:**\n-- Strong ↔ Weak\n-- Flexible ↔ Rigid (stiff)\n-- Transparent ↔ Opaque (translucent in between)\n-- Waterproof ↔ Absorbent\n-- Good heat conductor ↔ Poor heat conductor (insulator)\n-- Good electrical conductor ↔ Poor electrical conductor (insulator)",
+        "**6 properties + opposite pairs (with definitions):**\n-- **Strong** = can hold heavy weight without breaking ↔ **Weak** = breaks easily under load\n-- **Flexible** = can bend without breaking ↔ **Rigid (stiff)** = cannot bend; holds its shape\n-- **Transparent** = light passes through, you can see clearly ↔ **Opaque** = no light passes; cannot see through · (**Translucent** = some light passes; cannot see clearly, like frosted glass)\n-- **Waterproof** = water cannot pass through ↔ **Absorbent** = soaks water in\n-- **Good heat conductor** = heat flows through easily (gets hot fast) ↔ **Poor heat conductor / insulator** = heat does NOT flow through (stays cool to touch)\n-- **Good electrical conductor** = electricity flows through ↔ **Poor electrical conductor / insulator** = electricity does NOT flow through",
         "**Common materials and their key properties:**\n-- **Metal**: strong, rigid, good conductor (heat + electricity)\n-- **Plastic**: flexible, waterproof, poor conductor (heat + electricity)\n-- **Glass**: transparent, rigid, waterproof\n-- **Wood**: strong, rigid, poor conductor of heat/electricity, absorbent\n-- **Rubber**: flexible, waterproof, poor conductor of electricity\n-- **Ceramic**: rigid, poor conductor of heat",
         "**Strategy for \"what should X be made of?\":**\n-- Step 1: What's the OBJECT'S JOB? (e.g. umbrella → keep rain out)\n-- Step 2: What property is needed? (waterproof)\n-- Step 3: What materials have that property? (plastic, rubber, treated fabric)",
         "**Trap**: Multi-property objects (e.g. saucepan handle needs to be a HEAT INSULATOR even though the pan itself is a heat conductor). PSLE loves these."
+      ]
+    },
+    {
+      "title": "Materials OEQ — 3-step answering technique",
+      "mascotImage": "/master-class/electrical-circuits/panda-teaching-bulbs.png",
+      "body": "OEQ questions on materials (e.g. \"Explain why the umbrella fabric is suitable for keeping rain out\") want a 3-part answer. Miss any part → lose a mark. Follow this template every time.",
+      "bullets": [
+        "**(a) State the right material / property** — name what the object SHOULD be made of (or what property it has).\nExample: \"The umbrella fabric is waterproof.\"",
+        "**(b) Use data from the question / chart** — quote the specific evidence given (table values, observation, image).\nExample: \"From the table, fabric Y does not absorb any water.\" OR\n\"The diagram shows water beads rolling off the surface.\"",
+        "**(c) Explain how it fits the context** — link the property to the object's USE / FUNCTION in plain words.\nExample: \"This means rain cannot soak through, so the person staying under the umbrella will not get wet.\"",
+        "**Full answer (3 sentences):**\n\"The umbrella fabric is waterproof **(a)**. The table shows fabric Y absorbs no water **(b)**. This means rain cannot soak through, keeping the person dry **(c)**.\"",
+        "**Common mistake**: only doing (a) — naming the property without explaining WHY it fits the use. That's a 1-mark answer when the question gave 2-3 marks."
+      ]
+    },
+    {
+      "title": "Worked example — Material OEQ (3 marks)",
+      "mascotImage": "/master-class/electrical-circuits/panda-teaching-bulbs.png",
+      "body": "A real PSLE-style table + question. Watch how the (a)+(b)+(c) structure earns all 3 marks. Most students stop after (a) and lose 2 marks.",
+      "bullets": [
+        "**The table:**\nMaterial P → strong, rigid, absorbs water\nMaterial Q → weak, flexible, absorbs water\nMaterial R → strong, flexible, waterproof\nMaterial S → weak, rigid, waterproof",
+        "**The question (3 marks):** A toy umbrella needs to be **flexible**\n(so it can fold) and **waterproof** (so it keeps rain out).\nWhich material should it be made of? Explain.",
+        "**What MOST students write (1 mark only):**\n✗ \"Material R.\" — missing (b) and (c). Only 1 mark out of 3.",
+        "**Full-marks answer (3 marks):**\n**(a)** Material R should be used.\n**(b)** From the table, R is **flexible** AND **waterproof** (does not absorb water).\n**(c)** This means the umbrella can be folded and unfolded easily, AND will keep the rain out so the user stays dry.",
+        "**Mark allocation**:\n✓ Name the material (a) → 1 mark\n✓ Quote data showing it has BOTH needed properties (b) → 1 mark\n✓ Link both properties to umbrella's function (c) → 1 mark",
+        "**Trick**: when the question lists **2 properties needed**, your (b) and (c) MUST address BOTH. Mentioning only one = lose half."
       ]
     },
     {
@@ -210,8 +235,8 @@
       "definition": "Move, breathe, grow, reproduce, respond, need food/water, excrete. ALL must be true for an organism to be 'living'. The reproduce test is the sharpest single check."
     },
     {
-      "word": "dichotomous key",
-      "definition": "A yes/no flowchart for identifying organisms. Strategy: start at top, answer one question, follow the arrow. Never skip ahead or read bottom-up."
+      "word": "flow chart",
+      "definition": "A yes/no chart for identifying organisms. Strategy: start at top, answer one question, follow the arrow. Never skip ahead or read bottom-up."
     },
     {
       "word": "property vs use",
@@ -240,9 +265,9 @@
       "slideIdx": 3
     },
     {
-      "id": "dichotomous-keys",
-      "label": "Dichotomous Keys",
-      "description": "Yes/no identification flowchart. Strategy: top-down, one question at a time, never skip. Common trap is multi-criterion questions where students answer the wrong part.",
+      "id": "flow-charts",
+      "label": "Flow Charts",
+      "description": "Yes/no identification chart. Strategy: top-down, one question at a time, never skip. Common trap is multi-criterion questions where students answer the wrong part.",
       "slideIdx": 5
     },
     {
