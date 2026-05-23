@@ -84,7 +84,12 @@ function renderBold(text: string) {
 // Tolerant of mixed content (Gemini sometimes adds a preamble line).
 // Bold (**…**) is applied inline.
 function renderInsight(text: string) {
-  const lines = text.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  // Normalize: Gemini sometimes returns all bullets on one line separated by
+  // " • " instead of newlines. Inject a newline before every • (except the
+  // first one). Only do this for the "•" character — leaving "-" / "*"
+  // alone since those legitimately appear mid-sentence (em-dashes, etc.).
+  const normalized = text.replace(/\s*•\s*/g, "\n• ").trim();
+  const lines = normalized.split(/\n+/).map(l => l.trim()).filter(Boolean);
   const bulletRe = /^[•\-*]\s+/;
   if (lines.length === 0) return null;
   // Group consecutive bullet/non-bullet lines so paragraphs render as <p> and
