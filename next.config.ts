@@ -3,15 +3,6 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  // Next.js 16 caps incoming request bodies at 10MB by default. The
-  // exam upload route (/api/exam/extract-background) sends an array of
-  // base64-encoded JPG pages — for a full Chinese paper (P1 + P2 + Oral
-  // + Listening = 30+ pages) the JSON payload routinely hits 15-25MB
-  // and was silently truncating at exactly 10MB, leaving the body
-  // unterminated and JSON.parse throwing "Unterminated string in JSON
-  // at position 10480000". Bumping to 50MB covers full PSLE papers
-  // with headroom; legit exam uploads won't realistically exceed that.
-  middlewareClientMaxBodySize: "50mb",
   // Pin Next's workspace-root inference to this project. Without it,
   // both Turbopack and the standalone tracer can walk up the tree and
   // pick "C:\Users\peter\Yuna teach" (the parent folder) as the root,
@@ -52,6 +43,16 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
+    // Next.js 16 caps incoming request bodies at 10MB by default. The
+    // exam upload route (/api/exam/extract-background) sends a JSON array
+    // of base64-encoded JPG pages — for a full Chinese paper (P1 + P2 +
+    // Oral + Listening, 30+ pages) the payload routinely hits 15-25MB and
+    // was silently truncating at exactly 10MB, leaving the body
+    // unterminated and JSON.parse throwing "Unterminated string in JSON
+    // at position 10480000". 50MB covers realistic exam uploads with
+    // headroom. (Formerly the top-level `middlewareClientMaxBodySize` —
+    // renamed when Next.js renamed middleware → proxy.)
+    proxyClientMaxBodySize: "50mb",
   },
   // Off-load avatar assets to Cloudflare R2 so they don't ship with
   // every Railway deploy (333 MB → 0 in the build context). Any
