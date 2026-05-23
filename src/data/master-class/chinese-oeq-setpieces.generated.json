@@ -84,12 +84,12 @@
       "mascotImage": "/master-class/chinese-mcq-1/panda-teaching-pinyin.png",
       "body": "题目: 写短信给毕业的邻居小文, 邀请他回学校庆祝校庆 50 周年。 下面把 5 步模板 + 4 × 0.5 内容分都标出来: Prompt: Write SMS to neighbour about school's 50th anniversary. Below: 5-step template + 4×0.5 content points labelled:",
       "bullets": [
-        "**① 问候 (语言分):** 小文, 今年是我们学校建校 50 周年...\nGreeting (language mark): \"Xiaowen, this year is our school's 50th anniversary…\"",
-        "**② 起因 (语言分):** 学校欢迎已经毕业的同学回到学校一起庆祝。**我想邀请你一起回校庆祝。**\nHook (language mark): \"I want to invite you to celebrate together.\"",
-        "**③ 详情 (内容 0.5 + 0.5):** 我和你都喜欢跳舞, 我们可以**在 10 月 28 日那天一起回学校 [WHEN ✓0.5]**, **在校庆晚会上表演舞蹈 [WHAT ✓0.5]**。\nDetails (2 × 0.5): \"Oct 28\" [WHEN] + \"perform at the gala\" [WHAT]",
-        "**④ 理由 (内容 0.5 + 0.5):** 当天, **我们还可以去参观学校的历史照片展览 [WHAT ✓0.5]**, **了解我们的母校 [WHY ✓0.5]**。\nReason (2 × 0.5): \"visit the photo exhibition\" [another WHAT] + \"to learn about our alma mater\" [WHY]",
-        "**⑤ 结尾 (语言分):** (短信简短, 一句号召语就好)\nClosing (language mark): SMS is brief — a single call-to-action sentence is enough",
-        "**总分: 4 × 0.5 = 2 分内容 ✓ + 5 步格式 = 2 分语言 ✓ = 4 分满分**\nTotal: 4 × 0.5 = 2 content marks + 5-step structure = 2 language marks = 4 ✓"
+        "**① 问候 (语言分):** 小文, 今年是我们学校建校 50 周年...",
+        "**② 起因 (语言分):** 学校欢迎已经毕业的同学回到学校一起庆祝。**我想邀请你一起回校庆祝。**",
+        "**③ 详情 (内容 0.5 + 0.5):** 我和你都喜欢跳舞, 我们可以**在 10 月 28 日那天一起回学校 [WHEN ✓0.5]**, **在校庆晚会上表演舞蹈 [WHAT ✓0.5]**。",
+        "**④ 理由 (内容 0.5 + 0.5):** 当天, **我们还可以去参观学校的历史照片展览 [WHAT ✓0.5]**, **了解我们的母校 [WHY ✓0.5]**。",
+        "**⑤ 结尾 (语言分):** (短信简短, 一句号召语就好)",
+        "**总分: 4 × 0.5 = 2 分内容 ✓ + 5 步格式 = 2 分语言 ✓ = 4 分满分**"
       ]
     },
     {
