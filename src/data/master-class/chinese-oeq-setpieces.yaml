@@ -312,22 +312,28 @@ keyConcepts:
         **⚠️ 陷阱:** 第 4 句不能只是"所以我同意" — 必须多加一个新点。
 
   # ─── Q40 Format (b): Section Header + Scoring ────────────
-  - title: "格式 (b) — X 是怎样的人？(What Kind of Person?) — 评分 / Scoring (2 句话 = 4 分)"
+  - title: "格式 (b) — X 是怎样的人？(What Kind of Person?) — 评分 / Scoring (4 分)"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
     body: >-
-      格式 (b) 用 2 句话, 每句装 2 个分点 = 共 4 分。
-      Format (b): 2 sentences, each carrying 2 marks = 4 marks total.
+      格式 (b) 关键: **指出性格 + 至少 2 个文中理由 + 扣回性格 = 4 分**。
+      Format (b) recipe: **state trait + at least 2 reasons from
+      passage + link back to trait = 4 marks**.
     bullets:
       - |-
-        **第 1 句 (1 + 1 = 2 分): 两个性格词**
-        套句: "X 是个 **(1) 性格词 1** 且 **(1) 性格词 2** 的人。"
-        Sentence 1 (2m): name two specific traits.
+        **(1 分) 性格词** — 一句话指出 X 是怎样的人 (列 1-2 个词都只算 1 分)
+        套句: "X 是个 **___ 且 ___** 的人。"
+        (1m) Name the kind of person. 1 OR 2 traits both = same 1 mark.
         Pattern: "X is a [trait 1] and [trait 2] kind of person."
       - |-
-        **第 2 句 (1 + 1 = 2 分): 两个文中具体证据**
-        套句: "虽然 ___, 但 ___ (1)。另外, ___ (1)。"
-        Sentence 2 (2m): two specific passage behaviours.
-        Pattern: "Although ___, [behaviour] (1). Also, [behaviour] (1)."
+        **(至少 2 分) 文中具体证据** — 必须是文章里**具体的行为**
+        套句: "虽然 ___, 但 ___。另外, ___ 。"
+        (at least 2m) Concrete passage behaviours.
+        Pattern: "Although ___, [behaviour]. Also, [behaviour]."
+      - |-
+        **(1 分) 扣回性格** — 用证据收尾, 重申他是 ___ 的人
+        套句: "由此可见, X 真的是个 ___ 的人。"
+        (1m) Link back — restate the trait, tying evidence to conclusion.
+        Pattern: "From this we can see X is indeed a ___ person."
       - |-
         **关键: 性格词必须**和文章寓意一致**, 不能"看脸挑词"。
         Key: traits must match the passage's MORAL, not just loosely fit.
@@ -410,51 +416,35 @@ keyConcepts:
         **CONTROLLING / DISRESPECTFUL OF CHOICE** — imposes own wishes
 
   # ─── Q40 格式 (b) "X 是怎样的人?" — Worked Example ──────────
-  - title: "格式 (b) 解题示范 — PSLE 2021 卖花阿姨"
+  - title: "X 是怎样的人？解题示范 (What Kind of Person? — Worked Example) — PSLE 2021 卖花阿姨"
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
     body: >-
-      格式 (b) 评分规律: **(1) 性格词 1 + (1) 性格词 2 + (1) 证据 1 + (1) 证据 2**。
-      性格词必须**和文章中心 / 寓意一致** — 不能随便挑一个适合的。
-      Format (b) scoring: (1) trait 1 + (1) trait 2 + (1) evidence 1 +
-      (1) evidence 2 = 4 marks. Traits MUST match the passage's MORAL —
-      not just any positive word that loosely fits.
+      文章摘要: 小男孩去花店买兰花送给老师, 钱不够。卖花的阿姨没说什么,
+      在接下来好几年都自掏腰包, 帮小男孩送花给老师, 完成他的心愿。
+      题目: 卖花的阿姨是个怎样的人？从哪里可以看得出来？(4 分)
+      Summary: A boy buys orchids for teacher; not enough money. The
+      flower-lady silently funds the delivery every year, fulfilling his wish.
+      Question: What kind of person is the flower-shop lady? How do you know? (4m)
     bullets:
       - |-
-        **PSLE 2021 真题:** 卖花的阿姨是个怎样的人？从哪里可以看得出来？(4 分)
-        Question: What kind of person is the flower-shop lady? Where do you see it?
+        **第 1 步 — 看文章寓意:** 善良 / 帮助他人
+        Step 1 — passage moral: "kindness / helping others"
       - |-
-        **文章摘要 (中文):** 小男孩去花店买兰花送给老师, 钱不够。卖花的阿姨
-        没说什么, 在接下来好几年都自掏腰包, 帮小男孩送花给老师, 完成他的心愿。
-        Summary: A boy buys orchids for teacher; not enough money. The
-        flower-lady silently funds the delivery every year, fulfilling
-        his wish.
+        **第 2 步 — 从 12 性格词里挑 1-2 个最贴近寓意的:** 慷慨 + 好心
+        Step 2 — pick from the 12-trait deck. Don't invent.
       - |-
-        **第 1 步 — 看文章寓意:** 这篇文章的中心是"善良 / 帮助他人"
-        Step 1 — read the passage's MORAL: "kindness / helping others"
+        **(1 分) 第 1 句 — 性格词:** 卖花的阿姨是个**慷慨且好心**的人。
       - |-
-        **第 2 步 — 选 12 个性格词里和寓意最近的 1-2 个:** 慷慨 + 好心
-        (从"正面性格词"卡片里选, 不是凭空想!)
-        Step 2 — pick 1-2 traits from the 12-trait deck that match the
-        moral. Generous (慷慨) + kind-hearted (好心). **Pick from the
-        memorised deck — don't invent words.**
+        **(1 分) 第 2 句 — 证据 ①:** 虽然小男孩给的钱不够, 但她还是自掏腰包帮他送花。
       - |-
-        **(1)(1) 第 1 句 — 性格词:** 卖花的阿姨是个 **慷慨**(1) 且 **好心**(1) 的人。
-        (1)(1) Sentence 1 — name TWO traits: She is generous + kind-hearted.
+        **(1 分) 第 3 句 — 证据 ②:** 另外, 她坚持每年的教师节都帮小男孩, 完成他的心愿。
       - |-
-        **(1)(1) 第 2 句 — 证据 (必须用文中具体行为):**
-        虽然小男孩给她的钱不够 (1), 但她还是在每年的教师节自掏腰包,
-        帮小男孩送花给李老师, 完成小男孩的心愿 (1)。
-        (1)(1) Sentence 2 — Evidence with SPECIFIC passage behaviours:
-        Even though the boy didn't have enough money, she paid out of
-        her own pocket every Teacher's Day to deliver flowers.
+        **(1 分) 第 4 句 — 扣回性格:** 由此可见, 卖花的阿姨真的是个慷慨又好心的人。
+      - |-
+        **总分: 1 + 2 + 1 = 4 分** ✓
       - |-
         **⚠️ 性格词的陷阱:** 写"好"、"善"、"不错" — 0 分。
-        必须用 12 个具体性格词之一: 慷慨 / 善良 / 宽容大量 / 懂得体谅别人 / 孝顺 / 有爱心 /
-        诚实 / 勇敢 / 聪明 / 温柔 / 乐于助人 / 有责任感。
-        ⚠️ Trait trap: writing "good" / "nice" → 0 marks. Must use one
-        of the 12 specific traits: GENEROUS / KIND / TOLERANT /
-        CONSIDERATE / FILIAL / LOVING / HONEST / BRAVE / CLEVER /
-        GENTLE / HELPFUL / RESPONSIBLE.
+        必须用 12 个具体性格词之一。
 
   # ─── Q40 Practice — English → Chinese trait recall ────────
   - title: 性格词测试 — 看英文写中文
