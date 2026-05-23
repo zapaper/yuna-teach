@@ -1833,6 +1833,11 @@ Header variants you should ALSO recognise (same normalised name):
 Strip the leading ordinal ("一、", "二", "（三）" etc.) — keep just the normalised name.
 
 ALWAYS include "startPage", "endPage", and "questionRange" for each section (same rules as English).
+
+CRITICAL — SECTION ORDER:
+The sections[] array for Paper 2 MUST be emitted in DOCUMENT ORDER (sorted by startPage ascending), which is also the order they appear in the printed paper: 一 语文应用 → 二 短文填空 → 三 阅读理解一 → 四 完成对话 → 五 阅读理解二 (A 组 then B 组). Do NOT group by section type (all MCQ then all OEQ). Do NOT re-order to follow the canonical structure table above — the table is descriptive, not an emission order. The page indices are the source of truth: lowest startPage first.
+
+Similarly, question numbers MUST be continuous and ascending within Paper 2 (Q1-Q40 typically). If the cover pages or section transitions cause a gap (e.g. Q15 jumps to Q21 because the OCR missed Q16-Q20), check the missing pages — those questions exist on a page you may have mis-tagged as a cover page. Older PSLE papers (pre-2020) sometimes have less prominent section headers and the model can confuse a section divider with a paper-level cover page; in those cases the questions on the "cover-like" page actually belong to the previous section.
 For Visual Text MCQ, include "visualPages" — pages where the visual content lives.
 For 阅读理解 MCQ / 阅读理解 OEQ, include "passagePages" — pages where the reading passage lives. This is MANDATORY — never omit it. EVERY 阅读理解 section, whether MCQ or OEQ, has its OWN passage. When a section reuses an earlier section's passage (e.g. 五-A's OEQ shares the same passage as 五-A's MCQ), copy the same passagePages array to both. The passage is typically the page IMMEDIATELY BEFORE the question pages (e.g. if section 三's MCQ starts on page 8, the passage usually lives on page 7).
 
