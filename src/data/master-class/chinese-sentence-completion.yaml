@@ -137,29 +137,35 @@ keyConcepts:
     mascotImage: /master-class/chinese-mcq-1/panda-teaching-character.png
     body: >-
       Q11-Q12 给半句话, 让你选另一半完成逻辑。4 个选项**只有 1 个逻辑对**。
-      每题 2 分, 共 4 分。秘诀: 看关键词 + 看情绪方向。
+      关系类型可以是**因果 / 转折 / 时间 / 评价 / 决定 / 提议** — 不只是情绪。
       Q11-Q12 give half a sentence; pick the half that completes the
-      logic. Only 1 of 4 options matches. 2 marks each. Trick: spot
-      keywords + emotional direction.
+      logic. The relationship can be **causation / contrast / time /
+      evaluation / decision / suggestion** — not just emotion.
     bullets:
       - |-
-        **8 种常见逻辑模板** (背熟, 看到题型立刻知道选哪类):
+        **核心方法 — 读半句, 先判断"关系类型", 再看 4 个选项哪个吻合。**
+        Read the half-sentence, identify the relationship type, then
+        match against the 4 options.
       - |-
-        **① 原因 → 情绪**: "______, 我感到非常委屈。" → 选不公平的事
+        **因果 (CAUSATION)** — 原因/努力/行为 → 结果/情绪/评价
+        例: "经过许多年的努力, ___" → 成功的结果
+        例: "小英做事很负责, ___" → 大家赞成她当班长
+        例: "___, 我感到非常委屈" → 不公平的事
       - |-
-        **② 努力 → 成果**: "经过许多年的努力, ______。" → 选成功的结果
+        **转折 / 矛盾 (CONTRAST)** — 前半 ↔ 后半 意思相反
+        例: "事情都已经解决了, ___" → "别再放在心上"
       - |-
-        **③ 时间过 → 里程碑**: "时间过得真快, ______。" → 选快毕业 / 快结束
+        **时间 / 过程 (TIME)** — 时间流逝 → 里程碑或感慨
+        例: "时间过得真快, ___" → "我们快毕业了"
       - |-
-        **④ 提议 → 后续行动**: "______, 我们就参加这项比赛好吗？" → 选提议或同意
+        **描述 → 评价 (EVALUATION)** — 形容 → 大众反应
+        例: "老师讲的故事生动有趣, ___" → "同学们听得津津有味"
       - |-
-        **⑤ 矛盾 / 转折**: "事情都已经解决了, ______。" → 选"别在意 / 放下"
+        **决定 → 解释 (DECISION)** — 突发情况 → 改计划
+        例: "志文突然有事不能来, ___" → "我只好自己去"
       - |-
-        **⑥ 行为 → 后果**: "小英做事很负责, ______。" → 选好结果 ("大家都赞成她当班长")
-      - |-
-        **⑦ 描述 → 总结评价**: "老师讲的故事生动有趣, ______。" → 选受欢迎 ("听得津津有味")
-      - |-
-        **⑧ 决定 → 解释**: "志文突然有事不能来, ______。" → 选独自行动 / 改计划
+        **提议 → 行动 (SUGGEST)** — 条件铺垫 → 邀请/行动
+        例: "___, 我们就参加这项比赛好吗?" → 条件 / 同意
 
   # ─── Q11-Q12 Worked Example ───────────────────────────────
   - title: "Q11-Q12 解题示范 — PSLE 2024 真题"
