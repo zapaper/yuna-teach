@@ -4,7 +4,6 @@ import { electricalCircuits } from "./electrical-circuits";
 import { grammarMcq1 } from "./grammar-mcq-1";
 import { grammarMcq2 } from "./grammar-mcq-2";
 import { chineseMcq1 } from "./chinese-mcq-1";
-import { chineseMcq2 } from "./chinese-mcq-2";
 import { chineseOeqSetpieces } from "./chinese-oeq-setpieces";
 import { chineseIdioms } from "./chinese-idioms";
 import { chineseSentenceCompletion } from "./chinese-sentence-completion";
@@ -18,7 +17,6 @@ export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "grammar-mcq-1": grammarMcq1,
   "grammar-mcq-2": grammarMcq2,
   "chinese-mcq-1": chineseMcq1,
-  "chinese-mcq-2": chineseMcq2,
   "chinese-oeq-setpieces": chineseOeqSetpieces,
   "chinese-idioms": chineseIdioms,
   "chinese-sentence-completion": chineseSentenceCompletion,
