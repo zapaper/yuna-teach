@@ -31,17 +31,24 @@ const NATIVE_HOME_REDIRECT_SCRIPT = `
 // Self-hosted via Next so the body text doesn't render as Times New
 // Roman for ~150ms while Google Fonts loads. Both families end up as
 // CSS variables that globals.css references.
+//
+// display: "optional" eliminates the visible swap on cold load — the
+// browser waits ~100ms for the local (cached) font; if it's not ready
+// it shows the size-adjusted fallback for that session. On modern
+// broadband + self-hosted next/font, the local font is ALWAYS ready
+// in time, so users see Jakarta from first paint. With "swap" they
+// were seeing system-fallback → Jakarta swap on every cold load.
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-jakarta",
-  display: "swap",
+  display: "optional",
 });
 const inter = Inter({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
   variable: "--font-inter",
-  display: "swap",
+  display: "optional",
 });
 
 export const viewport: Viewport = {
