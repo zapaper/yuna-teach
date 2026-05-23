@@ -1,0 +1,316 @@
+# Master Class: PSLE English — Synthesis & Transformation Tricks
+# --------------------------------------------------------------
+# Covers PSLE Paper 2 Booklet B Synthesis & Transformation
+# (typically 5 questions × 2 marks = 10 marks).
+#
+# The skill: rewrite a sentence (or join two) using a given keyword,
+# WITHOUT changing the meaning, tense, or adding info.
+#
+# 4 question patterns cover ~80% of what PSLE tests. Master those.
+
+slug: english-synthesis-tricks
+subject: english
+level: P5-P6
+topicLabel: Synthesis & Transformation
+title: "PSLE English — Synthesis & Transformation Tricks (10 marks)"
+
+stats:
+  headline: >-
+    Synthesis = 10 marks. PSLE rotates the same 4 grammar patterns
+    every year. Learn the keyword-to-pattern map and the most common
+    traps — full marks become straightforward.
+
+keyConcepts:
+
+  # ─── Slide 0: Welcome ────────────────────────────────────────
+  - title: "Welcome — Synthesis & Transformation (10 marks)"
+    mascotImage: /master-class/grammar-mcq-1/panda-welcome.png
+    body: >-
+      Synthesis asks you to REWRITE a sentence using a given keyword,
+      keeping the meaning. 4 patterns cover ~80% of past PSLE questions.
+      The hardest part isn't grammar — it's not changing meaning or adding info.
+    bullets:
+      - |-
+        **Pattern A: Concession** — Although / Despite / In spite of
+      - |-
+        **Pattern B: Cause/Effect** — Because / Due to / Owing to / Since
+      - |-
+        **Pattern C: Condition** — If / Unless / Provided that
+      - |-
+        **Pattern D: Word transformation** — noun ↔ verb / active ↔ passive
+      - |-
+        **The 3 rules of synthesis:**
+        ① Don't change the meaning. ② Don't change the tense. ③ Don't add info.
+
+  # ─── Slide 1: Pattern A — Although vs Despite ─────────────
+  - title: "Pattern A — Concession (Although / Despite / In spite of)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      "Concession" = two ideas that contrast (one positive, one negative).
+      The most common PSLE trap: students mix up the grammar after
+      Although vs Despite/In spite of.
+    bullets:
+      - |-
+        **Although + CLAUSE** (subject + verb)
+        ✓ Although **he was tired**, he kept working.
+        ✗ Although **his tiredness**, he kept working.
+      - |-
+        **Despite / In spite of + NOUN PHRASE** (no subject + verb!)
+        ✓ Despite **his tiredness**, he kept working.
+        ✓ Despite **being tired**, he kept working.   (-ing form OK)
+        ✗ Despite **he was tired**, he kept working.
+      - |-
+        **Conversion trick** (Although → Despite):
+        -- Change the verb to a noun OR an -ing form
+        -- Drop the subject (or change to "his/her/their + noun")
+        -- E.g. "Although it was raining" → "Despite the rain" / "Despite the fact that it was raining"
+
+  # ─── Slide 2: Pattern B — Because vs Due to ───────────────
+  - title: "Pattern B — Cause (Because / Due to / Owing to / Since)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Same grammar split as concession. Because takes a clause; Due to
+      and Owing to take a noun phrase.
+    bullets:
+      - |-
+        **Because / Since / As + CLAUSE** (subject + verb)
+        ✓ Because **the bus broke down**, we were late.
+      - |-
+        **Due to / Owing to + NOUN PHRASE**
+        ✓ Due to **the bus breakdown**, we were late.
+        ✓ Owing to **his illness**, he missed school.
+        ✗ Due to **the bus broke down**, we were late.
+      - |-
+        **Conversion trick** (Because → Due to): same as Pattern A
+        Verb → noun/-ing, drop the subject.
+        Example: "Because she was sick" → "Due to her illness" / "Due to being sick"
+      - |-
+        **Pattern A + B share the same grammar trick.** That's why PSLE drills both.
+
+  # ─── Slide 3: Practice 1 — Concession + Cause ──────────────
+  - title: "Try it — Concession & Cause"
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "Concession — Although → Despite"
+        stem: |-
+          Original: Although the weather was bad, the football match continued.
+          Rewrite using "Despite". Which is correct?
+        options:
+          - Despite the weather was bad, the football match continued.
+          - Despite the bad weather, the football match continued.
+          - Despite the football match, the weather was bad.
+          - Despite of the bad weather, the football match continued.
+        correctAnswer: 2
+        explanation: >-
+          Despite takes a NOUN PHRASE. "The weather was bad" (clause) becomes
+          "the bad weather" (noun phrase). Note: "Despite of" is always wrong —
+          just "Despite," not "Despite of."
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+      - label: "Cause — Because → Due to"
+        stem: |-
+          Original: Because the road was flooded, the bus could not pass.
+          Rewrite using "Due to". Which is correct?
+        options:
+          - Due to the road was flooded, the bus could not pass.
+          - Due to the flooded road, the bus could not pass.
+          - Due to that the road was flooded, the bus could not pass.
+          - Due to flooding the road, the bus could not pass.
+        correctAnswer: 2
+        explanation: >-
+          Due to + noun phrase. "The road was flooded" → "the flooded road"
+          (adjective + noun). Option 4 changes the meaning ("flooding the
+          road" implies someone is doing the flooding).
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+
+  # ─── Slide 4: Pattern C — If / Unless ──────────────────────
+  - title: "Pattern C — Condition (If / Unless / Provided that)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Conditional sentences. The Unless trap catches most students:
+      "Unless" already means "if not", so you must NEGATE the if-clause
+      when converting.
+    bullets:
+      - |-
+        **If + present, will + verb** (standard conditional)
+        ✓ If you hurry, you will catch the bus.
+      - |-
+        **Unless = If...not** — flip the negation!
+        ✓ Unless you hurry, you will miss the bus.   (= If you don't hurry...)
+        ✗ Unless you don't hurry, you will catch the bus.   (double negative — wrong)
+      - |-
+        **Provided that = If (more formal)**
+        ✓ You will catch the bus provided that you hurry.   (same meaning as "if")
+      - |-
+        **Conversion trick** (If → Unless):
+        -- Negate the if-clause (drop "not" if there is one; add "not" if there isn't)
+        -- Keep the main clause the same
+        Example: "If you don't study, you will fail" → "Unless you study, you will fail"
+
+  # ─── Slide 5: Pattern D — Word transformation ─────────────
+  - title: "Pattern D — Word transformation (noun ↔ verb, active ↔ passive)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      PSLE often gives a sentence and asks you to rewrite using a different
+      WORD CLASS — usually noun ↔ verb. The trick: keep the meaning
+      identical, change only the grammar.
+    bullets:
+      - |-
+        **Noun ↔ Verb pairs** (common in PSLE):
+        -- decide → decision     -- arrive → arrival
+        -- explain → explanation -- succeed → success
+        -- behave → behaviour    -- agree → agreement
+        -- discover → discovery  -- choose → choice
+      - |-
+        **Active ↔ Passive — keep the doer if asked, drop it if not**
+        Active: The boy broke the window.
+        Passive: The window **was broken** by the boy.   (was/were + past participle)
+        Active: They build a school every year.
+        Passive: A school **is built** every year.   (drop "by them" — generic)
+      - |-
+        **Comparative ↔ Superlative transformation:**
+        "No one runs faster than him." → "He runs the fastest."
+        "Nothing is more delicious than mum's cooking." → "Mum's cooking is the most delicious."
+      - |-
+        **Trap**: don't change the TENSE. If original is past, the rewrite must also be past.
+
+  # ─── Slide 6: Practice 2 — Conditional & Transform ──────────
+  - title: "Try it — Conditional & Transformation"
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "Unless negation trap"
+        stem: |-
+          Original: If you don't wear a raincoat, you will get wet.
+          Rewrite starting with "Unless". Which is correct?
+        options:
+          - Unless you don't wear a raincoat, you will get wet.
+          - Unless you wear a raincoat, you will not get wet.
+          - Unless you wear a raincoat, you will get wet.
+          - Unless you wear a raincoat, you will be wet.
+        correctAnswer: 3
+        explanation: >-
+          "Unless" already means "if not", so DROP the "don't" when converting.
+          "If you don't wear" → "Unless you wear". The main clause stays the
+          same. Don't add a second negative or you flip the meaning.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+      - label: "Noun ↔ verb transformation"
+        stem: |-
+          Original: The principal decided that the trip would be cancelled.
+          Rewrite using the word "decision". Which is correct?
+        options:
+          - The principal's decision was to cancel the trip.
+          - The principal made a decision the trip would be cancelled.
+          - The decision of the principal was the cancellation.
+          - The principal had a decision to cancel the trip.
+        correctAnswer: 1
+        explanation: >-
+          "Decided that" → "decision was to + verb". Option 2 is missing "that"
+          and reads ungrammatically. Option 3 changes the meaning (the decision
+          IS the cancellation, vs. the principal decided to cancel). Option 4 is
+          colloquial English, not PSLE-acceptable.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+
+  # ─── Slide 7: The 3 common mistakes ────────────────────────
+  - title: "The 3 most common synthesis mistakes (don't lose easy marks)"
+    mascotImage: /master-class/grammar-mcq-1/panda-teaching-tag.png
+    body: >-
+      Even students who know the grammar lose marks on these 3 things.
+      Read each rewrite TWICE before submitting and check for them.
+    bullets:
+      - |-
+        **Mistake 1: Changing the tense**
+        Original: He **completed** his homework.
+        ✗ He **completes** his homework.
+        ✓ His homework **was completed**.
+        Rule: the rewrite's tense MUST match the original.
+      - |-
+        **Mistake 2: Adding information not in the original**
+        Original: She was late because of the traffic.
+        ✗ She was late because of the heavy traffic this morning.
+        Rule: don't add adjectives, time, or details the original didn't have.
+      - |-
+        **Mistake 3: Changing the meaning subtly**
+        Original: Unless you hurry, you will miss the train.
+        ✗ If you hurry, you will not miss the train.   (positive vs negative emphasis differs!)
+        ✓ If you don't hurry, you will miss the train.
+        Rule: when in doubt, mentally check "does the rewrite say EXACTLY the same thing?"
+      - |-
+        **Check before submitting**:
+        ① Same tense? ② Same info (no additions)? ③ Same meaning?
+
+  # ─── Slide 8: Practice 3 — Mixed + mistake-check ───────────
+  - title: "Try it — Spot the mistake"
+    mascotImage: /master-class/grammar-mcq-1/panda-thinking.png
+    interactiveQuiz:
+      - label: "Tense + info trap"
+        stem: |-
+          Original: The teacher praised the student because she scored full marks.
+          Rewrite starting with "Due to". Which is correct AND keeps tense + info?
+        options:
+          - Due to her perfect score, the teacher praised the student.
+          - Due to scoring full marks, the student was praised by the teacher.
+          - Due to her excellent performance, the teacher praised the bright student.
+          - Due to the student scoring well, the teacher praised her.
+        correctAnswer: 2
+        explanation: >-
+          (1) changes "full marks" to "perfect score" — meaning shift. (3) adds
+          "excellent" and "bright" — extra info. (4) waters down "full marks"
+          to "well" — meaning shift. (2) preserves tense (past), keeps info
+          ("full marks" / "scoring full marks"), and matches grammar.
+        mascotCorrect: /master-class/grammar-mcq-1/panda-correct.png
+        mascotWrong: /master-class/grammar-mcq-1/panda-wrong.png
+
+  # ─── Wrap-up CTA ────────────────────────────────────────────
+  - title: "Start practising!"
+    mascotImage: /master-class/grammar-mcq-1/panda-cta.png
+    body: >-
+      Mixed practice drawn from PSLE 2016-2025 Synthesis & Transformation.
+      All 4 patterns + the 3 common mistakes. Trains the reflex of
+      checking "same tense, same info, same meaning."
+    bullets:
+      - |-
+        **15 questions** — Concession (4) + Cause (3) + Condition (3) + Transform (5)
+      - |-
+        Wrong answers auto-saved, reviewed in 1 week
+      - |-
+        AI marks word-for-word — partial credit if you almost got it but missed tense/info
+    cta:
+      label: Click here to start practice
+      quizSpec:
+        title: "Mastery: Synthesis & Transformation"
+        mcq: 15
+        oeq: 0
+
+commonMistakes: []
+
+keyWords:
+  - { word: "concession", definition: "Two contrasting ideas joined: 'tired BUT kept going'. Keywords: Although + clause / Despite + noun phrase / In spite of + noun phrase. The grammar split (clause vs noun phrase) is the most common trap." }
+  - { word: "cause clause vs cause phrase", definition: "Same grammar split as concession. Because/Since/As take a clause (subject + verb). Due to / Owing to take a noun phrase. Convert verb → noun + drop subject." }
+  - { word: "unless", definition: "Means 'if...not'. When converting If → Unless, NEGATE the if-clause (drop 'not' or add 'not'). Double negatives are the #1 trap." }
+  - { word: "active vs passive", definition: "Active: subject DOES the action ('the boy broke the window'). Passive: subject RECEIVES the action ('the window was broken by the boy'). Use was/were + past participle. Drop 'by X' if X is generic." }
+  - { word: "3 rules of synthesis", definition: "① Don't change the tense. ② Don't add info. ③ Don't change the meaning. Every rewrite must pass all three checks before you submit." }
+
+subTopics:
+  - id: concession
+    label: Concession (Although/Despite)
+    description: "Two contrasting ideas. Although + clause vs Despite/In spite of + noun phrase. Conversion trick: verb → noun/-ing form, drop subject. PSLE's most-tested pattern."
+    slideIdx: 1
+  - id: cause
+    label: Cause (Because/Due to)
+    description: "Same grammar split as concession. Because/Since/As + clause; Due to/Owing to + noun phrase. Same conversion technique applies."
+    slideIdx: 2
+  - id: condition
+    label: Condition (If/Unless)
+    description: "Unless = if + not. When converting If → Unless, you must NEGATE the if-clause. Double-negative trap is common."
+    slideIdx: 4
+  - id: transformation
+    label: Word transformation
+    description: "Noun ↔ verb (decide → decision), active ↔ passive (broke → was broken), comparative ↔ superlative. Most common pair set drilled in PSLE."
+    slideIdx: 5
+  - id: common-mistakes
+    label: 3 common mistakes
+    description: "Even students who know the grammar lose marks here: ① changing tense ② adding info ③ subtle meaning shift. Always check all three before submitting."
+    slideIdx: 7

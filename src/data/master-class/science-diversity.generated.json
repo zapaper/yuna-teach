@@ -1,0 +1,255 @@
+{
+  "slug": "science-diversity",
+  "subject": "science",
+  "level": "P5-P6",
+  "topicLabel": "Diversity",
+  "title": "PSLE Science — Diversity (Living Things + Materials)",
+  "stats": {
+    "headline": "Diversity = ~10-15 marks across living things + materials. PSLE tests the EDGE CASES, not the obvious. Master the trap list and the classification keys — easy marks every year."
+  },
+  "keyConcepts": [
+    {
+      "title": "Welcome — Diversity (Living Things + Materials)",
+      "mascotImage": "/master-class/interactions-environment/panda-welcome.png",
+      "body": "Diversity tests ONE skill in two contexts: **classify things by their characteristics**. Either organisms (alive vs not, then by group) or materials (by properties, then matched to uses). PSLE almost never tests the obvious — they test edge cases.",
+      "bullets": [
+        "**Block 1: Living Things** — characteristics + animal/plant groups + dichotomous keys",
+        "**Block 2: Materials** — 6 properties + matching property to use",
+        "**Shared skill**: \"What characteristics does X have? Which group does that put it in?\""
+      ]
+    },
+    {
+      "title": "Living vs Non-Living — the 7 characteristics + trap list",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-causal.png",
+      "body": "Easy questions (\"is a dog living?\") never appear on PSLE. They test things that LOOK like one thing but are the other. Memorise the 7 characteristics — ALL must be true for \"living\".",
+      "bullets": [
+        "**The 7 characteristics of living things (all must apply):**\n① Move ② Breathe ③ Grow ④ Reproduce ⑤ Respond to stimuli\n⑥ Need food/water ⑦ Excrete waste",
+        "**PSLE traps — these are NOT living (despite looking like it):**\n-- **Fire** — moves, grows, needs oxygen → BUT doesn't reproduce or excrete\n-- **River** — moves, \"grows\" by erosion → BUT doesn't reproduce\n-- **Robot / Car** — moves, needs \"food\" (fuel) → BUT doesn't reproduce or grow\n-- **Cloud / Crystal** — grows → BUT doesn't reproduce or respond",
+        "**PSLE traps — these ARE living (despite looking dormant):**\n-- **Seeds** — don't move, but reproduce when planted\n-- **Eggs** — same logic; the organism inside is alive\n-- **Mushroom (fungi)** — alive! NOT a plant (no chlorophyll) but living",
+        "**Trick**: If something doesn't REPRODUCE on its own, it's not living. This single test eliminates most traps."
+      ]
+    },
+    {
+      "title": "Try it — Living vs Non-Living traps",
+      "mascotImage": "/master-class/interactions-environment/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Classic PSLE trap",
+          "stem": "Which of the following is NOT a living thing?\n(Use the \"does it reproduce?\" test)",
+          "options": [
+            "A mushroom",
+            "A bean seed",
+            "A burning candle",
+            "A young fern"
+          ],
+          "correctAnswer": 3,
+          "explanation": "Apply the reproduce test: mushroom (fungi) reproduces by spores; seeds and ferns reproduce. A burning candle's FLAME moves, grows, needs oxygen — but doesn't reproduce or excrete. Not living.",
+          "mascotCorrect": "/master-class/interactions-environment/panda-correct.png",
+          "mascotWrong": "/master-class/interactions-environment/panda-wrong.png"
+        },
+        {
+          "label": "Multi-criterion trap",
+          "stem": "A car can move and needs fuel. Why is a car NOT a living thing?\n(Pick the SHARPEST reason)",
+          "options": [
+            "Cars are made of metal.",
+            "Cars are made by humans.",
+            "Cars do not reproduce or grow.",
+            "Cars do not have a brain."
+          ],
+          "correctAnswer": 3,
+          "explanation": "PSLE marks the answer that names CHARACTERISTICS, not origin. \"Made by humans\" or \"metal\" are facts, not characteristics. \"Doesn't reproduce or grow\" directly fails the 7-characteristic test.",
+          "mascotCorrect": "/master-class/interactions-environment/panda-correct.png",
+          "mascotWrong": "/master-class/interactions-environment/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Classifying Animals + Plants — 6 groups, key questions",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-mutual.png",
+      "body": "Animals split into 6 groups; plants split by reproduction method. PSLE tests the **diagnostic question** for each group, not memorising lists. Master one question per group.",
+      "bullets": [
+        "**6 Animal Groups + 1 diagnostic question each:**\n-- **Mammals**: Has fur AND feeds young with milk? → mammal\n-- **Birds**: Has feathers? → bird (note: ostrich, penguin also birds)\n-- **Reptiles**: Has dry scales? → reptile (snakes, lizards, turtles)\n-- **Amphibians**: Smooth wet skin, lives in water + land? → amphibian\n-- **Fish**: Has gills + wet scales? → fish\n-- **Insects**: Has 6 legs + 3 body parts? → insect (NOT spider — 8 legs)",
+        "**Plant classification — 2-stage:**\n-- Stage 1: Flowers or not?\n-- Stage 2: If yes → with seeds (most plants). If no → ferns/mosses (reproduce by spores)",
+        "**PSLE traps:**\n-- **Spider** has 8 legs → NOT an insect (arachnid)\n-- **Whale / Dolphin** lives in water → mammal, NOT fish (no gills, breathes air)\n-- **Penguin** swims → bird, NOT fish (has feathers)\n-- **Mushroom** isn't a plant — fungi, separate kingdom",
+        "**Trick**: When asked \"what group is X?\", always look for the **one diagnostic feature** PSLE highlights in the question stem."
+      ]
+    },
+    {
+      "title": "Try it — Animal & Plant Classification",
+      "mascotImage": "/master-class/interactions-environment/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Tricky mammal",
+          "stem": "A whale gives birth to live young and feeds them milk. It lives in\nwater. Which group does a whale belong to?",
+          "options": [
+            "Fish",
+            "Mammal",
+            "Reptile",
+            "Amphibian"
+          ],
+          "correctAnswer": 2,
+          "explanation": "The KEY clue is \"feeds young with milk\" — that's a mammal trait. Lives in water but breathes air. Trap: students see \"water\" and pick fish. Always look at the diagnostic FEATURE, not the habitat.",
+          "mascotCorrect": "/master-class/interactions-environment/panda-correct.png",
+          "mascotWrong": "/master-class/interactions-environment/panda-wrong.png"
+        },
+        {
+          "label": "Plant or not?",
+          "stem": "A fern grows in a forest, has green leaves, but produces no flowers\nand no seeds. How does the fern reproduce?",
+          "options": [
+            "By seeds underground",
+            "By spores",
+            "By cuttings only",
+            "By eating insects"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Plants that don't produce flowers/seeds (ferns, mosses) reproduce by SPORES — tiny dust-like cells, often on the underside of leaves.",
+          "mascotCorrect": "/master-class/interactions-environment/panda-correct.png",
+          "mascotWrong": "/master-class/interactions-environment/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Dichotomous Keys — read top-down, one yes/no at a time",
+      "mascotImage": "/master-class/interactions-environment/panda-teaching-causal.png",
+      "body": "Almost every PSLE Diversity paper has 1 dichotomous key question. Pattern: a flowchart of yes/no questions. Strategy: start at the top, answer ONE question, follow the arrow, never skip.",
+      "bullets": [
+        "**3-step strategy:**\n-- Step 1: Start at the **top question only**. Ignore the rest of the key for now.\n-- Step 2: Answer YES or NO based on the organism's characteristic.\n-- Step 3: Follow the arrow. Repeat until you hit a name.",
+        "**Common trap**: Students try to \"shortcut\" by reading the bottom answers first and working backwards. This always fails on PSLE — questions are designed so the WRONG answer also makes sense at the bottom.",
+        "**Other trap**: Multi-criterion questions (\"Has scales AND lays eggs?\"). If even ONE part is no, the whole answer is NO. Read carefully.",
+        "**PSLE 2024 example**: Key with \"Has feathers?\" → YES → \"Can fly?\" → NO → Penguin. Student must recognise penguin is still a bird despite not flying."
+      ]
+    },
+    {
+      "title": "Try it — Using a dichotomous key",
+      "mascotImage": "/master-class/interactions-environment/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Read the key correctly",
+          "stem": "Use this key to identify the animal:\n1a. Has fur? → go to 2\n1b. No fur? → go to 3\n2a. Eats only plants? → A\n2b. Eats meat or both? → B\n3a. Has scales? → C\n3b. No scales? → D\nThe animal has fur and eats only plants. Which is it?",
+          "options": [
+            "A",
+            "B",
+            "C",
+            "D"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Top question: has fur? YES → go to 2. At 2: eats only plants? YES → A. Don't jump straight to 2a — verify YES on 1 first.",
+          "mascotCorrect": "/master-class/interactions-environment/panda-correct.png",
+          "mascotWrong": "/master-class/interactions-environment/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Materials — 6 properties to know, match to USE",
+      "mascotImage": "/master-class/electrical-circuits/panda-teaching-bulbs.png",
+      "body": "PSLE rarely asks \"what is plastic?\" Instead: \"What property does the umbrella fabric need?\" Strategy: think about the OBJECT'S USE first, then pick the matching property.",
+      "bullets": [
+        "**6 properties + opposite pairs:**\n-- Strong ↔ Weak\n-- Flexible ↔ Rigid (stiff)\n-- Transparent ↔ Opaque (translucent in between)\n-- Waterproof ↔ Absorbent\n-- Good heat conductor ↔ Poor heat conductor (insulator)\n-- Good electrical conductor ↔ Poor electrical conductor (insulator)",
+        "**Common materials and their key properties:**\n-- **Metal**: strong, rigid, good conductor (heat + electricity)\n-- **Plastic**: flexible, waterproof, poor conductor (heat + electricity)\n-- **Glass**: transparent, rigid, waterproof\n-- **Wood**: strong, rigid, poor conductor of heat/electricity, absorbent\n-- **Rubber**: flexible, waterproof, poor conductor of electricity\n-- **Ceramic**: rigid, poor conductor of heat",
+        "**Strategy for \"what should X be made of?\":**\n-- Step 1: What's the OBJECT'S JOB? (e.g. umbrella → keep rain out)\n-- Step 2: What property is needed? (waterproof)\n-- Step 3: What materials have that property? (plastic, rubber, treated fabric)",
+        "**Trap**: Multi-property objects (e.g. saucepan handle needs to be a HEAT INSULATOR even though the pan itself is a heat conductor). PSLE loves these."
+      ]
+    },
+    {
+      "title": "Try it — Materials and properties",
+      "mascotImage": "/master-class/electrical-circuits/panda-thinking.png",
+      "interactiveQuiz": [
+        {
+          "label": "Multi-property object",
+          "stem": "A frying pan has a metal body and a wooden handle. Why is the handle\nmade of wood and not metal?",
+          "options": [
+            "Wood is cheaper than metal.",
+            "Wood is stronger than metal.",
+            "Wood is a poor heat conductor — keeps the handle cool to touch.",
+            "Wood is lighter than metal."
+          ],
+          "correctAnswer": 3,
+          "explanation": "The DESIGNED ROLE of the handle is \"safe to hold while pan is hot.\" That demands a poor heat conductor — wood. Other answers may be true but aren't the design reason. PSLE marks the FUNCTION-driven answer.",
+          "mascotCorrect": "/master-class/electrical-circuits/panda-correct.png",
+          "mascotWrong": "/master-class/electrical-circuits/panda-wrong.png"
+        },
+        {
+          "label": "Property mismatch trap",
+          "stem": "An umbrella fabric needs to be both **flexible** and **waterproof**.\nWhich material best meets BOTH requirements?",
+          "options": [
+            "Plastic sheet",
+            "Treated fabric (like nylon)",
+            "Metal foil",
+            "Wood"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Plastic sheet is waterproof and flexible, but it can't fold like fabric does. Metal foil is flexible but cracks. Wood is rigid. Treated fabric (nylon, polyester) is the standard answer — flexible enough to fold AND waterproof when coated.",
+          "mascotCorrect": "/master-class/electrical-circuits/panda-correct.png",
+          "mascotWrong": "/master-class/electrical-circuits/panda-wrong.png"
+        }
+      ]
+    },
+    {
+      "title": "Start practising!",
+      "mascotImage": "/master-class/interactions-environment/panda-cta.png",
+      "body": "Mixed practice drawn from PSLE 2016-2025 Diversity questions. Living things + materials, with the trap-heavy patterns we just covered.",
+      "bullets": [
+        "**15 questions** — Living vs Non-Living (4) + Classification (4) + Key (3) + Materials (4)",
+        "Wrong answers auto-saved, reviewed in 1 week",
+        "Focus on the TRAP TYPES — that's where most marks are lost"
+      ],
+      "cta": {
+        "label": "Click here to start practice",
+        "quizSpec": {
+          "title": "Mastery: Diversity",
+          "mcq": 15,
+          "oeq": 0
+        }
+      }
+    }
+  ],
+  "commonMistakes": [],
+  "keyWords": [
+    {
+      "word": "7 characteristics of living things",
+      "definition": "Move, breathe, grow, reproduce, respond, need food/water, excrete. ALL must be true for an organism to be 'living'. The reproduce test is the sharpest single check."
+    },
+    {
+      "word": "dichotomous key",
+      "definition": "A yes/no flowchart for identifying organisms. Strategy: start at top, answer one question, follow the arrow. Never skip ahead or read bottom-up."
+    },
+    {
+      "word": "property vs use",
+      "definition": "Materials are tested by USE: what does the object need to do? Pick the property that fits, then the material. Designed-role beats general-truth answers on PSLE."
+    },
+    {
+      "word": "heat conductor / insulator",
+      "definition": "Metals are good heat conductors (heat flows through). Wood, plastic, rubber are poor heat conductors (insulators — keep things cool to touch). Most PSLE handle/grip questions test this."
+    },
+    {
+      "word": "fungi",
+      "definition": "Mushrooms, mould, yeast. ALIVE but NOT plants (no chlorophyll, can't photosynthesise). Reproduce by spores. PSLE trap word."
+    }
+  ],
+  "subTopics": [
+    {
+      "id": "living-things",
+      "label": "Living vs Non-Living",
+      "description": "Apply the 7 characteristics. PSLE traps test edge cases: fire/river/robot (look alive but don't reproduce), seeds/eggs/mushrooms (look dormant but ARE alive). The reproduce test eliminates most traps.",
+      "slideIdx": 1
+    },
+    {
+      "id": "classification",
+      "label": "Animal & Plant Groups",
+      "description": "6 animal groups (mammals, birds, reptiles, amphibians, fish, insects) + plant types (with flowers/seeds vs spore-reproducers). Each group has ONE diagnostic question. Common traps: whale (mammal not fish), spider (arachnid not insect), penguin (bird), mushroom (fungi).",
+      "slideIdx": 3
+    },
+    {
+      "id": "dichotomous-keys",
+      "label": "Dichotomous Keys",
+      "description": "Yes/no identification flowchart. Strategy: top-down, one question at a time, never skip. Common trap is multi-criterion questions where students answer the wrong part.",
+      "slideIdx": 5
+    },
+    {
+      "id": "materials",
+      "label": "Materials & Properties",
+      "description": "6 properties (strong/flexible/transparent/waterproof/heat conductor/electrical conductor) and their opposites. Strategy: identify object's USE first, then match property → material. Multi-property objects (pan handle, umbrella fabric) are the favourite PSLE traps.",
+      "slideIdx": 7
+    }
+  ]
+}

@@ -9,6 +9,8 @@ import { chineseIdioms } from "./chinese-idioms";
 import { chineseSentenceCompletion } from "./chinese-sentence-completion";
 import { chineseCloze } from "./chinese-cloze";
 import { chineseComprehension } from "./chinese-comprehension";
+import { scienceDiversity } from "./science-diversity";
+import { englishSynthesisTricks } from "./english-synthesis-tricks";
 
 // Master Class registry. Add new topics here as they're authored.
 // The slug is what the admin route uses (/admin/master-class/[slug]).
@@ -24,6 +26,8 @@ export const MASTER_CLASSES: Record<string, MasterClassContent> = {
   "chinese-sentence-completion": chineseSentenceCompletion,
   "chinese-cloze": chineseCloze,
   "chinese-comprehension": chineseComprehension,
+  "science-diversity": scienceDiversity,
+  "english-synthesis-tricks": englishSynthesisTricks,
 };
 
 export function getMasterClass(slug: string): MasterClassContent | null {
