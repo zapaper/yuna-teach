@@ -79,15 +79,39 @@ export async function POST(request: NextRequest) {
   if (!(await isSessionAdmin())) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-  let body: { ids?: string[] };
+  let body: { ids?: string[]; updates?: Array<{ id: string; answer: string }> };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "bad JSON" }, { status: 400 });
   }
+
+  // Two modes:
+  //   { updates: [{ id, answer }] } — write the supplied text verbatim
+  //     (used when the admin edited the proposed "After" cell before
+  //     applying).
+  //   { ids: [...] }                — re-run the normaliser on each
+  //     question's current DB value (legacy bulk-apply path).
+  // updates takes precedence if both are supplied.
+  if (body.updates && Array.isArray(body.updates) && body.updates.length > 0) {
+    if (body.updates.length > 1000) {
+      return NextResponse.json({ error: "max 1000 updates per request" }, { status: 400 });
+    }
+    let updated = 0;
+    for (const u of body.updates) {
+      if (typeof u.id !== "string" || typeof u.answer !== "string") continue;
+      await prisma.examQuestion.update({
+        where: { id: u.id },
+        data: { answer: u.answer },
+      });
+      updated++;
+    }
+    return NextResponse.json({ updated, skipped: 0 });
+  }
+
   const ids = (body.ids ?? []).filter((s): s is string => typeof s === "string" && s.length > 0);
   if (ids.length === 0) {
-    return NextResponse.json({ error: "ids required" }, { status: 400 });
+    return NextResponse.json({ error: "ids or updates required" }, { status: 400 });
   }
   if (ids.length > 1000) {
     return NextResponse.json({ error: "max 1000 ids per request" }, { status: 400 });

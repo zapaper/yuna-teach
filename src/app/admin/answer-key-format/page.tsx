@@ -33,6 +33,11 @@ function Content() {
   const [scannedCount, setScannedCount] = useState<number | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set());
+  // Per-row admin edits to the proposed "After" text. Keyed by row id —
+  // an entry exists only when the admin has typed in that row's textarea.
+  // The Apply step uses this map to send the edited value instead of the
+  // auto-normaliser output.
+  const [edits, setEdits] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [filterLevel, setFilterLevel] = useState<"all" | "3" | "4" | "5" | "6">("all");
   const [filterSubject, setFilterSubject] = useState<"all" | "math" | "science">("all");
@@ -48,6 +53,7 @@ function Content() {
     setRows([]);
     setSelected(new Set());
     setAppliedIds(new Set());
+    setEdits({});
     setScannedCount(null);
     try {
       const res = await fetch(`/api/admin/answer-key-format`);
@@ -80,15 +86,23 @@ function Content() {
   }, [rows, filterLevel, filterSubject]);
 
   const applySelected = useCallback(async () => {
-    const ids = filtered.filter(r => selected.has(r.id) && !appliedIds.has(r.id)).map(r => r.id);
-    if (ids.length === 0) return;
+    const targets = filtered.filter(r => selected.has(r.id) && !appliedIds.has(r.id));
+    if (targets.length === 0) return;
     setApplying(true);
     setError(null);
     try {
+      // Send explicit per-row text (edited value if admin typed in the
+      // textarea, otherwise the auto-normaliser's "after"). The API's
+      // `updates` mode writes verbatim — no second-pass normalisation —
+      // so admin edits are honoured exactly.
+      const updates = targets.map(r => ({
+        id: r.id,
+        answer: edits[r.id] ?? r.after,
+      }));
       const res = await fetch(`/api/admin/answer-key-format`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids }),
+        body: JSON.stringify({ updates }),
       });
       if (!res.ok) {
         const t = await res.text();
@@ -97,7 +111,7 @@ function Content() {
       const data: { updated: number; skipped: number } = await res.json();
       setAppliedIds(prev => {
         const next = new Set(prev);
-        for (const id of ids) next.add(id);
+        for (const u of updates) next.add(u.id);
         return next;
       });
       setError(null);
@@ -107,7 +121,7 @@ function Content() {
     } finally {
       setApplying(false);
     }
-  }, [filtered, selected, appliedIds]);
+  }, [filtered, selected, appliedIds, edits]);
 
   function toggleRow(id: string) {
     setSelected(prev => {
@@ -243,8 +257,26 @@ function Content() {
                             <pre className="whitespace-pre-wrap font-mono text-xs bg-rose-50 p-2 rounded border border-rose-100 text-slate-800">{r.before}</pre>
                           </div>
                           <div>
-                            <div className="text-xs font-semibold text-emerald-600 mb-1">After</div>
-                            <pre className="whitespace-pre-wrap font-mono text-xs bg-emerald-50 p-2 rounded border border-emerald-100 text-slate-800">{r.after}</pre>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-xs font-semibold text-emerald-600">After {edits[r.id] !== undefined && <span className="text-amber-600">(edited)</span>}</span>
+                              {edits[r.id] !== undefined && (
+                                <button
+                                  type="button"
+                                  onClick={() => setEdits(prev => { const n = { ...prev }; delete n[r.id]; return n; })}
+                                  className="text-[10px] text-slate-500 hover:text-slate-700"
+                                >
+                                  Reset to proposed
+                                </button>
+                              )}
+                            </div>
+                            <textarea
+                              value={edits[r.id] ?? r.after}
+                              onChange={e => setEdits(prev => ({ ...prev, [r.id]: e.target.value }))}
+                              disabled={isApplied}
+                              spellCheck={false}
+                              rows={Math.max(2, (edits[r.id] ?? r.after).split("\n").length)}
+                              className="w-full whitespace-pre-wrap font-mono text-xs bg-emerald-50 p-2 rounded border border-emerald-100 text-slate-800 disabled:opacity-60 focus:outline-emerald-400"
+                            />
                           </div>
                         </div>
                       </div>
