@@ -143,7 +143,8 @@ export async function POST(
 ) {
   const { id } = await params;
   const questionId = request.nextUrl.searchParams.get("questionId");
-  console.log(`[mark API] POST /api/exam/${id}/mark${questionId ? `?questionId=${questionId}` : ""}`);
+  // [mark API] entry log dropped — `[quiz-marking] Starting for ...` is
+  // already emitted from inside the marker and gives the same signal.
 
   const paper = await prisma.examPaper.findUnique({
     where: { id },
@@ -184,7 +185,7 @@ export async function POST(
       data: { completedAt: new Date() },
     });
   }
-  console.log(`[mark API] Paper ${id}: paperType=${paper.paperType}, markingStatus=${paper.markingStatus}`);
+  // Status echo dropped — duplicate of info available elsewhere in the flow.
 
   if (questionId) {
     // Re-mark single question — fire and forget

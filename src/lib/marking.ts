@@ -111,12 +111,14 @@ const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
  * though the ink PNG clearly has strokes. Doing the flatten ourselves
  * bypasses that pipeline.
  */
-async function flattenInkOnWhite(pngBuffer: Buffer, label: string): Promise<{ buffer: Buffer; mimeType: "image/jpeg" }> {
+async function flattenInkOnWhite(pngBuffer: Buffer, _label: string): Promise<{ buffer: Buffer; mimeType: "image/jpeg" }> {
+  // Per-subpart INK_FLATTEN log dropped — was firing once per subpart per
+  // re-mark and adding nothing the ink-pixel-check log doesn't already
+  // tell you.
   const buffer = await sharp(pngBuffer)
     .flatten({ background: { r: 255, g: 255, b: 255 } })
     .jpeg({ quality: 95 })
     .toBuffer();
-  console.log(`[marking] INK_FLATTEN ${label}: ${pngBuffer.length}B → ${buffer.length}B (JPG)`);
   return { buffer, mimeType: "image/jpeg" };
 }
 
@@ -3986,7 +3988,12 @@ The image is ONE combined canvas the student used for all sub-parts. There are N
 - If multiple distinct calculations / answers are visible, assume each one corresponds to the next sub-part in order.
 - If only one block of working is visible and all sub-parts share it (e.g. shared fraction work yielding two answers on a "Final answer:" line), copy that working under EACH part with the appropriate final answer.
 - Only report a part as "blank" if you genuinely see nothing that could correspond to it after exhausting the above.
-` : `If the question has sub-parts (a), (b), (c), report each separately. If a part is blank, say "blank".`}
+` : realSubs.length > 0 ? `SUB-PARTS — REQUIRED FORMAT:
+This question has sub-parts ${realSubs.map(s => `(${s.label})`).join(", ")}. You MUST prefix each sub-part's transcription with its label so the review UI can split them:
+  (a) Working: ... / Final answer: ...
+  (b) Working: ... / Final answer: ...
+Even when a sub-part is blank, write the label: "(b) blank". Without the (a) / (b) labels the parent's review screen cannot display your transcription per-part.
+` : ""}
 
 ╔══════════════════════════════════════════════════════════════════╗
 ║  OUTPUT FORMAT — MANDATORY                                        ║

@@ -37,7 +37,9 @@ export async function PATCH(
     data.difficulty = d == null ? null : Math.max(1, Math.min(5, Number(d)));
   }
 
-  console.log("[questions PATCH] id:", id, "fields:", Object.keys(data));
+  // Per-question PATCH fires once per MCQ submission. Logging on every
+  // success was burying signal in noise (dozens of identical lines per
+  // submitted paper). Only log on errors / unusual paths.
   let question;
   try {
     question = await prisma.examQuestion.update({
@@ -45,9 +47,8 @@ export async function PATCH(
       data,
       include: { examPaper: { include: { questions: { select: { marksAwarded: true } } } } },
     });
-    console.log("[questions PATCH] success for id:", id);
   } catch (err: unknown) {
-    console.log("[questions PATCH] error for id:", id, "fields:", Object.keys(data), err);
+    console.warn("[questions PATCH] error for id:", id, "fields:", Object.keys(data), err);
     if (err && typeof err === "object" && "code" in err && err.code === "P2025") {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }
