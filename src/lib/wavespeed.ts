@@ -60,12 +60,17 @@ export async function wavespeedTranscribe<T = unknown>(
   }
   // Strip any leading ```json fences just in case the model added them.
   const cleaned = text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+  if (!cleaned) {
+    throw new Error("Wavespeed returned content but it was only markdown fences with no JSON inside");
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(cleaned);
   } catch (e) {
     console.warn(`[wavespeed:${label}] JSON parse failed (${Date.now() - t0}ms). Raw start: ${cleaned.slice(0, 200)}`);
-    throw e;
+    // Wrap the raw SyntaxError so the route handler sees an actionable
+    // message instead of a bare "Unexpected end of JSON input".
+    throw new Error(`Wavespeed returned unparseable JSON: ${(e as Error).message}`);
   }
   console.log(`[wavespeed:${label}] returned ${cleaned.length} chars JSON in ${Date.now() - t0}ms`);
   return parsed as T;

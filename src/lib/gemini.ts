@@ -996,13 +996,26 @@ async function transcribeViaGeminiOrWavespeed(
       config: { responseMimeType: "application/json", temperature: 0.1 },
     }, 2, 5000, label);
     const text = response.text ?? "";
-    if (text.trim()) {
-      const parsed = JSON.parse(sanitizeJsonString(text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim())) as Record<string, unknown>;
-      if (isUsable(parsed)) {
-        console.log(`[transcribe:${label}] provider=gemini-3.1-pro-preview`);
-        return parsed;
+    const stripped = text.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
+    if (stripped) {
+      // JSON.parse can still throw if the model wrapped its response
+      // in fences with no actual JSON inside (just ```json\n```) or
+      // returned a truncated payload. Treat parse failure the same as
+      // "unusable" — fall through to Wavespeed instead of letting the
+      // SyntaxError bubble to the caller.
+      let parsed: Record<string, unknown> | null = null;
+      try {
+        parsed = JSON.parse(sanitizeJsonString(stripped)) as Record<string, unknown>;
+      } catch (parseErr) {
+        console.warn(`[transcribe:${label}] Gemini returned ${stripped.length} chars that couldn't be parsed as JSON (${(parseErr as Error).message}). Raw start: ${stripped.slice(0, 200)}. Falling back to Wavespeed (GPT-5.5).`);
       }
-      console.warn(`[transcribe:${label}] Gemini returned 200 OK but content was unusable (empty stem + no subparts). Falling back to Wavespeed (GPT-5.5).`);
+      if (parsed) {
+        if (isUsable(parsed)) {
+          console.log(`[transcribe:${label}] provider=gemini-3.1-pro-preview`);
+          return parsed;
+        }
+        console.warn(`[transcribe:${label}] Gemini returned 200 OK but content was unusable (empty stem + no subparts). Falling back to Wavespeed (GPT-5.5).`);
+      }
     } else {
       console.warn(`[transcribe:${label}] Gemini returned empty text. Falling back to Wavespeed (GPT-5.5).`);
     }
