@@ -4013,7 +4013,22 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
           const usedFlashOnly = detectModels.length === 1 && detectModels[0] === "gemini-2.5-flash";
           const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
           const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
-          const looksAllBlank = inkPresentOverall && /\bblank\b/i.test(detectedAnswer) && !/(working|final answer|drew|step\s*\d|=\s*\d|\d+\s*(?:cm|m|kg|g|ml|°|%))/i.test(detectedAnswer);
+          // Strip structural labels (Working:, Final answer:) and placeholder
+          // values like "(no working shown)", "(blank)", "(nothing)", "—",
+          // "N/A" so the negative regex only sees substantive content. The
+          // model often returns the structure with empty slots when it
+          // couldn't read the writing — that should still trigger the
+          // pro retry, even though the words "working" / "final answer"
+          // appear as labels.
+          const stripped = detectedAnswer
+            .replace(/\b(working|final answer)\s*:?/gi, "")
+            .replace(/\((?:no\s+\w+(?:\s+\w+)?(?:\s+shown)?|blank|nothing|empty|n\/?a)\)/gi, "")
+            .replace(/\b(?:n\/a|none|nothing)\b/gi, "")
+            .replace(/[—–\-]+/g, "")
+            .replace(/\([a-z]\)/gi, "") // subpart labels (a), (b), (c)
+            .trim();
+          const hasSubstantiveContent = /(drew|step\s*\d|=\s*\d|\d+\s*(?:cm|m|kg|g|ml|°|%)|[a-zA-Z]{3,})/i.test(stripped);
+          const looksAllBlank = inkPresentOverall && /\bblank\b/i.test(detectedAnswer) && !hasSubstantiveContent;
           if (usedFlashOnly && looksAllBlank) {
             console.log(`[quiz-marking] Q${q.questionNum}: flash said blank with ink present — retrying with gemini-3.1-pro-preview`);
             try {
