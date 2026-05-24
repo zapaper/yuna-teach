@@ -3914,14 +3914,17 @@ ${isDrawableOnly ? "This question" : `Part(s) ${drawableSubLabelList}`} has a pr
 ` : "";
         detectParts.push({ text: `Read the student's handwritten answer from the image above.
 
-REQUIRED FIRST LINE — Begin your response with EXACTLY one of these two lines (no quotes, no extra characters):
-HANDWRITING: PRESENT
-HANDWRITING: ABSENT
+REQUIRED FIRST TWO LINES — Begin your response with EXACTLY these two lines (no quotes, no extra characters, in this order):
+HANDWRITING: PRESENT|ABSENT
+TRANSCRIPTION: FOUND|EMPTY
 
-HANDWRITING: PRESENT means you can see any blue-ink writing or marks on the canvas (even a single digit, letter, or stroke).
-HANDWRITING: ABSENT means the canvas is truly blank — no blue ink anywhere.
+HANDWRITING: PRESENT means you can see any ink writing or marks on the canvas (even a single digit, letter, or stroke).
+HANDWRITING: ABSENT means the canvas is truly blank — no ink anywhere.
 
-Then on subsequent lines, transcribe what was written (or, if ABSENT, just report "blank" and stop).
+TRANSCRIPTION: FOUND means you were able to read at least one digit, letter, word, or shape that the student wrote — even if hard to read or partially illegible.
+TRANSCRIPTION: EMPTY means you can see ink marks but cannot read or interpret what they say (illegible, too faint, smudged, or just scribbles that don't form characters). Use EMPTY whenever your transcription would otherwise be "(blank)", "(no working shown)", "(illegible)", or similar — even if HANDWRITING is PRESENT.
+
+Then on subsequent lines, transcribe what was written. If TRANSCRIPTION: EMPTY, you may stop after the two marker lines.
 ${drawableClause}
 ╔══════════════════════════════════════════════════════════════════╗
 ║  ANTI-HALLUCINATION — READ CAREFULLY                              ║
@@ -4041,26 +4044,33 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
           }
           if (detectErr) console.error(`[quiz-marking] Q${q.questionNum} detection failed across all models:`, detectErr);
 
-          // Self-reported blank detection: the detect prompt requires
-          // the model to start its response with one of:
-          //   HANDWRITING: PRESENT
-          //   HANDWRITING: ABSENT
-          // We do a plain string-equality check on the first line —
-          // no regex against unpredictable AI output. If flash claims
-          // ABSENT but the pixel check confirmed ink, re-run with pro.
-          // Strip the marker line from the answer regardless before
-          // handing it downstream.
+          // Self-reported markers: detect prompt requires the model to
+          // start its response with two lines:
+          //   HANDWRITING: PRESENT|ABSENT
+          //   TRANSCRIPTION: FOUND|EMPTY
+          // Plain string equality on the first two lines — no regex
+          // against unpredictable AI output. If flash claims ABSENT
+          // (no ink seen) OR EMPTY (sees ink but can't read it) and the
+          // pixel check confirmed ink, re-run with pro. Strip the marker
+          // lines before handing the transcription downstream.
           const usedFlashOnly = detectModels.length === 1 && detectModels[0] === "gemini-2.5-flash";
           const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
           const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
-          const newlineIdx = detectedAnswer.indexOf("\n");
-          const firstLine = (newlineIdx >= 0 ? detectedAnswer.slice(0, newlineIdx) : detectedAnswer).trim();
-          const flashSaysAbsent = firstLine === "HANDWRITING: ABSENT";
-          if (firstLine === "HANDWRITING: PRESENT" || firstLine === "HANDWRITING: ABSENT") {
-            detectedAnswer = newlineIdx >= 0 ? detectedAnswer.slice(newlineIdx + 1).trim() : "";
+          const lines = detectedAnswer.split("\n");
+          const line1 = (lines[0] ?? "").trim();
+          const line2 = (lines[1] ?? "").trim();
+          const flashSaysAbsent = line1 === "HANDWRITING: ABSENT";
+          const flashSaysEmpty = line2 === "TRANSCRIPTION: EMPTY";
+          const isMarker1 = line1 === "HANDWRITING: PRESENT" || line1 === "HANDWRITING: ABSENT";
+          const isMarker2 = line2 === "TRANSCRIPTION: FOUND" || line2 === "TRANSCRIPTION: EMPTY";
+          if (isMarker1 && isMarker2) {
+            detectedAnswer = lines.slice(2).join("\n").trim();
+          } else if (isMarker1) {
+            detectedAnswer = lines.slice(1).join("\n").trim();
           }
-          if (usedFlashOnly && inkPresentOverall && flashSaysAbsent) {
-            console.log(`[quiz-marking] Q${q.questionNum}: flash said HANDWRITING: ABSENT but ink present — retrying with gemini-3.1-pro-preview`);
+          if (usedFlashOnly && inkPresentOverall && (flashSaysAbsent || flashSaysEmpty)) {
+            const reason = flashSaysAbsent ? "HANDWRITING: ABSENT" : "TRANSCRIPTION: EMPTY";
+            console.log(`[quiz-marking] Q${q.questionNum}: flash said ${reason} but ink present — retrying with gemini-3.1-pro-preview`);
             try {
               const retry = await withTimeout(
                 ai.models.generateContent({
