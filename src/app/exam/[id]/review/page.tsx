@@ -3301,26 +3301,22 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             return (
                                               <div
-                                                className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative mx-auto"
-                                                // Drawable subparts saved a tall-portrait canvas
-                                                // (quiz visible height ~780, width follows the
-                                                // mobile container ~400). On wide desktop the
-                                                // wrapper used to stretch full-width and squash
-                                                // the image vertically. Cap the wrapper width to
-                                                // ~400px (~spVisible / 2) on desktop so the
-                                                // aspect matches the saved canvas. Non-drawable
-                                                // keeps full-width — clean writing reads better
-                                                // wider.
-                                                style={{
-                                                  height: spVisible,
-                                                  maxWidth: sp.diagramBase64 ? Math.round(spVisible * 0.55) : undefined,
-                                                }}
+                                                className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative"
+                                                // Drawable subparts: let the image dictate size
+                                                // — width:100% of device, height:auto from the
+                                                // saved canvas aspect. Avoids the previous fixed-
+                                                // height squash. Non-drawable subparts keep the
+                                                // fixed-height behaviour (clean writing reads
+                                                // better at a stable wrapper size).
+                                                style={sp.diagramBase64 ? undefined : { height: spVisible }}
                                               >
                                                 <SubmissionImage
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="block"
-                                                  imgStyle={{ width: "100%", height: sp.diagramBase64 ? spVisible : 600, objectFit: "fill" }}
+                                                  imgStyle={sp.diagramBase64
+                                                    ? { width: "100%", height: "auto", display: "block" }
+                                                    : { width: "100%", height: 600, objectFit: "fill" }}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
                                                     if (sp === realSubs[0] && !img.dataset.fallback) {
