@@ -3293,7 +3293,11 @@ function ExamReviewContent({ id }: { id: string }) {
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="block"
-                                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
+                                                  // Match wrapper height so the saved tall canvas
+                                                  // doesn't get squished into a fixed 600px. The
+                                                  // old hard-coded 600 made drawable submissions
+                                                  // look "scrunched up" vs the quiz player view.
+                                                  imgStyle={{ width: "100%", height: spVisible, objectFit: "fill" }}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
                                                     if (sp === realSubs[0] && !img.dataset.fallback) {
@@ -3432,7 +3436,10 @@ function ExamReviewContent({ id }: { id: string }) {
                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}`}
                                   alt={`Written answer for Q${currentQ.questionNum}`}
                                   className="block"
-                                  imgStyle={{ width: "100%", height: 600, objectFit: "fill" }}
+                                  // Match wrapper height so a 1200px-tall saved canvas
+                                  // doesn't get squished into 600px (drawable diagrams
+                                  // were visibly compressed compared to the quiz view).
+                                  imgStyle={{ width: "100%", height: visibleH, objectFit: "fill" }}
                                 />
                                 <ReviewPenOverlay
                                   key={overlayKey}
