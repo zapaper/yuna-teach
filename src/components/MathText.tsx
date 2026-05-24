@@ -18,12 +18,14 @@ import "katex/dist/katex.min.css";
 // Math segment: `$...$` whose content has at least one math-y signal —
 //   - a LaTeX `\command`, OR
 //   - a superscript `^`, subscript `_`, or brace `{ }`, OR
-//   - a letter (variable like x / y / n, or unit like cm / km).
-// The letter trigger picks up plain algebra strings the AI emits as
-// "$x = 6$" / "$y = 2x + 3$" which have no \ or ^ / _ / {}.
-// Plain currency ("$5", "$27", "$5.50") still passes through untouched
-// because it has no letter and no LaTeX char inside the dollar pair.
-const MATH_SEGMENT_RE = /\$([^$\n]*(?:[\\^_{}]|[a-zA-Z])[^$\n]*)\$/;
+//   - an equals sign (algebra: "$x = 6$" / "$y = 2x + 3$").
+// We do NOT use "any letter" as a trigger because Singapore primary
+// papers say things like "Suyi bought cushions at $8 each and had $3
+// left" — the content between the two dollar signs ("8 each and had ")
+// is full of letters but is NOT math; KaTeX would italicize it and
+// drop spaces. `=` is the cleanest discriminator: real equations
+// almost always have it, currency arithmetic almost never does.
+const MATH_SEGMENT_RE = /\$([^$\n]*[\\^_{}=][^$\n]*)\$/;
 // Bold and underline — non-greedy, content cannot contain newlines.
 // Underline requires the two surrounding underscores to be ISOLATED:
 // no `_` immediately before the opening pair, none immediately after
