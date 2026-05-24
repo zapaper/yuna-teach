@@ -91,9 +91,18 @@ export function middleware(request: NextRequest) {
       : /iPhone|iPad/i.test(ua) ? "ios-safari"
       : /Android/i.test(ua) ? "android"
       : "web";
-    console.warn(
-      `[middleware] 401 ${request.method} ${pathname} reason=${check.reason} ua=${uaTag} id=${idPrefix || "none"}`,
-    );
+    // Suppress log for known-noisy fire-and-forget paths that pre-date
+    // a settled cookie. The callers (signup/onboarding) treat failure
+    // as non-fatal — the missing cookie is expected during the cookie-
+    // set + redirect dance, especially in iOS WKWebView. Security is
+    // unchanged: we still return 401, the routes' own auth checks
+    // still fire if the middleware ever lets them through.
+    const isNoisy = request.method === "PATCH" && pathname === "/api/users";
+    if (!isNoisy) {
+      console.warn(
+        `[middleware] 401 ${request.method} ${pathname} reason=${check.reason} ua=${uaTag} id=${idPrefix || "none"}`,
+      );
+    }
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return NextResponse.next();
