@@ -3288,19 +3288,13 @@ async function runExtractionCall(
   console.log(`[Exam Pipeline] ${label} sending ${imagesBase64.length} pages for extraction: [${originalPageIndices.map(i => i + 1).join(", ")}] (1-based)`);
 
   // Model fallback chain — the per-booklet question-coordinate
-  // extraction sends many page images plus the long extraction prompt
-  // and 504s under load. 2.5-flash is fastest; 3-flash-preview reads
-  // grids better; 3.1-pro-preview is the last resort with separate
-  // gateway capacity (gets through when the flash tiers are saturated).
-  // gemini-3-flash-preview dropped — it was responsible for most of
-  // the 504 cascades the user reported. Replaced with 2.5-pro as the
-  // second-try: different SKU, different gateway, slower but more
-  // stable. 3.1-pro-preview stays as last-resort (its own gateway).
-  // Pro-first across all subjects (changed from flash-first). The
-  // per-question accuracy gain from 2.5-pro outweighs its latency for
-  // a one-time extraction; flash stays at the end as a last-resort
-  // fallback when both pro tiers are 504-ing.
-  const QEX_MODELS = ["gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-2.5-flash"] as const;
+  // extraction sends many page images + the long extraction prompt.
+  // 3.1-pro-preview first across all subjects (was 2.5-pro). Math
+  // boundary errors cascade — once Q5 is mis-cropped, Q6/Q7/Q8 all
+  // shift, so one wrong call ruins the whole paper. The accuracy
+  // gain from 3.1-pro on the FIRST attempt pays for itself in the
+  // avoided manual corrections. Same chain shape as answer-extract.
+  const QEX_MODELS = ["gemini-3.1-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash"] as const;
   // Chinese-only fail-fast: retrying a 504-saturated model 3x burns
   // 90-180s and starves the rest of the chain. The chain itself IS
   // the retry. Non-Chinese papers keep maxRetries=2.
