@@ -3300,23 +3300,26 @@ function ExamReviewContent({ id }: { id: string }) {
                                             const spVisible = Math.min(canvasHeights[spCanvasId] ?? spDefault, 900);
                                             const overlayKey = `question:${currentQ.id}:${sp.label}`;
                                             return (
-                                              <div className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative" style={{ height: spVisible }}>
+                                              <div
+                                                className="w-full rounded-2xl border border-[#e5eeff] overflow-hidden bg-white relative mx-auto"
+                                                // Drawable subparts saved a tall-portrait canvas
+                                                // (quiz visible height ~780, width follows the
+                                                // mobile container ~400). On wide desktop the
+                                                // wrapper used to stretch full-width and squash
+                                                // the image vertically. Cap the wrapper width to
+                                                // ~400px (~spVisible / 2) on desktop so the
+                                                // aspect matches the saved canvas. Non-drawable
+                                                // keeps full-width — clean writing reads better
+                                                // wider.
+                                                style={{
+                                                  height: spVisible,
+                                                  maxWidth: sp.diagramBase64 ? Math.round(spVisible * 0.55) : undefined,
+                                                }}
+                                              >
                                                 <SubmissionImage
                                                   src={`/api/exam/${id}/submission?page=${currentQSubmissionPage}&subpart=${sp.label.toLowerCase()}`}
                                                   alt={`Written answer for (${sp.label})`}
                                                   className="block"
-                                                  // Drawable subparts (student drew on a printed
-                                                  // diagram backdrop) were saved at ~900px tall
-                                                  // in the quiz player. Forcing into 600px stretch
-                                                  // squished the diagram + ink so the bottom half
-                                                  // looked compressed and the student's drawing
-                                                  // was hard to see. Match the wrapper height
-                                                  // (= spVisible, the quiz's visible canvas
-                                                  // height) so the image renders at the same
-                                                  // dimensions as the quiz view. Non-drawable
-                                                  // subparts (clean canvas writing) keep the
-                                                  // original 600px since their saved aspect
-                                                  // matches that well.
                                                   imgStyle={{ width: "100%", height: sp.diagramBase64 ? spVisible : 600, objectFit: "fill" }}
                                                   onError={(e) => {
                                                     const img = e.target as HTMLImageElement;
