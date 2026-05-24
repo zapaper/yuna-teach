@@ -17,6 +17,16 @@ import React from "react";
  *  "elated (= very happy)" → "elated"). Applied at display time so
  *  already-extracted dirty answers also render cleanly. Mirrors the
  *  extraction-time cleaner in src/lib/extraction.ts. */
+// Strip the " | explanation" suffix the answer-key extractor sometimes
+// emits for MCQ keys ("(3) | working notes…" → "(3)"). Then drop parens
+// + dot. Returns the canonical "3" / "B" form to compare against an
+// option number/letter. Empty string when input is blank.
+function mcqAnswerHead(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const head = raw.split("|")[0] ?? raw;
+  return head.trim().replace(/[().]/g, "").trim();
+}
+
 function cleanOneWordAnswer(answer: string): string {
   if (!answer) return "";
   let s = answer.trim();
@@ -34,7 +44,9 @@ function cleanOneWordAnswer(answer: string): string {
  *  call. Used by the speaker button in the Chinese review path. */
 function speakChineseMcq(stem: string, options: string[], correctAnsRaw: string): void {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
-  const correctNum = parseInt(correctAnsRaw.replace(/[().]/g, "").trim(), 10);
+  // Strip the optional " | explanation" suffix the extractor sometimes
+  // bolts onto an MCQ key — keep only the head ("(3) | … " → "(3)").
+  const correctNum = parseInt(mcqAnswerHead(correctAnsRaw), 10);
   const correctText = !isNaN(correctNum) && correctNum >= 1 && correctNum <= options.length ? options[correctNum - 1] ?? "" : "";
   // Strip the leading "Q1." / "Q1: " prefix some stems carry, then
   // substitute the answer into whichever marker the stem uses:
@@ -2058,7 +2070,7 @@ function ExamReviewContent({ id }: { id: string }) {
                               }
                               const opts = (q.transcribedOptions as string[] | null) ?? [];
                               const studentRaw = (q.studentAnswer ?? "").trim();
-                              const correctRaw = (q.answer ?? "").replace(/[().]/g, "").trim();
+                              const correctRaw = mcqAnswerHead(q.answer);
                               const studentNum = parseInt(studentRaw, 10);
                               const correctNum = parseInt(correctRaw, 10);
                               const isBlank = !studentRaw || studentRaw === "__SKIPPED__" || isNaN(studentNum);
@@ -2496,7 +2508,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                       <div className="space-y-1.5">
                                         {q.transcribedOptions.map((opt: string, oi: number) => {
                                           const optNum = String(oi + 1);
-                                          const isOptCorrect = correctAns.replace(/[().]/g, "").trim() === optNum;
+                                          const isOptCorrect = mcqAnswerHead(correctAns) === optNum;
                                           const isSelected = studentAns === optNum;
                                           return (
                                             <div key={oi} className={`flex items-start gap-2 p-2 rounded-lg text-sm ${
@@ -3026,7 +3038,7 @@ function ExamReviewContent({ id }: { id: string }) {
                                     <tbody>
                                       {currentQ.transcribedOptionTable.rows.map((row, ri) => {
                                         const optNum = String(ri + 1);
-                                        const isOptCorrect = currentQ.answer?.trim().replace(/[().]/g, "").trim() === optNum;
+                                        const isOptCorrect = mcqAnswerHead(currentQ.answer) === optNum;
                                         const isSelected = currentQ.studentAnswer === optNum;
                                         const rowBg = isOptCorrect ? "bg-[#6cf8bb]/30" : isSelected ? "bg-[#ffdad6]" : "";
                                         return (

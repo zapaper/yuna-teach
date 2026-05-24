@@ -513,11 +513,19 @@ Return ONLY JSON: {"detected": "1" | "2" | "3" | "4" | "A" | "B" | "C" | "D" | n
 /** Check if a question is MCQ based on its expected answer */
 function isMcqAnswer(answer: string | null): boolean {
   if (!answer) return false;
-  const a = answer.trim();
-  if (/^\(?[1-4A-Da-d]\)?$/.test(a)) return true;
+  // Answer-key extraction occasionally stores MCQ keys as
+  // "(3) | working explanation". The "(3)" is the actual answer,
+  // the suffix is solver commentary that got slurped in. Strip
+  // everything past the first " | " before classifying — otherwise
+  // the question gets treated as OEQ and the entire MCQ scoring
+  // path is skipped (parent dashboard then shows 0 marks and the
+  // review UI renders the OEQ layout instead of the option grid).
+  const head = (answer.split("|")[0] ?? answer).trim();
+  if (!head) return false;
+  if (/^\(?[1-4A-Da-d]\)?$/.test(head)) return true;
   // Handle "X or Y" (e.g. "3 or 4", "(1) or (3)")
   // Do NOT split on "/" — it catches fractions like "1/4", "2/3"
-  const normalized = a.replace(/[().]/g, "").trim();
+  const normalized = head.replace(/[().]/g, "").trim();
   const parts = normalized.split(/\s+or\s+/).map(p => p.trim());
   if (parts.length > 1 && parts.every(p => /^[1-4A-Da-d]$/.test(p))) return true;
   return false;

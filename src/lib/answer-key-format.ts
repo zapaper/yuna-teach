@@ -66,6 +66,18 @@ export function normaliseAnswerKeyFormat(answer: string): NormaliseResult {
     (_m, letter, roman) => `(${letter.toLowerCase()})(${roman.toLowerCase()})`
   );
 
+  // 6a) MCQ keys that carry an explanation suffix: "(3) | working notes"
+  //     or "B | because the others are…". When the whole answer is a single
+  //     MCQ-shaped head followed by " | …", drop the suffix. The marker
+  //     and renderer have defensive splits but cleaning the stored data
+  //     is the durable fix.
+  {
+    const m = result.match(/^\s*(\(?[1-4A-Da-d]\)?)\s*\|/);
+    if (m) {
+      result = m[1];
+    }
+  }
+
   // 6) Bare "(i)" / "(ii)" / etc. as a chunk → attach the most-recent
   //    parent letter seen earlier in the answer. Walk chunks left-to-right
   //    tracking the last (letter) we saw — simple or compound.

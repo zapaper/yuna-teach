@@ -19,13 +19,20 @@ import "katex/dist/katex.min.css";
 //   - a LaTeX `\command`, OR
 //   - a superscript `^`, subscript `_`, or brace `{ }`, OR
 //   - an equals sign (algebra: "$x = 6$" / "$y = 2x + 3$").
-// We do NOT use "any letter" as a trigger because Singapore primary
-// papers say things like "Suyi bought cushions at $8 each and had $3
-// left" — the content between the two dollar signs ("8 each and had ")
-// is full of letters but is NOT math; KaTeX would italicize it and
-// drop spaces. `=` is the cleanest discriminator: real equations
-// almost always have it, currency arithmetic almost never does.
-const MATH_SEGMENT_RE = /\$([^$\n]*[\\^_{}=][^$\n]*)\$/;
+// Negative lookbehind/lookahead on both `$` chars: skip pairs where
+// either opening or closing `$` is adjacent to another `$`. That
+// rule handles the new currency escape convention `$$5` / `$$3`,
+// where the extraction emits two dollar signs to mean "literal
+// dollar". The doubled `$$` never matches a math pair; the post-
+// render step below collapses `$$` → `$` for display.
+//
+// We do NOT use "any letter" as a trigger because primary papers
+// say things like "Suyi bought cushions at $8 each and had $3 left"
+// — content between bare-$ currency markers is full of letters but
+// is NOT math; KaTeX would italicize it and drop spaces. `=` is the
+// cleanest discriminator: real equations almost always have it,
+// currency arithmetic almost never does.
+const MATH_SEGMENT_RE = /(?<!\$)\$(?!\$)([^$\n]*[\\^_{}=][^$\n]*)(?<!\$)\$(?!\$)/;
 // Bold and underline — non-greedy, content cannot contain newlines.
 // Underline requires the two surrounding underscores to be ISOLATED:
 // no `_` immediately before the opening pair, none immediately after
@@ -130,6 +137,8 @@ export default function MathText({ text, className }: { text: string; className?
   // the default when there are actual line breaks.
   const style = repaired.includes("\n") ? { whiteSpace: "pre-line" as const } : undefined;
   // Cheap fast-path: no special markers → render as plain string.
+  // Still collapse the `$$` currency escape so newer extractions
+  // display as a single dollar sign.
   if (
     !repaired.includes("$") &&
     !repaired.includes("**") &&
@@ -139,5 +148,18 @@ export default function MathText({ text, className }: { text: string; className?
   ) {
     return <span className={className} style={style}>{repaired}</span>;
   }
-  return <span className={className} style={style}>{renderInline(repaired, "0")}</span>;
+  if (repaired.includes("$") && !repaired.includes("**") && !repaired.includes("__") && !repaired.includes("[underline]") && !repaired.includes("<u>") && !MATH_SEGMENT_RE.test(repaired)) {
+    // Has dollars but no math match anywhere → plain text with
+    // currency escapes collapsed.
+    return <span className={className} style={style}>{repaired.replace(/\$\$/g, "$")}</span>;
+  }
+  return <span className={className} style={style}>{renderInlineAndCollapseCurrency(repaired, "0")}</span>;
+}
+
+// Wrap renderInline so any string-typed children come out with the
+// `$$` currency escape collapsed to a single `$` for display.
+function renderInlineAndCollapseCurrency(text: string, keyBase: string): React.ReactNode[] {
+  return renderInline(text, keyBase).map((node, i) =>
+    typeof node === "string" ? node.replace(/\$\$/g, "$") : node,
+  );
 }
