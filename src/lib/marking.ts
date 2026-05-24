@@ -3882,6 +3882,15 @@ ${isDrawableOnly ? "This question" : `Part(s) ${drawableSubLabelList}`} has a pr
 - Be concrete: name the objects the student's marks touch/refer to, using labels from the printed diagram when possible.
 ` : "";
         detectParts.push({ text: `Read the student's handwritten answer from the image above.
+
+REQUIRED FIRST LINE — Begin your response with EXACTLY one of these two lines (no quotes, no extra characters):
+HANDWRITING: PRESENT
+HANDWRITING: ABSENT
+
+HANDWRITING: PRESENT means you can see any blue-ink writing or marks on the canvas (even a single digit, letter, or stroke).
+HANDWRITING: ABSENT means the canvas is truly blank — no blue ink anywhere.
+
+Then on subsequent lines, transcribe what was written (or, if ABSENT, just report "blank" and stop).
 ${drawableClause}
 ╔══════════════════════════════════════════════════════════════════╗
 ║  ANTI-HALLUCINATION — READ CAREFULLY                              ║
@@ -4001,19 +4010,26 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
           }
           if (detectErr) console.error(`[quiz-marking] Q${q.questionNum} detection failed across all models:`, detectErr);
 
-          // Ink-present pro re-detect: if pixel check confirmed ink and
-          // flash was the only model used, ALWAYS re-run with pro and use
-          // its answer. Earlier we tried to detect "blank-looking"
-          // responses via regex but flash kept finding new ways to slip
-          // past (e.g. "Working: (no working shown) / Final answer:
-          // (blank)" — structural keywords fooled the negative regex).
-          // Trading one extra pro call per ink-present OEQ for a
-          // guaranteed accurate read is the right call.
+          // Self-reported blank detection: the detect prompt requires
+          // the model to start its response with one of:
+          //   HANDWRITING: PRESENT
+          //   HANDWRITING: ABSENT
+          // We do a plain string-equality check on the first line —
+          // no regex against unpredictable AI output. If flash claims
+          // ABSENT but the pixel check confirmed ink, re-run with pro.
+          // Strip the marker line from the answer regardless before
+          // handing it downstream.
           const usedFlashOnly = detectModels.length === 1 && detectModels[0] === "gemini-2.5-flash";
           const inkSubpartsPresent = realSubs.length > 0 && blankSubparts.size < realSubs.length;
           const inkPresentOverall = realSubs.length === 0 ? hasSubmission : inkSubpartsPresent;
-          if (usedFlashOnly && inkPresentOverall) {
-            console.log(`[quiz-marking] Q${q.questionNum}: ink present, re-detecting with gemini-3.1-pro-preview to verify flash result`);
+          const newlineIdx = detectedAnswer.indexOf("\n");
+          const firstLine = (newlineIdx >= 0 ? detectedAnswer.slice(0, newlineIdx) : detectedAnswer).trim();
+          const flashSaysAbsent = firstLine === "HANDWRITING: ABSENT";
+          if (firstLine === "HANDWRITING: PRESENT" || firstLine === "HANDWRITING: ABSENT") {
+            detectedAnswer = newlineIdx >= 0 ? detectedAnswer.slice(newlineIdx + 1).trim() : "";
+          }
+          if (usedFlashOnly && inkPresentOverall && flashSaysAbsent) {
+            console.log(`[quiz-marking] Q${q.questionNum}: flash said HANDWRITING: ABSENT but ink present — retrying with gemini-3.1-pro-preview`);
             try {
               const retry = await withTimeout(
                 ai.models.generateContent({
