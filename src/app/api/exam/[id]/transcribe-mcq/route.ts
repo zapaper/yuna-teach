@@ -241,6 +241,22 @@ export async function POST(
           const diagramBase64 = transcribed.diagram
             ? await cropDiagram(base64, transcribed.diagram).catch(() => null)
             : null;
+          // Even-distribution default for per-subpart marks: if the
+          // model didn't pull "[Nmarks]" suffixes off any subpart but
+          // the total marksAvailable divides cleanly across the
+          // subparts (e.g. 2 marks ÷ 2 subparts = 1 each), append the
+          // inferred "[Nmarks]" suffix so admin/UI/marker all see it.
+          const subs = transcribed.subparts;
+          const hasAnyMarksSuffix = subs.some(s => /\[\s*\d+\s*(?:m(?:ark)?s?)?\s*\]/i.test(s.text ?? ""));
+          const totalMarks = q.marksAvailable ?? null;
+          if (!hasAnyMarksSuffix && subs.length > 0 && totalMarks && totalMarks > 0) {
+            const perPart = totalMarks / subs.length;
+            if (Number.isInteger(perPart) && perPart > 0) {
+              for (const sp of subs) {
+                sp.text = `${(sp.text ?? "").trim()} [${perPart}marks]`.trim();
+              }
+            }
+          }
           return {
             id: q.id,
             type: "open" as const,
@@ -252,7 +268,7 @@ export async function POST(
             options: null,
             optionImages: null,
             optionTable: null,
-            subparts: transcribed.subparts,
+            subparts: subs,
             diagramBounds: transcribed.diagram ?? null,
             diagramBase64,
             error: null,

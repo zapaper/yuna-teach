@@ -3257,6 +3257,21 @@ Return ONLY JSON: {"accepted": true|false, "reason": "<one sentence citing gramm
             }
           }
         }
+        // Even-distribution default: if NO per-part marks were parsed
+        // but the total marksAvailable divides cleanly across the
+        // subparts (e.g. 2 marks ÷ 2 subparts = 1 each, 3 ÷ 3 = 1,
+        // 4 ÷ 2 = 2), assume that split. Caps the AI's per-part
+        // awards even when the printed paper omits the per-part marks.
+        if (partMaxMarks.size === 0 && realSubsForAns.length > 0 && marksAvailable > 0) {
+          const perPart = marksAvailable / realSubsForAns.length;
+          if (Number.isInteger(perPart) && perPart > 0) {
+            for (const sp of realSubsForAns) {
+              partMaxMarks.set(sp.label.toLowerCase(), perPart);
+              partMaxTotal += perPart;
+            }
+            console.log(`[quiz-marking] Q${q.questionNum}: no per-part marks in paper, inferring ${perPart} mark/part across ${realSubsForAns.length} subparts (total ${marksAvailable})`);
+          }
+        }
         const hasFullPartMaxes = partMaxMarks.size === realSubsForAns.length && realSubsForAns.length > 0;
         const partMaxNote = hasFullPartMaxes ? `\n\nMARKS PER PART (HARD CAPS):\n${realSubsForAns.map(sp => `Part (${sp.label}): max ${partMaxMarks.get(sp.label.toLowerCase())} mark(s)`).join("\n")}\nDo NOT award more than the cap for any part. The total of all parts must not exceed the marks available for the question.` : "";
 
