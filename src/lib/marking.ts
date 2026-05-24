@@ -3960,26 +3960,43 @@ Report EXACTLY what the student wrote, including any unit symbols. Return ONLY t
             : ["gemini-2.5-flash"];
           let detectErr: unknown = null;
           for (let i = 0; i < detectModels.length; i++) {
-            try {
-              const detectResponse = await withTimeout(
-                ai.models.generateContent({
-                  model: detectModels[i],
-                  contents: [{ role: "user", parts: detectParts }],
-                  config: { temperature: 0.1 },
-                }),
-                GEMINI_TIMEOUT_MS,
-                `quiz-detect-q${q.questionNum}`,
-              );
-              detectedAnswer = detectResponse.text?.trim() ?? "";
-              if (i > 0) console.log(`[quiz-marking] Q${q.questionNum} detect: fell back to ${detectModels[i]}`);
-              console.log(`[quiz-marking] Q${q.questionNum} detected (${detectModels[i]}): "${detectedAnswer.substring(0, 100)}"`);
-              detectErr = null;
-              break;
-            } catch (err) {
-              detectErr = err;
-              if (i < detectModels.length - 1) {
-                console.warn(`[quiz-marking] Q${q.questionNum} detect with ${detectModels[i]} failed, trying ${detectModels[i + 1]}:`, err instanceof Error ? err.message : err);
+            // Per-model retry with backoff on 503/429/504 before falling
+            // through to the next model. Three attempts at 4s/8s back off
+            // covers most transient Google capacity spikes without
+            // blowing the per-paper marking budget.
+            let modelErr: unknown = null;
+            for (let attempt = 0; attempt < 3; attempt++) {
+              try {
+                const detectResponse = await withTimeout(
+                  ai.models.generateContent({
+                    model: detectModels[i],
+                    contents: [{ role: "user", parts: detectParts }],
+                    config: { temperature: 0.1 },
+                  }),
+                  GEMINI_TIMEOUT_MS,
+                  `quiz-detect-q${q.questionNum}`,
+                );
+                detectedAnswer = detectResponse.text?.trim() ?? "";
+                if (i > 0) console.log(`[quiz-marking] Q${q.questionNum} detect: fell back to ${detectModels[i]}`);
+                if (attempt > 0) console.log(`[quiz-marking] Q${q.questionNum} detect (${detectModels[i]}) succeeded on attempt ${attempt + 1}`);
+                console.log(`[quiz-marking] Q${q.questionNum} detected (${detectModels[i]}): "${detectedAnswer.substring(0, 100)}"`);
+                modelErr = null;
+                detectErr = null;
+                break;
+              } catch (err) {
+                modelErr = err;
+                const status = (err as { status?: number }).status;
+                const retryable = status === 503 || status === 429 || status === 504;
+                if (!retryable || attempt === 2) break;
+                const wait = 4000 * (attempt + 1);
+                console.warn(`[quiz-marking] Q${q.questionNum} detect (${detectModels[i]}) ${status}, retrying in ${wait}ms`);
+                await new Promise(r => setTimeout(r, wait));
               }
+            }
+            if (modelErr === null) break;
+            detectErr = modelErr;
+            if (i < detectModels.length - 1) {
+              console.warn(`[quiz-marking] Q${q.questionNum} detect with ${detectModels[i]} exhausted, trying ${detectModels[i + 1]}:`, modelErr instanceof Error ? modelErr.message : modelErr);
             }
           }
           if (detectErr) console.error(`[quiz-marking] Q${q.questionNum} detection failed across all models:`, detectErr);

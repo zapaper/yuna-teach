@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { GoogleGenAI } from "@google/genai";
 import { resolveActor } from "@/lib/auth-guard";
-
-let _ai: GoogleGenAI | null = null;
-function getAI() {
-  if (!_ai) _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY!, httpOptions: { timeout: 60000 } });
-  return _ai;
-}
+import { generateContentWithRetry } from "@/lib/gemini";
 
 type SubjectGap = { subject: string; topics: string[] };
 
@@ -245,11 +239,11 @@ Formatting rules:
 - Use • (bullet character) at the start of each line, followed by a space.
 - One bullet per line. No other markdown.`;
 
-    const response = await getAI().models.generateContent({
+    const response = await generateContentWithRetry({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { temperature: 0.9 },
-    });
+    }, 3, 4000, "recs-greeting");
     if (!response.text) throw new Error("Empty Gemini response");
     greeting = response.text.trim();
   } catch (e) {
