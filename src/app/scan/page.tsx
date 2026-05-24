@@ -3,6 +3,7 @@
 import { Suspense, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExtractedTest } from "@/types";
+import { isNative, captureSinglePhoto } from "@/lib/native";
 
 type Step = "capture" | "processing" | "review";
 
@@ -31,38 +32,65 @@ function ScanPageContent() {
   const [newWordText, setNewWordText] = useState("");
   const [addingToTest, setAddingToTest] = useState<number | null>(null);
 
+  // Resize an image data-URL down to a max edge of 2048px and re-encode
+  // as JPEG. Same dimensions as compressImage() so the rest of the
+  // flow doesn't care whether the bytes came from a File or the
+  // native Camera plugin.
+  function compressDataUrl(dataUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxDim = 2048;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = (height / width) * maxDim;
+            width = maxDim;
+          } else {
+            width = (width / height) * maxDim;
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
   function compressImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const maxDim = 2048;
-          let { width, height } = img;
-
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = (height / width) * maxDim;
-              width = maxDim;
-            } else {
-              width = (width / height) * maxDim;
-              height = maxDim;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d")!;
-          ctx.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL("image/jpeg", 0.85));
-        };
-        img.onerror = reject;
-        img.src = e.target?.result as string;
+        compressDataUrl(e.target?.result as string).then(resolve).catch(reject);
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  }
+
+  // iOS / Capacitor camera path. The `<input type="file" capture>`
+  // approach works fine in Safari but is unreliable inside our
+  // WKWebView (with limitsNavigationsToAppBoundDomains=true the
+  // file-picker camera intent silently no-ops). Native plugin call
+  // returns a JPEG data URL we feed into the same processing path.
+  async function captureWithNativeCamera() {
+    setError(null);
+    try {
+      const dataUrl = await captureSinglePhoto();
+      if (!dataUrl) return; // user cancelled
+      const compressed = await compressDataUrl(dataUrl);
+      setImageData(compressed);
+      await processImage(compressed);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Camera failed");
+      setStep("capture");
+    }
   }
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
@@ -436,7 +464,7 @@ function ScanPageContent() {
 
               {/* Action buttons */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                <button onClick={() => cameraInputRef.current?.click()}
+                <button onClick={() => isNative() ? captureWithNativeCamera() : cameraInputRef.current?.click()}
                   className="group flex flex-col items-center justify-center p-10 bg-[#001e40] rounded-[1.5rem] text-white hover:bg-[#003366] transition-all duration-300 hover:-translate-y-1 shadow-lg active:scale-95">
                   <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>photo_camera</span>
