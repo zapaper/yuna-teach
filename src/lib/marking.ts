@@ -97,23 +97,24 @@ const VOLUME_PATH =
 const SUBMISSIONS_DIR = path.join(VOLUME_PATH, "submissions");
 
 /**
- * Flatten a transparent ink PNG onto a solid white background and return
- * as a JPG buffer. Used for quiz OEQ canvases where the app saves both:
+ * Flatten a transparent ink PNG onto a solid white background. Returns a
+ * PNG buffer (lossless) so thin anti-aliased strokes survive compression
+ * — JPG at any quality smooths thin strokes into invisibility.
+ *
+ * Used for quiz OEQ canvases where the app saves both:
  *   - page_X_ink.png (transparent, strokes only) — used by hasOpaquePixels
  *   - page_X.jpg     (supposedly strokes flattened on white)
- * Observed bug: the JPG sometimes renders as blank/empty even though the
- * ink PNG clearly has strokes. Doing the flatten ourselves bypasses that
- * pipeline so the AI always sees a guaranteed ink-on-white image.
+ * Observed bug: the upstream JPG sometimes renders as blank/empty even
+ * though the ink PNG clearly has strokes. Doing the flatten ourselves
+ * bypasses that pipeline.
  */
-async function flattenInkOnWhite(pngBuffer: Buffer, label: string): Promise<Buffer> {
-  return await sharp(pngBuffer)
+async function flattenInkOnWhite(pngBuffer: Buffer, label: string): Promise<{ buffer: Buffer; mimeType: "image/png" }> {
+  const buffer = await sharp(pngBuffer)
     .flatten({ background: { r: 255, g: 255, b: 255 } })
-    .jpeg({ quality: 92 })
-    .toBuffer()
-    .then(buf => {
-      console.log(`[marking] INK_FLATTEN ${label}: ${pngBuffer.length}B PNG → ${buf.length}B JPG`);
-      return buf;
-    });
+    .png({ compressionLevel: 6 })
+    .toBuffer();
+  console.log(`[marking] INK_FLATTEN ${label}: ${pngBuffer.length}B → ${buffer.length}B (PNG)`);
+  return { buffer, mimeType: "image/png" };
 }
 
 /**
@@ -3770,6 +3771,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               // needs to say "row 2 column 3" — it would just see
               // floating ticks on a blank page.
               let spBuffer: Buffer;
+              let spMime: "image/jpeg" | "image/png" = "image/jpeg";
               if (isSpDrawable) {
                 const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
                 spBuffer = await fs.readFile(spPath);
@@ -3777,7 +3779,9 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
                 try {
                   const spInkPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}_ink.png`);
                   const spInkBuf = await fs.readFile(spInkPath);
-                  spBuffer = await flattenInkOnWhite(spInkBuf, `Q${q.questionNum}(${sp.label})`);
+                  const flattened = await flattenInkOnWhite(spInkBuf, `Q${q.questionNum}(${sp.label})`);
+                  spBuffer = flattened.buffer;
+                  spMime = flattened.mimeType;
                 } catch {
                   const spPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}.jpg`);
                   spBuffer = await fs.readFile(spPath);
@@ -3787,7 +3791,7 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
                 ? `Student's handwritten answer for part (${sp.label}) — THIS IS A DRAWING TASK (shading/arrows/marks on a diagram). Ink is confirmed present:`
                 : `Student's handwritten answer for part (${sp.label}):`;
               parts.push({ text: labelNote });
-              parts.push({ inlineData: { mimeType: "image/jpeg" as const, data: spBuffer.toString("base64") } });
+              parts.push({ inlineData: { mimeType: spMime, data: spBuffer.toString("base64") } });
               hasSubmission = true;
             } catch {
               // No per-subpart canvas file. Try cropping the

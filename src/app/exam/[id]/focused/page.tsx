@@ -191,18 +191,27 @@ function FocusedTestContent({ id }: { id: string }) {
     setCurrentIdx(nextIdx);
   }
 
+  // Guard against double-tap / overlapping save clicks. iOS WebView can
+  // fire onClick twice on a single tap; without this, the same paper's
+  // full file set was being POSTed twice in quick succession.
+  const savingRef = useRef(false);
   async function saveProgress() {
-    if (!paper) return;
-    await captureCanvasAt(currentIdx);
-    const form = new FormData();
-    form.append("action", "save");
-    for (let i = 0; i < paper.questions.length; i++) {
-      const ink = inkBlobsRef.current[i];
-      const composite = compositeBlobsRef.current[i];
-      if (ink) form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
-      if (composite) form.append(`page_${i}`, composite, `page_${i}.jpg`);
+    if (!paper || savingRef.current) return;
+    savingRef.current = true;
+    try {
+      await captureCanvasAt(currentIdx);
+      const form = new FormData();
+      form.append("action", "save");
+      for (let i = 0; i < paper.questions.length; i++) {
+        const ink = inkBlobsRef.current[i];
+        const composite = compositeBlobsRef.current[i];
+        if (ink) form.append(`page_${i}_ink`, ink, `page_${i}_ink.png`);
+        if (composite) form.append(`page_${i}`, composite, `page_${i}.jpg`);
+      }
+      await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
+    } finally {
+      savingRef.current = false;
     }
-    await fetch(`/api/exam/${id}/submission`, { method: "POST", body: form });
   }
 
   async function handleSubmit() {

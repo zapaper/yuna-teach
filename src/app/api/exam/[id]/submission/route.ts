@@ -200,7 +200,19 @@ export async function POST(
       pageCount++;
     }
   }
-  console.log(`[submission] ${id} action=${action} wrote: [${written.join(", ")}] received-files: [${allKeys.join(", ")}]`);
+  // One-line summary instead of dumping all file paths. Full breakdown
+  // only printed when received ≠ written (the actual signal worth
+  // surfacing — file-save bugs cause divergence).
+  const totalBytes = written.reduce((s, w) => {
+    const m = w.match(/\((\d+)b\)/);
+    return s + (m ? parseInt(m[1], 10) : 0);
+  }, 0);
+  const sizeKB = (totalBytes / 1024).toFixed(0);
+  if (written.length === allKeys.length) {
+    console.log(`[submission] ${id} action=${action} wrote ${written.length} files (${sizeKB}KB)`);
+  } else {
+    console.warn(`[submission] ${id} action=${action} MISMATCH: wrote ${written.length} of ${allKeys.length} received. wrote: [${written.join(", ")}] received-files: [${allKeys.join(", ")}]`);
+  }
 
   if (action === "submit") {
     const updatedPaper = await prisma.examPaper.update({
