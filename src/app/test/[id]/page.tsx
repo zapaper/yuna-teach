@@ -42,6 +42,26 @@ function TestPageContent({ id }: { id: string }) {
     { key: "male2", label: "Male 2", neural: true },
   ];
   const [voice, setVoice] = useState<string>("female");
+  // Discrete speed multipliers applied on top of the API's base
+  // rate (0.7 for word, 0.9 for meaning). 1.0 = current behaviour,
+  // ranges from half-speed (slower, for new learners) to double
+  // (faster, for revision). Persisted per-browser.
+  const SPEED_OPTIONS = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
+  const [speedMultiplier, setSpeedMultiplier] = useState<number>(1.0);
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? window.localStorage.getItem("spelling-tts-speed") : null;
+    if (saved) {
+      const n = parseFloat(saved);
+      if (Number.isFinite(n) && SPEED_OPTIONS.includes(n)) setSpeedMultiplier(n);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  function cycleSpeed() {
+    const cur = SPEED_OPTIONS.indexOf(speedMultiplier);
+    const next = SPEED_OPTIONS[(cur + 1) % SPEED_OPTIONS.length];
+    setSpeedMultiplier(next);
+    if (typeof window !== "undefined") window.localStorage.setItem("spelling-tts-speed", String(next));
+  }
   const [testMode, setTestMode] = useState(false);
   const [playingWord, setPlayingWord] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -125,6 +145,7 @@ function TestPageContent({ id }: { id: string }) {
               type: "word",
               expandPunct: true,
               voice,
+              speedMultiplier,
             }),
           }),
           fetch("/api/tts", {
@@ -169,6 +190,7 @@ function TestPageContent({ id }: { id: string }) {
               language: test.language,
               type: "word",
               voice,
+              speedMultiplier,
             }),
           });
 
@@ -185,7 +207,7 @@ function TestPageContent({ id }: { id: string }) {
         if (abortRef.current === abort) setPlayingWord(null);
       }
     },
-    [test, voice]
+    [test, voice, speedMultiplier]
   );
 
   async function saveTitle() {
@@ -309,6 +331,17 @@ function TestPageContent({ id }: { id: string }) {
           >
             <span className="material-symbols-outlined text-sm">record_voice_over</span>
             {VOICE_OPTIONS.find(v => v.key === voice)?.label ?? "Female 1"}
+          </button>
+
+          {/* Speed cycling toggle. Multiplier applied to the API's
+              base speech rate (0.7 / 0.9). 1.0 = current default. */}
+          <button
+            onClick={cycleSpeed}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#003366] text-white text-[11px] font-bold hover:bg-[#001e40] transition-colors"
+            title="Tap to cycle speed"
+          >
+            <span className="material-symbols-outlined text-sm">speed</span>
+            {Math.round(speedMultiplier * 100)}%
           </button>
 
           {/* Search — desktop only */}

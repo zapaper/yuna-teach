@@ -5,7 +5,17 @@ import { generateWordInfo } from "@/lib/gemini";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, language, type, expandPunct, voice, pairedText } = body;
+    const { text, language, type, expandPunct, voice, pairedText, speedMultiplier } = body;
+    // Per-user speed knob applied on top of the base rate. Caller
+    // sends 0.5–2.0 (or omits for default 1.0). Clamp to a sensible
+    // range so a bad payload can't request silence or DoS the TTS
+    // service with 100x-slow audio. Google + Fish both accept any
+    // positive multiplier on their underlying speakingRate.
+    const speedMul = (() => {
+      const n = typeof speedMultiplier === "number" ? speedMultiplier : 1.0;
+      if (!Number.isFinite(n)) return 1.0;
+      return Math.max(0.5, Math.min(2.0, n));
+    })();
 
     if (!text || !language) {
       return NextResponse.json(
@@ -31,7 +41,7 @@ export async function POST(request: NextRequest) {
           ? `${info.meaning}。${info.example}`
           : `${info.meaning}. ${info.example}`;
 
-      const audioBuffer = await synthesizeSpeech(speechText, language, { voice });
+      const audioBuffer = await synthesizeSpeech(speechText, language, { voice, speed: 0.9 * speedMul });
       return new NextResponse(audioBuffer, {
         status: 200,
         headers: {
@@ -44,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Default: TTS for the word itself
     const audioBuffer = await synthesizeSpeech(text, language, {
       expandPunct: !!expandPunct,
-      speed: expandPunct ? 0.7 : 0.9,
+      speed: (expandPunct ? 0.7 : 0.9) * speedMul,
       voice,
     });
     return new NextResponse(audioBuffer, {
