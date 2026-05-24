@@ -43,6 +43,11 @@ const PUBLIC_REGEXES: RegExp[] = [
 function methodAwareAllowed(pathname: string, method: string): boolean {
   // POST /api/users = signup, unauth'd. GET /api/users = list, auth'd.
   if (pathname === "/api/users" && method === "POST") return true;
+  // GET /api/users/check?name=...|?email=... = "is this name/email
+  // available" check on signup / username-picker screens. Called
+  // before the user has a session — must be reachable unauth. Read
+  // only, returns just { available: boolean }.
+  if (pathname === "/api/users/check" && method === "GET") return true;
   return false;
 }
 
