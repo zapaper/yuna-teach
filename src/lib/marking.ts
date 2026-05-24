@@ -300,7 +300,12 @@ Reply with ONLY one word: YES or NO.`;
     );
     const text = (response.text ?? "").trim().toUpperCase();
     const result = text.startsWith("YES");
-    console.log(`[marking] BLUE INK CHECK ${label}: "${text}" → ${result ? "HAS INK" : "BLANK"}`);
+    // Caller logs the outcome ("no ink detected — awarding 0" or proceeds
+    // with marking). Only log here when the model returned something
+    // unexpected so debugging signal isn't lost in normal flow.
+    if (text !== "YES" && text !== "NO") {
+      console.log(`[marking] BLUE INK CHECK ${label}: unexpected response "${text.slice(0, 40)}" → treating as ${result ? "HAS INK" : "BLANK"}`);
+    }
     return result;
   } catch (err) {
     // If pre-check fails, assume ink exists to avoid false negatives
@@ -3734,7 +3739,9 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               const spInkPath = path.join(subDir, `page_${scanPageIdx}_${sp.label}_ink.png`);
               const spInkBuffer = await fs.readFile(spInkPath);
               spHasInk = hasOpaquePixels(spInkBuffer);
-              console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): ink pixel check → ${spHasInk ? "HAS INK" : "BLANK"} (${spInkBuffer.length} bytes)`);
+              // Only log HAS INK — the "all subparts blank" summary
+              // below captures the all-empty case in one line.
+              if (spHasInk) console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): ink pixel check → HAS INK (${spInkBuffer.length} bytes)`);
             } catch {
               // No ink file. For TEXT subparts assume ink exists —
               // the AI reads handwriting off the composite image.
@@ -3746,7 +3753,6 @@ Return JSON: {"questions": [{"questionId": "${q.id}", "marksAwarded": <number>, 
               // for genuinely missing-ink than to award full marks
               // off a non-existent submission.
               spHasInk = !isSpDrawable;
-              console.log(`[quiz-marking] Q${q.questionNum}(${sp.label}): no ink PNG; ${isSpDrawable ? "drawable → treat as BLANK" : "text → assume HAS INK"}`);
             }
             if (!spHasInk) {
               blankSubparts.add(sp.label);
